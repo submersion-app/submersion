@@ -43272,7 +43272,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String importWizard_dc_noUsbOnThisPlatformBody(String name) {
-    return 'Ez a számítógép USB-kábellel csatlakozik, amelyet a Submersion iPhone-on és iPaden nem tud használni: $name. Töltse le a merüléseit a Submersionnel egy Mac, Windows vagy Linux rendszerű számítógépen, vagy importálja őket fájlból.';
+    return 'Ez a számítógép ($name) USB-kábellel csatlakozik, amelyet a Submersion iPhone-on és iPaden nem tud használni. Töltse le a merüléseit a Submersionnel egy Mac, Windows vagy Linux rendszerű számítógépen, vagy importálja őket fájlból.';
   }
 
   @override

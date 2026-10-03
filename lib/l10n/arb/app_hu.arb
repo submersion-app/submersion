@@ -12904,7 +12904,7 @@
   "importWizard_dc_noDirectDownload": "Erről a búvárszámítógépről nem lehet közvetlenül letölteni",
   "importWizard_dc_noDirectDownloadBody": "A Submersion nem tárol mentett kapcsolatot ehhez: {name}. Importálja a merüléseit fájlból, vagy adja hozzá újra a Merülésszámítógépek oldalon, hogy Bluetooth-on vagy USB-n keresztül tölthessen le.",
   "importWizard_dc_noDirectDownloadGarminBody": "A Garmin órák FIT-fájlokként tárolják a merüléseket, és nem kínálnak közvetlen letöltést. Csatlakoztassa az órát USB-n, másolja ki a fájlokat a GARMIN/Activity mappájából, majd importálja őket.",
-  "importWizard_dc_noUsbOnThisPlatformBody": "Ez a számítógép USB-kábellel csatlakozik, amelyet a Submersion iPhone-on és iPaden nem tud használni: {name}. Töltse le a merüléseit a Submersionnel egy Mac, Windows vagy Linux rendszerű számítógépen, vagy importálja őket fájlból.",
+  "importWizard_dc_noUsbOnThisPlatformBody": "Ez a számítógép ({name}) USB-kábellel csatlakozik, amelyet a Submersion iPhone-on és iPaden nem tud használni. Töltse le a merüléseit a Submersionnel egy Mac, Windows vagy Linux rendszerű számítógépen, vagy importálja őket fájlból.",
   "importWizard_dc_noNewDives": "Nincs letöltendő új merülés",
   "importWizard_dc_noNewDivesBody": "Ennek a búvárszámítógépnek az összes merülése már importálva lett.",
   "universalImport_compare_noDiveData": "A merülési adatok nem érhetők el összehasonlításhoz.",
