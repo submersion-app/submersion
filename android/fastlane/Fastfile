@@ -62,6 +62,15 @@ PLAY_ERROR_HINTS = [
     "reachable only from a release: attach a bundle to a track release, choose " \
     "Preview and confirm, then follow Go to declaration.",
   ],
+  [
+    /changesNotSentForReview to true/i,
+    "Play would not send this release for review automatically, because the Play " \
+    "Console already holds changes that must be sent by hand, so nothing was " \
+    "committed. Open Publishing overview in the Play Console, check the pending " \
+    "changes (a release, declaration or listing edit), and send them for review. " \
+    "Re-run this job afterwards: the version code was not used. Betas uploaded " \
+    "before this check existed may be waiting there too (#2887).",
+  ],
 ].freeze
 
 platform :android do
@@ -314,8 +323,15 @@ platform :android do
   # The annotation goes to $stdout directly: a bare `puts` in a Fastfile is
   # fastlane's puts action, which prefixes a timestamp, and GitHub only reads a
   # workflow command at the very start of a line.
+  #
+  # supply's rescue_changes_not_sent_for_review is forced off for every call.
+  # Left at its default, a commit Play refuses to send for review is retried
+  # with changesNotSentForReview=true and reported as a success: eight betas in
+  # a row waited unseen in the Console's Publishing overview that way while
+  # open testers stayed on an older build (#2887). Off, the refusal fails the
+  # run and the hint above says what to send.
   def upload_to_play_with_hint(params)
-    upload_to_play_store(params)
+    upload_to_play_store(params.merge(rescue_changes_not_sent_for_review: false))
   rescue StandardError => e
     hint = play_error_hint(e.message)
     if hint

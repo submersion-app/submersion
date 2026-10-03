@@ -14,6 +14,15 @@
 # ... has already been used": Play never takes a version code twice, and a
 # bundle with that code had reached it in the meantime. Neither message says
 # what to do, so the lane has to.
+#
+# And issue #2887: eight betas in a row reported "AAB released to the 'beta'
+# track!" while open testers stayed on the last build before them. Once the Play
+# Console holds a change that must be sent for review by hand, Play refuses to
+# send an API edit for review automatically, and supply's default
+# (rescue_changes_not_sent_for_review: true) quietly re-commits the edit with
+# changesNotSentForReview=true. The release then waits in the Console's
+# Publishing overview for someone to press Send, and the log reads exactly like
+# a release that went out.
 
 require 'stringio'
 
@@ -97,6 +106,11 @@ VERSION_CODE_USED_ERROR = 'Google Api Error: Invalid request - Version code 8537
 FOREGROUND_SERVICE_ERROR =
   'Google Api Error: Invalid request - You must let us know whether your app uses any ' \
   'Foreground Service permissions.'
+# The commit-time refusal supply used to swallow, as Play words it.
+NOT_SENT_FOR_REVIEW_ERROR =
+  'Google Api Error: badRequest: Changes cannot be sent for review automatically. Please ' \
+  'set the query parameter changesNotSentForReview to true. Once committed, the changes in ' \
+  'this edit can be sent for review from the Google Play Console UI.'
 
 # --- Recognising the rejections ---------------------------------------------
 
@@ -117,6 +131,13 @@ check(hint.match?(/re-?run/i), 'the version-code hint does not warn that a re-ru
 hint = play_error_hint(FOREGROUND_SERVICE_ERROR).to_s
 check(!hint.empty?, 'the foreground service declaration rejection got no hint')
 check(hint.match?(/Go to declaration/), 'the foreground service hint does not say how to reach the form')
+
+hint = play_error_hint(NOT_SENT_FOR_REVIEW_ERROR).to_s
+check(!hint.empty?, 'the not-sent-for-review rejection got no hint')
+check(hint.match?(/Publishing overview/i),
+      'the not-sent-for-review hint does not say where the pending changes are')
+check(hint.match?(/send .*for review/i), 'the not-sent-for-review hint does not say to send them for review')
+check(hint.match?(/re-?run/i), 'the not-sent-for-review hint does not say a re-run then succeeds')
 
 # Anything else must get no hint: a wrong hint sends the reader the wrong way.
 [
@@ -162,7 +183,8 @@ with_env('GITHUB_ACTIONS' => 'true') do
   stdout = capture_stdout { raised = call_wrapper(original) }
 end
 check(raised.equal?(original), "the wrapper replaced the Play error with #{raised.inspect}")
-check($upload_params == { track: 'beta' }, 'the wrapper did not pass its params through to the Play action')
+check($upload_params.is_a?(Hash) && $upload_params[:track] == 'beta',
+      'the wrapper did not pass its params through to the Play action')
 check($ui_errors.any? { |m| m.match?(/internal app sharing/i) }, 'the hint was not printed to the fastlane log')
 
 annotations = stdout.lines.select { |l| l.start_with?('::error') }
@@ -189,6 +211,30 @@ check(!stdout.include?('::error'), 'an unrecognised Play error printed an annota
 raised = call_wrapper(nil)
 check(raised.nil?, "a successful upload raised #{raised.inspect}")
 check($ui_errors.empty?, 'a successful upload printed a hint')
+
+# --- No release is parked silently (#2887) ----------------------------------
+# With supply's rescue on, a refused review is committed as "not sent for
+# review" and reported as a success. The wrapper turns the rescue off for every
+# call, a lane cannot turn it back on, and the refusal then fails the run with
+# the hint above.
+
+call_wrapper(nil)
+check($upload_params[:rescue_changes_not_sent_for_review] == false,
+      'the wrapper left supply free to commit a release that was never sent for review')
+
+$upload_error = nil
+upload_to_play_with_hint(track: 'beta', rescue_changes_not_sent_for_review: true)
+check($upload_params[:rescue_changes_not_sent_for_review] == false,
+      'a lane turned the not-sent-for-review rescue back on')
+check(!$upload_params.key?(:changes_not_sent_for_review) || $upload_params[:changes_not_sent_for_review] == false,
+      'the wrapper commits edits as not sent for review')
+
+with_env('GITHUB_ACTIONS' => 'true') do
+  stdout = capture_stdout { raised = call_wrapper(FakePlayError.new(NOT_SENT_FOR_REVIEW_ERROR)) }
+end
+check(raised.is_a?(FakePlayError), 'a refused review did not fail the call')
+check(stdout.lines.any? { |l| l.start_with?('::error') && l.match?(/Publishing overview/i) },
+      'a refused review did not annotate the run with where the changes wait')
 
 # --- Every Play call goes through the wrapper -------------------------------
 # A lane that calls the action directly would fail with the bare API message
@@ -222,6 +268,25 @@ if lane_body
   end
 else
   check(false, 'the android Fastfile no longer defines an upload_beta lane to check')
+end
+
+# Each lane that commits a Play edit, run against the stubs, reaches the action
+# with the rescue off. The upload_beta and mirror_beta lanes are the ones that
+# parked #2887's betas.
+$upload_error = nil
+{
+  upload_beta: -> { LANES[:upload_beta].call },
+  mirror_beta: -> { with_env('PLAY_VERSION_CODE' => '8682') { LANES[:mirror_beta].call({}) } },
+  promote_to_production: -> { LANES[:promote_to_production].call(version_code: '8682') },
+}.each do |name, run|
+  unless LANES.key?(name)
+    check(false, "the android Fastfile no longer defines a #{name} lane to check")
+    next
+  end
+  $upload_params = nil
+  with_env('GITHUB_ACTIONS' => nil, 'PLAY_BETA_TRACK' => nil, 'PLAY_BETA_MIRROR_TRACK' => nil) { run.call }
+  check($upload_params.is_a?(Hash) && $upload_params[:rescue_changes_not_sent_for_review] == false,
+        "the #{name} lane can commit a release that was never sent for review")
 end
 
 # --- Report -----------------------------------------------------------------
