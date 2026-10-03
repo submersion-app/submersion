@@ -206,6 +206,49 @@ void main() {
     },
   );
 
+  // On a dive with several computers the dive-level analysis runs over every
+  // computer's samples interleaved by timestamp. Neighbouring samples then
+  // come from different computers, and the ascent rates between them are
+  // artifacts. The review grades the primary source's own analysis: the one
+  // the chart draws.
+  test(
+    "reviews the primary source's own analysis, not the merged one",
+    () async {
+      final repo = _FakeRepo();
+      final interleaved = rapidAscentProfile();
+      final primary = cleanDiveProfile();
+      final merged = analyzeFixture(
+        depths: interleaved.depths,
+        timestamps: interleaved.timestamps,
+      ).copyWith(inputsFingerprint: defaultFingerprint());
+      final own = analyzeFixture(
+        depths: primary.depths,
+        timestamps: primary.timestamps,
+      ).copyWith(inputsFingerprint: defaultFingerprint());
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          safetyFindingsRepositoryProvider.overrideWithValue(repo),
+          safetyReviewEnabledProvider.overrideWithValue(true),
+          profileAnalysisProvider('d1').overrideWith((ref) async => merged),
+          sourceProfileAnalysisProvider((
+            diveId: 'd1',
+            sourceId: null,
+          )).overrideWith((ref) async => own),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final result = await container.read(safetyReviewProvider('d1').future);
+      expect(repo.saved, isNotNull);
+      expect(
+        result!.findings.where((f) => f.ruleId == SafetyRuleId.rapidAscent),
+        isEmpty,
+        reason: 'the rapid ascent exists only in the interleaved samples',
+      );
+    },
+  );
+
   // Issue #2592: a review records the settings its analysis ran on, and a
   // change to them invalidates it. A review stored from another diver's
   // settings (#2564), from settings since edited, or before inputs were
