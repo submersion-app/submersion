@@ -62,7 +62,7 @@ enum DiveDetailSectionId {
       tide => 'Tide',
       reefHealth => 'Water Conditions',
       surfaceGps => 'Surface GPS',
-      navTrack => 'Underwater Route',
+      navTrack => 'Underwater Track',
       weights => 'Weights',
       buoyancy => 'Buoyancy',
       tanks => 'Cylinders',
@@ -93,7 +93,7 @@ enum DiveDetailSectionId {
       tide => 'Tide cycle graph and timing',
       reefHealth => 'Satellite water conditions on the dive date',
       surfaceGps => 'GPS entry/exit points and surface drift',
-      navTrack => 'Measured underwater route from a navigation console',
+      navTrack => 'Measured underwater track from a navigation console',
       weights => 'Weight breakdown, total weight',
       buoyancy => 'Buoyancy through the dive, swing, ditchable weight',
       tanks =>
