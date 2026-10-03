@@ -901,4 +901,29 @@ void main() {
       );
     });
   });
+
+  testWidgets(
+    'a track with no name or source file is titled Underwater track',
+    (tester) async {
+      await _pump(
+        tester,
+        route: NavTrack(
+          id: 'r1',
+          source: NavTrackSource.seacraftEnc,
+          startTime: 1755856800000,
+          endTime: 1755860400000,
+          pointCount: 0,
+          createdAt: DateTime(2026, 8, 22),
+          updatedAt: DateTime(2026, 8, 22),
+        ),
+      );
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.text('Underwater track'),
+        ),
+        findsOneWidget,
+      );
+    },
+  );
 }

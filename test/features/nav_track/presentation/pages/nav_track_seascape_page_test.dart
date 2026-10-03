@@ -139,4 +139,26 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 1));
   });
+
+  testWidgets('shows the no-scene message when the scene fails to build', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          ...overrides,
+          navTrackSceneProvider(
+            't1',
+          ).overrideWith((ref) async => throw StateError('no terrain')),
+        ],
+        child: const NavTrackSeascapePage(trackId: 't1'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('This track has no usable seascape.'), findsOneWidget);
+    expect(find.byType(Dive3dInteractiveViewport), findsNothing);
+  });
 }
