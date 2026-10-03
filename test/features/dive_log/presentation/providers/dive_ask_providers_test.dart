@@ -515,4 +515,25 @@ void main() {
     await Future<void>.delayed(Duration.zero);
     expect(engine.prepareCalls, 1);
   });
+
+  test('a replay whose name index fails ends with an error', () async {
+    final c = make(
+      _Engine(_turtles),
+      names: () async => throw StateError('index build failed'),
+    );
+    final parsed = ParsedQuery.fromJson(
+      (jsonDecode(_deep) as Map).cast<String, Object?>(),
+    );
+    final route = await askOf(c).replay(
+      RecentQuery(
+        sentence: 'deep dives',
+        locale: 'en',
+        parsed: parsed,
+        lastUsedAt: DateTime(2026, 10, 1),
+      ),
+    );
+    expect(route, isNull);
+    expect(stateOf(c).running, isFalse);
+    expect(stateOf(c).error, NlError.unknown);
+  });
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
@@ -21,6 +22,51 @@ void main() {
   late List<String> hints;
   late List<RecentQuery> recentsTapped;
 
+  List<dynamic> overridesFor({
+    List<RecentQuery> recents = const [],
+    bool askEnabled = true,
+    bool imperial = false,
+    List<String> buddyNames = const [],
+  }) => [
+    savedQueryLoadsProvider(
+      'dives',
+    ).overrideWith((ref) async => const <SavedQueryLoad>[]),
+    recentQueriesProvider.overrideWith((ref) async => recents),
+    exploreEnabledProvider.overrideWithValue(askEnabled),
+    allBuddiesProvider.overrideWith(
+      (ref) async => [
+        for (final (i, n) in buddyNames.indexed)
+          Buddy(
+            id: 'b$i',
+            name: n,
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+      ],
+    ),
+    queryUnitPrefsProvider.overrideWithValue(
+      imperial
+          ? const UnitPrefs(
+              depth: DepthUnit.feet,
+              temperature: TemperatureUnit.fahrenheit,
+              pressure: PressureUnit.psi,
+              weight: WeightUnit.pounds,
+              volume: VolumeUnit.cubicFeet,
+            )
+          : kMetricPrefs,
+    ),
+  ];
+
+  Widget suggestions() => DiveSearchSuggestions(
+    onSaved: (_) {},
+    onRecent: recentsTapped.add,
+    onHint: hints.add,
+    printQuery: (node) => switch (node) {
+      TextNode(:final words) => words.join(' '),
+      _ => '$node',
+    },
+  );
+
   Future<void> pumpSuggestions(
     WidgetTester tester, {
     List<RecentQuery> recents = const [],
@@ -33,46 +79,13 @@ void main() {
     await tester.pumpWidget(
       testApp(
         locale: const Locale('en'),
-        overrides: [
-          savedQueryLoadsProvider(
-            'dives',
-          ).overrideWith((ref) async => const <SavedQueryLoad>[]),
-          recentQueriesProvider.overrideWith((ref) async => recents),
-          exploreEnabledProvider.overrideWithValue(askEnabled),
-          allBuddiesProvider.overrideWith(
-            (ref) async => [
-              for (final (i, n) in buddyNames.indexed)
-                Buddy(
-                  id: 'b$i',
-                  name: n,
-                  createdAt: DateTime(2026),
-                  updatedAt: DateTime(2026),
-                ),
-            ],
-          ),
-          queryUnitPrefsProvider.overrideWithValue(
-            imperial
-                ? const UnitPrefs(
-                    depth: DepthUnit.feet,
-                    temperature: TemperatureUnit.fahrenheit,
-                    pressure: PressureUnit.psi,
-                    weight: WeightUnit.pounds,
-                    volume: VolumeUnit.cubicFeet,
-                  )
-                : kMetricPrefs,
-          ),
-        ],
-        child: SingleChildScrollView(
-          child: DiveSearchSuggestions(
-            onSaved: (_) {},
-            onRecent: recentsTapped.add,
-            onHint: hints.add,
-            printQuery: (node) => switch (node) {
-              TextNode(:final words) => words.join(' '),
-              _ => '$node',
-            },
-          ),
+        overrides: overridesFor(
+          recents: recents,
+          askEnabled: askEnabled,
+          imperial: imperial,
+          buddyNames: buddyNames,
         ),
+        child: SingleChildScrollView(child: suggestions()),
       ),
     );
     await tester.pumpAndSettle();
@@ -141,5 +154,35 @@ void main() {
   ) async {
     await pumpSuggestions(tester, buddyNames: ['Ana Lee']);
     expect(find.text('buddy = "Ana Lee"'), findsOneWidget);
+  });
+
+  testWidgets('Manage opens the saved queries page', (tester) async {
+    hints = [];
+    recentsTapped = [];
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) =>
+              Scaffold(body: SingleChildScrollView(child: suggestions())),
+        ),
+        GoRoute(
+          path: '/saved-queries',
+          builder: (context, state) => const Text('saved queries page'),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        locale: const Locale('en'),
+        overrides: overridesFor(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(kDiveSearchManageSavedKey));
+    await tester.pumpAndSettle();
+    expect(find.text('saved queries page'), findsOneWidget);
   });
 }
