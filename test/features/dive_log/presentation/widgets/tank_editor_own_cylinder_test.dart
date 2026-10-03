@@ -180,7 +180,7 @@ void main() {
   Future<void> pick(WidgetTester tester, EquipmentItem item) async {
     await tester.tap(pickerButton);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(Key('own-cylinder-${item.id}')));
+    await tester.tap(find.text(item.name));
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 300)),
     );
@@ -234,11 +234,11 @@ void main() {
 
     expect(find.text(l10n.diveLog_tank_ownCylinderTitle), findsOneWidget);
     expect(find.text(l10n.diveLog_tank_ownCylinderHint), findsOneWidget);
-    expect(find.byKey(Key('own-cylinder-${faber.id}')), findsOneWidget);
-    expect(find.byKey(Key('own-cylinder-${bare.id}')), findsOneWidget);
+    expect(find.text(faber.name), findsOneWidget);
+    expect(find.text(bare.name), findsOneWidget);
     // Spare gear is not offered (#1803), nor is gear that is not a tank.
-    expect(find.byKey(Key('own-cylinder-${spare.id}')), findsNothing);
-    expect(find.byKey(Key('own-cylinder-${regulator.id}')), findsNothing);
+    expect(find.text(spare.name), findsNothing);
+    expect(find.text(regulator.name), findsNothing);
   });
 
   // Shared gear is usable on a dive (#2046), so a cylinder another diver
@@ -265,7 +265,9 @@ void main() {
     await tester.tap(pickerButton);
     await tester.pumpAndSettle();
 
-    final sharedTile = find.byKey(const Key('own-cylinder-eq-shared'));
+    Finder tileOf(String name) =>
+        find.ancestor(of: find.text(name), matching: find.byType(ListTile));
+    final sharedTile = tileOf('Sam 15');
     expect(
       find.descendant(
         of: sharedTile,
@@ -275,7 +277,7 @@ void main() {
     );
     expect(
       find.descendant(
-        of: find.byKey(Key('own-cylinder-${bare.id}')),
+        of: tileOf(bare.name),
         matching: find.byType(EquipmentOwnerChip),
       ),
       findsNothing,

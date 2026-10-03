@@ -135,10 +135,9 @@ void main() {
     expect(find.text(l10n.diveLog_edit_equipmentCaption), findsNothing);
   });
 
-  testWidgets('a cylinder picked into a tank joins the equipment list', (
-    tester,
-  ) async {
-    await pumpExpanded(tester);
+  testWidgets('a cylinder picked into a tank fills it and joins the '
+      'equipment list', (tester) async {
+    final l10n = await pumpExpanded(tester);
     expect(find.text('Faber 12'), findsNothing);
 
     await tester.ensureVisible(find.byType(TankRow));
@@ -150,13 +149,23 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(button);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(Key('own-cylinder-${cylinder.id}')));
+    await tester.tap(find.text('Faber 12'));
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 300)),
     );
     await tester.pumpAndSettle();
 
-    // Listed once, in the equipment list: the tank row shows its spec.
+    // Listed once, in the equipment list: the tank does not link to it.
     expect(find.text('Faber 12'), findsOneWidget);
+
+    // The tank took the cylinder's size: its collapsed row reads 12 L, not
+    // the 11.1 L it was saved with.
+    final done = find.text(l10n.diveLog_edit_tankCard_done);
+    await tester.ensureVisible(done);
+    await tester.pumpAndSettle();
+    await tester.tap(done);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('12 L'), findsOneWidget);
+    expect(find.textContaining('11.1 L'), findsNothing);
   });
 }

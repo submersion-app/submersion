@@ -16,6 +16,7 @@ import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_resolver.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
@@ -1184,13 +1185,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   Future<void> _pickOwnCylinder() async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
-    final item = await showOwnCylinderPicker(
-      context,
-      cylinders: ownCylinders(
-        ref.read(activeEquipmentProvider).value ?? const <EquipmentItem>[],
-      ),
-      units: UnitFormatter(ref.read(settingsProvider)),
-    );
+    final item = await showOwnCylinderPicker(context);
     if (item == null || !mounted) return;
     // Like a scan, the cylinder reaches the dive's gear through database
     // work Save must wait for.
@@ -1199,34 +1194,17 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     await use;
   }
 
-  /// Copies [item]'s spec and newest fill into the tank, then hands it to
-  /// the host to join the dive's gear: a copy, never a link, as for a
-  /// scanned own cylinder. Never throws: a failure is logged and reported.
+  /// Fills the tank from a picked [item]. Never throws: a failure is logged
+  /// and reported.
   Future<void> _fillFromOwnCylinder(
     EquipmentItem item,
     ScaffoldMessengerState messenger,
     AppLocalizations l10n,
   ) async {
     try {
-      final passportId = await ref
-          .read(cylinderPassportRepositoryProvider)
-          .getPassportId(item.id);
-      final fills = await ref
-          .read(cylinderFillRepositoryProvider)
-          .getForCylinder(passportId: passportId, equipmentId: item.id);
+      final fills = await ref.read(fillsForEquipmentProvider(item.id).future);
       if (!mounted) return;
-      final filled = _applyScannedSpec(
-        volumeL: item.volumeL,
-        workingPressureBar: item.workingPressureBar,
-        material: item.tankMaterial,
-        mix: fills.isEmpty ? null : fills.first.gasMix,
-      );
-      await widget.onOwnCylinderUsed?.call(item);
-      if (filled) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.passport_scan_filledFrom(item.name))),
-        );
-      }
+      await _useOwnCylinder(item, fills, messenger, l10n);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to fill a tank from an own cylinder',
@@ -1285,19 +1263,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           if (item == null) {
             throw StateError('Scanned cylinder $equipmentId has no row');
           }
-          final filled = _applyScannedSpec(
-            volumeL: item.volumeL,
-            workingPressureBar: item.workingPressureBar,
-            material: item.tankMaterial,
-            mix: fills.isEmpty ? null : fills.first.gasMix,
-          );
-          // The cylinder joins the dive's gear even when it records no spec.
-          await widget.onOwnCylinderUsed?.call(item);
-          if (filled) {
-            messenger.showSnackBar(
-              SnackBar(content: Text(l10n.passport_scan_filledFrom(item.name))),
-            );
-          }
+          await _useOwnCylinder(item, fills, messenger, l10n);
         case ForeignCylinder(:final tag):
           final filled = _applyScannedSpec(
             volumeL: tag.volumeL,
@@ -1330,6 +1296,31 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       if (!mounted) return;
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.passport_scan_openFailed)),
+      );
+    }
+  }
+
+  /// The diver's own cylinder, scanned or picked, fills the tank with its
+  /// spec and newest of [fills], then goes to the host to join the dive's
+  /// gear: a copy, never a link (`DiveTank.equipmentId` belongs to the
+  /// transmitter registry). Throws what the host's gear add throws.
+  Future<void> _useOwnCylinder(
+    EquipmentItem item,
+    List<CylinderFill> fills,
+    ScaffoldMessengerState messenger,
+    AppLocalizations l10n,
+  ) async {
+    final filled = _applyScannedSpec(
+      volumeL: item.volumeL,
+      workingPressureBar: item.workingPressureBar,
+      material: item.tankMaterial,
+      mix: fills.isEmpty ? null : fills.first.gasMix,
+    );
+    // The cylinder joins the dive's gear even when it records no spec.
+    await widget.onOwnCylinderUsed?.call(item);
+    if (filled) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.passport_scan_filledFrom(item.name))),
       );
     }
   }
