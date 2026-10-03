@@ -5,8 +5,7 @@ A pull request's CI tests the merge of the branch into main, so when main is
 red every open branch goes red with it, and the contributor cannot tell their
 own breakage from the pre-existing kind (issue #2611). The `CI Success` gate
 runs this script on a pull request whose required jobs did not all pass. For
-each failed job it looks up the same job, by name, in main's CI/CD run, and
-emits:
+each failed job it looks up the same job in main's CI/CD run, and emits:
 
   - a warning annotation, "Also failing on main", when main's job failed too:
     the failure is probably inherited, and the run on main is linked;
@@ -20,11 +19,12 @@ because a branch that changes the test files moves them between shards. So a
 failing shard can still hide a second failure the branch added on top of
 main's; the annotation says "likely" for that reason.
 
-The baseline is main's finished run at the pull request's base commit, the one
-this merge was built on, looked up by sha; failing that, the newest finished
-run on main.
-Cancelled runs are skipped: concurrency cancels superseded runs on main, and
-their jobs say nothing about whether main is healthy.
+The baseline is main's finished run at the pull request's base commit (the
+merge commit's first parent), looked up by sha; failing that, main's newest
+finished runs. Cancelled runs are skipped, since concurrency cancels
+superseded runs on main and their jobs never reached a verdict. So is a run
+that skipped the failed jobs: a docs-only commit skips codegen and everything
+after it. Up to MAX_BASELINE_RUNS runs are tried.
 
 This is reporting only. It exits 0 whatever happens, including API errors, so
 it can never be the reason a pipeline fails. Standard library only: the gate
@@ -54,6 +54,10 @@ _PAGE = 100
 
 _SHARD_SUFFIX = re.compile(r"\s*\(shard \d+\)$")
 
+# main runs tried before settling for one without results for the failed jobs.
+# Each costs one API call; docs-only merges rarely come more than a few in a row.
+MAX_BASELINE_RUNS = 5
+
 
 def escape_data(text):
     """Escape a workflow command's message."""
@@ -76,17 +80,9 @@ def failed_job_names(jobs):
     )
 
 
-def pick_baseline(runs, base_sha):
-    """main's run to compare against, or None when there is none."""
-    usable = [
-        r
-        for r in runs
-        if r.get("status") == "completed" and r.get("conclusion") in _USABLE_RUN
-    ]
-    for r in usable:
-        if r.get("head_sha") == base_sha:
-            return r
-    return usable[0] if usable else None
+def usable_run(run):
+    """Whether a main run finished with a verdict worth comparing against."""
+    return run.get("status") == "completed" and run.get("conclusion") in _USABLE_RUN
 
 
 def job_family(name):
@@ -166,6 +162,49 @@ def notice(message):
     print(f"::notice::{escape_data(message)}")
 
 
+def baseline_runs(fetch, repo, workflow, base_sha):
+    """main's usable runs, best first: the base commit's, then newest first.
+
+    Lazy, so the recent-runs list is only fetched when the base run does not
+    settle the comparison. The base is looked up by sha because a long-lived
+    branch's base can be older than any page of recent runs.
+    """
+    runs_path = f"/repos/{repo}/actions/workflows/{workflow}/runs"
+    filters = "branch=main&event=push&status=completed"
+    seen = set()
+    if base_sha:
+        at_base = fetch(f"{runs_path}?head_sha={base_sha}&{filters}&per_page=10")
+        for run in at_base.get("workflow_runs", []):
+            if run.get("head_sha") == base_sha and usable_run(run):
+                seen.add(run["id"])
+                yield run
+    recent = fetch(f"{runs_path}?{filters}&per_page=30")
+    for run in recent.get("workflow_runs", []):
+        if usable_run(run) and run["id"] not in seen:
+            seen.add(run["id"])
+            yield run
+
+
+def choose_baseline(fetch, repo, workflow, base_sha, pr_failed):
+    """(run, classification, has_results) for the first main run with results.
+
+    A run has results when main passed or failed at least one of the failed
+    jobs. Without one in MAX_BASELINE_RUNS tries, the first run is returned so
+    the report can still say there is nothing to compare. (None, ..., False)
+    when main has no usable run at all.
+    """
+    first = None
+    candidates = baseline_runs(fetch, repo, workflow, base_sha)
+    for _, run in zip(range(MAX_BASELINE_RUNS), candidates):
+        result = classify(pr_failed, list_jobs(fetch, repo, run["id"]))
+        inherited, new, _ = result
+        if inherited or new:
+            return run, result, True
+        if first is None:
+            first = (run, result, False)
+    return first or (None, ([], [], []), False)
+
+
 def report(env, fetch):
     repo = env["GITHUB_REPOSITORY"]
     run_id = env["GITHUB_RUN_ID"]
@@ -175,17 +214,9 @@ def report(env, fetch):
     if not pr_failed:
         return
 
-    # The base commit first, by sha: a long-lived branch's base can be older
-    # than any page of recent runs. Then main's newest finished run.
-    runs_path = f"/repos/{repo}/actions/workflows/{workflow_file(env)}/runs"
-    filters = "branch=main&event=push&status=completed"
-    baseline = None
-    if base_sha:
-        at_base = fetch(f"{runs_path}?head_sha={base_sha}&{filters}&per_page=10")
-        baseline = pick_baseline(at_base.get("workflow_runs", []), base_sha)
-    if baseline is None:
-        recent = fetch(f"{runs_path}?{filters}&per_page=30")
-        baseline = pick_baseline(recent.get("workflow_runs", []), base_sha)
+    baseline, (inherited, new, unknown), has_results = choose_baseline(
+        fetch, repo, workflow_file(env), base_sha, pr_failed
+    )
     if baseline is None:
         notice(
             "No finished CI/CD run on main to compare against, so inherited "
@@ -193,13 +224,14 @@ def report(env, fetch):
         )
         return
 
-    inherited, new, unknown = classify(
-        pr_failed, list_jobs(fetch, repo, baseline["id"])
-    )
     sha = baseline.get("head_sha", "")[:9]
     url = baseline.get("html_url", "")
-    at_base = baseline.get("head_sha") == base_sha
-    where = "at this pull request's base" if at_base else "in its newest finished run"
+    if baseline.get("head_sha") == base_sha:
+        where = "at this pull request's base"
+    elif has_results:
+        where = "in its newest finished run that ran these jobs"
+    else:
+        where = "in its newest finished run"
 
     for name in inherited:
         title = escape_property("Also failing on main")

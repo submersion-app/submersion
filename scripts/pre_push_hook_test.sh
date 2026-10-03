@@ -300,11 +300,17 @@ make_proximity_fixture() {
         printf "import 'package:submersion/features/alpha/domain/alpha_entity.dart';\n"
     } > test/features/beta/presentation/pages/beta_multi_hit_test.dart
 
-    # A repo-wide architecture guard. It imports nothing the branch changes and
-    # lives in no feature area, so only the guard tier can select it.
-    mkdir -p test/architecture
+    # Repo-wide guards. Each imports nothing the branch changes and lives in no
+    # feature area, so only the guard tier can select it:
+    #   - test/architecture/ is implicitly "scans lib/";
+    #   - a marked scanner elsewhere declares the trees it reads;
+    #   - a guard that reads test/ declares that.
+    mkdir -p test/architecture test/l10n
     printf '// scans every file under lib/\n' \
         > test/architecture/sample_guard_test.dart
+    printf '// pre-push: scans lib/\n' > test/l10n/arb_scan_test.dart
+    printf '// pre-push: scans test/\n' > test/architecture/test_scan_guard_test.dart
+    printf '{}\n' > lib/l10n/arb/app_en.arb
 
     # 60 importers of the generated l10n file, so a 40-file sample is a strict
     # subset and "sampled" is distinguishable from "all".
@@ -363,6 +369,8 @@ assert_selected lacks 'test/features/beta/presentation/pages/beta_only_far_test.
 
 assert_selected has 'test/architecture/sample_guard_test.dart' \
     'runs the architecture guards when a lib file changes'
+assert_selected has 'test/l10n/arb_scan_test.dart' \
+    'runs a marked lib scanner outside test/architecture when lib changes'
 
 # --- Test 4: the format check is scoped to the changed files ----------------
 #
@@ -463,6 +471,39 @@ fi
 
 assert_selected lacks 'test/architecture/sample_guard_test.dart' \
     'skips the architecture guards for a push with no Dart change'
+assert_selected lacks 'test/l10n/arb_scan_test.dart' \
+    'skips marked scanners for a push outside lib/ and test/'
+
+rm -rf "$tmp"
+
+# --- Test 7c: a non-Dart lib change still runs the lib scanners -------------
+#
+# An ARB edit changes no Dart file, but the l10n parity guards read the ARBs.
+
+tmp="$(make_proximity_fixture 'lib/l10n/arb/app_en.arb')"
+run_hook "$tmp"
+
+assert_selected has 'test/l10n/arb_scan_test.dart' \
+    'runs the lib scanners for an ARB-only change'
+assert_selected has 'test/architecture/sample_guard_test.dart' \
+    'runs the architecture guards for an ARB-only change'
+
+rm -rf "$tmp"
+
+# --- Test 7d: a test-only change runs only the guards that read test/ -------
+#
+# Most guards read lib/ alone, and a push that only edits a test cannot break
+# them; running them all would cost tens of seconds for nothing.
+
+tmp="$(make_proximity_fixture 'test/features/gamma/l10n_1_test.dart')"
+run_hook "$tmp"
+
+assert_selected has 'test/architecture/test_scan_guard_test.dart' \
+    'runs a guard marked as reading test/ for a test-only change'
+assert_selected lacks 'test/architecture/sample_guard_test.dart' \
+    'skips lib-only architecture guards for a test-only change'
+assert_selected lacks 'test/l10n/arb_scan_test.dart' \
+    'skips marked lib scanners for a test-only change'
 
 rm -rf "$tmp"
 

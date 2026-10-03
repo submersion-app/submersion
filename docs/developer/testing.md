@@ -559,11 +559,19 @@ to leave one in place.
 ## Pre-push Hook and Inherited Failures
 
 The pre-push hook (`hooks/pre-push`) runs a ranked selection of the tests your
-push affects, chosen by what imports the changed files. The guards in
-`test/architecture/` read the whole of `lib/` from disk instead of importing
-it, so no import can show that a new file breaks one. The hook therefore runs
-all of them whenever a push changes a Dart file under `lib/` or `test/`
-(issue #2611). CI still runs the full suite on every pull request that
+push affects, chosen by what imports the changed files. Repo-wide guards read
+a whole tree from disk instead of importing it, so no import can show that a
+new file breaks one (issue #2611). The hook runs them by the trees they read:
+
+- everything in `test/architecture/` runs when the push changes any file
+  under `lib/`;
+- a guard elsewhere declares what it reads with a comment line,
+  `// pre-push: scans lib/` or `// pre-push: scans test/` (or both), and runs
+  when the push changes a file there. The ARB parity checks in `test/l10n/`
+  and the widget adoption guards in `test/shared/widgets/` carry it.
+
+Mark a new guard that scans a tree the same way, or put it in
+`test/architecture/`. CI still runs the full suite on every pull request that
 changes code; a docs-only or CI-only change skips it unless `[full-ci]` is in
 the title or a commit message.
 
@@ -578,11 +586,14 @@ pull request, `CI Success` compares each failed job with the same job in
 | Not failing on main (notice) | `main` passes that job, so the failure is new on this pull request |
 | No result on main (notice) | `main` skipped, cancelled or never ran that job, so there is nothing to compare |
 
-The pull request stays red either way. Test shards are compared as one job,
-since a branch that changes the test files moves them between shards. A
+The baseline is `main`'s run at the commit the merge was built on, or else
+the newest runs that actually ran the failed jobs (a docs-only commit skips
+them). The pull request stays red either way. Test shards are compared as one
+job, since a branch that changes the test files moves them between shards. A
 failing shard can still hide a second failure your branch added on top of
-`main`'s, so read the log before assuming the failure is not yours. Re-running the old job
-does not pick up a fix on `main`; push a commit or merge `main` instead.
+`main`'s, so read the log before assuming the failure is not yours.
+Re-running the old job does not pick up a fix on `main`; push a commit or
+merge `main` instead.
 
 ## Best Practices
 

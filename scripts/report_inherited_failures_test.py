@@ -57,29 +57,18 @@ class FailedJobNamesTest(unittest.TestCase):
         self.assertEqual(report.failed_job_names(jobs), ["Code Generation"])
 
 
-class PickBaselineTest(unittest.TestCase):
-    def test_prefers_the_run_at_the_pull_request_base(self):
-        runs = [run(3, "c" * 40), run(2, BASE_SHA), run(1, OLDER_SHA)]
-        self.assertEqual(report.pick_baseline(runs, BASE_SHA)["id"], 2)
+class UsableRunTest(unittest.TestCase):
+    def test_accepts_a_finished_run_with_a_verdict(self):
+        self.assertTrue(report.usable_run(run(1, BASE_SHA, conclusion="success")))
+        self.assertTrue(report.usable_run(run(1, BASE_SHA, conclusion="failure")))
 
-    def test_falls_back_to_the_newest_finished_run(self):
-        runs = [run(3, "c" * 40, conclusion="cancelled"), run(2, OLDER_SHA)]
-        self.assertEqual(report.pick_baseline(runs, BASE_SHA)["id"], 2)
-
-    def test_skips_a_cancelled_run_at_the_base(self):
+    def test_skips_a_cancelled_run(self):
         # Superseded on main by concurrency: its jobs say nothing about main.
-        runs = [run(3, BASE_SHA, conclusion="cancelled"), run(2, OLDER_SHA)]
-        self.assertEqual(report.pick_baseline(runs, BASE_SHA)["id"], 2)
+        self.assertFalse(report.usable_run(run(1, BASE_SHA, conclusion="cancelled")))
 
     def test_skips_a_run_still_in_progress(self):
-        runs = [run(3, BASE_SHA, conclusion=None, status="in_progress"),
-                run(2, OLDER_SHA)]
-        self.assertEqual(report.pick_baseline(runs, BASE_SHA)["id"], 2)
-
-    def test_returns_none_without_a_usable_run(self):
-        self.assertIsNone(report.pick_baseline([], BASE_SHA))
-        self.assertIsNone(
-            report.pick_baseline([run(1, BASE_SHA, conclusion="cancelled")], BASE_SHA)
+        self.assertFalse(
+            report.usable_run(run(1, BASE_SHA, conclusion=None, status="in_progress"))
         )
 
 
@@ -301,6 +290,81 @@ class MainTest(unittest.TestCase):
         _, out, _ = self.run_main(api)
         self.assertIn("::warning title=Also failing on main::Code Generation", out)
         self.assertIn("newest finished run", out)
+
+    def skipped_base_api(self, recent, jobs_by_run):
+        responses = {
+            "/repos/o/r/actions/runs/99/jobs": {
+                "total_count": 1, "jobs": [job("Code Generation", "failure")],
+            },
+            f"/repos/o/r/actions/workflows/ci.yaml/runs?head_sha={BASE_SHA}": {
+                "workflow_runs": [run(5, BASE_SHA, conclusion="success")],
+            },
+            "/repos/o/r/actions/workflows/ci.yaml/runs": {"workflow_runs": recent},
+        }
+        for run_id, jobs in jobs_by_run.items():
+            responses[f"/repos/o/r/actions/runs/{run_id}/jobs"] = {
+                "total_count": len(jobs), "jobs": jobs,
+            }
+        return FakeApi(responses)
+
+    def test_moves_past_a_main_run_that_skipped_the_jobs(self):
+        # The base is a docs-only commit: codegen and everything after it were
+        # skipped, so the previous code commit's run is the one with results.
+        api = self.skipped_base_api(
+            recent=[run(5, BASE_SHA, conclusion="success"), run(4, OLDER_SHA)],
+            jobs_by_run={
+                5: [job("Code Generation", "skipped")],
+                4: [job("Code Generation", "failure")],
+            },
+        )
+        _, out, summary = self.run_main(api)
+        self.assertIn("::warning title=Also failing on main::Code Generation", out)
+        self.assertIn("aaaaaaaaa", out)
+        self.assertIn("newest finished run that ran these jobs", out)
+        self.assertIn("runs/4", summary)
+
+    def test_tries_a_bounded_number_of_main_runs(self):
+        recent = [run(i, f"{i:040d}", conclusion="success") for i in range(10, 0, -1)]
+        api = self.skipped_base_api(
+            recent=recent,
+            jobs_by_run={i: [job("Code Generation", "skipped")] for i in range(1, 11)},
+        )
+        _, out, _ = self.run_main(api)
+        job_lists = [p for p in api.paths if "/runs/" in p and "/runs/99/" not in p]
+        self.assertLessEqual(len(job_lists), report.MAX_BASELINE_RUNS)
+        self.assertIn("::notice title=No result on main::Code Generation", out)
+
+    def test_names_the_newest_run_when_no_run_has_results(self):
+        api = FakeApi({
+            "/repos/o/r/actions/runs/99/jobs": {
+                "total_count": 1, "jobs": [job("Code Generation", "failure")],
+            },
+            f"/repos/o/r/actions/workflows/ci.yaml/runs?head_sha={BASE_SHA}": {
+                "workflow_runs": [],
+            },
+            "/repos/o/r/actions/workflows/ci.yaml/runs": {
+                "workflow_runs": [run(6, OLDER_SHA, conclusion="success")],
+            },
+            "/repos/o/r/actions/runs/6/jobs": {
+                "total_count": 1, "jobs": [job("Code Generation", "skipped")],
+            },
+        })
+        _, out, _ = self.run_main(api)
+        self.assertIn(
+            "Code Generation has no result on main in its newest finished run "
+            "(aaaaaaaaa)",
+            out,
+        )
+
+    def test_does_not_list_recent_runs_when_the_base_has_results(self):
+        api = self.standard_api(
+            pr_jobs=[job("Code Generation", "failure")],
+            main_jobs=[job("Code Generation", "failure")],
+        )
+        self.run_main(api)
+        runs_queries = [p for p in api.paths if "/workflows/" in p]
+        self.assertEqual(len(runs_queries), 1)
+        self.assertIn("head_sha=", runs_queries[0])
 
     def test_reads_the_latest_attempt_of_each_job(self):
         api = self.standard_api(

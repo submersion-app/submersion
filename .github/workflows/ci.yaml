@@ -1482,15 +1482,23 @@ jobs:
         # When main is red, every pull request inherits the failure and a
         # contributor cannot tell it from their own (issue #2611). This
         # compares each failed job with the same job on main and annotates it
-        # "Also failing on main" or "Not failing on main". Reporting only: the
-        # script always exits 0, and the step below still fails the gate.
-        if: >-
-          github.event_name == 'pull_request' &&
-          (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled'))
+        # "Also failing on main", "Not failing on main" or "No result on main".
+        # Reporting only: the script always exits 0, and the step below still
+        # fails the gate. A cancelled job is not reported, so a run with
+        # nothing but cancellations does not start it.
+        #
+        # The base is the merge commit's first parent: the main commit this
+        # run actually tested. The event's base.sha can name an older one. The
+        # checkout is shallow, but cat-file prints the raw commit, parents
+        # included.
+        if: github.event_name == 'pull_request' && contains(needs.*.result, 'failure')
         env:
           GH_TOKEN: ${{ github.token }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: python3 scripts/report_inherited_failures.py
+          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          BASE_SHA="$(git cat-file -p HEAD | sed -n 's/^parent //p' | head -1)"
+          export BASE_SHA="${BASE_SHA:-$EVENT_BASE_SHA}"
+          python3 scripts/report_inherited_failures.py
 
       - name: Verify all required jobs succeeded
         run: |

@@ -1,3 +1,4 @@
+// pre-push: scans lib/
 import 'dart:convert';
 import 'dart:io';
 
