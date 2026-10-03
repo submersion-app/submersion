@@ -1,0 +1,264 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/names/name_index.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_ask_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_ask_notice.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_ask_row.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_header.dart';
+import 'package:submersion/features/explore/domain/nl_engine.dart';
+import 'package:submersion/features/explore/domain/query_model.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
+import 'package:submersion/features/explore/presentation/providers/recent_query_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
+import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../../helpers/mock_providers.dart';
+
+/// Answers each sentence from [replies]; [gates] holds an answer back
+/// until the test completes it.
+class _Engine implements NlEngine {
+  final replies = <String, String>{};
+  final gates = <String, Completer<String>>{};
+  int compileCalls = 0;
+
+  @override
+  Future<NlAvailability> availability(String localeTag) async =>
+      NlAvailability.available;
+
+  @override
+  Future<void> prepare() async {}
+
+  @override
+  Stream<double> download() => const Stream.empty();
+
+  @override
+  Future<String> compile(String sentence, {required String localeTag}) {
+    compileCalls++;
+    if (gates.containsKey(sentence)) return gates[sentence]!.future;
+    return Future.value(replies[sentence] ?? _nothing);
+  }
+}
+
+const _deep =
+    '{"schemaVersion":$kQuerySchemaVersion,"subject":"dives","clauses":[{"field":"depth",'
+    '"op":"gte","value":40,"unit":"m","text":"deep"}],"mentions":[],"time":null,"unplaced":[]}';
+const _nothing =
+    '{"schemaVersion":$kQuerySchemaVersion,"subject":"dives","clauses":[],"mentions":[],'
+    '"time":null,"unplaced":["fluffy clouds"]}';
+const _goodSites =
+    '{"schemaVersion":$kQuerySchemaVersion,"subject":"sites","clauses":[{"field":"rating",'
+    '"op":"gte","value":4,"text":"rated 4"}],"mentions":[],"time":null,"unplaced":[]}';
+
+/// Ask in the dive search row (#2773): the row, Cmd/Ctrl+Enter, Undo and
+/// handoff, against a fake on-device model.
+void main() {
+  late ProviderContainer container;
+
+  Future<void> pumpHeader(
+    WidgetTester tester, {
+    required _Engine engine,
+    DiveFilterState filter = const DiveFilterState(),
+    bool supported = true,
+  }) async {
+    final base = await getBaseOverrides();
+    final router = GoRouter(
+      initialLocation: '/dives',
+      routes: [
+        GoRoute(
+          path: '/dives',
+          builder: (context, _) => Scaffold(
+            body: Builder(
+              builder: (context) {
+                container = ProviderScope.containerOf(context);
+                return DiveSearchHeader(onOpenDive: (_) {});
+              },
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/sites',
+          builder: (context, _) => const Scaffold(body: Text('Sites page')),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          diveFilterProvider.overrideWith((ref) => filter),
+          diveSearchBarOpenProvider.overrideWith((ref) => true),
+          queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
+          diveJumpResultsProvider.overrideWith(
+            (ref, q) async => const <DiveSummary>[],
+          ),
+          nlEngineProvider.overrideWithValue(engine),
+          explorePlatformSupportedProvider.overrideWithValue(supported),
+          exploreAvailabilityProvider.overrideWith(
+            (ref) async => supported
+                ? NlAvailability.available
+                : NlAvailability.unsupportedPlatform,
+          ),
+          localeProvider.overrideWithValue('en'),
+          queryUnitPrefsProvider.overrideWithValue(
+            const UnitPrefs(
+              depth: DepthUnit.meters,
+              temperature: TemperatureUnit.celsius,
+              pressure: PressureUnit.bar,
+              weight: WeightUnit.kilograms,
+              volume: VolumeUnit.liters,
+            ),
+          ),
+          exploreNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
+          recentQueryRecorderProvider.overrideWithValue((s, l, p) async {}),
+        ].cast(),
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  // Control+Enter in every run: platformShortcut reads Cmd on macOS. The
+  // variant sets and restores the platform around each test.
+  void testAsk(String description, WidgetTesterCallback body) => testWidgets(
+    description,
+    body,
+    variant: TargetPlatformVariant.only(TargetPlatform.linux),
+  );
+
+  DiveFilterState filterOf() => container.read(diveFilterProvider);
+
+  TextField fieldOf(WidgetTester tester) =>
+      tester.widget<TextField>(find.byKey(kDiveSearchFieldKey));
+
+  testAsk('typed text offers Ask, and asking replaces the query', (
+    tester,
+  ) async {
+    await pumpHeader(tester, engine: _Engine()..replies['deep dives'] = _deep);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'deep dives');
+    await tester.pump();
+    expect(find.text('Ask: deep dives'), findsOneWidget);
+    await tester.tap(find.byKey(kDiveAskRowKey));
+    await tester.pumpAndSettle();
+    expect(filterOf().query, isNotNull);
+    expect(fieldOf(tester).controller!.text, contains('40'));
+    expect(find.text('Asked: deep dives'), findsOneWidget);
+  });
+
+  testAsk('Cmd/Ctrl+Enter asks', (tester) async {
+    await pumpHeader(tester, engine: _Engine()..replies['deep dives'] = _deep);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'deep dives');
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await tester.pumpAndSettle();
+    expect(find.text('Asked: deep dives'), findsOneWidget);
+  });
+
+  // Review Focus 2.
+  testAsk('words still waiting on the debounce never land on the answer', (
+    tester,
+  ) async {
+    await pumpHeader(tester, engine: _Engine()..replies['deep dives'] = _deep);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'deep dives');
+    await tester.pump();
+    await tester.tap(find.byKey(kDiveAskRowKey));
+    await tester.pump();
+    final answered = filterOf().query;
+    expect(answered, isNot(TextNode(['deep'])));
+    await tester.pump(kDiveSearchDebounce * 2);
+    expect(filterOf().query, answered);
+  });
+
+  // Review Focus 1.
+  testAsk('typing while the model works cancels the Ask', (tester) async {
+    final engine = _Engine()..gates['deep dives'] = Completer<String>();
+    await pumpHeader(tester, engine: engine);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'deep dives');
+    await tester.pump();
+    await tester.tap(find.byKey(kDiveAskRowKey));
+    await tester.pump();
+    expect(find.text('Asking the on-device model'), findsOneWidget);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump();
+    engine.gates['deep dives']!.complete(_deep);
+    await tester.pump(kDiveSearchDebounce * 2);
+    expect(filterOf().query, TextNode(['manta']));
+    expect(find.text('Asking the on-device model'), findsNothing);
+  });
+
+  // Review Focus 5.
+  testAsk('Undo puts the sentence back and the old query', (tester) async {
+    await pumpHeader(
+      tester,
+      engine: _Engine()..replies['deep dives'] = _deep,
+      filter: DiveFilterState(query: TextNode(['reef'])),
+    );
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'deep dives');
+    await tester.pump();
+    await tester.tap(find.byKey(kDiveAskRowKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(kDiveAskUndoKey));
+    await tester.pump();
+    expect(fieldOf(tester).controller!.text, 'deep dives');
+    expect(filterOf().query, TextNode(['reef']));
+  });
+
+  testAsk('a sentence about sites opens the site list', (tester) async {
+    await pumpHeader(
+      tester,
+      engine: _Engine()..replies['sites rated 4'] = _goodSites,
+    );
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'sites rated 4');
+    await tester.pump();
+    await tester.tap(find.byKey(kDiveAskRowKey));
+    await tester.pumpAndSettle();
+    expect(find.text('Sites page'), findsOneWidget);
+  });
+
+  testAsk('no Ask row and no Cmd/Ctrl+Enter where the model is off', (
+    tester,
+  ) async {
+    final engine = _Engine()..replies['deep dives'] = _deep;
+    await pumpHeader(tester, engine: engine, supported: false);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'deep dives');
+    await tester.pump();
+    expect(find.byKey(kDiveAskRowKey), findsNothing);
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await tester.pumpAndSettle();
+    expect(engine.compileCalls, 0);
+  });
+
+  testAsk('closing the row drops the notice', (tester) async {
+    await pumpHeader(tester, engine: _Engine()..replies['x'] = _nothing);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'x');
+    await tester.pump();
+    await tester.tap(find.byKey(kDiveAskRowKey));
+    await tester.pumpAndSettle();
+    expect(find.byKey(kDiveAskNoticeKey), findsOneWidget);
+    await tester.tap(find.byKey(kDiveSearchCloseKey));
+    await tester.pumpAndSettle();
+    expect(container.read(diveAskProvider).answer, isNull);
+  });
+}

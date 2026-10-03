@@ -1,22 +1,28 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/accessibility/app_shortcuts.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
 import 'package:submersion/core/query/presentation/query_text_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_ask_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chips.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/show_refine_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/close_dive_search.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_ask_notice.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_ask_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_jump_list.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_scope_toggle.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/query/presentation/app_query_labels.dart';
@@ -64,6 +70,14 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
   /// the diver has since changed.
   bool _fieldValid = true;
 
+  /// What the diver typed, parsed or not: the sentence Ask would send.
+  /// Cleared when the field is re-printed from outside (an answer, a chip
+  /// removed), so the Ask row offers only text the diver wrote.
+  String _text = '';
+
+  /// Puts a sentence back into the field without applying it (Undo).
+  QueryTextOverride? _textOverride;
+
   @override
   void initState() {
     super.initState();
@@ -87,6 +101,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     // collapses it under the caret.
     if (_focus.hasFocus) {
       ref.read(diveSearchBarOpenProvider.notifier).state = true;
+      ref.read(diveAskProvider.notifier).prepare();
     }
     setState(() {});
   }
@@ -143,6 +158,37 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     }
   }
 
+  void _onTextChanged(String text) {
+    setState(() => _text = text);
+    // The diver typed on: their newer text wins over an answer on its way.
+    ref.read(diveAskProvider.notifier).cancel();
+  }
+
+  Future<void> _ask() async {
+    final sentence = _text.trim();
+    if (sentence.isEmpty || !ref.read(exploreEnabledProvider)) return;
+    // The words typed so far stay on their debounce: if the model answers
+    // first, the answer's query write cancels it (the listener below); if
+    // the model fails, the words apply as typed text does.
+    final route = await ref.read(diveAskProvider.notifier).ask(sentence);
+    if (!mounted) return;
+    final ask = ref.read(diveAskProvider);
+    if (ask.error == null && !ask.running && _text.trim() == sentence) {
+      setState(() => _text = '');
+    }
+    if (route != null && mounted) context.go(route);
+  }
+
+  void _undoAsk() {
+    final sentence = ref.read(diveAskProvider.notifier).undo();
+    if (sentence == null) return;
+    setState(() {
+      _text = sentence;
+      _textOverride = QueryTextOverride(sentence);
+    });
+    _focus.requestFocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen<bool>(diveSearchFocusPendingProvider, (_, pending) {
@@ -152,7 +198,11 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     // debounce; it would otherwise land after the clear and reopen the row.
     ref.listen<int>(diveSearchClearTickProvider, (_, _) {
       _debounce?.cancel();
-      setState(() => _local = _jumpQuery = null);
+      ref.read(diveAskProvider.notifier).reset();
+      setState(() {
+        _local = _jumpQuery = null;
+        _text = '';
+      });
     });
     ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
       // Only a change to the QUERY from outside (a chip removed, a saved
@@ -160,7 +210,10 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
       // must not revert what the diver is typing.
       if (previous?.query == next.query || next.query == _local) return;
       _debounce?.cancel();
-      setState(() => _local = _jumpQuery = next.query);
+      setState(() {
+        _local = _jumpQuery = next.query;
+        _text = '';
+      });
     });
 
     if (!ref.watch(diveSearchBarVisibleProvider)) {
@@ -177,6 +230,11 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
       now: DateTime.now,
     );
     final panelAxes = filter.panelAxisCount;
+    final ask = ref.watch(diveAskProvider);
+    final showAskRow =
+        (_focus.hasFocus && _text.trim().isNotEmpty) ||
+        ask.running ||
+        ask.error != null;
     void openInsights() {
       // What applies, not what is set: Insights has no "All dives" toggle
       // to show a suspension with.
@@ -203,6 +261,12 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
                   fieldKey: kDiveSearchFieldKey,
                   focusNode: _focus,
                   onValidityChanged: _onValidityChanged,
+                  onTextChanged: _onTextChanged,
+                  textOverride: _textOverride,
+                  shortcuts: {
+                    if (ref.watch(exploreEnabledProvider))
+                      platformShortcut(LogicalKeyboardKey.enter): _ask,
+                  },
                   onEscape:
                       widget.onEscape ?? () => closeDiveSearch(context, ref),
                 ),
@@ -228,6 +292,11 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
               ),
             ],
           ),
+        ),
+        if (showAskRow) DiveAskRow(text: _text, onAsk: _ask),
+        DiveAskNotice(
+          onUndo: _undoAsk,
+          onOpenList: (route) => context.go(route),
         ),
         if (_focus.hasFocus && _jumpQuery != null)
           DiveJumpList(
