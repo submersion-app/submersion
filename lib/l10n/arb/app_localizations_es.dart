@@ -9050,6 +9050,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_ask_running => 'Consultando el modelo del dispositivo';
 
   @override
+  String get diveLog_ask_couldNotUse => 'No se pudo usar:';
+
+  @override
+  String diveLog_ask_asked(String sentence) {
+    return 'Preguntado: $sentence';
+  }
+
+  @override
   String get diveLog_search_openInsights => 'Abrir en Análisis';
 
   @override

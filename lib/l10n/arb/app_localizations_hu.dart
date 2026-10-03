@@ -9034,6 +9034,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_ask_running => 'Az eszközön futó modell válaszol';
 
   @override
+  String get diveLog_ask_couldNotUse => 'Nem használható:';
+
+  @override
+  String diveLog_ask_asked(String sentence) {
+    return 'Kérdés: $sentence';
+  }
+
+  @override
   String get diveLog_search_openInsights => 'Megnyitás az Elemzésekben';
 
   @override

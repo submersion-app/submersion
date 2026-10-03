@@ -2990,6 +2990,8 @@
   "diveLog_search_jumpTitle": "跳转到潜水",
   "diveLog_ask_row": "提问：{text}",
   "diveLog_ask_running": "正在询问设备端模型",
+  "diveLog_ask_couldNotUse": "无法使用：",
+  "diveLog_ask_asked": "已提问：{sentence}",
   "diveLog_search_openInsights": "在洞察中打开",
   "diveLog_search_cleared": "已清除搜索",
   "diveLog_search_undo": "撤消",

@@ -2874,6 +2874,8 @@
   "diveLog_search_jumpTitle": "Zum Tauchgang springen",
   "diveLog_ask_row": "Fragen: {text}",
   "diveLog_ask_running": "Das Modell auf dem Gerät wird gefragt",
+  "diveLog_ask_couldNotUse": "Nicht verwendet:",
+  "diveLog_ask_asked": "Gefragt: {sentence}",
   "diveLog_search_openInsights": "In Einblicken öffnen",
   "diveLog_search_cleared": "Suche zurückgesetzt",
   "diveLog_search_undo": "Rückgängig",

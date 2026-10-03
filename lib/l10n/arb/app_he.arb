@@ -2761,6 +2761,8 @@
   "diveLog_search_jumpTitle": "מעבר לצלילה",
   "diveLog_ask_row": "שאל: {text}",
   "diveLog_ask_running": "שואל את המודל במכשיר",
+  "diveLog_ask_couldNotUse": "לא ניתן להשתמש:",
+  "diveLog_ask_asked": "נשאל: {sentence}",
   "diveLog_search_openInsights": "פתיחה בתובנות",
   "diveLog_search_cleared": "החיפוש נוקה",
   "diveLog_search_undo": "ביטול",

@@ -14445,6 +14445,18 @@ abstract class AppLocalizations {
   /// **'Asking the on-device model'**
   String get diveLog_ask_running;
 
+  /// No description provided for @diveLog_ask_couldNotUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t use:'**
+  String get diveLog_ask_couldNotUse;
+
+  /// No description provided for @diveLog_ask_asked.
+  ///
+  /// In en, this message translates to:
+  /// **'Asked: {sentence}'**
+  String diveLog_ask_asked(String sentence);
+
   /// No description provided for @diveLog_search_openInsights.
   ///
   /// In en, this message translates to:

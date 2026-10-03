@@ -8988,6 +8988,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_ask_running => 'Het model op het apparaat wordt gevraagd';
 
   @override
+  String get diveLog_ask_couldNotUse => 'Niet gebruikt:';
+
+  @override
+  String diveLog_ask_asked(String sentence) {
+    return 'Gevraagd: $sentence';
+  }
+
+  @override
   String get diveLog_search_openInsights => 'Openen in Inzichten';
 
   @override

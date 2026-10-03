@@ -9053,6 +9053,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_ask_running => 'Das Modell auf dem Gerät wird gefragt';
 
   @override
+  String get diveLog_ask_couldNotUse => 'Nicht verwendet:';
+
+  @override
+  String diveLog_ask_asked(String sentence) {
+    return 'Gefragt: $sentence';
+  }
+
+  @override
   String get diveLog_search_openInsights => 'In Einblicken öffnen';
 
   @override

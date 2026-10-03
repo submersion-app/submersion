@@ -8839,6 +8839,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_ask_running => 'שואל את המודל במכשיר';
 
   @override
+  String get diveLog_ask_couldNotUse => 'לא ניתן להשתמש:';
+
+  @override
+  String diveLog_ask_asked(String sentence) {
+    return 'נשאל: $sentence';
+  }
+
+  @override
   String get diveLog_search_openInsights => 'פתיחה בתובנות';
 
   @override

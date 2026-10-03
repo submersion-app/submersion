@@ -8612,6 +8612,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_ask_running => '正在询问设备端模型';
 
   @override
+  String get diveLog_ask_couldNotUse => '无法使用：';
+
+  @override
+  String diveLog_ask_asked(String sentence) {
+    return '已提问：$sentence';
+  }
+
+  @override
   String get diveLog_search_openInsights => '在洞察中打开';
 
   @override

@@ -2863,6 +2863,8 @@
   "diveLog_search_jumpTitle": "الانتقال إلى غوصة",
   "diveLog_ask_row": "اسأل: {text}",
   "diveLog_ask_running": "جارٍ سؤال النموذج على الجهاز",
+  "diveLog_ask_couldNotUse": "تعذّر استخدام:",
+  "diveLog_ask_asked": "سُئل: {sentence}",
   "diveLog_search_openInsights": "فتح في الرؤى",
   "diveLog_search_cleared": "تم مسح البحث",
   "diveLog_search_undo": "تراجع",

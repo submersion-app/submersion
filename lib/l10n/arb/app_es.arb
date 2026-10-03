@@ -2863,6 +2863,8 @@
   "diveLog_search_jumpTitle": "Ir a la inmersión",
   "diveLog_ask_row": "Preguntar: {text}",
   "diveLog_ask_running": "Consultando el modelo del dispositivo",
+  "diveLog_ask_couldNotUse": "No se pudo usar:",
+  "diveLog_ask_asked": "Preguntado: {sentence}",
   "diveLog_search_openInsights": "Abrir en Análisis",
   "diveLog_search_cleared": "Búsqueda borrada",
   "diveLog_search_undo": "Deshacer",

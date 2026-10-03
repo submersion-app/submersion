@@ -9052,6 +9052,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_ask_running => 'Consultando o modelo no dispositivo';
 
   @override
+  String get diveLog_ask_couldNotUse => 'Não foi possível usar:';
+
+  @override
+  String diveLog_ask_asked(String sentence) {
+    return 'Perguntado: $sentence';
+  }
+
+  @override
   String get diveLog_search_openInsights => 'Abrir em Análises';
 
   @override

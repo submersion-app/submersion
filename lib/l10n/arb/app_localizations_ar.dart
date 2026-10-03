@@ -8878,6 +8878,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_ask_running => 'جارٍ سؤال النموذج على الجهاز';
 
   @override
+  String get diveLog_ask_couldNotUse => 'تعذّر استخدام:';
+
+  @override
+  String diveLog_ask_asked(String sentence) {
+    return 'سُئل: $sentence';
+  }
+
+  @override
   String get diveLog_search_openInsights => 'فتح في الرؤى';
 
   @override

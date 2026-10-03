@@ -9088,6 +9088,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_ask_running => 'Interrogation du modèle sur l\'appareil';
 
   @override
+  String get diveLog_ask_couldNotUse => 'Non utilisé :';
+
+  @override
+  String diveLog_ask_asked(String sentence) {
+    return 'Demandé : $sentence';
+  }
+
+  @override
   String get diveLog_search_openInsights => 'Ouvrir dans les analyses';
 
   @override
