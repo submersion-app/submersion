@@ -3,6 +3,11 @@
 Date: 2026-09-17 (revised 2026-09-25: schema rung, new consumers, equipment history)
 Issues: #1549, #2046
 
+> **Superseded in part (2026-10-03):** the "Transfer", "Diver deletion and merge"
+> and "Overlapping use" sections and Delivery items 3 and 4 are replaced by
+> `docs/superpowers/specs/2026-10-03-equipment-transfer-and-overlap-design.md`,
+> which corrects them against the code as merged.
+
 ## Problem
 
 A family of four logs dives in one Submersion library, one diver profile per
