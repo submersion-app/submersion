@@ -141,11 +141,34 @@ void main() {
       final logbook = await MacDiveDbReader.readAll(bytes);
       final dive1 = logbook.dives.firstWhere((d) => d.pk == 1);
       expect(dive1.rawDate, isNotNull);
-      // Synthetic fixture used 738936000 = 2024-06-01 09:00:00 UTC.
+      // Synthetic fixture used 738936000 = 2024-06-01 12:00:00 UTC.
       expect(dive1.rawDate!.year, 2024);
       expect(dive1.rawDate!.month, 6);
       expect(dive1.rawDate!.day, 1);
       expect(dive1.rawDate!.isUtc, isTrue);
+    });
+
+    test('ZRAWDATE gets back the seconds ZIDENTIFIER keeps (#2509)', () async {
+      // ZRAWDATE is stored to the minute; the identifier MacDive keeps
+      // beside it still has the seconds the computer reported.
+      final dir = Directory.systemTemp.createTempSync('macdive_seconds_');
+      addTearDown(() {
+        if (dir.existsSync()) dir.deleteSync(recursive: true);
+      });
+      final file = buildSyntheticMacDiveDb(p.join(dir.path, 'seconds.sqlite'));
+      final db = sqlite3.sqlite3.open(file.path);
+      db.execute(
+        "UPDATE ZDIVE SET ZIDENTIFIER = '20240601090017-ABC' WHERE Z_PK = 1",
+      );
+      db.close();
+
+      final logbook = await MacDiveDbReader.readAll(
+        Uint8List.fromList(await file.readAsBytes()),
+      );
+      final dive1 = logbook.dives.firstWhere((d) => d.pk == 1);
+      // The fixture's ZRAWDATE is 12:00Z; the identifier reads 09:00:17, a
+      // wall clock three hours west of UTC.
+      expect(dive1.rawDate, DateTime.utc(2024, 6, 1, 12, 0, 17));
     });
 
     test('string columns trim to null when empty', () async {

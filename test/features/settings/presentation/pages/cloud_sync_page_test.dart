@@ -1305,6 +1305,23 @@ void main() {
       expect(banner.style?.color, scheme.onSecondaryContainer);
     });
 
+    testWidgets('names peers too old to receive this device\'s changes', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        selectedProvider: CloudProviderType.icloud,
+        syncState: const SyncState(
+          olderSchemaPeerLabels: [(name: 'Stable iPad', shortId: 'aaa11111')],
+        ),
+      );
+
+      expect(
+        find.textContaining('Stable iPad runs an older version of Submersion'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('no update banner when no newer-schema peers were held', (
       tester,
     ) async {

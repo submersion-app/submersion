@@ -13,6 +13,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/presentation/pages/equipment_list_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/core/theme/feature_accent_colors.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_header_bar.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_section_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_section_toggle.dart';
@@ -23,6 +25,7 @@ import 'package:submersion/features/tags/presentation/providers/tag_providers.da
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 
 import '../../../../helpers/equipment_query_fakes.dart';
@@ -62,7 +65,10 @@ class _EmptySetList extends StateNotifier<AsyncValue<List<EquipmentSet>>>
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-Future<List<Override>> _overrides({double? paneWidth}) async {
+Future<List<Override>> _overrides({
+  double? paneWidth,
+  bool accent = false,
+}) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
 
@@ -86,10 +92,15 @@ Future<List<Override>> _overrides({double? paneWidth}) async {
     ),
     if (paneWidth != null)
       masterPaneWidthProvider.overrideWith((ref) => paneWidth),
+    if (accent) accentSectionHeadersProvider.overrideWith((ref) => true),
   ];
 }
 
-Widget _app(List<Override> overrides, {Locale locale = const Locale('en')}) {
+Widget _app(
+  List<Override> overrides, {
+  Locale locale = const Locale('en'),
+  bool accent = false,
+}) {
   final router = GoRouter(
     initialLocation: '/equipment',
     routes: [
@@ -113,6 +124,10 @@ Widget _app(List<Override> overrides, {Locale locale = const Locale('en')}) {
     overrides: overrides,
     child: MaterialApp.router(
       routerConfig: router,
+      // The section-header accent needs the theme's accent colours.
+      theme: accent
+          ? ThemeData(extensions: const [FeatureAccentColors.light])
+          : null,
       // Pinned: the assertions compare against strings loaded for a known
       // locale, and an unpinned app resolves against the host's instead.
       locale: locale,
@@ -127,6 +142,7 @@ Future<void> _pump(
   required Size window,
   double? paneWidth,
   Locale locale = const Locale('en'),
+  bool accent = false,
 }) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = window;
@@ -136,7 +152,11 @@ Future<void> _pump(
   });
 
   await tester.pumpWidget(
-    _app(await _overrides(paneWidth: paneWidth), locale: locale),
+    _app(
+      await _overrides(paneWidth: paneWidth, accent: accent),
+      locale: locale,
+      accent: accent,
+    ),
   );
   await tester.pumpAndSettle();
 }
@@ -376,6 +396,43 @@ void main() {
         );
         expect(text.dx - edge, closeTo(16, 1));
       });
+
+      for (final accent in [false, true]) {
+        testWidgets('$label: the count starts under the title text'
+            '${accent ? ' after the accent icon' : ''}', (tester) async {
+          await _pump(tester, window: window, paneWidth: pane, accent: accent);
+          final l10n = await en();
+          final host = pane == null
+              ? find.byType(AppBar)
+              : find.byType(EquipmentHeaderBar);
+
+          // Under the first name's text, as every other list's count sits
+          // under its title, not under the pill's edge 8px to the left.
+          final name = find.descendant(
+            of: _switcher,
+            matching: find.text(l10n.equipment_tab_equipment),
+          );
+          final count = find.descendant(
+            of: host,
+            matching: find.text(l10n.equipment_list_count(0)),
+          );
+          // The accent puts its icon ahead of the names, inside the title.
+          expect(
+            find.descendant(
+              of: find.ancestor(
+                of: _switcher,
+                matching: find.byType(FeatureAppBarTitle),
+              ),
+              matching: find.byType(Icon),
+            ),
+            accent ? findsOneWidget : findsNothing,
+          );
+          expect(
+            tester.getTopLeft(count).dx,
+            closeTo(tester.getTopLeft(name).dx, 0.5),
+          );
+        });
+      }
     }
 
     testWidgets('tapping the Sets label switches to Sets', (tester) async {
@@ -510,6 +567,131 @@ void main() {
       expect(find.byType(SelectionAppBar), findsOneWidget);
       // The actions step aside while selecting, as the row they came from did.
       expect(inAppBar(find.byIcon(Icons.search)), findsNothing);
+    });
+
+    // The app bar clips its title to the toolbar rather than overflowing, so
+    // a title column taller than the toolbar loses its subtitle silently: no
+    // exception, just "0 items" cut off along the toolbar's bottom edge.
+    for (final (label, window, textScale) in <(String, Size, double)>[
+      ('one row', const Size(600, 844), 1),
+      ('two rows', const Size(320, 700), 1),
+      ('large text', const Size(600, 844), 1.5),
+    ]) {
+      testWidgets('$label: the item count sits wholly inside the toolbar', (
+        tester,
+      ) async {
+        tester.platformDispatcher.textScaleFactorTestValue = textScale;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        await _pump(tester, window: window);
+        final l10n = await en();
+
+        final count = inAppBar(find.text(l10n.equipment_list_count(0)));
+        expect(count, findsOneWidget);
+        final toolbar = tester.getRect(
+          find.descendant(of: appBar, matching: find.byType(NavigationToolbar)),
+        );
+        final countRect = tester.getRect(count);
+        expect(countRect.top, greaterThanOrEqualTo(toolbar.top - 0.5));
+        expect(countRect.bottom, lessThanOrEqualTo(toolbar.bottom + 0.5));
+        // The pill must stay whole too: shrinking the switcher to make room
+        // must not clip its top.
+        expect(
+          tester.getRect(_switcher).top,
+          greaterThanOrEqualTo(toolbar.top - 0.5),
+        );
+      });
+    }
+
+    // A Tab boxes its label at the tab's height and fades what overflows, so
+    // compact tabs that do not grow with the text fade the names' lower
+    // half away at a large text size.
+    for (final (label, window, pane, textScale)
+        in <(String, Size, double?, double)>[
+          ('phone at 1.5x', const Size(600, 844), null, 1.5),
+          ('phone at 2x', const Size(600, 844), null, 2),
+          ('desktop at 2x', const Size(1400, 900), 700, 2),
+        ]) {
+      testWidgets('$label: each name is laid out whole', (tester) async {
+        tester.platformDispatcher.textScaleFactorTestValue = textScale;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        await _pump(tester, window: window, paneWidth: pane);
+        final l10n = await en();
+
+        for (final name in [
+          l10n.equipment_tab_equipment,
+          l10n.equipment_tab_sets,
+        ]) {
+          final paragraph = tester.renderObject<RenderParagraph>(
+            find.descendant(of: _switcher, matching: find.text(name)),
+          );
+          expect(
+            paragraph.size.height,
+            greaterThanOrEqualTo(
+              paragraph.getMaxIntrinsicHeight(double.infinity) - 0.5,
+            ),
+            reason: '"$name" is clipped to its tab',
+          );
+        }
+        if (pane == null) {
+          final toolbar = tester.getRect(
+            find.descendant(
+              of: appBar,
+              matching: find.byType(NavigationToolbar),
+            ),
+          );
+          expect(
+            tester.getRect(_switcher).top,
+            greaterThanOrEqualTo(toolbar.top - 0.5),
+          );
+          expect(
+            tester
+                .getRect(inAppBar(find.text(l10n.equipment_list_count(0))))
+                .bottom,
+            lessThanOrEqualTo(toolbar.bottom + 0.5),
+          );
+          // Grown for the scale the title renders at, which the app bar
+          // caps, not the system's: no dead space under the count.
+          expect(
+            tester
+                .getRect(inAppBar(find.text(l10n.equipment_list_count(0))))
+                .bottom,
+            closeTo(toolbar.bottom, 0.5),
+          );
+        }
+      });
+    }
+
+    testWidgets('the bar keeps the standard height every list has', (
+      tester,
+    ) async {
+      await _pump(tester, window: const Size(390, 844));
+      final toolbar = find.descendant(
+        of: appBar,
+        matching: find.byType(NavigationToolbar),
+      );
+      expect(tester.getSize(toolbar).height, kToolbarHeight);
+    });
+
+    testWidgets('each name keeps a 40px tap area and the same pill', (
+      tester,
+    ) async {
+      await _pump(tester, window: const Size(390, 844));
+      final l10n = await en();
+      final ink = find.ancestor(
+        of: find.descendant(
+          of: _switcher,
+          matching: find.text(l10n.equipment_tab_equipment),
+        ),
+        matching: find.byType(InkWell),
+      );
+      expect(tester.getSize(ink.first).height, 40);
+
+      final bar = tester.widget<TabBar>(_switcher);
+      final inset = bar.indicatorPadding.resolve(TextDirection.ltr);
+      expect(
+        tester.getSize(ink.first).height - inset.vertical,
+        EquipmentSectionToggle.pillHeight,
+      );
     });
 
     // The phone page listens to the selection it hands the list, so the list

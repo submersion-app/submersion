@@ -2767,6 +2767,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddies_stat_lastDive => 'Last Dive';
 
   @override
+  String get buddies_summary_mostDives => 'Most Dives';
+
+  @override
   String get buddies_summary_overview => 'Overview';
 
   @override
@@ -4250,13 +4253,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connections_selection_topConnections => 'Top connections';
 
   @override
-  String connections_selection_firstLast(String first, String last) {
-    return 'First $first, last $last';
-  }
-
-  @override
   String get connections_selection_hint =>
       'Tap a node or a line to see details.';
+
+  @override
+  String get connections_details_dives => 'Dives';
+
+  @override
+  String get connections_details_connections => 'Connections';
+
+  @override
+  String get connections_details_first => 'First';
+
+  @override
+  String get connections_details_last => 'Last';
+
+  @override
+  String get connections_kindOne_buddy => 'Buddy';
+
+  @override
+  String get connections_kindOne_site => 'Site';
+
+  @override
+  String get connections_kindOne_trip => 'Trip';
+
+  @override
+  String get connections_kindOne_diveCenter => 'Dive center';
+
+  @override
+  String get connections_kindOne_equipment => 'Equipment';
+
+  @override
+  String get connections_kindOne_species => 'Species';
+
+  @override
+  String get connections_kindOne_tag => 'Tag';
+
+  @override
+  String get connections_kindOne_diveType => 'Dive type';
+
+  @override
+  String get connections_kindOne_diveComputer => 'Dive computer';
+
+  @override
+  String get connections_kindOne_course => 'Course';
 
   @override
   String get connections_empty_noDives =>
@@ -6614,6 +6654,67 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_detail_section_diveProfile => 'Dive Profile';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_edit => 'Edit';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_create => 'Create';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_computerImport =>
+      'Computer Import';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_legacy => 'Legacy';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_profileEditor =>
+      'Profile editor';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_dataQualityRepair =>
+      'Data quality repair';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothAll =>
+      'Smooth entire profile';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothSelection =>
+      'Smooth selection';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeAllOutliers =>
+      'Remove all outliers';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeSelectedOutliers =>
+      'Remove selected outliers';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftDepth =>
+      'Shift depth';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftTime => 'Shift time';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_deleteSegment =>
+      'Delete segment';
+
+  @override
+  String
+  get diveLog_detail_profileRevision_editType_deleteSegmentInterpolated =>
+      'Delete segment (interpolated)';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_generateFromWaypoints =>
+      'Generate from waypoints';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_trimEndZeros =>
+      'Trim end zeros';
 
   @override
   String get diveLog_detail_section_equipment => 'Equipment';
@@ -18856,6 +18957,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
+    return 'Diluent exceeds its Dil MOD at $depth (ppO₂ $value bar)';
+  }
+
+  @override
   String get plannerCanvas_issue_noBailout =>
       'CCR decompression plan carries no bailout gas';
 
@@ -20374,6 +20480,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'Each one catches up once it runs a version at least as new as this one. If no such update is offered to it yet, it arrives with the next release, or sooner by joining the beta.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList runs an older version of Submersion that cannot read this device\'s latest changes, so it will not receive them until it updates.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList run an older version of Submersion that cannot read this device\'s latest changes, so they will not receive them until they update.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList still has an older or unknown library version, so its changes were not merged. Open Submersion on it to adopt the current library.';
   }
@@ -20421,8 +20541,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Update this device to receive them.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'They arrive once this device runs a version at least as new. If that device is on the beta channel, a stable update may not exist yet: switch this device to the beta update channel too, or wait for the next stable release.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'They will apply automatically once this device\'s app store update arrives; the update may still be in review.';
+      'They apply automatically once this device\'s app store update reaches that version. It may still be in review, or, if that device runs a beta (TestFlight or Google Play testing), not be released yet: join the same beta on this device, or wait for the next release.';
 
   @override
   String get settings_cloudSync_provider_connected => 'Connected';
@@ -22278,8 +22402,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'You will stay on this beta until the next stable release is newer than it.';
+  String get settings_updates_stableDialogBody =>
+      'This device keeps its current build until a stable release is newer than it, so the app is never downgraded and your dive log is kept. Until then, devices on the stable channel that sync with this one may not receive its latest changes. Do not install an older stable build over this one: it cannot open a dive log that a newer build has upgraded.';
+
+  @override
+  String get settings_updates_stableDialogConfirm => 'Switch to Stable';
+
+  @override
+  String get settings_updates_stableDialogTitle => 'Return to stable updates?';
 
   @override
   String get settings_updates_upToDate => 'Up to date';
@@ -23112,6 +23242,17 @@ class AppLocalizationsEn extends AppLocalizations {
     Object label,
   ) {
     return '$name, rank $rank, $count $label';
+  }
+
+  @override
+  String insights_ranking_semanticLabelWithSubtitle(
+    Object name,
+    Object subtitle,
+    Object rank,
+    Object count,
+    Object label,
+  ) {
+    return '$name, $subtitle, rank $rank, $count $label';
   }
 
   @override
@@ -24655,10 +24796,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transfer_appBar_title => 'Transfer';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'Connect your dive computer via Bluetooth to download dive logs directly to the app. Supported computers include Suunto, Shearwater, Garmin, Mares, and many other popular brands.  Apple Watch Ultra users can import dive data directly from the Health app, including depth, duration, and heart rate.';
-
-  @override
   String get transfer_computers_aboutTitle => 'About Dive Computers';
 
   @override
@@ -25819,6 +25956,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_gear_failed => 'Could not change the gear. Try again.';
+
+  @override
+  String get trips_gear_useSet => 'Use set';
+
+  @override
+  String trips_gear_packedFromSet(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Packed $count items from $name',
+      one: 'Packed $count item from $name',
+      zero: 'Everything in $name is already packed',
+    );
+    return '$_temp0';
+  }
 
   @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
@@ -27872,7 +28024,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi, and 50+ more models.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi, and 50+ more models.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'Supported Brands';
@@ -27885,6 +28037,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'Got it';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'Garmin watches are not downloaded here. Import their dives from $importPath or $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 =>
@@ -42638,12 +42795,28 @@ class AppLocalizationsEn extends AppLocalizations {
       'Proceeding to review...';
 
   @override
+  String get importWizard_dc_importFromFile => 'Import from File';
+
+  @override
   String get importWizard_dc_knownComputer => 'Known Computer';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'Saved as \"$name\". Only new dives will be downloaded.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'Can\'t download this computer directly';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'Submersion has no saved connection for $name. Import its dives from a file, or add it again from Dive Computers to download over Bluetooth or USB.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.';
 
   @override
   String get importWizard_dc_noNewDives => 'No new dives to download';
@@ -43229,6 +43402,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_mode_trim => 'Trim';
+
+  @override
+  String get diveLog_profileEditor_revisionSelectorTooltip =>
+      'Switch active revision. This takes effect immediately and all future edits will be based on this revision.';
+
+  @override
+  String get diveLog_profileEditor_revisionSwitchFailed =>
+      'Could not switch profile revision.';
 
   @override
   String diveLog_sources_sectionTitle(int count) {
@@ -45742,6 +45923,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_section_menuMakePrimary => 'Make primary';
 
   @override
+  String get navTrack_editRow_none => 'None';
+
+  @override
+  String get navTrack_editRow_loadFailed => 'Could not load routes';
+
+  @override
+  String navTrack_editRow_more(int count, String name) {
+    return '$name +$count';
+  }
+
+  @override
+  String get navTrack_editSheet_removeTooltip => 'Remove route';
+
+  @override
+  String navTrack_editRow_saveFailed(String error) {
+    return 'Could not update this dive\'s underwater routes: $error';
+  }
+
+  @override
   String get navTrack_importError_unsupportedFormat =>
       'This file is not a Seacraft ENC navigation log.';
 
@@ -45767,9 +45967,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveDetailSection_navTrack_description =>
       'Measured underwater route from a navigation console';
-
-  @override
-  String get dashboard_quickActions_navRoutes => 'Underwater Routes';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {
@@ -46814,6 +47011,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_manage_savedQueries_subtitle =>
       'Rename, reorder and delete saved queries';
+
+  @override
+  String get settings_manage_navRoutes_subtitle =>
+      'Import, align and link recorded routes';
 
   @override
   String get query_error_unterminatedQuote => 'unterminated quote';

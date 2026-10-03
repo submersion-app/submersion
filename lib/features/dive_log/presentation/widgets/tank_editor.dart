@@ -440,6 +440,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       // Only the trip cylinder picker changes the link; every other edit
       // carries it, or updateDive would wipe it on the next save.
       tripCylinderId: widget.tank.tripCylinderId,
+      // Import-owned (issue #1496): carried so the edited tank still
+      // reports what the source log recorded.
+      usageDuration: widget.tank.usageDuration,
     );
   }
 

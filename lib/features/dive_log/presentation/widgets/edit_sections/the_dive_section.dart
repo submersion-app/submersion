@@ -8,8 +8,8 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Group 1 of the dive form: always expanded, owns the core facts.
 /// Rows: dive number, entry, exit, surface interval, max depth, avg depth,
-/// bottom time, runtime, site, then site extras, dive types and the profile
-/// block.
+/// bottom time, runtime, site, then site extras, the underwater route, dive
+/// types and the profile block.
 class TheDiveSection extends StatelessWidget {
   const TheDiveSection({
     super.key,
@@ -33,6 +33,7 @@ class TheDiveSection extends StatelessWidget {
     this.runtimeSuggestion,
     this.surfaceIntervalRow,
     this.siteExtras,
+    this.routeRow,
     this.diveTypesRow,
     this.showDiveNumber = true,
     this.profileChild,
@@ -67,6 +68,9 @@ class TheDiveSection extends StatelessWidget {
   /// Location status, selected-site caption and photo-GPS banner from the
   /// old site section.
   final Widget? siteExtras;
+
+  /// The underwater route row; null hides it (planned dives).
+  final Widget? routeRow;
 
   /// The dive type picker. It follows the site because assigning a site can
   /// add types, and it lives in this always-open group so a diver can find
@@ -179,6 +183,7 @@ class TheDiveSection extends StatelessWidget {
           onClear: siteName == null ? null : onClearSite,
         ),
         ?siteExtras,
+        ?routeRow,
         ?diveTypesRow,
         ?profileChild,
       ],

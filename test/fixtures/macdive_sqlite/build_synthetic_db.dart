@@ -314,7 +314,7 @@ void _insertFixtureRows(
 
   // ---- dives ----
   // Core Data NSDate = seconds since 2001-01-01 UTC.
-  // 2024-06-01 09:00:00 UTC = 738936000 seconds.
+  // 2024-06-01 12:00:00 UTC = 738936000 seconds.
   const baseNsDate = 738936000.0;
   db.execute(
     '''
@@ -370,11 +370,11 @@ void _insertFixtureRows(
   db.execute('''
     INSERT INTO ZTANKANDGAS (
       Z_PK, ZRELATIONSHIPDIVE, ZRELATIONSHIPTANK, ZRELATIONSHIPGAS,
-      ZAIRSTART, ZAIREND, ZORDER, ZSUPPLYTYPE, ZUUID
+      ZAIRSTART, ZAIREND, ZDURATION, ZORDER, ZSUPPLYTYPE, ZUUID
     ) VALUES
-      (1, 1, 1, 1, 3000, 1000, 0, 'Open Circuit', 'tankandgas-uuid-1'),
-      (2, 2, 1, 1, 3000,  900, 0, 'Open Circuit', 'tankandgas-uuid-2'),
-      (3, 3, 2, 2, 2400,  500, 0, 'Open Circuit', 'tankandgas-uuid-3')
+      (1, 1, 1, 1, 3000, 1000, 2400, 0, 'Open Circuit', 'tankandgas-uuid-1'),
+      (2, 2, 1, 1, 3000,  900, NULL, 0, 'Open Circuit', 'tankandgas-uuid-2'),
+      (3, 3, 2, 2, 2400,  500, NULL, 0, 'Open Circuit', 'tankandgas-uuid-3')
   ''');
 
   // ---- units preference ----

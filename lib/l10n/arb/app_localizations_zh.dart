@@ -2661,6 +2661,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_stat_lastDive => '最近潜水';
 
   @override
+  String get buddies_summary_mostDives => 'Most Dives';
+
+  @override
   String get buddies_summary_overview => '概览';
 
   @override
@@ -4100,12 +4103,49 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connections_selection_topConnections => '主要关联';
 
   @override
-  String connections_selection_firstLast(String first, String last) {
-    return '首次 $first，最近 $last';
-  }
+  String get connections_selection_hint => '点击节点或连线查看详情。';
 
   @override
-  String get connections_selection_hint => '点击节点或连线查看详情。';
+  String get connections_details_dives => '潜水';
+
+  @override
+  String get connections_details_connections => '关联';
+
+  @override
+  String get connections_details_first => '首次';
+
+  @override
+  String get connections_details_last => '最近';
+
+  @override
+  String get connections_kindOne_buddy => '潜伴';
+
+  @override
+  String get connections_kindOne_site => '潜点';
+
+  @override
+  String get connections_kindOne_trip => '行程';
+
+  @override
+  String get connections_kindOne_diveCenter => '潜店';
+
+  @override
+  String get connections_kindOne_equipment => '装备';
+
+  @override
+  String get connections_kindOne_species => '物种';
+
+  @override
+  String get connections_kindOne_tag => '标签';
+
+  @override
+  String get connections_kindOne_diveType => '潜水类型';
+
+  @override
+  String get connections_kindOne_diveComputer => '潜水电脑';
+
+  @override
+  String get connections_kindOne_course => '课程';
 
   @override
   String get connections_empty_noDives => '还没有潜水记录。日志中有潜水后会显示关联。';
@@ -6404,6 +6444,61 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_detail_section_diveProfile => '潜水轮廓';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_edit => '编辑';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_create => '创建';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_computerImport => '电脑导入';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_legacy => '旧版';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_profileEditor => '轮廓编辑器';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_dataQualityRepair =>
+      '数据质量修复';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothAll => '平滑整个轮廓';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothSelection =>
+      '平滑所选区域';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeAllOutliers =>
+      '移除所有异常值';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeSelectedOutliers =>
+      '移除所选异常值';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftDepth => '调整深度';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftTime => '调整时间';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_deleteSegment => '删除区段';
+
+  @override
+  String
+  get diveLog_detail_profileRevision_editType_deleteSegmentInterpolated =>
+      '删除区段（插值）';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_generateFromWaypoints =>
+      '根据路径点生成';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_trimEndZeros => '裁剪末尾零值';
 
   @override
   String get diveLog_detail_section_equipment => '装备';
@@ -18255,6 +18350,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
+    return '稀释气在 $depth 处超过其 MOD（ppO₂ $value bar）';
+  }
+
+  @override
   String get plannerCanvas_issue_noBailout => 'CCR 减压计划未携带逃生气体';
 
   @override
@@ -19679,6 +19779,20 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      '每台设备运行至少与此设备同样新的版本后即可跟上。如果尚未收到此类更新，它会随下一个版本到来，也可以通过加入 Beta 提前获得。';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList 运行的是较旧版本的 Submersion，无法读取此设备的最新更改，因此在其更新之前不会收到这些更改。';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList 运行的是较旧版本的 Submersion，无法读取此设备的最新更改，因此在它们更新之前不会收到这些更改。';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList 仍使用较旧或未知的库版本，因此其更改未被合并。请在该设备上打开 Submersion 以采用当前的库。';
   }
@@ -19726,8 +19840,12 @@ class AppLocalizationsZh extends AppLocalizations {
       '更新此设备即可接收这些更改。';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      '此设备运行至少同样新的版本后，这些更改就会到达。如果该设备使用 Beta 渠道，可能还没有稳定版更新：请将此设备也切换到 Beta 更新渠道，或等待下一个稳定版。';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      '此设备的应用商店更新到达后，这些更改将自动应用；该更新可能仍在审核中。';
+      '此设备的应用商店更新达到该版本后，这些更改将自动应用。该更新可能仍在审核中；如果该设备运行的是 Beta 版（TestFlight 或 Google Play 测试），也可能尚未发布：请在此设备上加入同一 Beta，或等待下一个版本。';
 
   @override
   String get settings_cloudSync_provider_connected => '已连接';
@@ -21505,8 +21623,14 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      '在下一个稳定版比当前 Beta 版更新之前，将保持在此 Beta 版上。';
+  String get settings_updates_stableDialogBody =>
+      '在稳定版比当前版本更新之前，此设备会保留当前版本，因此应用永远不会降级，您的潜水日志也会保留。在此之前，与此设备同步的稳定版渠道设备可能无法收到它的最新更改。请勿在此版本上安装较旧的稳定版：它无法打开已被较新版本升级的潜水日志。';
+
+  @override
+  String get settings_updates_stableDialogConfirm => '切换到稳定版';
+
+  @override
+  String get settings_updates_stableDialogTitle => '返回稳定版更新？';
 
   @override
   String get settings_updates_upToDate => '已是最新版本';
@@ -22291,6 +22415,17 @@ class AppLocalizationsZh extends AppLocalizations {
     Object label,
   ) {
     return '$name，排名第 $rank，$count $label';
+  }
+
+  @override
+  String insights_ranking_semanticLabelWithSubtitle(
+    Object name,
+    Object subtitle,
+    Object rank,
+    Object count,
+    Object label,
+  ) {
+    return '$name，$subtitle，排名第 $rank，$count $label';
   }
 
   @override
@@ -23784,10 +23919,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_appBar_title => '传输';
 
   @override
-  String get transfer_computers_aboutContent =>
-      '通过蓝牙连接您的潜水电脑以直接下载潜水日志到应用。支持的潜水电脑包括 Suunto、Shearwater、Garmin、Mares 以及许多其他热门品牌。Apple Watch Ultra 用户可以直接从健康应用导入潜水数据，包括深度、持续时间和心率。';
-
-  @override
   String get transfer_computers_aboutTitle => '关于潜水电脑';
 
   @override
@@ -24904,6 +25035,20 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_gear_failed => '无法更改装备，请重试。';
+
+  @override
+  String get trips_gear_useSet => '使用套装';
+
+  @override
+  String trips_gear_packedFromSet(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已从 $name 打包 $count 件装备',
+      zero: '$name 中的装备已全部打包',
+    );
+    return '$_temp0';
+  }
 
   @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
@@ -26846,7 +26991,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater、Suunto、Garmin、Mares、Scubapro、Oceanic、Aqualung、Cressi 及 50 多种其他型号。';
+      'Shearwater、Suunto、Mares、Scubapro、Oceanic、Aqualung、Cressi 及 50 多种其他型号。';
 
   @override
   String get diveComputer_list_helpBrandsTitle => '支持的品牌';
@@ -26859,6 +27004,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => '知道了';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'Garmin 手表不在此处下载。请通过 $importPath 或 $cloudPath 导入其潜水记录。';
+  }
 
   @override
   String get diveComputer_list_helpTip1 => '• 确保您的电脑处于传输模式';
@@ -40792,12 +40942,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveImport_healthkit_proceedingToReview => '正在进入审查...';
 
   @override
+  String get importWizard_dc_importFromFile => '从文件导入';
+
+  @override
   String get importWizard_dc_knownComputer => '已知潜水电脑';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return '已保存为「$name」。仅会下载新的潜水记录。';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload => '无法直接从此潜水电脑下载';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'Submersion 没有保存 $name 的连接。请从文件导入其潜水记录，或在潜水电脑中重新添加，以通过蓝牙或 USB 下载。';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'Garmin 手表将潜水记录存储为 FIT 文件，不提供直接下载。请通过 USB 连接手表，从其 GARMIN/Activity 文件夹复制文件，然后导入。';
 
   @override
   String get importWizard_dc_noNewDives => '没有可下载的新潜水记录';
@@ -41351,6 +41516,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_mode_trim => '修剪';
+
+  @override
+  String get diveLog_profileEditor_revisionSelectorTooltip =>
+      '切换活跃版本。此更改立即生效，所有未来编辑都将基于此版本。';
+
+  @override
+  String get diveLog_profileEditor_revisionSwitchFailed => '无法切换剖面版本。';
 
   @override
   String diveLog_sources_sectionTitle(int count) {
@@ -43736,6 +43908,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_section_menuMakePrimary => '设为主要';
 
   @override
+  String get navTrack_editRow_none => '无';
+
+  @override
+  String get navTrack_editRow_loadFailed => '无法加载路线';
+
+  @override
+  String navTrack_editRow_more(int count, String name) {
+    return '$name +$count';
+  }
+
+  @override
+  String get navTrack_editSheet_removeTooltip => '移除路线';
+
+  @override
+  String navTrack_editRow_saveFailed(String error) {
+    return '无法更新此潜水的水下路线：$error';
+  }
+
+  @override
   String get navTrack_importError_unsupportedFormat =>
       '此文件不是 Seacraft ENC 导航日志。';
 
@@ -43756,9 +43947,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveDetailSection_navTrack_description => '通过导航控制台测量的水下路线';
-
-  @override
-  String get dashboard_quickActions_navRoutes => '水下路线';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {
@@ -44798,6 +44986,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_manage_savedQueries_subtitle => '重命名、重新排序和删除已保存的查询';
+
+  @override
+  String get settings_manage_navRoutes_subtitle => '导入、对齐并关联已记录的路线';
 
   @override
   String get query_error_unterminatedQuote => '引号未闭合';

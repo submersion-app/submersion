@@ -21,6 +21,7 @@ import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 final Map<String, PlanEngineConfig> _oneFieldChanged = {
   'ppO2Working': PlanEngineConfig(ppO2Working: 1.2),
   'ppO2Deco': PlanEngineConfig(ppO2Deco: 1.5),
+  'ccrDiluentModPpO2': PlanEngineConfig(ccrDiluentModPpO2: 1.5),
   'cnsWarningThreshold': PlanEngineConfig(cnsWarningThreshold: 70),
   'o2Narcotic': PlanEngineConfig(o2Narcotic: false),
   'endLimitMeters': PlanEngineConfig(endLimitMeters: 40),
@@ -42,6 +43,7 @@ final Map<String, PlanEngineConfig> _oneFieldChanged = {
 final Map<String, PlanEngineConfig Function(PlanEngineConfig)> _copyOneField = {
   'ppO2Working': (c) => c.copyWith(ppO2Working: 1.2),
   'ppO2Deco': (c) => c.copyWith(ppO2Deco: 1.5),
+  'ccrDiluentModPpO2': (c) => c.copyWith(ccrDiluentModPpO2: 1.5),
   'cnsWarningThreshold': (c) => c.copyWith(cnsWarningThreshold: 70),
   'o2Narcotic': (c) => c.copyWith(o2Narcotic: false),
   'endLimitMeters': (c) => c.copyWith(endLimitMeters: 40),
@@ -75,6 +77,7 @@ PlanEngineConfig _everyFieldChanged({
 }) => PlanEngineConfig(
   ppO2Working: ppO2Working,
   ppO2Deco: ppO2Deco,
+  ccrDiluentModPpO2: 1.5,
   cnsWarningThreshold: 70,
   o2Narcotic: o2Narcotic,
   endLimitMeters: 40,

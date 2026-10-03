@@ -30,8 +30,10 @@ Future<void> _seed(db.AppDatabase d) async {
       db.TripsCompanion(
         id: const Value('t1'),
         name: const Value('Bonaire'),
-        startDate: Value(DateTime.utc(2024, 3, 1).millisecondsSinceEpoch),
-        endDate: Value(DateTime.utc(2024, 3, 8).millisecondsSinceEpoch),
+        // Trip dates are local instants, as the trip editor's date picker
+        // saves them (TripRepository reads them back as local too).
+        startDate: Value(DateTime(2024, 3, 1).millisecondsSinceEpoch),
+        endDate: Value(DateTime(2024, 3, 8).millisecondsSinceEpoch),
         createdAt: const Value(_ms),
         updatedAt: const Value(_ms),
       ),
@@ -115,7 +117,10 @@ void main() {
     expect(trip.label, 'Bonaire');
     expect(
       trip.subtitle,
-      DateRangeSubtitle(DateTime.utc(2024, 3, 1), DateTime.utc(2024, 3, 8)),
+      // Local, like the stored value: a UTC decode put the range a day early
+      // for divers east of UTC (issue #2808). DateTime equality compares the
+      // UTC flag, so this fails on a UTC decode in any time zone.
+      DateRangeSubtitle(DateTime(2024, 3, 1), DateTime(2024, 3, 8)),
     );
     expect(
       (await single(ConnectionKind.diveCenter)).subtitle,

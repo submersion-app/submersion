@@ -459,6 +459,9 @@ class DiveReimportService {
       final gasMix = t['gasMix'];
       final o2Percent = gasMix is GasMix ? gasMix.o2 : null;
       final hePercent = gasMix is GasMix ? gasMix.he : null;
+      // How long the file says the tank was breathed (issue #1496). A dive
+      // imported before v259 has none stored, so this is how it gets one.
+      final usageSeconds = (t['usageDuration'] as Duration?)?.inSeconds;
 
       final row = matched[i];
       if (row != null) {
@@ -478,6 +481,9 @@ class DiveReimportService {
                 : const Value.absent(),
             hePercent: hePercent != null
                 ? Value(hePercent)
+                : const Value.absent(),
+            usageDuration: usageSeconds != null
+                ? Value(usageSeconds)
                 : const Value.absent(),
           ),
         );
@@ -500,6 +506,7 @@ class DiveReimportService {
                 endPressure: Value(endPressure),
                 o2Percent: Value(o2Percent ?? 21.0),
                 hePercent: Value(hePercent ?? 0.0),
+                usageDuration: Value(usageSeconds),
               ),
             );
         await _syncRepository.markRecordPending(

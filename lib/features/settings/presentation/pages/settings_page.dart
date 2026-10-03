@@ -2551,6 +2551,17 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  key: const ValueKey('settings-manage-nav-routes'),
+                  leading: const Icon(Icons.route),
+                  title: Text(context.l10n.navTrack_list_title),
+                  subtitle: Text(
+                    context.l10n.settings_manage_navRoutes_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/nav-routes'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(MdiIcons.fish),
                   title: Text(context.l10n.settings_manage_species),
                   subtitle: Text(context.l10n.settings_manage_species_subtitle),
@@ -3578,26 +3589,38 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
     );
     if (selected == null || selected == current || !context.mounted) return;
 
-    if (selected == ReleaseChannel.beta) {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(ctx.l10n.settings_updates_betaDialogTitle),
-          content: Text(ctx.l10n.settings_updates_betaDialogBody),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(ctx.l10n.settings_updates_betaDialogConfirm),
-            ),
-          ],
-        ),
-      );
-      if (confirmed != true) return;
-    }
+    // Both directions are confirmed. Leaving beta keeps this build, and the
+    // dive log it may have upgraded, until stable catches up, and stable
+    // peers cannot read its changes meanwhile (issue #2619).
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(switch (selected) {
+          ReleaseChannel.beta => ctx.l10n.settings_updates_betaDialogTitle,
+          ReleaseChannel.stable => ctx.l10n.settings_updates_stableDialogTitle,
+        }),
+        content: Text(switch (selected) {
+          ReleaseChannel.beta => ctx.l10n.settings_updates_betaDialogBody,
+          ReleaseChannel.stable => ctx.l10n.settings_updates_stableDialogBody,
+        }),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(switch (selected) {
+              ReleaseChannel.beta =>
+                ctx.l10n.settings_updates_betaDialogConfirm,
+              ReleaseChannel.stable =>
+                ctx.l10n.settings_updates_stableDialogConfirm,
+            }),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
 
     final prefs = ref.read(updatePreferencesProvider);
     await prefs.setReleaseChannel(selected);
@@ -3606,13 +3629,6 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
     // invalidated preferences; the fresh service applies the new feed on
     // its next check.
     if (!mounted || !context.mounted) return;
-    if (selected == ReleaseChannel.stable) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.settings_updates_stableSwitchNotice),
-        ),
-      );
-    }
     await ref.read(updateStatusProvider.notifier).checkForUpdate();
   }
 

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -19,6 +21,7 @@ import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/matching/match_scorer.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
@@ -26,6 +29,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/dive_log/data/repositories/stored_tank_matching.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_computer_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
@@ -1412,6 +1416,13 @@ class DiveComputerRepository {
     // planned dive being filled may share its minute with a sibling in
     // another profile, so the time match could land on the wrong row.
     String? targetDiveId,
+    // On an existing dive, insert a row for each parsed tank whose index no
+    // stored tank holds, so its pressure series has somewhere to land. Set
+    // by a replace-source re-import, whose fresh parse can report a cylinder
+    // the stored reading never had (a sidemount pair's second transmitter,
+    // #2517). Off for a second computer matched onto the dive, whose tanks
+    // are the cylinders already stored rather than new ones.
+    bool addMissingTanks = false,
   }) async {
     try {
       _log.info('Importing profile from computer $computerId');
@@ -1593,7 +1604,7 @@ class DiveComputerRepository {
         await ChecklistDiveLinker().autoLinkForDive(
           diveId: diveId,
           diverId: diverId,
-          diveStart: DateTime.fromMillisecondsSinceEpoch(entryTimeMs),
+          diveStart: wallClockUtcFromMillis(entryTimeMs),
         );
 
         // Fill altitude from the entry/exit GPS fixes (best-effort). Awaited
@@ -1759,6 +1770,9 @@ class DiveComputerRepository {
           computerId: computerId,
           sourceId: ownerSourceId,
           isPrimary: isPrimary,
+          // A download is a computer import whether or not the dive already
+          // had a series, matching how the v257 backfill classifies it.
+          revisionKind: 'computer_import',
           samples: [for (final point in points) _sampleFromPointData(point)],
         );
       }
@@ -1778,52 +1792,68 @@ class DiveComputerRepository {
       // cylinder that actually holds the gas even when the stored tank order
       // does not match the parsed cylinder index (e.g. a replace-source
       // re-download that keeps pre-existing, possibly user-edited, tanks).
+      // A mix held by several cylinders (a sidemount pair, doubles) keeps the
+      // first of them: a switch to that gas is to the primary cylinder, not
+      // to whichever of its partners happened to be listed last.
       final tankIdByGas = <(double, double), String>{};
+      // Parsed indices of the tanks this import inserted, whose start and end
+      // pressures may still need deriving from their own series.
+      final insertedTankIndices = <int>{};
 
-      // Insert tanks for new dives (batch insert for performance)
+      // Batch insert for performance. A row is shown at its parsed index
+      // unless [firstOrder] gives the order to number the batch from.
+      Future<void> insertTanks(List<TankData> toInsert, {int? firstOrder}) =>
+          _db.batch((batch) {
+            for (final (i, tank) in toInsert.indexed) {
+              final tankId = _uuid.v4();
+              tankIdsByIndex[tank.index] = tankId;
+              tankIdByGas.putIfAbsent((
+                tank.o2Percent,
+                tank.hePercent,
+              ), () => tankId);
+              insertedTankIndices.add(tank.index);
+
+              batch.insert(
+                _db.diveTanks,
+                DiveTanksCompanion(
+                  id: Value(tankId),
+                  diveId: Value(diveId),
+                  computerId: Value(computerId),
+                  // The reading the tank came from (v251, issue #2716), as
+                  // for the samples above.
+                  sourceId: Value(ownerSourceId),
+                  volume: Value(tank.volumeLiters),
+                  workingPressure: Value.absentIfNull(tank.workingPressure),
+                  tankMaterial: Value.absentIfNull(tank.material),
+                  presetName: Value.absentIfNull(tank.presetName),
+                  startPressure: Value(tank.startPressure),
+                  endPressure: Value(tank.endPressure),
+                  o2Percent: Value(tank.o2Percent),
+                  hePercent: Value(tank.hePercent),
+                  tankOrder: Value(
+                    firstOrder == null ? tank.index : firstOrder + i,
+                  ),
+                  tankRole: Value(tank.role ?? 'backGas'),
+                  roleSource: Value(tank.roleSource),
+                  transmitterSerial: Value(tank.transmitterSerial),
+                  equipmentId: Value.absentIfNull(tank.equipmentId),
+                  tankName: Value.absentIfNull(tank.tankName),
+                  // The parsed index this row's computer data comes from
+                  // (issue #1314); re-parse keys on it.
+                  sourceTankIndex: Value(tank.index),
+                ),
+              );
+              _log.info(
+                'Created tank ${tank.index}: '
+                'O2=${tank.o2Percent}%, start=${tank.startPressure} bar, '
+                'end=${tank.endPressure} bar',
+              );
+            }
+          });
+
       if (isNewDive && tanks != null && tanks.isNotEmpty) {
         _log.info('Importing ${tanks.length} tanks for dive $diveId');
-        await _db.batch((batch) {
-          for (final tank in tanks) {
-            final tankId = _uuid.v4();
-            tankIdsByIndex[tank.index] = tankId;
-            tankIdByGas[(tank.o2Percent, tank.hePercent)] = tankId;
-
-            batch.insert(
-              _db.diveTanks,
-              DiveTanksCompanion(
-                id: Value(tankId),
-                diveId: Value(diveId),
-                computerId: Value(computerId),
-                // The reading the tank came from (v251, issue #2716), as
-                // for the samples above.
-                sourceId: Value(ownerSourceId),
-                volume: Value(tank.volumeLiters),
-                workingPressure: Value.absentIfNull(tank.workingPressure),
-                tankMaterial: Value.absentIfNull(tank.material),
-                presetName: Value.absentIfNull(tank.presetName),
-                startPressure: Value(tank.startPressure),
-                endPressure: Value(tank.endPressure),
-                o2Percent: Value(tank.o2Percent),
-                hePercent: Value(tank.hePercent),
-                tankOrder: Value(tank.index),
-                tankRole: Value(tank.role ?? 'backGas'),
-                roleSource: Value(tank.roleSource),
-                transmitterSerial: Value(tank.transmitterSerial),
-                equipmentId: Value.absentIfNull(tank.equipmentId),
-                tankName: Value.absentIfNull(tank.tankName),
-                // The parsed index this row's computer data comes from
-                // (issue #1314); re-parse keys on it.
-                sourceTankIndex: Value(tank.index),
-              ),
-            );
-            _log.info(
-              'Created tank ${tank.index}: '
-              'O2=${tank.o2Percent}%, start=${tank.startPressure} bar, '
-              'end=${tank.endPressure} bar',
-            );
-          }
-        });
+        await insertTanks(tanks);
       } else if (!isNewDive) {
         // For existing dives, fetch tank IDs
         final existingTanks =
@@ -1832,8 +1862,39 @@ class DiveComputerRepository {
                   ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
                 .get();
         for (final tank in existingTanks) {
-          tankIdsByIndex[tank.tankOrder] = tank.id;
-          tankIdByGas[(tank.o2Percent, tank.hePercent)] = tank.id;
+          tankIdByGas.putIfAbsent((
+            tank.o2Percent,
+            tank.hePercent,
+          ), () => tank.id);
+        }
+        if (addMissingTanks && tanks != null && tanks.isNotEmpty) {
+          // This computer's own reading again, so its rows are found the way
+          // a re-parse finds them: by source index, which a diver's
+          // reassignment moves, before falling back to the stored order.
+          final matches = matchStoredTanks(existingTanks, [
+            for (final tank in tanks) tank.index,
+          ], computerId: computerId);
+          for (final MapEntry(key: index, value: row) in matches.entries) {
+            tankIdsByIndex[index] = row.id;
+          }
+          final missing = [
+            for (final tank in tanks)
+              if (!tankIdsByIndex.containsKey(tank.index)) tank,
+          ];
+          if (missing.isNotEmpty) {
+            _log.info('Adding ${missing.length} new tanks to dive $diveId');
+            // Shown after every stored row: the parsed index can already be
+            // a stored row's order once the diver has reassigned cylinders,
+            // and sourceTankIndex keeps the routing either way.
+            final lastOrder = existingTanks
+                .map((t) => t.tankOrder)
+                .fold(-1, math.max);
+            await insertTanks(missing, firstOrder: lastOrder + 1);
+          }
+        } else {
+          for (final tank in existingTanks) {
+            tankIdsByIndex[tank.tankOrder] = tank.id;
+          }
         }
         // A replaced source gave up its tanks (clearSourceAndProfiles); the
         // fresh reading claims those it unambiguously owns (v251, #2716).
@@ -1896,12 +1957,15 @@ class DiveComputerRepository {
 
         // Backfill start/end pressure from profile data when the dive computer
         // didn't provide explicit tank pressure values but did provide
-        // time-series readings (e.g. via AI transmitters).
-        if (isNewDive && tanks != null) {
+        // time-series readings (e.g. via AI transmitters). Only for the
+        // tanks this import inserted: a stored tank's pressures are the
+        // diver's to keep.
+        if (tanks != null) {
           for (final entry in insertEntries) {
             final tankIndex = entry.key;
             final pressurePoints = entry.value;
             if (pressurePoints.isEmpty) continue;
+            if (!insertedTankIndices.contains(tankIndex)) continue;
 
             final tank = tanks.firstWhere((t) => t.index == tankIndex);
             if (tank.startPressure == null || tank.endPressure == null) {
@@ -1941,11 +2005,13 @@ class DiveComputerRepository {
 
       // Batch insert gas switches. The gas-usage timeline is driven solely by
       // the gas_switches table. A switch is linked to the cylinder holding the
-      // gas it switched to: prefer matching by gas mix (robust when stored tank
-      // order differs from the parsed cylinder index, e.g. replace-source
-      // re-downloads), and only fall back to the cylinder index for new dives
-      // whose tanks were just created from this same parse. Switches that match
-      // no cylinder are dropped rather than risk a wrong-tank link.
+      // gas it switched to. A new dive's tanks were just created from this
+      // same parse, so the switch's own cylinder index names its tank, even
+      // where several cylinders share the mix (a sidemount pair, #2517). An
+      // existing dive's stored tank order can differ from the parsed index
+      // (replace-source re-downloads keep pre-existing, possibly user-edited,
+      // tanks), so it matches by gas mix instead. Switches that match no
+      // cylinder are dropped rather than risk a wrong-tank link.
       if (gasSwitches != null && gasSwitches.isNotEmpty) {
         final gasByIndex = {
           if (tanks != null)
@@ -1955,9 +2021,9 @@ class DiveComputerRepository {
         await _db.batch((batch) {
           for (final sw in gasSwitches) {
             final gas = gasByIndex[sw.toTankIndex];
-            final tankId =
-                (gas != null ? tankIdByGas[gas] : null) ??
-                (isNewDive ? tankIdsByIndex[sw.toTankIndex] : null);
+            final tankId = isNewDive
+                ? tankIdsByIndex[sw.toTankIndex]
+                : (gas != null ? tankIdByGas[gas] : null);
             if (tankId == null) continue;
             inserted++;
             batch.insert(

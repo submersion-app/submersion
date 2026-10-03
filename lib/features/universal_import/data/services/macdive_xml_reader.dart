@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/utils/two_digit_year.dart';
+import 'package:submersion/features/universal_import/data/services/macdive_start_seconds.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_unit_converter.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_xml_models.dart';
 
@@ -56,9 +57,13 @@ class MacDiveXmlReader {
   // ---- dive ----
 
   static MacDiveXmlDive _parseDive(XmlElement el, MacDiveUnitConverter c) {
+    final identifier = _text(el, 'identifier');
+    final date = _parseDate(_text(el, 'date'));
     return MacDiveXmlDive(
-      identifier: _text(el, 'identifier'),
-      date: _parseDate(_text(el, 'date')),
+      identifier: identifier,
+      // <date> is written to the minute; <identifier> keeps the seconds
+      // (#2509).
+      date: date == null ? null : MacDiveStartSeconds.restore(date, identifier),
       diveNumber: _int(_text(el, 'diveNumber')),
       repetitiveDive: _int(_text(el, 'repetitiveDive')),
       rating: _double(_text(el, 'rating')),

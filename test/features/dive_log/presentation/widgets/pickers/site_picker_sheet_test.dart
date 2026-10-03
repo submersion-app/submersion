@@ -104,7 +104,7 @@ Future<void> _pump(
             currentLocation: currentLocation,
             diveLocation: diveLocation,
             onSiteSelected: onSiteSelected ?? (_) {},
-            onCreateNewSite: onCreateNewSite ?? () {},
+            onCreateNewSite: onCreateNewSite,
           ),
         ),
       ),
@@ -180,6 +180,32 @@ void main() {
     expect(find.text('No dive sites yet'), findsOneWidget);
     await tester.tap(find.text('Add Dive Site'));
     expect(created, 1);
+  });
+
+  testWidgets('empty state hides the create button without a callback', (
+    tester,
+  ) async {
+    await _pump(tester, sites: const []);
+    expect(find.text('No dive sites yet'), findsOneWidget);
+    expect(find.text('Add Dive Site'), findsNothing);
+  });
+
+  testWidgets('header offers creating a site', (tester) async {
+    var created = 0;
+    await _pump(
+      tester,
+      sites: const [_nearSite],
+      onCreateNewSite: () => created++,
+    );
+    await tester.tap(find.text('New Dive Site'));
+    expect(created, 1);
+  });
+
+  testWidgets('header hides the create button without a callback', (
+    tester,
+  ) async {
+    await _pump(tester, sites: const [_nearSite]);
+    expect(find.text('New Dive Site'), findsNothing);
   });
 
   testWidgets('sorts by diveLocation when provided', (tester) async {

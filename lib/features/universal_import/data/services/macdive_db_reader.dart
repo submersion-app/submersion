@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:sqlite3/sqlite3.dart';
 
 import 'package:submersion/features/universal_import/data/services/macdive_raw_types.dart';
+import 'package:submersion/features/universal_import/data/services/macdive_start_seconds.dart';
 import 'package:submersion/features/universal_import/data/services/sqlite_temp_copy.dart';
 
 /// Reads a MacDive Core Data SQLite export into a [MacDiveRawLogbook].
@@ -411,11 +412,17 @@ class MacDiveDbReader {
 
   static List<MacDiveRawDive> _readDives(Database db) {
     return db.select('SELECT * FROM ZDIVE').map((r) {
+      final identifier = _str(r['ZIDENTIFIER']);
+      final rawDate = _nsDateFromSeconds(_double(r['ZRAWDATE']));
       return MacDiveRawDive(
         pk: r['Z_PK'] as int,
         uuid: _str(r['ZUUID']) ?? '',
-        identifier: _str(r['ZIDENTIFIER']),
-        rawDate: _nsDateFromSeconds(_double(r['ZRAWDATE'])),
+        identifier: identifier,
+        // ZRAWDATE is stored to the minute; ZIDENTIFIER keeps the seconds
+        // (#2509). They go back on the instant, before any zone is applied.
+        rawDate: rawDate == null
+            ? null
+            : MacDiveStartSeconds.restore(rawDate, identifier),
         timezoneBplist: _bytes(r['ZTIMEZONE']),
         maxDepth: _double(r['ZMAXDEPTH']),
         averageDepth: _double(r['ZAVERAGEDEPTH']),

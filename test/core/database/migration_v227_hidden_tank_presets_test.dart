@@ -31,7 +31,12 @@ void main() {
     // on top; the newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(227));
     expect(AppDatabase.migrationVersions, contains(227));
-    expect(AppDatabase.migrationStepCount(226), greaterThanOrEqualTo(1));
+    // Upgrading from 226 runs exactly one step more than from 227: v227
+    // itself, whatever rungs land later.
+    expect(
+      AppDatabase.migrationStepCount(226),
+      AppDatabase.migrationStepCount(227) + 1,
+    );
   });
 
   test('this rung is additive and did not move the sync floor', () {

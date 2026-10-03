@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/media/data/services/video_capture_time_reader.dart';
+import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 
 import '../../../../helpers/media_container_fixtures.dart';
 
@@ -334,9 +335,86 @@ void main() {
       const clip = Duration(minutes: 3);
       final f = write('phone.mp4', _movie(_mvhd(mvhdUtc, duration: clip)))
         ..setLastModifiedSync(mvhdUtc.add(clip));
-      // The real conversion uses this machine's zone, as Windows does for
-      // "Media created".
+      // The injected zone makes the conversion observable on a UTC CI host,
+      // where reading the header as local or as UTC gives the same digits.
+      expect(
+        readVideoCaptureTime(f, toLocal: _utcMinus5),
+        DateTime.utc(2025, 12, 27, 11, 50, 49),
+      );
+    });
+
+    test('by default converts a UTC mvhd through this machine\'s zone', () {
+      const clip = Duration(minutes: 3);
+      final f = write('phone.mp4', _movie(_mvhd(mvhdUtc, duration: clip)))
+        ..setLastModifiedSync(mvhdUtc.add(clip));
+      // As Windows does for "Media created".
       expect(readVideoCaptureTime(f), asWallClockUtc(mvhdUtc.toLocal()));
+    });
+
+    // Issue #2489: a GoPro and an OM System clip from one Bonaire dive,
+    // imported on a Windows PC at UTC-4 (Bonaire's own offset). For the OM
+    // System clip, Explorer showed "Media created" and "Date modified" with
+    // the camera clock's digits, so its mvhd held UTC and the card kept the
+    // camera's close time as the mtime. The GoPro clip is inferred to be the
+    // same: a local-clock mvhd would have linked under the old reading. The
+    // photos from the dive linked; the clips read their UTC digits as local
+    // time, four hours after the dive.
+    group('issue #2489: Bonaire clips imported on a UTC-4 PC', () {
+      DateTime utcMinus4(DateTime utc) =>
+          utc.subtract(const Duration(hours: 4));
+
+      // Dive #1702 on 2026-04-21, wall clock. The dive's photos ran from
+      // 10:45 to 11:44.
+      final dive = DiveBounds(
+        diveId: '1702',
+        entryTime: DateTime.utc(2026, 4, 21, 10, 41),
+        exitTime: DateTime.utc(2026, 4, 21, 11, 48),
+      );
+      const matcher = DivePhotoMatcher();
+
+      File clip(String name, DateTime recordedUtc, Duration length) =>
+          write(name, _movie(_mvhd(recordedUtc, duration: length)))
+            ..setLastModifiedSync(recordedUtc.add(length));
+
+      for (final (name, recordedUtc, length, wallClock) in [
+        (
+          'GX010108.mp4',
+          DateTime.utc(2026, 4, 21, 14, 43, 5),
+          const Duration(seconds: 48),
+          DateTime.utc(2026, 4, 21, 10, 43, 5),
+        ),
+        (
+          'P4214078.mp4',
+          DateTime.utc(2026, 4, 21, 14, 45, 12),
+          const Duration(seconds: 21),
+          DateTime.utc(2026, 4, 21, 10, 45, 12),
+        ),
+      ]) {
+        test('$name is dated by its Media created time and links', () {
+          final takenAt = readVideoCaptureTime(
+            clip(name, recordedUtc, length),
+            toLocal: utcMinus4,
+          );
+
+          expect(takenAt, wallClock);
+          final match = matcher.matchTimestamp(
+            takenAt: takenAt!,
+            dives: [dive],
+          );
+          expect(match.kind, TimestampMatchKind.confident);
+          expect(match.diveId, '1702');
+        });
+      }
+
+      test('the UTC digits read as local miss the dive, as reported', () {
+        // Reading 14:45 as the local clock lands past the 60-minute window
+        // after exit: the "No matching dive" in the report.
+        final match = matcher.matchTimestamp(
+          takenAt: DateTime.utc(2026, 4, 21, 14, 45, 12),
+          dives: [dive],
+        );
+        expect(match.kind, TimestampMatchKind.none);
+      });
     });
 
     test('returns null for a file with no moov or no usable date', () {

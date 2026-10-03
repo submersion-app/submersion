@@ -8,7 +8,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
-import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
@@ -25,25 +24,20 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Pushes the route review page for [bytes] freshly picked/dropped as
 /// [fileName] and returns once the diver leaves it (whether or not they
-/// saved). Every entry point that recognises a Seacraft ENC file --
-/// the universal import wizard's hand-off card, the GPS logger's "Import
-/// track", the routes area's own import button, the dive detail section's
-/// import button -- calls this rather than building the page itself, so a
-/// route path or a button label never needs to be duplicated.
-///
-/// [preselectedDive] is a hint only, used to pre-select that dive in the
-/// link proposal once the preview loads (e.g. importing from a dive's own
-/// "Underwater Route" section, where the dive is already known); it does
-/// not skip the parse or the review step.
+/// saved). The entry points that recognise a Seacraft ENC file (the
+/// universal import wizard's hand-off card, the GPS logger's "Import track"
+/// and the routes area's own import button) call this, and the Dive Edit
+/// page's route sheet calls [navigateToNavTrackReviewForResult]. None of
+/// them builds the page itself, so a route path or a button label never
+/// needs to be duplicated.
 ///
 /// [preview] is passed by a caller that already parsed the file itself to
-/// report a failed parse in place (the routes area and the dive section);
-/// see [NavTrackImportReviewPage.preview].
+/// report a failed parse in place (the routes area and the Dive Edit route
+/// sheet); see [NavTrackImportReviewPage.preview].
 Future<void> navigateToNavTrackReview(
   BuildContext context,
   Uint8List bytes, {
   required String fileName,
-  Dive? preselectedDive,
   NavTrackImportPreview? preview,
 }) {
   return Navigator.of(context).push<void>(
@@ -51,8 +45,34 @@ Future<void> navigateToNavTrackReview(
       builder: (_) => NavTrackImportReviewPage(
         bytes: bytes,
         fileName: fileName,
-        preselectedDive: preselectedDive,
         preview: preview,
+      ),
+    ),
+  );
+}
+
+/// What the review page pops with in return mode: the saved route, and the
+/// duplicate it replaced (already deleted) when the diver ticked "replace".
+typedef NavTrackImportResult = ({String routeId, String? replacedRouteId});
+
+/// Opens the review page in return mode, for a caller that links the route
+/// itself later (the Dive Edit page's route sheet, which stages links until
+/// the dive is saved). The page hides its dive picker, saves the route
+/// unlinked, and pops with the result instead of opening the route. Null
+/// when the diver leaves without saving.
+Future<NavTrackImportResult?> navigateToNavTrackReviewForResult(
+  BuildContext context,
+  Uint8List bytes, {
+  required String fileName,
+  NavTrackImportPreview? preview,
+}) {
+  return Navigator.of(context).push<NavTrackImportResult>(
+    MaterialPageRoute(
+      builder: (_) => NavTrackImportReviewPage(
+        bytes: bytes,
+        fileName: fileName,
+        preview: preview,
+        returnResult: true,
       ),
     ),
   );
@@ -62,33 +82,33 @@ Future<void> navigateToNavTrackReview(
 /// proposal, the dive site, warnings, and the save action (spec
 /// 2026-09-10-underwater-nav-track-design.md, "Review page").
 ///
-/// Parsing happens once, in [initState] (against the service's [prepare],
-/// or reused from [preview] when a caller already parsed the file --
-/// the routes area's and the dive section's import buttons do this, through
-/// [navigateToNavTrackReview], to show their own error handling around a
-/// failed parse before ever pushing this page); nothing is written until
+/// Parsing happens once, in [initState]: against the service's [prepare],
+/// or reused from [preview] when a caller already parsed the file. The
+/// routes area's import button and the Dive Edit route sheet do that,
+/// through the navigate helpers above, so they can report a failed parse
+/// themselves before ever pushing this page. Nothing is written until
 /// [_save] calls its `commit`.
 class NavTrackImportReviewPage extends ConsumerStatefulWidget {
   const NavTrackImportReviewPage({
     super.key,
     required this.bytes,
     required this.fileName,
-    this.preselectedDive,
     this.preview,
+    this.returnResult = false,
   });
 
   final Uint8List bytes;
   final String fileName;
 
-  /// The dive the caller already knows this route belongs to. Pre-selected
-  /// even when the recording's clock puts it outside every overlap window:
-  /// the diver has already said which dive this is.
-  final Dive? preselectedDive;
-
   /// Already-parsed preview, when a caller (e.g. the routes area's import
   /// button) ran `NavTrackImportService.prepare` itself. Null re-parses
   /// [bytes] in [initState].
   final NavTrackImportPreview? preview;
+
+  /// Return mode (see [navigateToNavTrackReviewForResult]): no dive picker,
+  /// the route is saved unlinked, and the page pops with a
+  /// [NavTrackImportResult] instead of opening the route.
+  final bool returnResult;
 
   @override
   ConsumerState<NavTrackImportReviewPage> createState() =>
@@ -131,25 +151,16 @@ class _NavTrackImportReviewPageState
     super.dispose();
   }
 
-  /// The link proposal defaults to the unique overlap match, or to
-  /// [widget.preselectedDive] when the caller already knows the dive;
-  /// several candidates or none leave the route unlinked until the diver
-  /// chooses, and a nearest-by-time fallback dive is never proposed on its
-  /// own. Runs once, the first time the preview is available.
+  /// The link proposal defaults to the unique overlap match; several
+  /// candidates or none leave the route unlinked until the diver chooses,
+  /// and a nearest-by-time fallback dive is never proposed on its own. Runs
+  /// once, the first time the preview is available.
   void _initializeDiveChoice(NavTrackImportPreview preview) {
     if (_diveChoiceInitialized) return;
     _diveChoiceInitialized = true;
-    final preselected = widget.preselectedDive;
-    if (preselected != null) {
-      // The preview's own copy when it has one, freshly read with the rest.
-      _selectedDive =
-          [
-            ...preview.candidateDives,
-            ...preview.nearbyDives,
-          ].where((d) => d.id == preselected.id).firstOrNull ??
-          preselected;
-    }
-    _selectedDive ??= preview.candidateDives.length == 1
+    // The caller links the route itself, so nothing is pre-selected here.
+    if (widget.returnResult) return;
+    _selectedDive = preview.candidateDives.length == 1
         ? preview.candidateDives.single
         : null;
     _applySiteFromSelectedDive();
@@ -189,27 +200,17 @@ class _NavTrackImportReviewPageState
   }
 
   Future<void> _pickSite() async {
-    final result = await showModalBottomSheet<DiveSite>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (sheetContext, scrollController) => SitePickerSheet(
-          scrollController: scrollController,
-          selectedSiteId: _siteId,
-          onSiteSelected: (site) => Navigator.of(sheetContext).pop(site),
-          // Creating a brand-new site from mid-review is a separate flow
-          // this page does not open; the diver can still pick one already
-          // in their log, or leave the route unanchored and set a site
-          // later from the routes area.
-          onCreateNewSite: () => Navigator.of(sheetContext).pop(),
-        ),
-      ),
+    final result = await pickOrCreateSite(
+      context,
+      ref,
+      selectedSiteId: _siteId,
+      // Creating a brand-new site from mid-review is a separate flow this
+      // page does not open, so the sheet offers no "New Dive Site" button;
+      // the diver can still pick one already in their log, or leave the
+      // route unanchored and set a site later from the routes area.
+      allowCreate: false,
     );
-    if (result != null) {
+    if (result != null && mounted) {
       setState(() {
         _siteId = result.id;
         _siteName = result.name;
@@ -312,7 +313,9 @@ class _NavTrackImportReviewPageState
             name: name.isEmpty ? null : name,
             deviceName: _equipmentName,
             equipmentId: _equipmentId,
-            replacingRouteId: _replaceDuplicate
+            // In return mode the caller replaces the duplicate on its own
+            // Save (after linking this route), so a cancelled edit keeps it.
+            replacingRouteId: _replaceDuplicate && !widget.returnResult
                 ? preview.duplicateOfRouteId
                 : null,
           );
@@ -332,6 +335,13 @@ class _NavTrackImportReviewPageState
       return;
     }
     if (!mounted) return;
+    if (widget.returnResult) {
+      Navigator.of(context).pop<NavTrackImportResult>((
+        routeId: id,
+        replacedRouteId: _replaceDuplicate ? preview.duplicateOfRouteId : null,
+      ));
+      return;
+    }
     // Outside the try: the route is written by now, so nothing below may be
     // reported as a failed save (and invite a second, duplicate one).
     //
@@ -468,21 +478,23 @@ class _NavTrackImportReviewPageState
             ),
           ),
         ],
-        const SizedBox(height: 24),
-        Text(
-          l10n.navTrack_review_linkToDive,
-          style: theme.textTheme.titleSmall,
-        ),
-        const SizedBox(height: 8),
-        _DiveLinkPicker(
-          candidates: preview.candidateDives,
-          nearby: preview.nearbyDives,
-          selected: _selectedDive,
-          recordingStartSeconds: points.first.timestamp,
-          units: units,
-          onChanged: _selectDive,
-          onChooseAnother: () => _chooseAnotherDive(preview),
-        ),
+        if (!widget.returnResult) ...[
+          const SizedBox(height: 24),
+          Text(
+            l10n.navTrack_review_linkToDive,
+            style: theme.textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          _DiveLinkPicker(
+            candidates: preview.candidateDives,
+            nearby: preview.nearbyDives,
+            selected: _selectedDive,
+            recordingStartSeconds: points.first.timestamp,
+            units: units,
+            onChanged: _selectDive,
+            onChooseAnother: () => _chooseAnotherDive(preview),
+          ),
+        ],
         const SizedBox(height: 24),
         Text(l10n.navTrack_review_diveSite, style: theme.textTheme.titleSmall),
         const SizedBox(height: 4),

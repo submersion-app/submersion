@@ -12,6 +12,7 @@ import 'package:submersion/core/services/cloud_storage/icloud_native_service.dar
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/divers/data/repositories/diver_merge_repository.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 import 'package:submersion/features/settings/presentation/pages/troubleshoot_sync_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/replace_cloud_library_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/newer_schema_peer_banner.dart';
+import 'package:submersion/features/settings/presentation/widgets/older_schema_peer_banner.dart';
 import 'package:submersion/features/settings/presentation/widgets/read_failed_peer_banner.dart';
 import 'package:submersion/features/settings/presentation/widgets/skipped_peer_banner.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync_now_action.dart';
@@ -1103,7 +1105,11 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
               ),
             ),
           SkippedPeerBanner(peers: syncState.skippedPeerLabels),
-          NewerSchemaPeerBanner(peers: syncState.newerSchemaPeerLabels),
+          NewerSchemaPeerBanner(
+            peers: syncState.newerSchemaPeerLabels,
+            releaseChannel: ref.watch(releaseChannelProvider),
+          ),
+          OlderSchemaPeerBanner(peers: syncState.olderSchemaPeerLabels),
           ReadFailedPeerBanner(peers: syncState.readFailedPeerLabels),
           if (syncState.movedMarker != null)
             _buildMovedBanner(context, ref, syncState.movedMarker!),

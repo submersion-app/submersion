@@ -8,6 +8,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_candidate_group.dart';
@@ -238,9 +239,7 @@ class MediaSpeciesRepository {
           SpeciesTagCandidateGroup(
             diveId: r.read<String>('dive_id'),
             diveNumber: r.read<int?>('dive_number'),
-            diveDateTime: DateTime.fromMillisecondsSinceEpoch(
-              r.read<int>('dive_date_time'),
-            ),
+            diveDateTime: wallClockUtcFromMillis(r.read<int>('dive_date_time')),
             siteName: r.read<String?>('site_name'),
             sightingId: r.read<String>('sighting_id'),
             items: items,

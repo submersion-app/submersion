@@ -10,33 +10,80 @@ import 'package:submersion/shared/models/subtitle_text.dart';
 /// rather than ellipsising; without a compact form it ellipsises like every
 /// header title. A null [subtitle] returns [title] untouched.
 class TitleWithSubtitle extends StatelessWidget {
-  const TitleWithSubtitle({super.key, required this.title, this.subtitle});
+  const TitleWithSubtitle({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.subtitleIndent = 0,
+  });
 
   final Widget title;
 
   /// Pre-localized, so this shared widget never resolves l10n itself.
   final SubtitleText? subtitle;
 
+  /// Space before the subtitle, for a [title] whose text starts in from its
+  /// own edge (a name inside a pill), so the two lines still start together.
+  final double subtitleIndent;
+
+  /// The height a subtitle line showing [text] takes, at [textScaler] or
+  /// else the context's text scale.
+  ///
+  /// For a host with a fixed height, such as an app bar's toolbar, which
+  /// clips a title column taller than itself instead of reporting it. An app
+  /// bar clamps its title's text scale, so a host measuring from outside it
+  /// passes the clamped scaler.
+  ///
+  /// [text] is the subtitle itself, or a string in its script: a line drawn
+  /// in a fallback font (Arabic, Hebrew) can stand a pixel taller than the
+  /// primary font's, so a placeholder such as a space under-measures it.
+  static double subtitleLineHeight(
+    BuildContext context, {
+    required String text,
+    TextScaler? textScaler,
+  }) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: DefaultTextStyle.of(context).style.merge(_style(context)),
+      ),
+      textDirection: Directionality.of(context),
+      textScaler: textScaler ?? MediaQuery.textScalerOf(context),
+      locale: Localizations.maybeLocaleOf(context),
+      maxLines: 1,
+    )..layout();
+    final height = painter.height;
+    painter.dispose();
+    return height;
+  }
+
+  static TextStyle? _style(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final subtitle = this.subtitle;
     if (subtitle == null) return title;
-    final theme = Theme.of(context);
-    final style = theme.textTheme.bodySmall?.copyWith(
-      color: theme.colorScheme.onSurfaceVariant,
-    );
+    final style = _style(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         title,
-        LayoutBuilder(
-          builder: (context, constraints) => Text(
-            _fitting(context, subtitle, style, constraints.maxWidth),
-            style: style,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            softWrap: false,
+        Padding(
+          padding: EdgeInsetsDirectional.only(start: subtitleIndent),
+          child: LayoutBuilder(
+            builder: (context, constraints) => Text(
+              _fitting(context, subtitle, style, constraints.maxWidth),
+              style: style,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              softWrap: false,
+            ),
           ),
         ),
       ],

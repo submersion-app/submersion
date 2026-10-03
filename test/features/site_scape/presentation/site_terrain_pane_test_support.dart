@@ -9,6 +9,7 @@ import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/bathymetry/domain/terrain_imagery_frame.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_builder.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/site_seascape_geometry_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
@@ -106,6 +107,7 @@ Widget page(
   AppSettings settings = const AppSettings(),
   List<SiteFeature> features = const [],
   List<Override> extraOverrides = const [],
+  SeascapePlaybackContext? playbackContext,
 }) => ProviderScope(
   overrides: [
     settingsProvider.overrideWith((ref) => TestSettingsNotifier(settings)),
@@ -113,11 +115,13 @@ Widget page(
     siteFeaturesProvider('site-1').overrideWith((ref) async => features),
     ...extraOverrides,
   ],
-  child: const MaterialApp(
-    locale: Locale('en'),
+  child: MaterialApp(
+    locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
-    home: Scaffold(body: SiteTerrainPane(siteId: 'site-1')),
+    home: Scaffold(
+      body: SiteTerrainPane(siteId: 'site-1', playbackContext: playbackContext),
+    ),
   ),
 );
 

@@ -181,4 +181,13 @@ DiveTank _fold(DiveTank earlier, DiveTank later) => earlier.copyWith(
   tripCylinderId: earlier.tripCylinderId ?? later.tripCylinderId,
   equipmentId: earlier.equipmentId ?? later.equipmentId,
   decoSwitchDepth: earlier.decoSwitchDepth ?? later.decoSwitchDepth,
+  // The folded pressure drop spans both halves, so the time breathed is
+  // both halves' (#1496). With either unknown the total is too: one half's
+  // time against the whole drop would overstate the SAC.
+  usageDuration: _sumOrNull(earlier.usageDuration, later.usageDuration),
+  clearUsageDuration:
+      earlier.usageDuration == null || later.usageDuration == null,
 );
+
+Duration? _sumOrNull(Duration? a, Duration? b) =>
+    a == null || b == null ? null : a + b;

@@ -1,6 +1,7 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_density_calculator.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Gas Density Calculator State
@@ -9,7 +10,6 @@ import 'package:submersion/features/gas_calculators/domain/gas_density_calculato
 const double _defaultO2 = 21.0;
 const double _defaultHe = 35.0;
 const double _defaultDepth = 50.0;
-const double _defaultSetpoint = 1.3;
 
 /// O2% of the breathing gas (OC) or diluent (CCR).
 final densityO2Provider = StateProvider<double>((ref) => _defaultO2);
@@ -24,9 +24,13 @@ final densityDepthProvider = StateProvider<double>((ref) => _defaultDepth);
 final densityCcrProvider = StateProvider<bool>((ref) => false);
 
 /// CCR setpoint in bar. Kept while OC is selected so switching back to CCR
-/// restores it.
+/// restores it. Seeded from the diver's own CCR setpoint high, not a fixed
+/// literal, since that is the setpoint actually used for the working/bottom
+/// phase this calculator defaults to. Watched rather than read, so the seed
+/// follows settings hydration, a diver switch, or a Settings edit instead of
+/// latching whatever was loaded the first time the calculator opened.
 final densitySetpointProvider = StateProvider<double>(
-  (ref) => _defaultSetpoint,
+  (ref) => ref.watch(ccrSetpointHighProvider),
 );
 
 /// Gas temperature. Defaults to the colder, conservative option.
@@ -60,7 +64,9 @@ void resetDensityCalculator(WidgetRef ref) {
   ref.read(densityHeProvider.notifier).state = _defaultHe;
   ref.read(densityDepthProvider.notifier).state = _defaultDepth;
   ref.read(densityCcrProvider.notifier).state = false;
-  ref.read(densitySetpointProvider.notifier).state = _defaultSetpoint;
+  ref.read(densitySetpointProvider.notifier).state = ref.read(
+    ccrSetpointHighProvider,
+  );
   ref.read(densityTemperatureProvider.notifier).state =
       GasDensityTemperature.zeroC;
   ref.read(densityWaterTypeProvider.notifier).state = WaterType.salt;

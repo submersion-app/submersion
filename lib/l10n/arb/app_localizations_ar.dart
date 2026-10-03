@@ -2765,6 +2765,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_stat_lastDive => 'آخر غطسة';
 
   @override
+  String get buddies_summary_mostDives => 'Most Dives';
+
+  @override
   String get buddies_summary_overview => 'نظرة عامة';
 
   @override
@@ -4238,12 +4241,49 @@ class AppLocalizationsAr extends AppLocalizations {
   String get connections_selection_topConnections => 'أقوى الروابط';
 
   @override
-  String connections_selection_firstLast(String first, String last) {
-    return 'الأولى $first، الأخيرة $last';
-  }
+  String get connections_selection_hint => 'انقر على عقدة أو خط لعرض التفاصيل.';
 
   @override
-  String get connections_selection_hint => 'انقر على عقدة أو خط لعرض التفاصيل.';
+  String get connections_details_dives => 'الغوصات';
+
+  @override
+  String get connections_details_connections => 'الروابط';
+
+  @override
+  String get connections_details_first => 'الأولى';
+
+  @override
+  String get connections_details_last => 'الأخيرة';
+
+  @override
+  String get connections_kindOne_buddy => 'رفيق';
+
+  @override
+  String get connections_kindOne_site => 'موقع';
+
+  @override
+  String get connections_kindOne_trip => 'رحلة';
+
+  @override
+  String get connections_kindOne_diveCenter => 'مركز غوص';
+
+  @override
+  String get connections_kindOne_equipment => 'معدات';
+
+  @override
+  String get connections_kindOne_species => 'نوع';
+
+  @override
+  String get connections_kindOne_tag => 'وسم';
+
+  @override
+  String get connections_kindOne_diveType => 'نوع الغوص';
+
+  @override
+  String get connections_kindOne_diveComputer => 'كمبيوتر غوص';
+
+  @override
+  String get connections_kindOne_course => 'دورة';
 
   @override
   String get connections_empty_noDives =>
@@ -6598,6 +6638,67 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_detail_section_diveProfile => 'ملف الغوصة';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_edit => 'تعديل';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_create => 'إنشاء';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_computerImport =>
+      'استيراد من كمبيوتر الغوص';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_legacy => 'سابق';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_profileEditor =>
+      'محرر الملف';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_dataQualityRepair =>
+      'إصلاح جودة البيانات';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothAll =>
+      'تنعيم الملف بالكامل';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothSelection =>
+      'تنعيم التحديد';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeAllOutliers =>
+      'إزالة كل القيم الشاذة';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeSelectedOutliers =>
+      'إزالة القيم الشاذة المحددة';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftDepth =>
+      'إزاحة العمق';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftTime => 'إزاحة الوقت';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_deleteSegment =>
+      'حذف المقطع';
+
+  @override
+  String
+  get diveLog_detail_profileRevision_editType_deleteSegmentInterpolated =>
+      'حذف المقطع (مع استيفاء)';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_generateFromWaypoints =>
+      'إنشاء من نقاط المسار';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_trimEndZeros =>
+      'قص الأصفار النهائية';
 
   @override
   String get diveLog_detail_section_equipment => 'المعدات';
@@ -18856,6 +18957,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
+    return 'يتجاوز غاز التخفيف حد MOD الخاص به عند $depth (ppO₂ $value bar)';
+  }
+
+  @override
   String get plannerCanvas_issue_noBailout =>
       'خطة تخفيف الضغط CCR لا تتضمن غاز إنقاذ (bailout)';
 
@@ -20376,6 +20482,20 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'يلحق كل جهاز منها بمجرد أن يشغّل إصدارًا لا يقل حداثة عن إصدار هذا الجهاز. إذا لم يُعرض عليه هذا التحديث بعد، فسيصل مع الإصدار التالي، أو في وقت أبكر بالانضمام إلى البيتا.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList يشغّل إصدارًا أقدم من Submersion لا يستطيع قراءة أحدث تغييرات هذا الجهاز، لذا لن يستلمها حتى يتم تحديثه.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList تشغّل إصدارًا أقدم من Submersion لا يستطيع قراءة أحدث تغييرات هذا الجهاز، لذا لن تستلمها حتى يتم تحديثها.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList لا يزال يستخدم إصدار مكتبة أقدم أو غير معروف، لذلك لم تُدمج تغييراته. افتح Submersion عليه لاعتماد المكتبة الحالية.';
   }
@@ -20423,8 +20543,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'حدّث هذا الجهاز لاستلامها.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'ستصل عندما يشغّل هذا الجهاز إصدارًا لا يقل حداثة. إذا كان الجهاز الآخر على قناة البيتا، فقد لا يتوفر تحديث مستقر بعد: بدّل هذا الجهاز أيضًا إلى قناة تحديثات البيتا، أو انتظر الإصدار المستقر التالي.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'سيتم تطبيقها تلقائيًا فور وصول تحديث متجر التطبيقات لهذا الجهاز؛ وقد يكون التحديث لا يزال قيد المراجعة.';
+      'سيتم تطبيقها تلقائيًا عندما يصل تحديث متجر التطبيقات لهذا الجهاز إلى ذلك الإصدار. قد يكون التحديث لا يزال قيد المراجعة، أو لم يُطرح بعد إذا كان الجهاز الآخر يشغّل إصدار بيتا (TestFlight أو اختبار Google Play): انضم إلى البيتا نفسها على هذا الجهاز، أو انتظر الإصدار التالي.';
 
   @override
   String get settings_cloudSync_provider_connected => 'متصل';
@@ -22286,8 +22410,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'ستبقى على إصدار البيتا هذا حتى يصبح الإصدار المستقر التالي أحدث منه.';
+  String get settings_updates_stableDialogBody =>
+      'يحتفظ هذا الجهاز بإصداره الحالي حتى يصبح إصدار مستقر أحدث منه، لذا لا يعود التطبيق أبدًا إلى إصدار أقدم ويُحفظ سجل الغوص الخاص بك. حتى ذلك الحين، قد لا تستلم الأجهزة على القناة المستقرة التي تتزامن مع هذا الجهاز أحدث تغييراته. لا تثبّت إصدارًا مستقرًا أقدم فوق هذا الإصدار: فهو لا يستطيع فتح سجل غوص قام إصدار أحدث بترقيته.';
+
+  @override
+  String get settings_updates_stableDialogConfirm => 'التبديل إلى المستقر';
+
+  @override
+  String get settings_updates_stableDialogTitle =>
+      'هل تريد العودة إلى التحديثات المستقرة؟';
 
   @override
   String get settings_updates_upToDate => 'محدّث';
@@ -23112,6 +23243,17 @@ class AppLocalizationsAr extends AppLocalizations {
     Object label,
   ) {
     return '$name، المرتبة $rank، $count $label';
+  }
+
+  @override
+  String insights_ranking_semanticLabelWithSubtitle(
+    Object name,
+    Object subtitle,
+    Object rank,
+    Object count,
+    Object label,
+  ) {
+    return '$name، $subtitle، المرتبة $rank، $count $label';
   }
 
   @override
@@ -24735,10 +24877,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_appBar_title => 'النقل';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'قم بتوصيل حاسوب الغوص عبر البلوتوث لتنزيل سجلات الغوص مباشرة إلى التطبيق. تشمل الحواسيب المدعومة Suunto و Shearwater و Garmin و Mares والعديد من العلامات التجارية الشهيرة الأخرى.\n\nيمكن لمستخدمي Apple Watch Ultra استيراد بيانات الغوص مباشرة من تطبيق الصحة، بما في ذلك العمق والمدة ومعدل ضربات القلب.';
-
-  @override
   String get transfer_computers_aboutTitle => 'حول حواسيب الغوص';
 
   @override
@@ -25908,6 +26046,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_gear_failed => 'تعذر تغيير المعدات. حاول مرة أخرى.';
+
+  @override
+  String get trips_gear_useSet => 'استخدام مجموعة';
+
+  @override
+  String trips_gear_packedFromSet(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تجهيز $count عنصر من $name',
+      many: 'تم تجهيز $count عنصرًا من $name',
+      few: 'تم تجهيز $count عناصر من $name',
+      two: 'تم تجهيز عنصرين من $name',
+      one: 'تم تجهيز عنصر واحد من $name',
+      zero: 'كل ما في $name مُجهز بالفعل',
+    );
+    return '$_temp0';
+  }
 
   @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
@@ -27968,7 +28124,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater، Suunto، Garmin، Mares، Scubapro، Oceanic، Aqualung، Cressi، وأكثر من 50 موديلًا آخر.';
+      'Shearwater، Suunto، Mares، Scubapro، Oceanic، Aqualung، Cressi، وأكثر من 50 موديلًا آخر.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'العلامات التجارية المدعومة';
@@ -27981,6 +28137,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'حسنًا';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'لا يتم تنزيل ساعات Garmin من هنا. استورد غطساتها من $importPath أو $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 => 'تأكد أن الكمبيوتر في وضع النقل •';
@@ -42921,12 +43082,28 @@ class AppLocalizationsAr extends AppLocalizations {
       'جارٍ الانتقال إلى المراجعة...';
 
   @override
+  String get importWizard_dc_importFromFile => 'استيراد من ملف';
+
+  @override
   String get importWizard_dc_knownComputer => 'كمبيوتر غوص معروف';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'محفوظ باسم \"$name\". سيتم تنزيل الغوصات الجديدة فقط.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'لا يمكن التنزيل من كمبيوتر الغوص هذا مباشرةً';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'لا يوجد في Submersion اتصال محفوظ لـ $name. استورد غوصاته من ملف، أو أضفه مجدداً من كمبيوترات الغوص للتنزيل عبر Bluetooth أو USB.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'تخزّن ساعات Garmin الغوصات كملفات FIT بدلاً من توفير تنزيل مباشر. وصّل الساعة عبر USB، وانسخ الملفات من مجلد GARMIN/Activity فيها، ثم استوردها.';
 
   @override
   String get importWizard_dc_noNewDives => 'لا توجد غوصات جديدة للتنزيل';
@@ -43514,6 +43691,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_mode_trim => 'قص';
+
+  @override
+  String get diveLog_profileEditor_revisionSelectorTooltip =>
+      'تبديل المراجعة النشطة. هذا التغيير يسري مفعوله فوراً وسيتم أساس جميع التعديلات المستقبلية على هذه المراجعة.';
+
+  @override
+  String get diveLog_profileEditor_revisionSwitchFailed =>
+      'تعذر تبديل مراجعة الملف الشخصي.';
 
   @override
   String diveLog_sources_sectionTitle(int count) {
@@ -46049,6 +46234,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_section_menuMakePrimary => 'تعيين كأساسي';
 
   @override
+  String get navTrack_editRow_none => 'لا يوجد';
+
+  @override
+  String get navTrack_editRow_loadFailed => 'تعذر تحميل المسارات';
+
+  @override
+  String navTrack_editRow_more(int count, String name) {
+    return '$name +$count';
+  }
+
+  @override
+  String get navTrack_editSheet_removeTooltip => 'إزالة المسار';
+
+  @override
+  String navTrack_editRow_saveFailed(String error) {
+    return 'تعذر تحديث مسارات هذه الغوصة تحت الماء: $error';
+  }
+
+  @override
   String get navTrack_importError_unsupportedFormat =>
       'هذا الملف ليس سجل ملاحة Seacraft ENC.';
 
@@ -46074,9 +46278,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveDetailSection_navTrack_description =>
       'مسار تحت الماء تم قياسه من وحدة تحكم ملاحية';
-
-  @override
-  String get dashboard_quickActions_navRoutes => 'المسارات تحت الماء';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {
@@ -47123,6 +47324,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_manage_savedQueries_subtitle =>
       'إعادة تسمية الاستعلامات المحفوظة وإعادة ترتيبها وحذفها';
+
+  @override
+  String get settings_manage_navRoutes_subtitle =>
+      'استيراد المسارات المسجلة ومحاذاتها وربطها';
 
   @override
   String get query_error_unterminatedQuote => 'علامة اقتباس غير مغلقة';

@@ -417,8 +417,7 @@ void main() {
       expect(profile[1].tts, 5);
     });
 
-    test('splits multiple simultaneous tank pressures into extra rows at the '
-        'same timestamp', () {
+    test('keeps simultaneous tank pressures on one row', () {
       final result = GarminDiveMapper.map(
         _dive(
           profile: const [
@@ -436,15 +435,33 @@ void main() {
       );
 
       final profile = result.dive.profile;
-      expect(profile, hasLength(2));
-      expect(profile[0].timeSeconds, 300);
-      expect(profile[0].depth, 20.0);
-      expect(profile[0].tankIndex, 0);
-      expect(profile[0].pressure, 180.0);
-      expect(profile[1].timeSeconds, 300);
-      expect(profile[1].depth, 20.0);
-      expect(profile[1].tankIndex, 1);
-      expect(profile[1].pressure, 190.0);
+      expect(profile, hasLength(1));
+      expect(profile.single.timeSeconds, 300);
+      expect(profile.single.depth, 20.0);
+      expect(profile.single.tankPressures, [180.0, 190.0]);
+      // The single pair holds the last reading, as ProfileSample documents.
+      expect(profile.single.tankIndex, 1);
+      expect(profile.single.pressure, 190.0);
+    });
+
+    test('leaves a gap for a tank that reported nothing', () {
+      final result = GarminDiveMapper.map(
+        _dive(
+          profile: const [
+            ImportedProfileSample(
+              timeSeconds: 300,
+              depth: 20.0,
+              tankPressures: [
+                ImportedTankPressureSample(tankIndex: 2, pressureBar: 150),
+                ImportedTankPressureSample(tankIndex: 0, pressureBar: 180),
+              ],
+            ),
+          ],
+        ),
+        activityId: 1,
+      );
+
+      expect(result.dive.profile.single.tankPressures, [180.0, null, 150.0]);
     });
   });
 }

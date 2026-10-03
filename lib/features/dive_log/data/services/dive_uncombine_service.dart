@@ -510,6 +510,13 @@ class DiveUncombineService {
                               ? tank.endPressure ?? ownSpan.end
                               : ownSpan.end,
                         ),
+                  // A cylinder both segments breathed carries the summed
+                  // recorded usage (#1496); against this segment's own
+                  // drop it would understate the SAC, and the segment's
+                  // own time was not kept.
+                  usageDuration: sharedTankIds.contains(tank.id)
+                      ? const Value(null)
+                      : null,
                 ),
           );
       await _sync.markRecordPending(
@@ -651,16 +658,20 @@ class DiveUncombineService {
       final span = pressureSpanOf(
         await _tankSeries.getSeriesForTank(diveId, tankId),
       );
-      if (span == null) continue;
       final kept = await (_db.select(
         _db.diveTanks,
       )..where((t) => t.id.equals(tankId))).getSingle();
+      if (span == null && kept.usageDuration == null) continue;
       await (_db.update(
         _db.diveTanks,
       )..where((t) => t.id.equals(tankId))).write(
         DiveTanksCompanion(
-          startPressure: Value(kept.startPressure ?? span.start),
-          endPressure: Value(span.end),
+          startPressure: span == null
+              ? const Value.absent()
+              : Value(kept.startPressure ?? span.start),
+          endPressure: span == null ? const Value.absent() : Value(span.end),
+          // The summed usage of every segment (#1496), as on the clones.
+          usageDuration: const Value(null),
         ),
       );
       await _sync.markRecordPending(

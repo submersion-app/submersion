@@ -21,6 +21,7 @@ enum PlanIssueType {
   ndlExceededNoDecoGas,
   noBailoutCarried,
   minGasViolation,
+  diluentModExceeded,
 }
 
 /// One issue found while computing a plan.

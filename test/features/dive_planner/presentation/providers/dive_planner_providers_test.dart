@@ -12,6 +12,8 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
@@ -23,12 +25,16 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
     int? gfLow,
     int? gfHigh,
     PlannerWaterType? plannerWater,
+    double? ccrSetpointLow,
+    double? ccrSetpointHigh,
   }) : super(
          const AppSettings().copyWith(
            pressureUnit: pressureUnit,
            gfLow: gfLow,
            gfHigh: gfHigh,
            defaultPlannerWaterType: plannerWater,
+           ccrSetpointLow: ccrSetpointLow,
+           ccrSetpointHigh: ccrSetpointHigh,
          ),
        );
 
@@ -42,6 +48,10 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 
   void updatePlannerWaterForTest(PlannerWaterType type) {
     state = state.copyWith(defaultPlannerWaterType: type);
+  }
+
+  void updateCcrSetpointsForTest(double low, double high) {
+    state = state.copyWith(ccrSetpointLow: low, ccrSetpointHigh: high);
   }
 
   @override
@@ -208,6 +218,118 @@ void main() {
         container.read(divePlanNotifierProvider).waterType,
         WaterType.salt,
       );
+    });
+
+    test('switching to CCR seeds the diver own CCR setpoints', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _TestSettingsNotifier(
+              ccrSetpointLow: 0.6,
+              ccrSetpointHigh: 1.2,
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      container
+          .read(divePlanNotifierProvider.notifier)
+          .updateMode(domain.PlanMode.ccr);
+
+      final state = container.read(divePlanNotifierProvider);
+      expect(state.setpointLow, 0.6);
+      expect(state.setpointHigh, 1.2);
+    });
+
+    test('switching to CCR keeps setpoints the diver already set', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _TestSettingsNotifier(
+              ccrSetpointLow: 0.6,
+              ccrSetpointHigh: 1.2,
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      notifier.updateMode(domain.PlanMode.ccr);
+      notifier.updateSetpoints(low: 0.8, high: 1.4);
+      // Switching mode again (e.g. OC -> CCR -> SCR -> CCR while cycling)
+      // must not clobber a setpoint the diver already dialed in.
+      notifier.updateMode(domain.PlanMode.scr);
+      notifier.updateMode(domain.PlanMode.ccr);
+
+      final state = container.read(divePlanNotifierProvider);
+      expect(state.setpointLow, 0.8);
+      expect(state.setpointHigh, 1.4);
+    });
+
+    test('switching to CCR seeds only the half the diver never set', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _TestSettingsNotifier(
+              ccrSetpointLow: 0.6,
+              ccrSetpointHigh: 1.2,
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      // Only the low setpoint was ever hand-set (e.g. editing just that
+      // field); the high half must still pick up the diver's Settings
+      // instead of staying null forever.
+      notifier.updateSetpoints(low: 0.9);
+      notifier.updateMode(domain.PlanMode.ccr);
+
+      final state = container.read(divePlanNotifierProvider);
+      expect(state.setpointLow, 0.9);
+      expect(state.setpointHigh, 1.2);
+    });
+
+    test('a CCR plan ignores later CCR setpoint settings; switching mode '
+        'already dirtied it, so unlike GF/water there is nothing pristine '
+        'left to adopt into', () {
+      final settingsNotifier = _TestSettingsNotifier(
+        ccrSetpointLow: 0.6,
+        ccrSetpointHigh: 1.2,
+      );
+      final container = ProviderContainer(
+        overrides: [settingsProvider.overrideWith((ref) => settingsNotifier)],
+      );
+      addTearDown(container.dispose);
+
+      container
+          .read(divePlanNotifierProvider.notifier)
+          .updateMode(domain.PlanMode.ccr);
+      expect(container.read(divePlanNotifierProvider).isDirty, isTrue);
+
+      settingsNotifier.updateCcrSetpointsForTest(0.9, 1.5);
+
+      final state = container.read(divePlanNotifierProvider);
+      expect(state.setpointLow, 0.6);
+      expect(state.setpointHigh, 1.2);
+    });
+
+    test('an OC plan ignores CCR setpoint settings', () {
+      final settingsNotifier = _TestSettingsNotifier();
+      final container = ProviderContainer(
+        overrides: [settingsProvider.overrideWith((ref) => settingsNotifier)],
+      );
+      addTearDown(container.dispose);
+
+      container.read(divePlanNotifierProvider);
+      settingsNotifier.updateCcrSetpointsForTest(0.6, 1.2);
+
+      final state = container.read(divePlanNotifierProvider);
+      expect(state.setpointLow, isNull);
+      expect(state.setpointHigh, isNull);
     });
 
     test('newPlan re-reads planner water from the diver settings', () {

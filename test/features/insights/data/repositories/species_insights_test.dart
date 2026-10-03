@@ -25,7 +25,8 @@ Future<void> insertTestDiver(String id) async {
       );
 }
 
-/// Insert a dive with optional site, depth, dateTime, and diverId
+/// Insert a dive with optional site, depth, dateTime, and diverId. [dateTime]
+/// is a wall clock flagged UTC, the way dive_date_time is stored (#2808).
 Future<void> insertTestDive({
   required String id,
   String? diverId,
@@ -34,7 +35,8 @@ Future<void> insertTestDive({
   DateTime? dateTime,
 }) async {
   final db = DatabaseService.instance.database;
-  final dt = dateTime ?? DateTime(2024, 6, 15, 10, 0);
+  final dt = dateTime ?? DateTime.utc(2024, 6, 15, 10, 0);
+  assert(dt.isUtc, 'dive_date_time is stored as a wall clock flagged UTC');
   final now = DateTime.now().millisecondsSinceEpoch;
 
   if (siteId != null) {
@@ -109,13 +111,13 @@ void main() {
         id: 'dive-1',
         siteId: 'site-a',
         maxDepth: 15.0,
-        dateTime: DateTime(2024, 1, 10),
+        dateTime: DateTime.utc(2024, 1, 10),
       );
       await insertTestDive(
         id: 'dive-2',
         siteId: 'site-b',
         maxDepth: 28.0,
-        dateTime: DateTime(2024, 6, 20),
+        dateTime: DateTime.utc(2024, 6, 20),
       );
 
       await speciesRepository.addSighting(
@@ -139,18 +141,10 @@ void main() {
       expect(stats.siteCount, 2);
       expect(stats.minDepthMeters, 15.0);
       expect(stats.maxDepthMeters, 28.0);
-      expect(
-        stats.firstSeen,
-        DateTime.fromMillisecondsSinceEpoch(
-          DateTime(2024, 1, 10).millisecondsSinceEpoch,
-        ),
-      );
-      expect(
-        stats.lastSeen,
-        DateTime.fromMillisecondsSinceEpoch(
-          DateTime(2024, 6, 20).millisecondsSinceEpoch,
-        ),
-      );
+      // DateTime equality compares the UTC flag, so these fail on a local
+      // decode in any time zone, UTC CI included.
+      expect(stats.firstSeen, DateTime.utc(2024, 1, 10));
+      expect(stats.lastSeen, DateTime.utc(2024, 6, 20));
     });
 
     test('returns top sites sorted by sighting count', () async {

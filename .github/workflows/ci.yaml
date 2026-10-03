@@ -678,6 +678,13 @@ jobs:
       - name: Run fastlane beta changelog test
         run: ruby scripts/release/fastlane_beta_changelog_test.rb
 
+      - name: Run fastlane Play error hint test
+        # Guards the hints the Play lanes print on rejections that no retry
+        # can clear (#2597): the unregistered-key error that failed five betas
+        # in a row without naming the key, and the version-code reuse that
+        # makes a re-run of a rejected build fail too.
+        run: ruby scripts/release/fastlane_play_error_hint_test.rb
+
       - name: Run fastlane submit guard test
         # Guards the App Review submission guard against the defect behind
         # promotion run 31903095751: submitting while a DIFFERENT version was

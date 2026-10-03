@@ -17,20 +17,20 @@ Future<void> seed() async {
   await insertTestSite('s2', 'Shark Point');
   await insertTestDive(
     id: 'd1',
-    at: DateTime(2024, 1, 10),
+    at: DateTime.utc(2024, 1, 10),
     diverId: 'diver-a',
     siteId: 's1',
     number: 101,
   );
   await insertTestDive(
     id: 'd2',
-    at: DateTime(2024, 3, 5),
+    at: DateTime.utc(2024, 3, 5),
     diverId: 'diver-a',
     number: 102,
   );
   await insertTestDive(
     id: 'd3',
-    at: DateTime(2024, 5, 1),
+    at: DateTime.utc(2024, 5, 1),
     diverId: 'diver-b',
     siteId: 's2',
     number: 7,
@@ -164,6 +164,9 @@ void main() {
         expect(d1.sightingId, 'sg1');
         expect(d1.diveNumber, 101);
         expect(d1.siteName, 'Blue Hole');
+        // dive_date_time is a wall clock flagged UTC (issue #2810); DateTime
+        // equality compares the flag, so a local decode fails in any zone.
+        expect(d1.diveDateTime, DateTime.utc(2024, 1, 10));
         // p1 is already tagged and doc1 is a document: both excluded.
         expect(d1.items.map((m) => m.id).toSet(), {'p2', 'p3'});
         expect(groups.first.siteName, isNull);

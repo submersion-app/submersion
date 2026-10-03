@@ -357,6 +357,20 @@ void main() {
       final gasMix = tank['gasMix'] as GasMix;
       expect(gasMix.o2, closeTo(32.0, 0.01));
       expect(gasMix.he, closeTo(0.0, 0.01));
+      // #1496: ZTANKANDGAS.ZDURATION is how long the tank was breathed, under
+      // the key _buildTanks reads. `runtime` is the dive's key, not a tank's.
+      expect(tank['usageDuration'], const Duration(seconds: 2400));
+      expect(tank.containsKey('runtime'), isFalse);
+    });
+
+    test('a tank with no ZDURATION carries no usage duration', () async {
+      final logbook = await MacDiveDbReader.readAll(bytes);
+      final payload = await MacDiveDiveMapper.toPayload(logbook);
+      final dive2 = payload
+          .entitiesOf(ImportEntityType.dives)
+          .firstWhere((d) => d['sourceUuid'] == 'dive-uuid-2');
+      final tank = (dive2['tanks'] as List).single as Map<String, dynamic>;
+      expect(tank.containsKey('usageDuration'), isFalse);
     });
 
     test('sites: saltwater/freshwater mapped to enum names', () async {
@@ -802,6 +816,22 @@ void main() {
         final dive = payload.entitiesOf(ImportEntityType.dives).single;
         // 17:05Z is 10:05 PDT, the time MacDive shows for this dive.
         expect(dive['dateTime'], DateTime.utc(2024, 7, 1, 10, 5));
+      });
+
+      test('keeps the seconds through the zone conversion (#2509)', () async {
+        // The reader has already put back the seconds ZIDENTIFIER keeps.
+        final payload = await MacDiveDiveMapper.toPayload(
+          _singleDiveLogbook(
+            MacDiveRawDive(
+              pk: 1,
+              uuid: 'dive-1',
+              rawDate: DateTime.utc(2024, 7, 1, 17, 5, 17),
+              timezoneBplist: losAngelesBplist,
+            ),
+          ),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['dateTime'], DateTime.utc(2024, 7, 1, 10, 5, 17));
       });
 
       test('a dive with no ZTIMEZONE uses the zone of its site', () async {
