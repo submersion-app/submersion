@@ -38,6 +38,28 @@ class DeleteDuplicateRepair extends QualityRepairAction {
   final String deleteDiveId;
 }
 
+/// Remove a shared item from one profile's dive (issue #2853). Offered only
+/// where the dive's gear list is the item's only link: removing that row
+/// while a tank slot still links the item would leave the overlap, and the
+/// rescan would reopen the finding.
+class RemoveGearFromDiveRepair extends QualityRepairAction {
+  const RemoveGearFromDiveRepair({
+    required this.diveId,
+    required this.otherDiveId,
+    required this.equipmentId,
+    required this.diverName,
+  });
+  final String diveId;
+
+  /// The other dive of the pair, rescanned with this one.
+  final String otherDiveId;
+  final String equipmentId;
+
+  /// The profile whose dive loses the item, for the button label; empty
+  /// when unknown.
+  final String diverName;
+}
+
 class CombineSplitRepair extends QualityRepairAction {
   const CombineSplitRepair(this.diveIds);
   final List<String> diveIds;
@@ -385,6 +407,32 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
         ];
       }
       return [GoToDiveRepair(diveId)];
+
+    case 'shared_gear_overlap':
+      final equipmentId = p['equipmentId'] as String?;
+      final dives = p['dives'];
+      if (equipmentId == null || dives is! Map || related == null) {
+        return [GoToDiveRepair(diveId)];
+      }
+      bool onlyGearList(Object? side) {
+        final kinds = side is Map ? side['linkKinds'] : null;
+        return kinds is List && kinds.length == 1 && kinds.single == 'gearList';
+      }
+
+      String diverName(Object? side) =>
+          side is Map ? (side['diverName'] as String? ?? '') : '';
+      return [
+        for (final (id, other) in [(diveId, related), (related, diveId)])
+          if (onlyGearList(dives[id]))
+            RemoveGearFromDiveRepair(
+              diveId: id,
+              otherDiveId: other,
+              equipmentId: equipmentId,
+              diverName: diverName(dives[id]),
+            ),
+        GoToDiveRepair(diveId),
+        GoToDiveRepair(related),
+      ];
 
     default:
       return [GoToDiveRepair(diveId)];

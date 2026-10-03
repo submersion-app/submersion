@@ -19,4 +19,5 @@ QualityUnitFormatters qualityUnitFormattersFor(UnitFormatter units) =>
       sac: (lpm) => units.formatRmv(lpm),
       date: (d) => units.formatDate(d),
       dateTime: (d) => '${units.formatDate(d)} ${units.formatTime(d)}',
+      time: (d) => units.formatTime(d),
     );

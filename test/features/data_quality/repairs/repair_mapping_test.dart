@@ -536,4 +536,63 @@ void main() {
     final actions = repairOptionsFor(f(detectorId: 'mystery'));
     expect(actions.single, isA<GoToDiveRepair>());
   });
+
+  group('shared gear overlap (issue #2853)', () {
+    Map<String, Object?> sharedParams(
+      List<String> d1Kinds,
+      List<String> d2Kinds,
+    ) => {
+      'equipmentId': 'light',
+      'itemName': 'Primary light',
+      'partIds': const <String>[],
+      'dives': {
+        'd1': {
+          'diverId': 'anna',
+          'diverName': 'Anna',
+          'entryMs': 0,
+          'linkKinds': d1Kinds,
+        },
+        'd2': {
+          'diverId': 'bill',
+          'diverName': 'Bill',
+          'entryMs': 0,
+          'linkKinds': d2Kinds,
+        },
+      },
+    };
+
+    test(
+      'offers to remove from each dive whose only link is the gear list',
+      () {
+        final actions = repairOptionsFor(
+          f(
+            detectorId: 'shared_gear_overlap',
+            relatedDiveId: 'd2',
+            params: sharedParams(['gearList'], ['gearList']),
+          ),
+        );
+        final removes = actions.whereType<RemoveGearFromDiveRepair>().toList();
+        expect(removes.map((r) => (r.diveId, r.otherDiveId, r.diverName)), [
+          ('d1', 'd2', 'Anna'),
+          ('d2', 'd1', 'Bill'),
+        ]);
+        expect(removes.every((r) => r.equipmentId == 'light'), isTrue);
+        expect(actions.whereType<GoToDiveRepair>().map((g) => g.diveId), {
+          'd1',
+          'd2',
+        });
+      },
+    );
+
+    test('no remove where a tank slot also links the item', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'shared_gear_overlap',
+          relatedDiveId: 'd2',
+          params: sharedParams(['gearList', 'tankCylinder'], ['tankRegulator']),
+        ),
+      );
+      expect(actions.whereType<RemoveGearFromDiveRepair>(), isEmpty);
+    });
+  });
 }

@@ -94,6 +94,10 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
       GoToDiveRepair() => l10n.dataQuality_action_goToDive,
       AssignTransmitterRepair() =>
         l10n.dataQuality_repairLabel_assignTransmitter,
+      RemoveGearFromDiveRepair(:final diverName) =>
+        l10n.dataQuality_repairLabel_removeGearFromDive(
+          diverName.isEmpty ? l10n.sharedItems_ownerUnknown : diverName,
+        ),
     };
   }
 

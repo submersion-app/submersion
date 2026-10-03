@@ -22,6 +22,7 @@ void main() {
     date: (d) => 'DATE(${d.year}-${d.month}-${d.day})',
     dateTime: (d) =>
         'WHEN(${d.year}-${d.month}-${d.day} ${d.hour}:${d.minute})',
+    time: (d) => 'TIME(${d.hour}:${d.minute})',
   );
 
   setUp(() {
@@ -313,5 +314,69 @@ void main() {
 
   test('unknown detector yields an empty detail', () {
     expect(detailFor('nope', {}), isEmpty);
+  });
+
+  group('shared gear overlap (issue #2853)', () {
+    QualityFinding overlap({
+      List<String> parts = const [],
+      String annaName = 'Anna',
+    }) => QualityFinding(
+      id: 'f1',
+      diveId: 'a1',
+      relatedDiveId: 'b1',
+      detectorId: 'shared_gear_overlap',
+      detectorVersion: 1,
+      category: QualityCategory.time,
+      severity: QualitySeverity.info,
+      status: QualityStatus.open,
+      params: {
+        'equipmentId': 'light',
+        'itemName': 'Primary light',
+        'partIds': parts,
+        'dives': {
+          'a1': {
+            'diverId': 'anna',
+            'diverName': annaName,
+            'entryMs': DateTime.utc(2026, 7, 1, 10, 2).millisecondsSinceEpoch,
+            'linkKinds': ['gearList'],
+          },
+          'b1': {
+            'diverId': 'bill',
+            'diverName': 'Bill',
+            'entryMs': DateTime.utc(2026, 7, 1, 10, 5).millisecondsSinceEpoch,
+            'linkKinds': ['gearList'],
+          },
+        },
+      },
+      createdAt: DateTime.utc(2026, 7, 17),
+      updatedAt: DateTime.utc(2026, 7, 17),
+    );
+
+    test('names the item, both profiles and both times in UTC', () {
+      final m = buildFindingMessage(l10n, overlap(), fmt);
+      expect(m.title, 'Shared gear on overlapping dives');
+      expect(
+        m.detail,
+        "Primary light is on Anna's dive at TIME(10:2) and Bill's dive at "
+        'TIME(10:5).',
+      );
+    });
+
+    test('adds the installed parts', () {
+      final m = buildFindingMessage(
+        l10n,
+        overlap(parts: ['hose', 'octo']),
+        fmt,
+      );
+      expect(m.detail, endsWith('Includes 2 installed parts.'));
+    });
+
+    test('a profile with no name reads another profile', () {
+      final m = buildFindingMessage(l10n, overlap(annaName: ''), fmt);
+      expect(
+        m.detail,
+        startsWith("Primary light is on another profile's dive"),
+      );
+    });
   });
 }

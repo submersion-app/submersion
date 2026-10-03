@@ -36,6 +36,7 @@ const _formatters = QualityUnitFormatters(
   sac: _fmt,
   date: _fmtDate,
   dateTime: _fmtDate,
+  time: _fmtDate,
 );
 
 String _fmt(double v) => '$v';

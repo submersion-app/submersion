@@ -22,6 +22,7 @@ void main() {
     date: (d) => 'DATE(${d.year}-${d.month}-${d.day})',
     dateTime: (d) =>
         'WHEN(${d.year}-${d.month}-${d.day} ${d.hour}:${d.minute})',
+    time: (d) => 'TIME(${d.hour}:${d.minute})',
   );
 
   setUp(() {
