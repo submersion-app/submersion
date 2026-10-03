@@ -71,6 +71,22 @@ void main() {
     expect(field.controller!.text, 'nomatch');
   });
 
+  // Code review: the empty state's Clear filters is the chip row's Clear
+  // all by another name, so it offers the same Undo.
+  testWidgets('Clear filters in the empty state offers Undo', (tester) async {
+    await tester.pumpWidget(
+      await buildContent(
+        DiveFilterState(query: TextNode(['nomatch'])),
+        const [],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Clear Filters'));
+    await tester.pump();
+    expect(find.text('Undo'), findsOneWidget);
+    await tester.pumpAndSettle(const Duration(seconds: 5));
+  });
+
   testWidgets('the row and chips sit above a filtered list', (tester) async {
     final dives = [
       DiveSummary.fromDive(

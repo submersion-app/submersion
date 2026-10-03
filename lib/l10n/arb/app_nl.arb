@@ -2811,7 +2811,6 @@
   "diveLog_listPage_tripGroupExpand": "Duiken van {tripName} tonen",
   "diveLog_listPage_tripGroupCollapse": "Duiken van {tripName} verbergen",
   "diveLog_listPage_tripGroupOpenTrip": "Reis {tripName} openen",
-  "diveLog_listPage_tooltip_back": "Terug",
   "diveLog_listPage_tooltip_backToDiveList": "Terug naar duiklijst",
   "diveLog_listPage_tooltip_clearSearch": "Zoekopdracht wissen",
   "diveLog_listPage_tooltip_listView": "Lijstweergave",

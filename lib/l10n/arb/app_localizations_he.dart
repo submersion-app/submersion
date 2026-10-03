@@ -8653,9 +8653,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_listPage_tooltip_back => 'חזרה';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList => 'חזרה לרשימת צלילות';
 
   @override

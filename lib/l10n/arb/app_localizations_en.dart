@@ -8717,9 +8717,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get diveLog_listPage_tooltip_back => 'Back';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList => 'Back to dive list';
 
   @override

@@ -109,14 +109,6 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     );
   }
 
-  /// Closes the row, dropping a query still waiting on the debounce so it
-  /// cannot land afterwards and reopen the row.
-  void _close() {
-    _debounce?.cancel();
-    setState(() => _local = _jumpQuery = null);
-    closeDiveSearch(context, ref);
-  }
-
   void _onQueryChanged(QueryNode? node) {
     // An emptied field hides the jump rows now, not after the debounce.
     setState(() {
@@ -139,6 +131,12 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
   Widget build(BuildContext context) {
     ref.listen<bool>(diveSearchFocusPendingProvider, (_, pending) {
       if (pending) _takeFocusRequest();
+    });
+    // A close or clear from anywhere drops what is still waiting on the
+    // debounce; it would otherwise land after the clear and reopen the row.
+    ref.listen<int>(diveSearchClearTickProvider, (_, _) {
+      _debounce?.cancel();
+      setState(() => _local = _jumpQuery = null);
     });
     ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
       // Only a change to the QUERY from outside (a chip removed, a saved
@@ -163,7 +161,6 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
       now: DateTime.now,
     );
     final panelAxes = filter.panelAxisCount;
-    final compact = MediaQuery.sizeOf(context).width < 600;
     void openInsights() {
       // What applies, not what is set: Insights has no "All dives" toggle
       // to show a suspension with.
@@ -189,7 +186,8 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
                   describeError: (e) => describeQueryError(l10n, e),
                   fieldKey: kDiveSearchFieldKey,
                   focusNode: _focus,
-                  onEscape: widget.onEscape ?? _close,
+                  onEscape:
+                      widget.onEscape ?? () => closeDiveSearch(context, ref),
                 ),
               ),
               IconButton(
@@ -209,7 +207,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
                 key: kDiveSearchCloseKey,
                 tooltip: l10n.diveLog_search_closeTooltip,
                 icon: const Icon(Icons.close),
-                onPressed: _close,
+                onPressed: () => closeDiveSearch(context, ref),
               ),
             ],
           ),
@@ -227,40 +225,44 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
         if (filter.hasActiveFilters)
           Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 8, 4),
-            child: Row(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: activeDiveFilterChips(
-                        context,
-                        ref,
-                        diveFilterProvider,
+            // The row's own width: on desktop it sits in the narrow master
+            // pane of a wide window.
+            child: LayoutBuilder(
+              builder: (context, constraints) => Row(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: activeDiveFilterChips(
+                          context,
+                          ref,
+                          diveFilterProvider,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                // An icon on narrow layouts, so the chips keep the row.
-                if (compact)
-                  IconButton(
-                    key: kDiveSearchInsightsKey,
-                    tooltip: l10n.diveLog_search_openInsights,
-                    icon: const Icon(Icons.insights),
-                    onPressed: openInsights,
-                  )
-                else
+                  // An icon on narrow layouts, so the chips keep the row.
+                  if (constraints.maxWidth < 600)
+                    IconButton(
+                      key: kDiveSearchInsightsKey,
+                      tooltip: l10n.diveLog_search_openInsights,
+                      icon: const Icon(Icons.insights),
+                      onPressed: openInsights,
+                    )
+                  else
+                    TextButton(
+                      key: kDiveSearchInsightsKey,
+                      onPressed: openInsights,
+                      child: Text(l10n.diveLog_search_openInsights),
+                    ),
                   TextButton(
-                    key: kDiveSearchInsightsKey,
-                    onPressed: openInsights,
-                    child: Text(l10n.diveLog_search_openInsights),
+                    onPressed: () =>
+                        closeDiveSearch(context, ref, collapse: false),
+                    child: Text(l10n.diveLog_filterChip_clearAll),
                   ),
-                TextButton(
-                  onPressed: () =>
-                      closeDiveSearch(context, ref, collapse: false),
-                  child: Text(l10n.diveLog_filterChip_clearAll),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
       ],

@@ -2811,7 +2811,6 @@
   "diveLog_listPage_tripGroupExpand": "Mostrar inmersiones de {tripName}",
   "diveLog_listPage_tripGroupCollapse": "Ocultar inmersiones de {tripName}",
   "diveLog_listPage_tripGroupOpenTrip": "Abrir viaje {tripName}",
-  "diveLog_listPage_tooltip_back": "Atrás",
   "diveLog_listPage_tooltip_backToDiveList": "Volver a la lista de inmersiones",
   "diveLog_listPage_tooltip_clearSearch": "Borrar búsqueda",
   "diveLog_listPage_tooltip_listView": "Vista de lista",

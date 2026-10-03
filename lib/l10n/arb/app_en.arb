@@ -4979,7 +4979,6 @@
   "diveLog_listPage_tripGroupExpand": "Show dives on {tripName}",
   "diveLog_listPage_tripGroupCollapse": "Hide dives on {tripName}",
   "diveLog_listPage_tripGroupOpenTrip": "Open trip {tripName}",
-  "diveLog_listPage_tooltip_back": "Back",
   "diveLog_listPage_tooltip_backToDiveList": "Back to dive list",
   "diveLog_listPage_tooltip_clearSearch": "Clear search",
   "diveLog_listPage_tooltip_listView": "List View",

@@ -2811,7 +2811,6 @@
   "diveLog_listPage_tripGroupExpand": "Mostrar mergulhos de {tripName}",
   "diveLog_listPage_tripGroupCollapse": "Ocultar mergulhos de {tripName}",
   "diveLog_listPage_tripGroupOpenTrip": "Abrir viagem {tripName}",
-  "diveLog_listPage_tooltip_back": "Voltar",
   "diveLog_listPage_tooltip_backToDiveList": "Voltar para a lista de mergulhos",
   "diveLog_listPage_tooltip_clearSearch": "Limpar busca",
   "diveLog_listPage_tooltip_listView": "Visualização em Lista",

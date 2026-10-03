@@ -14133,12 +14133,6 @@ abstract class AppLocalizations {
   /// **'Open trip {tripName}'**
   String diveLog_listPage_tripGroupOpenTrip(String tripName);
 
-  /// No description provided for @diveLog_listPage_tooltip_back.
-  ///
-  /// In en, this message translates to:
-  /// **'Back'**
-  String get diveLog_listPage_tooltip_back;
-
   /// No description provided for @diveLog_listPage_tooltip_backToDiveList.
   ///
   /// In en, this message translates to:

@@ -8690,9 +8690,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_listPage_tooltip_back => 'رجوع';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList =>
       'العودة إلى قائمة الغوصات';
 

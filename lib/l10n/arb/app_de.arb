@@ -2822,7 +2822,6 @@
   "diveLog_listPage_tripGroupExpand": "Tauchgänge von {tripName} anzeigen",
   "diveLog_listPage_tripGroupCollapse": "Tauchgänge von {tripName} ausblenden",
   "diveLog_listPage_tripGroupOpenTrip": "Reise {tripName} öffnen",
-  "diveLog_listPage_tooltip_back": "Zurück",
   "diveLog_listPage_tooltip_backToDiveList": "Zurück zur Tauchgangliste",
   "diveLog_listPage_tooltip_clearSearch": "Suche löschen",
   "diveLog_listPage_tooltip_listView": "Listenansicht",

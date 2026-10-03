@@ -2709,7 +2709,6 @@
   "diveLog_listPage_tripGroupExpand": "{tripName} merülései megjelenítése",
   "diveLog_listPage_tripGroupCollapse": "{tripName} merülései elrejtése",
   "diveLog_listPage_tripGroupOpenTrip": "{tripName} út megnyitása",
-  "diveLog_listPage_tooltip_back": "Vissza",
   "diveLog_listPage_tooltip_backToDiveList": "Vissza a merülések listájához",
   "diveLog_listPage_tooltip_clearSearch": "Keresés törlése",
   "diveLog_listPage_tooltip_listView": "Lista nézet",

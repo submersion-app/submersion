@@ -8863,9 +8863,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get diveLog_listPage_tooltip_back => 'Voltar';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList =>
       'Voltar para a lista de mergulhos';
 

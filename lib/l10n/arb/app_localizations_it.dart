@@ -8868,9 +8868,6 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get diveLog_listPage_tooltip_back => 'Indietro';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList =>
       'Torna all\'elenco immersioni';
 

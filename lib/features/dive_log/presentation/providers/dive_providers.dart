@@ -707,6 +707,10 @@ class PaginatedDiveListNotifier
   /// a time means each reads a snapshot that is still current when it writes.
   Future<void> _pagingQueue = Future<void>.value();
 
+  /// Counts filter changes, so only the newest queued first-page load for
+  /// them runs; each reads the filter when it runs, so the others repeat it.
+  int _filterLoads = 0;
+
   PaginatedDiveListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
     _currentDiverId = _ref.read(currentDiverIdProvider);
@@ -730,7 +734,13 @@ class PaginatedDiveListNotifier
                   axesSuspended: next.axesSuspended,
                 ) ==
                 next;
-        _enqueuePaging(() => _loadFirstPage(quiet: searchOnly));
+        final load = ++_filterLoads;
+        _enqueuePaging(() async {
+          // A later change is queued too: it runs the same latest filter,
+          // so this one would only repeat the query.
+          if (load != _filterLoads) return;
+          await _loadFirstPage(quiet: searchOnly);
+        });
       }
     });
     _followFilterTicks(_ref.read(diveFilterProvider));

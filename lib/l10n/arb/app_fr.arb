@@ -2709,7 +2709,6 @@
   "diveLog_listPage_tripGroupExpand": "Afficher les plongées de {tripName}",
   "diveLog_listPage_tripGroupCollapse": "Masquer les plongées de {tripName}",
   "diveLog_listPage_tripGroupOpenTrip": "Ouvrir le voyage {tripName}",
-  "diveLog_listPage_tooltip_back": "Retour",
   "diveLog_listPage_tooltip_backToDiveList": "Retour à la liste des plongées",
   "diveLog_listPage_tooltip_clearSearch": "Effacer la recherche",
   "diveLog_listPage_tooltip_listView": "Vue liste",

@@ -17,6 +17,7 @@ void closeDiveSearch(
   // the diver has left the list and the widget owning [ref] is gone.
   final container = ProviderScope.containerOf(context, listen: false);
   final snapshot = container.read(diveFilterProvider);
+  container.read(diveSearchClearTickProvider.notifier).state++;
   if (collapse) {
     container.read(diveSearchBarOpenProvider.notifier).state = false;
   }

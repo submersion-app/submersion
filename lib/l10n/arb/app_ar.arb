@@ -2811,7 +2811,6 @@
   "diveLog_listPage_tripGroupExpand": "إظهار غوصات {tripName}",
   "diveLog_listPage_tripGroupCollapse": "إخفاء غوصات {tripName}",
   "diveLog_listPage_tripGroupOpenTrip": "فتح رحلة {tripName}",
-  "diveLog_listPage_tooltip_back": "رجوع",
   "diveLog_listPage_tooltip_backToDiveList": "العودة إلى قائمة الغوصات",
   "diveLog_listPage_tooltip_clearSearch": "مسح البحث",
   "diveLog_listPage_tooltip_listView": "عرض القائمة",
