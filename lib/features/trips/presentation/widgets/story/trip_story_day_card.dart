@@ -137,6 +137,9 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
                       points: widget.mapPoints,
                       highlightedDiveId: _highlightedDiveId,
                       onDiveTap: _onPinTap,
+                      // Panning and zooming live in the fullscreen view; in
+                      // the card a drag scrolls the story.
+                      interactive: false,
                       onExpand: widget.onExpandMap == null
                           ? null
                           : () => widget.onExpandMap!(day, widget.mapPoints),

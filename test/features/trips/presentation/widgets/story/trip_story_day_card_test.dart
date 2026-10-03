@@ -451,4 +451,36 @@ void main() {
     await tester.pumpAndSettle();
     expect(position.pixels, greaterThan(0));
   });
+
+  testWidgets('a drag on the day map scrolls the story, not the map', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(420, 560);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pumpCard(
+      tester,
+      _pastDay(['d1', 'd2', 'd3', 'd4']),
+      mapPoints: [_pin('d1', 1)],
+    );
+    final position = tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position;
+    final camera = tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .mapController!
+        .camera
+        .center;
+    await tester.drag(find.byType(FlutterMap), const Offset(0, -200));
+    await tester.pumpAndSettle();
+    expect(position.pixels, greaterThan(0));
+    expect(
+      tester
+          .widget<FlutterMap>(find.byType(FlutterMap))
+          .mapController!
+          .camera
+          .center,
+      camera,
+    );
+  });
 }

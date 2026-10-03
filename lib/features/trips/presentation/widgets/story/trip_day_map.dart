@@ -26,6 +26,10 @@ class TripDayMap extends ConsumerStatefulWidget {
   final VoidCallback? onMapTap;
   final VoidCallback? onExpand;
 
+  /// Whether the map pans and zooms. A story card turns it off so the map
+  /// never catches the story's scroll; the fullscreen page leaves it on.
+  final bool interactive;
+
   const TripDayMap({
     super.key,
     required this.day,
@@ -34,6 +38,7 @@ class TripDayMap extends ConsumerStatefulWidget {
     this.onDiveTap,
     this.onMapTap,
     this.onExpand,
+    this.interactive = true,
   });
 
   /// Zoomed out further the world shrinks to a strip; matches the other
@@ -97,6 +102,18 @@ class _TripDayMapState extends ConsumerState<TripDayMap> {
     onDiveTap(point.diveId == widget.highlightedDiveId ? null : point.diveId);
   }
 
+  /// The trackpad zoom wraps only an interactive map: it wins the gesture
+  /// arena against any enclosing scrollable, which in a story card would turn
+  /// a trackpad scroll over the map into a zoom.
+  Widget _withTrackpad(double maxZoom, Widget map) => widget.interactive
+      ? TrackpadZoomMap(
+          controller: _controller,
+          minZoom: TripDayMap.minZoom,
+          maxZoom: maxZoom,
+          child: map,
+        )
+      : map;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -109,11 +126,9 @@ class _TripDayMapState extends ConsumerState<TripDayMap> {
       label: l10n.trips_story_dayMap_semantics(widget.day.dayNumber),
       child: Stack(
         children: [
-          TrackpadZoomMap(
-            controller: _controller,
-            minZoom: TripDayMap.minZoom,
-            maxZoom: maxZoom,
-            child: FlutterMap(
+          _withTrackpad(
+            maxZoom,
+            FlutterMap(
               mapController: _controller,
               options: MapOptions(
                 initialCameraFit: _fit(maxZoom),
@@ -123,10 +138,14 @@ class _TripDayMapState extends ConsumerState<TripDayMap> {
                 onTap: widget.onMapTap == null
                     ? null
                     : (_, _) => widget.onMapTap!(),
-                // Pans and zooms like the other embedded maps; north stays
-                // up.
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                // Interactive, it pans and zooms like the other embedded maps
+                // with north up. In a story card it takes no gestures, as the
+                // app's other maps in a scrolling list do: a drag over it
+                // scrolls the story, and pins stay tappable.
+                interactionOptions: InteractionOptions(
+                  flags: widget.interactive
+                      ? InteractiveFlag.all & ~InteractiveFlag.rotate
+                      : InteractiveFlag.none,
                 ),
               ),
               children: [
