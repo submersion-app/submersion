@@ -22,6 +22,35 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
+  // A detector without a candidate set never runs in a full library scan,
+  // yet counts as run, so the scan retires all of its findings (#2870).
+  test('every registered detector has a candidate set', () async {
+    final candidates = await prefilters.candidatesByDetector();
+    expect(
+      candidates.keys.toSet(),
+      containsAll(kQualityDetectors.map((d) => d.id)),
+    );
+  });
+
+  test('unknown transmitter candidates carry a real serial', () async {
+    for (final (id, serial) in [
+      ('real', ' 0012 '),
+      ('zeros', '000'),
+      ('blank', '  '),
+      ('none', null),
+    ]) {
+      await diveRepo.createDive(
+        domain.Dive(
+          id: id,
+          dateTime: DateTime.utc(2026, 6, 1),
+          tanks: [domain.DiveTank(id: 't-$id', transmitterSerial: serial)],
+        ),
+      );
+    }
+    final candidates = await prefilters.candidatesByDetector();
+    expect(candidates['unknown_transmitter'], {'real'});
+  });
+
   test('registry contains all 12 detectors with unique ids', () {
     final ids = kQualityDetectors.map((d) => d.id).toList();
     expect(ids.toSet(), hasLength(12));

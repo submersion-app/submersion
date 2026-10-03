@@ -41,6 +41,15 @@ class QualityPrefilters {
       'SELECT d.id AS id FROM dives d WHERE EXISTS '
       '(SELECT 1 FROM dive_tanks t WHERE t.dive_id = d.id)',
     );
+    // A tank carrying a real transmitter serial: trimmed, and not blank or
+    // all zeros, the values normalizeTransmitterSerial reads as "no
+    // transmitter". Without this set the unknown-transmitter check never ran
+    // in a library scan, which then retired all of its findings (#2870).
+    final withTransmitterSerials = await ids(
+      'SELECT d.id AS id FROM dives d WHERE EXISTS '
+      '(SELECT 1 FROM dive_tanks t WHERE t.dive_id = d.id '
+      "AND LTRIM(TRIM(t.transmitter_serial), '0') <> '')",
+    );
     final multiSource = await ids(
       'SELECT d.id AS id FROM dives d WHERE '
       '(SELECT COUNT(*) FROM dive_data_sources s WHERE s.dive_id = d.id) >= 2',
@@ -95,6 +104,7 @@ class QualityPrefilters {
       'pressure_anomaly': {...withPressures, ...withTanks},
       'gas_mod': withTanks.intersection(withProfiles),
       'tank_assignment': withPressures,
+      'unknown_transmitter': withTransmitterSerials,
       'source_conflict': multiSource,
     };
   }

@@ -113,4 +113,43 @@ void main() {
     final findings = await findingsRepo.getFindings(diveId: 'd1');
     expect(findings, isNotEmpty);
   });
+
+  group('unknown transmitters (issue #2870)', () {
+    Future<void> seedTransmitterDive(String id) => diveRepo.createDive(
+      domain.Dive(
+        id: id,
+        dateTime: DateTime.utc(2026, 6, 1),
+        tanks: const [
+          domain.DiveTank(id: 'tank-1', transmitterSerial: '180777'),
+        ],
+      ),
+    );
+
+    Future<List<QualityFinding>> unknownTransmitterFindings(String id) async =>
+        (await findingsRepo.getFindings(
+          diveId: id,
+        )).where((f) => f.detectorId == 'unknown_transmitter').toList();
+
+    test('a full library scan keeps an unknown transmitter finding', () async {
+      await seedTransmitterDive('d1');
+      final service = QualityScanService();
+      await service.scanDives({'d1'}, now: DateTime.utc(2026, 7, 17));
+      expect(await unknownTransmitterFindings('d1'), hasLength(1));
+
+      await service.scanLibrary(now: DateTime.utc(2026, 7, 17));
+
+      final after = await unknownTransmitterFindings('d1');
+      expect(after, hasLength(1));
+      expect(after.single.status, QualityStatus.open);
+    });
+
+    test(
+      'a full library scan finds an unknown transmitter by itself',
+      () async {
+        await seedTransmitterDive('d1');
+        await QualityScanService().scanLibrary(now: DateTime.utc(2026, 7, 17));
+        expect(await unknownTransmitterFindings('d1'), hasLength(1));
+      },
+    );
+  });
 }
