@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,16 +22,26 @@ final explorePlatformSupportedProvider = Provider<bool>((ref) {
   };
 });
 
-/// The model's answer for the active app locale. 'system' resolves to the
-/// device locale tag.
+/// The device's locale; a provider so tests can set it.
+final exploreDeviceLocaleProvider = Provider<Locale>(
+  (ref) => PlatformDispatcher.instance.locale,
+);
+
+/// The language tag of the app's locale setting: 'system', the default,
+/// resolves to the device's.
+final exploreLocaleTagProvider = Provider<String>((ref) {
+  final locale = ref.watch(localeProvider);
+  return locale == 'system'
+      ? ref.watch(exploreDeviceLocaleProvider).toLanguageTag()
+      : locale;
+});
+
+/// The model's answer for the active app locale.
 final exploreAvailabilityProvider = FutureProvider<NlAvailability>((ref) async {
   if (!ref.watch(explorePlatformSupportedProvider)) {
     return NlAvailability.unsupportedPlatform;
   }
-  final locale = ref.watch(localeProvider);
-  final tag = locale == 'system'
-      ? PlatformDispatcher.instance.locale.toLanguageTag()
-      : locale;
+  final tag = ref.watch(exploreLocaleTagProvider);
   return ref.watch(nlEngineProvider).availability(tag);
 });
 

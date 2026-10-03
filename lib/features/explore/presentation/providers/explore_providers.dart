@@ -137,7 +137,7 @@ class ExploreQueryNotifier extends StateNotifier<ExploreState> {
       final parsed = groundedIn(
         ParsedQuery.fromDecoded(jsonDecode(json)),
         trimmed,
-        locale: locale,
+        locale: _ref.read(exploreLocaleTagProvider),
       );
       if (!await _compileAndPublish(parsed, request)) return;
       await _recordRecent(trimmed, locale, parsed);

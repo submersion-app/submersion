@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
@@ -102,10 +103,13 @@ void main() {
     NlEngine engine, {
     Future<NameIndex> Function() names = _bonaireLoader,
     RecentQueryRecorder? recorder,
+    String locale = 'en',
+    Locale device = const Locale('en', 'US'),
   }) => ProviderContainer(
     overrides: [
       nlEngineProvider.overrideWithValue(engine),
-      localeProvider.overrideWithValue('en'),
+      localeProvider.overrideWithValue(locale),
+      exploreDeviceLocaleProvider.overrideWithValue(device),
       queryUnitPrefsProvider.overrideWithValue(
         const UnitPrefs(
           depth: DepthUnit.meters,
@@ -291,6 +295,38 @@ void main() {
       // The recent list replays what the diver saw, not the raw reply.
       expect(recorded!.clauses.map((cl) => cl.text), ['below 20m']);
       expect(recorded!.time, isNull);
+    });
+
+    // 'system' is the default locale setting: the device's language decides
+    // whether the clause words are checked.
+    Future<ExploreCompilation> askOnDevice(Locale device, String sentence) {
+      final c = make(
+        _ScriptedEngine(embellished),
+        locale: 'system',
+        device: device,
+      );
+      return c
+          .read(exploreQueryProvider.notifier)
+          .run(sentence)
+          .then((_) => c.read(exploreQueryProvider).compiled!);
+    }
+
+    test('following an English device, invented clauses are dropped', () async {
+      final compiled = await askOnDevice(
+        const Locale('en', 'US'),
+        'Turtles below 20m in Bonaire',
+      );
+      expect(boundOf(compiled, 'waterTemp', QueryOp.lte), isNull);
+    });
+
+    test('following a German device, clauses are kept', () async {
+      // The model may quote a German clause in English, so nothing is
+      // checked; "cold-water" stands in for such a quote here.
+      final compiled = await askOnDevice(
+        const Locale('de', 'DE'),
+        'Schildkröten unter 20m in Bonaire, kaltes Wasser',
+      );
+      expect(boundOf(compiled, 'waterTemp', QueryOp.lte), 15);
     });
 
     test('a sentence that names its period keeps it', () async {
