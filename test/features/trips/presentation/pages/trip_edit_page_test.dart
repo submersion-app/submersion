@@ -1,6 +1,7 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -648,6 +649,36 @@ void main() {
       // Another type hands the end date back to the diver.
       await tester.tap(find.text('Resort'));
       await tester.pumpAndSettle();
+      expect(tester.widget<ListTile>(endRow).enabled, isTrue);
+    });
+
+    testWidgets('a stored multi-day Day Trip keeps its end date editable', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithMultiDayDayTrip(),
+            ),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(tripId: 'test-id'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Locking a row that shows a three-day range would leave the diver no
+      // way to correct it; the lock applies once the trip is one day.
+      expect(find.text('3 days'), findsOneWidget);
+      final endRow = find.widgetWithText(ListTile, 'End Date');
       expect(tester.widget<ListTile>(endRow).enabled, isTrue);
     });
 
@@ -2360,6 +2391,23 @@ class _MockTripRepositoryWithDstTrip extends _MockTripRepositoryWithTrip {
       endDate: DateTime(2027, 3, 15, 9),
       createdAt: DateTime(2027),
       updatedAt: DateTime(2027),
+    );
+  }
+}
+
+/// A Day Trip saved before the form kept day trips to one day (#2625).
+class _MockTripRepositoryWithMultiDayDayTrip
+    extends _MockTripRepositoryWithTrip {
+  @override
+  Future<Trip?> getTripById(String id) async {
+    return Trip(
+      id: 'test-id',
+      name: 'Long Day Trip',
+      startDate: DateTime(2026, 5, 1),
+      endDate: DateTime(2026, 5, 3),
+      tripType: TripType.dayTrip,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
     );
   }
 }

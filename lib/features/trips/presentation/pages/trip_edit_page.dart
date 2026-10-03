@@ -82,7 +82,12 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
   bool get isEditing => widget.tripId != null;
 
-  bool get _endDateLocked => _tripType == TripType.dayTrip;
+  /// A day trip's end follows its start. A day trip stored before the form
+  /// enforced that can span several days; its end stays editable until the
+  /// trip is one day, so the row never locks on a range it contradicts.
+  bool get _endDateLocked =>
+      _tripType == TripType.dayTrip &&
+      calendarDaysBetween(_startDate, _endDate) == 0;
 
   @override
   void initState() {
@@ -322,14 +327,13 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                     ),
                   ),
 
-                  // End date. A day trip's end follows its start, so the
-                  // row is locked while that type is selected.
+                  // End date, locked on a one-day Day Trip.
                   Semantics(
                     button: true,
                     enabled: !_endDateLocked,
-                    label: _endDateLocked
-                        ? '${context.l10n.trips_edit_label_endDate}: ${units.formatDate(_endDate)}'
-                        : '${context.l10n.trips_edit_label_endDate}: ${units.formatDate(_endDate)}. Tap to change',
+                    label:
+                        '${context.l10n.trips_edit_label_endDate}: ${units.formatDate(_endDate)}'
+                        '${_endDateLocked ? '' : '. Tap to change'}',
                     child: ListTile(
                       leading: const Icon(Icons.event),
                       title: Text(context.l10n.trips_edit_label_endDate),
