@@ -42,6 +42,7 @@ class QueryTextField extends StatefulWidget {
     this.autofocus = false,
     this.focusNode,
     this.onEscape,
+    this.onValidityChanged,
   });
 
   final QueryEditorContext context;
@@ -59,6 +60,11 @@ class QueryTextField extends StatefulWidget {
   /// Called on Escape while the field has focus.
   final VoidCallback? onEscape;
 
+  /// Called with false when the text stops parsing (the last valid value
+  /// stays committed, so [onChanged] says nothing) and with true once it
+  /// parses again or is emptied.
+  final ValueChanged<bool>? onValidityChanged;
+
   @override
   State<QueryTextField> createState() => _QueryTextFieldState();
 }
@@ -69,6 +75,7 @@ class _QueryTextFieldState extends State<QueryTextField> {
   FocusNode get _focus => widget.focusNode ?? _ownFocus;
   QueryError? _error;
   List<Completion> _completions = const [];
+  bool _valid = true;
 
   /// The last tree this field committed, so an outside [widget.value] equal
   /// to it does not rewrite the text under the diver's cursor.
@@ -128,6 +135,7 @@ class _QueryTextFieldState extends State<QueryTextField> {
     final completions = completionsAt(text, caret, widget.context);
     if (text.trim().isEmpty) {
       _commit(null);
+      _setValid(true);
       _controller.setError();
       setState(() {
         _error = null;
@@ -144,6 +152,7 @@ class _QueryTextFieldState extends State<QueryTextField> {
         );
         if (errors.isEmpty) {
           _commit(normalizeQuery(node));
+          _setValid(true);
           _controller.setError();
           setState(() {
             _error = null;
@@ -157,6 +166,12 @@ class _QueryTextFieldState extends State<QueryTextField> {
     }
   }
 
+  void _setValid(bool valid) {
+    if (valid == _valid) return;
+    _valid = valid;
+    widget.onValidityChanged?.call(valid);
+  }
+
   void _commit(QueryNode? node) {
     if (node == _committed) return;
     _committed = node;
@@ -164,6 +179,7 @@ class _QueryTextFieldState extends State<QueryTextField> {
   }
 
   void _showError(QueryError error, List<Completion> completions) {
+    _setValid(false);
     _controller.setError(offset: error.offset, length: error.length);
     setState(() {
       _error = error;

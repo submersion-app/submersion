@@ -30,6 +30,7 @@ void main() {
     List<DiveSummary> jump = const [],
     ValueChanged<DiveSummary>? onOpenDive,
     double? width,
+    Future<List<DiveSummary>> Function(QueryNode query)? jumpFor,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -40,7 +41,9 @@ void main() {
           diveFilterProvider.overrideWith((ref) => filter),
           diveSearchBarOpenProvider.overrideWith((ref) => open),
           queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
-          diveJumpResultsProvider.overrideWith((ref, q) async => jump),
+          diveJumpResultsProvider.overrideWith(
+            (ref, q) => jumpFor != null ? jumpFor(q) : Future.value(jump),
+          ),
         ],
         child: Builder(
           builder: (context) {
@@ -172,6 +175,47 @@ void main() {
     await tester.pump();
     expect(find.byKey(const ValueKey('dive-jump-d1')), findsOneWidget);
     expect(find.text('Jump to dive'), findsOneWidget);
+  });
+
+  // Copilot review: rows for the last valid query stayed under text that
+  // no longer parses.
+  testWidgets('the jump rows hide while the text does not parse', (
+    tester,
+  ) async {
+    await pumpHeader(tester, jump: jumpRows);
+    final jumpRow = find.byKey(const ValueKey('dive-jump-d1'));
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump(kDiveSearchDebounce);
+    await tester.pump();
+    expect(jumpRow, findsOneWidget);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta depth >');
+    await tester.pump(kDiveSearchDebounce);
+    await tester.pump();
+    expect(jumpRow, findsNothing);
+    // Back to the same valid text: nothing new is committed, the rows
+    // still return.
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump(kDiveSearchDebounce);
+    await tester.pump();
+    expect(jumpRow, findsOneWidget);
+  });
+
+  // Copilot review: a failed jump query kept the previous query's rows.
+  testWidgets('a failed jump query clears the earlier rows', (tester) async {
+    await pumpHeader(
+      tester,
+      jumpFor: (q) async =>
+          q == TextNode(['manta']) ? jumpRows : throw StateError('jump failed'),
+    );
+    final jumpRow = find.byKey(const ValueKey('dive-jump-d1'));
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump(kDiveSearchDebounce);
+    await tester.pump();
+    expect(jumpRow, findsOneWidget);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'ray');
+    await tester.pump(kDiveSearchDebounce);
+    await tester.pump();
+    expect(jumpRow, findsNothing);
   });
 
   testWidgets('tapping a jump row opens that dive', (tester) async {

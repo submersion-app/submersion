@@ -59,6 +59,11 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
   /// one whole-log query per pause rather than one per keystroke.
   QueryNode? _jumpQuery;
 
+  /// Whether the field's text parses. While it does not, the list keeps
+  /// the last valid query but the jump rows hide: they would answer text
+  /// the diver has since changed.
+  bool _fieldValid = true;
+
   @override
   void initState() {
     super.initState();
@@ -117,7 +122,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     });
     _debounce?.cancel();
     _debounce = Timer(kDiveSearchDebounce, () {
-      if (mounted) setState(() => _jumpQuery = node);
+      if (mounted && _fieldValid) setState(() => _jumpQuery = node);
       final notifier = ref.read(diveFilterProvider.notifier);
       // Read at write time, so a change made during the debounce survives.
       notifier.state = notifier.state.copyWith(
@@ -125,6 +130,17 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
         clearQuery: node == null,
       );
     });
+  }
+
+  void _onValidityChanged(bool valid) {
+    _fieldValid = valid;
+    if (!valid) {
+      setState(() => _jumpQuery = null);
+    } else if (_debounce?.isActive != true) {
+      // Back to the committed text: nothing new is written, so the rows
+      // return now rather than with the next debounce.
+      setState(() => _jumpQuery = _local);
+    }
   }
 
   @override
@@ -186,6 +202,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
                   describeError: (e) => describeQueryError(l10n, e),
                   fieldKey: kDiveSearchFieldKey,
                   focusNode: _focus,
+                  onValidityChanged: _onValidityChanged,
                   onEscape:
                       widget.onEscape ?? () => closeDiveSearch(context, ref),
                 ),
