@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -23,6 +25,33 @@ class _FakeService extends EquipmentTransferService {
     required String actingDiverId,
     String? toDiverId,
   }) async => byTarget[toDiverId] ?? byTarget[null]!;
+}
+
+/// Answers the open preview at once and a chosen target's preview only
+/// when [release] completes.
+class _SlowTargetService extends EquipmentTransferService {
+  final release = Completer<void>();
+
+  @override
+  Future<EquipmentTransferPreview> preview({
+    required List<String> equipmentIds,
+    required String actingDiverId,
+    String? toDiverId,
+  }) async {
+    if (toDiverId != null) await release.future;
+    return EquipmentTransferPreview(
+      unitIds: const ['tank'],
+      skippedNotOwned: 0,
+      computers: const [],
+      transmitters: [
+        TransferRegistryRow(
+          id: 'tx1',
+          label: 'Back gas',
+          clashes: toDiverId == 'anna',
+        ),
+      ],
+    );
+  }
 }
 
 class _FailingService extends EquipmentTransferService {
@@ -261,5 +290,46 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.textContaining('stays with you'), findsNothing);
+  });
+
+  testWidgets('Transfer waits for the chosen profile\'s preview', (
+    tester,
+  ) async {
+    final service = _SlowTargetService();
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          equipmentTransferServiceProvider.overrideWithValue(service),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        ],
+        child: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showEquipmentTransferDialog(
+              context,
+              equipmentIds: const ['tank'],
+              activeDiverId: 'bill',
+              profiles: profiles,
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Anna'));
+    await tester.pump();
+    // The preview on screen is the one without a target: no clash yet, and
+    // confirming now would act on facts that were never shown.
+    expect(tester.widget<FilledButton>(transferButton()).onPressed, isNull);
+    expect(find.textContaining('stays with you'), findsNothing);
+    service.release.complete();
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('Back gas stays with you: Anna'),
+      findsOneWidget,
+    );
+    expect(tester.widget<FilledButton>(transferButton()).onPressed, isNotNull);
   });
 }

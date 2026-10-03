@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_s
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_sharing_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_transfer.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_transfer_gate.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
@@ -322,12 +323,12 @@ class _EquipmentDetailContent extends ConsumerWidget {
   /// owner, as before sharing existed.
   /// Transfer is owner-only too (issue #2852), needs a real owner, and
   /// shows only with two or more profiles, like the sharing row.
-  bool _canTransfer(WidgetRef ref, EquipmentItem equipment) {
-    if (!ref.watch(hasMultipleDiversProvider)) return false;
-    final activeDiver = ref.watch(validatedCurrentDiverIdProvider);
-    if (!activeDiver.hasValue) return false;
-    return canShareEquipment(equipment, activeDiver.value);
-  }
+  bool _canTransfer(WidgetRef ref, EquipmentItem equipment) =>
+      canTransferEquipmentOnceKnown(
+        ref.watch(validatedCurrentDiverIdProvider),
+        equipment,
+        multipleDivers: ref.watch(hasMultipleDiversProvider),
+      );
 
   bool _isOwner(WidgetRef ref, EquipmentItem equipment) {
     final activeDiver = ref.watch(validatedCurrentDiverIdProvider);

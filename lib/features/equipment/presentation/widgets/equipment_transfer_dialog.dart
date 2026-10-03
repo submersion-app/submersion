@@ -55,6 +55,11 @@ class _EquipmentTransferDialogState
   bool _keepAccess = true;
   bool _moveRegistry = true;
   EquipmentTransferPreview? _preview;
+
+  /// The profile [_preview] was read for. Until it matches [_target] the
+  /// preview on screen describes another choice (its clash notes most of
+  /// all), so Transfer waits for the new one.
+  String? _previewTarget;
   List<EquipmentItem> _extraItems = const [];
   int _request = 0;
 
@@ -75,13 +80,14 @@ class _EquipmentTransferDialogState
   /// the previous preview stays on screen while the next one loads.
   Future<void> _loadPreview() async {
     final request = ++_request;
+    final target = _target;
     try {
       final preview = await ref
           .read(equipmentTransferServiceProvider)
           .preview(
             equipmentIds: widget.equipmentIds,
             actingDiverId: widget.activeDiverId,
-            toDiverId: _target,
+            toDiverId: target,
           );
       final extraIds = [
         for (final id in preview.unitIds)
@@ -95,6 +101,7 @@ class _EquipmentTransferDialogState
       if (!mounted || request != _request) return;
       setState(() {
         _preview = preview;
+        _previewTarget = target;
         _extraItems = extras;
         _previewFailed = false;
       });
@@ -190,7 +197,7 @@ class _EquipmentTransferDialogState
                 subtitle: Text(registryLabels.join(', ')),
                 contentPadding: EdgeInsets.zero,
               ),
-              if (target != null && _moveRegistry)
+              if (target != null && _moveRegistry && _previewTarget == target)
                 for (final t in preview.transmitters)
                   if (t.clashes)
                     Text(
@@ -211,7 +218,11 @@ class _EquipmentTransferDialogState
         ),
         FilledButton(
           // Off until the preview has said what would move.
-          onPressed: target == null || preview == null || _previewFailed
+          onPressed:
+              target == null ||
+                  preview == null ||
+                  _previewFailed ||
+                  _previewTarget != target
               ? null
               : () => Navigator.of(context).pop((
                   toDiverId: target,
