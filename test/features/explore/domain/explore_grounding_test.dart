@@ -118,6 +118,42 @@ void main() {
       );
     });
 
+    // Periods the model gave English sentences that never named them; each
+    // names a unit the sentence lacks.
+    test('in English, a period whose unit the sentence never names is '
+        'dropped', () {
+      for (final (time, sentence) in [
+        ('this year', 'dives with Sarah'),
+        ('this year', 'recent dives'),
+        ('this month', 'dives in March'),
+        ('last 30 days', 'dives from last summer'),
+      ]) {
+        expect(
+          groundedIn(parse(time: time), sentence, locale: 'en').time,
+          isNull,
+          reason: '$time / $sentence',
+        );
+      }
+    });
+
+    test('in English, a period whose unit the sentence names is kept', () {
+      for (final (time, sentence) in [
+        ('this week', 'dives this week'),
+        ('last 2 weeks', 'dives in the past two weeks'),
+        ('last 2 weeks', 'dives over the last fortnight'),
+        ('last 30 days', 'dives this past month'),
+        ('last 7 days', 'dives since yesterday'),
+        ('last year', 'deep dives last year'),
+        ('2019 to 2021', 'my dives from 2019 to 2021'),
+      ]) {
+        expect(
+          groundedIn(parse(time: time), sentence, locale: 'en').time,
+          isNotNull,
+          reason: '$time / $sentence',
+        );
+      }
+    });
+
     test('full-width digits count as the year', () {
       final g = groundedIn(parse(time: '2023'), '２０２３年のダイブ', locale: 'ja');
       expect(g.time?.text, '2023');

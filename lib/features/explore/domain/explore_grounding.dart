@@ -12,10 +12,11 @@ import 'package:submersion/features/explore/domain/query_model.dart';
 ///   words are not in the sentence is dropped. In any other [locale] the
 ///   model often quotes the clause in English ("deeper than 30" for "tiefer
 ///   als 30m"), so its clauses are not checked.
-/// - A time is one of the prompt's English shapes, so only its year can be
-///   checked, in every language: a year the sentence does not contain is
-///   dropped. A period without one ("last year" from "letztes Jahr") is left
-///   to the prompt.
+/// - A time is one of the prompt's English shapes. In every language, a
+///   year the sentence does not contain is dropped. In English, so is a
+///   period whose unit the sentence never names: "this year" on "dives with
+///   Sarah", "this month" on "dives in March". Days, weeks and months count
+///   as one unit, since "past month" may fairly become "last 30 days".
 ///
 /// Returns [parsed] itself when nothing is dropped.
 ParsedQuery groundedIn(
@@ -24,13 +25,16 @@ ParsedQuery groundedIn(
   required String locale,
 }) {
   final said = _comparable(sentence);
-  final checkClauses = _isEnglish(locale);
+  final english = _isEnglish(locale);
   final clauses = [
     for (final c in parsed.clauses)
-      if (!checkClauses || _isIn(c.text, said)) c,
+      if (!english || _isIn(c.text, said)) c,
   ];
   final time = parsed.time;
-  final keepTime = time == null || _yearsAreIn(time.text, said);
+  final keepTime =
+      time == null ||
+      (_yearsAreIn(time.text, said) &&
+          (!english || _unitIsIn(time.text, said)));
   if (clauses.length == parsed.clauses.length && keepTime) return parsed;
   return ParsedQuery(
     schemaVersion: parsed.schemaVersion,
@@ -71,3 +75,18 @@ final _year = RegExp(r'\d{4}');
 
 bool _yearsAreIn(String time, String said) =>
     _year.allMatches(_comparable(time)).every((m) => said.contains(m[0]!));
+
+final _yearUnit = RegExp(r'\byears?\b');
+final _shortUnit = RegExp(r'\b(?:days?|weeks?|months?)\b');
+
+/// Whether [said] names the unit of the English period [time], if it has
+/// one. Substrings on purpose: "today" names a day, "weekend" a week.
+bool _unitIsIn(String time, String said) {
+  final t = _comparable(time);
+  if (_yearUnit.hasMatch(t) && !said.contains('year')) return false;
+  if (_shortUnit.hasMatch(t) &&
+      !['day', 'week', 'month', 'fortnight'].any(said.contains)) {
+    return false;
+  }
+  return true;
+}
