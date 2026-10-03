@@ -63,6 +63,63 @@ class EquipmentTransferService {
     );
   }
 
+  /// The units of [diverId]'s gear another profile needs, each with its
+  /// heir: the profile holding the unit's earliest share, else the owner of
+  /// the most recent other-profile dive that uses any item of the unit
+  /// through its gear list or a tank's cylinder or regulator. A unit with
+  /// neither is not kept. Read-only, so safe inside a transaction.
+  Future<List<KeptUnit>> keptUnitsForDiver(String diverId) async {
+    final graph = await loadGraph();
+    final owned = [
+      for (final e in graph.ownerOf.entries)
+        if (e.value == diverId) e.key,
+    ]..sort();
+    final kept = <KeptUnit>[];
+    for (final unit in transferUnits(graph, owned, ownerId: diverId)) {
+      final heir = await _heirFor(unit.toList(), diverId);
+      if (heir != null) kept.add(KeptUnit(unit: unit, heirId: heir));
+    }
+    return kept;
+  }
+
+  /// How many items [keptUnitsForDiver] would keep, for the delete
+  /// confirmation.
+  Future<int> keptEquipmentCount(String diverId) async {
+    var count = 0;
+    for (final k in await keptUnitsForDiver(diverId)) {
+      count += k.unit.length;
+    }
+    return count;
+  }
+
+  Future<String?> _heirFor(List<String> unit, String deleted) async {
+    final marks = List.filled(unit.length, '?').join(', ');
+    final ids = [for (final id in unit) Variable.withString(id)];
+    final share = await _db
+        .customSelect(
+          'SELECT diver_id FROM equipment_shares '
+          'WHERE equipment_id IN ($marks) AND diver_id != ? '
+          'ORDER BY created_at ASC, id ASC LIMIT 1',
+          variables: [...ids, Variable.withString(deleted)],
+        )
+        .getSingleOrNull();
+    if (share != null) return share.read<String>('diver_id');
+    final dive = await _db
+        .customSelect(
+          'SELECT d.diver_id FROM dives d '
+          'WHERE d.diver_id IS NOT NULL AND d.diver_id != ? AND d.id IN ('
+          'SELECT dive_id FROM dive_equipment WHERE equipment_id IN ($marks) '
+          'UNION SELECT dive_id FROM dive_tanks '
+          'WHERE equipment_id IN ($marks) '
+          'OR regulator_equipment_id IN ($marks)) '
+          'ORDER BY COALESCE(d.entry_time, d.dive_date_time) DESC, d.id ASC '
+          'LIMIT 1',
+          variables: [Variable.withString(deleted), ...ids, ...ids, ...ids],
+        )
+        .getSingleOrNull();
+    return dive?.read<String>('diver_id');
+  }
+
   /// Transmitters moved since the last call, for a caller that ran
   /// [transferUnitInTransaction] itself and rescans after its commit.
   List<String> takeMovedTransmitters() {

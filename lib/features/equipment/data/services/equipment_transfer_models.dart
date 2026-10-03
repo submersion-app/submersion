@@ -62,3 +62,12 @@ class EquipmentTransferPreview {
 
   bool get hasRegistry => computers.isNotEmpty || transmitters.isNotEmpty;
 }
+
+/// A unit of a deleted profile's gear another profile needs, and who gets
+/// it (issue #2852).
+class KeptUnit {
+  const KeptUnit({required this.unit, required this.heirId});
+
+  final Set<String> unit;
+  final String heirId;
+}
