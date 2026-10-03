@@ -16,13 +16,18 @@ void main() {
   bool listed() =>
       ShortcutCatalog.instance.entries.any((e) => e.label == askLabel);
 
-  /// Builds the global bindings under [supported] and returns them. The
+  /// Whether Ask can answer, switchable while the app runs.
+  final enabled = StateProvider<bool>((ref) => false);
+  late ProviderContainer container;
+
+  /// Builds the global bindings with Ask [available] and returns them. The
   /// catalog is process-wide, so its Ask entry is put back as it was.
   Future<Map<ShortcutActivator, VoidCallback>> bindingsUnder(
     WidgetTester tester, {
-    required bool supported,
+    required bool available,
   }) async {
     final wasListed = listed();
+    addTearDown(AppShortcuts.debugReset);
     addTearDown(() {
       if (listed() == wasListed) return;
       if (wasListed) {
@@ -41,10 +46,12 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          explorePlatformSupportedProvider.overrideWithValue(supported),
+          enabled.overrideWith((ref) => available),
+          exploreEnabledProvider.overrideWith((ref) => ref.watch(enabled)),
         ],
         child: Builder(
           builder: (context) {
+            container = ProviderScope.containerOf(context);
             bindings = AppShortcuts.globalBindings(context);
             return const SizedBox.shrink();
           },
@@ -55,7 +62,7 @@ void main() {
   }
 
   testWidgets('no binding and no catalog entry for Cmd/Ctrl+E', (tester) async {
-    final bindings = await bindingsUnder(tester, supported: true);
+    final bindings = await bindingsUnder(tester, available: true);
     expect(
       bindings.keys.whereType<SingleActivator>().where(
         (a) => a.trigger == LogicalKeyboardKey.keyE,
@@ -72,15 +79,20 @@ void main() {
     );
   });
 
-  testWidgets('the Ask entry is listed only where the model can run', (
-    tester,
-  ) async {
-    await bindingsUnder(tester, supported: true);
+  // Copilot review: the entry followed the platform alone, so the help
+  // listed Cmd/Ctrl+Enter where the model could not answer.
+  testWidgets('the Ask entry follows whether Ask can answer', (tester) async {
+    await bindingsUnder(tester, available: false);
+    expect(listed(), isFalse);
+    // The download finishes, or the locale changes to one the model reads.
+    container.read(enabled.notifier).state = true;
+    await tester.pump();
     final entry = ShortcutCatalog.instance.entries.singleWhere(
       (e) => e.label == askLabel,
     );
     expect(entry.activator.trigger, LogicalKeyboardKey.enter);
-    await bindingsUnder(tester, supported: false);
+    container.read(enabled.notifier).state = false;
+    await tester.pump();
     expect(listed(), isFalse);
   });
 

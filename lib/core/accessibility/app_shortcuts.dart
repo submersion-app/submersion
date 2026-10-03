@@ -42,7 +42,12 @@ class AppShortcuts {
   /// [ShortcutCatalog.clear] empties the catalog but cannot reach this flag,
   /// so a test that clears the catalog resets the flag with it.
   @visibleForTesting
-  static void debugReset() => _registered = false;
+  static void debugReset() {
+    _registered = false;
+    _askSubscription?.close();
+    _askSubscription = null;
+    _askContainer = null;
+  }
 
   /// Register all global shortcuts with the [ShortcutCatalog].
   ///
@@ -154,8 +159,27 @@ class AppShortcuts {
 
   static const _askLabel = 'Ask about your dives';
 
+  /// The container Ask's catalog entry follows, and its subscription.
+  static ProviderContainer? _askContainer;
+  static ProviderSubscription<bool>? _askSubscription;
+
+  /// Keeps Ask's catalog entry in step with whether Ask can answer (the
+  /// platform, the model probe and the locale), which changes while the
+  /// app runs: the catalog itself is filled once (#2773). One subscription
+  /// per container, however often the shell rebuilds.
+  static void _followAskAvailability(ProviderContainer container) {
+    if (identical(container, _askContainer)) return;
+    _askSubscription?.close();
+    _askContainer = container;
+    _askSubscription = container.listen<bool>(
+      exploreEnabledProvider,
+      (_, enabled) => _syncAskEntry(enabled),
+      fireImmediately: true,
+    );
+  }
+
   /// Lists or unlists Ask (Cmd/Ctrl+Enter in the dive search field, #2773)
-  /// in the catalog to match the platform gate.
+  /// in the catalog.
   /// The gate is a provider so every entry point, and every test override,
   /// agrees; registration has no container, so the entry follows here.
   static void _syncAskEntry(bool supported) {
@@ -181,11 +205,7 @@ class AppShortcuts {
     BuildContext context,
   ) {
     ensureRegistered();
-    final askSupported = ProviderScope.containerOf(
-      context,
-      listen: false,
-    ).read(explorePlatformSupportedProvider);
-    _syncAskEntry(askSupported);
+    _followAskAvailability(ProviderScope.containerOf(context, listen: false));
 
     return {
       // Navigation.
