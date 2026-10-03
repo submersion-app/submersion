@@ -192,7 +192,7 @@ void main() {
           diveId: anyNamed('diveId'),
           computerId: anyNamed('computerId'),
         ),
-      ).thenAnswer((_) async {});
+      ).thenAnswer((_) async => true);
       final conflict = ImportConflict(
         downloaded: dive,
         existingDiveId: 'existing-dive-1',
@@ -807,7 +807,7 @@ void main() {
             diveId: anyNamed('diveId'),
             computerId: anyNamed('computerId'),
           ),
-        ).thenAnswer((_) async {});
+        ).thenAnswer((_) async => true);
 
         final result = await service.resolveConflict(
           conflict,
@@ -830,8 +830,9 @@ void main() {
           ),
         ).called(1);
 
-        // Verify importProfile was called with isPrimary: true, descriptor
-        // fields, rawData, rawFingerprint, and avgDepth
+        // Verify importProfile was called with isPrimary: true (the cleared
+        // reading was primary), descriptor fields, rawData, rawFingerprint,
+        // and avgDepth
         verify(
           mockComputerRepo.importProfile(
             computerId: computer.id,
@@ -894,7 +895,7 @@ void main() {
           diveId: anyNamed('diveId'),
           computerId: anyNamed('computerId'),
         ),
-      ).thenAnswer((_) async {});
+      ).thenAnswer((_) async => true);
 
       await service.resolveConflict(
         conflict,
@@ -937,6 +938,71 @@ void main() {
       expect(captured.single.timestamp, 600);
       expect(captured.single.depth, 12.0);
       expect(captured.single.toTankIndex, 1);
+    });
+
+    test('resolveConflict with replaceSource re-imports a secondary reading '
+        'as a secondary (#2582)', () async {
+      final dive = DownloadedDive(
+        fingerprint: 'fp-replace-secondary',
+        startTime: DateTime(2026, 4, 7, 9, 0),
+        durationSeconds: 3000,
+        maxDepth: 25.0,
+        profile: const [],
+        tanks: const [],
+        events: const [],
+      );
+      final conflict = ImportConflict(
+        downloaded: dive,
+        existingDiveId: 'existing-dive-78',
+        duplicateResult: const DuplicateResult(
+          matchingDiveId: 'existing-dive-78',
+          confidence: DuplicateConfidence.exact,
+          score: 0.95,
+        ),
+      );
+      when(
+        mockComputerRepo.clearSourceAndProfiles(
+          diveId: anyNamed('diveId'),
+          computerId: anyNamed('computerId'),
+        ),
+      ).thenAnswer((_) async => false);
+
+      await service.resolveConflict(
+        conflict,
+        ConflictResolution.replaceSource,
+        computer.id,
+      );
+
+      final captured = verify(
+        mockComputerRepo.importProfile(
+          computerId: anyNamed('computerId'),
+          profileStartTime: anyNamed('profileStartTime'),
+          points: anyNamed('points'),
+          durationSeconds: anyNamed('durationSeconds'),
+          maxDepth: anyNamed('maxDepth'),
+          avgDepth: anyNamed('avgDepth'),
+          isPrimary: captureAnyNamed('isPrimary'),
+          diverId: anyNamed('diverId'),
+          tanks: anyNamed('tanks'),
+          decoAlgorithm: anyNamed('decoAlgorithm'),
+          gfLow: anyNamed('gfLow'),
+          gfHigh: anyNamed('gfHigh'),
+          decoConservatism: anyNamed('decoConservatism'),
+          events: anyNamed('events'),
+          gasSwitches: anyNamed('gasSwitches'),
+          diveNumber: anyNamed('diveNumber'),
+          forceNew: anyNamed('forceNew'),
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+          addMissingTanks: anyNamed('addMissingTanks'),
+        ),
+      ).captured;
+
+      expect(captured, [false]);
     });
 
     test('resolveConflict with consolidate returns null', () async {

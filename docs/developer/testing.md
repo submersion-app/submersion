@@ -556,6 +556,48 @@ The comment `// test-bundle: run-alone <reason>`, on a line of its own, does the
 same for any file. It is there to unblock main while a conflict is fixed, not
 to leave one in place.
 
+## Pre-push Hook and Inherited Failures
+
+The pre-push hook (`hooks/pre-push`) runs a ranked selection of the tests your
+push affects, chosen by what imports the changed files. Repo-wide guards read
+a whole tree from disk instead of importing it, so no import can show that a
+new file breaks one (issue #2611). The hook runs them by the trees they read:
+
+- everything in `test/architecture/` runs when the push changes any file
+  under `lib/`;
+- a guard elsewhere declares the path prefixes it reads with a comment line,
+  such as `// pre-push: scans lib/` or `// pre-push: scans lib/l10n/arb/`
+  (several prefixes are separated by spaces), and runs when the push changes
+  a file under one of them. The widget adoption guards in
+  `test/shared/widgets/` scan `lib/`; every test that reads the ARB files
+  scans `lib/l10n/arb/`, so it runs for an ARB edit and not for other
+  changes.
+
+Mark a new test that reads source files from disk the same way, or put a
+guard that scans all of `lib/` in `test/architecture/`. CI still runs the full suite on every pull request that
+changes code; a docs-only or CI-only change skips it unless `[full-ci]` is in
+the title or a commit message.
+
+A pull request's CI tests the merge of the branch into `main`, so a failure on
+`main` turns every open pull request red too. When a required job fails on a
+pull request, `CI Success` compares each failed job with the same job in
+`main`'s CI/CD run (`scripts/report_inherited_failures.py`) and annotates it:
+
+| Annotation | Meaning |
+|---|---|
+| Also failing on main (warning) | `main` fails the same job. The failure is probably inherited; the annotation links `main`'s run |
+| Not failing on main (notice) | `main` passes that job, so the failure is new on this pull request |
+| No result on main (notice) | `main` skipped, cancelled or never ran that job, so there is nothing to compare |
+
+The baseline is `main`'s run at the commit the merge was built on, or else
+the newest runs that actually ran the failed jobs (a docs-only commit skips
+them). The pull request stays red either way. Test shards are compared as one
+job, since a branch that changes the test files moves them between shards. A
+failing shard can still hide a second failure your branch added on top of
+`main`'s, so read the log before assuming the failure is not yours.
+Re-running the old job does not pick up a fix on `main`; push a commit or
+merge `main` instead.
+
 ## Best Practices
 
 1. **Isolation** - Each test is independent and doesn't rely on other tests

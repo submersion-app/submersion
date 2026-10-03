@@ -1,3 +1,6 @@
+import 'package:clock/clock.dart';
+
+import 'package:submersion/core/utils/local_day_changes.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
@@ -130,8 +133,10 @@ class YearInReview {
 final yearInReviewProvider = FutureProvider<YearInReview?>((ref) async {
   final repository = ref.watch(insightsRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchInsightsChanges());
+  // The year is read once per build, so New Year must rebuild it too.
+  ref.invalidateSelfWhen(localDayChanges());
   final diverId = ref.watch(currentDiverIdProvider);
-  final year = DateTime.now().year;
+  final year = clock.now().year;
   final current = await repository.getYearStats(year, diverId: diverId);
   final previous = await repository.getYearStats(year - 1, diverId: diverId);
   if (current.diveCount == 0 && previous.diveCount == 0) return null;
@@ -142,8 +147,10 @@ final yearInReviewProvider = FutureProvider<YearInReview?>((ref) async {
 final onThisDayProvider = FutureProvider<List<Dive>>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchDivesChanges());
+  // Today is read once per build, so midnight must rebuild it too.
+  ref.invalidateSelfWhen(localDayChanges());
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  final now = DateTime.now();
+  final now = clock.now();
   final ids = await repository.getOnThisDayDiveIds(
     month: now.month,
     day: now.day,

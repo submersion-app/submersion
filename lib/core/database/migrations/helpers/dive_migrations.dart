@@ -8,6 +8,103 @@ extension DiveMigrations on AppDatabase {
   Future<void> _assertComputerTissueColumn() =>
       _addColumnIfMissing('dives', 'computer_tissue_json', 'TEXT');
 
+  /// v258: gas_switches.computer_id (issue #2582). Idempotent, so it is safe
+  /// to call from both onUpgrade and the beforeOpen backstop. The backfill
+  /// runs only as the column is added, wherever that happens: v258 sits
+  /// below 259, so a database already at 259 gains the column here from
+  /// beforeOpen, and once the column exists a switch left without a
+  /// computer (one the diver entered, or one the backfill could not place)
+  /// must stay that way.
+  Future<void> _assertGasSwitchComputerIdColumn() async {
+    final cols = await customSelect("PRAGMA table_info('gas_switches')").get();
+    if (cols.isEmpty) return;
+    if (cols.any((c) => c.read<String>('name') == 'computer_id')) return;
+    await customStatement(
+      'ALTER TABLE gas_switches ADD COLUMN computer_id TEXT '
+      'REFERENCES dive_computers(id) ON DELETE SET NULL',
+    );
+    await _backfillGasSwitchComputerIds();
+  }
+
+  /// A stored switch belongs to the computer whose cylinder it switched to,
+  /// which is the reading that wrote it. A switch to a cylinder no computer
+  /// owns stays null.
+  ///
+  /// On a dive more than one computer recorded, the primary computer's
+  /// cylinders are the exception: consolidation merges another computer's
+  /// cylinder of the same gas into one of them and remaps that computer's
+  /// switches onto it, so a switch there could be either computer's. It
+  /// stays null, which applies it to every computer as before v258, rather
+  /// than being given to the primary, where a Replace Source of the primary
+  /// would delete it and a per-computer analysis would hide it from the
+  /// computer that logged it (#2560). A switch to another computer's own
+  /// cylinder is that computer's: only the primary's cylinders are merge
+  /// targets. That includes a primary no computer recorded (a file import),
+  /// whose cylinders name no computer, so every computer's cylinder there
+  /// is its own. With no primary at all, nothing tells the merge target
+  /// apart, so nothing on the dive is attributed.
+  Future<void> _backfillGasSwitchComputerIds() async {
+    final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();
+    if (!cols.any((c) => c.read<String>('name') == 'computer_id')) return;
+    if (!await _tableExists('dive_data_sources')) {
+      // Nothing records which computers a dive has (a partial-schema
+      // fixture), so every dive is read as a single computer's.
+      await customStatement('''
+        UPDATE gas_switches
+        SET computer_id = (
+          SELECT t.computer_id FROM dive_tanks t
+          WHERE t.id = gas_switches.tank_id
+        )
+        WHERE computer_id IS NULL
+      ''');
+      return;
+    }
+    // A computer that left only a profile series (attached before #2002,
+    // no source row) still recorded the dive.
+    final seriesComputers = await _tableExists('dive_profile_series')
+        ? 'UNION SELECT dive_id, computer_id FROM dive_profile_series '
+              'WHERE computer_id IS NOT NULL'
+        : '';
+    await customStatement('''
+      WITH recorded_by AS (
+        SELECT dive_id, computer_id FROM dive_data_sources
+        WHERE computer_id IS NOT NULL
+        $seriesComputers
+      ),
+      multi_computer AS (
+        SELECT dive_id FROM recorded_by
+        GROUP BY dive_id HAVING COUNT(*) > 1
+      ),
+      primary_source AS (
+        SELECT dive_id, computer_id FROM dive_data_sources
+        WHERE is_primary = 1
+      )
+      UPDATE gas_switches
+      SET computer_id = (
+        SELECT t.computer_id FROM dive_tanks t
+        WHERE t.id = gas_switches.tank_id
+      )
+      WHERE computer_id IS NULL
+        AND (
+          dive_id NOT IN (SELECT dive_id FROM multi_computer)
+          OR (
+            EXISTS (
+              SELECT 1 FROM primary_source p
+              WHERE p.dive_id = gas_switches.dive_id
+            )
+            AND NOT EXISTS (
+              SELECT 1 FROM primary_source p
+              WHERE p.dive_id = gas_switches.dive_id
+                AND p.computer_id IS (
+                  SELECT t.computer_id FROM dive_tanks t
+                  WHERE t.id = gas_switches.tank_id
+                )
+            )
+          )
+        )
+    ''');
+  }
+
   /// Idempotent DDL for dive_tanks.source_tank_index (v200, issue #1314).
   Future<void> _assertDiveTankSourceIndexColumn() async {
     final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();

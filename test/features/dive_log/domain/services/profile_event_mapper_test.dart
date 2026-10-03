@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' show DiveProfileEvent;
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
 
 void main() {
@@ -141,6 +142,56 @@ void main() {
       );
       final domain = mapDiveProfileEventToProfileEvent(dbEvent);
       expect(domain.computerId, isNull);
+    });
+  });
+
+  group('withComputerManufacturers (#1523)', () {
+    ProfileEvent event(String id, String? computerId) => ProfileEvent(
+      id: id,
+      diveId: 'd1',
+      timestamp: 60,
+      eventType: ProfileEventType.lowGas,
+      computerId: computerId,
+      createdAt: DateTime.utc(2026),
+    );
+
+    test('stamps each event with its computer\'s manufacturer', () async {
+      final lookups = <String>[];
+      final result = await withComputerManufacturers(
+        [event('a', 'c1'), event('b', 'c2'), event('c', 'c1')],
+        (id) async {
+          lookups.add(id);
+          return {'c1': 'Suunto', 'c2': 'Shearwater'}[id];
+        },
+      );
+      expect(result.map((e) => e.computerManufacturer), [
+        'Suunto',
+        'Shearwater',
+        'Suunto',
+      ]);
+      expect(result.map((e) => e.id), ['a', 'b', 'c']);
+      expect(lookups..sort(), ['c1', 'c2'], reason: 'one lookup per computer');
+    });
+
+    test(
+      'leaves an event with no computer, or an unknown one, unstamped',
+      () async {
+        final result = await withComputerManufacturers([
+          event('a', null),
+          event('b', 'gone'),
+        ], (id) async => null);
+        expect(result.map((e) => e.computerManufacturer), [null, null]);
+      },
+    );
+
+    test('a failed lookup leaves that computer\'s events unstamped instead '
+        'of failing the events', () async {
+      final result = await withComputerManufacturers(
+        [event('a', 'c1'), event('b', 'c2')],
+        (id) async =>
+            id == 'c1' ? throw StateError('db read failed') : 'Suunto',
+      );
+      expect(result.map((e) => e.computerManufacturer), [null, 'Suunto']);
     });
   });
 }

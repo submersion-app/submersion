@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:submersion/core/utils/local_day_changes.dart';
 import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
@@ -344,6 +345,8 @@ final diveStatisticsProvider = FutureProvider<DiveStatistics>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   ref.invalidateSelfWhen(repository.watchDivesChanges());
+  // divesThisYear reads the clock once per build (#2600).
+  ref.invalidateSelfWhen(localDayChanges());
   return repository.getStatistics(diverId: currentDiverId);
 });
 

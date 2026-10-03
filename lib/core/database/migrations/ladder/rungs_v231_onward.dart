@@ -175,6 +175,14 @@ extension RungsFromV231 on AppDatabase {
       await _backfillProfileSeriesHistoryRows();
     }
     if (from < 257) await reportProgress();
+    // v258: gas_switches.computer_id (issue #2582), backfilled from each
+    // switch's cylinder as the column is added. Sits below 259, which main
+    // shipped first, so the beforeOpen backstop is what reaches a database
+    // already at 259, backfill included.
+    if (from < 258) {
+      await _assertGasSwitchComputerIdColumn();
+    }
+    if (from < 258) await reportProgress();
     // v259: dive_tanks.usage_duration (issue #1496). Column only, no
     // backfill: only a re-import can supply what the source recorded.
     // Re-asserted in beforeOpen. 258 is held by an open branch (#2828).

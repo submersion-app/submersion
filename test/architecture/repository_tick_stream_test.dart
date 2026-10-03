@@ -18,6 +18,8 @@ import 'package:submersion/features/maps/data/repositories/offline_map_repositor
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_library_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/repositories/media_smart_album_repository.dart';
+import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
@@ -186,6 +188,11 @@ void main() {
           MediaRepository().watchMediaChanges(),
       'MediaLibraryRepository.watchMapChanges': () =>
           MediaLibraryRepository().watchMapChanges(),
+      // #2835: a watched COUNT query again, this time behind the Filter media
+      // sheet, which looped mediaSmartAlbumsProvider for as long as it was
+      // open and froze the library when it closed.
+      'MediaSmartAlbumRepository.watchChanges': () =>
+          MediaSmartAlbumRepository().watchChanges(),
       'InsightsRepository.watchInsightsChanges': () =>
           InsightsRepository().watchInsightsChanges(),
       'ServiceRecordRepository.watchServiceRecordsChanges': () =>
@@ -952,6 +959,29 @@ void main() {
   });
 
   group('media', () {
+    test('MediaSmartAlbumRepository.watchChanges fires on create', () async {
+      final repo = MediaSmartAlbumRepository();
+      expect(
+        await fires(
+          repo.watchChanges(),
+          () => repo.create(name: 'x', filter: MediaLibraryFilter.none),
+        ),
+        isTrue,
+      );
+    });
+
+    test('MediaSmartAlbumRepository.watchChanges fires on delete', () async {
+      final repo = MediaSmartAlbumRepository();
+      final album = await repo.create(
+        name: 'x',
+        filter: MediaLibraryFilter.none,
+      );
+      expect(
+        await fires(repo.watchChanges(), () => repo.delete(album.id)),
+        isTrue,
+      );
+    });
+
     test('watchSubscriptionsChanges fires on a state-table write', () async {
       await seedParents();
       // Watches the per-device state table as well as the subscription table:

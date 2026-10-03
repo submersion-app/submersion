@@ -11,6 +11,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
@@ -572,7 +573,7 @@ class BackupSettingsPage extends ConsumerWidget {
         if (settings.enabled)
           ListTile(
             title: Text(context.l10n.backup_schedule_retention),
-            subtitle: Text(context.l10n.backup_schedule_retention_subtitle),
+            subtitle: _buildRetentionSubtitle(context, ref),
             trailing: DropdownButton<int>(
               value: settings.retentionCount,
               underline: const SizedBox(),
@@ -639,6 +640,30 @@ class BackupSettingsPage extends ConsumerWidget {
               label: Text(context.l10n.backup_backupNow),
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  /// The retention explanation plus what the retained backups cost, so the
+  /// count is chosen knowing that every backup is a full copy of the database
+  /// (issue #1376).
+  Widget _buildRetentionSubtitle(BuildContext context, WidgetRef ref) {
+    final history = ref.watch(backupHistoryProvider).value;
+    final explanation = Text(context.l10n.backup_schedule_retention_subtitle);
+    if (history == null || history.isEmpty) return explanation;
+    final bytes = history.fold<int>(0, (sum, r) => sum + r.sizeBytes);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        explanation,
+        Text(
+          context.l10n.backup_schedule_retention_footprint(
+            history.length,
+            formatBytes(bytes),
+          ),
+          key: const ValueKey('backup_retention_footprint'),
         ),
       ],
     );

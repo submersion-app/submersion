@@ -259,9 +259,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) {
-              if (value == 'advanced_search') {
-                context.push('/dives/search');
-              } else if (value == 'match_sites') {
+              if (value == 'match_sites') {
                 context.push('/dives/match-sites');
               } else if (value == 'numbering') {
                 showDiveNumberingDialog(context);
@@ -294,16 +292,6 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
                   ],
                 ),
                 const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'advanced_search',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.manage_search, size: 20),
-                      const SizedBox(width: 12),
-                      Text(context.l10n.diveLog_listPage_menuAdvancedSearch),
-                    ],
-                  ),
-                ),
                 PopupMenuItem(
                   value: 'numbering',
                   child: Row(

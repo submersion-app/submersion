@@ -848,7 +848,9 @@ class DiveImportService {
   /// Replace an existing dive's source data with a fresh download.
   ///
   /// Clears the old profile and data source rows for this computer, then
-  /// re-imports so the new raw bytes and parsed data are stored.
+  /// re-imports so the new raw bytes and parsed data are stored. Other
+  /// computers' readings of the dive are left alone, and this computer keeps
+  /// the primary or secondary role it had (#2582).
   Future<void> _updateExistingDive(
     DownloadedDive dive,
     String existingDiveId,
@@ -860,7 +862,7 @@ class DiveImportService {
   }) async {
     // Remove the existing profile + source row so importProfile won't
     // short-circuit on the "already exists" check.
-    await _repository.clearSourceAndProfiles(
+    final wasPrimary = await _repository.clearSourceAndProfiles(
       diveId: existingDiveId,
       computerId: computerId,
     );
@@ -884,7 +886,8 @@ class DiveImportService {
       durationSeconds: dive.durationSeconds,
       maxDepth: dive.maxDepth,
       avgDepth: dive.avgDepth,
-      isPrimary: true,
+      // A dive left with no reading makes this one primary regardless.
+      isPrimary: wasPrimary,
       tanks: tanks,
       decoAlgorithm: dive.decoAlgorithm,
       gfLow: dive.gfLow,

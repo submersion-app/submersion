@@ -101,9 +101,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                           label: Text(r.sentence),
                           onPressed: () {
                             _controller.text = r.sentence;
-                            ref
-                                .read(exploreQueryProvider.notifier)
-                                .rerun(r.sentence, r.parsed);
+                            ref.read(exploreQueryProvider.notifier).replay(r);
                           },
                         ),
                     ],

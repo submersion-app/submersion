@@ -92,10 +92,13 @@ void main() {
     return ProviderScope.containerOf(tester.element(find.byType(ExplorePage)));
   }
 
-  Future<void> ask(WidgetTester tester) async {
+  Future<void> ask(
+    WidgetTester tester, [
+    String sentence = 'my favourite buddies',
+  ]) async {
     await tester.enterText(
       find.byKey(const ValueKey('explore-sentence')),
-      'my favourite buddies',
+      sentence,
     );
     await tester.testTextInput.receiveAction(TextInputAction.search);
     await tester.pumpAndSettle();
@@ -132,7 +135,8 @@ void main() {
     tester,
   ) async {
     await pump(tester, parse('"clauses":[],"time":{"text":"this year"}'));
-    await ask(tester);
+    // A period the sentence never names is dropped (#2838).
+    await ask(tester, 'my favourite buddies this year');
     expect(find.textContaining('Dives: '), findsOneWidget);
     expect(find.text('Dives per buddy'), findsOneWidget);
   });

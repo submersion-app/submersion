@@ -147,6 +147,11 @@ class DiveConsolidationService {
                 hlc: Value(await _sync.issueRowClock()),
               ),
             );
+        // Not the gas switches (#2582): a download stamps its own and v258
+        // attributed the stored ones it could place, so a switch still
+        // unattributed is one the diver entered or one that could be either
+        // computer's. Claiming it for the primary would let a later Replace
+        // Source of that computer delete it.
       }
 
       var nextTankOrder =
@@ -440,7 +445,11 @@ class DiveConsolidationService {
           );
         }
 
-        // Gas switches, re-based + tank FK remapped (drop unmappable).
+        // Gas switches, re-based + tank FK remapped (drop unmappable). Each
+        // keeps its own computerId (#2582): a download or the v258 backfill
+        // stamped the imported ones it could place, and a null one is the
+        // diver's or could be either computer's, which a Replace Source must
+        // not be able to delete.
         for (final row in snapshot.gasSwitchRows.where(
           (r) => r.diveId == secondary.id,
         )) {
