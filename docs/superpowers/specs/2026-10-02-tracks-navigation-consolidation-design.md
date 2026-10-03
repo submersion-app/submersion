@@ -353,6 +353,13 @@ from all 11 locales. Out of scope: the dive planner's route, a trip's voyage
 route, the emergency card and the startup recovery text, which use "route" in
 another sense.
 
+Each locale uses one word for a track, the same word its Tracks destination
+uses, for GPS and underwater tracks alike. Hungarian says "nyomvonal" (the
+nav label reads "Nyomvonalak"), chosen on 2026-10-03 over the "útvonal" the
+PR 2 plan's table lists; "útvonal" stays where it means a route or a path.
+Arabic and Hebrew use one word for route and track, so only their key names
+change. `test/l10n/underwater_track_vocabulary_test.dart` enforces the rule.
+
 The strings it covers, in every locale:
 
 - dive detail section heading and actions (`NavTrackSection`)

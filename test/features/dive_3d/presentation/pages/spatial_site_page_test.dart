@@ -144,7 +144,7 @@ void main() {
   });
 
   testWidgets(
-    'the "Show underwater track" toggle appears only when a route is linked, and '
+    'the "Show underwater track" toggle appears only when a track is linked, and '
     'switching it off falls back to the dead-reckoned estimate',
     (tester) async {
       final route = NavTrack(
@@ -208,7 +208,7 @@ void main() {
   );
 
   testWidgets(
-    'the "Show underwater track" toggle is absent with no route linked',
+    'the "Show underwater track" toggle is absent with no track linked',
     (tester) async {
       final overrides = await getBaseOverrides();
       final path = reckoned();

@@ -45,8 +45,7 @@ void main() {
       find.byKey(const ValueKey('settings-manage-nav-routes')),
       findsNothing,
     );
-    expect(find.text('Underwater Routes'), findsNothing);
-    // Any wording of a returning tile, singular or plural.
+    // Any wording of a returning tile, old or new, singular or plural.
     expect(find.textContaining('nderwater'), findsNothing);
   });
 }
