@@ -26,8 +26,10 @@ class TripDivesTab extends ConsumerWidget {
         if (dives.isEmpty) {
           return Center(child: Text(context.l10n.trips_detail_dives_empty));
         }
-        final sortedDives = List.of(dives)
-          ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+        // Entry-time order, as the story and the dive list order them.
+        final sortedDives = List.of(
+          dives,
+        )..sort((a, b) => a.effectiveEntryTime.compareTo(b.effectiveEntryTime));
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: sortedDives.length,

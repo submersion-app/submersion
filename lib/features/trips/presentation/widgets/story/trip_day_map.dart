@@ -224,10 +224,15 @@ class _DivePin extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final fill = highlighted ? colorScheme.tertiary : colorScheme.primary;
     final ink = highlighted ? colorScheme.onTertiary : colorScheme.onPrimary;
+    // Its own node, activated by its own tap: without a container it merges
+    // into the map's node, and excludeSemantics drops the detector's action,
+    // so a screen reader could neither find nor press one pin of several.
     return Semantics(
+      container: true,
       button: true,
       selected: highlighted,
       label: context.l10n.trips_story_dayMap_divePin(point.diveNumber ?? 0),
+      onTap: onTap,
       excludeSemantics: true,
       child: GestureDetector(
         key: Key('day-map-pin-${point.diveId}'),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -93,6 +94,18 @@ void main() {
     await tester.tap(find.byKey(const Key('day-map-pin-d1')));
     await tester.pump();
     expect(taps, ['d1']);
+  });
+
+  testWidgets('a screen reader can activate a dive pin', (tester) async {
+    final handle = tester.ensureSemantics();
+    final taps = await _pump(tester, points: [_dive1]);
+    final node = tester.getSemantics(find.byKey(const Key('day-map-pin-d1')));
+    expect(node.label, 'Dive 1');
+    expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
+    node.owner!.performAction(node.id, SemanticsAction.tap);
+    await tester.pump();
+    expect(taps, ['d1']);
+    handle.dispose();
   });
 
   testWidgets('tapping the highlighted pin clears the highlight', (

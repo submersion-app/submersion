@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/theme/status_colors.dart';
@@ -15,8 +16,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// its specs, and whether it is rental or the diver's own. From the first
 /// day: the status dot, bottle, mix and pressure, as the board shows them.
 /// An owned cylinder's service clocks (a hydro or visual falling due) add a
-/// tinted line that opens their detail, as a packed item's do.
-class TripCylinderSlotRow extends StatelessWidget {
+/// tinted line that opens their detail, as a packed item's do. An owned
+/// slot names its item, since its label is often the tank's mark.
+class TripCylinderSlotRow extends ConsumerWidget {
   final TripCylinderState state;
   final bool started;
   final UnitFormatter units;
@@ -68,13 +70,21 @@ class TripCylinderSlotRow extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final c = state.cylinder;
-    final origin = c.equipmentId == null
+    final equipmentId = c.equipmentId;
+    // The item's name, unless it only repeats the label; "My equipment"
+    // while it loads or when the item is gone.
+    final itemName = equipmentId == null
+        ? null
+        : ref.watch(equipmentItemProvider(equipmentId)).value?.name;
+    final origin = equipmentId == null
         ? l10n.trips_gear_slot_rental
-        : l10n.trips_gear_slot_own;
+        : (itemName == null || itemName == c.label
+              ? l10n.trips_gear_slot_own
+              : itemName);
 
     if (started) {
       final mix = state.mix;

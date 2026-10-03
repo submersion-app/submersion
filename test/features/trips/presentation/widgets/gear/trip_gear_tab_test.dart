@@ -267,6 +267,10 @@ Future<_Harness> _pumpTab(
         tripEquipmentRepositoryProvider.overrideWithValue(packs),
         tripCylinderRepositoryProvider.overrideWithValue(slots),
         activeEquipmentProvider.overrideWith((ref) async => active),
+        equipmentItemProvider.overrideWith(
+          (ref, id) async =>
+              [...gear, ...active].where((i) => i.id == id).firstOrNull,
+        ),
         equipmentSetsProvider.overrideWith((ref) async => sets),
         equipmentSetWithItemsProvider.overrideWith(
           (ref, id) async => sets.where((s) => s.id == id).firstOrNull,
@@ -337,6 +341,19 @@ void main() {
     );
     expect(find.text('Faber 12'), findsOneWidget);
     expect(find.textContaining('My equipment'), findsOneWidget);
+  });
+
+  testWidgets('before departure an owned slot names its item', (tester) async {
+    // The slot carries the tank's mark, so the item's name is what tells
+    // the diver which of their cylinders it is.
+    await _pumpTab(
+      tester,
+      states: [slot('A1', equipmentId: 'tk')],
+      active: const [tank],
+    );
+    expect(find.text('A1'), findsOneWidget);
+    expect(find.textContaining('Faber 12'), findsOneWidget);
+    expect(find.textContaining('My equipment'), findsNothing);
   });
 
   testWidgets('a service clock reads on its item', (tester) async {
