@@ -12904,6 +12904,7 @@
   "importWizard_dc_noDirectDownload": "לא ניתן להוריד ישירות ממחשב הצלילה הזה",
   "importWizard_dc_noDirectDownloadBody": "ל-Submersion אין חיבור שמור עבור {name}. ייבא את הצלילות שלו מקובץ, או הוסף אותו מחדש ממחשבי צלילה כדי להוריד דרך Bluetooth או USB.",
   "importWizard_dc_noDirectDownloadGarminBody": "שעוני Garmin שומרים צלילות כקובצי FIT במקום לאפשר הורדה ישירה. חבר את השעון ב-USB, העתק את הקבצים מהתיקייה GARMIN/Activity שלו, ולאחר מכן ייבא אותם.",
+  "importWizard_dc_noUsbOnThisPlatformBody": "{name} מתחבר בכבל USB, ש-Submersion לא יכול להשתמש בו ב-iPhone או ב-iPad. הורד את הצלילות שלו עם Submersion במחשב Mac, Windows או Linux, או ייבא אותן מקובץ.",
   "importWizard_dc_noNewDives": "אין צלילות חדשות להורדה",
   "importWizard_dc_noNewDivesBody": "כל הצלילות ממחשב הצלילה הזה כבר יובאו.",
   "universalImport_compare_noDiveData": "נתוני הצלילה אינם זמינים להשוואה.",

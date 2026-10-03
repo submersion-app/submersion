@@ -13016,6 +13016,7 @@
   "importWizard_dc_noDirectDownload": "Direkter Download von diesem Computer nicht möglich",
   "importWizard_dc_noDirectDownloadBody": "Für {name} ist in Submersion keine Verbindung gespeichert. Importieren Sie die Tauchgänge aus einer Datei, oder fügen Sie den Computer unter Tauchcomputer erneut hinzu, um per Bluetooth oder USB herunterzuladen.",
   "importWizard_dc_noDirectDownloadGarminBody": "Garmin-Uhren speichern Tauchgänge als FIT-Dateien und bieten keinen direkten Download. Verbinden Sie die Uhr per USB, kopieren Sie die Dateien aus ihrem Ordner GARMIN/Activity und importieren Sie sie anschließend.",
+  "importWizard_dc_noUsbOnThisPlatformBody": "{name} wird per USB-Kabel verbunden, das Submersion auf iPhone und iPad nicht nutzen kann. Laden Sie die Tauchgänge mit Submersion auf einem Mac-, Windows- oder Linux-Computer herunter, oder importieren Sie sie aus einer Datei.",
   "importWizard_dc_noNewDives": "Keine neuen Tauchgänge zum Herunterladen",
   "importWizard_dc_noNewDivesBody": "Alle Tauchgänge von diesem Computer wurden bereits importiert.",
   "universalImport_compare_noDiveData": "Tauchdaten für den Vergleich nicht verfügbar.",

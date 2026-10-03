@@ -12904,6 +12904,7 @@
   "importWizard_dc_noDirectDownload": "Direct downloaden van deze computer is niet mogelijk",
   "importWizard_dc_noDirectDownloadBody": "Submersion heeft geen opgeslagen verbinding voor {name}. Importeer de duiken uit een bestand, of voeg de computer opnieuw toe via Duikcomputers om via Bluetooth of USB te downloaden.",
   "importWizard_dc_noDirectDownloadGarminBody": "Garmin-horloges slaan duiken op als FIT-bestanden in plaats van een directe download te bieden. Sluit het horloge via USB aan, kopieer de bestanden uit de map GARMIN/Activity en importeer ze daarna.",
+  "importWizard_dc_noUsbOnThisPlatformBody": "{name} maakt verbinding via een USB-kabel, die Submersion op iPhone en iPad niet kan gebruiken. Download de duiken met Submersion op een Mac-, Windows- of Linux-computer, of importeer ze uit een bestand.",
   "importWizard_dc_noNewDives": "Geen nieuwe duiken om te downloaden",
   "importWizard_dc_noNewDivesBody": "Alle duiken van deze computer zijn al geïmporteerd.",
   "universalImport_compare_noDiveData": "Duikgegevens niet beschikbaar voor vergelijking.",

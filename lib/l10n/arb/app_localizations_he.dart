@@ -42612,6 +42612,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'כל הצלילות ממחשב הצלילה הזה כבר יובאו.';
 
   @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return '$name מתחבר בכבל USB, ש-Submersion לא יכול להשתמש בו ב-iPhone או ב-iPad. הורד את הצלילות שלו עם Submersion במחשב Mac, Windows או Linux, או ייבא אותן מקובץ.';
+  }
+
+  @override
   String get universalImport_compare_noDiveData =>
       'נתוני הצלילה אינם זמינים להשוואה.';
 

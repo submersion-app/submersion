@@ -12904,6 +12904,7 @@
   "importWizard_dc_noDirectDownload": "无法直接从此潜水电脑下载",
   "importWizard_dc_noDirectDownloadBody": "Submersion 没有保存 {name} 的连接。请从文件导入其潜水记录，或在潜水电脑中重新添加，以通过蓝牙或 USB 下载。",
   "importWizard_dc_noDirectDownloadGarminBody": "Garmin 手表将潜水记录存储为 FIT 文件，不提供直接下载。请通过 USB 连接手表，从其 GARMIN/Activity 文件夹复制文件，然后导入。",
+  "importWizard_dc_noUsbOnThisPlatformBody": "{name} 通过 USB 数据线连接，而 Submersion 无法在 iPhone 或 iPad 上使用 USB 数据线。请在 Mac、Windows 或 Linux 电脑上使用 Submersion 下载其潜水记录，或从文件导入。",
   "importWizard_dc_noNewDives": "没有可下载的新潜水记录",
   "importWizard_dc_noNewDivesBody": "此潜水电脑的所有潜水记录均已导入。",
   "universalImport_compare_noDiveData": "无可用于比较的潜水数据。",

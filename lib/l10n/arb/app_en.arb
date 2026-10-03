@@ -26019,6 +26019,7 @@
   "importWizard_dc_noDirectDownloadGarminBody": "Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.",
   "importWizard_dc_noNewDives": "No new dives to download",
   "importWizard_dc_noNewDivesBody": "All dives from this computer have already been imported.",
+  "importWizard_dc_noUsbOnThisPlatformBody": "{name} connects with a USB cable, which Submersion cannot use on iPhone or iPad. Download its dives with Submersion on a Mac, Windows or Linux computer, or import them from a file.",
   "universalImport_compare_noDiveData": "Dive data not available for comparison.",
   "universalImport_entityAction_consolidateBadge": "CONSOLIDATE",
   "diveCenters_import_quickSearch_egypt": "Egypt",
@@ -26470,6 +26471,14 @@
   },
   "@importWizard_dc_noDirectDownloadBody": {
     "description": "Download step body when a saved dive computer has no stored connection to download from.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@importWizard_dc_noUsbOnThisPlatformBody": {
+    "description": "Download step body on iOS when a saved dive computer connects over USB, which iOS cannot use.",
     "placeholders": {
       "name": {
         "type": "String"

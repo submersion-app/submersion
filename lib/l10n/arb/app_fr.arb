@@ -12904,6 +12904,7 @@
   "importWizard_dc_noDirectDownload": "Téléchargement direct impossible depuis cet ordinateur",
   "importWizard_dc_noDirectDownloadBody": "Submersion n'a aucune connexion enregistrée pour {name}. Importez ses plongées depuis un fichier, ou ajoutez-le à nouveau depuis Ordinateurs de plongée pour télécharger via Bluetooth ou USB.",
   "importWizard_dc_noDirectDownloadGarminBody": "Les montres Garmin enregistrent les plongées sous forme de fichiers FIT au lieu de proposer un téléchargement direct. Connectez la montre en USB, copiez les fichiers de son dossier GARMIN/Activity, puis importez-les.",
+  "importWizard_dc_noUsbOnThisPlatformBody": "{name} se connecte avec un câble USB, que Submersion ne peut pas utiliser sur iPhone ou iPad. Téléchargez ses plongées avec Submersion sur un ordinateur Mac, Windows ou Linux, ou importez-les depuis un fichier.",
   "importWizard_dc_noNewDives": "Aucune nouvelle plongée à télécharger",
   "importWizard_dc_noNewDivesBody": "Toutes les plongées de cet ordinateur ont déjà été importées.",
   "universalImport_compare_noDiveData": "Données de plongée non disponibles pour la comparaison.",

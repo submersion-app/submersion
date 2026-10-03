@@ -57,6 +57,7 @@ DiveComputer _computer({
   required String manufacturer,
   required String model,
   String? connectionType,
+  String? bluetoothAddress,
 }) {
   final now = DateTime(2026, 10, 2);
   return DiveComputer(
@@ -66,10 +67,20 @@ DiveComputer _computer({
     manufacturer: manufacturer,
     model: model,
     connectionType: connectionType,
+    bluetoothAddress: bluetoothAddress,
     createdAt: now,
     updatedAt: now,
   );
 }
+
+/// A computer added over a USB cable on a desktop, which stores the port it
+/// was reached on, as it arrives on another device through sync.
+DiveComputer _syncedUsbComputer() => _computer(
+  manufacturer: 'Suunto',
+  model: 'Vyper',
+  connectionType: 'usb',
+  bluetoothAddress: '/dev/cu.usbserial-A10',
+);
 
 class _Harness {
   _Harness() : hostApi = _RecordingHostApi() {
@@ -212,6 +223,64 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('import wizard route'), findsOneWidget);
+  });
+
+  // Issue #2837: iOS has no USB host. A USB computer saved on a desktop
+  // syncs to iOS with its port, and downloading it there used to reach the
+  // native layer and fail with "No USB serial ports found".
+  group('a saved USB computer', () {
+    testWidgets(
+      'on iOS explains that USB needs a desktop instead of downloading',
+      (tester) async {
+        final harness = _Harness();
+        await tester.pumpWidget(harness.build(_syncedUsbComputer()));
+        await _settle(tester);
+
+        expect(find.byType(DownloadStepWidget), findsNothing);
+        expect(find.byType(DcNoDirectDownloadView), findsOneWidget);
+        expect(
+          find.text(
+            'Suunto Vyper connects with a USB cable, which Submersion cannot '
+            'use on iPhone or iPad. Download its dives with Submersion on a '
+            'Mac, Windows or Linux computer, or import them from a file.',
+          ),
+          findsOneWidget,
+        );
+        expect(harness.hostApi.calls, isNot(contains('startDownload')));
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
+
+    testWidgets('on a platform with a USB host still downloads', (
+      tester,
+    ) async {
+      final harness = _Harness();
+      await tester.pumpWidget(harness.build(_syncedUsbComputer()));
+      await _settle(tester);
+
+      expect(find.byType(DcNoDirectDownloadView), findsNothing);
+      expect(find.byType(DownloadStepWidget), findsOneWidget);
+    }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
+
+    testWidgets(
+      'without a stored connection on iOS keeps the Garmin FIT guidance',
+      (tester) async {
+        final harness = _Harness();
+        await tester.pumpWidget(
+          harness.build(
+            _computer(
+              manufacturer: 'Garmin',
+              model: 'Descent G2',
+              connectionType: 'usb',
+            ),
+          ),
+        );
+        await _settle(tester);
+
+        expect(find.textContaining('GARMIN/Activity'), findsOneWidget);
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
   });
 
   testWidgets('Done leaves the download for the page it came from', (

@@ -42837,6 +42837,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'All dives from this computer have already been imported.';
 
   @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return '$name connects with a USB cable, which Submersion cannot use on iPhone or iPad. Download its dives with Submersion on a Mac, Windows or Linux computer, or import them from a file.';
+  }
+
+  @override
   String get universalImport_compare_noDiveData =>
       'Dive data not available for comparison.';
 

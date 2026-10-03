@@ -43271,6 +43271,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ennek a búvárszámítógépnek az összes merülése már importálva lett.';
 
   @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return 'Ez a számítógép USB-kábellel csatlakozik, amelyet a Submersion iPhone-on és iPaden nem tud használni: $name. Töltse le a merüléseit a Submersionnel egy Mac, Windows vagy Linux rendszerű számítógépen, vagy importálja őket fájlból.';
+  }
+
+  @override
   String get universalImport_compare_noDiveData =>
       'A merülési adatok nem érhetők el összehasonlításhoz.';
 

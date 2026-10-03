@@ -43124,6 +43124,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم استيراد جميع الغوصات من هذا الكمبيوتر بالفعل.';
 
   @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return 'يتصل $name بكابل USB، ولا يمكن لـ Submersion استخدامه على iPhone أو iPad. نزّل غوصاته باستخدام Submersion على كمبيوتر Mac أو Windows أو Linux، أو استوردها من ملف.';
+  }
+
+  @override
   String get universalImport_compare_noDiveData =>
       'بيانات الغوصة غير متوفرة للمقارنة.';
 

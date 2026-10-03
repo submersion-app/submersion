@@ -12904,6 +12904,7 @@
   "importWizard_dc_noDirectDownload": "Impossibile scaricare direttamente da questo computer",
   "importWizard_dc_noDirectDownloadBody": "Submersion non ha una connessione salvata per {name}. Importa le sue immersioni da un file, oppure aggiungilo di nuovo da Computer subacquei per scaricare tramite Bluetooth o USB.",
   "importWizard_dc_noDirectDownloadGarminBody": "Gli orologi Garmin salvano le immersioni come file FIT invece di offrire un download diretto. Collega l'orologio via USB, copia i file dalla sua cartella GARMIN/Activity, quindi importali.",
+  "importWizard_dc_noUsbOnThisPlatformBody": "{name} si collega con un cavo USB, che Submersion non può usare su iPhone o iPad. Scarica le sue immersioni con Submersion su un computer Mac, Windows o Linux, oppure importale da un file.",
   "importWizard_dc_noNewDives": "Nessuna nuova immersione da scaricare",
   "importWizard_dc_noNewDivesBody": "Tutte le immersioni di questo computer sono già state importate.",
   "universalImport_compare_noDiveData": "Dati di immersione non disponibili per il confronto.",

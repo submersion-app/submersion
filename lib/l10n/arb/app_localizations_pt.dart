@@ -43467,6 +43467,11 @@ class AppLocalizationsPt extends AppLocalizations {
       'Todos os mergulhos deste computador já foram importados.';
 
   @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return '$name se conecta por cabo USB, que o Submersion não consegue usar no iPhone nem no iPad. Baixe os mergulhos com o Submersion em um computador Mac, Windows ou Linux, ou importe-os de um arquivo.';
+  }
+
+  @override
   String get universalImport_compare_noDiveData =>
       'Dados do mergulho não disponíveis para comparação.';
 

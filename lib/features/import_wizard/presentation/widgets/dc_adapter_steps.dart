@@ -453,6 +453,23 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     var device = discoveryState.selectedDevice;
     final computer = widget.knownComputer ?? widget.adapter.computer;
 
+    // A USB computer saved on a desktop syncs here with its stored port, but
+    // iOS has no USB host: a download could only fail in the native layer
+    // with "No USB serial ports found" (issue #2837).
+    if (device == null &&
+        computer != null &&
+        computer.bluetoothAddress != null &&
+        !ScanStepWidget.offersUsb &&
+        _connectionTypeFromString(computer.connectionType) ==
+            DeviceConnectionType.usb) {
+      return DcNoDirectDownloadView(
+        computer: computer,
+        reason: DcNoDirectDownloadReason.usbUnavailable,
+        onImportFromFile: () => context.push('/transfer/import-wizard'),
+        onDone: () => context.pop(),
+      );
+    }
+
     // For known-computer downloads, synthesize a DiscoveredDevice from the
     // computer's stored connection info when discovery state has no device.
     // The device descriptor lookup provides the dcModel integer that

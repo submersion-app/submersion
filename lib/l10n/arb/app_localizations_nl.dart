@@ -43174,6 +43174,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'Alle duiken van deze computer zijn al geïmporteerd.';
 
   @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return '$name maakt verbinding via een USB-kabel, die Submersion op iPhone en iPad niet kan gebruiken. Download de duiken met Submersion op een Mac-, Windows- of Linux-computer, of importeer ze uit een bestand.';
+  }
+
+  @override
   String get universalImport_compare_noDiveData =>
       'Duikgegevens niet beschikbaar voor vergelijking.';
 

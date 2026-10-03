@@ -40982,6 +40982,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importWizard_dc_noNewDivesBody => '此潜水电脑的所有潜水记录均已导入。';
 
   @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return '$name 通过 USB 数据线连接，而 Submersion 无法在 iPhone 或 iPad 上使用 USB 数据线。请在 Mac、Windows 或 Linux 电脑上使用 Submersion 下载其潜水记录，或从文件导入。';
+  }
+
+  @override
   String get universalImport_compare_noDiveData => '无可用于比较的潜水数据。';
 
   @override

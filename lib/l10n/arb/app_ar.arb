@@ -12904,6 +12904,7 @@
   "importWizard_dc_noDirectDownload": "لا يمكن التنزيل من كمبيوتر الغوص هذا مباشرةً",
   "importWizard_dc_noDirectDownloadBody": "لا يوجد في Submersion اتصال محفوظ لـ {name}. استورد غوصاته من ملف، أو أضفه مجدداً من كمبيوترات الغوص للتنزيل عبر Bluetooth أو USB.",
   "importWizard_dc_noDirectDownloadGarminBody": "تخزّن ساعات Garmin الغوصات كملفات FIT بدلاً من توفير تنزيل مباشر. وصّل الساعة عبر USB، وانسخ الملفات من مجلد GARMIN/Activity فيها، ثم استوردها.",
+  "importWizard_dc_noUsbOnThisPlatformBody": "يتصل {name} بكابل USB، ولا يمكن لـ Submersion استخدامه على iPhone أو iPad. نزّل غوصاته باستخدام Submersion على كمبيوتر Mac أو Windows أو Linux، أو استوردها من ملف.",
   "importWizard_dc_noNewDives": "لا توجد غوصات جديدة للتنزيل",
   "importWizard_dc_noNewDivesBody": "تم استيراد جميع الغوصات من هذا الكمبيوتر بالفعل.",
   "universalImport_compare_noDiveData": "بيانات الغوصة غير متوفرة للمقارنة.",

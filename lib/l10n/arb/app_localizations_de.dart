@@ -43370,6 +43370,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Alle Tauchgänge von diesem Computer wurden bereits importiert.';
 
   @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return '$name wird per USB-Kabel verbunden, das Submersion auf iPhone und iPad nicht nutzen kann. Laden Sie die Tauchgänge mit Submersion auf einem Mac-, Windows- oder Linux-Computer herunter, oder importieren Sie sie aus einer Datei.';
+  }
+
+  @override
   String get universalImport_compare_noDiveData =>
       'Tauchdaten für den Vergleich nicht verfügbar.';
 
