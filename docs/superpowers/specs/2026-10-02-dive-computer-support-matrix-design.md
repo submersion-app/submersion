@@ -68,7 +68,7 @@ Three parts, split across the two repos:
 | Part | Repo | Path |
 |---|---|---|
 | Catalog generator and platform rules | `submersion` (app) | `scripts/export_support_matrix_catalog.py`, `scripts/export_support_matrix_catalog_test.py`, `scripts/data/support_matrix_platform_rules.json` |
-| Data, page, validator, sweep procedure | `submersion-website` | `computers/index.html`, `computers/matrix.js`, `computers/data/catalog.json`, `computers/data/reports.json`, `tools/support-matrix/validate.mjs`, `tools/support-matrix/SWEEP.md`, tests under `tests/` |
+| Data, page, validator, sweep procedure | `submersion-website` | `computers/index.html`, `computers/page.css`, pure modules `computers/status.js`, `computers/rows.js`, `computers/render.js`, browser glue `computers/page.js`, data `computers/data/catalog.json` and `computers/data/reports.json`, `tools/support-matrix/validate.mjs`, `tools/support-matrix/merge.mjs`, `tools/support-matrix/SWEEP.md`, tests under `tests/` |
 | Monthly sweep | scheduled cloud routine | prompt: follow `tools/support-matrix/SWEEP.md` |
 
 The routine is the only link between the repos. It runs the generator against
@@ -114,15 +114,22 @@ No cross-repo CI.
   this model. Two families are shown: `bluetooth` (libdc `ble`) and `usb`
   (libdc `serial`, `usb`, `usbhid`). An empty list means the model is n/a on
   that platform.
-- `id` is a slug of vendor and product: lowercase, runs of non-alphanumerics
-  collapsed to `-`, trimmed. Ids must stay stable because reports reference
-  them. Two descriptors producing the same id is a hard error: the generator
-  exits non-zero naming both entries, and a disambiguation is added to the
-  rules file by hand.
+- `id` is a slug of vendor and product: lowercase, `+` spelled `plus`, runs of
+  other non-alphanumerics collapsed to `-`, trimmed. Ids must stay stable
+  because reports reference them.
+- Descriptors with an identical vendor and product (seven pairs today, such as
+  Oceanic OC1 at three model numbers) are one model to a diver. They merge into
+  one entry whose `libdc` list is the union of their transports.
+- Two different vendor and product pairs producing the same id is a hard error:
+  the generator exits non-zero naming both, and an `idOverrides` entry keyed
+  `"Vendor|Product"` is added by hand. One exists today: Subgear "XP Air"
+  (Uwatec, IrDA) and "XP-Air" (Oceanic, serial), so `"Subgear|XP Air"` maps to
+  `subgear-xp-air-irda`.
 - `removed` lists ids that appeared in the previous `catalog.json` (passed in
   with `--previous`) but not in this one, so orphaned reports surface.
-- `unsupported` lists models with no reachable family on any platform (today
-  the IrDA-only models), for the page footnote.
+- `unsupported` lists models with no reachable family on any platform, for the
+  page footnote. `reason` is `irda-only` (the IrDA-only models) or
+  `raw-usb-only` (Atomic Aquatics Cobalt and Cobalt 2, see below).
 
 ### `support_matrix_platform_rules.json`
 
@@ -133,13 +140,16 @@ No cross-repo CI.
   "macos": ["ble", "serial", "usbhid"],
   "windows": ["ble", "serial", "usbhid"],
   "linux": ["ble", "serial", "usbhid"],
-  "idOverrides": {}
+  "idOverrides": { "Subgear|XP Air": "subgear-xp-air-irda" }
 }
 ```
 
-libdc's `usb` flag (Atomic Aquatics Cobalt and Cobalt 2 only) is not listed for
-any platform until the implementation plan confirms which platforms reach it;
-see "Open verification items".
+libdc's raw `usb` flag (Atomic Aquatics Cobalt and Cobalt 2 only) is listed for
+no platform. `HAVE_LIBUSB` is commented out in every platform's
+`config/config.h`, and the download path (`libdc_download.c`) only ever opens a
+custom serial, HID or BLE stream, so nothing can drive a raw USB bulk device.
+The Android USB tab does advertise the Cobalt today; that is a follow-up, not a
+capability.
 
 ### `reports.json` (curated by the sweep)
 
@@ -186,8 +196,10 @@ Fields:
   listing and `sourceRef` holds the review id (used for dedupe only, never
   shown).
 - `fixedIn`: the first release version containing the fix, resolved with
-  `git tag --contains <merge-sha>` on the fixing PR's merge commit. A fix merged
-  after the newest tag gets `fixedIn: "unreleased"`.
+  `git tag --contains <merge-sha>` on the fixing PR's merge commit, keeping
+  only tags shaped `vX.Y.Z` or `vX.Y.Z.BUILD` (others such as `pre-rebase-228`
+  exist) and recording the lowest as `X.Y.Z`. A fix merged after the newest
+  tag gets `fixedIn: "unreleased"`.
 - `note`: at most 120 characters, a paraphrase in our own words. No quoted post
   or review text.
 
@@ -200,14 +212,18 @@ A cell is one row (model and transport family) and one platform column:
 
 1. The family is not in `catalog.models[].platforms[platform]`: **n/a**.
 2. No reports for the cell: **Untested**.
-3. Otherwise take the newest report, ordered by `appVersion` (semver compare;
-   `null` sorts oldest), then `date`:
+3. Otherwise take the newest report, ordered by `appVersion` (numeric compare
+   part by part; `null` sorts oldest), then `date`, then the weaker outcome
+   (`fails` before `caveats` before `works`) so a same-day, same-version
+   conflict never resolves to the better result:
    - `works`: **Verified**, but only if at least one `works` report for the cell
      has a linkable `url` (any source other than `app-store` or `play-store`).
      Otherwise **Issues**.
    - `caveats`: **Issues**.
-   - `fails` with `fixedIn` set to a version: **Issues**, labelled "fixed in vX,
-     awaiting confirmation".
+   - `fails` with `fixedIn` set to a version newer than the report's
+     `appVersion` (or the report has no version): **Issues**, labelled "fixed
+     in vX, awaiting confirmation". A failure reported on the fixed version or
+     later means the fix did not hold, so it stays **Not working**.
    - `fails` with `fixedIn: "unreleased"`: **Not working**, labelled "fix
      pending release".
    - `fails` otherwise: **Not working**.
@@ -217,11 +233,14 @@ newer build's report just because it was posted later.
 
 ## 2. The page
 
-`computers/index.html` with `computers/matrix.js`, plain HTML and JS like the
-rest of the site, using the dark visual system from `styles.css` and the same
-header and footer as `privacy/`. It fetches both data files from the same
-origin and computes every cell status in the browser; the status function is
-the single implementation of the rules above.
+`computers/index.html`, plain HTML and JS like the rest of the site, using the
+dark visual system from `styles.css` and the same header and footer as
+`privacy/`. It follows the passport pages' split: pure ES modules that
+`node --test` imports (`status.js` for the cell rules, `rows.js` for rows,
+search, filters and URL state, `render.js` for markup), and one browser glue
+file (`page.js`) for fetching, events and deep links. It fetches both data
+files from the same origin and computes every cell status in the browser;
+`status.js` is the single implementation of the rules above.
 
 Top to bottom:
 
@@ -279,8 +298,12 @@ Python 3.9 or later so it works in the cloud routine as well as locally.
 - An IrDA-only model: in `unsupported`, not in `models`.
 - Two descriptors slugging to the same id: non-zero exit naming both.
 - `--previous` with a dropped id: listed in `removed`.
-- A parse of the real `descriptor.c` yields more than 300 models (a guard
-  against a regex that silently matches nothing).
+- The generator refuses to write a catalog from fewer than `--min-descriptors`
+  (default 300) parsed entries, a guard against a parser that silently matches
+  nothing. CI's script-test job checks out without submodules, so the unit
+  tests use fixture text copied from the real table's formats, and the real
+  file is exercised by every generator run (the plan's manual run and each
+  monthly sweep), where the guard fails loudly.
 
 ## 4. Sweep
 
@@ -340,7 +363,10 @@ workflow, fails when:
 - two reports share (`url` or `sourceRef`, `model`, `platform`, `transport`);
 - a `url` host does not match its `source` (for example a `reddit` source not on
   `reddit.com`);
-- a `note` exceeds 120 characters.
+- a `note` exceeds 120 characters or contains an em dash;
+- an `appVersion` or `fixedIn` is not dotted numbers (`fixedIn` may also be
+  `"unreleased"`), or a `date` is not `YYYY-MM-DD`;
+- a store-review report lacks a `sourceRef`, or any other report has one.
 
 Failure handling in the routine:
 
@@ -365,7 +391,7 @@ Failure handling in the routine:
 | # | Repo | Content | Issue link |
 |---|---|---|---|
 | 1 | app | generator, platform rules, tests, CI test-list entry | `Refs #2616` |
-| 2 | website | page, `matrix.js`, validator, tests, generated `catalog.json`, empty `reports.json`, homepage link | none required |
+| 2 | website | page and its modules, validator, tests, generated `catalog.json`, empty `reports.json`, homepage link | none required |
 | 3 | website | initial sweep results in `reports.json` | none required |
 | 4 | website | `SWEEP.md`; the scheduled routine is created after the maintainer sets up the Play service account | none required |
 | 5 | app | `docs/guide/dive-computer.md` and `README.md` replace their tested lists and the Bluetooth Classic row with a link to the matrix | `Closes #2616` |
@@ -377,15 +403,19 @@ Maintainer steps that cannot be automated: create the Play service account,
 grant it Storage Object Viewer on the `pubsite_prod_*` bucket, and add its key
 as a secret in the routine's environment. `SWEEP.md` documents these.
 
-## Open verification items
+## Verification items
 
-Settle these in the implementation plan, against the code:
+Settled while planning:
 
-- Which platforms reach libdc's `usb` flag (Atomic Aquatics Cobalt and Cobalt
-  2), and whether Android exposes it.
-- Whether Windows and Linux reach FTDI cables with custom PIDs (Oceanic
-  `0x0403:0xF460`) through the OS driver; if not, those models need a per-model
-  rule rather than a platform-wide one.
+- libdc's raw `usb` flag is reachable on no platform (see the platform rules
+  above). The Cobalts are `unsupported` with reason `raw-usb-only`.
+- FTDI cables with custom PIDs (Oceanic `0x0403:0xF460`) on Windows and Linux
+  depend on the OS driver, which the code cannot show. The platform-wide rule
+  stays: the capability layer says what the app implements, and the evidence
+  layer says what a diver's cable actually did. No per-model rule.
+
+Still open, settled in the sweep-routine task:
+
 - Whether a cloud routine can fetch ScubaBoard pages, or whether it is blocked
   at the edge; if blocked, `SWEEP.md` documents a local fallback run for that
   source.
