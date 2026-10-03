@@ -45,6 +45,10 @@ class _TracksPageState extends ConsumerState<TracksPage> {
   final _log = LoggerService.forClass(TracksPage);
   final MapController _mapController = MapController();
 
+  /// A sweep is running: Match is disabled until it finishes, so a double
+  /// tap cannot start a second sweep writing the same dives.
+  bool _matching = false;
+
   @override
   void initState() {
     super.initState();
@@ -96,11 +100,14 @@ class _TracksPageState extends ConsumerState<TracksPage> {
   }
 
   Future<void> _matchNow() async {
+    if (_matching) return;
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final router = GoRouter.of(context);
+    setState(() => _matching = true);
     final outcome = await ref.read(tracksMatchControllerProvider).matchAll();
     if (!mounted) return;
+    setState(() => _matching = false);
     showTracksMatchOutcome(
       messenger: messenger,
       l10n: l10n,
@@ -162,7 +169,7 @@ class _TracksPageState extends ConsumerState<TracksPage> {
       listPane: TracksListPane(
         selectedKey: selection.selectedId,
         onTap: _select,
-        onMatch: _matchNow,
+        onMatch: _matching ? null : _matchNow,
         onDelete: _delete,
       ),
       mapPane: TracksMapPane(controller: _mapController),
@@ -187,7 +194,7 @@ class _TracksPageState extends ConsumerState<TracksPage> {
       body: TracksListPane(
         selectedKey: null,
         onTap: _open,
-        onMatch: _matchNow,
+        onMatch: _matching ? null : _matchNow,
         onDelete: _delete,
       ),
     );

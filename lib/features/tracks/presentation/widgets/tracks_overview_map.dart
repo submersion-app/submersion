@@ -21,9 +21,10 @@ import 'package:submersion/features/tracks/domain/track_list_item.dart';
 /// other. Holds a [TrackListItem.selectionKey].
 const String kTracksSectionKey = 'tracks';
 
-/// What the map's framing depends on: how many items and points it frames,
-/// the selection, and where each underwater track is anchored, so a
-/// realigned track is brought back into view, not only one arriving.
+/// What the map's framing depends on: which tracks it frames, how many
+/// points they have so far, the selection, and where each underwater track
+/// is anchored, so a filter swapping in different tracks of the same size,
+/// or a realigned track, is brought back into view.
 String tracksMapFramingSignature({
   required List<TrackListItem> items,
   required int pointCount,
@@ -34,7 +35,8 @@ String tracksMapFramingSignature({
       if (item is UnderwaterTrackItem)
         '${item.id}@${item.track.anchorLatitude},${item.track.anchorLongitude}',
   ].join(';');
-  return '${items.length}:$pointCount:$selectedKey:$anchors';
+  final keys = [for (final item in items) item.selectionKey].join(',');
+  return '$keys:$pointCount:$selectedKey:$anchors';
 }
 
 /// Every given track on one map: GPS tracks as polylines (the selected one

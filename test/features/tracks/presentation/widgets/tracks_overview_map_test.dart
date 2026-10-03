@@ -109,6 +109,15 @@ void main() {
       expect(sig(46.9), isNot(sig(47.1)));
     });
 
+    test('changes when a different track of the same size takes over', () {
+      String sig(String id) => tracksMapFramingSignature(
+        items: [GpsTrackItem(_gps(id, 20))],
+        pointCount: 3,
+        selectedKey: null,
+      );
+      expect(sig('day-1'), isNot(sig('day-2')));
+    });
+
     test('stays the same for the same tracks at the same anchors', () {
       String sig() => tracksMapFramingSignature(
         items: [

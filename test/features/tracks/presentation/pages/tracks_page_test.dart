@@ -111,6 +111,26 @@ class _GpsMatch extends GpsTrackMatchService {
   }
 }
 
+/// Holds every sweep open until [release], counting how many started.
+class _GatedGpsMatch extends GpsTrackMatchService {
+  _GatedGpsMatch()
+    : super(
+        trackRepository: GpsTrackRepository(),
+        diveRepository: DiveRepository(),
+      );
+  final _gate = Completer<void>();
+  int calls = 0;
+
+  void release() => _gate.complete();
+
+  @override
+  Future<List<String>> sweep({List<String>? limitToIds}) async {
+    calls++;
+    await _gate.future;
+    return const [];
+  }
+}
+
 /// Records deletes instead of touching the nav table.
 class _RecordingNavRepository extends NavTrackRepository {
   String? deletedId;
@@ -723,5 +743,46 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(MapInfoCard), findsNothing);
+  });
+
+  testWidgets('a second Match tap while one runs starts no second sweep', (
+    tester,
+  ) async {
+    final gps = _GatedGpsMatch();
+    await tester.pumpWidget(await app(gpsMatch: gps));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Match dives to GPS logs'));
+    await tester.pump();
+    await tester.tap(find.text('Match dives to GPS logs'), warnIfMissed: false);
+    await tester.pump();
+    expect(gps.calls, 1);
+
+    gps.release();
+    await tester.pumpAndSettle();
+    expect(find.text('No dives matched a recorded track'), findsOneWidget);
+  });
+
+  testWidgets('an empty library keeps the onboarding text under a kind link', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      await app(initialLocation: '/tracks?kind=underwater'),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('No tracks yet'), findsOneWidget);
+    expect(find.text('No tracks match these filters'), findsNothing);
+  });
+
+  testWidgets('the pending-choice hint hides while the list shows GPS only', (
+    tester,
+  ) async {
+    await tester.pumpWidget(await app(underwater: [_uw()]));
+    await tester.pumpAndSettle();
+    expect(find.text('1 route needs your choice'), findsOneWidget);
+
+    await tester.tap(kindSegment('GPS'));
+    await tester.pumpAndSettle();
+    expect(find.text('1 route needs your choice'), findsNothing);
   });
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
+import 'package:submersion/features/tracks/domain/track_kind.dart';
+import 'package:submersion/features/tracks/presentation/providers/tracks_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// "N routes need your choice": underwater tracks a sweep could only
@@ -13,7 +15,10 @@ class TracksPendingChoiceBanner extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final count = ref.watch(navTrackPendingChoiceCountProvider).value ?? 0;
-    if (count == 0) return const SizedBox.shrink();
+    // About underwater tracks only, so it leaves with them when the list
+    // shows GPS tracks alone.
+    final gpsOnly = ref.watch(trackKindFilterProvider) == TrackKindFilter.gps;
+    if (count == 0 || gpsOnly) return const SizedBox.shrink();
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       key: const ValueKey('tracks-pending-choice-banner'),

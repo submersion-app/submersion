@@ -27,7 +27,6 @@ class TracksListHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final match = onMatch;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Column(
@@ -47,15 +46,14 @@ class TracksListHeader extends StatelessWidget {
               alignment: AlignmentDirectional.centerStart,
               child: GpsTrackDateFilterAction(),
             ),
-            if (match != null) ...[
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                key: const ValueKey('tracks-match'),
-                icon: const Icon(Icons.add_location_alt_outlined),
-                label: Text(l10n.gpsLogger_matchButton),
-                onPressed: match,
-              ),
-            ],
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              key: const ValueKey('tracks-match'),
+              icon: const Icon(Icons.add_location_alt_outlined),
+              label: Text(l10n.gpsLogger_matchButton),
+              // Null while a sweep runs, which disables the button.
+              onPressed: onMatch,
+            ),
           ],
           if (isEmpty) const TracksEmptyState(),
         ],

@@ -36,7 +36,11 @@ class TracksMapPane extends ConsumerWidget {
       AsyncLoading() when overview.isEmpty => const Center(
         child: CircularProgressIndicator(),
       ),
-      AsyncError() => Center(child: Text(l10n.common_error_tryAgain)),
+      // Only before any data: a refresh that fails keeps the tracks the list
+      // beside it still shows.
+      AsyncError() when !overviewAsync.hasValue => Center(
+        child: Text(l10n.common_error_tryAgain),
+      ),
       // Tracks exist but none can be placed: say so rather than "no tracks".
       _ when overview.isEmpty => GpsTrackEmptyMap(
         message: listed.isEmpty

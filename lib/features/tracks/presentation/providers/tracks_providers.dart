@@ -21,8 +21,11 @@ final trackKindFilterProvider = StateProvider<TrackKindFilter>(
 final tracksListProvider = FutureProvider<List<TrackListItem>>((ref) async {
   final kind = ref.watch(trackKindFilterProvider);
   final range = ref.watch(trackDateFilterProvider);
-  final gps = await ref.watch(gpsTracksProvider.future);
-  final underwater = await ref.watch(allNavTracksProvider.future);
+  // Both watched before either is awaited, so the two queries overlap.
+  final (gps, underwater) = await (
+    ref.watch(gpsTracksProvider.future),
+    ref.watch(allNavTracksProvider.future),
+  ).wait;
   return mergeTracks(
     gps: gps,
     underwater: underwater,
@@ -45,7 +48,9 @@ final tracksOverviewTruncatedProvider = Provider<bool>((ref) {
 
 /// The summary strip's figures, following the active filters.
 final tracksSummaryProvider = FutureProvider<TracksSummary>((ref) async {
-  final items = await ref.watch(tracksListProvider.future);
-  final dives = await ref.watch(divesProvider.future);
+  final (items, dives) = await (
+    ref.watch(tracksListProvider.future),
+    ref.watch(divesProvider.future),
+  ).wait;
   return summarizeTracks(items, dives);
 });

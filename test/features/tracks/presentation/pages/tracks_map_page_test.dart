@@ -277,4 +277,50 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('TRACKS-PAGE'), findsOneWidget);
   });
+
+  testWidgets('a failed refresh keeps the map the list still shows', (
+    tester,
+  ) async {
+    var fail = false;
+    final data = [_track('t1', 20.0)];
+    await tester.binding.setSurfaceSize(const Size(1400, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          gpsTracksProvider.overrideWith((ref) async {
+            if (fail) throw StateError('refresh failed');
+            return data;
+          }),
+          allNavTracksProvider.overrideWith((ref) async => const []),
+          gpsTrackGeometryProvider((
+            't1',
+            TrackLod.thumbnail,
+          )).overrideWith((ref) async => data.first.points),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: MediaQuery(
+            data: MediaQueryData(size: Size(1400, 900)),
+            child: TracksMapPage(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(PolylineLayer<String>), findsOneWidget);
+
+    fail = true;
+    ProviderScope.containerOf(
+      tester.element(find.byType(TracksMapPage)),
+    ).invalidate(gpsTracksProvider);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('gps:t1')), findsOneWidget);
+    expect(find.byType(PolylineLayer<String>), findsOneWidget);
+  });
 }
