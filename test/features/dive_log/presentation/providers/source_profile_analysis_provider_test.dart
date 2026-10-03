@@ -10,51 +10,11 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
-import 'package:submersion/features/divers/data/repositories/diver_repository.dart'
-    as divers;
-import 'package:submersion/features/divers/domain/entities/diver.dart'
-    as domain;
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/analysis_pipeline_overrides.dart';
 import '../../../../helpers/test_database.dart';
 
 late SharedPreferences _prefs;
-
-class _FakeDiverRepository extends divers.DiverRepository {
-  @override
-  Future<domain.Diver?> getDiverById(String id) async => null;
-
-  @override
-  Future<domain.Diver?> getDefaultDiver() async => null;
-
-  @override
-  Future<String?> getActiveDiverIdFromSettings() async => null;
-
-  @override
-  Future<void> setActiveDiverIdInSettings(String? diverId) async {}
-}
-
-class _FakeDiverSettingsRepository extends DiverSettingsRepository {
-  @override
-  Future<AppSettings> getOrCreateSettingsForDiver(
-    String diverId, {
-    AppSettings? defaultSettings,
-  }) async {
-    return const AppSettings(notificationsEnabled: false);
-  }
-
-  @override
-  Future<void> updateSettingsForDiver(
-    String diverId,
-    AppSettings settings,
-  ) async {}
-}
-
-class _SettingsNotifier extends SettingsNotifier {
-  _SettingsNotifier(Ref ref) : super(_FakeDiverSettingsRepository(), ref);
-}
 
 /// A simple descending-then-flat profile with [count] samples spaced
 /// [stepSeconds] apart, starting at [startOffsetSeconds].
@@ -123,9 +83,7 @@ void main() {
 
     final container = ProviderContainer(
       overrides: [
-        sharedPreferencesProvider.overrideWithValue(_prefs),
-        diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
-        settingsProvider.overrideWith((ref) => _SettingsNotifier(ref)),
+        ...analysisPipelineOverrides(_prefs),
         analysisDiveProvider('dive-1').overrideWith((ref) async => dive),
         diveDataSourcesProvider('dive-1').overrideWith(
           (ref) async => [
@@ -188,9 +146,7 @@ void main() {
 
     final container = ProviderContainer(
       overrides: [
-        sharedPreferencesProvider.overrideWithValue(_prefs),
-        diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
-        settingsProvider.overrideWith((ref) => _SettingsNotifier(ref)),
+        ...analysisPipelineOverrides(_prefs),
         analysisDiveProvider('dive-1').overrideWith((ref) async => dive),
         diveDataSourcesProvider('dive-1').overrideWith(
           (ref) async => [
@@ -252,9 +208,7 @@ void main() {
 
     final container = ProviderContainer(
       overrides: [
-        sharedPreferencesProvider.overrideWithValue(_prefs),
-        diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
-        settingsProvider.overrideWith((ref) => _SettingsNotifier(ref)),
+        ...analysisPipelineOverrides(_prefs),
         analysisDiveProvider('dive-1').overrideWith((ref) async => dive),
         diveDataSourcesProvider('dive-1').overrideWith(
           (ref) async => [
@@ -301,9 +255,7 @@ void main() {
 
     final container = ProviderContainer(
       overrides: [
-        sharedPreferencesProvider.overrideWithValue(_prefs),
-        diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
-        settingsProvider.overrideWith((ref) => _SettingsNotifier(ref)),
+        ...analysisPipelineOverrides(_prefs),
         analysisDiveProvider('dive-1').overrideWith((ref) async => dive),
         diveDataSourcesProvider(
           'dive-1',
@@ -328,6 +280,136 @@ void main() {
 
     expect(analysis, isNotNull);
     expect(analysis!.ascentRates.length, profile.length);
+  });
+
+  /// A dive whose `dive.profile` is [merged], with [sources] and their
+  /// per-source [buckets].
+  ProviderContainer diveWith({
+    required List<DiveProfilePoint> merged,
+    required List<DiveDataSource> sources,
+    required Map<String, List<DiveProfilePoint>> buckets,
+  }) {
+    final byId = {for (final s in sources) s.id: s};
+    final container = ProviderContainer(
+      overrides: [
+        ...analysisPipelineOverrides(_prefs),
+        analysisDiveProvider('dive-1').overrideWith(
+          (ref) async => Dive(
+            id: 'dive-1',
+            dateTime: DateTime(2026, 5, 7),
+            profile: merged,
+          ),
+        ),
+        diveDataSourcesProvider('dive-1').overrideWith((ref) async => sources),
+        sourceProfilesProvider('dive-1').overrideWith(
+          (ref) async => {
+            for (final entry in buckets.entries)
+              entry.key: SourceProfile(
+                sourceId: entry.key,
+                computerId: byId[entry.key]!.computerId,
+                isEdited: false,
+                points: entry.value,
+              ),
+          },
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    return container;
+  }
+
+  // Every reader of the dive-level analysis (the safety review, the residual
+  // CNS and tissue chain into the next dive, the deco classification, the
+  // planner) used to get both computers' samples interleaved by timestamp,
+  // whose neighbouring samples disagree by the computers' clock offset (#2888).
+  test('the dive-level analysis of a multi-source dive replays the primary '
+      "source's own samples, not both computers' interleaved", () async {
+    final primaryBucket = _profile(100);
+    final secondaryBucket = _profile(100, startOffsetSeconds: 1);
+    final container = diveWith(
+      merged: [...primaryBucket, ...secondaryBucket]
+        ..sort((a, b) => a.timestamp.compareTo(b.timestamp)),
+      sources: [source('src-a', 'dc-a', true), source('src-b', 'dc-b', false)],
+      buckets: {'src-a': primaryBucket, 'src-b': secondaryBucket},
+    );
+
+    final analysis = await container.read(
+      profileAnalysisProvider('dive-1').future,
+    );
+
+    expect(analysis, isNotNull);
+    expect(analysis!.ascentRates.length, primaryBucket.length);
+  });
+
+  test("the primary's per-source analysis is the dive-level one, whichever "
+      'key names it', () async {
+    final primaryBucket = _profile(100);
+    final secondaryBucket = _profile(100, startOffsetSeconds: 1);
+    final container = diveWith(
+      merged: [...primaryBucket, ...secondaryBucket]
+        ..sort((a, b) => a.timestamp.compareTo(b.timestamp)),
+      sources: [source('src-a', 'dc-a', true), source('src-b', 'dc-b', false)],
+      buckets: {'src-a': primaryBucket, 'src-b': secondaryBucket},
+    );
+
+    final diveLevel = await container.read(
+      profileAnalysisProvider('dive-1').future,
+    );
+    // The chart reads (sourceId: null) by default and the primary's own id
+    // once its chip is tapped; neither replays the samples a second time.
+    for (final sourceId in [null, 'src-a', 'src-gone']) {
+      final perSource = await container.read(
+        sourceProfileAnalysisProvider((
+          diveId: 'dive-1',
+          sourceId: sourceId,
+        )).future,
+      );
+      expect(identical(perSource, diveLevel), isTrue, reason: '$sourceId');
+    }
+    final secondary = await container.read(
+      sourceProfileAnalysisProvider((
+        diveId: 'dive-1',
+        sourceId: 'src-b',
+      )).future,
+    );
+    expect(identical(secondary, diveLevel), isFalse);
+  });
+
+  test('a primary that owns no samples analyses dive.profile when only one '
+      'other source recorded the dive', () async {
+    final recorded = _profile(100);
+    final container = diveWith(
+      merged: recorded,
+      sources: [source('src-a', null, true), source('src-b', 'dc-b', false)],
+      buckets: {'src-a': const [], 'src-b': recorded},
+    );
+
+    final analysis = await container.read(
+      profileAnalysisProvider('dive-1').future,
+    );
+
+    expect(analysis, isNotNull);
+    expect(analysis!.ascentRates.length, recorded.length);
+  });
+
+  test('a primary that owns no samples is not analysed over the other '
+      "sources' samples interleaved", () async {
+    final b = _profile(100);
+    final c = _profile(100, startOffsetSeconds: 1);
+    final container = diveWith(
+      merged: [...b, ...c]..sort((x, y) => x.timestamp.compareTo(y.timestamp)),
+      sources: [
+        source('src-a', null, true),
+        source('src-b', 'dc-b', false),
+        source('src-c', 'dc-c', false),
+      ],
+      buckets: {'src-a': const [], 'src-b': b, 'src-c': c},
+    );
+
+    expect(
+      await container.read(profileAnalysisProvider('dive-1').future),
+      isNull,
+    );
   });
 
   test('a computer-scoped analysis only applies gas switches on tanks it '
@@ -395,9 +477,7 @@ void main() {
 
     final container = ProviderContainer(
       overrides: [
-        sharedPreferencesProvider.overrideWithValue(_prefs),
-        diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
-        settingsProvider.overrideWith((ref) => _SettingsNotifier(ref)),
+        ...analysisPipelineOverrides(_prefs),
         analysisDiveProvider('dive-1').overrideWith((ref) async => dive),
         diveDataSourcesProvider('dive-1').overrideWith(
           (ref) async => [
@@ -461,9 +541,7 @@ void main() {
 
     final container = ProviderContainer(
       overrides: [
-        sharedPreferencesProvider.overrideWithValue(_prefs),
-        diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
-        settingsProvider.overrideWith((ref) => _SettingsNotifier(ref)),
+        ...analysisPipelineOverrides(_prefs),
         analysisDiveProvider('dive-1').overrideWith((ref) async => dive),
       ],
     );

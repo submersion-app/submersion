@@ -1019,6 +1019,14 @@ class DiveComputerRepository {
           recordId: diveId,
           localUpdatedAt: now,
         );
+
+        // The safety review grades the primary's own samples, so the stored
+        // one graded the computer that was primary until now.
+        await SafetyFindingsRepository.clearReviewForDive(
+          _db,
+          _syncRepository,
+          diveId,
+        );
       });
       SyncEventBus.notifyLocalChange();
 
