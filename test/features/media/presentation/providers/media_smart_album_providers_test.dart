@@ -6,6 +6,7 @@ import 'package:submersion/features/media/domain/entities/media_smart_album.dart
 import 'package:submersion/features/media/presentation/providers/media_smart_album_providers.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/wait_until.dart';
 
 /// The real repository against the real test database, counting reads so a
 /// test can tell one build from a rebuild loop.
@@ -55,13 +56,12 @@ void main() {
 
     await repo.create(name: 'Groupers', filter: MediaLibraryFilter.none);
 
-    // Bounded poll for the Drift tick: a fixed delay flakes on a busy runner.
-    var albums = const <MediaSmartAlbum>[];
-    for (var i = 0; i < 50; i++) {
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-      albums = await container.read(mediaSmartAlbumsProvider.future);
-      if (albums.isNotEmpty) break;
-    }
+    await waitUntil(
+      () async =>
+          (await container.read(mediaSmartAlbumsProvider.future)).isNotEmpty,
+    );
+
+    final albums = await container.read(mediaSmartAlbumsProvider.future);
     expect(albums.map((a) => a.name), ['Groupers']);
     expect(repo.reads, 2);
   });
