@@ -13,7 +13,8 @@ extension DiveMigrations on AppDatabase {
   /// runs only as the column is added, wherever that happens: v258 sits
   /// below 259, so a database already at 259 gains the column here from
   /// beforeOpen, and once the column exists a switch left without a
-  /// computer is one the diver entered, which must stay that way.
+  /// computer (one the diver entered, or one the backfill could not place)
+  /// must stay that way.
   Future<void> _assertGasSwitchComputerIdColumn() async {
     final cols = await customSelect("PRAGMA table_info('gas_switches')").get();
     if (cols.isEmpty) return;
@@ -38,7 +39,10 @@ extension DiveMigrations on AppDatabase {
   /// would delete it and a per-computer analysis would hide it from the
   /// computer that logged it (#2560). A switch to another computer's own
   /// cylinder is that computer's: only the primary's cylinders are merge
-  /// targets.
+  /// targets. That includes a primary no computer recorded (a file import),
+  /// whose cylinders name no computer, so every computer's cylinder there
+  /// is its own. With no primary at all, nothing tells the merge target
+  /// apart, so nothing on the dive is attributed.
   Future<void> _backfillGasSwitchComputerIds() async {
     final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();
     if (!cols.any((c) => c.read<String>('name') == 'computer_id')) return;
@@ -71,9 +75,9 @@ extension DiveMigrations on AppDatabase {
         SELECT dive_id FROM recorded_by
         GROUP BY dive_id HAVING COUNT(*) > 1
       ),
-      primary_computer AS (
+      primary_source AS (
         SELECT dive_id, computer_id FROM dive_data_sources
-        WHERE is_primary = 1 AND computer_id IS NOT NULL
+        WHERE is_primary = 1
       )
       UPDATE gas_switches
       SET computer_id = (
@@ -85,15 +89,16 @@ extension DiveMigrations on AppDatabase {
           dive_id NOT IN (SELECT dive_id FROM multi_computer)
           OR (
             EXISTS (
-              SELECT 1 FROM primary_computer p
+              SELECT 1 FROM primary_source p
               WHERE p.dive_id = gas_switches.dive_id
             )
-            AND (
-              SELECT t.computer_id FROM dive_tanks t
-              WHERE t.id = gas_switches.tank_id
-            ) NOT IN (
-              SELECT p.computer_id FROM primary_computer p
+            AND NOT EXISTS (
+              SELECT 1 FROM primary_source p
               WHERE p.dive_id = gas_switches.dive_id
+                AND p.computer_id IS (
+                  SELECT t.computer_id FROM dive_tanks t
+                  WHERE t.id = gas_switches.tank_id
+                )
             )
           )
         )

@@ -1364,27 +1364,29 @@ class DiveComputerRepository {
                 .getSingleOrNull() !=
             null;
 
-    final deletedEvents =
-        await (_db.delete(_db.diveProfileEvents)..where(
-              (t) =>
-                  t.diveId.equals(diveId) &
-                  (sharedDive
-                      ? t.computerId.equals(computerId)
-                      : const Constant(true)),
-            ))
-            .go();
-    // One tombstone for the cleared events (#1926), scoped like the delete.
-    // Without one, peers kept the old events beside the re-imported ones.
-    // importProfile stamps the fresh events after this, so their clocks are
-    // newer and peers keep them.
-    if (deletedEvents > 0) {
-      await _syncRepository.logScopedDeletion(
-        EventScopeTombstone(
-          diveId: diveId,
-          computerId: sharedDive ? computerId : null,
-        ),
-      );
-    }
+    // One tombstone for the cleared events (#1926), scoped like the delete
+    // and written in its transaction. Without one, peers kept the old events
+    // beside the re-imported ones. importProfile stamps the fresh events
+    // after this, so their clocks are newer and peers keep them.
+    await _db.transaction(() async {
+      final deletedEvents =
+          await (_db.delete(_db.diveProfileEvents)..where(
+                (t) =>
+                    t.diveId.equals(diveId) &
+                    (sharedDive
+                        ? t.computerId.equals(computerId)
+                        : const Constant(true)),
+              ))
+              .go();
+      if (deletedEvents > 0) {
+        await _syncRepository.logScopedDeletion(
+          EventScopeTombstone(
+            diveId: diveId,
+            computerId: sharedDive ? computerId : null,
+          ),
+        );
+      }
+    });
     if (sharedDive) {
       await _tankSeries.deleteOwnedByComputer(diveId, computerId);
     } else {
@@ -1803,7 +1805,7 @@ class DiveComputerRepository {
       // re-download pass and the series had no owning source (issue #2002).
       // Primary when the dive had nothing yet, or when it takes back the
       // role a replaced reading held (#2582); a secondary otherwise.
-      if (!isNewDive && await _dataSourceIdFor(diveId, computerId) == null) {
+      if (!isNewDive && ownSource == null) {
         // A dive can already hold a summary-only source row and no series:
         // a UDDF import writes one for every dive it creates. The download
         // is about to become this dive's profile, so it takes the primary
@@ -2146,6 +2148,22 @@ class DiveComputerRepository {
           if (tanks != null)
             for (final t in tanks) t.index: (t.o2Percent, t.hePercent),
         };
+        // An existing dive can already hold this switch unattributed, which
+        // applies it to every computer: one the v258 backfill could not
+        // place (a cylinder another computer's was merged into), which a
+        // Replace Source leaves standing (#2582). Another computer's own
+        // switch at the same moment does not count.
+        final heldSwitches = isNewDive
+            ? const <(String, int)>{}
+            : {
+                for (final s
+                    in await (_db.select(_db.gasSwitches)..where(
+                          (t) =>
+                              t.diveId.equals(diveId) & t.computerId.isNull(),
+                        ))
+                        .get())
+                  (s.tankId, s.timestamp),
+              };
         var inserted = 0;
         await _db.batch((batch) {
           for (final sw in gasSwitches) {
@@ -2154,6 +2172,7 @@ class DiveComputerRepository {
                 ? tankIdsByIndex[sw.toTankIndex]
                 : (gas != null ? tankIdByGas[gas] : null);
             if (tankId == null) continue;
+            if (heldSwitches.contains((tankId, sw.timestamp))) continue;
             inserted++;
             batch.insert(
               _db.gasSwitches,

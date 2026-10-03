@@ -234,6 +234,25 @@ void main() {
   });
 
   group('replacing the primary computer', () {
+    test('does not duplicate a switch the v258 backfill left unattributed '
+        'on its cylinder', () async {
+      final diveId = await twoComputerDive();
+      final aTank = await tankOf(diveId, 'comp-a');
+      // A switch to the primary's cylinder could have been either
+      // computer's, so the backfill left it without one.
+      await db.customStatement(
+        "UPDATE gas_switches SET computer_id = NULL WHERE computer_id = 'comp-a'",
+      );
+
+      await replace(diveId, 'comp-a', downloadA);
+
+      final onATank = (await switches(
+        diveId,
+      )).where((s) => s.tankId == aTank).toList();
+      expect(onATank, hasLength(1));
+      expect(onATank.single.computerId, isNull);
+    });
+
     test('restores the role a replace before #2582 left on its series '
         'alone', () async {
       final diveId = await twoComputerDive();

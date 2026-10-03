@@ -90,8 +90,9 @@ void main() {
     /// and remapped c2's switch to it, so t1 carries a switch of each
     /// computer; t2 is c2's own cylinder, which matched nothing. Dive d2 is
     /// c1's alone. [primary] picks which source row is primary (null: none
-    /// is), and [secondSourceRow] false leaves c2 only a profile series, as
-    /// a profile attached before #2002 did.
+    /// is; 'file': a file-imported source naming no computer), and
+    /// [secondSourceRow] false leaves c2 only a profile series, as a profile
+    /// attached before #2002 did.
     NativeDatabase setupMultiDb({
       String? primary = 'c1',
       bool secondSourceRow = true,
@@ -118,6 +119,12 @@ void main() {
           "('src1', 'd1', 'c1', ${primary == 'c1' ? 1 : 0}), "
           "('src3', 'd2', 'c1', 1)",
         );
+        if (primary == 'file') {
+          rawDb.execute(
+            'INSERT INTO dive_data_sources (id, dive_id, computer_id, '
+            "is_primary) VALUES ('src0', 'd1', NULL, 1)",
+          );
+        }
         if (secondSourceRow) {
           rawDb.execute(
             'INSERT INTO dive_data_sources (id, dive_id, computer_id, '
@@ -167,13 +174,20 @@ void main() {
       expect(await switchComputers(db), [null, null, 'c2', 'c1']);
     });
 
-    test(
-      'attributes nothing on it when no source names the primary computer',
-      () async {
-        final db = AppDatabase(setupMultiDb(primary: null));
-        addTearDown(db.close);
-        expect(await switchComputers(db), [null, null, null, 'c1']);
-      },
-    );
+    test('attributes every computer\'s own cylinder under a file-imported '
+        'primary: its cylinders, which name no computer, were the merge '
+        'targets', () async {
+      // The issue's own case: a MacDive primary with two computers folded
+      // in. t1 and t2 are c1's and c2's own cylinders here.
+      final db = AppDatabase(setupMultiDb(primary: 'file'));
+      addTearDown(db.close);
+      expect(await switchComputers(db), ['c1', 'c1', 'c2', 'c1']);
+    });
+
+    test('attributes nothing on it when no source is primary', () async {
+      final db = AppDatabase(setupMultiDb(primary: null));
+      addTearDown(db.close);
+      expect(await switchComputers(db), [null, null, null, 'c1']);
+    });
   });
 }
