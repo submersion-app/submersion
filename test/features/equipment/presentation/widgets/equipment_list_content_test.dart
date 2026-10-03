@@ -42,6 +42,8 @@ import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_header_bar.dart';
+import 'package:submersion/features/equipment/data/services/equipment_transfer_service.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_transfer_providers.dart';
 
 import '../../../../helpers/equipment_query_fakes.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -90,6 +92,35 @@ EquipmentItem _makeEquipment({
     model: model,
     status: status,
   );
+}
+
+/// Records the bulk transfer the list starts (issue #2852).
+class _RecordingTransferService extends EquipmentTransferService {
+  final transferred = <(List<String>, String)>[];
+
+  @override
+  Future<EquipmentTransferPreview> preview({
+    required List<String> equipmentIds,
+    required String actingDiverId,
+    String? toDiverId,
+  }) async => EquipmentTransferPreview(
+    unitIds: equipmentIds,
+    skippedNotOwned: 0,
+    computers: const [],
+    transmitters: const [],
+  );
+
+  @override
+  Future<EquipmentTransferResult> transfer({
+    required List<String> equipmentIds,
+    required String toDiverId,
+    required String actingDiverId,
+    bool keepAccess = true,
+    bool moveRegistry = true,
+  }) async {
+    transferred.add((equipmentIds, toDiverId));
+    return EquipmentTransferResult(itemsMoved: equipmentIds.length);
+  }
 }
 
 Future<List<Override>> _buildOverrides({
@@ -532,6 +563,44 @@ void main() {
         await tester.tap(find.text('Bbb Reg'));
         await tester.pumpAndSettle();
         expect((await transferItem(tester))?.enabled, isFalse);
+      });
+
+      testWidgets('Transfer to transfers the selection and ends it', (
+        tester,
+      ) async {
+        final service = _RecordingTransferService();
+        await tester.pumpWidget(
+          await host(
+            const [own, hers],
+            divers: divers,
+            activeDiverId: 'owner',
+            extraOverrides: [
+              equipmentTransferServiceProvider.overrideWithValue(service),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+        await enterSelectionViaMenu(tester);
+        await tester.tap(find.text('Aaa BCD'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_menu_transfer')));
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.text('Anna'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(FilledButton, 'Transfer'));
+        await tester.pumpAndSettle();
+        expect(service.transferred, hasLength(1));
+        expect(service.transferred.single.$1, ['mine']);
+        expect(service.transferred.single.$2, 'wife');
+        expect(find.text('Transferred 1 item to Anna'), findsOneWidget);
+        expect(find.byKey(const ValueKey('selection_overflow')), findsNothing);
       });
 
       testWidgets('Transfer to is absent with one profile', (tester) async {

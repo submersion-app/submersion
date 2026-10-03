@@ -326,4 +326,15 @@ void main() {
     )..where((r) => r.id.equals('tx1'))).getSingleOrNull();
     expect(tx?.diverId, 'tom');
   });
+
+  test('keptEquipmentCount reports the items a delete would keep', () async {
+    await addItem('light', 'bill');
+    await addItem('spare', 'bill');
+    await EquipmentShareRepository().shareMany(
+      equipmentIds: ['light'],
+      diverIds: ['tom'],
+      actingDiverId: 'bill',
+    );
+    expect(await DiverRepository().keptEquipmentCount('bill'), 1);
+  });
 }
