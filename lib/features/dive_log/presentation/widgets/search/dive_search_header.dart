@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/search/dive_as
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_jump_list.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_scope_toggle.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
+import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
@@ -185,6 +186,22 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     if (route != null && mounted) context.go(route);
   }
 
+  QueryEditorContext _editorContext({bool watch = false}) => QueryEditorContext(
+    registry: appQueryRegistry,
+    root: diveQueryEntity,
+    prefs: watch
+        ? ref.watch(queryUnitPrefsProvider)
+        : ref.read(queryUnitPrefsProvider),
+    names:
+        (watch
+                ? ref.watch(queryNameIndexProvider)
+                : ref.read(queryNameIndexProvider))
+            .value ??
+        NameIndex.empty,
+    labels: AppQueryLabels(context),
+    now: DateTime.now,
+  );
+
   void _undoAsk() {
     final sentence = ref.read(diveAskProvider.notifier).undo();
     if (sentence == null) return;
@@ -214,9 +231,26 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     // when its query equals the one already applied (the filter listener
     // below sees no change then).
     ref.listen<AskState>(diveAskProvider, (previous, next) {
-      if (next.answer != null && !identical(next.answer, previous?.answer)) {
-        _debounce?.cancel();
+      final answer = next.answer;
+      if (answer == null || identical(answer, previous?.answer)) return;
+      _debounce?.cancel();
+      final query = answer.compiled.query;
+      if (answer.compiled.subject != ParsedSubject.dives || query == null) {
+        return;
       }
+      // Print the answer here too: one equal to the query already applied
+      // writes nothing the filter listener sees, and the field would keep
+      // the sentence while the answer filters the list. The override also
+      // covers a sentence that never parsed, whose committed tree may
+      // already equal the answer.
+      setState(() {
+        _local = _jumpQuery = query;
+        _fieldValid = true;
+        _text = '';
+        _textOverride = QueryTextOverride(
+          _editorContext().printer.print(query),
+        );
+      });
     });
     ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
       // Only a change to the QUERY from outside (a chip removed, a saved
@@ -242,14 +276,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     }
     final filter = ref.watch(diveFilterProvider);
     final l10n = context.l10n;
-    final editorContext = QueryEditorContext(
-      registry: appQueryRegistry,
-      root: diveQueryEntity,
-      prefs: ref.watch(queryUnitPrefsProvider),
-      names: ref.watch(queryNameIndexProvider).value ?? NameIndex.empty,
-      labels: AppQueryLabels(context),
-      now: DateTime.now,
-    );
+    final editorContext = _editorContext(watch: true);
     final panelAxes = filter.panelAxisCount;
     final ask = ref.watch(diveAskProvider);
     // An error stays with the text that caused it: once the field is

@@ -1,13 +1,18 @@
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/explore/data/channel_nl_engine.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 final nlEngineProvider = Provider<NlEngine>((ref) => ChannelNlEngine());
+
+/// How far a model download started here has got, 0 to 1; null when no
+/// download from this run is reporting (none started, or one the platform
+/// was already running).
+final exploreDownloadProgressProvider = StateProvider<double?>((ref) => null);
 
 /// Synchronous platform gate, separate from the async probe so an entry
 /// point is never enabled transiently while the probe loads (the iCloud tile

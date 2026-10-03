@@ -133,7 +133,7 @@ void main() {
           exploreNameIndexProvider.overrideWith(
             (ref) => names?.call(ref) ?? Future.value(NameIndex.empty),
           ),
-          recentQueryRecorderProvider.overrideWithValue((s, l, p) async {}),
+          recentQueryRecorderProvider.overrideWithValue((s, l, p, d) async {}),
         ].cast(),
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -217,6 +217,10 @@ void main() {
     await tester.pump();
     await tester.pump(kDiveSearchDebounce * 2);
     expect(filterOf().query, answered);
+    // Copilot review: the field kept the typed sentence while the answer
+    // (equal to the applied query) filtered the list.
+    expect(fieldOf(tester).controller!.text, isNot('deep dives'));
+    expect(fieldOf(tester).controller!.text, contains('40'));
   });
 
   // Code review: the Explore page kept the name index listened while it

@@ -104,7 +104,7 @@ void main() {
             (ref) async => names ?? _bonaire,
           ),
           recentQueryRecorderProvider.overrideWithValue(
-            (sentence, locale, parsed) async {},
+            (sentence, locale, parsed, diverId) async {},
           ),
         ],
         child: Builder(

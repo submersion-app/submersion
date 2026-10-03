@@ -12,6 +12,7 @@ import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_ask_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
@@ -78,6 +79,9 @@ final _bonaire = NameIndex(const [
   ),
 ]);
 
+/// The active diver, switchable mid-Ask.
+final _diver = StateProvider<String?>((ref) => null);
+
 void main() {
   late List<String> recorded;
 
@@ -111,9 +115,14 @@ void main() {
         ),
         recentQueryRecorderProvider.overrideWithValue(
           recorder ??
-              (sentence, locale, parsed) async => recorded.add(sentence),
+              (sentence, locale, parsed, diverId) async =>
+                  recorded.add(sentence),
         ),
         diveFilterProvider.overrideWith((ref) => filter),
+        _diver.overrideWith((ref) => 'ana'),
+        validatedCurrentDiverIdProvider.overrideWith(
+          (ref) async => ref.watch(_diver),
+        ),
       ],
     );
     addTearDown(c.dispose);
@@ -280,7 +289,7 @@ void main() {
   test('a handoff does not wait for the recent-query write', () async {
     final c = make(
       _Engine(_goodSites),
-      recorder: (sentence, locale, parsed) => Completer<void>().future,
+      recorder: (sentence, locale, parsed, diverId) => Completer<void>().future,
     );
     final route = await askOf(
       c,
@@ -323,7 +332,8 @@ void main() {
   test('a failed recent-query write does not hide a good answer', () async {
     final c = make(
       _Engine(_turtles),
-      recorder: (sentence, locale, parsed) async => throw StateError('full'),
+      recorder: (sentence, locale, parsed, diverId) async =>
+          throw StateError('full'),
     );
     await askOf(c).ask('x');
     expect(stateOf(c).error, isNull);
@@ -380,7 +390,7 @@ void main() {
       ParsedQuery? kept;
       final c = make(
         _Engine(embellished),
-        recorder: (sentence, locale, parsed) async => kept = parsed,
+        recorder: (sentence, locale, parsed, diverId) async => kept = parsed,
       );
       await askOf(c).ask('Turtles below 20m in Bonaire');
       final compiled = stateOf(c).answer!.compiled;
@@ -425,6 +435,40 @@ void main() {
         contains(ChipRef.time),
       );
     });
+  });
+
+  // Copilot review: a chip removed while the model worked came back on
+  // Undo, which restored the query from when the Ask started.
+  test('Undo returns to the query from just before the answer', () async {
+    final engine = _Engine()..gates['deep dives'] = Completer<String>();
+    final c = make(engine, filter: DiveFilterState(query: TextNode(['reef'])));
+    final pending = askOf(c).ask('deep dives');
+    await Future<void>.delayed(Duration.zero);
+    final notifier = c.read(diveFilterProvider.notifier);
+    notifier.state = notifier.state.copyWith(query: TextNode(['wreck']));
+    engine.gates['deep dives']!.complete(_deep);
+    await pending;
+    askOf(c).undo();
+    expect(filterOf(c).query, TextNode(['wreck']));
+  });
+
+  // Copilot review: the recent sentence was filed under whichever diver
+  // was active when the write ran, not when the Ask started.
+  test('the asked sentence is remembered for the diver who asked', () async {
+    String? filedUnder;
+    final engine = _Engine()..gates['deep dives'] = Completer<String>();
+    final c = make(
+      engine,
+      recorder: (sentence, locale, parsed, diverId) async =>
+          filedUnder = diverId,
+    );
+    final pending = askOf(c).ask('deep dives');
+    await Future<void>.delayed(Duration.zero);
+    c.read(_diver.notifier).state = 'ben';
+    engine.gates['deep dives']!.complete(_deep);
+    await pending;
+    await Future<void>.delayed(Duration.zero);
+    expect(filedUnder, 'ana');
   });
 
   test('prepare warms the model once', () async {

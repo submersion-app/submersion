@@ -119,6 +119,29 @@ void main() {
     expect(find.text('Ask: turtles in bonaire'), findsOneWidget);
   });
 
+  // Copilot review: the download's progress was discarded.
+  testWidgets('shows how far the download has got', (tester) async {
+    final engine = _Engine(NlAvailability.downloadable);
+    await pump(tester, engine: engine);
+    engine.answer = NlAvailability.downloading;
+    await tester.tap(find.byKey(kDiveAskRowKey));
+    await tester.pump();
+    await tester.pump();
+    engine.downloads.add(0.4);
+    await tester.pump();
+    final spinner = tester.widget<CircularProgressIndicator>(
+      find.descendant(
+        of: find.byKey(kDiveAskRowKey),
+        matching: find.byType(CircularProgressIndicator),
+      ),
+    );
+    expect(spinner.value, 0.4);
+    // Finish the download while the app is still up, as the platform would.
+    engine.answer = NlAvailability.available;
+    await engine.downloads.close();
+    await tester.pump();
+  });
+
   testWidgets('shows the running state and an error in words', (tester) async {
     final c = await pump(tester, engine: _Engine(NlAvailability.available));
     unawaited(c.read(diveAskProvider.notifier).ask('turtles'));

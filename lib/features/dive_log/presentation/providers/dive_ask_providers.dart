@@ -6,6 +6,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/explore/domain/entity_resolver.dart';
 import 'package:submersion/features/explore/domain/explore_compilation.dart';
 import 'package:submersion/features/explore/domain/explore_compiler.dart';
@@ -84,9 +85,12 @@ class DiveAskNotifier extends StateNotifier<AskState> {
     final trimmed = sentence.trim();
     if (trimmed.isEmpty) return null;
     final request = ++_request;
-    final previousQuery = _ref.read(diveFilterProvider).query;
     state = const AskState(running: true);
     try {
+      // Whose question this is, fixed now: a diver switch while the model
+      // works must not file it under the next diver.
+      final diverId = await _askingDiver();
+      if (request != _request) return null;
       final locale = _ref.read(localeProvider);
       final json = await _ref
           .read(nlEngineProvider)
@@ -109,13 +113,15 @@ class DiveAskNotifier extends StateNotifier<AskState> {
           sentence: trimmed,
           parsed: parsed,
           compiled: _compile(parsed, names),
-          previousQuery: previousQuery,
+          // What is applied just before the answer, not when the Ask
+          // started: a chip removed meanwhile must not come back on Undo.
+          previousQuery: _ref.read(diveFilterProvider).query,
         ),
         handOff: true,
       );
       // Not awaited: remembering the sentence must not hold up the answer
       // or a handoff, and it already logs its own failure.
-      unawaited(_recordRecent(trimmed, locale, parsed));
+      unawaited(_recordRecent(trimmed, locale, parsed, diverId ?? ''));
       return route;
     } on NlException catch (e) {
       _fail(request, e.error);
@@ -258,15 +264,36 @@ class DiveAskNotifier extends StateNotifier<AskState> {
     state = AskState(error: error);
   }
 
+  /// The active diver, only to file the sentence under; a lookup failure
+  /// files it under no diver rather than failing an answer.
+  Future<String?> _askingDiver() async {
+    try {
+      return await _ref.read(validatedCurrentDiverIdProvider.future);
+    } catch (e, stackTrace) {
+      _log.warning(
+        'No diver for a recent sentence',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
   /// Remembering the sentence is a convenience: a failed write must not
   /// turn an answer the diver can see into an error.
   Future<void> _recordRecent(
     String sentence,
     String locale,
     ParsedQuery parsed,
+    String diverId,
   ) async {
     try {
-      await _ref.read(recentQueryRecorderProvider)(sentence, locale, parsed);
+      await _ref.read(recentQueryRecorderProvider)(
+        sentence,
+        locale,
+        parsed,
+        diverId,
+      );
     } catch (e, stackTrace) {
       _log.warning(
         'Could not remember an asked sentence',

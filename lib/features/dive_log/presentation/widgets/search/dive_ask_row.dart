@@ -61,7 +61,7 @@ class DiveAskRow extends ConsumerWidget {
       NlAvailability.downloading => ListTile(
         key: kDiveAskRowKey,
         dense: true,
-        leading: const _Spinner(),
+        leading: _Spinner(value: ref.watch(exploreDownloadProgressProvider)),
         title: Text(l10n.explore_download_running),
       ),
       _ => const SizedBox.shrink(),
@@ -76,23 +76,35 @@ class DiveAskRow extends ConsumerWidget {
     // Re-probe however the stream ends, so a failed download offers the
     // button again instead of an uncaught error.
     final container = ProviderScope.containerOf(context, listen: false);
-    void reprobe() => container.invalidate(exploreAvailabilityProvider);
+    final progress = container.read(exploreDownloadProgressProvider.notifier);
+    void reprobe() {
+      progress.state = null;
+      container.invalidate(exploreAvailabilityProvider);
+    }
+
     ref
         .read(nlEngineProvider)
         .download()
-        .listen((_) {}, onError: (Object _) => reprobe(), onDone: reprobe);
+        .listen(
+          (fraction) => progress.state = fraction.clamp(0.0, 1.0),
+          onError: (Object _) => reprobe(),
+          onDone: reprobe,
+        );
     // Once started, the platform reports it as downloading.
     reprobe();
   }
 }
 
+/// Indeterminate unless [value] (0 to 1) says how far a download has got.
 class _Spinner extends StatelessWidget {
-  const _Spinner();
+  const _Spinner({this.value});
+
+  final double? value;
 
   @override
-  Widget build(BuildContext context) => const SizedBox.square(
+  Widget build(BuildContext context) => SizedBox.square(
     dimension: 20,
-    child: CircularProgressIndicator(strokeWidth: 2),
+    child: CircularProgressIndicator(strokeWidth: 2, value: value),
   );
 }
 

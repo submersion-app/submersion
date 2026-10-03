@@ -48,6 +48,7 @@ void main() {
       'turtles in bonaire',
       'en',
       const ParsedQuery(subject: ParsedSubject.dives),
+      '',
     );
     final recent = await c.read(recentQueriesProvider.future);
     expect(recent.map((r) => r.sentence), ['turtles in bonaire']);
@@ -88,6 +89,7 @@ void main() {
       'turtles with Ana',
       'en',
       const ParsedQuery(subject: ParsedSubject.dives),
+      'ana',
     );
     final recent = await c.read(recentQueriesProvider.future);
     expect(recent.map((r) => r.sentence), ['turtles with Ana']);

@@ -9,18 +9,22 @@ final recentQueryRepositoryProvider = Provider<RecentQueryRepository>(
 );
 
 /// Recorded after a successful compile; overridable so provider tests need
-/// no local cache database.
+/// no local cache database. [diverId] is the diver who asked, fixed when the
+/// request started, so a switch while the model works cannot refile it.
 typedef RecentQueryRecorder =
-    Future<void> Function(String sentence, String locale, ParsedQuery parsed);
+    Future<void> Function(
+      String sentence,
+      String locale,
+      ParsedQuery parsed,
+      String diverId,
+    );
 
 // no-tick: the value is a write function, not data; nothing here is cached
 // and the list provider follows the table's own tick.
 final recentQueryRecorderProvider = Provider<RecentQueryRecorder>((ref) {
   final repo = ref.watch(recentQueryRepositoryProvider);
-  return (sentence, locale, parsed) async {
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    await repo.record(sentence, locale, parsed, diverId: diverId ?? '');
-  };
+  return (sentence, locale, parsed, diverId) =>
+      repo.record(sentence, locale, parsed, diverId: diverId);
 });
 
 /// The active diver's recent sentences for the active locale, newest first.
