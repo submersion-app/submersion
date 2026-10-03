@@ -144,7 +144,7 @@ void main() {
   });
 
   testWidgets(
-    'the "Show route" toggle appears only when a route is linked, and '
+    'the "Show underwater track" toggle appears only when a route is linked, and '
     'switching it off falls back to the dead-reckoned estimate',
     (tester) async {
       final route = NavTrack(
@@ -207,35 +207,39 @@ void main() {
     },
   );
 
-  testWidgets('the "Show route" toggle is absent with no route linked', (
-    tester,
-  ) async {
-    final overrides = await getBaseOverrides();
-    final path = reckoned();
-    final scene = const SpatialGeometryService().build(path, siteMaxDepth: 30);
-    await tester.pumpWidget(
-      testApp(
-        overrides: [
-          ...overrides,
-          spatialReckonedPathProvider('d1').overrideWith((ref) async => path),
-          spatialGeometryProvider(
-            'd1',
-          ).overrideWith((ref) async => SpatialSceneResult(scene: scene)),
-        ],
-        child: const SpatialSitePage(diveId: 'd1'),
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 50));
+  testWidgets(
+    'the "Show underwater track" toggle is absent with no route linked',
+    (tester) async {
+      final overrides = await getBaseOverrides();
+      final path = reckoned();
+      final scene = const SpatialGeometryService().build(
+        path,
+        siteMaxDepth: 30,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            spatialReckonedPathProvider('d1').overrideWith((ref) async => path),
+            spatialGeometryProvider(
+              'd1',
+            ).overrideWith((ref) async => SpatialSceneResult(scene: scene)),
+          ],
+          child: const SpatialSitePage(diveId: 'd1'),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
 
-    expect(
-      find.byKey(const ValueKey('spatial-site-show-route-toggle')),
-      findsNothing,
-    );
+      expect(
+        find.byKey(const ValueKey('spatial-site-show-route-toggle')),
+        findsNothing,
+      );
 
-    await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pump(const Duration(seconds: 1));
-  });
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 1));
+    },
+  );
 
   testWidgets('shows a message when the path cannot be reconstructed', (
     tester,

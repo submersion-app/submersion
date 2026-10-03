@@ -63,8 +63,8 @@ void main() {
     tester,
   ) async {
     await _pump(tester, () async => const []);
-    expect(find.text('Underwater Route'), findsNothing);
-    expect(find.text('No route linked'), findsNothing);
+    expect(find.text('Underwater Track'), findsNothing);
+    expect(find.text('No track linked'), findsNothing);
   });
 
   testWidgets('no card while the dive\'s routes are still loading', (
@@ -72,14 +72,14 @@ void main() {
   ) async {
     final never = Completer<List<NavTrack>>();
     await _pump(tester, () => never.future);
-    expect(find.text('Underwater Route'), findsNothing);
+    expect(find.text('Underwater Track'), findsNothing);
   });
 
   testWidgets('shows the card once a route is linked, and hides it again '
       'when the last route goes', (tester) async {
     var linked = [testNavTrack('r1', diveId: _dive.id)];
     await _pump(tester, () async => linked);
-    expect(find.text('Underwater Route'), findsOneWidget);
+    expect(find.text('Underwater Track'), findsOneWidget);
 
     linked = const [];
     ProviderScope.containerOf(
@@ -88,6 +88,6 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('Underwater Route'), findsNothing);
+    expect(find.text('Underwater Track'), findsNothing);
   });
 }

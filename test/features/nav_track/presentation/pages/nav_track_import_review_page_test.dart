@@ -1056,7 +1056,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(service.lastSiteId, isNull);
-      expect(find.text('Route saved.'), findsOneWidget);
+      expect(find.text('Underwater track saved.'), findsOneWidget);
     },
   );
 

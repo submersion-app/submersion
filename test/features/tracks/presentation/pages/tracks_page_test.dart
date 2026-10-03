@@ -422,7 +422,7 @@ void main() {
   ) async {
     await tester.pumpWidget(await app(underwater: [_uw()]));
     await tester.pumpAndSettle();
-    expect(find.text('1 route needs your choice'), findsOneWidget);
+    expect(find.text('1 underwater track needs your choice'), findsOneWidget);
   });
 
   testWidgets('the list shows a spinner on first load, not the empty state', (
@@ -783,11 +783,11 @@ void main() {
   ) async {
     await tester.pumpWidget(await app(underwater: [_uw()]));
     await tester.pumpAndSettle();
-    expect(find.text('1 route needs your choice'), findsOneWidget);
+    expect(find.text('1 underwater track needs your choice'), findsOneWidget);
 
     await tester.tap(kindSegment('GPS'));
     await tester.pumpAndSettle();
-    expect(find.text('1 route needs your choice'), findsNothing);
+    expect(find.text('1 underwater track needs your choice'), findsNothing);
   });
 
   testWidgets('a failed delete says so and keeps the track', (tester) async {

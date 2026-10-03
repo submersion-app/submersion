@@ -63,7 +63,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
 
       expect(find.byType(TimeScrubBar), findsOneWidget);
-      expect(find.text('Recorded route (Seacraft ENC)'), findsOneWidget);
+      expect(find.text('Recorded track (Seacraft ENC)'), findsOneWidget);
       expect(
         find.byKey(const ValueKey('spatial-site-show-route-toggle')),
         findsOneWidget,
@@ -130,7 +130,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
 
       expect(find.byType(TimeScrubBar), findsOneWidget);
-      expect(find.text('Recorded route'), findsNothing);
+      expect(find.text('Recorded track'), findsNothing);
       expect(
         find.byKey(const ValueKey('spatial-site-show-route-toggle')),
         findsNothing,

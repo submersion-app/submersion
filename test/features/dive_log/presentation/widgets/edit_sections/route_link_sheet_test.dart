@@ -167,9 +167,9 @@ void main() {
     expect(find.textContaining('1050'), findsOneWidget);
   });
 
-  testWidgets('shows "No route linked" for an empty draft', (tester) async {
+  testWidgets('shows "No track linked" for an empty draft', (tester) async {
     await _openSheet(tester, draft: DiveRouteLinkDraft.initial(const []));
-    expect(find.text('No route linked'), findsOneWidget);
+    expect(find.text('No track linked'), findsOneWidget);
   });
 
   testWidgets('removing a route reports a draft without it', (tester) async {
@@ -186,7 +186,7 @@ void main() {
     expect(find.byKey(const ValueKey('route-sheet-row-a')), findsNothing);
   });
 
-  testWidgets('hides "Link route" when there is nothing to link', (
+  testWidgets('hides "Link track" when there is nothing to link', (
     tester,
   ) async {
     await _openSheet(tester, draft: DiveRouteLinkDraft.initial(const []));
@@ -342,7 +342,7 @@ void main() {
       find.descendant(
         of: find.byType(BottomSheet),
         matching: find.text(
-          'This recording has too few samples to be a usable route.',
+          'This recording has too few samples to be a usable underwater track.',
         ),
       ),
       findsOneWidget,

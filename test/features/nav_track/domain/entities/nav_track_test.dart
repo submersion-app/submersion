@@ -49,7 +49,7 @@ void main() {
     test('label is the device or brand name alone, with no words that '
         'would need translating', () {
       // The 3D caption puts it inside a localized sentence
-      // ("Recorded route ({source})"), so English words here would show
+      // ("Recorded track ({source})"), so English words here would show
       // untranslated in every other locale.
       expect(NavTrackSource.seacraftEnc.label, 'Seacraft ENC');
       expect(NavTrackSource.suuntoRoute.label, 'Suunto');

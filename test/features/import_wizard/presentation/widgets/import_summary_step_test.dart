@@ -1970,7 +1970,7 @@ void main() {
 
   group('ImportSummaryStep - excluded Seacraft ENC route in a batch', () {
     testWidgets(
-      '"Import as route" only appears for a navTrack outcome with a path',
+      '"Import as underwater track" only appears for a navTrack outcome with a path',
       (tester) async {
         await tester.binding.setSurfaceSize(const Size(800, 900));
         addTearDown(() => tester.binding.setSurfaceSize(null));

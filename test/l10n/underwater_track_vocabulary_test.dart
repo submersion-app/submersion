@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Keys that name an underwater track (spec 2026-10-02, "Vocabulary
 /// (PR 2)"). A key is in scope by prefix; the four listed exact keys are the
@@ -92,5 +94,33 @@ void main() {
         );
       }
     }
+  });
+
+  test('plural counts render in every locale', () {
+    for (final locale in AppLocalizations.supportedLocales) {
+      final l10n = lookupAppLocalizations(locale);
+      for (final n in [1, 2, 5]) {
+        expect(
+          l10n.navTrack_list_pendingTrackChoice(n),
+          isNotEmpty,
+          reason: '$locale $n',
+        );
+        expect(
+          l10n.navTrack_section_trackCount(n),
+          isNotEmpty,
+          reason: '$locale $n',
+        );
+      }
+    }
+    final en = lookupAppLocalizations(const Locale('en'));
+    expect(
+      en.navTrack_list_pendingTrackChoice(1),
+      '1 underwater track needs your choice',
+    );
+    expect(
+      en.navTrack_list_pendingTrackChoice(2),
+      '2 underwater tracks need your choice',
+    );
+    expect(en.navTrack_section_trackCount(2), '2 tracks');
   });
 }

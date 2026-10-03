@@ -74,7 +74,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('This route has no usable seascape.'), findsOneWidget);
+    expect(find.text('This track has no usable seascape.'), findsOneWidget);
     expect(find.byType(Dive3dInteractiveViewport), findsNothing);
   });
 
@@ -104,7 +104,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('This route has no usable seascape.'), findsOneWidget);
+    expect(find.text('This track has no usable seascape.'), findsOneWidget);
   });
 
   testWidgets('renders the 3D viewport and scrub bar for a populated scene', (
@@ -129,7 +129,7 @@ void main() {
 
     expect(find.byType(Dive3dInteractiveViewport), findsOneWidget);
     expect(find.byType(TimeScrubBar), findsOneWidget);
-    expect(find.text('Route seascape'), findsOneWidget);
+    expect(find.text('Track seascape'), findsOneWidget);
 
     final viewport = tester.widget<Dive3dInteractiveViewport>(
       find.byType(Dive3dInteractiveViewport),

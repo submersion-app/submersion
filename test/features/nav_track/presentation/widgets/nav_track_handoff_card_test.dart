@@ -38,10 +38,10 @@ void main() {
 
     expect(find.text('Seacraft ENC navigation log recognised'), findsOneWidget);
     expect(
-      find.textContaining('This is an underwater route, not a dive log.'),
+      find.textContaining('This is an underwater track, not a dive log.'),
       findsOneWidget,
     );
-    expect(find.text('Review route'), findsOneWidget);
+    expect(find.text('Review underwater track'), findsOneWidget);
     expect(find.byIcon(Icons.route), findsOneWidget);
   });
 
@@ -50,7 +50,7 @@ void main() {
   ) async {
     await _pump(tester);
 
-    expect(find.text('Import Underwater Route'), findsNothing);
+    expect(find.text('Import Underwater Track'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('nav-track-handoff-continue')));
     await tester.pumpAndSettle();
@@ -58,6 +58,6 @@ void main() {
     // The handoff card hands off to NavTrackImportReviewPage; its AppBar
     // title confirms the push actually happened rather than the button
     // being a no-op.
-    expect(find.text('Import Underwater Route'), findsOneWidget);
+    expect(find.text('Import Underwater Track'), findsOneWidget);
   });
 }

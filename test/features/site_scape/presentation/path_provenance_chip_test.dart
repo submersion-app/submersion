@@ -25,7 +25,7 @@ void main() {
     'measured without a source label reads as a plain recorded route',
     (tester) async {
       await tester.pumpWidget(_host(_overlay(PathProvenance.measured)));
-      expect(find.text('Recorded route'), findsOneWidget);
+      expect(find.text('Recorded track'), findsOneWidget);
     },
   );
 
@@ -33,7 +33,7 @@ void main() {
     await tester.pumpWidget(
       _host(_overlay(PathProvenance.measured, label: 'Suunto')),
     );
-    expect(find.text('Recorded route (Suunto)'), findsOneWidget);
+    expect(find.text('Recorded track (Suunto)'), findsOneWidget);
   });
 
   testWidgets('dead reckoning reads as estimated', (tester) async {

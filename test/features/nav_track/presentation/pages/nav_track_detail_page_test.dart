@@ -594,7 +594,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Could not load this route.'), findsOneWidget);
+    expect(find.text('Could not load this track.'), findsOneWidget);
   });
 
   testWidgets('shows "Route not found" when the route no longer exists', (
@@ -616,7 +616,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Route not found.'), findsOneWidget);
+    expect(find.text('Track not found.'), findsOneWidget);
   });
 
   testWidgets('shows the "set start point" placeholder when unanchored', (
@@ -753,7 +753,7 @@ void main() {
       await tester.tap(find.text('Delete'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Delete route?'), findsOneWidget);
+      expect(find.text('Delete track?'), findsOneWidget);
       // Two "Delete" texts now exist: the dialog title's button and the
       // menu item underneath; tap the dialog's action explicitly.
       await tester.tap(find.widgetWithText(FilledButton, 'Delete'));

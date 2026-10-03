@@ -133,7 +133,7 @@ void main() {
     await tester.pumpWidget(page(measured));
     await tester.pump();
     await tester.pump();
-    expect(find.text('Recorded route (Seacraft ENC)'), findsOneWidget);
+    expect(find.text('Recorded track (Seacraft ENC)'), findsOneWidget);
     expect(find.text('Estimated path (dead reckoning)'), findsNothing);
   });
 
@@ -147,7 +147,7 @@ void main() {
     await tester.pumpWidget(page(measured));
     await tester.pump();
     await tester.pump();
-    expect(find.text('Recorded route'), findsOneWidget);
+    expect(find.text('Recorded track'), findsOneWidget);
   });
 
   testWidgets('no path renders the message, never a spinner', (tester) async {

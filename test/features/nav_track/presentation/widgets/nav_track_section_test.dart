@@ -111,7 +111,7 @@ void main() {
   testWidgets('populated state shows one row per linked route', (tester) async {
     await _pump(tester, linkedRoutes: [_route(diveId: _dive.id)]);
 
-    expect(find.text('No route linked'), findsNothing);
+    expect(find.text('No track linked'), findsNothing);
     expect(find.byKey(const ValueKey('nav-track-row-r1')), findsOneWidget);
     expect(find.textContaining('primary'), findsOneWidget);
   });
@@ -181,7 +181,7 @@ void main() {
       expect(repository.unlinkedId, 'r1');
     });
 
-    testWidgets('"Open route" pushes the route detail page', (tester) async {
+    testWidgets('"Open track" pushes the route detail page', (tester) async {
       final router = GoRouter(
         initialLocation: '/',
         routes: [
@@ -205,7 +205,7 @@ void main() {
 
       await tester.tap(find.byType(PopupMenuButton<String>));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Open route'));
+      await tester.tap(find.text('Open track'));
       await tester.pumpAndSettle();
 
       expect(find.text('ROUTE_DETAIL_PAGE'), findsOneWidget);

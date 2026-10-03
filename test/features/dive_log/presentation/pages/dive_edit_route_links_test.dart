@@ -244,7 +244,7 @@ void main() {
 
     expect(savedId, dive.id);
     expect(
-      find.textContaining("Could not update this dive's underwater routes"),
+      find.textContaining("Could not update this dive's underwater tracks"),
       findsOneWidget,
     );
   });
@@ -266,7 +266,7 @@ void main() {
 
     expect(savedId, dive.id);
     expect(
-      find.textContaining("Could not update this dive's underwater routes"),
+      find.textContaining("Could not update this dive's underwater tracks"),
       findsNothing,
     );
     final route = await routes.getById(routeId, includePoints: false);
@@ -288,7 +288,7 @@ void main() {
     );
     await pumpSteps(tester);
 
-    expect(find.text('Could not load routes'), findsOneWidget);
+    expect(find.text('Could not load underwater tracks'), findsOneWidget);
   });
 
   testWidgets('a planned dive has no route row', (tester) async {

@@ -37,7 +37,7 @@ Future<int Function()> _pump(
 void main() {
   testWidgets('labels the row and shows None without routes', (tester) async {
     await _pump(tester, DiveRouteLinkDraft.initial(const []));
-    expect(find.text('Underwater Route'), findsOneWidget);
+    expect(find.text('Underwater Track'), findsOneWidget);
     expect(find.text('None'), findsOneWidget);
   });
 
@@ -79,7 +79,7 @@ void main() {
     tester,
   ) async {
     final taps = await _pump(tester, null, loadFailed: true);
-    expect(find.text('Could not load routes'), findsOneWidget);
+    expect(find.text('Could not load underwater tracks'), findsOneWidget);
     expect(find.text('None'), findsNothing);
     await tester.tap(find.byKey(const ValueKey('dive-edit-route-row')));
     expect(taps(), 0);

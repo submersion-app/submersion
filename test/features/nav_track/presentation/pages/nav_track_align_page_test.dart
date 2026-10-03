@@ -974,7 +974,7 @@ void main() {
     await _pump(tester, route: degraded);
 
     expect(tester.takeException(), isNull);
-    expect(find.text('Could not load this route.'), findsOneWidget);
+    expect(find.text('Could not load this track.'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('nav-track-align-trust-slider')),
       findsNothing,

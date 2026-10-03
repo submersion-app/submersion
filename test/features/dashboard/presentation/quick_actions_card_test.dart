@@ -36,6 +36,8 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
     expect(find.byIcon(Icons.route), findsNothing);
+    expect(find.text('Underwater Track'), findsNothing);
+    expect(find.textContaining('nderwater'), findsNothing);
   });
 
   testWidgets('offers no Underwater Routes quick action', (tester) async {
