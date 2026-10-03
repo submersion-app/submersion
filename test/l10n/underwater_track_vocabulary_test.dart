@@ -28,10 +28,12 @@ const _exact = {
   'dive3d_spatial_recordedTrackWithSource',
 };
 
-/// Each locale's word for "route", where it differs from its word for
-/// "track". Hebrew and Arabic use one word for both, so they have nothing
-/// to guard. Hungarian says "nyomvonal" for a track and keeps "útvonal" for
-/// a route (the planner, a trip's voyage), with its case suffixes.
+/// Each locale's words for a track other than the one its Tracks
+/// destination uses: its word for "route", plus synonyms a translator might
+/// reach for (Spanish "recorrido", Portuguese "trajeto"). Hebrew and Arabic
+/// use one word for route and track, so they have nothing to guard.
+/// Hungarian says "nyomvonal" for a track and keeps "útvonal" for a route
+/// (the planner, a trip's voyage), with its case suffixes.
 ///
 /// Bounded by "not a letter" rather than `\b`: Dart's `\b` is ASCII-only,
 /// so it would find "Rota" inside Portuguese "Rotação".
@@ -41,16 +43,16 @@ RegExp _word(String pattern) => RegExp(
   unicode: true,
 );
 
-final _routeWords = <String, RegExp>{
+final _offWords = <String, RegExp>{
   'en': _word('routes?'),
-  'de': _word('Routen?'),
-  'es': _word('rutas?'),
-  'fr': _word('trajets?'),
-  'it': _word('percors[oi]'),
-  'nl': _word('routes?'),
-  'pt': _word('rotas?'),
+  'de': _word('Routen?|Spur(?:en)?'),
+  'es': _word('rutas?|recorridos?|trazas?'),
+  'fr': _word('trajets?|parcours|pistes?'),
+  'it': _word('percors[oi]|piste?'),
+  'nl': _word('routes?|spoor|sporen'),
+  'pt': _word('rotas?|trajetos?|percursos?|rastros?'),
   'hu': _word('útvonal\\p{L}*'),
-  'zh': RegExp('路线'),
+  'zh': RegExp('路线|路径|航迹'),
 };
 
 Map<String, dynamic> _arb(String locale) =>
@@ -66,8 +68,8 @@ bool _inScope(String key) =>
     (_exact.contains(key) || _prefixes.any(key.startsWith));
 
 void main() {
-  for (final entry in _routeWords.entries) {
-    test('${entry.key}: no Tracks or underwater track string says route', () {
+  for (final entry in _offWords.entries) {
+    test('${entry.key}: Tracks strings use one word for a track', () {
       final offenders = [
         for (final MapEntry(:key, :value) in _arb(entry.key).entries)
           if (_inScope(key) && entry.value.hasMatch('$value')) '$key: $value',

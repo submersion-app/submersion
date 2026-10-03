@@ -26855,7 +26855,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gpsTrack_importError_tooLarge =>
-      'Ese archivo tiene demasiadas posiciones para guardarlo como un solo recorrido. Divídelo en recorridos más cortos e impórtalos por separado.';
+      'Ese archivo tiene demasiadas posiciones para guardarlo como un solo track. Divídelo en tracks más cortos e impórtalos por separado.';
 
   @override
   String get gpsTrack_export_saved => 'Track guardado';

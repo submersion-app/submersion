@@ -4470,7 +4470,7 @@
   "gpsTrack_importError_unreadable": "Não foi possível ler esse arquivo. Ele pode estar danificado ou incompleto.",
   "gpsTrack_importError_noPositions": "Esse arquivo não tem posições GPS com data e hora.",
   "gpsTrack_importError_badData": "Esse arquivo tem uma posição ou data e hora que o app não consegue ler.",
-  "gpsTrack_importError_tooLarge": "Esse arquivo tem posições demais para ser salvo como um único trajeto. Divida-o em trajetos menores e importe cada um separadamente.",
+  "gpsTrack_importError_tooLarge": "Esse arquivo tem posições demais para ser salvo como uma única trilha. Divida-o em trilhas menores e importe cada uma separadamente.",
   "gpsTrack_export_saved": "Trilha guardada",
   "gpsTrack_action_export": "Exportar",
   "gpsTrack_action_shareGpx": "Partilhar como GPX",

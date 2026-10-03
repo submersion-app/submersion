@@ -333,8 +333,9 @@ Snackbar, with the GPS log's own strings ("Match dives to GPS logs"):
 - the sweep failed: the generic "try again" message (failure logged)
 
 Underwater tracks waiting for that choice are counted by
-`navTrackPendingChoiceCountProvider` and shown as a "N routes need your
-choice" hint under the summary strip.
+`navTrackPendingChoiceCountProvider` and shown as a "N underwater tracks
+need your choice" hint under the summary strip (PR 1 shipped it as "N routes
+need your choice"; PR 2 rewords it).
 
 The list also takes #2819's first-load states: a spinner while the first
 load runs and a "try again" message if it fails, both only before any data

@@ -38,11 +38,4 @@ void main() {
     expect(find.byIcon(Icons.route), findsNothing);
     expect(find.textContaining('nderwater'), findsNothing);
   });
-
-  testWidgets('offers no Underwater Routes quick action', (tester) async {
-    await tester.pumpWidget(app());
-    await tester.pumpAndSettle();
-    expect(find.text('Underwater Routes'), findsNothing);
-    expect(find.byIcon(Icons.route), findsNothing);
-  });
 }

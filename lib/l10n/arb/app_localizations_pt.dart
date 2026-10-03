@@ -26843,7 +26843,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get gpsTrack_importError_tooLarge =>
-      'Esse arquivo tem posições demais para ser salvo como um único trajeto. Divida-o em trajetos menores e importe cada um separadamente.';
+      'Esse arquivo tem posições demais para ser salvo como uma única trilha. Divida-o em trilhas menores e importe cada uma separadamente.';
 
   @override
   String get gpsTrack_export_saved => 'Trilha guardada';
