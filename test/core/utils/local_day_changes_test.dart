@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/utils/local_day_changes.dart';
@@ -43,6 +44,29 @@ void main() {
 
         sub.cancel();
       }, initialTime: DateTime(2026, 7, 15, 12));
+    });
+
+    // Dart timers can stop while a phone sleeps, so the wall clock may pass
+    // midnight with no timer due. The capped wait still catches it.
+    test('catches a midnight passed while timers were stalled', () {
+      fakeAsync((async) {
+        final timerClock = async.getClock(DateTime(2026, 7, 15, 12));
+        var slept = Duration.zero;
+        withClock(Clock(() => timerClock.now().add(slept)), () {
+          var events = 0;
+          final sub = localDayChanges().listen((_) => events++);
+
+          async.elapse(const Duration(minutes: 30));
+          expect(events, 0);
+
+          // The device sleeps for a day: the wall clock moves on, timers don't.
+          slept = const Duration(days: 1);
+          async.elapse(const Duration(minutes: 31));
+          expect(events, 1, reason: 'the next capped wake sees Jul 16');
+
+          sub.cancel();
+        });
+      });
     });
 
     test('cancelling leaves no timer behind', () {

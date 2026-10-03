@@ -21,7 +21,8 @@ import 'package:clock/clock.dart';
 Stream<void> localDayChanges({Duration maxWait = const Duration(hours: 1)}) {
   late final StreamController<void> controller;
   Timer? timer;
-  var day = _dateOf(clock.now());
+  // Set when listening starts; no timer runs before that.
+  late DateTime day;
 
   void arm() {
     final now = clock.now();
