@@ -102,6 +102,15 @@ class ParseTest(unittest.TestCase):
             gen.parse_descriptors(table(TERIC, odd))
         self.assertIn("Tern 2", str(raised.exception))
 
+    def test_a_row_not_led_by_a_string_literal_is_an_error(self):
+        for odd in (
+            '{VENDOR_SHEARWATER, "Tern 2", DC_FAMILY_SHEARWATER_PETREL, 15, DC_TRANSPORT_BLE, dc_filter_shearwater},',
+            '{.vendor = "Shearwater", .product = "Tern 2"},',
+        ):
+            with self.assertRaises(gen.CatalogError) as raised:
+                gen.parse_descriptors(table(TERIC, odd))
+            self.assertIn("Tern 2", str(raised.exception))
+
 
 class SlugTest(unittest.TestCase):
     def test_slugs(self):
@@ -212,7 +221,7 @@ class RulesTest(unittest.TestCase):
 
 
 class MainTest(unittest.TestCase):
-    def run_main(self, *lines, extra=()):
+    def run_main(self, *lines, extra=(), dirty=False):
         with tempfile.TemporaryDirectory() as tmp:
             descriptor = os.path.join(tmp, "descriptor.c")
             with open(descriptor, "w", encoding="utf-8") as handle:
@@ -221,9 +230,9 @@ class MainTest(unittest.TestCase):
             argv = ["--descriptor", descriptor, "--out", out, "--min-descriptors", "1"]
             argv += list(extra)
             stderr = io.StringIO()
-            with mock.patch.object(gen, "git_head", return_value="a" * 40), contextlib.redirect_stderr(
-                stderr
-            ), contextlib.redirect_stdout(io.StringIO()):
+            with mock.patch.object(gen, "git_head", return_value="a" * 40), mock.patch.object(
+                gen, "git_dirty", return_value=dirty
+            ), contextlib.redirect_stderr(stderr), contextlib.redirect_stdout(io.StringIO()):
                 code = gen.main(argv)
             written = None
             if os.path.exists(out):
@@ -299,6 +308,16 @@ class MainTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertEqual(kept, '{"previous": true}\n')
         self.assertEqual(leftovers, ["catalog.json", "descriptor.c"])
+
+    def test_uncommitted_generator_or_rules_changes_warn(self):
+        code, catalog, stderr, _ = self.run_main(TERIC, dirty=True)
+        self.assertEqual(code, 0)
+        self.assertIsNotNone(catalog)
+        self.assertIn("warning: the generator or its rules have uncommitted changes", stderr)
+
+    def test_a_clean_checkout_does_not_warn(self):
+        _, _, stderr, _ = self.run_main(TERIC)
+        self.assertNotIn("uncommitted", stderr)
 
     def test_an_override_that_matches_nothing_warns(self):
         with tempfile.TemporaryDirectory() as tmp:

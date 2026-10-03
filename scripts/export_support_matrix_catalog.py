@@ -51,8 +51,9 @@ _ENTRY = re.compile(
     r'\{\s*"([^"]*)"\s*,\s*"([^"]*)"\s*,\s*\w+\s*,\s*\w+\s*,'
     r"\s*([A-Z_|\s]+?)\s*,\s*\w+\s*\}"
 )
-# Where an entry starts, whether or not _ENTRY can read it.
-_ENTRY_START = re.compile(r'\{\s*"')
+# Where an entry starts, whether or not _ENTRY can read it: the table body
+# holds nothing but entries, so every opening brace begins one.
+_ENTRY_START = re.compile(r"\{")
 # The shape slugify produces; an idOverrides value must have it too.
 _ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
@@ -67,14 +68,15 @@ def parse_descriptors(source):
     if table is None:
         raise CatalogError("g_descriptors[] table not found")
     body = _LINE_COMMENT.sub("", _BLOCK_COMMENT.sub("", table.group(1)))
-    # Every entry must parse: findall alone would skip an entry it cannot read
-    # and drop that model from the matrix without a word.
+    # Every entry must parse: skipping one it cannot read would drop that model
+    # from the matrix without a word.
+    entries = []
     for start in _ENTRY_START.finditer(body):
-        if not _ENTRY.match(body, start.start()):
+        entry = _ENTRY.match(body, start.start())
+        if entry is None:
             line = body[start.start() : body.find("\n", start.start())].strip()
             raise CatalogError("cannot read descriptor entry: %s" % line)
-    entries = []
-    for vendor, product, flags in _ENTRY.findall(body):
+        vendor, product, flags = entry.groups()
         transports = set()
         for flag in flags.split("|"):
             name = FLAG_NAMES.get(flag.strip())
@@ -183,6 +185,20 @@ def git_head(path):
     return result.stdout.strip()
 
 
+def git_dirty(path, files):
+    """Whether any of files has uncommitted changes in the repo at path."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", path, "status", "--porcelain", "--"] + list(files),
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return False
+    return bool(result.stdout.strip())
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--descriptor", default=DEFAULT_DESCRIPTOR)
@@ -229,6 +245,14 @@ def main(argv=None):
     except (OSError, ValueError, KeyError, TypeError, CatalogError) as error:
         print("error: %s" % error, file=sys.stderr)
         return 1
+    # appCommit names HEAD; say so when the catalog was built from edits HEAD
+    # does not contain.
+    if git_dirty(_ROOT, [os.path.abspath(__file__), os.path.abspath(args.rules)]):
+        print(
+            "warning: the generator or its rules have uncommitted changes; "
+            "appCommit %s does not contain them" % generated_from["appCommit"],
+            file=sys.stderr,
+        )
     used = {"%s|%s" % (vendor, product) for vendor, product, _ in descriptors}
     for key in sorted(set(rules.get("idOverrides", {})) - used):
         print("warning: idOverrides key %s matches no descriptor" % key, file=sys.stderr)
