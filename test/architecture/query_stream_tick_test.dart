@@ -59,7 +59,9 @@ class _Invocations extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    names.add(node.methodName.name);
+    // `ref.watch(...)` is Riverpod, not Drift: a provider-side helper that
+    // reads a repository through ref is not a query stream.
+    if (node.target?.toSource() != 'ref') names.add(node.methodName.name);
     super.visitMethodInvocation(node);
   }
 }
@@ -94,6 +96,16 @@ class R {
 class R {
   Stream<void> watchChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.t));
+}
+''';
+      expect(queryStreamTicks(source), isEmpty);
+    });
+
+    test('ignores ref.watch, which is Riverpod rather than Drift', () {
+      const source = '''
+Stream<void> watchScope(Ref ref) {
+  final repo = ref.watch(repoProvider);
+  return repo.watchChanges();
 }
 ''';
       expect(queryStreamTicks(source), isEmpty);
