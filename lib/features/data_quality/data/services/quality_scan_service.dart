@@ -107,9 +107,12 @@ class QualityScanService {
       final summary = await _scanBatch(
         batch,
         enabled: enabled,
+        // A detector the prefilters do not know runs on every dive. It
+        // counts as run either way, so skipping it would retire all of its
+        // findings (#2870): a slower scan beats lost findings.
         detectorsFor: (diveId) => [
           for (final d in enabled)
-            if (candidates[d.id]?.contains(diveId) ?? false) d,
+            if (candidates[d.id]?.contains(diveId) ?? true) d,
         ],
         now: now,
       );
