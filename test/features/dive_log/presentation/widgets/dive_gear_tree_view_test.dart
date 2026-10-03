@@ -85,6 +85,7 @@ void main() {
     String? selectedItemId,
     List<Diver> divers = const [],
     String? ownerReferenceDiverId,
+    String? Function(String equipmentId)? overlapNote,
   }) => ProviderScope(
     overrides: [
       allDiversProvider.overrideWith((ref) async => divers),
@@ -109,6 +110,7 @@ void main() {
             onUpdateAssembly: onUpdateAssembly,
             selectedItemId: selectedItemId,
             ownerReferenceDiverId: ownerReferenceDiverId,
+            overlapNote: overlapNote,
           ),
         ),
       ),
@@ -458,5 +460,26 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Palantic Drop-Bottom · ID P1'), findsOneWidget);
     expect(find.text('Palantic Drop-Bottom · ID P2'), findsOneWidget);
+  });
+
+  group('shared gear note (issue #2853)', () {
+    testWidgets('an item also on another profile dive says so', (tester) async {
+      await tester.pumpWidget(
+        build(
+          arrangement: flat,
+          overlapNote: (id) =>
+              id == 'mask' ? "Also on Anna's dive, 10:02" : null,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text("Also on Anna's dive, 10:02"), findsOneWidget);
+      expect(find.byIcon(Icons.info_outline), findsOneWidget);
+    });
+
+    testWidgets('no note without the callback', (tester) async {
+      await tester.pumpWidget(build(arrangement: flat));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.info_outline), findsNothing);
+    });
   });
 }

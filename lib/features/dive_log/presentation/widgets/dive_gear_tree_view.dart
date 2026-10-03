@@ -21,6 +21,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_gro
 import 'package:submersion/features/equipment/presentation/widgets/equipment_owner_chip.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/shared_gear_note_line.dart';
 
 /// The gear on a dive, rendered the same way on the detail and edit pages
 /// (issue #1487): the sets applied to the dive as a row of chips, then
@@ -59,6 +60,11 @@ class DiveGearTreeView extends ConsumerStatefulWidget {
   /// shows that owner's chip (issue #2046). Null shows no chips.
   final String? ownerReferenceDiverId;
 
+  /// A note per item that is also on another profile's overlapping dive
+  /// (issue #2853); null, or a null answer, shows none. Only the dive
+  /// editor passes it.
+  final String? Function(String equipmentId)? overlapNote;
+
   /// The item flashing on the figure, highlighted here too. Only a
   /// top-level row highlights: the figure draws no parts. The rows carry
   /// no figure numbers, since the figure names every item (issue #2774).
@@ -78,6 +84,7 @@ class DiveGearTreeView extends ConsumerStatefulWidget {
     this.onUpdateAssembly,
     this.showServiceStatus = false,
     this.ownerReferenceDiverId,
+    this.overlapNote,
     this.selectedItemId,
     this.rowKey,
   });
@@ -220,9 +227,7 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
             ),
           ),
           title: Text(item.name),
-          subtitle: subtitleParts.isEmpty
-              ? null
-              : Text(subtitleParts.join(' · '), style: muted),
+          subtitle: _rowSubtitle(subtitleParts, item.id, muted),
           onTap: widget.onTap == null ? null : () => widget.onTap!(item),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
@@ -284,6 +289,24 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
             labels: labels,
           ),
     ];
+  }
+
+  /// The row's details, and under them the shared gear note when there is
+  /// one (issue #2853). Plain text when there is no note, as before.
+  Widget? _rowSubtitle(List<String> parts, String itemId, TextStyle? muted) {
+    final note = widget.overlapNote?.call(itemId);
+    final details = parts.isEmpty
+        ? null
+        : Text(parts.join(' · '), style: muted);
+    if (note == null) return details;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ?details,
+        SharedGearNoteLine(note, style: muted),
+      ],
+    );
   }
 }
 

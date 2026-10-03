@@ -35,6 +35,7 @@ Future<void> _pump(
   String? activeDiverId,
   String? title,
   String? hint,
+  String? Function(String equipmentId)? overlapNote,
 }) async {
   // Tall enough to render every row without scrolling. The picker groups
   // by type (#1486, #1576) and this fixture gives every type exactly one
@@ -68,6 +69,7 @@ Future<void> _pump(
             onEquipmentSelected: onSelected ?? (_) {},
             title: title,
             hint: hint,
+            overlapNote: overlapNote,
           ),
         ),
       ),
@@ -352,5 +354,20 @@ void main() {
       arrangement: EquipmentArrangement.defaults.copyWith(groupByType: false),
     );
     expect(find.text('Other · Palantic Drop-Bottom'), findsOneWidget);
+  });
+
+  testWidgets('an item also on another profile dive says so (issue #2853)', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      equipment: [
+        _item('a', EquipmentType.light),
+        _item('b', EquipmentType.mask),
+      ],
+      overlapNote: (id) => id == 'a' ? "Also on Anna's dive, 10:02" : null,
+    );
+    expect(find.text("Also on Anna's dive, 10:02"), findsOneWidget);
+    expect(find.byIcon(Icons.info_outline), findsOneWidget);
   });
 }

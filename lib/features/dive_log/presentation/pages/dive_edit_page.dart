@@ -154,6 +154,7 @@ import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 import 'package:submersion/features/tides/data/services/dive_tide_recorder.dart';
+import 'package:submersion/features/dive_log/presentation/providers/shared_gear_overlap_providers.dart';
 
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
 const _createNewTripSentinel = '__create_new_trip__';
@@ -509,6 +510,34 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     };
     if (runtimeMinutes == null || runtimeMinutes <= 0) return null;
     return entry.add(Duration(minutes: runtimeMinutes));
+  }
+
+  /// The form's dive, with its unsaved times, for the shared gear note
+  /// (issue #2853): a new dive has no id yet, and the note follows time
+  /// edits before the save.
+  SharedGearOverlapQuery _sharedGearQuery(String? activeDiverId) => (
+    diveId: widget.diveId,
+    diverId: _existingDive?.diverId ?? activeDiverId,
+    entry: _currentEntryTime(),
+    exit: _currentDiveEndTime(),
+  );
+
+  /// "Also on Anna's dive, 10:02" for gear on another profile's overlapping
+  /// dive, or null. The time is the other dive's UTC wall clock, formatted
+  /// in the diver's 12h/24h preference.
+  String? Function(String equipmentId) _sharedGearNotes(
+    Map<String, SharedGearNote> notes,
+  ) {
+    final units = UnitFormatter(ref.read(settingsProvider));
+    final l10n = context.l10n;
+    return (equipmentId) {
+      final note = notes[equipmentId];
+      if (note == null) return null;
+      return l10n.diveLog_gear_alsoOnDive(
+        note.diverName,
+        units.formatTime(note.entry),
+      );
+    };
   }
 
   void _markDirty() {
@@ -3909,6 +3938,24 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 // pointless reordering of dive_equipment on every save.
                 DiveGearTreeView(
                   links: gearLinksFor(_selectedEquipment, _gearRows),
+                  overlapNote: widget.isBulk
+                      ? null
+                      : _sharedGearNotes(
+                          ref
+                                  .watch(
+                                    sharedGearOverlapProvider(
+                                      _sharedGearQuery(
+                                        ref
+                                            .watch(
+                                              validatedCurrentDiverIdProvider,
+                                            )
+                                            .value,
+                                      ),
+                                    ),
+                                  )
+                                  .value ??
+                              const {},
+                        ),
                   ownerReferenceDiverId:
                       _existingDive?.diverId ??
                       ref.watch(validatedCurrentDiverIdProvider).value,
@@ -4079,14 +4126,30 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         minChildSize: 0.5,
         maxChildSize: 0.95,
         expand: false,
-        builder: (context, scrollController) => EquipmentPickerSheet(
-          scrollController: scrollController,
-          selectedEquipmentIds: _selectedEquipment.map((e) => e.id).toSet(),
-          hideSpare: true,
-          onEquipmentSelected: (equipment) {
-            Navigator.of(context).pop();
-            _addGear([equipment]);
-          },
+        // A Consumer, so the shared gear note (issue #2853) loads while the
+        // sheet is open.
+        builder: (context, scrollController) => Consumer(
+          builder: (context, ref, _) => EquipmentPickerSheet(
+            scrollController: scrollController,
+            selectedEquipmentIds: _selectedEquipment.map((e) => e.id).toSet(),
+            hideSpare: true,
+            overlapNote: _sharedGearNotes(
+              ref
+                      .watch(
+                        sharedGearOverlapProvider(
+                          _sharedGearQuery(
+                            ref.watch(validatedCurrentDiverIdProvider).value,
+                          ),
+                        ),
+                      )
+                      .value ??
+                  const {},
+            ),
+            onEquipmentSelected: (equipment) {
+              Navigator.of(context).pop();
+              _addGear([equipment]);
+            },
+          ),
         ),
       ),
     );
