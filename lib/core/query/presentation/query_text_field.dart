@@ -30,6 +30,15 @@ bool suggestionsReplaceSpan(QueryError error, String text) {
 /// offers the parser's suggestions as chips. Completions for the word at the
 /// caret show as chips too. A [value] set from outside (a chip removed, a
 /// saved query applied) is printed back into the field.
+/// A request to show [text] in a [QueryTextField] without committing it
+/// (Ask's Undo puts the sentence back this way). Compared by identity, so
+/// each new instance is applied once, after any new value in the same
+/// update.
+class QueryTextOverride {
+  QueryTextOverride(this.text);
+  final String text;
+}
+
 class QueryTextField extends StatefulWidget {
   const QueryTextField({
     super.key,
@@ -43,6 +52,9 @@ class QueryTextField extends StatefulWidget {
     this.focusNode,
     this.onEscape,
     this.onValidityChanged,
+    this.onTextChanged,
+    this.textOverride,
+    this.shortcuts = const {},
   });
 
   final QueryEditorContext context;
@@ -64,6 +76,16 @@ class QueryTextField extends StatefulWidget {
   /// stays committed, so [onChanged] says nothing) and with true once it
   /// parses again or is emptied.
   final ValueChanged<bool>? onValidityChanged;
+
+  /// Called with the raw text on every edit by the diver, whether or not
+  /// it parses.
+  final ValueChanged<String>? onTextChanged;
+
+  /// Text to show without committing it; see [QueryTextOverride].
+  final QueryTextOverride? textOverride;
+
+  /// Extra key bindings active while the field has focus.
+  final Map<ShortcutActivator, VoidCallback> shortcuts;
 
   @override
   State<QueryTextField> createState() => _QueryTextFieldState();
@@ -118,6 +140,17 @@ class _QueryTextFieldState extends State<QueryTextField> {
         if (mounted) _onTextChanged(_controller.text);
       });
     }
+    final override = widget.textOverride;
+    if (override != null && !identical(override, old.textOverride)) {
+      // After a new value in the same update, so the override wins. The
+      // committed tree stays as it is: the text is shown, not applied.
+      _controller
+        ..text = override.text
+        ..selection = TextSelection.collapsed(offset: override.text.length)
+        ..setError();
+      _error = null;
+      _completions = const [];
+    }
   }
 
   @override
@@ -129,6 +162,7 @@ class _QueryTextFieldState extends State<QueryTextField> {
   }
 
   void _onTextChanged(String text) {
+    widget.onTextChanged?.call(text);
     final caret = _controller.selection.isValid
         ? _controller.selection.extentOffset
         : text.length;
@@ -208,6 +242,7 @@ class _QueryTextFieldState extends State<QueryTextField> {
       children: [
         CallbackShortcuts(
           bindings: {
+            ...widget.shortcuts,
             if (widget.onEscape != null)
               const SingleActivator(LogicalKeyboardKey.escape):
                   widget.onEscape!,

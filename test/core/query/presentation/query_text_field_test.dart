@@ -165,6 +165,123 @@ void main() {
     expect(validity, [false, true]);
   });
 
+  testWidgets('reports every edit of the raw text, parsed or not', (
+    tester,
+  ) async {
+    final texts = <String>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: QueryTextField(
+            context: context,
+            value: null,
+            onChanged: (_) {},
+            onTextChanged: texts.add,
+            fieldKey: fieldKey,
+          ),
+        ),
+      ),
+    );
+    await tester.enterText(find.byKey(fieldKey), 'turtles, in bonaire');
+    expect(texts.last, 'turtles, in bonaire');
+  });
+
+  group('text override', () {
+    late StateSetter setOuter;
+    QueryNode? value;
+    QueryTextOverride? override;
+    var commits = 0;
+
+    Future<void> pumpField(WidgetTester tester) async {
+      value = TextNode(['reef']);
+      override = null;
+      commits = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: StatefulBuilder(
+              builder: (ctx, setState) {
+                setOuter = setState;
+                return QueryTextField(
+                  context: context,
+                  value: value,
+                  onChanged: (n) {
+                    commits++;
+                    value = n;
+                  },
+                  textOverride: override,
+                  fieldKey: fieldKey,
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    }
+
+    String textOf(WidgetTester tester) =>
+        tester.widget<TextField>(find.byKey(fieldKey)).controller!.text;
+
+    testWidgets('shows the text without committing it', (tester) async {
+      await pumpField(tester);
+      setOuter(() => override = QueryTextOverride('turtles below 20m'));
+      await tester.pump();
+      expect(textOf(tester), 'turtles below 20m');
+      expect(commits, 0);
+    });
+
+    testWidgets('is applied once, not over later edits', (tester) async {
+      await pumpField(tester);
+      setOuter(() => override = QueryTextOverride('turtles'));
+      await tester.pump();
+      await tester.enterText(find.byKey(fieldKey), 'manta');
+      setOuter(() {});
+      await tester.pump();
+      expect(textOf(tester), 'manta');
+    });
+
+    // Review Focus 5: Undo writes the old query and the sentence together.
+    testWidgets('wins over a new value in the same update', (tester) async {
+      await pumpField(tester);
+      setOuter(() {
+        value = TextNode(['wreck']);
+        override = QueryTextOverride('wrecks in malta');
+      });
+      await tester.pump();
+      expect(textOf(tester), 'wrecks in malta');
+      expect(commits, 0);
+    });
+  });
+
+  testWidgets('extra shortcuts fire while the field has focus', (tester) async {
+    var asked = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: QueryTextField(
+            context: context,
+            value: null,
+            onChanged: (_) {},
+            fieldKey: fieldKey,
+            shortcuts: {
+              const SingleActivator(
+                LogicalKeyboardKey.enter,
+                control: true,
+              ): () =>
+                  asked++,
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(fieldKey));
+    await tester.pump();
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    expect(asked, 1);
+  });
+
   testWidgets('a valid query is committed', (tester) async {
     QueryNode? committed;
     await tester.pumpWidget(host(value: null, onChanged: (n) => committed = n));
