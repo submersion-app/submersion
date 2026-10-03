@@ -6,55 +6,15 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
-import 'package:submersion/features/dive_log/domain/services/safety_review_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
-import 'package:submersion/features/divers/data/repositories/diver_repository.dart'
-    as divers;
-import 'package:submersion/features/divers/domain/entities/diver.dart'
-    as domain;
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/analysis_pipeline_overrides.dart';
 import '../../../../helpers/test_database.dart';
 
 late SharedPreferences _prefs;
-
-class _FakeDiverRepository extends divers.DiverRepository {
-  @override
-  Future<domain.Diver?> getDiverById(String id) async => null;
-
-  @override
-  Future<domain.Diver?> getDefaultDiver() async => null;
-
-  @override
-  Future<String?> getActiveDiverIdFromSettings() async => null;
-
-  @override
-  Future<void> setActiveDiverIdInSettings(String? diverId) async {}
-}
-
-class _FakeDiverSettingsRepository extends DiverSettingsRepository {
-  @override
-  Future<AppSettings> getOrCreateSettingsForDiver(
-    String diverId, {
-    AppSettings? defaultSettings,
-  }) async {
-    return const AppSettings(notificationsEnabled: false);
-  }
-
-  @override
-  Future<void> updateSettingsForDiver(
-    String diverId,
-    AppSettings settings,
-  ) async {}
-}
-
-class _SettingsNotifier extends SettingsNotifier {
-  _SettingsNotifier(Ref ref) : super(_FakeDiverSettingsRepository(), ref);
-}
 
 /// In-memory [SafetyFindingsRepository] with no stored review.
 class _FakeFindingsRepo extends SafetyFindingsRepository {
@@ -129,38 +89,33 @@ void main() {
     );
   }
 
-  // Two computers on one diver, neither recording a rapid ascent. Their
-  // clocks disagree, as real computers' do, so while the diver ascends the
-  // computer whose clock runs behind reads deeper at the same timestamp.
-  // Interleaved by timestamp, as the dive-level profile holds them, each step
-  // from one computer's sample to the other's is a jump of that difference.
-  test('the safety review of a two-computer dive grades the primary '
-      "computer's samples, not both computers' interleaved", () async {
-    final primary = _computer();
-    final secondary = _computer(firstSample: 11, clockLag: 120);
-    final interleaved = [...primary, ...secondary]
-      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    final dive = Dive(
-      id: 'dive-1',
-      dateTime: DateTime(2026, 9, 14),
-      profile: interleaved,
-    );
-    final repo = _FakeFindingsRepo();
+  List<SafetyFinding> rapidAscents(Iterable<SafetyFinding> findings) => [
+    for (final f in findings)
+      if (f.ruleId == SafetyRuleId.rapidAscent) f,
+  ];
 
+  /// A dive whose `dive.profile` holds [primary] and [secondary] interleaved
+  /// by timestamp, recorded by [sources].
+  ProviderContainer diveWith({
+    required List<DiveProfilePoint> primary,
+    required List<DiveProfilePoint> secondary,
+    required List<DiveDataSource> sources,
+    required SafetyFindingsRepository repo,
+  }) {
     final container = ProviderContainer(
       overrides: [
-        sharedPreferencesProvider.overrideWithValue(_prefs),
-        diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
-        settingsProvider.overrideWith((ref) => _SettingsNotifier(ref)),
+        ...analysisPipelineOverrides(_prefs),
         safetyReviewEnabledProvider.overrideWithValue(true),
         safetyFindingsRepositoryProvider.overrideWithValue(repo),
-        analysisDiveProvider('dive-1').overrideWith((ref) async => dive),
-        diveDataSourcesProvider('dive-1').overrideWith(
-          (ref) async => [
-            source('src-a', 'dc-a', true),
-            source('src-b', 'dc-b', false),
-          ],
+        analysisDiveProvider('dive-1').overrideWith(
+          (ref) async => Dive(
+            id: 'dive-1',
+            dateTime: DateTime(2026, 9, 14),
+            profile: [...primary, ...secondary]
+              ..sort((a, b) => a.timestamp.compareTo(b.timestamp)),
+          ),
         ),
+        diveDataSourcesProvider('dive-1').overrideWith((ref) async => sources),
         sourceProfilesProvider('dive-1').overrideWith(
           (ref) async => {
             'src-a': SourceProfile(
@@ -169,41 +124,58 @@ void main() {
               isEdited: false,
               points: primary,
             ),
-            'src-b': SourceProfile(
-              sourceId: 'src-b',
-              computerId: 'dc-b',
-              isEdited: false,
-              points: secondary,
-            ),
+            if (sources.length > 1)
+              'src-b': SourceProfile(
+                sourceId: 'src-b',
+                computerId: 'dc-b',
+                isEdited: false,
+                points: secondary,
+              ),
           },
         ),
       ],
     );
     addTearDown(container.dispose);
+    return container;
+  }
 
-    List<SafetyFinding> rapidAscents(Iterable<SafetyFinding> findings) => [
-      for (final f in findings)
-        if (f.ruleId == SafetyRuleId.rapidAscent) f,
-    ];
+  // Two computers on one diver, neither recording a rapid ascent. Their
+  // clocks disagree, as real computers' do, so while the diver ascends the
+  // computer whose clock runs behind reads deeper at the same timestamp.
+  // Interleaved by timestamp, as dive.profile holds them, each step from one
+  // computer's sample to the other's is a jump of that difference.
+  final primary = _computer();
+  final secondary = _computer(firstSample: 11, clockLag: 120);
 
-    // Control: the interleaved samples alone produce rapid ascents, so the
-    // assertion below is about which samples the review reads.
-    final merged = await container.read(
-      profileAnalysisProvider('dive-1').future,
-    );
-    expect(
-      rapidAscents(
-        const SafetyReviewService().review(
-          diveId: 'dive-1',
-          analysis: merged!,
-          now: DateTime(2026, 9, 14),
-        ),
-      ),
-      isNotEmpty,
-      reason: 'the interleaved samples should look like rapid ascents',
+  test('the interleaved samples of two computers read as rapid ascents '
+      '(control)', () async {
+    // One source row: the chart draws dive.profile, so the analysis replays
+    // it, interleaving included. This is what the next test is not.
+    final container = diveWith(
+      primary: primary,
+      secondary: secondary,
+      sources: [source('src-a', 'dc-a', true)],
+      repo: _FakeFindingsRepo(),
     );
 
     final review = await container.read(safetyReviewProvider('dive-1').future);
+
+    expect(review, isNotNull);
+    expect(rapidAscents(review!.findings), isNotEmpty);
+  });
+
+  test('the safety review of a two-computer dive grades the primary '
+      "computer's samples, not both computers' interleaved", () async {
+    final repo = _FakeFindingsRepo();
+    final container = diveWith(
+      primary: primary,
+      secondary: secondary,
+      sources: [source('src-a', 'dc-a', true), source('src-b', 'dc-b', false)],
+      repo: repo,
+    );
+
+    final review = await container.read(safetyReviewProvider('dive-1').future);
+
     expect(review, isNotNull);
     expect(repo.saved, isNotNull);
     expect(rapidAscents(review!.findings), isEmpty);

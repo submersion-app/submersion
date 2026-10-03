@@ -236,11 +236,9 @@ void main() {
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         safetyFindingsRepositoryProvider.overrideWithValue(repo),
         safetyReviewEnabledProvider.overrideWithValue(true),
-        // The analysis the review grades: the primary source's own.
-        sourceProfileAnalysisProvider((
-          diveId: 'd1',
-          sourceId: null,
-        )).overrideWith((ref) async => throw StateError('corrupt profile')),
+        profileAnalysisProvider(
+          'd1',
+        ).overrideWith((ref) async => throw StateError('corrupt profile')),
         profileAnalysisProvider('d2').overrideWith((ref) async => analysis),
       ],
     );

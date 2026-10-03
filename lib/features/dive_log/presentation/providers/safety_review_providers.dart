@@ -31,9 +31,10 @@ final safetyFindingsRepositoryProvider = Provider<SafetyFindingsRepository>((
 /// settings. While a metric source is switched on the chart the analysis is
 /// a view of the dive, not the diver's review, so the stored one is shown.
 ///
-/// On a dive with several computers the review grades the primary source's
-/// own samples ([sourceProfileAnalysisProvider]), never every computer's
-/// interleaved.
+/// The review grades the dive-level analysis ([profileAnalysisProvider]),
+/// which on a dive the chart draws one source at a time replays the primary
+/// source's own samples rather than every computer's interleaved
+/// ([diveAnalysisSeriesProvider]).
 final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
   ref,
   diveId,
@@ -68,14 +69,7 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
   // would persist a review built on the placeholder or another diver's.
   if (!settingsLoaded) return stored;
 
-  // The primary source's own analysis, the one the chart draws. On a dive
-  // with several computers the dive-level analysis runs over every
-  // computer's samples interleaved by timestamp, and the ascent rates between
-  // neighbouring samples from different computers are artifacts. A
-  // single-source or combined dive resolves to the dive-level analysis.
-  final analysis = await ref.watch(
-    sourceProfileAnalysisProvider((diveId: diveId, sourceId: null)).future,
-  );
+  final analysis = await ref.watch(profileAnalysisProvider(diveId).future);
   if (analysis == null || analysis.ascentRates.isEmpty) return stored;
   // Ran on other inputs: a chart source toggle, settings that have moved
   // since this analysis was computed (it rebuilds, and this with it), or an
