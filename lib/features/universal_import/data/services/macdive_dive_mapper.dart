@@ -1067,8 +1067,10 @@ class MacDiveDiveMapper {
         if (startPressure != null) entry['startPressure'] = startPressure;
         final endPressure = c.pressureToBar(t.airEnd);
         if (endPressure != null) entry['endPressure'] = endPressure;
+        // ZDURATION is how long the tank was breathed, under the key
+        // _buildTanks reads (issue #1496). `runtime` is the dive's key.
         if (t.duration != null) {
-          entry['runtime'] = Duration(seconds: t.duration!.round());
+          entry['usageDuration'] = Duration(seconds: t.duration!.round());
         }
         if (t.supplyType != null) entry['supplyType'] = t.supplyType;
         // MacDive's ZGAS.ZOXYGEN/ZHELIUM store whole percent (32.0 for

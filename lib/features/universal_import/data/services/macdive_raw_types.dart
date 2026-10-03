@@ -9,7 +9,8 @@ class MacDiveRawDive {
   final String? identifier;
 
   /// Reference date from `ZRAWDATE` — Core Data stores NSDate as seconds
-  /// since 2001-01-01 UTC. The reader converts to a Dart UTC [DateTime].
+  /// since 2001-01-01 UTC. The reader converts to a Dart UTC [DateTime],
+  /// with the seconds MacDive drops put back from [identifier] (#2509).
   final DateTime? rawDate;
 
   /// NSTimeZone bplist from `ZTIMEZONE`: the zone the dive was logged in.

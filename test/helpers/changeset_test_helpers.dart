@@ -270,6 +270,29 @@ Future<void> restampPeerSchemaVersion(
   );
 }
 
+/// Rewrite [peerId]'s published manifest so it reports [writerSchemaVersion]
+/// as its own schema, as on a device running an older build.
+Future<void> restampPeerWriterSchemaVersion(
+  CloudStorageProvider cloud,
+  String peerId, {
+  required int writerSchemaVersion,
+}) async {
+  final folder = await cloud.getOrCreateSyncFolder();
+  final manifestFile = (await cloud.listFiles(
+    folderId: folder,
+    namePattern: ChangesetLogLayout.manifestName(peerId),
+  )).single;
+  final manifest =
+      jsonDecode(utf8.decode(await cloud.downloadFile(manifestFile.id)))
+          as Map<String, dynamic>;
+  manifest['writerSchemaVersion'] = writerSchemaVersion;
+  await cloud.uploadFile(
+    Uint8List.fromList(utf8.encode(jsonEncode(manifest))),
+    manifestFile.name,
+    folderId: folder,
+  );
+}
+
 /// Rewrite [peerId]'s published manifest so it carries [deviceName]; null
 /// strips the field, as on a manifest from a device nothing identifies by
 /// name. The display name service is not injectable into SyncService, so

@@ -2618,6 +2618,18 @@ final ppO2MaxDecoProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.ppO2MaxDeco));
 });
 
+final ccrSetpointLowProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.ccrSetpointLow));
+});
+
+final ccrSetpointHighProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.ccrSetpointHigh));
+});
+
+final ccrDiluentModPpO2Provider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.ccrDiluentModPpO2));
+});
+
 final cnsWarningThresholdProvider = Provider<int>((ref) {
   return ref.watch(settingsProvider.select((s) => s.cnsWarningThreshold));
 });

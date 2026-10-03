@@ -1251,7 +1251,10 @@ void main() {
       expect(prefs.getString('update_release_channel'), isNull);
     });
 
-    testWidgets('switching back to stable shows the ride-forward notice', (
+    // Issue #2619: leaving beta keeps this build (and its upgraded dive log)
+    // until stable catches up, and stable peers stop receiving its changes,
+    // so the switch is confirmed with that spelled out, as joining beta is.
+    testWidgets('switching back to stable asks for confirmation first', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -1266,12 +1269,59 @@ void main() {
       await tester.tap(find.text('Tested releases only'));
       await tester.pumpAndSettle();
 
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('update_release_channel'), 'stable');
+      expect(find.text('Return to stable updates?'), findsOneWidget);
       expect(
-        find.textContaining('until the next stable release'),
+        find.textContaining('until a stable release is newer than it'),
         findsOneWidget,
       );
+      expect(
+        find.textContaining('Do not install an older stable build'),
+        findsOneWidget,
+      );
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('update_release_channel'), 'beta');
+    });
+
+    testWidgets('confirming the stable dialog switches the channel', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildAboutWidget(await aboutOverrides(channel: 'beta')),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      await tester.scrollUntilVisible(find.text('Update channel'), 100);
+      await tester.tap(find.text('Update channel'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Tested releases only'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Switch to Stable'));
+      await tester.pumpAndSettle();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('update_release_channel'), 'stable');
+    });
+
+    testWidgets('cancelling the stable dialog keeps the beta channel', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildAboutWidget(await aboutOverrides(channel: 'beta')),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      await tester.scrollUntilVisible(find.text('Update channel'), 100);
+      await tester.tap(find.text('Update channel'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Tested releases only'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('update_release_channel'), 'beta');
     });
 
     testWidgets('status text renders the downloading and ready states', (

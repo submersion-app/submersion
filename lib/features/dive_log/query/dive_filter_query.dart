@@ -15,6 +15,8 @@ import 'package:submersion/features/query/query_tables_touched.dart';
 /// `dive_filter_query_census_test`.
 extension DiveFilterQuery on DiveFilterState {
   QueryNode? toQuery() {
+    // "All dives" (#2773): the axes stay set but only the typed query runs.
+    if (axesSuspended) return query;
     final parts = <QueryNode>[];
     QueryNode c(String key, QueryOp op, QueryValue? v) =>
         ConditionNode(FieldPath([key]), op, v);

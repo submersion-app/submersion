@@ -28,6 +28,13 @@ import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 class PlanEngineConfig extends Equatable {
   final double ppO2Working;
   final double ppO2Deco;
+
+  /// Diluent MOD limit: the ppO2 a CCR plan's diluent may reach on a flush,
+  /// from the diver's "ppO2 limits CCR" Settings. Unlike [ppO2Working] and
+  /// [ppO2Deco] (physiological toxicity limits that apply to whatever is
+  /// actually being breathed), this only governs the diluent gas itself.
+  final double ccrDiluentModPpO2;
+
   final int cnsWarningThreshold;
   final bool o2Narcotic;
 
@@ -79,6 +86,7 @@ class PlanEngineConfig extends Equatable {
   const PlanEngineConfig({
     this.ppO2Working = 1.4,
     this.ppO2Deco = 1.6,
+    this.ccrDiluentModPpO2 = 1.6,
     this.cnsWarningThreshold = 80,
     this.o2Narcotic = true,
     this.endLimitMeters = 30.0,
@@ -99,6 +107,7 @@ class PlanEngineConfig extends Equatable {
   List<Object?> get props => [
     ppO2Working,
     ppO2Deco,
+    ccrDiluentModPpO2,
     cnsWarningThreshold,
     o2Narcotic,
     endLimitMeters,
@@ -118,6 +127,7 @@ class PlanEngineConfig extends Equatable {
   PlanEngineConfig copyWith({
     double? ppO2Working,
     double? ppO2Deco,
+    double? ccrDiluentModPpO2,
     int? cnsWarningThreshold,
     bool? o2Narcotic,
     double? endLimitMeters,
@@ -136,6 +146,7 @@ class PlanEngineConfig extends Equatable {
     return PlanEngineConfig(
       ppO2Working: ppO2Working ?? this.ppO2Working,
       ppO2Deco: ppO2Deco ?? this.ppO2Deco,
+      ccrDiluentModPpO2: ccrDiluentModPpO2 ?? this.ccrDiluentModPpO2,
       cnsWarningThreshold: cnsWarningThreshold ?? this.cnsWarningThreshold,
       o2Narcotic: o2Narcotic ?? this.o2Narcotic,
       endLimitMeters: endLimitMeters ?? this.endLimitMeters,
@@ -1014,6 +1025,31 @@ class PlanEngine {
             threshold: 0.16,
           ),
         );
+      }
+
+      // The diluent's own open-circuit ppO2, independent of the setpoint:
+      // how deep it could still be used for a loop flush or a manual
+      // diluent breath. Checked against the diver's Dil MOD, not the OC
+      // toxicity limits: those govern what the loop delivers, not the
+      // diluent itself.
+      if (_modeFor(plan, segment) == domain.PlanMode.ccr) {
+        final diluentPpO2 = environment.pressureAtDepth(deeperEnd) * fO2;
+        if (diluentPpO2 > config.ccrDiluentModPpO2) {
+          issues.add(
+            PlanIssue(
+              type: PlanIssueType.diluentModExceeded,
+              severity: PlanIssueSeverity.warning,
+              message:
+                  'Diluent ppO2 ${diluentPpO2.toStringAsFixed(2)} bar '
+                  'exceeds the Dil MOD limit at '
+                  '${deeperEnd.toStringAsFixed(0)} m',
+              atDepth: deeperEnd,
+              segmentId: segment.id,
+              value: diluentPpO2,
+              threshold: config.ccrDiluentModPpO2,
+            ),
+          );
+        }
       }
 
       final end = segment.gasMix.end(deeperEnd, o2Narcotic: config.o2Narcotic);

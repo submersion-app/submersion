@@ -14,9 +14,38 @@ Submersion uses libdivecomputer to support most major dive computer brands:
 | **Suunto** | D-series, Vyper, Zoop, EON series |
 | **Mares** | Puck Pro, Smart, Quad |
 | **Aqualung** | i-series, Calm series |
-| **Garmin** | Descent series |
 | **Oceanic** | Multiple models |
 | **Scubapro** | G2, Galileo series |
+
+### Garmin (File and Cloud Import)
+
+Garmin computers are not downloaded over Bluetooth or USB pairing. Their dives
+come in through one of these instead:
+
+- **FIT files:** **Transfer** > **File Import**, then choose `.fit` files
+  exported from Garmin Connect or copied from the watch.
+- **Cable (desktop):** with the watch plugged in, **Transfer** > **File
+  Import** shows **Import from Garmin Device**, which reads its
+  `GARMIN/Activity` folder.
+- **Garmin Connect:** **Transfer** > **Cloud** > **Garmin** signs in to your
+  account and imports dives directly.
+
+A dive that comes with its FIT file is filed under the model that recorded it:
+
+| Series | Models |
+|--------|--------|
+| **Descent** | Mk1, Mk2 / Mk2i, Mk2s, Mk3, Mk3i, X50i, G1, G2 |
+| **Fenix** | Fenix 7, 7S, 7X, 7 Pro Solar, 7S Pro Solar, 7X Pro Solar, Fenix 8, 8 Solar, 8 Pro |
+| **Epix** | Epix (Gen 2), Epix Pro (Gen 2) |
+| **Enduro** | Enduro 2, Enduro 3 |
+| **Tactix** | Tactix 7, Tactix 8 |
+
+The Descent Mk3i and Descent X50i have been verified against real dive files,
+including tank pressure from a paired Descent T2 transmitter. Other Garmin
+watches with a dive mode also import; they are labelled plainly "Garmin" until
+their model is added. A Garmin Connect dive with no FIT file (one entered by
+hand, for example) names no watch, so it is filed under a single "Garmin
+Connect" computer instead.
 
 ### Connection Types
 
@@ -52,7 +81,6 @@ Each computer enters transfer mode differently:
 | **Shearwater** | Menu > Bluetooth > Enable |
 | **Suunto** | Settings > Connectivity > Enable |
 | **Mares** | Settings > Transfer Mode |
-| **Garmin** | Settings > Dive App Connection |
 
 Consult your computer's manual for specific instructions.
 

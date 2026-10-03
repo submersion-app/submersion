@@ -31,6 +31,10 @@ const _uuid = Uuid();
 /// meaningful together, so they travel as one value.
 typedef PlanGradientFactors = ({int low, int high});
 
+/// A CCR setpoint pair in bar. The two halves are only meaningful together,
+/// so they travel as one value.
+typedef CcrSetpoints = ({double low, double high});
+
 // ============================================================================
 // Service Providers
 // ============================================================================
@@ -76,6 +80,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   final double Function() _getDefaultReservePressure;
   final PlanGradientFactors Function() _getDefaultGradientFactors;
   final PlannerWaterType Function() _getDefaultPlannerWaterType;
+  final CcrSetpoints Function() _getDefaultCcrSetpoints;
   final DivePlanRepository? _repository;
 
   /// Loads the diver's equipment, for refreshing a mission's scooters from
@@ -109,6 +114,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     double Function()? getDefaultReservePressure,
     PlanGradientFactors Function()? getDefaultGradientFactors,
     PlannerWaterType Function()? getDefaultPlannerWaterType,
+    CcrSetpoints Function()? getDefaultCcrSetpoints,
     DivePlanRepository? repository,
     Future<List<EquipmentItem>> Function()? loadEquipment,
   }) {
@@ -120,6 +126,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
           getDefaultGradientFactors ?? _fallbackGradientFactors,
       getDefaultPlannerWaterType:
           getDefaultPlannerWaterType ?? (() => PlannerWaterType.salt),
+      getDefaultCcrSetpoints: getDefaultCcrSetpoints ?? _fallbackCcrSetpoints,
       repository: repository,
       loadEquipment: loadEquipment ?? (() async => const <EquipmentItem>[]),
     );
@@ -130,11 +137,13 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     required double Function() getDefaultReservePressure,
     required PlanGradientFactors Function() getDefaultGradientFactors,
     required PlannerWaterType Function() getDefaultPlannerWaterType,
+    required CcrSetpoints Function() getDefaultCcrSetpoints,
     DivePlanRepository? repository,
     required Future<List<EquipmentItem>> Function() loadEquipment,
   }) : _getDefaultReservePressure = getDefaultReservePressure,
        _getDefaultGradientFactors = getDefaultGradientFactors,
        _getDefaultPlannerWaterType = getDefaultPlannerWaterType,
+       _getDefaultCcrSetpoints = getDefaultCcrSetpoints,
        _repository = repository,
        _loadEquipment = loadEquipment,
        super(
@@ -147,6 +156,11 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
 
   static PlanGradientFactors _fallbackGradientFactors() =>
       (low: DivePlanState.kFallbackGfLow, high: DivePlanState.kFallbackGfHigh);
+
+  static CcrSetpoints _fallbackCcrSetpoints() => (
+    low: domain.DivePlan.specSetpointLow,
+    high: domain.DivePlan.specSetpointHigh,
+  );
 
   static ({WaterType? waterType, double? salinityPpt}) _waterFieldsFor(
     PlannerWaterType type,
@@ -709,9 +723,37 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   }
 
   /// Switch between open circuit and CCR.
+  ///
+  /// Entering CCR seeds each setpoint still null (a fresh plan, one that has
+  /// never been in CCR mode, or one with only a hand-set half) from the
+  /// diver's own CCR ppO2 limits, independently per field. A setpoint the
+  /// diver already set (low or high, on its own) is never overwritten. The
+  /// alternative, leaving a missing half null, would fall through to
+  /// [domain.DivePlan]'s spec defaults (0.7 / 1.3) instead of the diver's
+  /// Settings.
+  ///
+  /// Unlike [adoptGradientFactorsIfPristine], there is no later "adopt if
+  /// pristine" for these settings: switching mode is itself a diver edit and
+  /// already sets `isDirty`, so a plan can never be both in CCR mode and
+  /// pristine, and there is nothing left for a later settings change to
+  /// adopt into.
+  ///
+  /// Known limitation: a setpoint is seeded only once, the first time its
+  /// field is still null while entering CCR, so cycling CCR -> OC -> CCR
+  /// keeps that first seed even if the diver's Settings changed in between.
+  /// Clearing on exit would fix that but would also wipe a hand-tuned
+  /// setpoint on every OC/SCR/pSCR step of the mode-cycle button, a worse
+  /// regression for a rarer case.
   void updateMode(domain.PlanMode mode) {
+    final defaults =
+        mode == domain.PlanMode.ccr &&
+            (state.setpointLow == null || state.setpointHigh == null)
+        ? _getDefaultCcrSetpoints()
+        : null;
     state = state.copyWith(
       mode: mode,
+      setpointLow: state.setpointLow ?? defaults?.low,
+      setpointHigh: state.setpointHigh ?? defaults?.high,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
@@ -1009,6 +1051,12 @@ final divePlanNotifierProvider =
       PlanGradientFactors defaultGradientFactors() =>
           read(planGradientFactorSettingsProvider);
 
+      // A plan entering CCR mode starts on the diver's own CCR ppO2 limits.
+      CcrSetpoints defaultCcrSetpoints() => (
+        low: read(ccrSetpointLowProvider),
+        high: read(ccrSetpointHighProvider),
+      );
+
       final notifier = DivePlanNotifier(
         calculator,
         reservePressure: defaultReserve(),
@@ -1016,6 +1064,7 @@ final divePlanNotifierProvider =
         getDefaultGradientFactors: defaultGradientFactors,
         getDefaultPlannerWaterType: () =>
             read(settingsProvider).defaultPlannerWaterType,
+        getDefaultCcrSetpoints: defaultCcrSetpoints,
         repository: read(divePlanRepositoryProvider),
         loadEquipment: () => read(allEquipmentProvider.future),
       );

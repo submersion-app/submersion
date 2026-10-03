@@ -181,6 +181,10 @@ class NavTrack extends Equatable {
     required this.updatedAt,
   });
 
+  /// What a list row or picker calls this route: its own name, else the
+  /// file it was imported from, else its id.
+  String get displayName => name ?? sourceRef ?? id;
+
   /// Where the route's local origin sits on the map, or null until the
   /// diver sets one.
   GeoPoint? get anchor => (anchorLatitude == null || anchorLongitude == null)

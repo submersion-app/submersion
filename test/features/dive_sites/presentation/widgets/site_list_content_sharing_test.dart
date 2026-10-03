@@ -19,6 +19,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/shared_items_fixture.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/select_items_menu.dart';
 
 /// The site list's bulk delete and merge with another profile's shared
 /// sites in the selection (issue #2594).
@@ -93,8 +94,7 @@ void main() {
   }
 
   Future<void> select(WidgetTester tester, List<String> names) async {
-    await tester.tap(find.byKey(const ValueKey('enter_selection')));
-    await tester.pumpAndSettle();
+    await enterSelectionViaMenu(tester);
     for (final name in names) {
       await tester.tap(find.text(name));
       await tester.pumpAndSettle();

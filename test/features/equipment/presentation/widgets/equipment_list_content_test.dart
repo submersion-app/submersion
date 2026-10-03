@@ -38,11 +38,14 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_header_bar.dart';
 
 import '../../../../helpers/equipment_query_fakes.dart';
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/bulk_delete_contract.dart';
 import '../../../../helpers/selection_contract.dart';
@@ -244,6 +247,7 @@ void main() {
       bool showAppBar = true,
       EquipmentHeaderToggleBuilder? toggleBuilder,
       ListViewMode viewMode = ListViewMode.detailed,
+      SelectionController? selectionController,
     }) async {
       final overrides = await _buildPhoneOverrides(
         items: items,
@@ -256,6 +260,7 @@ void main() {
           child: EquipmentListContent(
             showAppBar: showAppBar,
             toggleBuilder: toggleBuilder,
+            selectionController: selectionController,
           ),
         ),
       );
@@ -335,11 +340,16 @@ void main() {
     testWidgets('table view keeps the count under the toggle while selecting', (
       tester,
     ) async {
+      // Table mode has no menu inside the list (issue #2775): the page's
+      // header enters selection through the controller it passes in.
+      final controller = SelectionController();
+      addTearDown(controller.dispose);
       await pump(
         tester,
         showAppBar: false,
         viewMode: ListViewMode.table,
         toggleBuilder: (_) => const Text('Equipment | Sets'),
+        selectionController: controller,
       );
       expect(
         find.descendant(
@@ -349,7 +359,7 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      controller.enterExplicit();
       await tester.pumpAndSettle();
 
       expect(
@@ -439,7 +449,8 @@ void main() {
       await verifyBulkDelete(
         tester,
         build: () => widget,
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
         expectedDeletedCount: 2,
       );
 
@@ -484,8 +495,7 @@ void main() {
           await host(const [own, hers], divers: divers, activeDiverId: 'owner'),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('enter_selection')));
-        await tester.pumpAndSettle();
+        await enterSelectionViaMenu(tester);
         await tester.tap(find.text('Aaa BCD'));
         await tester.pumpAndSettle();
         expect(await shareEnabled(tester), isTrue);
@@ -504,8 +514,7 @@ void main() {
         notifier.refused.add('hers');
         await tester.pumpWidget(widget);
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('enter_selection')));
-        await tester.pumpAndSettle();
+        await enterSelectionViaMenu(tester);
         await tester.tap(find.byKey(const ValueKey('selection_select_all')));
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const ValueKey('selection_overflow')));
@@ -539,8 +548,7 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('enter_selection')));
-        await tester.pumpAndSettle();
+        await enterSelectionViaMenu(tester);
         await tester.tap(find.text('Aaa BCD'));
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const ValueKey('selection_overflow')));
@@ -568,8 +576,7 @@ void main() {
           await host(const [own], divers: divers.take(1).toList()),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('enter_selection')));
-        await tester.pumpAndSettle();
+        await enterSelectionViaMenu(tester);
         await tester.tap(find.byKey(const ValueKey('selection_select_all')));
         await tester.pumpAndSettle();
         expect(
@@ -593,8 +600,7 @@ void main() {
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
       await tester.tap(find.byKey(const ValueKey('selection_select_all')));
       await tester.pumpAndSettle();
 
@@ -627,7 +633,8 @@ void main() {
       await verifyBulkDeleteCancels(
         tester,
         build: () => widget,
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
       );
 
       expect(notifier.deleted, isEmpty);
@@ -647,8 +654,7 @@ void main() {
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
 
       final editTags = find.byKey(const ValueKey('selection_action_editTags'));
       // Nothing checked yet.
@@ -688,8 +694,7 @@ void main() {
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
       await tester.tap(find.byKey(const ValueKey('selection_select_all')));
       await tester.pumpAndSettle();
 
@@ -711,8 +716,7 @@ void main() {
     ) async {
       await tester.pumpWidget(await host(items));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
       await tester.tap(find.byKey(const ValueKey('selection_select_all')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('selection_overflow')));
@@ -748,8 +752,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
       await tester.tap(find.byKey(const ValueKey('selection_select_all')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('selection_overflow')));
@@ -799,6 +802,33 @@ void main() {
         await tester.pumpAndSettle();
         expect(launched, 1);
       });
+
+      // Issue #2775: the header shows no Select icon of its own; the entry
+      // follows the tag scanner and precedes the view modes.
+      testWidgets('Select items sits in the menu after scan a cylinder tag '
+          '(appBar: $showAppBar)', (tester) async {
+        await tester.pumpWidget(
+          await host([
+            _makeEquipment(id: 'e1', name: 'Aaa Reg'),
+          ], showAppBar: showAppBar),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byIcon(Icons.checklist), findsNothing);
+
+        await tester.tap(overflowMenuButton);
+        await tester.pumpAndSettle();
+        double top(Finder f) => tester.getTopLeft(f).dy;
+        final select = find.byKey(selectItemsMenuKey);
+        expect(
+          top(find.byKey(const ValueKey('equipment_menu_scanTag'))),
+          lessThan(top(select)),
+        );
+        expect(top(select), lessThan(top(find.text('Detailed'))));
+
+        await tester.tap(select);
+        await tester.pumpAndSettle();
+        expect(find.byKey(const ValueKey('selection_exit')), findsOneWidget);
+      });
     }
   });
 
@@ -843,7 +873,8 @@ void main() {
           locale: const Locale('en'),
           child: const EquipmentListContent(showAppBar: true),
         ),
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
         rowRoot: find.ancestor(
           of: find.text('Aaa Reg'),
           matching: find.byType(EquipmentListTile),
@@ -867,6 +898,10 @@ void main() {
       testWidgets('keeps the checks that stay on screen (${mode.name})', (
         tester,
       ) async {
+        // Table mode has no menu inside the list (issue #2775), so both
+        // modes enter through the controller a page would pass in.
+        final controller = SelectionController();
+        addTearDown(controller.dispose);
         final all = <EquipmentItem>[
           _makeEquipment(id: 'e1', name: 'Aaa Reg'),
           _makeEquipment(id: 'e2', name: 'Bbb Reg'),
@@ -898,11 +933,14 @@ void main() {
               highlightedEquipmentIdProvider.overrideWith((ref) => null),
             ],
             locale: const Locale('en'),
-            child: const EquipmentListContent(showAppBar: true),
+            child: EquipmentListContent(
+              showAppBar: true,
+              selectionController: controller,
+            ),
           ),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('enter_selection')));
+        controller.enterExplicit();
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const ValueKey('selection_select_all')));
         await tester.pumpAndSettle();

@@ -456,6 +456,19 @@ extension DiveMigrations on AppDatabase {
     await customStatement('ALTER TABLE dive_tanks ADD COLUMN role_source TEXT');
   }
 
+  /// Idempotent DDL for the v259 dive_tanks.usage_duration column (issue
+  /// #1496). Called from the v259 rung and re-asserted in beforeOpen like
+  /// the other column-assert helpers.
+  Future<void> _assertTankUsageDurationColumn() async {
+    final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('usage_duration')) return;
+    await customStatement(
+      'ALTER TABLE dive_tanks ADD COLUMN usage_duration INTEGER',
+    );
+  }
+
   /// One-time clear of weather descriptions this app generated itself.
   ///
   /// Only rows whose weather_source is 'openMeteo' are touched -- those are

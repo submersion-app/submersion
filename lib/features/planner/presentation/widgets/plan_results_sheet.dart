@@ -91,6 +91,11 @@ String planIssueMessage(
       return l10n.plannerCanvas_issue_minGas(
         units.formatPressure(issue.threshold ?? 0),
       );
+    case PlanIssueType.diluentModExceeded:
+      return l10n.plannerCanvas_issue_diluentModExceeded(
+        units.formatDepth(issue.atDepth ?? 0, decimals: 0),
+        issue.value?.toStringAsFixed(2) ?? '--',
+      );
   }
 }
 

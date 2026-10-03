@@ -225,17 +225,35 @@ void main() {
     expect(range.params, [ms(DateTime(2025, 1, 1)), ms(DateTime(2026, 1, 1))]);
   });
 
-  test('text search ORs every template per word and ANDs words', () {
-    final q = c(TextNode(['night', 'dive']));
+  test('one text node is one term: a word, or a quoted phrase in order', () {
+    final word = c(TextNode(['night']));
     expect(
-      q.where,
+      word.where,
       "((r0.notes LIKE ? ESCAPE '\\' OR EXISTS (SELECT 1 FROM dive_sites ts "
-      "WHERE ts.id = r0.site_id AND ts.name LIKE ? ESCAPE '\\')) "
-      "AND (r0.notes LIKE ? ESCAPE '\\' OR EXISTS (SELECT 1 FROM dive_sites ts "
       "WHERE ts.id = r0.site_id AND ts.name LIKE ? ESCAPE '\\')))",
     );
+    expect(word.params, ['%night%', '%night%']);
+
+    // A multi-word node only comes from quotes or a builder text row: the
+    // words must appear together, in this order (#2773).
+    final phrase = c(TextNode(['night', 'dive']));
+    expect(phrase.where, word.where);
+    expect(phrase.params, ['%night dive%', '%night dive%']);
+    expect(phrase.tablesTouched, {'dives', 'dive_sites'});
+  });
+
+  test('bare words stay separate terms through an AND', () {
+    final q = c(
+      AndNode([
+        TextNode(['night']),
+        TextNode(['dive']),
+      ]),
+    );
     expect(q.params, ['%night%', '%night%', '%dive%', '%dive%']);
-    expect(q.tablesTouched, {'dives', 'dive_sites'});
+  });
+
+  test('a phrase escapes LIKE wildcards like a word does', () {
+    expect(c(TextNode(['100%', 'night'])).params.first, '%100\\% night%');
   });
 
   test('AND, OR and NOT nest with parentheses', () {

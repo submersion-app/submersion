@@ -3,15 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/constants/map_tile_config.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/providers/async_value_extensions.dart';
+import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/bathymetry/presentation/bathymetry_labels.dart';
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
-import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_surface.dart';
-import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/seascape_chrome.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_depth_legend.dart';
@@ -23,23 +23,88 @@ import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/site_scape/presentation/path_provenance_chip.dart';
+import 'package:submersion/features/site_scape/presentation/site_terrain_pane.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Fullscreen spatial seascape: the dive's reconstructed swim path threaded
-/// through a synthesized seafloor, viewable above and below the waterline.
-/// Two captions keep the reconstruction honest (estimated path / synthesized
-/// seafloor). The scrub timeline moves the diver along the route.
-class SpatialSitePage extends ConsumerStatefulWidget {
+/// Fullscreen spatial seascape for one dive: the dive's reconstructed swim
+/// path, threaded through real terrain when the dive has a site to place
+/// `SiteTerrainPane`'s site-level markers, features and LOD against, or
+/// through a synthesized seafloor otherwise (a dive need not have a site).
+///
+/// Routes to whichever the dive actually has:
+/// - a site with renderable terrain -> `SiteTerrainPane` with a
+///   [DivePlaybackContext], the same
+///   shared base `SiteTerrainPane` gives the site-only view and the
+///   underwater-route view, extended with this dive's path and timeline.
+/// - no site, or one with no coordinates or bathymetry ->
+///   [_DiveSeascapeStandalone], this page's original
+///   self-contained implementation (own terrain fetch centered on the
+///   dive's own entry fix, no markers/features/LOD -- there is no site
+///   record to hang those on).
+class SpatialSitePage extends ConsumerWidget {
   final String diveId;
 
   const SpatialSitePage({super.key, required this.diveId});
 
   @override
-  ConsumerState<SpatialSitePage> createState() => _SpatialSitePageState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final diveAsync = ref.watch(diveProvider(diveId));
+    // Waits for the dive to resolve rather than reading .valueOrNull before
+    // routing: that would read as "no site" while still loading and start
+    // the standalone implementation's own expensive terrain/path fetch,
+    // only to discard it a frame later once the dive (with a site) actually
+    // resolves and this switches to SiteTerrainPane instead (code review).
+    if (!diveAsync.hasSettled) {
+      return Scaffold(
+        appBar: AppBar(title: Text(context.l10n.dive3d_spatial_title)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    final siteId = diveAsync.valueOrNull?.site?.id;
+    if (siteId == null) {
+      return _DiveSeascapeStandalone(diveId: diveId);
+    }
+    // A site that cannot render terrain (no coordinates, or no bathymetry
+    // reachable) would leave SiteTerrainPane showing only a message, with
+    // no path or timeline at all; the standalone view still shows the
+    // dive's path there, over terrain centered on its own fix or a
+    // synthesized seafloor.
+    final siteSceneAsync = ref.watch(siteSeascapeProvider(siteId));
+    if (!siteSceneAsync.hasSettled) {
+      return Scaffold(
+        appBar: AppBar(title: Text(context.l10n.dive3d_spatial_title)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (siteSceneAsync.valueOrNull is! SiteSeascapeReady) {
+      return _DiveSeascapeStandalone(diveId: diveId);
+    }
+    return Scaffold(
+      appBar: AppBar(title: Text(context.l10n.dive3d_spatial_title)),
+      body: SiteTerrainPane(
+        siteId: siteId,
+        playbackContext: DivePlaybackContext(diveId),
+      ),
+    );
+  }
 }
 
-class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
+class _DiveSeascapeStandalone extends ConsumerStatefulWidget {
+  final String diveId;
+
+  const _DiveSeascapeStandalone({required this.diveId});
+
+  @override
+  ConsumerState<_DiveSeascapeStandalone> createState() =>
+      _DiveSeascapeStandaloneState();
+}
+
+class _DiveSeascapeStandaloneState
+    extends ConsumerState<_DiveSeascapeStandalone>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<double> _position = ValueNotifier(0);
   final ValueNotifier<ScenePick?> _hoverPick = ValueNotifier(null);
@@ -300,14 +365,7 @@ class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
     if (inputs == null) return null;
     final units = UnitFormatter(ref.watch(settingsProvider));
     return buildSeascapeAxes(
-      projection: SpatialProjection(
-        minEast: inputs.minEast,
-        maxEast: inputs.maxEast,
-        minNorth: inputs.minNorth,
-        maxNorth: inputs.maxNorth,
-        maxDepth: inputs.maxDepth,
-        verticalExaggeration: inputs.verticalExaggeration,
-      ),
+      projection: seascapeProjection(inputs),
       minEast: inputs.minEast,
       maxEast: inputs.maxEast,
       minNorth: inputs.minNorth,
@@ -345,16 +403,11 @@ class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
     // otherwise the honest synthesized label.
     final sourceId = result.bathymetrySourceId;
     final resolution = result.bathymetryResolutionMeters;
-    final pathLabel = switch (result.pathProvenance) {
-      PathProvenance.measured =>
-        result.pathSourceLabel != null
-            ? context.l10n.dive3d_spatial_recordedPathWithSource(
-                result.pathSourceLabel!,
-              )
-            : context.l10n.dive3d_spatial_recordedPath,
-      PathProvenance.deadReckoned ||
-      PathProvenance.straightLine => context.l10n.dive3d_spatial_estimatedPath,
-    };
+    final pathLabel = pathProvenanceLabel(
+      context,
+      result.pathProvenance,
+      result.pathSourceLabel,
+    );
     return Wrap(
       children: [
         chip(pathLabel),

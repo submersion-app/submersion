@@ -6,12 +6,15 @@ import 'package:submersion/core/database/database.dart';
 const _column = 'computer_tissue_json';
 
 void main() {
-  test('v256 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 256);
+  test('v256 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v257 (profile revision history, #1197) landed on top;
+    // the newest rung owns the exact assertions.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(256));
     expect(AppDatabase.migrationVersions, contains(256));
-    expect(AppDatabase.migrationStepCount(255), 1);
+    expect(
+      AppDatabase.migrationStepCount(255),
+      AppDatabase.migrationStepCount(256) + 1,
+    );
   });
 
   test('the column is additive, so the sync floor does not move', () {
@@ -74,7 +77,7 @@ void main() {
     final names = cols.map((c) => c.read<String>('name')).toSet();
     expect(names, contains(_column));
     final version = await db.customSelect('PRAGMA user_version').getSingle();
-    expect(version.read<int>('user_version'), 256);
+    expect(version.read<int>('user_version'), AppDatabase.currentSchemaVersion);
   });
 
   test('a database already at v256 without the column regains it via '

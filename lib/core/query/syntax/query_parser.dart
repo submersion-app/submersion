@@ -584,14 +584,23 @@ class QueryParser {
         if (tok.kind != TokenKind.number) {
           throw _Abort(_err(QueryErrorCode.expectedNumber, tok));
         }
-        final m = RegExp(r'^(\d+(?:\.\d+)?)([A-Za-z]*)$').firstMatch(tok.text)!;
+        final m = RegExp(
+          r'^(\d+(?:\.\d+)?)(%|[A-Za-z]*)$',
+        ).firstMatch(tok.text)!;
         // Canonical at four decimals in the typed unit, the precision the
         // printer keeps, so parse(print(x)) == parse(x) for any typed text.
         final raw =
             (double.parse(m[1]!) * 10000).round() / 10000 * (negative ? -1 : 1);
         final suffix = m[2]!;
         QueryUnit? unit;
-        if (suffix.isNotEmpty) {
+        if (suffix == '%') {
+          // `32%` on a percent field is the number it already means.
+          if (field.dimension != FieldDimension.percent) {
+            throw _Abort(
+              _err(QueryErrorCode.unknownUnit, tok, args: {'unit': suffix}),
+            );
+          }
+        } else if (suffix.isNotEmpty) {
           unit = QueryUnit.fromSuffix(suffix);
           if (unit == null) {
             throw _Abort(

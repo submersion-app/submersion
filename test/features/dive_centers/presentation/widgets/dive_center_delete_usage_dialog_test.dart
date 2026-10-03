@@ -13,6 +13,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/select_items_menu.dart';
 
 /// Stands in for the database: [linkedDives] dives use every center.
 class _FakeCenterRepository extends DiveCenterRepository {
@@ -147,8 +148,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('enter_selection')));
-    await tester.pumpAndSettle();
+    await enterSelectionViaMenu(tester);
     await tester.tap(find.byKey(const ValueKey('selection_select_all')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('selection_overflow')));

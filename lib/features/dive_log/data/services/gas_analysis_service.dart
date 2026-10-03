@@ -278,20 +278,35 @@ class GasAnalysisService {
       tankPressures,
     );
 
+    final diveEnd =
+        dive.effectiveRuntime?.inSeconds ?? profile.lastOrNull?.timestamp ?? 0;
+    final hasGasSwitches = gasSwitches != null && gasSwitches.isNotEmpty;
+
     for (final tank in dive.tanks) {
-      // Determine when this tank was in use
-      final usageRange = _getTankUsageRange(
-        tank: tank,
-        gasSwitches: gasSwitches,
-        diveStart: 0,
-        diveEnd:
-            dive.effectiveRuntime?.inSeconds ??
-            profile.lastOrNull?.timestamp ??
-            0,
-        tanks: dive.tanks,
-      );
+      // How long the source log says this tank was breathed (issue #1496).
+      // Gas switches say when, which is more, so they win; without them
+      // this is the only thing that tells two same-role tanks apart.
+      final recordedSeconds = hasGasSwitches
+          ? null
+          : tank.usageDuration?.inSeconds;
+      final hasRecordedUsage = recordedSeconds != null && recordedSeconds > 0;
+
+      // Determine when this tank was in use. A recorded duration says how
+      // long but not when, so its depth window is the whole dive.
+      final usageRange = hasRecordedUsage
+          ? (start: 0, end: diveEnd > 0 ? diveEnd : recordedSeconds)
+          : _getTankUsageRange(
+              tank: tank,
+              gasSwitches: gasSwitches,
+              diveStart: 0,
+              diveEnd: diveEnd,
+              tanks: dive.tanks,
+            );
 
       if (usageRange == null) continue;
+      final usageSeconds = hasRecordedUsage
+          ? recordedSeconds
+          : usageRange.end - usageRange.start;
 
       // Get profile points during tank usage
       final usageProfile = profile
@@ -327,6 +342,7 @@ class GasAnalysisService {
           avgDepth: avgDepthDuringUse ?? dive.avgDepth ?? 10.0,
           tankVolume: tank.volume,
           gasMix: tank.gasMix,
+          breathingSeconds: usageSeconds,
         );
       } else if (tank.startPressure != null &&
           tank.endPressure != null &&
@@ -341,7 +357,7 @@ class GasAnalysisService {
         final effectiveAvgDepth = avgDepthDuringUse ?? dive.avgDepth!;
         final pressureUsed = tank.startPressure! - tank.endPressure!;
         if (pressureUsed > 0) {
-          final durationMin = (usageRange.end - usageRange.start) / 60.0;
+          final durationMin = usageSeconds / 60.0;
           if (durationMin > 0) {
             final ambientPressureBar = (effectiveAvgDepth / 10.0) + 1.0;
             if (tank.volume != null) {
@@ -373,7 +389,7 @@ class GasAnalysisService {
           sacRate: sacRate,
           startPressure: tank.startPressure,
           endPressure: tank.endPressure,
-          usageDuration: Duration(seconds: usageRange.end - usageRange.start),
+          usageDuration: Duration(seconds: usageSeconds),
           avgDepthDuringUse: avgDepthDuringUse,
           hasTimeSeriesData: hasTsData,
           order: tank.order,
@@ -771,6 +787,9 @@ class GasAnalysisService {
     required double avgDepth,
     double? tankVolume,
     GasMix gasMix = const GasMix(),
+    // The breathing time when it is not the window's length: a recorded
+    // usage duration (issue #1496) measured over a whole-dive window.
+    int? breathingSeconds,
   }) {
     if (pressurePoints.length < 2) return null;
 
@@ -782,7 +801,7 @@ class GasAnalysisService {
     final pressureUsed = startPressure - endPressure;
     if (pressureUsed <= 0) return null;
 
-    final durationMin = (endTime - startTime) / 60.0;
+    final durationMin = (breathingSeconds ?? endTime - startTime) / 60.0;
     if (durationMin <= 0) return null;
 
     final ambientPressureBar = (avgDepth / 10.0) + 1.0;

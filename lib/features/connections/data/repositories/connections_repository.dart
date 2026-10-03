@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/connections/data/connections_around_loader.dart';
 import 'package:submersion/features/connections/data/connections_map_loader.dart';
@@ -132,7 +133,10 @@ class ConnectionsRepository {
     final first = rows.single.readNullable<int>('first_ms');
     final last = rows.single.readNullable<int>('last_ms');
     if (first == null || last == null) return null;
-    return (first: _ms(first).year, last: _ms(last).year);
+    return (
+      first: wallClockUtcFromMillis(first).year,
+      last: wallClockUtcFromMillis(last).year,
+    );
   }
 
   /// The dive ids behind a selected node or edge, newest first, under the
@@ -193,7 +197,4 @@ class ConnectionsRepository {
         ]),
       )
       .debounce(DiveRepository.changeTickDebounce);
-
-  static DateTime _ms(int ms) =>
-      DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true);
 }

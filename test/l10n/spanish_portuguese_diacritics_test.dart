@@ -106,7 +106,6 @@ void main() {
         'the RAE accepts cardiaca beside cardíaca',
         keys: {
           'settings_appearance_metric_heartRate',
-          'transfer_computers_aboutContent',
           'diveImport_healthkit_dataUsage',
           'settings_dataSources_appleHealth_dataTypeHeartRate',
         },
@@ -163,7 +162,6 @@ void main() {
         keys: {
           'diveComputer_list_helpBrandsList',
           'diveLog_detail_tideCalculated',
-          'transfer_computers_aboutContent',
           'species_smooth_hammerhead_shark_desc',
           'species_pilot_whale_desc',
           'species_loggerhead_sea_turtle_desc',

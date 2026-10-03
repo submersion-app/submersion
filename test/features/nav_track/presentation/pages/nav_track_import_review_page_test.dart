@@ -9,8 +9,11 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/location_service_provider.dart';
+import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -82,13 +85,28 @@ NavTrackImportPreview _preview({
   );
 }
 
+/// Device GPS that never has a fix, so opening the site picker (which asks
+/// for one when the page supplies no location) stays off the Geolocator
+/// platform channel.
+class _NoFixLocationService implements LocationService {
+  @override
+  Future<LocationResult?> getCurrentLocation({
+    bool includeGeocoding = true,
+    Duration timeout = const Duration(seconds: 15),
+    String languageCode = LocationService.defaultLanguageCode,
+  }) async => null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 Future<void> _pump(
   WidgetTester tester, {
   required NavTrackImportPreview preview,
   NavTrackImportService? service,
   List<EquipmentItem>? equipment,
   MockSettingsNotifier? settingsNotifier,
-  Dive? preselectedDive,
+  List<DiveSite>? sites,
 }) async {
   // A host locale the app actually translates into, so the English finders
   // below pass only because the MaterialApp pins `en`. Drop the pin and
@@ -110,6 +128,10 @@ Future<void> _pump(
           navTrackImportServiceProvider.overrideWithValue(service),
         if (equipment != null)
           activeEquipmentProvider.overrideWith((ref) async => equipment),
+        if (sites != null) ...[
+          sitesProvider.overrideWith((ref) async => sites),
+          locationServiceProvider.overrideWithValue(_NoFixLocationService()),
+        ],
       ],
       child: MaterialApp(
         locale: const Locale('en'),
@@ -119,11 +141,65 @@ Future<void> _pump(
           bytes: Uint8List(0),
           fileName: '005.DAT.csv',
           preview: preview,
-          preselectedDive: preselectedDive,
         ),
       ),
     ),
   );
+  await tester.pumpAndSettle();
+}
+
+/// Opens the review page in return mode from a host page, the way the Dive
+/// Edit page's route sheet does, and collects what it pops with.
+Future<List<NavTrackImportResult?>> _pumpReturnMode(
+  WidgetTester tester, {
+  required NavTrackImportPreview preview,
+  required NavTrackImportService service,
+}) async {
+  tester.platformDispatcher.localesTestValue = const [
+    Locale('de'),
+    Locale('en'),
+  ];
+  addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+  final results = <NavTrackImportResult?>[];
+  final base = await getBaseOverrides();
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        ...base,
+        navTrackImportServiceProvider.overrideWithValue(service),
+      ],
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () async => results.add(
+                await navigateToNavTrackReviewForResult(
+                  context,
+                  Uint8List(0),
+                  fileName: '005.DAT.csv',
+                  preview: preview,
+                ),
+              ),
+              child: const Text('HOST'),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.tap(find.text('HOST'));
+  await tester.pumpAndSettle();
+  return results;
+}
+
+Future<void> _tapSave(WidgetTester tester) async {
+  await tester.drag(find.byType(ListView), const Offset(0, -400));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
   await tester.pumpAndSettle();
 }
 
@@ -270,6 +346,8 @@ class _RecordingImportService implements NavTrackImportService {
   String? lastEquipmentId;
   String? lastReplacingRouteId;
   String? lastDiverId;
+  Dive? lastDive;
+  String? lastSiteId;
   int commitCount = 0;
 
   @override
@@ -293,6 +371,8 @@ class _RecordingImportService implements NavTrackImportService {
     lastEquipmentId = equipmentId;
     lastReplacingRouteId = replacingRouteId;
     lastDiverId = diverId;
+    lastDive = dive;
+    lastSiteId = siteId;
     commitCount++;
     return 'new-route-id';
   }
@@ -497,6 +577,42 @@ void main() {
       expect(find.text('No site chosen'), findsOneWidget);
     },
   );
+
+  testWidgets('the site picker offers no "New Dive Site" button (issue #2792) '
+      'and a picked site is shown', (tester) async {
+    await _pump(
+      tester,
+      preview: _preview(),
+      sites: const [DiveSite(id: 's1', name: 'Coral Garden')],
+    );
+
+    final picker = find.byKey(const ValueKey('nav-track-site-picker'));
+    await tester.scrollUntilVisible(
+      picker,
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byType(ListView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(picker);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Select Dive Site'), findsOneWidget);
+    expect(find.text('New Dive Site'), findsNothing);
+
+    await tester.tap(find.text('Coral Garden'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Select Dive Site'), findsNothing);
+    expect(
+      find.descendant(of: picker, matching: find.text('Coral Garden')),
+      findsOneWidget,
+    );
+  });
 
   testWidgets('leaves the route unlinked when several dives overlap', (
     tester,
@@ -721,40 +837,6 @@ void main() {
         find.byKey(const ValueKey('nav-track-link-choose-another')),
         findsNothing,
       );
-    });
-
-    testWidgets('keeps a pre-selected dive selected even outside the overlap '
-        'window, and shows it inline', (tester) async {
-      final dives = nearby();
-      await _pump(
-        tester,
-        preview: _preview(nearbyDives: dives),
-        preselectedDive: dives.last,
-      );
-
-      expect(find.byKey(const ValueKey('nav-track-link-n7')), findsOneWidget);
-      expect(group(tester).groupValue, 'n7');
-      await reveal(tester, find.byKey(const ValueKey('nav-track-site-picker')));
-      expect(find.text('Blue Hole'), findsOneWidget);
-    });
-
-    testWidgets('keeps a pre-selected dive selected even when a different dive '
-        'overlaps', (tester) async {
-      final overlapping = _dive('d1', routeStart);
-      final dives = nearby();
-      await _pump(
-        tester,
-        preview: _preview(candidateDives: [overlapping]),
-        preselectedDive: dives.first,
-      );
-
-      expect(find.byKey(const ValueKey('nav-track-link-d1')), findsOneWidget);
-      expect(find.byKey(const ValueKey('nav-track-link-n1')), findsOneWidget);
-      expect(group(tester).groupValue, 'n1');
-      // The overlap candidate is a real match, so the fallback hint and
-      // sheet stay out of the way.
-      expect(find.textContaining('No dive overlaps'), findsNothing);
-      expect(find.text('2h 0min before the recording'), findsOneWidget);
     });
   });
 
@@ -1124,6 +1206,61 @@ void main() {
       expect(service.lastEquipmentId, isNull);
     },
   );
+  group('return mode (Dive Edit import)', () {
+    final overlapping = _dive('d-overlap', DateTime.utc(2023, 11, 14, 22));
+
+    testWidgets('hides the dive picker and saves the route unlinked, even '
+        'when exactly one dive overlaps', (tester) async {
+      final service = _RecordingImportService();
+      final results = await _pumpReturnMode(
+        tester,
+        preview: _preview(candidateDives: [overlapping]),
+        service: service,
+      );
+
+      expect(find.text('Link to dive'), findsNothing);
+      await _tapSave(tester);
+
+      expect(service.commitCount, 1);
+      expect(service.lastDive, isNull);
+      expect(results, [(routeId: 'new-route-id', replacedRouteId: null)]);
+      // Back on the host page: nothing navigated past it.
+      expect(find.text('HOST'), findsOneWidget);
+    });
+
+    testWidgets('reports the duplicate it replaced', (tester) async {
+      final service = _RecordingImportService();
+      final results = await _pumpReturnMode(
+        tester,
+        preview: _preview(duplicateOfRouteId: 'existing-route'),
+        service: service,
+      );
+
+      await tester.tap(find.byType(Checkbox));
+      await tester.pumpAndSettle();
+      await _tapSave(tester);
+
+      expect(results, [
+        (routeId: 'new-route-id', replacedRouteId: 'existing-route'),
+      ]);
+      // The caller replaces it on its own Save, so the duplicate survives a
+      // cancelled edit.
+      expect(service.lastReplacingRouteId, isNull);
+    });
+
+    testWidgets('pops null when the diver backs out', (tester) async {
+      final results = await _pumpReturnMode(
+        tester,
+        preview: _preview(),
+        service: _RecordingImportService(),
+      );
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(results, [null]);
+    });
+  });
 }
 
 class _FailingImportService implements NavTrackImportService {

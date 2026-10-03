@@ -6,6 +6,7 @@ import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
@@ -780,6 +781,67 @@ void main() {
 
   group('importProfile', () {
     test(
+      'first profile series from computer import is marked computer_import',
+      () async {
+        final computerId = await insertComputer();
+        final entryTime = DateTime(2026, 5, 10, 8, 30);
+
+        final diveId = await repository.importProfile(
+          computerId: computerId,
+          profileStartTime: entryTime,
+          points: const [
+            ProfilePointData(timestamp: 0, depth: 0.0),
+            ProfilePointData(timestamp: 60, depth: 12.0),
+          ],
+          durationSeconds: 30 * 60,
+          maxDepth: 12.0,
+          forceNew: true,
+        );
+
+        final revisions = await profileSeries.getRevisionsForDive(diveId);
+        expect(revisions, hasLength(1));
+        expect(revisions.single.revisionKind, equals('computer_import'));
+      },
+    );
+
+    test('a second computer attached to an existing dive is also marked '
+        'computer_import', () async {
+      final computerId = await insertComputer();
+      final entryTime = DateTime(2026, 5, 10, 8, 30);
+      const points = [
+        ProfilePointData(timestamp: 0, depth: 0.0),
+        ProfilePointData(timestamp: 60, depth: 12.0),
+      ];
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: entryTime,
+        points: points,
+        durationSeconds: 30 * 60,
+        maxDepth: 12.0,
+        forceNew: true,
+      );
+      final otherComputerId = await insertComputer(
+        id: 'computer-2',
+        name: 'Other Computer',
+      );
+      final matchedId = await repository.importProfile(
+        computerId: otherComputerId,
+        profileStartTime: entryTime,
+        points: points,
+        durationSeconds: 30 * 60,
+        maxDepth: 12.0,
+      );
+
+      expect(matchedId, diveId);
+      final revisions = await profileSeries.getRevisionsForDive(diveId);
+      expect(revisions, hasLength(2));
+      expect(
+        revisions.map((r) => r.revisionKind),
+        everyElement('computer_import'),
+      );
+    });
+
+    test(
       'forceNew=true skips dive matching and always creates new dive',
       () async {
         final computerId = await insertComputer();
@@ -1401,6 +1463,328 @@ void main() {
         db.gasSwitches,
       )..where((t) => t.diveId.equals(diveId))).get();
       expect(switches, isEmpty);
+    });
+
+    test(
+      'links a new dive\'s switch by index when cylinders share a mix',
+      () async {
+        // A sidemount pair: one gas on two cylinders (#2517). The switch names
+        // the left cylinder, and the right one, listed after it, must not take
+        // the link because it holds the same mix.
+        final computerId = await insertComputer();
+        final diveId = await repository.importProfile(
+          computerId: computerId,
+          profileStartTime: DateTime(2026, 5, 4, 10, 0),
+          points: const [
+            ProfilePointData(timestamp: 0, depth: 0.0),
+            ProfilePointData(timestamp: 600, depth: 20.0),
+          ],
+          durationSeconds: 1800,
+          maxDepth: 25.0,
+          tanks: const [
+            TankData(index: 0, o2Percent: 32.0, role: 'sidemountLeft'),
+            TankData(index: 1, o2Percent: 50.0),
+            TankData(index: 2, o2Percent: 32.0, role: 'sidemountRight'),
+          ],
+          gasSwitches: const [
+            GasSwitchData(timestamp: 0, depth: 0.0, toTankIndex: 0),
+          ],
+        );
+
+        final switches = await (db.select(
+          db.gasSwitches,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        final tank = await (db.select(
+          db.diveTanks,
+        )..where((t) => t.id.equals(switches.single.tankId))).getSingle();
+        expect(tank.tankOrder, 0);
+        expect(tank.tankRole, 'sidemountLeft');
+      },
+    );
+
+    test('links an existing dive\'s switch to the first cylinder of a shared '
+        'mix', () async {
+      final computerId = await insertComputer();
+      final entryTime = DateTime(2026, 5, 5, 9, 0);
+      await insertDive(
+        id: 'dive-doubles',
+        computerId: computerId,
+        diveDateTime: entryTime.millisecondsSinceEpoch,
+        entryTime: entryTime.millisecondsSinceEpoch,
+        exitTime: entryTime
+            .add(const Duration(minutes: 30))
+            .millisecondsSinceEpoch,
+        duration: 1800,
+        maxDepth: 25.0,
+      );
+      for (final (id, order) in [('tank-right', 1), ('tank-left', 0)]) {
+        await db
+            .into(db.diveTanks)
+            .insert(
+              DiveTanksCompanion(
+                id: Value(id),
+                diveId: const Value('dive-doubles'),
+                o2Percent: const Value(32.0),
+                hePercent: const Value(0.0),
+                tankOrder: Value(order),
+              ),
+            );
+      }
+
+      await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: entryTime,
+        points: const [ProfilePointData(timestamp: 0, depth: 0.0)],
+        durationSeconds: 1800,
+        maxDepth: 25.0,
+        tanks: const [
+          TankData(index: 0, o2Percent: 32.0),
+          TankData(index: 1, o2Percent: 32.0),
+        ],
+        gasSwitches: const [
+          GasSwitchData(timestamp: 0, depth: 0.0, toTankIndex: 0),
+        ],
+      );
+
+      final switches = await (db.select(
+        db.gasSwitches,
+      )..where((t) => t.diveId.equals('dive-doubles'))).get();
+      expect(switches.single.tankId, 'tank-left');
+    });
+
+    group('addMissingTanks on an existing dive', () {
+      final start = DateTime(2026, 5, 6, 9, 0);
+
+      Future<String> seedSingleTankDive(String computerId) async {
+        await insertDive(
+          id: 'dive-sidemount',
+          computerId: computerId,
+          diveDateTime: start.millisecondsSinceEpoch,
+          entryTime: start.millisecondsSinceEpoch,
+          exitTime: start
+              .add(const Duration(minutes: 30))
+              .millisecondsSinceEpoch,
+          duration: 1800,
+          maxDepth: 20.0,
+        );
+        await db
+            .into(db.diveTanks)
+            .insert(
+              const DiveTanksCompanion(
+                id: Value('tank-stored'),
+                diveId: Value('dive-sidemount'),
+                o2Percent: Value(32.0),
+                hePercent: Value(0.0),
+                tankOrder: Value(0),
+                startPressure: Value(195.0),
+              ),
+            );
+        return 'dive-sidemount';
+      }
+
+      Future<void> reimport(String computerId, {required bool add}) =>
+          repository.importProfile(
+            computerId: computerId,
+            profileStartTime: start,
+            points: const [
+              ProfilePointData(
+                timestamp: 0,
+                depth: 0.0,
+                pressure: 210.0,
+                tankIndex: 1,
+                tankPressures: [195.0, 210.0],
+              ),
+              ProfilePointData(
+                timestamp: 600,
+                depth: 20.0,
+                pressure: 150.0,
+                tankIndex: 1,
+                tankPressures: [140.0, 150.0],
+              ),
+            ],
+            durationSeconds: 1800,
+            maxDepth: 20.0,
+            tanks: const [
+              TankData(
+                index: 0,
+                o2Percent: 32.0,
+                startPressure: 195.0,
+                role: 'sidemountLeft',
+              ),
+              TankData(index: 1, o2Percent: 32.0, role: 'sidemountRight'),
+            ],
+            addMissingTanks: add,
+          );
+
+      test('adds the cylinder the stored reading lacked', () async {
+        final computerId = await insertComputer();
+        final diveId = await seedSingleTankDive(computerId);
+
+        await reimport(computerId, add: true);
+
+        final tanks =
+            await (db.select(db.diveTanks)
+                  ..where((t) => t.diveId.equals(diveId))
+                  ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
+                .get();
+        expect(tanks, hasLength(2));
+        expect(tanks[0].id, 'tank-stored');
+        final added = tanks[1];
+        expect(added.tankOrder, 1);
+        expect(added.sourceTankIndex, 1);
+        expect(added.tankRole, 'sidemountRight');
+        // Derived from its own series, which the header could not give it.
+        expect(added.startPressure, 210.0);
+        expect(added.endPressure, 150.0);
+
+        final series = await (db.select(
+          db.tankPressureSeries,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        expect(series.map((s) => s.tankId).toSet(), {'tank-stored', added.id});
+      });
+
+      test('leaves the stored cylinder as it was', () async {
+        final computerId = await insertComputer();
+        final diveId = await seedSingleTankDive(computerId);
+
+        await reimport(computerId, add: true);
+
+        final stored = await (db.select(
+          db.diveTanks,
+        )..where((t) => t.id.equals('tank-stored'))).getSingle();
+        expect(stored.diveId, diveId);
+        expect(stored.tankRole, 'backGas');
+        expect(stored.startPressure, 195.0);
+        expect(stored.endPressure, isNull);
+      });
+
+      Future<void> insertStoredTank(
+        String id, {
+        required String computerId,
+        required int order,
+        required int sourceIndex,
+      }) => db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion(
+              id: Value(id),
+              diveId: const Value('dive-sidemount'),
+              computerId: Value(computerId),
+              o2Percent: const Value(32.0),
+              hePercent: const Value(0.0),
+              tankOrder: Value(order),
+              sourceTankIndex: Value(sourceIndex),
+            ),
+          );
+
+      Future<Map<String, int>> seriesCountByTank(String diveId) async {
+        final series = await (db.select(
+          db.tankPressureSeries,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        final counts = <String, int>{};
+        for (final s in series) {
+          counts[s.tankId] = (counts[s.tankId] ?? 0) + 1;
+        }
+        return counts;
+      }
+
+      test('routes series by source index, not stored order', () async {
+        // The diver swapped the pair: the row shown first holds the
+        // computer's tank 1, and the row shown second its tank 0 (#1314).
+        final computerId = await insertComputer();
+        await insertDive(
+          id: 'dive-sidemount',
+          computerId: computerId,
+          diveDateTime: start.millisecondsSinceEpoch,
+          entryTime: start.millisecondsSinceEpoch,
+          exitTime: start
+              .add(const Duration(minutes: 30))
+              .millisecondsSinceEpoch,
+          duration: 1800,
+          maxDepth: 20.0,
+        );
+        await insertStoredTank(
+          'tank-shown-first',
+          computerId: computerId,
+          order: 0,
+          sourceIndex: 1,
+        );
+        await insertStoredTank(
+          'tank-shown-second',
+          computerId: computerId,
+          order: 1,
+          sourceIndex: 0,
+        );
+
+        await reimport(computerId, add: true);
+
+        final tanks = await (db.select(
+          db.diveTanks,
+        )..where((t) => t.diveId.equals('dive-sidemount'))).get();
+        expect(tanks, hasLength(2), reason: 'both indices have a row');
+
+        // Tank 0 opened at 195 bar and tank 1 at 210 bar; each series lands
+        // on the row whose source index it is, not the one at that order.
+        final series = await TankPressureSeriesRepository(
+          database: db,
+        ).getSeriesForDive('dive-sidemount');
+        expect(
+          {for (final s in series) s.tankId: s.samples.first.pressure},
+          {'tank-shown-first': 210.0, 'tank-shown-second': 195.0},
+        );
+      });
+
+      test('adds the index a reassigned row no longer holds', () async {
+        // One stored row, shown second but holding the computer's tank 0.
+        // By stored order it would look like tank 1 was already there.
+        final computerId = await insertComputer();
+        await insertDive(
+          id: 'dive-sidemount',
+          computerId: computerId,
+          diveDateTime: start.millisecondsSinceEpoch,
+          entryTime: start.millisecondsSinceEpoch,
+          exitTime: start
+              .add(const Duration(minutes: 30))
+              .millisecondsSinceEpoch,
+          duration: 1800,
+          maxDepth: 20.0,
+        );
+        await insertStoredTank(
+          'tank-reassigned',
+          computerId: computerId,
+          order: 1,
+          sourceIndex: 0,
+        );
+
+        await reimport(computerId, add: true);
+
+        final tanks = await (db.select(
+          db.diveTanks,
+        )..where((t) => t.diveId.equals('dive-sidemount'))).get();
+        expect(tanks, hasLength(2));
+        final added = tanks.singleWhere((t) => t.id != 'tank-reassigned');
+        expect(added.sourceTankIndex, 1);
+        // Shown after the stored row, whose order is already 1.
+        expect(added.tankOrder, 2);
+        expect(added.tankRole, 'sidemountRight');
+        expect(added.startPressure, 210.0);
+        expect(await seriesCountByTank('dive-sidemount'), {
+          'tank-reassigned': 1,
+          added.id: 1,
+        });
+      });
+
+      test('adds nothing when off', () async {
+        final computerId = await insertComputer();
+        final diveId = await seedSingleTankDive(computerId);
+
+        await reimport(computerId, add: false);
+
+        final tanks = await (db.select(
+          db.diveTanks,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        expect(tanks.map((t) => t.id), ['tank-stored']);
+      });
     });
 
     test('creates a data source record when creating a new dive', () async {

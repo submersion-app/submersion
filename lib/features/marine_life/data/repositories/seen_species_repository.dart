@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/marine_life/domain/entities/seen_species.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as domain;
@@ -85,9 +86,7 @@ class SeenSpeciesRepository {
       sightingId: row.read<String>('sighting_id'),
       diveId: row.read<String>('dive_id'),
       diveNumber: row.read<int?>('dive_number'),
-      diveDateTime: DateTime.fromMillisecondsSinceEpoch(
-        row.read<int>('dive_date_time'),
-      ),
+      diveDateTime: wallClockUtcFromMillis(row.read<int>('dive_date_time')),
       siteId: row.read<String?>('site_id'),
       siteName: row.read<String?>('site_name'),
       maxDepthMeters: row.read<double?>('max_depth'),
@@ -102,10 +101,10 @@ class SeenSpeciesRepository {
       totalSightings: row.read<int>('total_sightings'),
       diveCount: row.read<int>('dive_count'),
       siteCount: row.read<int>('site_count'),
-      firstSeen: DateTime.fromMillisecondsSinceEpoch(
-        row.read<int>('first_seen'),
-      ),
-      lastSeen: DateTime.fromMillisecondsSinceEpoch(row.read<int>('last_seen')),
+      // first_seen / last_seen are MIN / MAX of dive_date_time, a wall clock
+      // flagged UTC (issue #2808).
+      firstSeen: wallClockUtcFromMillis(row.read<int>('first_seen')),
+      lastSeen: wallClockUtcFromMillis(row.read<int>('last_seen')),
     );
   }
 

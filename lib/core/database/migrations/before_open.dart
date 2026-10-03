@@ -7,6 +7,12 @@ part of 'app_database_migrations.dart';
 /// asserted again here.
 extension BeforeOpenBackstops on AppDatabase {
   Future<void> _beforeOpen(OpeningDetails details) async {
+    // v257 backstop: metadata-only profile revision history over existing
+    // dive_profile_series rows. Safe to re-run: INSERT OR IGNORE keeps
+    // existing revisions untouched and only fills missing pointer rows.
+    await _assertProfileSeriesHistorySchema();
+    await _backfillProfileSeriesHistoryRows();
+
     // v252 backstop: nav_tracks.diver_id. Column only; the backfill stays
     // in the rung.
     await _assertNavTrackDiverIdColumn();
@@ -600,6 +606,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // v254 backstop: re-assert dive_tanks.role_source, for the same reason
     // as transmitter_serial above. Column only, no backfill.
     await _assertTankRoleSourceColumn();
+
+    // v259 backstop: re-assert dive_tanks.usage_duration (issue #1496).
+    // Column only, no backfill.
+    await _assertTankUsageDurationColumn();
 
     // v145 backstop: re-assert the gps_tracks provenance and trim columns.
     await _assertGpsTrackColumns();

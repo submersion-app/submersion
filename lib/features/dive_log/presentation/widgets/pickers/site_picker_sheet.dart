@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -15,6 +16,63 @@ import 'package:submersion/features/dive_sites/presentation/widgets/similar_valu
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Returned by the site picker's "New Dive Site" button in place of a
+/// [DiveSite], so [pickOrCreateSite] can tell "create a new one" apart from
+/// "picked this existing one" (the sheet resolves to null when merely
+/// dismissed).
+const _createNewSiteSentinel = '__create_new__';
+
+/// Opens [SitePickerSheet] in a draggable bottom sheet and, on "New Dive
+/// Site", pushes the new-site form seeded with [newSiteSeedLocation] and
+/// resolves once the site has been saved.
+///
+/// Returns the picked or newly created [DiveSite], or null if the sheet was
+/// dismissed or the new-site form was cancelled.
+///
+/// With [allowCreate] false the sheet offers no "New Dive Site" button, for
+/// callers that cannot open the new-site form mid-flow.
+Future<DiveSite?> pickOrCreateSite(
+  BuildContext context,
+  WidgetRef ref, {
+  required String? selectedSiteId,
+  LocationResult? currentLocation,
+  GeoPoint? diveLocation,
+  GeoPoint? newSiteSeedLocation,
+  bool allowCreate = true,
+}) async {
+  final chosen = await showModalBottomSheet<Object>(
+    context: context,
+    isScrollControlled: true,
+    builder: (sheetContext) => DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (sheetContext, scrollController) => SitePickerSheet(
+        scrollController: scrollController,
+        selectedSiteId: selectedSiteId,
+        currentLocation: currentLocation,
+        diveLocation: diveLocation,
+        onSiteSelected: (site) => Navigator.of(sheetContext).pop(site),
+        onCreateNewSite: allowCreate
+            ? () => Navigator.of(sheetContext).pop(_createNewSiteSentinel)
+            : null,
+      ),
+    ),
+  );
+
+  if (chosen is DiveSite) return chosen;
+  if (chosen != _createNewSiteSentinel) return null;
+
+  if (!context.mounted) return null;
+  final newSiteId = await context.push<String>(
+    '/sites/new',
+    extra: newSiteSeedLocation,
+  );
+  if (newSiteId == null || !context.mounted) return null;
+  return ref.read(siteProvider(newSiteId).future);
+}
+
 /// Site picker bottom sheet with nearby site suggestions
 class SitePickerSheet extends ConsumerStatefulWidget {
   final ScrollController scrollController;
@@ -22,7 +80,7 @@ class SitePickerSheet extends ConsumerStatefulWidget {
   final LocationResult? currentLocation;
   final GeoPoint? diveLocation;
   final void Function(DiveSite) onSiteSelected;
-  final VoidCallback onCreateNewSite;
+  final VoidCallback? onCreateNewSite;
 
   const SitePickerSheet({
     super.key,
@@ -31,7 +89,7 @@ class SitePickerSheet extends ConsumerStatefulWidget {
     this.currentLocation,
     this.diveLocation,
     required this.onSiteSelected,
-    required this.onCreateNewSite,
+    this.onCreateNewSite,
   });
 
   @override
@@ -187,11 +245,12 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
                   ],
                 ),
               ),
-              TextButton.icon(
-                onPressed: widget.onCreateNewSite,
-                icon: const Icon(Icons.add),
-                label: Text(context.l10n.diveLog_sitePicker_newDiveSite),
-              ),
+              if (widget.onCreateNewSite != null)
+                TextButton.icon(
+                  onPressed: widget.onCreateNewSite,
+                  icon: const Icon(Icons.add),
+                  label: Text(context.l10n.diveLog_sitePicker_newDiveSite),
+                ),
             ],
           ),
         ),
@@ -257,14 +316,16 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
                         context.l10n.diveLog_sitePicker_noSites,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
-                      const SizedBox(height: 8),
-                      TextButton.icon(
-                        onPressed: widget.onCreateNewSite,
-                        icon: const Icon(Icons.add),
-                        label: Text(
-                          context.l10n.diveLog_sitePicker_addDiveSite,
+                      if (widget.onCreateNewSite != null) ...[
+                        const SizedBox(height: 8),
+                        TextButton.icon(
+                          onPressed: widget.onCreateNewSite,
+                          icon: const Icon(Icons.add),
+                          label: Text(
+                            context.l10n.diveLog_sitePicker_addDiveSite,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 );

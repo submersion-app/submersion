@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -233,6 +234,73 @@ void main() {
       // system back button returns to it instead of closing the app (#647).
       expect(find.text('advanced search page'), findsOneWidget);
       expect(router.routerDelegate.canPop(), isTrue);
+    });
+  });
+
+  group('DiveFilterSheet and a suspended search (#2773)', () {
+    setUp(() async {
+      await setUpTestDatabase();
+    });
+
+    tearDown(() async {
+      await tearDownTestDatabase();
+    });
+
+    testWidgets('Apply leaves "All dives" so the filter takes effect', (
+      tester,
+    ) async {
+      late WidgetRef capturedRef;
+      final suspended = StateProvider<DiveFilterState>(
+        (ref) =>
+            DiveFilterState(query: TextNode(['manta']), axesSuspended: true),
+      );
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides.cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) {
+                  capturedRef = ref;
+                  return Center(
+                    child: ElevatedButton(
+                      onPressed: () => showModalBottomSheet<void>(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (_) => DiveFilterSheet(
+                          ref: ref,
+                          filterProvider: suspended,
+                        ),
+                      ),
+                      child: const Text('Open filter'),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open filter'));
+      await tester.pumpAndSettle();
+      final scrollable = find.byType(Scrollable).first;
+      await tester.scrollUntilVisible(
+        find.text('Apply Filters'),
+        50.0,
+        scrollable: scrollable,
+      );
+      await tester.ensureVisible(find.text('Apply Filters'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply Filters'));
+      await tester.pumpAndSettle();
+
+      expect(capturedRef.read(suspended).axesSuspended, isFalse);
+      expect(capturedRef.read(suspended).query, TextNode(['manta']));
     });
   });
 }

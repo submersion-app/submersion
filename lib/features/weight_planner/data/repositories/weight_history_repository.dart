@@ -4,6 +4,7 @@ import 'package:submersion/core/buoyancy/weight_observation.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_lead.dart';
@@ -141,7 +142,7 @@ class WeightHistoryRepository {
       observations.add(
         WeightObservation(
           diveId: dive.id,
-          diveDateTime: DateTime.fromMillisecondsSinceEpoch(dive.diveDateTime),
+          diveDateTime: wallClockUtcFromMillis(dive.diveDateTime),
           waterType: dive.waterType != null
               ? WaterType.values.firstWhere(
                   (w) => w.name == dive.waterType,

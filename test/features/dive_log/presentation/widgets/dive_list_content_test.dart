@@ -19,10 +19,13 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_table_vie
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 
 import '../../../../helpers/selection_contract.dart';
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/test_app.dart';
 
 // ---------------------------------------------------------------------------
@@ -1113,8 +1116,7 @@ void main() {
             find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == id);
 
         // Select, then check d1 -> selection mode with d1 as the anchor.
-        await tester.tap(find.byKey(const ValueKey('enter_selection')));
-        await tester.pumpAndSettle();
+        await enterSelectionViaMenu(tester);
         await tester.tap(tileFinder('d1'));
         await tester.pumpAndSettle();
         expect(tile('d1').isSelectionMode, isTrue);
@@ -1251,8 +1253,7 @@ void main() {
         (w) => w is CompactDiveListTile && w.diveId == id,
       );
 
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
       expect(tile('d1').isSelectionMode, isTrue);
 
       await tester.tap(tileFinder('d2'));
@@ -1284,9 +1285,14 @@ void main() {
       ),
     ];
 
-    Future<void> selectAllThenFilter(WidgetTester tester) async {
+    // Table mode has no menu inside the list (issue #2775), so both modes
+    // enter through the controller a page would pass in.
+    Future<void> selectAllThenFilter(
+      WidgetTester tester,
+      SelectionController controller,
+    ) async {
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      controller.enterExplicit();
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('selection_select_all')));
       await tester.pumpAndSettle();
@@ -1304,6 +1310,8 @@ void main() {
     }
 
     testWidgets('keeps the checks that stay on screen (list)', (tester) async {
+      final controller = SelectionController();
+      addTearDown(controller.dispose);
       final summaries = twoDives().map(DiveSummary.fromDive).toList();
       final base = await getBaseOverrides();
       await tester.pumpWidget(
@@ -1319,14 +1327,19 @@ void main() {
             ),
           ],
           locale: const Locale('en'),
-          child: const DiveListContent(showAppBar: false),
+          child: DiveListContent(
+            showAppBar: false,
+            selectionController: controller,
+          ),
         ),
       );
-      await selectAllThenFilter(tester);
+      await selectAllThenFilter(tester, controller);
       expect(find.text('2 selected'), findsOneWidget);
     });
 
     testWidgets('keeps the checks that stay on screen (table)', (tester) async {
+      final controller = SelectionController();
+      addTearDown(controller.dispose);
       final dives = twoDives();
       final base = await getBaseOverrides();
       await tester.pumpWidget(
@@ -1361,10 +1374,13 @@ void main() {
             ),
           ],
           locale: const Locale('en'),
-          child: const DiveListContent(showAppBar: false),
+          child: DiveListContent(
+            showAppBar: false,
+            selectionController: controller,
+          ),
         ),
       );
-      await selectAllThenFilter(tester);
+      await selectAllThenFilter(tester, controller);
       expect(find.text('2 selected'), findsOneWidget);
     });
   });
@@ -1424,8 +1440,7 @@ void main() {
 
       // Enter selection mode and check d1 as the only selection. With 1 of 4
       // selected, both Select All and Deselect All are visible.
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
       await tester.tap(tileFinder('d1'));
       await tester.pumpAndSettle();
 
@@ -1487,8 +1502,7 @@ void main() {
       // One dive checked -> Compare is visible but disabled. Actions below
       // their minCount render disabled rather than hidden, so the action set
       // stays stable and users can see what an action needs.
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
       await tester.tap(tileFinder('d1'));
       await tester.pumpAndSettle();
       expect(compare, findsOneWidget);
@@ -1517,7 +1531,8 @@ void main() {
           overrides: overrides,
           child: const DiveListContent(showAppBar: true),
         ),
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
         rowRoot: find.byType(DiveListTile).first,
         firstRow: find.byWidgetPredicate(
           (w) => w is DiveListTile && w.diveId == 'd1',
@@ -1766,8 +1781,7 @@ void main() {
       );
       expect(find.text('3 dives'), findsOneWidget);
 
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
 
       expect(find.text('3 dives'), findsNothing);
     });

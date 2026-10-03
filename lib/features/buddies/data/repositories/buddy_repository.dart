@@ -9,6 +9,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
@@ -951,7 +952,7 @@ class BuddyRepository {
           diveCount: row.data['dive_count'] as int,
           lastDiveAt: lastDive == null
               ? null
-              : DateTime.fromMillisecondsSinceEpoch(lastDive),
+              : wallClockUtcFromMillis(lastDive),
           usualRoleId: usualRoleFor(roleCountsByBuddy[buddy.id] ?? const {}),
         );
       }).toList();
@@ -1123,10 +1124,10 @@ class BuddyRepository {
       final firstDiveTs = datesResult.data['first_dive'] as int?;
       final lastDiveTs = datesResult.data['last_dive'] as int?;
       if (firstDiveTs != null) {
-        firstDive = DateTime.fromMillisecondsSinceEpoch(firstDiveTs);
+        firstDive = wallClockUtcFromMillis(firstDiveTs);
       }
       if (lastDiveTs != null) {
-        lastDive = DateTime.fromMillisecondsSinceEpoch(lastDiveTs);
+        lastDive = wallClockUtcFromMillis(lastDiveTs);
       }
     }
 

@@ -64,6 +64,8 @@ class MacDiveXmlDive {
   /// computer serial). Carried through as `sourceUuid` in the payload.
   final String? identifier;
 
+  /// `<date>`, the wall clock encoded as UTC, with the seconds MacDive
+  /// drops put back from [identifier] (#2509).
   final DateTime? date;
   final int? diveNumber;
 

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/pages/media_library_view.dart';
 import 'package:submersion/features/media/presentation/pages/media_section_page.dart';
+import 'package:submersion/features/media/presentation/pages/media_sources_section_view.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_watcher_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_console_scaffold.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media_store/presentation/widgets/transfers_view.dart';
@@ -44,6 +48,10 @@ void main() {
         mediaTransferEntriesProvider.overrideWith(
           (ref) => Stream.value(const <MediaTransferQueueEntry>[]),
         ),
+        sourceCountsProvider.overrideWith(
+          (ref) async => const {MediaSourceType.platformGallery: 7},
+        ),
+        watchedRootsProvider.overrideWith((ref) async => const <String>[]),
       ],
       child: const MaterialApp(
         locale: Locale('en'),
@@ -54,13 +62,17 @@ void main() {
     );
   }
 
-  testWidgets('switching sections swaps library and transfers content', (
-    tester,
-  ) async {
+  void setDesktopSize(WidgetTester tester) {
     tester.view.physicalSize = const Size(1100, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+  }
+
+  testWidgets('switching sections swaps library and transfers content', (
+    tester,
+  ) async {
+    setDesktopSize(tester);
 
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
@@ -77,5 +89,29 @@ void main() {
     await tester.tap(find.text('Library'));
     await tester.pumpAndSettle();
     expect(find.byType(MediaLibraryView), findsOneWidget);
+  });
+
+  testWidgets('browsing a source jumps to Library and moves the tab with it', (
+    tester,
+  ) async {
+    // The jump happens outside the tab strip, so the strip has to follow the
+    // page's selection rather than only its own taps.
+    setDesktopSize(tester);
+
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+    TabController controller() =>
+        tester.widget<TabBar>(find.byType(TabBar)).controller!;
+
+    await tester.tap(find.text('Sources'));
+    await tester.pumpAndSettle();
+    expect(find.byType(MediaSourcesSectionView), findsOneWidget);
+    expect(controller().index, MediaConsoleSection.sources.index);
+
+    await tester.tap(find.widgetWithText(ListTile, '7'));
+    await tester.pumpAndSettle();
+    expect(find.byType(MediaLibraryView), findsOneWidget);
+    expect(find.byType(MediaSourcesSectionView), findsNothing);
+    expect(controller().index, MediaConsoleSection.library.index);
   });
 }

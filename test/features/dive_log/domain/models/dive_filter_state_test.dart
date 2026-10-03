@@ -492,4 +492,42 @@ void main() {
       }
     });
   });
+
+  group('axesSuspended (#2773)', () {
+    final q = TextNode(['manta']);
+
+    test('defaults off and joins value equality', () {
+      const a = DiveFilterState(minDepth: 30);
+      expect(a.axesSuspended, isFalse);
+      expect(a, isNot(a.copyWith(axesSuspended: true)));
+      expect(a.copyWith(axesSuspended: true).hashCode, isNot(a.hashCode));
+    });
+
+    test('copyWith keeps it unless told otherwise', () {
+      final s = const DiveFilterState(
+        minDepth: 30,
+      ).copyWith(axesSuspended: true);
+      expect(s.copyWith(maxDepth: 40).axesSuspended, isTrue);
+      expect(s.copyWith(axesSuspended: false).axesSuspended, isFalse);
+    });
+
+    test('suspended axes still count, so the search stays open', () {
+      final s = DiveFilterState(minDepth: 30, query: q, axesSuspended: true);
+      expect(s.activeAxisCount, 2);
+      expect(s.hasActiveFilters, isTrue);
+    });
+
+    test('panelAxisCount leaves the query out', () {
+      expect(DiveFilterState(query: q).panelAxisCount, 0);
+      expect(DiveFilterState(minDepth: 30, query: q).panelAxisCount, 1);
+      expect(const DiveFilterState(minDepth: 30).panelAxisCount, 1);
+    });
+
+    test('effective is the query alone while suspended', () {
+      final s = DiveFilterState(minDepth: 30, query: q, axesSuspended: true);
+      expect(s.effective, DiveFilterState(query: q));
+      final live = DiveFilterState(minDepth: 30, query: q);
+      expect(identical(live.effective, live), isTrue);
+    });
+  });
 }

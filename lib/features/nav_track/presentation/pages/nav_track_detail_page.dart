@@ -147,7 +147,8 @@ class NavTrackDetailPage extends ConsumerWidget {
   }
 
   /// Opens the same site picker the import review page uses and, on a
-  /// choice, persists the new site.
+  /// choice, persists the new site. "New Dive Site" opens the site form
+  /// seeded with the route's anchor and assigns the site once it is saved.
   ///
   /// The anchor follows the new site's pin only when the diver never moved
   /// the start point away from the old site's pin: the current anchor is
@@ -167,34 +168,24 @@ class NavTrackDetailPage extends ConsumerWidget {
               .then((s) => s?.location);
     if (!context.mounted) return;
 
-    final chosen = await showModalBottomSheet<DiveSite>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (sheetContext, scrollController) => SitePickerSheet(
-          scrollController: scrollController,
-          selectedSiteId: oldSiteId,
-          onSiteSelected: (site) => Navigator.of(sheetContext).pop(site),
-          onCreateNewSite: () => Navigator.of(sheetContext).pop(),
-        ),
-      ),
+    final site = await pickOrCreateSite(
+      context,
+      ref,
+      selectedSiteId: oldSiteId,
+      newSiteSeedLocation: route.anchor,
     );
-    if (chosen == null) return;
+    if (site == null || !context.mounted) return;
 
     final anchorChange = navTrackAnchorChangeForSite(
       route.anchor,
       oldSiteLocation,
-      chosen.location,
+      site.location,
     );
     await ref
         .read(navTrackRepositoryProvider)
         .setSite(
           route.id,
-          chosen.id,
+          site.id,
           anchor: anchorChange.anchor,
           clearAnchor: anchorChange.write && anchorChange.anchor == null,
         );

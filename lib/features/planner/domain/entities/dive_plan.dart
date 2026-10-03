@@ -195,9 +195,18 @@ class DivePlan extends Equatable {
     this.mission,
   });
 
-  /// CCR setpoints with the spec defaults (0.7 shallow, 1.3 below 10 m).
-  double get effectiveSetpointLow => setpointLow ?? 0.7;
-  double get effectiveSetpointHigh => setpointHigh ?? 1.3;
+  /// Pure spec defaults (0.7 shallow, 1.3 below 10 m): the entity's own
+  /// last resort, with no access to the diver's CCR ppO2 Settings. Entering
+  /// CCR mode in the planner seeds [setpointLow] / [setpointHigh] from those
+  /// Settings, so only a plan that reached CCR another way (one saved with
+  /// null setpoints, or an imported file) still falls back here (see
+  /// `DivePlanNotifier.updateMode`), which also sources its own fallback
+  /// from these same constants rather than inlining them a second time.
+  static const double specSetpointLow = 0.7;
+  static const double specSetpointHigh = 1.3;
+
+  double get effectiveSetpointLow => setpointLow ?? specSetpointLow;
+  double get effectiveSetpointHigh => setpointHigh ?? specSetpointHigh;
   double get effectiveSetpointSwitchDepth => setpointSwitchDepth ?? 10.0;
 
   /// Deco SAC: explicit value, otherwise 15 L/min (same default as bottom SAC).

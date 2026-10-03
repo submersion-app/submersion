@@ -3,7 +3,7 @@
 Date: 2026-10-02
 Status: approved
 Supersedes: #2398 (Underwater Routes under Settings > Manage)
-Resolves: #2397 (remove the Underwater Routes quick action)
+Resolves: #2397 (remove the Underwater Routes quick action; done first by #2804)
 Tracking issue: #2833
 
 ## Problem
@@ -436,6 +436,15 @@ Body: `Refs #2833`.
 
 After PR 1 merges, #2398 is closed as superseded with a comment pointing to
 #2833.
+
+While PR 1 was in progress, main merged #2804, which removed the Underwater
+Routes quick action (resolving #2397 first) and added a Settings > Manage >
+Underwater Routes tile (the #2398 entry point). PR 1 removes that tile and
+its string: Tracks in the nav is the one way in, and a guard test keeps the
+tile from coming back. #2804's other entry points (linking and importing a
+route from dive edit) stay as they are: the sheet opens the import review
+page and takes its result back, with no route path involved, and a review
+saved from anywhere else still lands on the new underwater track path.
 
 ## Risks
 

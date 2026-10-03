@@ -37,6 +37,10 @@ Future<void> insertTestSite(String id, String name) async {
       );
 }
 
+// Dive dates are stored as a wall clock flagged UTC (issue #2808), so the
+// fixtures use DateTime.utc. DateTime equality also compares the UTC flag,
+// which makes the date expectations fail on a local decode in any time zone,
+// UTC CI included.
 Future<void> insertTestDive({
   required String id,
   required DateTime at,
@@ -45,6 +49,7 @@ Future<void> insertTestDive({
   int? number,
   double? maxDepth,
 }) async {
+  assert(at.isUtc, 'dive_date_time is stored as a wall clock flagged UTC');
   final db = DatabaseService.instance.database;
   final now = DateTime.now().millisecondsSinceEpoch;
   await db
@@ -118,7 +123,7 @@ Future<void> seedLogbook() async {
   await insertTestSite('s2', 'Shark Point');
   await insertTestDive(
     id: 'd1',
-    at: DateTime(2024, 1, 10),
+    at: DateTime.utc(2024, 1, 10),
     diverId: 'diver-a',
     siteId: 's1',
     number: 101,
@@ -126,7 +131,7 @@ Future<void> seedLogbook() async {
   );
   await insertTestDive(
     id: 'd2',
-    at: DateTime(2024, 2, 20),
+    at: DateTime.utc(2024, 2, 20),
     diverId: 'diver-a',
     siteId: 's1',
     number: 102,
@@ -134,21 +139,21 @@ Future<void> seedLogbook() async {
   );
   await insertTestDive(
     id: 'd3',
-    at: DateTime(2024, 3, 5),
+    at: DateTime.utc(2024, 3, 5),
     diverId: 'diver-a',
     siteId: 's2',
     number: 103,
   );
   await insertTestDive(
     id: 'd4',
-    at: DateTime(2024, 4, 1),
+    at: DateTime.utc(2024, 4, 1),
     diverId: 'diver-a',
     number: 104,
     maxDepth: 12.5,
   );
   await insertTestDive(
     id: 'd5',
-    at: DateTime(2024, 5, 1),
+    at: DateTime.utc(2024, 5, 1),
     diverId: 'diver-b',
     siteId: 's2',
     number: 7,
@@ -245,8 +250,8 @@ void main() {
         (e) => e.species.id == 'sp_whale_shark',
       );
 
-      expect(whale.firstSeen, DateTime(2024, 1, 10));
-      expect(whale.lastSeen, DateTime(2024, 4, 1));
+      expect(whale.firstSeen, DateTime.utc(2024, 1, 10));
+      expect(whale.lastSeen, DateTime.utc(2024, 4, 1));
     });
 
     test('maps the species row including built-in flag and names', () async {
@@ -279,7 +284,7 @@ void main() {
       expect(custom.totalSightings, 5);
       expect(custom.diveCount, 2);
       expect(custom.siteCount, 2);
-      expect(custom.lastSeen, DateTime(2024, 5, 1));
+      expect(custom.lastSeen, DateTime.utc(2024, 5, 1));
     });
 
     test('returns an empty list for a diver with no sightings', () async {
@@ -305,7 +310,7 @@ void main() {
 
       expect(first.sightingId, 'sg1');
       expect(first.diveNumber, 101);
-      expect(first.diveDateTime, DateTime(2024, 1, 10));
+      expect(first.diveDateTime, DateTime.utc(2024, 1, 10));
       expect(first.maxDepthMeters, 18.0);
       expect(first.count, 2);
       expect(first.notes, 'Juvenile under the ledge');

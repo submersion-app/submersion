@@ -293,8 +293,8 @@ class MediaLibraryRepository {
     return result;
   }
 
-  /// Rows whose persisted orphan flag is set. Backs the Missing sidebar
-  /// badge.
+  /// Rows whose persisted orphan flag is set. Backs the badge on the Media
+  /// section's Library tab.
   Future<int> countMissing() async {
     final m = _db.media;
     final count = countAll(filter: m.isOrphaned.equals(true) & _notSignature);

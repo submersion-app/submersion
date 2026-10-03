@@ -389,6 +389,28 @@ class DownloadedTank {
     this.transmitterSerial,
   });
 
+  DownloadedTank copyWith({
+    int? index,
+    double? o2Percent,
+    double? hePercent,
+    double? startPressure,
+    double? endPressure,
+    double? volumeLiters,
+    String? role,
+    TankRoleSource? roleSource,
+    String? transmitterSerial,
+  }) => DownloadedTank(
+    index: index ?? this.index,
+    o2Percent: o2Percent ?? this.o2Percent,
+    hePercent: hePercent ?? this.hePercent,
+    startPressure: startPressure ?? this.startPressure,
+    endPressure: endPressure ?? this.endPressure,
+    volumeLiters: volumeLiters ?? this.volumeLiters,
+    role: role ?? this.role,
+    roleSource: roleSource ?? this.roleSource,
+    transmitterSerial: transmitterSerial ?? this.transmitterSerial,
+  );
+
   /// Whether this is air (21% O2)
   bool get isAir => o2Percent >= 20.5 && o2Percent <= 21.5 && hePercent == 0.0;
 

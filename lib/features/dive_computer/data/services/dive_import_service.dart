@@ -866,9 +866,11 @@ class DiveImportService {
     final profilePoints = _parser.parseProfile(dive);
     final events = _convertEvents(dive.events);
     final gasSwitches = _parser.parseGasSwitches(dive);
-    // Tanks are passed (though importProfile does not re-create them for an
-    // existing dive) so gas switches can be matched to the existing cylinders
-    // by gas mix rather than by a possibly-stale cylinder index.
+    // Tanks are passed so gas switches can be matched to the existing
+    // cylinders by gas mix rather than by a possibly-stale cylinder index.
+    // importProfile keeps the stored cylinders, which may be the diver's
+    // edits, and adds only those this parse reports at an index none of them
+    // holds, such as a sidemount pair's second transmitter (#2517).
     final tanks = _parser.parseTanks(dive);
 
     // Re-import using the existing dive's start time so that importProfile
@@ -913,6 +915,7 @@ class DiveImportService {
       waterType: dive.waterType,
       cnsEnd: dive.cnsEnd,
       otu: dive.otu,
+      addMissingTanks: true,
     );
   }
 

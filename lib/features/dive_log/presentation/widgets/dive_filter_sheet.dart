@@ -1589,6 +1589,8 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
     final computerId = _resolveComputerId();
     final buddyName = _buddyNameFilter;
     widget.ref.read(widget.filterProvider.notifier).state = current.copyWith(
+      // A filter applied here is meant to take effect: leave "All dives".
+      axesSuspended: false,
       startDate: _startDate,
       clearStartDate: _startDate == null,
       endDate: _endDate,

@@ -142,19 +142,18 @@ class _Ctx {
       );
     }
     tables.addAll(entity.textSearchTables);
-    final perWord = <String>[];
-    for (final w in words) {
-      final term = '%${escapeLike(w)}%';
-      final alts = <String>[];
-      for (final t in entity.textSearchSql) {
-        alts.add(substituteRow(t, alias));
-        for (var i = 0; i < countPlaceholders(t); i++) {
-          params.add(term);
-        }
+    // One node is one search term: a bare word, or a quoted phrase (or a
+    // builder text row) whose words must appear together, in order. Bare
+    // words arrive as separate one-word nodes under an AND (#2773).
+    final term = '%${escapeLike(words.join(' '))}%';
+    final alts = <String>[];
+    for (final t in entity.textSearchSql) {
+      alts.add(substituteRow(t, alias));
+      for (var i = 0; i < countPlaceholders(t); i++) {
+        params.add(term);
       }
-      perWord.add('(${alts.join(' OR ')})');
     }
-    return '(${perWord.join(' AND ')})';
+    return '((${alts.join(' OR ')}))';
   }
 
   /// Wraps [inner] (a function of the leaf alias) in one EXISTS per hop.

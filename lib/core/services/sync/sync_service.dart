@@ -93,6 +93,15 @@ class SyncResult {
   /// [skippedPeerNames].
   final Map<String, String> newerSchemaPeerNames;
 
+  /// Peers whose own schema is below this build's compatibility floor, so
+  /// they hold this device's changes until they update. Their own changes
+  /// still merge here.
+  final Set<String> olderSchemaPeerDeviceIds;
+
+  /// Display names for [olderSchemaPeerDeviceIds], same contract as
+  /// [skippedPeerNames].
+  final Map<String, String> olderSchemaPeerNames;
+
   /// Peers whose changeset read threw during the pull. Their cursors stayed
   /// put, so the next sync retries them; the UI names them so the user can
   /// see whose data did not merge this run.
@@ -118,6 +127,8 @@ class SyncResult {
     this.skippedPeerNames = const {},
     this.newerSchemaPeerDeviceIds = const {},
     this.newerSchemaPeerNames = const {},
+    this.olderSchemaPeerDeviceIds = const {},
+    this.olderSchemaPeerNames = const {},
     this.readFailedPeerDeviceIds = const {},
     this.readFailedPeerNames = const {},
     this.replaceMarker,
@@ -884,6 +895,8 @@ class SyncService {
         skippedPeerNames: pullResult.skippedPeerNames,
         newerSchemaPeerDeviceIds: pullResult.newerSchemaPeerDeviceIds,
         newerSchemaPeerNames: pullResult.newerSchemaPeerNames,
+        olderSchemaPeerDeviceIds: pullResult.olderSchemaPeerDeviceIds,
+        olderSchemaPeerNames: pullResult.olderSchemaPeerNames,
         readFailedPeerDeviceIds: pullResult.readFailedPeerDeviceIds,
         readFailedPeerNames: pullResult.readFailedPeerNames,
       );

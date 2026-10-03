@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_computer/presentation/widgets/download_
 import 'package:submersion/features/dive_computer/presentation/widgets/scan_step_widget.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/dc_no_direct_download_view.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class DcAdapterScanStep extends ConsumerWidget {
@@ -481,6 +482,18 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
             ? DeviceModel.fromDescriptor(matchingDescriptor)
             : null,
         discoveredAt: DateTime.now(),
+      );
+    }
+
+    // A saved computer with no stored address (a Garmin watch, or any
+    // computer that came from a file or cloud import) leaves nothing to
+    // connect to. DownloadStepWidget silently never starts without a device,
+    // which spun on "Preparing..." forever (issue #1858); explain instead.
+    if (device == null && computer != null) {
+      return DcNoDirectDownloadView(
+        computer: computer,
+        onImportFromFile: () => context.push('/transfer/import-wizard'),
+        onDone: () => context.pop(),
       );
     }
 

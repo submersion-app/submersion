@@ -53,4 +53,28 @@ void main() {
       throwsA(isA<TokenizeException>().having((e) => e.offset, 'offset', 7)),
     );
   });
+
+  // Code review (#2773): plain text in the dive search row used to match
+  // literally; a hyphen inside a word is part of it, and only a hyphen that
+  // starts a term negates it.
+  test('a hyphen inside a word is part of the word', () {
+    final t = tokenize('Abu-Nuhas U-352 -wreck a -b');
+    expect(t.map((x) => (x.kind, x.text)), [
+      (TokenKind.word, 'Abu-Nuhas'),
+      (TokenKind.word, 'U-352'),
+      (TokenKind.symbol, '-'),
+      (TokenKind.word, 'wreck'),
+      (TokenKind.word, 'a'),
+      (TokenKind.symbol, '-'),
+      (TokenKind.word, 'b'),
+      (TokenKind.end, ''),
+    ]);
+  });
+
+  test('a number keeps a trailing percent sign', () {
+    final t = tokenize('100% 32.5%');
+    expect(t[0].kind, TokenKind.number);
+    expect(t[0].text, '100%');
+    expect(t[1].text, '32.5%');
+  });
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
 import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart'
@@ -28,6 +29,9 @@ void main() {
     await tearDownTestDatabase();
   });
 
+  // Times are written as the diver's local clock. A dive is stored the way
+  // the app stores it, as that wall clock flagged UTC; a checklist session is
+  // stamped with the real instant, as startSession does (issue #2810).
   final diveStart = DateTime(2026, 7, 16, 9, 30);
 
   Future<void> insertDive(String id, DateTime dt, {String? diverId}) async {
@@ -35,7 +39,7 @@ void main() {
     await db.customStatement(
       'INSERT INTO dives (id, diver_id, dive_date_time, created_at, updated_at) '
       "VALUES ('$id', ${diverId == null ? 'NULL' : "'$diverId'"}, "
-      '${dt.millisecondsSinceEpoch}, 0, 0)',
+      '${asWallClockUtc(dt).millisecondsSinceEpoch}, 0, 0)',
     );
   }
 
@@ -76,6 +80,29 @@ void main() {
     return (await sessions.getSessionById(s.id))!;
   }
 
+  // CI runs in UTC, where a real instant and its wall clock coincide, so the
+  // device's zone is simulated through the linker's clock seam: a diver six
+  // hours behind UTC finishes a checklist at 09:20 local (15:20Z) and dives at
+  // 09:30, stored as 09:30 wall clock. Compared raw, the dive looks 5h50m
+  // before the checklist, past the 3h forward grace, and nothing links.
+  test('links on a device west of UTC (#2810)', () async {
+    final westLinker = ChecklistDiveLinker(
+      wallClockOf: (instant) =>
+          instant.toUtc().subtract(const Duration(hours: 6)),
+    );
+    await insertDive('dive-1', DateTime(2026, 7, 16, 9, 30));
+    final s = await sessionStartedAt(DateTime.utc(2026, 7, 16, 15, 20));
+
+    final linked = await westLinker.autoLinkForDive(
+      diveId: 'dive-1',
+      diverId: null,
+      diveStart: DateTime.utc(2026, 7, 16, 9, 30),
+    );
+
+    expect(linked, isTrue);
+    expect((await sessions.getSessionById(s.id))!.diveId, 'dive-1');
+  });
+
   test('links the nearest unlinked session before the dive', () async {
     await insertDive('dive-1', diveStart);
     final far = await sessionStartedAt(
@@ -87,7 +114,7 @@ void main() {
     final linked = await linker.autoLinkForDive(
       diveId: 'dive-1',
       diverId: null,
-      diveStart: diveStart,
+      diveStart: asWallClockUtc(diveStart),
     );
     expect(linked, isTrue);
     // Both precede the dive with nothing in between, so both belong to it
@@ -106,7 +133,7 @@ void main() {
       final linked = await linker.autoLinkForDive(
         diveId: 'dive-1',
         diverId: null,
-        diveStart: diveStart,
+        diveStart: asWallClockUtc(diveStart),
       );
       expect(linked, isTrue);
       expect((await sessions.getSessionById(old.id))!.diveId, 'dive-1');
@@ -121,7 +148,7 @@ void main() {
     final linked = await linker.autoLinkForDive(
       diveId: 'dive-1',
       diverId: null,
-      diveStart: diveStart,
+      diveStart: asWallClockUtc(diveStart),
     );
     expect(linked, isFalse);
     expect((await sessions.getSessionById(after.id))!.diveId, isNull);
@@ -136,7 +163,7 @@ void main() {
     final linked = await linker.autoLinkForDive(
       diveId: 'dive-1',
       diverId: 'me',
-      diveStart: diveStart,
+      diveStart: asWallClockUtc(diveStart),
     );
     expect(linked, isFalse);
   });
@@ -151,7 +178,7 @@ void main() {
       final linked = await linker.autoLinkForDive(
         diveId: 'dive-1',
         diverId: null,
-        diveStart: diveStart,
+        diveStart: asWallClockUtc(diveStart),
       );
       expect(linked, isTrue);
       expect((await sessions.getSessionById(s.id))!.diveId, 'dive-1');
@@ -166,7 +193,7 @@ void main() {
     final linked = await linker.autoLinkForDive(
       diveId: 'dive-1',
       diverId: null,
-      diveStart: diveStart,
+      diveStart: asWallClockUtc(diveStart),
     );
     expect(linked, isFalse);
     expect((await sessions.getSessionById(s.id))!.diveId, isNull);
@@ -187,7 +214,7 @@ void main() {
       final linked = await linker.autoLinkForDive(
         diveId: 'dive-1',
         diverId: null,
-        diveStart: diveStart,
+        diveStart: asWallClockUtc(diveStart),
       );
       expect(linked, isTrue);
       expect((await sessions.getSessionById(s1.id))!.diveId, 'dive-1');
@@ -205,7 +232,7 @@ void main() {
       await linker.autoLinkForDive(
         diveId: 'dive-0',
         diverId: null,
-        diveStart: diveStart.subtract(const Duration(days: 10)),
+        diveStart: asWallClockUtc(diveStart.subtract(const Duration(days: 10))),
       );
       expect((await sessions.getSessionById(earlier.id))!.diveId, 'dive-0');
 
@@ -215,7 +242,7 @@ void main() {
       await linker.autoLinkForDive(
         diveId: 'dive-1',
         diverId: null,
-        diveStart: diveStart,
+        diveStart: asWallClockUtc(diveStart),
       );
       expect((await sessions.getSessionById(s.id))!.diveId, 'dive-1');
       // dive-0's own check is untouched: dive-0 stays between it and
@@ -237,7 +264,7 @@ void main() {
       await linker.autoLinkForDive(
         diveId: 'dive-late',
         diverId: null,
-        diveStart: diveStart,
+        diveStart: asWallClockUtc(diveStart),
       );
       expect((await sessions.getSessionById(c1.id))!.diveId, 'dive-late');
       expect((await sessions.getSessionById(c2.id))!.diveId, 'dive-late');
@@ -248,7 +275,7 @@ void main() {
       await linker.autoLinkForDive(
         diveId: 'dive-mid',
         diverId: null,
-        diveStart: mid,
+        diveStart: asWallClockUtc(mid),
       );
 
       expect((await sessions.getSessionById(c1.id))!.diveId, 'dive-mid');
@@ -270,13 +297,13 @@ void main() {
       await linker.autoLinkForDive(
         diveId: 'dive-mid',
         diverId: null,
-        diveStart: mid,
+        diveStart: asWallClockUtc(mid),
       );
       await insertDive('dive-late', diveStart);
       await linker.autoLinkForDive(
         diveId: 'dive-late',
         diverId: null,
-        diveStart: diveStart,
+        diveStart: asWallClockUtc(diveStart),
       );
 
       expect((await sessions.getSessionById(c1.id))!.diveId, 'dive-mid');
@@ -298,7 +325,7 @@ void main() {
         final linked = await linker.autoLinkForDive(
           diveId: 'dive-1',
           diverId: null,
-          diveStart: diveStart,
+          diveStart: asWallClockUtc(diveStart),
         );
         expect(linked, isTrue);
         expect((await sessions.getSessionById(s.id))!.diveId, 'dive-1');
@@ -328,12 +355,12 @@ void main() {
       await linker.autoLinkForDive(
         diveId: 'dive-early',
         diverId: null,
-        diveStart: splitPoint,
+        diveStart: asWallClockUtc(splitPoint),
       );
       await linker.autoLinkForDive(
         diveId: 'dive-late',
         diverId: null,
-        diveStart: diveStart,
+        diveStart: asWallClockUtc(diveStart),
       );
 
       expect(
@@ -354,7 +381,7 @@ void main() {
       final linked = await linker.autoLinkForDive(
         diveId: 'dive-1',
         diverId: null,
-        diveStart: diveStart,
+        diveStart: asWallClockUtc(diveStart),
       );
       expect(linked, isTrue);
       expect((await sessions.getSessionById(s.id))!.diveId, 'dive-1');
@@ -388,7 +415,7 @@ void main() {
     final linked = await linker.autoLinkForDive(
       diveId: 'dive-1',
       diverId: null,
-      diveStart: diveStart,
+      diveStart: asWallClockUtc(diveStart),
     );
     expect(linked, isTrue);
     expect((await sessions.getSessionById(s.id))!.diveId, 'dive-1');

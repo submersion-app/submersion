@@ -24,8 +24,10 @@ QueryField _text(String key, String column, {String? trimmed}) => QueryField(
 /// The characters Dart's `String.trim` strips, as a SQLite `char(...)`
 /// set. One-argument `TRIM` strips only U+0020, so a value imported with a
 /// CR or pasted with a no-break space would miss the location chip that
-/// the dropdown (deduped with Dart's trim) offers for it.
-const _dartWhitespace =
+/// the dropdown (deduped with Dart's trim) offers for it. Insights groups
+/// its country and region rankings on the same trim, so a row's count
+/// matches the dives `site.country` / `site.region` open for it.
+const dartWhitespaceSqlChars =
     'char(9, 10, 11, 12, 13, 32, 133, 160, 5760, 8192, 8193, 8194, 8195, '
     '8196, 8197, 8198, 8199, 8200, 8201, 8202, 8232, 8233, 8239, 8287, '
     '12288, 65279)';
@@ -64,10 +66,22 @@ final siteQueryEntity = QueryEntity(
     // Trimmed: the location chips and Explore's place names offer the
     // trimmed spelling, and a stored value with stray whitespace must still
     // match it (and one that is only whitespace is empty).
-    _text('country', 'country', trimmed: 'TRIM({r}.country, $_dartWhitespace)'),
-    _text('region', 'region', trimmed: 'TRIM({r}.region, $_dartWhitespace)'),
-    _text('city', 'city', trimmed: 'TRIM({r}.city, $_dartWhitespace)'),
-    _text('island', 'island', trimmed: 'TRIM({r}.island, $_dartWhitespace)'),
+    _text(
+      'country',
+      'country',
+      trimmed: 'TRIM({r}.country, $dartWhitespaceSqlChars)',
+    ),
+    _text(
+      'region',
+      'region',
+      trimmed: 'TRIM({r}.region, $dartWhitespaceSqlChars)',
+    ),
+    _text('city', 'city', trimmed: 'TRIM({r}.city, $dartWhitespaceSqlChars)'),
+    _text(
+      'island',
+      'island',
+      trimmed: 'TRIM({r}.island, $dartWhitespaceSqlChars)',
+    ),
     _text('notes', 'notes'),
     const QueryField(
       key: 'rating',

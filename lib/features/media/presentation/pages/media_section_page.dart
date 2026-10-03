@@ -11,8 +11,8 @@ import 'package:submersion/features/media_store/presentation/widgets/transfers_v
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Top-level Media section host: owns the selected console section and
-/// renders its content inside [MediaConsoleScaffold] (sidebar on desktop,
-/// tabs on phone).
+/// renders its content inside [MediaConsoleScaffold] (tabs in the app bar,
+/// inline beside the title when they fit).
 class MediaSectionPage extends ConsumerStatefulWidget {
   const MediaSectionPage({super.key});
 
@@ -44,25 +44,23 @@ class _MediaSectionPageState extends ConsumerState<MediaSectionPage> {
   @override
   Widget build(BuildContext context) {
     // Missing files live under the Library's health chip; the badge on the
-    // Library entry is how a broken file gets noticed from the sidebar.
+    // Library tab is how a broken file gets noticed from another section.
     final missingCount = ref.watch(missingCountProvider).value ?? 0;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.nav_media)),
-      body: MediaConsoleScaffold(
-        selected: _section,
-        onSelect: (section) => setState(() => _section = section),
-        badgeCounts: {MediaConsoleSection.library: missingCount},
-        child: switch (_section) {
-          MediaConsoleSection.library => const MediaLibraryView(),
-          MediaConsoleSection.sources => MediaSourcesSectionView(
-            onBrowseSource: () =>
-                setState(() => _section = MediaConsoleSection.library),
-          ),
-          MediaConsoleSection.transfers => const TransfersView(),
-          MediaConsoleSection.importMedia => const MediaImportView(),
-        },
-      ),
+    return MediaConsoleScaffold(
+      title: context.l10n.nav_media,
+      selected: _section,
+      onSelect: (section) => setState(() => _section = section),
+      badgeCounts: {MediaConsoleSection.library: missingCount},
+      child: switch (_section) {
+        MediaConsoleSection.library => const MediaLibraryView(),
+        MediaConsoleSection.sources => MediaSourcesSectionView(
+          onBrowseSource: () =>
+              setState(() => _section = MediaConsoleSection.library),
+        ),
+        MediaConsoleSection.transfers => const TransfersView(),
+        MediaConsoleSection.importMedia => const MediaImportView(),
+      },
     );
   }
 }

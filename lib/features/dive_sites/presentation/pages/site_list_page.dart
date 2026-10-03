@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_filter_
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -35,7 +36,8 @@ class SiteListPage extends ConsumerStatefulWidget {
   ConsumerState<SiteListPage> createState() => _SiteListPageState();
 }
 
-class _SiteListPageState extends ConsumerState<SiteListPage> {
+class _SiteListPageState extends ConsumerState<SiteListPage>
+    with TableSelectionOwner {
   bool get _isMapView {
     final state = GoRouterState.of(context);
     return state.uri.queryParameters['view'] == 'map';
@@ -91,6 +93,8 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
       label: Text(context.l10n.diveSites_fab_label),
     );
 
+    resetTableSelectionOffTable(siteListViewModeProvider);
+
     // Table mode: use shared TableModeLayout for full-width table with
     // optional detail pane and map.
     final viewMode = ref.watch(siteListViewModeProvider);
@@ -99,7 +103,10 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
         sectionKey: 'sites',
         appBarTitle: context.l10n.nav_sites,
         appBarSubtitle: siteListCountLabel(context, ref),
-        tableContent: const SiteListContent(showAppBar: false),
+        tableContent: SiteListContent(
+          showAppBar: false,
+          selectionController: tableSelection,
+        ),
         detailBuilder: (context, id) => SiteDetailPage(
           siteId: id,
           embedded: true,
@@ -211,6 +218,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
             itemBuilder: (context) {
               final currentMode = ref.read(siteListViewModeProvider);
               return [
+                ...tableSelectItemsEntries(context),
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,
