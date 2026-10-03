@@ -22,9 +22,9 @@ class ImportFileOutcome {
 
   /// The file's on-disk path, when the batch was picked by path (as
   /// opposed to raw bytes with no path, e.g. some share-sheet intents).
-  /// Needed to re-read the file for [isNavTrackRoute]'s "Import as route"
-  /// action, since the batch pipeline reads bytes only to detect the
-  /// format and does not keep them around afterward.
+  /// Needed to re-read the file for [isNavTrackRoute]'s "Import as
+  /// underwater track" action, since the batch pipeline reads bytes only to
+  /// detect the format and does not keep them around afterward.
   final String? filePath;
 
   const ImportFileOutcome({

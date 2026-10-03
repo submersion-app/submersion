@@ -73,7 +73,7 @@ const int kMaxNavTrackBodyCommas = 11 * kMaxNavTrackPointCount - 1;
 Uint8List encodeNavTrackPoints(List<NavTrackPoint> points) {
   if (points.length > kMaxNavTrackPointCount) {
     throw NavTrackCodecException(
-      'route of ${points.length} sample(s) exceeds the '
+      'track of ${points.length} sample(s) exceeds the '
       '$kMaxNavTrackPointCount this codec can read back',
     );
   }
@@ -146,7 +146,7 @@ List<NavTrackPoint> decodeNavTrackPoints(Uint8List blob) {
   try {
     decoded = jsonDecode(text);
   } on FormatException catch (e) {
-    throw NavTrackCodecException('not route point JSON: ${e.message}');
+    throw NavTrackCodecException('not track point JSON: ${e.message}');
   }
 
   if (decoded is! List) {

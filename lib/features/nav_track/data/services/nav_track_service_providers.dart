@@ -24,8 +24,8 @@ final navTrackMatchServiceProvider = Provider<NavTrackMatchService>(
 
 /// How many of the active diver's routes still wait for the diver to pick a
 /// dive: every unlinked one, since a sweep no longer links anything by
-/// itself (#2394). Drives the routes list's "N routes need your choice"
-/// hint. Counted straight from [unlinkedNavTracksProvider] (the same
+/// itself (#2394). Drives the Tracks list's "N underwater tracks need your
+/// choice" hint. Counted straight from [unlinkedNavTracksProvider] (the same
 /// `getUnlinked` query a sweep starts from), so it refreshes on every route
 /// change without re-reading the whole dive table the way a sweep would.
 final navTrackPendingChoiceCountProvider = FutureProvider<int>((ref) async {

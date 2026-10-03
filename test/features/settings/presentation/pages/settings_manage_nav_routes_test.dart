@@ -46,6 +46,7 @@ void main() {
       findsNothing,
     );
     expect(find.text('Underwater Routes'), findsNothing);
-    expect(find.text('Underwater Track'), findsNothing);
+    // Any wording of a returning tile, singular or plural.
+    expect(find.textContaining('nderwater'), findsNothing);
   });
 }

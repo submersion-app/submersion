@@ -4,7 +4,7 @@ import 'package:submersion/features/nav_track/domain/dive_route_link_draft.dart'
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 
-/// The Dive Edit page's "Underwater Route" row, under Site (spec
+/// The Dive Edit page's "Underwater Track" row, under Site (spec
 /// 2026-10-02-underwater-route-entry-points-design.md, section 1). Shows
 /// the routes the dive will have once saved; tapping opens the route sheet.
 ///

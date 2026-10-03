@@ -25,7 +25,7 @@ enum NavTrackSource {
   };
 
   /// The device or brand name, shown inside localized text (the 3D
-  /// caption's "Recorded route ({source})"). Product names are not
+  /// caption's "Recorded track ({source})"). Product names are not
   /// translated, so this carries no other words.
   String get label => switch (this) {
     NavTrackSource.seacraftEnc => 'Seacraft ENC',

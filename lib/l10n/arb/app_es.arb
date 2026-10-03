@@ -4479,7 +4479,7 @@
   "gpsTrack_action_saveKml": "Guardar como KML...",
   "gpsTrack_export_failed": "Error al exportar.",
   "gpsTrack_map_title": "Mapa de tracks",
-  "gpsTrack_map_truncated": "Se muestran las {count} rutas más recientes. Ajusta el filtro de fechas para ver las demás.",
+  "gpsTrack_map_truncated": "Se muestran los {count} tracks más recientes. Ajusta el filtro de fechas para ver los demás.",
   "gpsTrack_map_noTracks": "No hay tracks grabados para mostrar.",
   "gpsTrack_map_showMap": "Mostrar mapa",
   "gpsTrack_filter_all": "Todas las fechas",

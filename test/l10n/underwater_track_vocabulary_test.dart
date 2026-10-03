@@ -6,11 +6,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// Keys that name an underwater track (spec 2026-10-02, "Vocabulary
-/// (PR 2)"). A key is in scope by prefix; the four listed exact keys are the
-/// 3D and import strings that live outside the nav-track prefixes.
-const _prefixes = ['navTrack_', 'diveDetailSection_navTrack_'];
+/// Keys a diver reads on the Tracks destination or about an underwater
+/// track (spec 2026-10-02, "Vocabulary (PR 2)"). The GPS and Tracks-page
+/// prefixes are in scope because GPS and underwater tracks share one page,
+/// map and filter, so a stray route word there breaks the same vocabulary.
+/// The exact keys are the nav label and the 3D and import strings that live
+/// outside those prefixes.
+const _prefixes = [
+  'navTrack_',
+  'diveDetailSection_navTrack_',
+  'gpsTrack_',
+  'gpsLogger_',
+  'tracks_',
+];
 const _exact = {
+  'nav_tracks',
+  'nav_tracksSubtitle',
   'universalImport_summary_importAsUnderwaterTrack',
   'dive3d_seascape_showUnderwaterTrack',
   'dive3d_spatial_recordedTrack',
@@ -54,7 +65,7 @@ bool _inScope(String key) =>
 
 void main() {
   for (final entry in _routeWords.entries) {
-    test('${entry.key}: no underwater track string says route', () {
+    test('${entry.key}: no Tracks or underwater track string says route', () {
       final offenders = [
         for (final MapEntry(:key, :value) in _arb(entry.key).entries)
           if (_inScope(key) && entry.value.hasMatch('$value')) '$key: $value',
@@ -122,5 +133,33 @@ void main() {
       '2 underwater tracks need your choice',
     );
     expect(en.navTrack_section_trackCount(2), '2 tracks');
+  });
+
+  // A plural branch a translation drops falls back to `other` without an
+  // error, so each category must still produce its own wording. Counts are
+  // masked first: 3 and 100 differ by digits alone even in the same branch.
+  test('Arabic and Hebrew keep every plural category', () {
+    final digits = RegExp(r'\p{Nd}+', unicode: true);
+    List<String> shapes(String Function(int) render, List<int> counts) => [
+      for (final n in counts) render(n).replaceAll(digits, '#'),
+    ];
+    final ar = lookupAppLocalizations(const Locale('ar'));
+    final he = lookupAppLocalizations(const Locale('he'));
+    // Arabic: one (1), two (2), few (3), other (100).
+    for (final render in [
+      ar.navTrack_list_pendingTrackChoice,
+      ar.navTrack_section_trackCount,
+    ]) {
+      final arShapes = shapes(render, [1, 2, 3, 100]);
+      expect(arShapes.toSet(), hasLength(4), reason: '$arShapes');
+    }
+    // Hebrew: one (1), two (2), other (5).
+    for (final render in [
+      he.navTrack_list_pendingTrackChoice,
+      he.navTrack_section_trackCount,
+    ]) {
+      final heShapes = shapes(render, [1, 2, 5]);
+      expect(heShapes.toSet(), hasLength(3), reason: '$heShapes');
+    }
   });
 }

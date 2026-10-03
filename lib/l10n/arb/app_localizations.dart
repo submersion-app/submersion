@@ -40132,7 +40132,7 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 dive imported} other{{count} dives imported}}'**
   String universalImport_summary_fileImported(num count);
 
-  /// Action on the batch summary row that lets the diver re-open a recognised Seacraft ENC file (excluded from the batch) in the underwater route review page
+  /// Action on the batch summary row that lets the diver re-open a recognised Seacraft ENC file (excluded from the batch) in the underwater track review page
   ///
   /// In en, this message translates to:
   /// **'Import as underwater track'**
@@ -69513,7 +69513,7 @@ abstract class AppLocalizations {
   /// **'Could not load underwater tracks'**
   String get navTrack_editRow_tracksLoadFailed;
 
-  /// Dive Edit route row value when several routes are linked: the first route's name and how many more there are
+  /// Dive Edit underwater track row value when several tracks are linked: the first track's name and how many more there are
   ///
   /// In en, this message translates to:
   /// **'{name} +{count}'**

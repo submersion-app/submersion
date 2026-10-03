@@ -34,7 +34,7 @@ enum NavTrackParseReason {
   /// timestamp that goes backwards, an implausible depth).
   badData,
 
-  /// Readable, but with more samples than a route can store.
+  /// Readable, but with more samples than a track can store.
   tooLarge,
 }
 
@@ -64,7 +64,7 @@ void validateNavTrackPointCount(int count) {
   if (count > kMaxNavTrackPointCount) {
     throw NavTrackParseException(
       'file has $count sample(s), over the $kMaxNavTrackPointCount '
-      'a route can store',
+      'a track can store',
       reason: NavTrackParseReason.tooLarge,
     );
   }

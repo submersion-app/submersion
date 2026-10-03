@@ -6,7 +6,7 @@ import 'package:submersion/features/tracks/domain/track_kind.dart';
 import 'package:submersion/features/tracks/presentation/providers/tracks_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// "N routes need your choice": underwater tracks a sweep could only
+/// "N underwater tracks need your choice": underwater tracks a sweep could only
 /// suggest a dive for, which the diver links from each track's detail page
 /// (#2394). Hidden when none are waiting.
 class TracksPendingChoiceBanner extends ConsumerWidget {

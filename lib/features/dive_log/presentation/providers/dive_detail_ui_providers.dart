@@ -159,7 +159,7 @@ final surfaceGpsSectionExpandedProvider = Provider<bool>((ref) {
 /// the dive's own window plus margin.
 final surfaceGpsFullTrackProvider = StateProvider<bool>((ref) => false);
 
-/// Whether the dive detail page's "Underwater Route" section
+/// Whether the dive detail page's "Underwater Track" section
 /// (`DiveDetailSectionId.navTrack`) is expanded.
 ///
 /// Session-only, unlike the sections above: those persist through

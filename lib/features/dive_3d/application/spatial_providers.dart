@@ -27,7 +27,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 /// Whether the dive's 3D seascape should draw the linked measured route
 /// (the default) rather than the dead-reckoned estimate, when both are
-/// available. Purely a display toggle for the "Show route" button on
+/// available. Purely a display toggle for the "Show underwater track" button on
 /// `SpatialSitePage` -- it never affects which path is *stored* or linked,
 /// only which one `spatialReckonedPathProvider` returns for this viewing.
 /// True (show the route) unless a diver has explicitly flipped it, so a

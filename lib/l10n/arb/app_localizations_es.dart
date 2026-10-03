@@ -26883,7 +26883,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String gpsTrack_map_truncated(int count) {
-    return 'Se muestran las $count rutas más recientes. Ajusta el filtro de fechas para ver las demás.';
+    return 'Se muestran los $count tracks más recientes. Ajusta el filtro de fechas para ver los demás.';
   }
 
   @override

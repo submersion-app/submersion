@@ -119,7 +119,7 @@ class NavTrackRepository {
         throw ArgumentError.value(
           points.length,
           'points',
-          'a route needs at least two samples',
+          'a track needs at least two samples',
         );
       }
       final id = _uuid.v4();
