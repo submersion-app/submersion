@@ -25,6 +25,8 @@ import 'package:submersion/features/trips/presentation/providers/trip_cylinder_p
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_tab.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_scrubber_margin_details.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_list.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
@@ -442,5 +444,40 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('How many'), findsOneWidget);
     expect(find.byWidgetPredicate((w) => w is SegmentedButton), findsNothing);
+  });
+
+  testWidgets('tapping a service line opens that item\'s clocks', (
+    tester,
+  ) async {
+    final h = await _pumpTab(
+      tester,
+      gear: const [reg],
+      alerts: [dueClock('reg'), dueClock('reg', overdue: true)],
+    );
+    await tester.tap(find.byKey(const Key('trip-gear-alert-reg')));
+    await tester.pumpAndSettle();
+    expect(find.byType(TripServiceAlertList), findsOneWidget);
+    expect(
+      tester
+          .widget<TripServiceAlertList>(find.byType(TripServiceAlertList))
+          .alerts,
+      hasLength(2),
+    );
+    expect(h.pushed, isEmpty);
+  });
+
+  testWidgets('tapping a scrubber line opens the breakdown', (tester) async {
+    await _pumpTab(tester, gear: const [ccr], margins: [margin()]);
+    await tester.tap(find.byKey(const Key('trip-gear-alert-ccr')));
+    await tester.pumpAndSettle();
+    expect(find.byType(TripScrubberMarginDetails), findsOneWidget);
+    expect(find.text('Scrubber margin'), findsOneWidget);
+  });
+
+  testWidgets('an item with no trip alert has no alert line to tap', (
+    tester,
+  ) async {
+    await _pumpTab(tester, gear: const [fins]);
+    expect(find.byKey(const Key('trip-gear-alert-fins')), findsNothing);
   });
 }

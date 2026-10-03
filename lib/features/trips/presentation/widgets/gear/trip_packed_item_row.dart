@@ -11,16 +11,23 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
+import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_alert_sheet.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_scrubber_margin_details.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_list.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One packed item on the Gear tab (#2845). The subtitle is the item's
 /// state for this trip when it has one (a service clock falling due, a
-/// rebreather's scrubber margin), else its type. Tap opens the item.
+/// rebreather's scrubber margin), else its type. Tapping that state line
+/// opens its detail; tapping the rest of the row opens the item.
 class TripPackedItemRow extends ConsumerWidget {
   final EquipmentItem item;
+
+  /// The item's most pressing clock, for the one-line subtitle.
   final DueClock? alert;
+
+  /// Every blocking clock on the item, for the detail sheet.
+  final List<DueClock> alerts;
   final ScrubberMargin? margin;
   final Future<void> Function() onUnpack;
 
@@ -28,6 +35,7 @@ class TripPackedItemRow extends ConsumerWidget {
     super.key,
     required this.item,
     this.alert,
+    this.alerts = const [],
     this.margin,
     required this.onUnpack,
   });
@@ -47,17 +55,33 @@ class TripPackedItemRow extends ConsumerWidget {
       tint = clock.severity == ServiceClockSeverity.overdue
           ? status.alert.accent
           : status.warn.accent;
-    } else if (scrubber != null && scrubber.marginAfter != null) {
-      subtitle = l10n.trips_scrubber_bannerMargin(
-        tripScrubberMarginMinutes(scrubber.marginAfter!),
-      );
+    } else if (scrubber != null) {
+      // With no rated duration there is no margin to give; the line names
+      // the section and the sheet carries the hint.
+      final after = scrubber.marginAfter;
+      subtitle = after == null
+          ? l10n.trips_scrubber_title
+          : l10n.trips_scrubber_bannerMargin(tripScrubberMarginMinutes(after));
       if (scrubber.caution) tint = status.alert.accent;
     }
+    final hasDetail = clock != null || scrubber != null;
+    final subtitleText = Text(subtitle, style: TextStyle(color: tint));
 
     return ListTile(
       leading: Icon(equipmentTypeIcon(item.type)),
       title: Text(item.name),
-      subtitle: Text(subtitle, style: TextStyle(color: tint)),
+      subtitle: hasDetail
+          ? InkWell(
+              key: Key('trip-gear-alert-${item.id}'),
+              onTap: () => showTripGearAlertSheet(
+                context,
+                item: item,
+                alerts: alerts.isEmpty && alert != null ? [alert!] : alerts,
+                margin: scrubber,
+              ),
+              child: subtitleText,
+            )
+          : subtitleText,
       trailing: PopupMenuButton<String>(
         key: Key('trip-gear-menu-${item.id}'),
         onSelected: (_) => onUnpack(),

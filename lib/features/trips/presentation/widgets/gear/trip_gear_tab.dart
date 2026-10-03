@@ -54,6 +54,10 @@ class TripGearTab extends ConsumerWidget {
         alertByItem[a.item.id] = a;
       }
     }
+    final alertsByItem = <String, List<DueClock>>{};
+    for (final a in alerts) {
+      (alertsByItem[a.item.id] ??= []).add(a);
+    }
     final marginByItem = {for (final m in margins) m.item.id: m};
     // An owned cylinder on the board is listed under Cylinders only.
     final slotted = {
@@ -120,6 +124,7 @@ class TripGearTab extends ConsumerWidget {
             TripPackedItemRow(
               item: item,
               alert: alertByItem[item.id],
+              alerts: alertsByItem[item.id] ?? const [],
               margin: marginByItem[item.id],
               onUnpack: () => _unpack(context, ref, item.id),
             ),
