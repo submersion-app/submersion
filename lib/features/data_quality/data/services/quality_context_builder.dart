@@ -19,6 +19,7 @@ import 'package:submersion/features/transmitters/data/repositories/transmitter_r
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/equipment/data/repositories/dive_gear_usage_sql.dart';
+import 'package:submersion/features/data_quality/domain/services/shared_gear_overlap_rules.dart';
 
 class QualityContextBuilder {
   QualityContextBuilder({
@@ -193,7 +194,16 @@ class QualityContextBuilder {
     if (mine.isEmpty) return const [];
 
     final entry = dive.effectiveEntryTime;
-    final exit = entry.add(dive.effectiveRuntime ?? Duration.zero);
+    // The end the detector uses, so the window reaches every dive it could
+    // pair with; a dive without one still looks around its entry.
+    final exit =
+        sharedGearExit(
+          entry: entry,
+          exit: dive.exitTime,
+          runtime: dive.runtime,
+          bottomTime: dive.bottomTime,
+        ) ??
+        entry;
     final windowMs = QualityThresholds.neighborWindow.inMilliseconds;
     final others = await _db
         .customSelect(

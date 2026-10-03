@@ -522,8 +522,22 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     // scan would.
     diverId: widget.diveId == null ? activeDiverId : _existingDive?.diverId,
     entry: _currentEntryTime(),
-    exit: _currentDiveEndTime(),
+    exit: _currentDiveEndTime() ?? _entryPlusBottomTime(),
   );
+
+  /// Entry plus the bottom time field, the scan's last resort for a dive
+  /// with no exit or runtime (`sharedGearExit`); null while it is blank.
+  DateTime? _entryPlusBottomTime() {
+    final minutes = switch (readNumber(
+      _durationController.text,
+      integer: true,
+    )) {
+      NumberValue(:final value) => value.toInt(),
+      NumberBlank() || NumberInvalid() => null,
+    };
+    if (minutes == null || minutes <= 0) return null;
+    return _currentEntryTime().add(Duration(minutes: minutes));
+  }
 
   /// "Also on Anna's dive, 10:02" for gear on another profile's overlapping
   /// dive, or null. The time is the other dive's UTC wall clock, formatted

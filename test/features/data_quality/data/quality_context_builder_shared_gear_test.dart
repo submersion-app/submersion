@@ -115,6 +115,21 @@ void main() {
     );
   });
 
+  // The window reaches as far as the end the detector uses: a recorded exit
+  // wins over the runtime, so a dive near that exit is still compared.
+  test('the window follows a recorded exit past the runtime', () async {
+    const hour = 60 * minute;
+    await (db.update(db.dives)..where((t) => t.id.equals('b1'))).write(
+      DivesCompanion(exitTime: Value(ten + 22 * hour)),
+    );
+    await addDive('a3', 'anna', ten + 21 * hour);
+    await wear('a3', 'light');
+    expect(
+      (await contextFor('b1')).sharedGearOverlaps.map((o) => o.otherDiveId),
+      ['a1', 'a3'],
+    );
+  });
+
   test('installed parts and hosts travel with the item', () async {
     await addItem('reg');
     await addItem('hose', host: 'reg');

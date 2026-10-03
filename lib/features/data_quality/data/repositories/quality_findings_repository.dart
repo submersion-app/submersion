@@ -177,11 +177,23 @@ class QualityFindingsRepository {
     return [for (final r in rows) ?_fromRow(r)];
   }
 
+  /// Open findings this build can read: the counts must match what the
+  /// inbox lists, and [_fromRow] skips a synced finding whose category or
+  /// severity a newer build added (issue #2853).
+  Expression<bool> get _openAndReadable =>
+      _db.qualityFindings.status.equals(QualityStatus.open.name) &
+      _db.qualityFindings.category.isIn([
+        for (final c in QualityCategory.values) c.name,
+      ]) &
+      _db.qualityFindings.severity.isIn([
+        for (final s in QualitySeverity.values) s.name,
+      ]);
+
   Stream<int> watchOpenCount() {
     final count = _db.qualityFindings.id.count();
     final query = _db.selectOnly(_db.qualityFindings)
       ..addColumns([count])
-      ..where(_db.qualityFindings.status.equals(QualityStatus.open.name));
+      ..where(_openAndReadable);
     return query.watchSingle().map((row) => row.read(count) ?? 0);
   }
 
@@ -196,7 +208,7 @@ class QualityFindingsRepository {
     final query = _db.selectOnly(_db.qualityFindings)
       ..addColumns([count])
       ..where(
-        _db.qualityFindings.status.equals(QualityStatus.open.name) &
+        _openAndReadable &
             (_db.qualityFindings.diveId.equals(diveId) |
                 _db.qualityFindings.relatedDiveId.equals(diveId)),
       );
@@ -213,7 +225,7 @@ class QualityFindingsRepository {
     final query = _db.selectOnly(_db.qualityFindings)
       ..addColumns([count])
       ..where(
-        _db.qualityFindings.status.equals(QualityStatus.open.name) &
+        _openAndReadable &
             (_db.qualityFindings.diveId.isIn(ids) |
                 _db.qualityFindings.relatedDiveId.isIn(ids)),
       );

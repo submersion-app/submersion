@@ -300,5 +300,26 @@ void main() {
       expect(ids, contains('readable'));
       expect(ids, isNot(contains('from-the-future')));
     });
+
+    // The badge and the dive counts must match what the inbox lists.
+    test('the open counts skip them', () async {
+      await db
+          .into(db.qualityFindings)
+          .insert(
+            QualityFindingsCompanion.insert(
+              id: 'severity-from-the-future',
+              diveId: 'd-unreadable',
+              detectorId: 'clock_offset',
+              detectorVersion: 1,
+              category: 'time',
+              severity: 'fatal',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      expect(await repo.watchOpenCount().first, 1);
+      expect(await repo.watchOpenCountForDive('d-unreadable').first, 1);
+      expect(await repo.watchOpenCountForDives({'d-unreadable'}).first, 1);
+    });
   });
 }
