@@ -8,10 +8,8 @@ import 'package:submersion/features/checklists/presentation/providers/checklist_
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
-import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void _setMobileTestSurfaceSize(WidgetTester tester) {
@@ -136,6 +134,9 @@ void main() {
       final checklistTab = find.widgetWithText(Tab, 'Checklist');
       expect(checklistTab, findsOneWidget);
 
+      // The tab row scrolls on a phone: bring the tab into view.
+      await tester.ensureVisible(checklistTab);
+      await tester.pumpAndSettle();
       await tester.tap(checklistTab);
       await tester.pumpAndSettle();
 
@@ -144,96 +145,66 @@ void main() {
       expect(find.text('Add item'), findsOneWidget);
     });
 
-    testWidgets(
-      'past non-liveaboard trip shows a collapsed checklist at the story end',
-      (tester) async {
-        _setMobileTestSurfaceSize(tester);
-        // Past trip (2024) so the checklist renders as a collapsed summary at
-        // the end of the story rather than the planned-trip hero card.
-        final trip = Trip(
-          id: 'checklist-standard-trip',
-          name: 'Shore Trip',
-          startDate: DateTime(2024, 1, 15),
-          endDate: DateTime(2024, 1, 16),
-          location: 'Egypt',
-          createdAt: DateTime(2024),
-          updatedAt: DateTime(2024),
-        );
-        final tripWithStats = TripWithStats(trip: trip, diveCount: 0);
-        final items = [
-          TripChecklistItem(
-            id: 'item-1',
-            tripId: trip.id,
-            title: 'Service regulator',
-            isDone: false,
-            createdAt: DateTime(2024),
-            updatedAt: DateTime(2024),
+    testWidgets('a shore trip shows a Checklist tab', (tester) async {
+      _setMobileTestSurfaceSize(tester);
+      final liveaboardTrip = Trip(
+        id: 'checklist-lb-trip',
+        name: 'Checklist Liveaboard',
+        startDate: DateTime(2024, 1, 15),
+        endDate: DateTime(2024, 1, 22),
+        tripType: TripType.shore,
+        notes: '',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      final liveaboardStats = TripWithStats(trip: liveaboardTrip, diveCount: 0);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripWithStatsProvider(liveaboardTrip.id).overrideWith((ref) {
+              return Future.value(liveaboardStats);
+            }),
+            diveIdsForTripProvider(liveaboardTrip.id).overrideWith((ref) {
+              return Future.value(<String>[]);
+            }),
+            divesForTripProvider(
+              liveaboardTrip.id,
+            ).overrideWith((ref) async => <Dive>[]),
+            tripChecklistProvider(
+              liveaboardTrip.id,
+            ).overrideWith((ref) async => <TripChecklistItem>[]),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+            settingsProvider.overrideWith((ref) {
+              return _MockSettingsNotifier();
+            }),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: liveaboardTrip.id),
           ),
-        ];
-        final story = buildTripStory(
-          trip: trip,
-          dives: [],
-          itineraryDays: [],
-          mediaByDiveId: {},
-          sightingsByDiveId: {},
-          checklistItems: items,
-          today: DateTime(2026, 6, 1),
-        );
+        ),
+      );
 
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              tripWithStatsProvider(trip.id).overrideWith((ref) {
-                return Future.value(tripWithStats);
-              }),
-              diveIdsForTripProvider(trip.id).overrideWith((ref) {
-                return Future.value(<String>[]);
-              }),
-              tripStoryProvider(trip.id).overrideWith((ref) async => story),
-              tripChecklistProvider(trip.id).overrideWith((ref) async => items),
-              tripChecklistProgressProvider(
-                trip.id,
-              ).overrideWith((ref) async => (done: 0, total: items.length)),
-              tripListNotifierProvider.overrideWith((ref) {
-                return _MockTripListNotifier([]);
-              }),
-              settingsProvider.overrideWith((ref) {
-                return _MockSettingsNotifier();
-              }),
-            ],
-            child: MaterialApp(
-              locale: const Locale('en'),
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              home: TripDetailPage(tripId: trip.id),
-            ),
-          ),
-        );
+      await tester.pumpAndSettle();
 
-        await tester.pump();
-        await tester.pump(const Duration(seconds: 1));
+      // The 5th tab is the Checklist tab.
+      final checklistTab = find.widgetWithText(Tab, 'Checklist');
+      expect(checklistTab, findsOneWidget);
 
-        // The collapsed checklist uses the progress string as its title.
-        final checklistTile = find.text('0 of 1 done');
-        await tester.scrollUntilVisible(
-          checklistTile,
-          200,
-          scrollable: find.byType(Scrollable).first,
-        );
-        expect(checklistTile, findsOneWidget);
+      // The tab row scrolls on a phone: bring the tab into view.
+      await tester.ensureVisible(checklistTab);
+      await tester.pumpAndSettle();
+      await tester.tap(checklistTab);
+      await tester.pumpAndSettle();
 
-        // scrollUntilVisible stops as soon as the finder matches, and slivers
-        // build children inside the cache extent — so the tile can be "found"
-        // while still below the fold, where a tap hits nothing. Pull it fully
-        // on screen before tapping rather than relying on the story's height.
-        await tester.ensureVisible(checklistTile);
-        await tester.pumpAndSettle();
-
-        // Expanding it reveals the checklist item.
-        await tester.tap(checklistTile);
-        await tester.pumpAndSettle();
-        expect(find.text('Service regulator'), findsOneWidget);
-      },
-    );
+      // TripChecklistSection renders its own "Add item" affordance for an
+      // empty checklist.
+      expect(find.text('Add item'), findsOneWidget);
+    });
   });
 }

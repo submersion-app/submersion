@@ -21,6 +21,16 @@ import 'package:submersion/features/trips/presentation/pages/trip_detail_page.da
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
+import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
+import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_tab.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -36,6 +46,23 @@ void _setMobileTestSurfaceSize(WidgetTester tester) {
     tester.view.resetDevicePixelRatio();
   });
 }
+
+/// What the Gear and Checklist tabs read, empty, so a test can open them.
+List<Override> _tabOverrides(String tripId) => [
+  tripGearProvider(tripId).overrideWith((ref) async => const []),
+  tripCylinderStatesProvider(tripId).overrideWith((ref) async => const []),
+  tripServiceAlertsProvider(tripId).overrideWith((ref) async => const []),
+  tripScrubberMarginsProvider(
+    tripId,
+  ).overrideWith((ref) async => const <ScrubberMargin>[]),
+  tripFillForecastProvider(tripId).overrideWith((ref) async => null),
+  tripChecklistProvider(
+    tripId,
+  ).overrideWith((ref) async => const <TripChecklistItem>[]),
+  tripChecklistProgressProvider(
+    tripId,
+  ).overrideWith((ref) async => (done: 0, total: 0)),
+];
 
 void main() {
   group('TripDetailPage', () {
@@ -58,6 +85,78 @@ void main() {
       maxDepth: 32.5,
       avgDepth: 18.3,
     );
+
+    Future<void> pumpTrip(WidgetTester tester, Trip trip) async {
+      _setMobileTestSurfaceSize(tester);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripWithStatsProvider(trip.id).overrideWith(
+              (ref) async => TripWithStats(trip: trip, diveCount: 0),
+            ),
+            diveIdsForTripProvider(
+              trip.id,
+            ).overrideWith((ref) async => <String>[]),
+            divesForTripProvider(trip.id).overrideWith((ref) async => <Dive>[]),
+            tripListNotifierProvider.overrideWith(
+              (ref) => _MockTripListNotifier([]),
+            ),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            ..._tabOverrides(trip.id),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripDetailPage(tripId: trip.id),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    for (final type in TripType.values) {
+      testWidgets('a ${type.name} trip shows the six tabs in order', (
+        tester,
+      ) async {
+        await pumpTrip(tester, testTrip.copyWith(tripType: type));
+        final tabs = tester
+            .widgetList<Tab>(find.byType(Tab))
+            .map((t) => t.text)
+            .toList();
+        expect(tabs, [
+          'Overview',
+          'Itinerary',
+          'Gear',
+          'Checklist',
+          'Dives',
+          'Photos',
+        ]);
+      });
+    }
+
+    testWidgets('the Gear tab holds the gear list', (tester) async {
+      await pumpTrip(tester, testTrip);
+      // The tab row scrolls on a phone: bring the tab into view.
+      await tester.ensureVisible(find.widgetWithText(Tab, 'Gear'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(Tab, 'Gear'));
+      await tester.pumpAndSettle();
+      expect(find.byType(TripGearTab), findsOneWidget);
+    });
+
+    testWidgets('the Checklist tab offers the pre-dive checklist', (
+      tester,
+    ) async {
+      await pumpTrip(tester, testTrip);
+      // The tab row scrolls on a phone: bring the tab into view.
+      await tester.ensureVisible(find.widgetWithText(Tab, 'Checklist'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(Tab, 'Checklist'));
+      await tester.pumpAndSettle();
+      expect(find.text('Pre-dive checklist'), findsOneWidget);
+      expect(find.byType(TripChecklistSection), findsOneWidget);
+    });
 
     testWidgets('should display trip name in app bar', (tester) async {
       _setMobileTestSurfaceSize(tester);
@@ -435,6 +534,9 @@ void main() {
       // Tap the Dives tab in the liveaboard tabbed layout
       final divesTab = find.text('Dives');
       if (divesTab.evaluate().isNotEmpty) {
+        // The tab row scrolls on a phone: bring the tab into view.
+        await tester.ensureVisible(divesTab.first);
+        await tester.pumpAndSettle();
         await tester.tap(divesTab.first);
         await tester.pumpAndSettle();
       }
@@ -764,6 +866,9 @@ void main() {
       expect(find.text('Overview'), findsOneWidget);
       expect(find.widgetWithText(Tab, 'Dives'), findsOneWidget);
       // Switch to Dives tab and verify the empty message renders.
+      // The tab row scrolls on a phone: bring the tab into view.
+      await tester.ensureVisible(find.widgetWithText(Tab, 'Dives'));
+      await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(Tab, 'Dives'));
       await tester.pumpAndSettle();
       expect(find.text('No dives in this trip yet'), findsOneWidget);
@@ -1117,6 +1222,9 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      // The tab row scrolls on a phone: bring the tab into view.
+      await tester.ensureVisible(find.widgetWithText(Tab, 'Dives'));
+      await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(Tab, 'Dives'));
       await tester.pumpAndSettle();
       expect(find.text('No dives in this trip yet'), findsOneWidget);
@@ -1173,6 +1281,9 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      // The tab row scrolls on a phone: bring the tab into view.
+      await tester.ensureVisible(find.widgetWithText(Tab, 'Dives'));
+      await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(Tab, 'Dives'));
       await tester.pumpAndSettle();
       expect(find.text('Unknown Site'), findsWidgets);
@@ -1215,6 +1326,9 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
+      // The tab row scrolls on a phone: bring the tab into view.
+      await tester.ensureVisible(find.widgetWithText(Tab, 'Dives'));
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(Tab, 'Dives'));
       await tester.pumpAndSettle();

@@ -9,8 +9,6 @@ import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
-import 'package:submersion/features/pre_dive/presentation/widgets/start_session_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
@@ -18,13 +16,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_gear_alerts_panel.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_itinerary_tab.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_overview_tab.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_photo_section.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_cylinders_card.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_gear_card.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_header_cards.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
@@ -112,23 +104,24 @@ class _TripDetailContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final trip = tripWithStats.trip;
-
-    if (trip.isLiveaboard) {
-      return _buildLiveaboardLayout(context, ref, trip);
-    }
-
-    return _buildStandardLayout(context, ref, trip);
-  }
-
-  /// Standard single-scroll layout for non-liveaboard trips.
-  Widget _buildStandardLayout(BuildContext context, WidgetRef ref, Trip trip) {
-    final body = TripOverviewTab(tripWithStats: tripWithStats);
+    // One layout for every trip type (#2845): the tab row under the "Shared
+    // by" banner, embedded under the master-detail header or in a Scaffold.
+    final body = Column(
+      children: [
+        SharedByBanner(
+          kind: SharedItemKind.trip,
+          itemId: trip.id,
+          ownerId: trip.diverId,
+          isShared: trip.isShared,
+        ),
+        Expanded(child: TripDetailTabs(tripWithStats: tripWithStats)),
+      ],
+    );
 
     if (embedded) {
       return Column(
         children: [
           _buildEmbeddedHeader(context, ref, trip),
-          _headerCards(trip),
           Expanded(child: body),
         ],
       );
@@ -139,96 +132,11 @@ class _TripDetailContent extends ConsumerWidget {
         title: Text(trip.name),
         actions: _buildAppBarActions(context, ref, trip),
       ),
-      body: Column(
-        children: [
-          _headerCards(trip),
-          Expanded(child: body),
-        ],
-      ),
+      body: body,
     );
   }
 
-  /// Tabbed layout for liveaboard trips with 5 tabs:
-  /// Overview, Itinerary, Photos, Dives, Checklist.
-  Widget _buildLiveaboardLayout(
-    BuildContext context,
-    WidgetRef ref,
-    Trip trip,
-  ) {
-    final tabbedBody = DefaultTabController(
-      length: 5,
-      child: Column(
-        children: [
-          Material(
-            color: Theme.of(context).colorScheme.surface,
-            child: TabBar(
-              tabs: [
-                Tab(text: context.l10n.trips_detail_tab_overview),
-                Tab(text: context.l10n.trips_detail_tab_itinerary),
-                Tab(text: context.l10n.trips_detail_tab_photos),
-                Tab(text: context.l10n.trips_detail_tab_dives),
-                Tab(text: context.l10n.trips_detail_tab_checklist),
-              ],
-            ),
-          ),
-          Expanded(
-            child: TabBarView(
-              children: [
-                TripOverviewTab(tripWithStats: tripWithStats),
-                TripItineraryTab(tripId: trip.id),
-                _buildPhotosTab(context, ref, trip),
-                _buildDivesTab(context, ref, trip),
-                SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: OutlinedButton.icon(
-                          icon: const Icon(Icons.fact_check),
-                          label: Text(context.l10n.trips_detail_preDive_action),
-                          onPressed: () =>
-                              showStartSessionSheet(context, tripId: trip.id),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TripChecklistSection(trip: tripWithStats.trip),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (embedded) {
-      return Column(
-        children: [
-          _buildEmbeddedHeader(context, ref, trip),
-          _headerCards(trip),
-          Expanded(child: tabbedBody),
-        ],
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(trip.name),
-        actions: _buildAppBarActions(context, ref, trip),
-      ),
-      body: Column(
-        children: [
-          _headerCards(trip),
-          Expanded(child: tabbedBody),
-        ],
-      ),
-    );
-  }
-
-  /// Shared AppBar actions for both standard and liveaboard layouts.
+  /// The page's AppBar actions.
   List<Widget> _buildAppBarActions(
     BuildContext context,
     WidgetRef ref,
@@ -253,143 +161,6 @@ class _TripDetailContent extends ConsumerWidget {
       _buildMoreMenu(context, ref, trip),
     ];
   }
-
-  /// Standalone photos tab for the liveaboard tabbed layout.
-  Widget _buildPhotosTab(BuildContext context, WidgetRef ref, Trip trip) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: TripPhotoSection(tripId: trip.id),
-    );
-  }
-
-  /// Standalone dives tab for the liveaboard tabbed layout.
-  /// Shows all dives (not limited to 5 like the overview).
-  Widget _buildDivesTab(BuildContext context, WidgetRef ref, Trip trip) {
-    final divesAsync = ref.watch(divesForTripProvider(trip.id));
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
-    final theme = Theme.of(context);
-
-    return divesAsync.when(
-      data: (dives) {
-        if (dives.isEmpty) {
-          return Center(child: Text(context.l10n.trips_detail_dives_empty));
-        }
-        final sortedDives = List.of(dives)
-          ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: sortedDives.length,
-          itemBuilder: (context, index) {
-            final dive = sortedDives[index];
-            return InkWell(
-              onTap: () => context.push('/dives/${dive.id}'),
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '#${dive.diveNumber ?? '-'}',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            dive.site?.name ??
-                                context.l10n.trips_detail_dives_unknownSite,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            units.formatMonthDay(dive.dateTime),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        if (dive.maxDepth != null)
-                          Text(
-                            units.formatDepth(dive.maxDepth),
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        // Runtime with a bottom-time fallback, matching the
-                        // trip totals so these rows add up to the figure the
-                        // Overview tab reports (issue #889).
-                        if ((dive.runtime ?? dive.bottomTime) != null)
-                          Text(
-                            '${(dive.runtime ?? dive.bottomTime)!.inMinutes}min',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.chevron_right,
-                      color: theme.colorScheme.onSurfaceVariant,
-                      size: 20,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator.adaptive()),
-      error: (e, _) =>
-          Center(child: Text(context.l10n.trips_detail_dives_errorLoading)),
-    );
-  }
-
-  /// The cards above the trip's story, the same in every layout, under
-  /// "Shared by" when another profile owns the trip (issue #2594).
-  Widget _headerCards(Trip trip) => Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      SharedByBanner(
-        kind: SharedItemKind.trip,
-        itemId: trip.id,
-        ownerId: trip.diverId,
-        isShared: trip.isShared,
-      ),
-      TripHeaderCards(
-        children: [
-          TripGearAlertsPanel(trip: trip),
-          TripCylindersCard(trip: trip),
-          TripGearCard(trip: trip),
-        ],
-      ),
-    ],
-  );
 
   Widget _buildEmbeddedHeader(BuildContext context, WidgetRef ref, Trip trip) {
     final colorScheme = Theme.of(context).colorScheme;
