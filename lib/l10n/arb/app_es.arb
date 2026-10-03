@@ -7350,10 +7350,97 @@
   "trips_detail_stat_speciesSeen": "Species seen",
   "trips_detail_stat_totalRuntime": "Tiempo total",
   "trips_detail_stat_totalDives": "Total de inmersiones",
-  "trips_detail_tab_dives": "Dives",
-  "trips_detail_tab_itinerary": "Itinerary",
-  "trips_detail_tab_overview": "Overview",
-  "trips_detail_tab_photos": "Photos",
+  "trips_detail_tab_dives": "Inmersiones",
+  "trips_detail_tab_gear": "Equipo",
+  "trips_overview_checklist_progress": "{done} de {total} hechas",
+  "@trips_overview_checklist_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_checklist_dueSoon": "{count, plural, =1{{count} vence esta semana} other{{count} vencen esta semana}}",
+  "@trips_overview_checklist_dueSoon": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_checklist_overdue": "{count, plural, =1{{count} vencida} other{{count} vencidas}}",
+  "@trips_overview_checklist_overdue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_gear_packed": "{count, plural, =0{Nada preparado} =1{{count} elemento preparado} other{{count} elementos preparados}}",
+  "@trips_overview_gear_packed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_gear_cylinders": "{count, plural, =1{{count} botella} other{{count} botellas}}",
+  "@trips_overview_gear_cylinders": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_gear_serviceAlerts": "{count, plural, =1{{count} aviso de mantenimiento} other{{count} avisos de mantenimiento}}",
+  "@trips_overview_gear_serviceAlerts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_itinerary_days": "{count, plural, =1{{count} día} other{{count} días}}",
+  "@trips_overview_itinerary_days": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_itinerary_divesPlanned": "{count, plural, =1{{count} inmersión planificada} other{{count} inmersiones planificadas}}",
+  "@trips_overview_itinerary_divesPlanned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_itinerary_none": "Sin planificar",
+  "trips_overview_plan": "Plan",
+  "trips_overview_plan_divesPerDay": "{count} inmersiones/día",
+  "@trips_overview_plan_divesPerDay": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_plan_sharing": "{count, plural, =1{{count} buceador comparte botellas} other{{count} buceadores comparten botellas}}",
+  "@trips_overview_plan_sharing": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_plan_notSet": "Sin definir",
+  "trips_detail_tab_itinerary": "Itinerario",
+  "trips_detail_tab_overview": "Resumen",
+  "trips_detail_tab_photos": "Fotos",
   "trips_detail_tab_checklist": "Lista de verificación",
   "trips_detail_tooltip_edit": "Editar viaje",
   "trips_detail_tooltip_editShort": "Editar",

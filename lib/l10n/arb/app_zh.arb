@@ -7516,6 +7516,93 @@
   "trips_detail_stat_totalRuntime": "总运行时间",
   "trips_detail_stat_totalDives": "总计潜水",
   "trips_detail_tab_dives": "潜水",
+  "trips_detail_tab_gear": "装备",
+  "trips_overview_checklist_progress": "已完成 {done}/{total}",
+  "@trips_overview_checklist_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_checklist_dueSoon": "{count, plural, other{本周到期 {count} 项}}",
+  "@trips_overview_checklist_dueSoon": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_checklist_overdue": "{count, plural, other{已逾期 {count} 项}}",
+  "@trips_overview_checklist_overdue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_gear_packed": "{count, plural, =0{尚未打包} other{已打包 {count} 件}}",
+  "@trips_overview_gear_packed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_gear_cylinders": "{count, plural, other{{count} 个气瓶}}",
+  "@trips_overview_gear_cylinders": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_gear_serviceAlerts": "{count, plural, other{{count} 条维护提醒}}",
+  "@trips_overview_gear_serviceAlerts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_itinerary_days": "{count, plural, other{{count} 天}}",
+  "@trips_overview_itinerary_days": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_itinerary_divesPlanned": "{count, plural, other{计划 {count} 次潜水}}",
+  "@trips_overview_itinerary_divesPlanned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_itinerary_none": "尚未计划",
+  "trips_overview_plan": "计划",
+  "trips_overview_plan_divesPerDay": "每天 {count} 次潜水",
+  "@trips_overview_plan_divesPerDay": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_plan_sharing": "{count, plural, other{{count} 名潜水员共用气瓶}}",
+  "@trips_overview_plan_sharing": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_plan_notSet": "未设置",
   "trips_detail_tab_itinerary": "行程",
   "trips_detail_tab_overview": "概览",
   "trips_detail_tab_photos": "照片",

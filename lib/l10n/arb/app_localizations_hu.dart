@@ -26741,16 +26741,127 @@ class AppLocalizationsHu extends AppLocalizations {
       'Vessel name is required for liveaboard trips';
 
   @override
-  String get trips_detail_tab_overview => 'Overview';
+  String get trips_detail_tab_overview => 'Áttekintés';
 
   @override
-  String get trips_detail_tab_itinerary => 'Itinerary';
+  String get trips_detail_tab_itinerary => 'Útiterv';
 
   @override
-  String get trips_detail_tab_photos => 'Photos';
+  String get trips_detail_tab_photos => 'Fotók';
 
   @override
-  String get trips_detail_tab_dives => 'Dives';
+  String get trips_detail_tab_dives => 'Merülések';
+
+  @override
+  String get trips_detail_tab_gear => 'Felszerelés';
+
+  @override
+  String trips_overview_checklist_progress(int done, int total) {
+    return '$done/$total kész';
+  }
+
+  @override
+  String trips_overview_checklist_dueSoon(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count esedékes a héten',
+      one: '$count esedékes a héten',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_checklist_overdue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lejárt',
+      one: '$count lejárt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_packed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem bepakolva',
+      one: '$count elem bepakolva',
+      zero: 'Semmi nincs bepakolva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_cylinders(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count palack',
+      one: '$count palack',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_serviceAlerts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count szervizfigyelmeztetés',
+      one: '$count szervizfigyelmeztetés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_itinerary_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nap',
+      one: '$count nap',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_itinerary_divesPlanned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tervezett merülés',
+      one: '$count tervezett merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_overview_itinerary_none => 'Még nincs megtervezve';
+
+  @override
+  String get trips_overview_plan => 'Terv';
+
+  @override
+  String trips_overview_plan_divesPerDay(int count) {
+    return '$count merülés/nap';
+  }
+
+  @override
+  String trips_overview_plan_sharing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count búvár osztozik a palackokon',
+      one: '$count búvár osztozik a palackokon',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_overview_plan_notSet => 'Nincs megadva';
 
   @override
   String get trips_detail_sectionTitle_vessel => 'Vessel';

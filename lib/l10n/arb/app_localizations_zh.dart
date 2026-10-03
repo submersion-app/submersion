@@ -25472,6 +25472,109 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_detail_tab_dives => '潜水';
 
   @override
+  String get trips_detail_tab_gear => '装备';
+
+  @override
+  String trips_overview_checklist_progress(int done, int total) {
+    return '已完成 $done/$total';
+  }
+
+  @override
+  String trips_overview_checklist_dueSoon(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '本周到期 $count 项',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_checklist_overdue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已逾期 $count 项',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_packed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已打包 $count 件',
+      zero: '尚未打包',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_cylinders(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个气瓶',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_serviceAlerts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 条维护提醒',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_itinerary_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 天',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_itinerary_divesPlanned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '计划 $count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_overview_itinerary_none => '尚未计划';
+
+  @override
+  String get trips_overview_plan => '计划';
+
+  @override
+  String trips_overview_plan_divesPerDay(int count) {
+    return '每天 $count 次潜水';
+  }
+
+  @override
+  String trips_overview_plan_sharing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 名潜水员共用气瓶',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_overview_plan_notSet => '未设置';
+
+  @override
   String get trips_detail_sectionTitle_vessel => '船只';
 
   @override

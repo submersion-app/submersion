@@ -26494,16 +26494,127 @@ class AppLocalizationsAr extends AppLocalizations {
       'Vessel name is required for liveaboard trips';
 
   @override
-  String get trips_detail_tab_overview => 'Overview';
+  String get trips_detail_tab_overview => 'نظرة عامة';
 
   @override
-  String get trips_detail_tab_itinerary => 'Itinerary';
+  String get trips_detail_tab_itinerary => 'برنامج الرحلة';
 
   @override
-  String get trips_detail_tab_photos => 'Photos';
+  String get trips_detail_tab_photos => 'الصور';
 
   @override
-  String get trips_detail_tab_dives => 'Dives';
+  String get trips_detail_tab_dives => 'الغوصات';
+
+  @override
+  String get trips_detail_tab_gear => 'المعدات';
+
+  @override
+  String trips_overview_checklist_progress(int done, int total) {
+    return 'تم $done من $total';
+  }
+
+  @override
+  String trips_overview_checklist_dueSoon(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مستحقة هذا الأسبوع',
+      one: 'مهمة واحدة مستحقة هذا الأسبوع',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_checklist_overdue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count متأخرة',
+      one: 'مهمة واحدة متأخرة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_packed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر مُجهزة',
+      one: 'عنصر واحد مُجهز',
+      zero: 'لم يُجهز شيء',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_cylinders(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أسطوانات',
+      one: 'أسطوانة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_serviceAlerts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تنبيهات صيانة',
+      one: 'تنبيه صيانة واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_itinerary_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أيام',
+      one: 'يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_itinerary_divesPlanned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصات مخططة',
+      one: 'غوصة واحدة مخططة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_overview_itinerary_none => 'لم يُخطط بعد';
+
+  @override
+  String get trips_overview_plan => 'الخطة';
+
+  @override
+  String trips_overview_plan_divesPerDay(int count) {
+    return '$count غوصات/يوم';
+  }
+
+  @override
+  String trips_overview_plan_sharing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غواصين يتشاركون الأسطوانات',
+      one: 'غواص واحد يتشارك الأسطوانات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_overview_plan_notSet => 'غير محدد';
 
   @override
   String get trips_detail_sectionTitle_vessel => 'Vessel';

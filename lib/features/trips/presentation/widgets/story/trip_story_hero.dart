@@ -20,7 +20,16 @@ class TripStoryHero extends ConsumerWidget {
   final TripStory story;
   final VoidCallback? onScanForDives;
 
-  const TripStoryHero({super.key, required this.story, this.onScanForDives});
+  /// The Prepare overview (#2845) has its own rows under the hero, so it
+  /// turns the empty state off.
+  final bool showEmptyState;
+
+  const TripStoryHero({
+    super.key,
+    required this.story,
+    this.onScanForDives,
+    this.showEmptyState = true,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -96,7 +105,7 @@ class TripStoryHero extends ConsumerWidget {
           const SizedBox(height: 8),
           _GenerateItineraryButton(story: story),
         ],
-        if (story.isEmpty) ...[
+        if (showEmptyState && story.isEmpty) ...[
           const SizedBox(height: 16),
           _EmptyState(onScanForDives: onScanForDives),
         ],

@@ -1,13 +1,21 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
+import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/overview/trip_prepare_overview.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_overview_tab.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -65,7 +73,54 @@ Future<void> pumpTab(
   await tester.pump(const Duration(seconds: 1));
 }
 
+/// The Prepare overview's summary card reads these; empty is enough here.
+List<Override> prepareOverrides() => [
+  tripChecklistProvider('trip-1').overrideWith((ref) async => const []),
+  tripGearProvider('trip-1').overrideWith((ref) async => const []),
+  tripCylinderStatesProvider('trip-1').overrideWith((ref) async => const []),
+  tripServiceAlertsProvider('trip-1').overrideWith((ref) async => const []),
+  itineraryDaysProvider('trip-1').overrideWith((ref) async => const []),
+];
+
+Override _storyOn(DateTime today) => tripStoryProvider('trip-1').overrideWith(
+  (ref) async => buildTripStory(
+    trip: _trip,
+    dives: const [],
+    itineraryDays: const [],
+    mediaByDiveId: const {},
+    sightingsByDiveId: const {},
+    checklistItems: const [],
+    today: today,
+  ),
+);
+
 void main() {
+  testWidgets('before departure the overview is the Prepare page', (
+    tester,
+  ) async {
+    await withClock(Clock.fixed(DateTime(2026, 3, 13, 9)), () async {
+      await pumpTab(
+        tester,
+        extra: [_storyOn(DateTime(2026, 3, 13)), ...prepareOverrides()],
+      );
+      expect(find.byType(TripPrepareOverview), findsOneWidget);
+      expect(find.byType(TripStoryView), findsNothing);
+      expect(find.text('12 days until departure'), findsOneWidget);
+      expect(find.text('Total Dives'), findsNothing);
+    });
+  });
+
+  testWidgets('a trip starting today shows the story', (tester) async {
+    await withClock(Clock.fixed(DateTime(2026, 3, 25, 9)), () async {
+      await pumpTab(
+        tester,
+        extra: [_storyOn(DateTime(2026, 3, 25)), ...prepareOverrides()],
+      );
+      expect(find.byType(TripStoryView), findsOneWidget);
+      expect(find.byType(TripPrepareOverview), findsNothing);
+    });
+  });
+
   // Issue #166: every trip (not only liveaboards) gets a day-by-day breakdown.
   testWidgets('renders one day chapter per trip day with dives', (
     tester,

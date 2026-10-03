@@ -96,6 +96,7 @@ Future<void> pumpHero(
   TripStory story, {
   VoidCallback? onScan,
   List<Override> extra = const [],
+  bool showEmptyState = true,
 }) async {
   final overrides = await getBaseOverrides();
   await tester.pumpWidget(
@@ -107,7 +108,11 @@ Future<void> pumpHero(
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SingleChildScrollView(
-            child: TripStoryHero(story: story, onScanForDives: onScan),
+            child: TripStoryHero(
+              story: story,
+              onScanForDives: onScan,
+              showEmptyState: showEmptyState,
+            ),
           ),
         ),
       ),
@@ -117,6 +122,15 @@ Future<void> pumpHero(
 }
 
 void main() {
+  testWidgets('showEmptyState false keeps the countdown and drops the '
+      'empty state', (tester) async {
+    final now = DateTime.now();
+    final trip = _trip(start: _daysFrom(now, 12), end: _daysFrom(now, 19));
+    await pumpHero(tester, _story(trip), showEmptyState: false);
+    expect(find.text('12 days until departure'), findsOneWidget);
+    expect(find.text('No dives or itinerary yet'), findsNothing);
+  });
+
   testWidgets('planned liveaboard shows countdown, checklist, generate CTA', (
     tester,
   ) async {

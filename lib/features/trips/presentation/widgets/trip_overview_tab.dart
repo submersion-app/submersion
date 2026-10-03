@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,14 +6,25 @@ import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/overview/trip_prepare_overview.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Overview tab for a trip: the interactive day-by-day trip story.
+/// Overview tab for a trip: the Prepare page before the first day, the
+/// interactive day-by-day story from then on (#2845).
 class TripOverviewTab extends ConsumerWidget {
   final TripWithStats tripWithStats;
 
-  const TripOverviewTab({super.key, required this.tripWithStats});
+  /// Where the Prepare overview's rows go; null uses the page's
+  /// DefaultTabController.
+  final ValueChanged<TripDetailTab>? onOpenTab;
+
+  const TripOverviewTab({
+    super.key,
+    required this.tripWithStats,
+    this.onOpenTab,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -36,6 +48,11 @@ class TripOverviewTab extends ConsumerWidget {
       return const Center(child: CircularProgressIndicator.adaptive());
     }
 
+    // Before the first day there is nothing to tell: the page prepares.
+    // From the first day on, in progress or past, it tells the story.
+    if (trip.startsAfter(clock.now())) {
+      return TripPrepareOverview(story: story, onOpenTab: onOpenTab);
+    }
     return TripStoryView(
       story: story,
       stats: tripWithStats,

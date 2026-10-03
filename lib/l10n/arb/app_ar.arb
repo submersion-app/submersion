@@ -7350,10 +7350,97 @@
   "trips_detail_stat_speciesSeen": "Species seen",
   "trips_detail_stat_totalRuntime": "إجمالي وقت التشغيل",
   "trips_detail_stat_totalDives": "إجمالي الغوصات",
-  "trips_detail_tab_dives": "Dives",
-  "trips_detail_tab_itinerary": "Itinerary",
-  "trips_detail_tab_overview": "Overview",
-  "trips_detail_tab_photos": "Photos",
+  "trips_detail_tab_dives": "الغوصات",
+  "trips_detail_tab_gear": "المعدات",
+  "trips_overview_checklist_progress": "تم {done} من {total}",
+  "@trips_overview_checklist_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_checklist_dueSoon": "{count, plural, =1{مهمة واحدة مستحقة هذا الأسبوع} other{{count} مستحقة هذا الأسبوع}}",
+  "@trips_overview_checklist_dueSoon": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_checklist_overdue": "{count, plural, =1{مهمة واحدة متأخرة} other{{count} متأخرة}}",
+  "@trips_overview_checklist_overdue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_gear_packed": "{count, plural, =0{لم يُجهز شيء} =1{عنصر واحد مُجهز} other{{count} عناصر مُجهزة}}",
+  "@trips_overview_gear_packed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_gear_cylinders": "{count, plural, =1{أسطوانة واحدة} other{{count} أسطوانات}}",
+  "@trips_overview_gear_cylinders": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_gear_serviceAlerts": "{count, plural, =1{تنبيه صيانة واحد} other{{count} تنبيهات صيانة}}",
+  "@trips_overview_gear_serviceAlerts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_itinerary_days": "{count, plural, =1{يوم واحد} other{{count} أيام}}",
+  "@trips_overview_itinerary_days": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_itinerary_divesPlanned": "{count, plural, =1{غوصة واحدة مخططة} other{{count} غوصات مخططة}}",
+  "@trips_overview_itinerary_divesPlanned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_itinerary_none": "لم يُخطط بعد",
+  "trips_overview_plan": "الخطة",
+  "trips_overview_plan_divesPerDay": "{count} غوصات/يوم",
+  "@trips_overview_plan_divesPerDay": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_plan_sharing": "{count, plural, =1{غواص واحد يتشارك الأسطوانات} other{{count} غواصين يتشاركون الأسطوانات}}",
+  "@trips_overview_plan_sharing": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_overview_plan_notSet": "غير محدد",
+  "trips_detail_tab_itinerary": "برنامج الرحلة",
+  "trips_detail_tab_overview": "نظرة عامة",
+  "trips_detail_tab_photos": "الصور",
   "trips_detail_tab_checklist": "قائمة التحقق",
   "trips_detail_tooltip_edit": "تعديل الرحلة",
   "trips_detail_tooltip_editShort": "تعديل",

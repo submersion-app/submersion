@@ -26916,16 +26916,127 @@ class AppLocalizationsFr extends AppLocalizations {
       'Vessel name is required for liveaboard trips';
 
   @override
-  String get trips_detail_tab_overview => 'Overview';
+  String get trips_detail_tab_overview => 'Aperçu';
 
   @override
-  String get trips_detail_tab_itinerary => 'Itinerary';
+  String get trips_detail_tab_itinerary => 'Itinéraire';
 
   @override
   String get trips_detail_tab_photos => 'Photos';
 
   @override
-  String get trips_detail_tab_dives => 'Dives';
+  String get trips_detail_tab_dives => 'Plongées';
+
+  @override
+  String get trips_detail_tab_gear => 'Matériel';
+
+  @override
+  String trips_overview_checklist_progress(int done, int total) {
+    return '$done sur $total faites';
+  }
+
+  @override
+  String trips_overview_checklist_dueSoon(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count à faire cette semaine',
+      one: '$count à faire cette semaine',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_checklist_overdue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count en retard',
+      one: '$count en retard',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_packed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments prévus',
+      one: '$count élément prévu',
+      zero: 'Rien de prévu',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_cylinders(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bouteilles',
+      one: '$count bouteille',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_serviceAlerts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count alertes d\'entretien',
+      one: '$count alerte d\'entretien',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_itinerary_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jours',
+      one: '$count jour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_itinerary_divesPlanned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées prévues',
+      one: '$count plongée prévue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_overview_itinerary_none => 'Pas encore planifié';
+
+  @override
+  String get trips_overview_plan => 'Plan';
+
+  @override
+  String trips_overview_plan_divesPerDay(int count) {
+    return '$count plongées/jour';
+  }
+
+  @override
+  String trips_overview_plan_sharing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongeurs partagent les bouteilles',
+      one: '$count plongeur partage les bouteilles',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_overview_plan_notSet => 'Non défini';
 
   @override
   String get trips_detail_sectionTitle_vessel => 'Vessel';

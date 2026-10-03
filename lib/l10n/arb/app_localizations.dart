@@ -42672,6 +42672,90 @@ abstract class AppLocalizations {
   /// **'Dives'**
   String get trips_detail_tab_dives;
 
+  /// No description provided for @trips_detail_tab_gear.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear'**
+  String get trips_detail_tab_gear;
+
+  /// No description provided for @trips_overview_checklist_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} done'**
+  String trips_overview_checklist_progress(int done, int total);
+
+  /// No description provided for @trips_overview_checklist_dueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 due this week} other{{count} due this week}}'**
+  String trips_overview_checklist_dueSoon(int count);
+
+  /// No description provided for @trips_overview_checklist_overdue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 overdue} other{{count} overdue}}'**
+  String trips_overview_checklist_overdue(int count);
+
+  /// No description provided for @trips_overview_gear_packed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing packed} =1{1 item packed} other{{count} items packed}}'**
+  String trips_overview_gear_packed(int count);
+
+  /// No description provided for @trips_overview_gear_cylinders.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 cylinder} other{{count} cylinders}}'**
+  String trips_overview_gear_cylinders(int count);
+
+  /// No description provided for @trips_overview_gear_serviceAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 service alert} other{{count} service alerts}}'**
+  String trips_overview_gear_serviceAlerts(int count);
+
+  /// No description provided for @trips_overview_itinerary_days.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
+  String trips_overview_itinerary_days(int count);
+
+  /// No description provided for @trips_overview_itinerary_divesPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive planned} other{{count} dives planned}}'**
+  String trips_overview_itinerary_divesPlanned(int count);
+
+  /// No description provided for @trips_overview_itinerary_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Not planned yet'**
+  String get trips_overview_itinerary_none;
+
+  /// No description provided for @trips_overview_plan.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get trips_overview_plan;
+
+  /// No description provided for @trips_overview_plan_divesPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives/day'**
+  String trips_overview_plan_divesPerDay(int count);
+
+  /// No description provided for @trips_overview_plan_sharing.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 diver shares cylinders} other{{count} divers share cylinders}}'**
+  String trips_overview_plan_sharing(int count);
+
+  /// No description provided for @trips_overview_plan_notSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get trips_overview_plan_notSet;
+
   /// No description provided for @trips_detail_sectionTitle_vessel.
   ///
   /// In en, this message translates to:

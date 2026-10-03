@@ -26185,16 +26185,127 @@ class AppLocalizationsHe extends AppLocalizations {
       'Vessel name is required for liveaboard trips';
 
   @override
-  String get trips_detail_tab_overview => 'Overview';
+  String get trips_detail_tab_overview => 'סקירה';
 
   @override
-  String get trips_detail_tab_itinerary => 'Itinerary';
+  String get trips_detail_tab_itinerary => 'מסלול';
 
   @override
-  String get trips_detail_tab_photos => 'Photos';
+  String get trips_detail_tab_photos => 'תמונות';
 
   @override
-  String get trips_detail_tab_dives => 'Dives';
+  String get trips_detail_tab_dives => 'צלילות';
+
+  @override
+  String get trips_detail_tab_gear => 'ציוד';
+
+  @override
+  String trips_overview_checklist_progress(int done, int total) {
+    return '$done מתוך $total בוצעו';
+  }
+
+  @override
+  String trips_overview_checklist_dueSoon(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count לשבוע הזה',
+      one: 'משימה אחת לשבוע הזה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_checklist_overdue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count באיחור',
+      one: 'משימה אחת באיחור',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_packed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים ארוזים',
+      one: 'פריט אחד ארוז',
+      zero: 'לא נארז דבר',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_cylinders(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מיכלים',
+      one: 'מיכל אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_serviceAlerts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count התראות שירות',
+      one: 'התראת שירות אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_itinerary_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ימים',
+      one: 'יום אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_itinerary_divesPlanned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות מתוכננות',
+      one: 'צלילה אחת מתוכננת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_overview_itinerary_none => 'עדיין לא תוכנן';
+
+  @override
+  String get trips_overview_plan => 'תוכנית';
+
+  @override
+  String trips_overview_plan_divesPerDay(int count) {
+    return '$count צלילות ליום';
+  }
+
+  @override
+  String trips_overview_plan_sharing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צוללים חולקים מיכלים',
+      one: 'צולל אחד חולק מיכלים',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_overview_plan_notSet => 'לא הוגדר';
 
   @override
   String get trips_detail_sectionTitle_vessel => 'Vessel';

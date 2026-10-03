@@ -26412,6 +26412,117 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_detail_tab_dives => 'Dives';
 
   @override
+  String get trips_detail_tab_gear => 'Gear';
+
+  @override
+  String trips_overview_checklist_progress(int done, int total) {
+    return '$done of $total done';
+  }
+
+  @override
+  String trips_overview_checklist_dueSoon(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count due this week',
+      one: '1 due this week',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_checklist_overdue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count overdue',
+      one: '1 overdue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_packed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items packed',
+      one: '1 item packed',
+      zero: 'Nothing packed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_cylinders(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cylinders',
+      one: '1 cylinder',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_gear_serviceAlerts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count service alerts',
+      one: '1 service alert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_itinerary_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_overview_itinerary_divesPlanned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives planned',
+      one: '1 dive planned',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_overview_itinerary_none => 'Not planned yet';
+
+  @override
+  String get trips_overview_plan => 'Plan';
+
+  @override
+  String trips_overview_plan_divesPerDay(int count) {
+    return '$count dives/day';
+  }
+
+  @override
+  String trips_overview_plan_sharing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count divers share cylinders',
+      one: '1 diver shares cylinders',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_overview_plan_notSet => 'Not set';
+
+  @override
   String get trips_detail_sectionTitle_vessel => 'Vessel';
 
   @override
