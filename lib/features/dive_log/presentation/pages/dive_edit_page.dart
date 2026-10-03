@@ -4005,8 +4005,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// a set) is not left out of the saved dive.
   Future<void>? _pendingGearAdd;
 
-  /// Tank tag scans still resolving. Save waits for them before the gear
-  /// adds, since a scan's gear add only starts once its lookup finishes.
+  /// Tank tag scans and My cylinders picks still resolving. Save waits for
+  /// them before the gear adds, since their gear add only starts once their
+  /// lookup finishes.
   final Set<Future<void>> _pendingTankScans = {};
 
   void _trackTankScan(Future<void> scan) {
