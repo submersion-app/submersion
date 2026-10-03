@@ -260,6 +260,33 @@ void main() {
     },
   );
 
+  // Code review: an answer that placed nothing leaves the query alone, so
+  // only a move of THAT query may take its notice (and Undo) away.
+  test('a no-query notice survives other filter changes', () async {
+    final c = make(
+      _Engine(_nothing),
+      filter: DiveFilterState(query: TextNode(['reef'])),
+    );
+    await askOf(c).ask('fluffy clouds');
+    final notifier = c.read(diveFilterProvider.notifier);
+    notifier.state = notifier.state.copyWith(axesSuspended: true);
+    expect(stateOf(c).answer, isNotNull);
+    notifier.state = notifier.state.copyWith(query: TextNode(['wreck']));
+    expect(stateOf(c).answer, isNull);
+  });
+
+  // Code review: remembering the sentence must not hold up the handoff.
+  test('a handoff does not wait for the recent-query write', () async {
+    final c = make(
+      _Engine(_goodSites),
+      recorder: (sentence, locale, parsed) => Completer<void>().future,
+    );
+    final route = await askOf(
+      c,
+    ).ask('sites rated 4').timeout(const Duration(seconds: 2));
+    expect(route, '/sites');
+  });
+
   test('an engine error is published, the filter untouched', () async {
     final engine = _Engine()
       ..throwing = const NlException(NlError.contextExceeded);

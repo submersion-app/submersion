@@ -1220,7 +1220,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
             onPressed: () => context.push('/dives/activity'),
           ),
-        // Only where an on-device model exists for the active locale.
         const DiveSearchAction(),
         IconButton(
           icon: const Icon(Icons.sort),

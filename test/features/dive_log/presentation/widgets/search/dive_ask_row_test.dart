@@ -43,6 +43,9 @@ void main() {
     Future<NlAvailability>? availability,
   }) async {
     asks = 0;
+    // Not awaited: with no listener, close() completes only once its done
+    // event is delivered, which would never happen.
+    addTearDown(() => unawaited(engine.downloads.close()));
     late ProviderContainer container;
     await tester.pumpWidget(
       testApp(

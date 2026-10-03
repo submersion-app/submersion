@@ -247,7 +247,6 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
           onPressed: () => showTableColumnPicker(context),
         ),
         appBarActions: [
-          // Only where an on-device model exists for the active locale.
           const DiveSearchAction(iconSize: 20),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),

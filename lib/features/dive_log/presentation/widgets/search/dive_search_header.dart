@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/search/dive_ju
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_scope_toggle.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/query/presentation/app_query_labels.dart';
@@ -101,7 +102,6 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     // collapses it under the caret.
     if (_focus.hasFocus) {
       ref.read(diveSearchBarOpenProvider.notifier).state = true;
-      ref.read(diveAskProvider.notifier).prepare();
     }
     setState(() {});
   }
@@ -160,8 +160,14 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
 
   void _onTextChanged(String text) {
     setState(() => _text = text);
+    final ask = ref.read(diveAskProvider.notifier);
     // The diver typed on: their newer text wins over an answer on its way.
-    ref.read(diveAskProvider.notifier).cancel();
+    ask.cancel();
+    // Editing moves away from the answer shown, so its Undo would throw
+    // the edit away.
+    if (ref.read(diveAskProvider).answer != null) ask.dismiss();
+    // Warm the model once the diver types, not on every focus of search.
+    if (text.trim().isNotEmpty) ask.prepare();
   }
 
   Future<void> _ask() async {
@@ -227,6 +233,12 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     if (!ref.watch(diveSearchBarVisibleProvider)) {
       return const SizedBox.shrink();
     }
+    // Kept live while the row is up, as Explore's page kept it: unlistened,
+    // the legacy buddy names pause, and a dive write would only mark them
+    // due, so the next Ask would resolve against stale names.
+    if (ref.watch(explorePlatformSupportedProvider)) {
+      ref.listen(exploreNameIndexProvider, (_, _) {});
+    }
     final filter = ref.watch(diveFilterProvider);
     final l10n = context.l10n;
     final editorContext = QueryEditorContext(
@@ -239,10 +251,11 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     );
     final panelAxes = filter.panelAxisCount;
     final ask = ref.watch(diveAskProvider);
+    // An error stays with the text that caused it: once the field is
+    // re-printed from outside, there is no sentence left to retry.
     final showAskRow =
-        (_focus.hasFocus && _text.trim().isNotEmpty) ||
-        ask.running ||
-        ask.error != null;
+        (_text.trim().isNotEmpty && (_focus.hasFocus || ask.error != null)) ||
+        ask.running;
     void openInsights() {
       // What applies, not what is set: Insights has no "All dives" toggle
       // to show a suspension with.

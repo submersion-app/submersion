@@ -5,11 +5,11 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/explore/presentation/providers/explore_repository_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 
-/// The legacy `dives.buddy` texts, sentence-only buddies only Explore reads
-/// (#2641). They follow the dives tick here rather than in the shared index,
-/// which every query surface keeps alive: a sync writing many dives reloads
-/// this short list, not every name the diver has. Unlistened once Explore
-/// closes, so the ticks then only mark it due.
+/// The legacy `dives.buddy` texts, sentence-only buddies only Ask reads
+/// (#2641, #2773). They follow the dives tick here rather than in the shared
+/// index, which every query surface keeps alive: a sync writing many dives
+/// reloads this short list, not every name the diver has. The dive search
+/// row listens while it is up; once it closes the ticks only mark it due.
 final exploreLegacyBuddyNamesProvider = FutureProvider<List<NameEntry>>((
   ref,
 ) async {

@@ -23,13 +23,6 @@ bool suggestionsReplaceSpan(QueryError error, String text) {
       offset + length <= text.length;
 }
 
-/// The typed editor of a query tree (#2365, spec Unit 6 "Text").
-///
-/// Every keystroke is parsed and validated. Only a clean tree reaches
-/// [onChanged]; a failure underlines its span, names it under the field and
-/// offers the parser's suggestions as chips. Completions for the word at the
-/// caret show as chips too. A [value] set from outside (a chip removed, a
-/// saved query applied) is printed back into the field.
 /// A request to show [text] in a [QueryTextField] without committing it
 /// (Ask's Undo puts the sentence back this way). Compared by identity, so
 /// each new instance is applied once, after any new value in the same
@@ -39,6 +32,13 @@ class QueryTextOverride {
   final String text;
 }
 
+/// The typed editor of a query tree (#2365, spec Unit 6 "Text").
+///
+/// Every keystroke is parsed and validated. Only a clean tree reaches
+/// [onChanged]; a failure underlines its span, names it under the field and
+/// offers the parser's suggestions as chips. Completions for the word at the
+/// caret show as chips too. A [value] set from outside (a chip removed, a
+/// saved query applied) is printed back into the field.
 class QueryTextField extends StatefulWidget {
   const QueryTextField({
     super.key,

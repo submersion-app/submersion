@@ -1974,9 +1974,10 @@ DiveEditPage newDivePage(GoRouterState state) => DiveEditPage(
 
 /// `/dives/search` was Advanced Search and `/dives/explore` was Explore;
 /// they are the Refine panel and Ask in the search row now (#2773), so an
-/// old link or a bookmark lands on the dive list with its search row open. The open flag is written after the frame: go_router evaluates a
-/// redirect while parsing the location, which on a cold start happens while
-/// the widget tree builds, where Riverpod refuses provider writes.
+/// old link or a bookmark lands on the dive list with its search row open.
+/// The open flag is written after the frame: go_router evaluates a redirect
+/// while parsing the location, which on a cold start happens while the
+/// widget tree builds, where Riverpod refuses provider writes.
 String redirectRetiredDiveSearch(BuildContext context, GoRouterState state) {
   final container = ProviderScope.containerOf(context, listen: false);
   WidgetsBinding.instance.addPostFrameCallback((_) {

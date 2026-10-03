@@ -34,13 +34,15 @@ class _Engine implements NlEngine {
   final replies = <String, String>{};
   final gates = <String, Completer<String>>{};
   int compileCalls = 0;
+  int prepareCalls = 0;
+  Object? throwing;
 
   @override
   Future<NlAvailability> availability(String localeTag) async =>
       NlAvailability.available;
 
   @override
-  Future<void> prepare() async {}
+  Future<void> prepare() async => prepareCalls++;
 
   @override
   Stream<double> download() => const Stream.empty();
@@ -48,6 +50,7 @@ class _Engine implements NlEngine {
   @override
   Future<String> compile(String sentence, {required String localeTag}) {
     compileCalls++;
+    if (throwing != null) return Future.error(throwing!);
     if (gates.containsKey(sentence)) return gates[sentence]!.future;
     return Future.value(replies[sentence] ?? _nothing);
   }
@@ -71,6 +74,7 @@ void main() {
   Future<void> pumpHeader(
     WidgetTester tester, {
     required _Engine engine,
+    Future<NameIndex> Function(Ref ref)? names,
     DiveFilterState filter = const DiveFilterState(),
     bool supported = true,
   }) async {
@@ -123,7 +127,9 @@ void main() {
               volume: VolumeUnit.liters,
             ),
           ),
-          exploreNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
+          exploreNameIndexProvider.overrideWith(
+            (ref) => names?.call(ref) ?? Future.value(NameIndex.empty),
+          ),
           recentQueryRecorderProvider.overrideWithValue((s, l, p) async {}),
         ].cast(),
         child: MaterialApp.router(
@@ -208,6 +214,82 @@ void main() {
     await tester.pump();
     await tester.pump(kDiveSearchDebounce * 2);
     expect(filterOf().query, answered);
+  });
+
+  // Code review: the Explore page kept the name index listened while it
+  // was open; without a listener the legacy buddy names pause, and a dive
+  // write only marks them due, so the next Ask read stale names.
+  testAsk('the search row keeps the names Ask resolves against live', (
+    tester,
+  ) async {
+    var builds = 0;
+    var listened = false;
+    await pumpHeader(
+      tester,
+      engine: _Engine(),
+      names: (ref) async {
+        builds++;
+        listened = true;
+        // A rebuild re-registers the row's listener, so the count may touch
+        // zero in between; what matters is that it is listened at rest.
+        ref.onCancel(() => listened = false);
+        ref.onResume(() => listened = true);
+        return NameIndex.empty;
+      },
+    );
+    expect(builds, 1);
+    expect(listened, isTrue);
+  });
+
+  // Code review: editing the printed answer moves away from it, so Undo
+  // must not then throw the unfinished edit away.
+  testAsk('editing after an answer drops the notice', (tester) async {
+    await pumpHeader(tester, engine: _Engine()..replies['deep dives'] = _deep);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'deep dives');
+    await tester.pump();
+    await tester.tap(find.byKey(kDiveAskRowKey));
+    await tester.pumpAndSettle();
+    expect(find.byKey(kDiveAskNoticeKey), findsOneWidget);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'depth >');
+    await tester.pump();
+    expect(find.byKey(kDiveAskNoticeKey), findsNothing);
+  });
+
+  // Code review: an error kept after the field was re-printed showed an
+  // empty "Ask: " row that did nothing.
+  testAsk('a re-printed field hides the Ask row and its old error', (
+    tester,
+  ) async {
+    final engine = _Engine()
+      ..throwing = const NlException(NlError.quotaExceeded);
+    await pumpHeader(tester, engine: engine);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'deep dives');
+    await tester.pump();
+    await tester.tap(find.byKey(kDiveAskRowKey));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('The on-device model is busy. Try again in a moment.'),
+      findsOneWidget,
+    );
+    container.read(diveFilterProvider.notifier).state = DiveFilterState(
+      query: TextNode(['wreck']),
+    );
+    await tester.pump();
+    expect(find.byKey(kDiveAskRowKey), findsNothing);
+  });
+
+  // Code review: focusing search to type a word warmed the language model.
+  testAsk('the model warms up on the first typed text, not on focus', (
+    tester,
+  ) async {
+    final engine = _Engine();
+    await pumpHeader(tester, engine: engine);
+    await tester.tap(find.byKey(kDiveSearchFieldKey));
+    await tester.pump();
+    expect(engine.prepareCalls, 0);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'turtles');
+    await tester.pump();
+    expect(engine.prepareCalls, 1);
   });
 
   // Review Focus 1.

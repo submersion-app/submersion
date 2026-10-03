@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -57,13 +58,15 @@ class DiveAskNotifier extends StateNotifier<AskState> {
   DiveAskNotifier(this._ref) : super(const AskState()) {
     // The notice belongs to its answer: once the dive query moves away
     // from it (a chip removed, typing, Clear all), Undo would restore the
-    // wrong thing, so the notice goes.
+    // wrong thing, so the notice goes. An answer that placed nothing left
+    // the query as it was, so that query is the one to watch.
     _ref.listen<DiveFilterState>(diveFilterProvider, (_, next) {
       final answer = state.answer;
       if (answer == null || answer.compiled.subject != ParsedSubject.dives) {
         return;
       }
-      if (next.query != answer.compiled.query) dismiss();
+      final applied = answer.compiled.query ?? answer.previousQuery;
+      if (next.query != applied) dismiss();
     });
   }
 
@@ -110,7 +113,9 @@ class DiveAskNotifier extends StateNotifier<AskState> {
         ),
         handOff: true,
       );
-      await _recordRecent(trimmed, locale, parsed);
+      // Not awaited: remembering the sentence must not hold up the answer
+      // or a handoff, and it already logs its own failure.
+      unawaited(_recordRecent(trimmed, locale, parsed));
       return route;
     } on NlException catch (e) {
       _fail(request, e.error);
