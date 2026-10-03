@@ -225,6 +225,60 @@ class AppLocalizationsEn extends AppLocalizations {
       'Profiles you choose can add this gear to their dives and log its servicing. Only the owner can delete it or change who it is shared with.';
 
   @override
+  String get equipment_transfer_action => 'Transfer to...';
+
+  @override
+  String get equipment_transfer_dialogTitle => 'Transfer to';
+
+  @override
+  String get equipment_transfer_dialogBody =>
+      'The profile you choose becomes the owner. Past dives keep this gear.';
+
+  @override
+  String get equipment_transfer_alsoMoves => 'Also moves:';
+
+  @override
+  String get equipment_transfer_keepAccess => 'Keep access for me';
+
+  @override
+  String get equipment_transfer_keepAccessHint =>
+      'It stays shared with you, so you can still use it.';
+
+  @override
+  String get equipment_transfer_moveRegistry =>
+      'Also move linked dive computers and transmitters';
+
+  @override
+  String equipment_transfer_transmitterClash(String label, String profile) {
+    return '$label stays with you: $profile already has a transmitter with this serial or channel.';
+  }
+
+  @override
+  String get equipment_transfer_confirm => 'Transfer';
+
+  @override
+  String equipment_transfer_done(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Transferred $count items to $name',
+      one: 'Transferred $count item to $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_transfer_doneSkipped(int count, String name, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Transferred $count items to $name',
+      one: 'Transferred $count item to $name',
+    );
+    return '$_temp0, skipped $skipped you do not own';
+  }
+
+  @override
   String get equipment_bulkShare_action => 'Share with...';
 
   @override
@@ -27911,6 +27965,41 @@ class AppLocalizationsEn extends AppLocalizations {
       one: 'site',
     );
     return 'Diver deleted. $trips shared $_temp0 and $sites shared $_temp1 reassigned to $name.';
+  }
+
+  @override
+  String divers_delete_keptEquipment_dialogLine(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count pieces of gear in use by other profiles will be kept and handed to them.',
+      one:
+          '$count piece of gear in use by other profiles will be kept and handed to them.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divers_delete_keptEquipment_toOne(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pieces of gear handed to $name.',
+      one: '$count piece of gear handed to $name.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divers_delete_keptEquipment_toMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pieces of gear handed to the profiles that use them.',
+      one: '$count piece of gear handed to the profiles that use it.',
+    );
+    return '$_temp0';
   }
 
   @override

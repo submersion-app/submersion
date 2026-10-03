@@ -226,6 +226,60 @@ class AppLocalizationsNl extends AppLocalizations {
       'De gekozen profielen kunnen deze uitrusting aan hun duiken toevoegen en het onderhoud ervan vastleggen. Alleen de eigenaar kan ze verwijderen of wijzigen met wie ze gedeeld wordt.';
 
   @override
+  String get equipment_transfer_action => 'Overdragen aan...';
+
+  @override
+  String get equipment_transfer_dialogTitle => 'Overdragen aan';
+
+  @override
+  String get equipment_transfer_dialogBody =>
+      'Het gekozen profiel wordt de eigenaar. Eerdere duiken houden deze uitrusting.';
+
+  @override
+  String get equipment_transfer_alsoMoves => 'Draagt ook over:';
+
+  @override
+  String get equipment_transfer_keepAccess => 'Toegang voor mij behouden';
+
+  @override
+  String get equipment_transfer_keepAccessHint =>
+      'Het blijft met jou gedeeld, zodat je het kunt blijven gebruiken.';
+
+  @override
+  String get equipment_transfer_moveRegistry =>
+      'Gekoppelde duikcomputers en zenders ook overdragen';
+
+  @override
+  String equipment_transfer_transmitterClash(String label, String profile) {
+    return '$label blijft bij jou: $profile heeft al een zender met dit serienummer of kanaal.';
+  }
+
+  @override
+  String get equipment_transfer_confirm => 'Overdragen';
+
+  @override
+  String equipment_transfer_done(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items overgedragen aan $name',
+      one: '$count item overgedragen aan $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_transfer_doneSkipped(int count, String name, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items overgedragen aan $name',
+      one: '$count item overgedragen aan $name',
+    );
+    return '$_temp0, $skipped overgeslagen die niet van jou zijn';
+  }
+
+  @override
   String get equipment_bulkShare_action => 'Delen met...';
 
   @override
@@ -28161,6 +28215,43 @@ class AppLocalizationsNl extends AppLocalizations {
       one: 'site',
     );
     return 'Duiker verwijderd. $trips gedeelde $_temp0 en $sites gedeelde $_temp1 toegewezen aan $name.';
+  }
+
+  @override
+  String divers_delete_keptEquipment_dialogLine(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count uitrustingsstukken die andere profielen gebruiken, worden bewaard en aan hen overgedragen.',
+      one:
+          '$count uitrustingsstuk dat andere profielen gebruiken, wordt bewaard en aan hen overgedragen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divers_delete_keptEquipment_toOne(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count uitrustingsstukken overgedragen aan $name.',
+      one: '$count uitrustingsstuk overgedragen aan $name.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divers_delete_keptEquipment_toMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count uitrustingsstukken overgedragen aan de profielen die ze gebruiken.',
+      one:
+          '$count uitrustingsstuk overgedragen aan de profielen die het gebruiken.',
+    );
+    return '$_temp0';
   }
 
   @override

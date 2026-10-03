@@ -227,6 +227,60 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die gewählten Profile können diese Ausrüstung zu ihren Tauchgängen hinzufügen und ihre Wartung erfassen. Nur der Besitzer kann sie löschen oder ändern, mit wem sie geteilt wird.';
 
   @override
+  String get equipment_transfer_action => 'Übertragen an...';
+
+  @override
+  String get equipment_transfer_dialogTitle => 'Übertragen an';
+
+  @override
+  String get equipment_transfer_dialogBody =>
+      'Das gewählte Profil wird Besitzer. Vergangene Tauchgänge behalten diese Ausrüstung.';
+
+  @override
+  String get equipment_transfer_alsoMoves => 'Wird ebenfalls übertragen:';
+
+  @override
+  String get equipment_transfer_keepAccess => 'Zugriff für mich behalten';
+
+  @override
+  String get equipment_transfer_keepAccessHint =>
+      'Sie bleibt mit dir geteilt, sodass du sie weiter nutzen kannst.';
+
+  @override
+  String get equipment_transfer_moveRegistry =>
+      'Verknüpfte Tauchcomputer und Sender ebenfalls übertragen';
+
+  @override
+  String equipment_transfer_transmitterClash(String label, String profile) {
+    return '$label bleibt bei dir: $profile hat bereits einen Sender mit dieser Seriennummer oder diesem Kanal.';
+  }
+
+  @override
+  String get equipment_transfer_confirm => 'Übertragen';
+
+  @override
+  String equipment_transfer_done(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Teile an $name übertragen',
+      one: '$count Teil an $name übertragen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_transfer_doneSkipped(int count, String name, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Teile an $name übertragen',
+      one: '$count Teil an $name übertragen',
+    );
+    return '$_temp0, $skipped übersprungen, die dir nicht gehören';
+  }
+
+  @override
   String get equipment_bulkShare_action => 'Teilen mit...';
 
   @override
@@ -28319,6 +28373,42 @@ class AppLocalizationsDe extends AppLocalizations {
       one: 'geteilter Ort',
     );
     return 'Taucher gelöscht. $trips $_temp0 und $sites $_temp1 wurden $name zugewiesen.';
+  }
+
+  @override
+  String divers_delete_keptEquipment_dialogLine(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Ausrüstungsteile, die andere Profile nutzen, werden behalten und an sie übergeben.',
+      one:
+          '$count Ausrüstungsteil, das andere Profile nutzen, wird behalten und an sie übergeben.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divers_delete_keptEquipment_toOne(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Ausrüstungsteile an $name übergeben.',
+      one: '$count Ausrüstungsteil an $name übergeben.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divers_delete_keptEquipment_toMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Ausrüstungsteile an die Profile übergeben, die sie nutzen.',
+      one: '$count Ausrüstungsteil an die Profile übergeben, die es nutzen.',
+    );
+    return '$_temp0';
   }
 
   @override

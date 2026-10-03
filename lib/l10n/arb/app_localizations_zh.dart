@@ -223,6 +223,55 @@ class AppLocalizationsZh extends AppLocalizations {
       '所选资料可以将此装备添加到自己的潜水记录并记录保养。只有所有者可以删除它或更改共享对象。';
 
   @override
+  String get equipment_transfer_action => '转移给...';
+
+  @override
+  String get equipment_transfer_dialogTitle => '转移给';
+
+  @override
+  String get equipment_transfer_dialogBody => '你选择的资料将成为所有者。以往的潜水仍保留此装备。';
+
+  @override
+  String get equipment_transfer_alsoMoves => '同时转移：';
+
+  @override
+  String get equipment_transfer_keepAccess => '为我保留访问权限';
+
+  @override
+  String get equipment_transfer_keepAccessHint => '它会继续与你共享，你仍可使用。';
+
+  @override
+  String get equipment_transfer_moveRegistry => '同时转移关联的潜水电脑和发射器';
+
+  @override
+  String equipment_transfer_transmitterClash(String label, String profile) {
+    return '$label 保留在你这里：$profile 已有相同序列号或通道的发射器。';
+  }
+
+  @override
+  String get equipment_transfer_confirm => '转移';
+
+  @override
+  String equipment_transfer_done(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已将 $count 件转移给 $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_transfer_doneSkipped(int count, String name, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已将 $count 件转移给 $name',
+    );
+    return '$_temp0，跳过 $skipped 件非你所有的装备';
+  }
+
+  @override
   String get equipment_bulkShare_action => '共享给...';
 
   @override
@@ -26854,6 +26903,36 @@ class AppLocalizationsZh extends AppLocalizations {
       one: '潜点',
     );
     return '已删除潜水员。$trips 个共享$_temp0和 $sites 个共享$_temp1已重新分配给 $name。';
+  }
+
+  @override
+  String divers_delete_keptEquipment_dialogLine(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '其他资料正在使用的 $count 件装备将被保留并转交给他们。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divers_delete_keptEquipment_toOne(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件装备已转交给 $name。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divers_delete_keptEquipment_toMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件装备已转交给使用它们的资料。',
+    );
+    return '$_temp0';
   }
 
   @override

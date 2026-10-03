@@ -225,6 +225,60 @@ class AppLocalizationsHe extends AppLocalizations {
       'הפרופילים שתבחר יכולים להוסיף ציוד זה לצלילות שלהם ולתעד את הטיפולים בו. רק הבעלים יכול למחוק אותו או לשנות עם מי הוא משותף.';
 
   @override
+  String get equipment_transfer_action => 'העברה אל...';
+
+  @override
+  String get equipment_transfer_dialogTitle => 'העברה אל';
+
+  @override
+  String get equipment_transfer_dialogBody =>
+      'הפרופיל שתבחר יהפוך לבעלים. צלילות קודמות ישמרו את הציוד הזה.';
+
+  @override
+  String get equipment_transfer_alsoMoves => 'יועברו גם:';
+
+  @override
+  String get equipment_transfer_keepAccess => 'שמירת גישה עבורי';
+
+  @override
+  String get equipment_transfer_keepAccessHint =>
+      'הוא יישאר משותף איתך, כך שתוכל להמשיך להשתמש בו.';
+
+  @override
+  String get equipment_transfer_moveRegistry =>
+      'להעביר גם מחשבי צלילה ומשדרים מקושרים';
+
+  @override
+  String equipment_transfer_transmitterClash(String label, String profile) {
+    return '$label נשאר אצלך: אצל $profile כבר יש משדר עם מספר סידורי או ערוץ זהה.';
+  }
+
+  @override
+  String get equipment_transfer_confirm => 'העברה';
+
+  @override
+  String equipment_transfer_done(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים הועברו אל $name',
+      one: 'פריט $count הועבר אל $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_transfer_doneSkipped(int count, String name, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים הועברו אל $name',
+      one: 'פריט $count הועבר אל $name',
+    );
+    return '$_temp0, דולגו $skipped שאינם בבעלותך';
+  }
+
+  @override
   String get equipment_bulkShare_action => 'שיתוף עם...';
 
   @override
@@ -27684,6 +27738,39 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'אתר משותף הועבר',
     );
     return 'הצולל נמחק. $trips $_temp0 ו-$sites $_temp1 אל $name.';
+  }
+
+  @override
+  String divers_delete_keptEquipment_dialogLine(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטי ציוד שבשימוש פרופילים אחרים יישמרו ויועברו אליהם.',
+      one: 'פריט ציוד $count שבשימוש פרופילים אחרים יישמר ויועבר אליהם.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divers_delete_keptEquipment_toOne(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטי ציוד הועברו אל $name.',
+      one: 'פריט ציוד $count הועבר אל $name.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divers_delete_keptEquipment_toMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטי ציוד הועברו לפרופילים שמשתמשים בהם.',
+      one: 'פריט ציוד $count הועבר לפרופילים שמשתמשים בו.',
+    );
+    return '$_temp0';
   }
 
   @override

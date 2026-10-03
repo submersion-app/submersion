@@ -226,6 +226,60 @@ class AppLocalizationsHu extends AppLocalizations {
       'A kiválasztott profilok hozzáadhatják ezt a felszerelést a merüléseikhez, és rögzíthetik a szervizelését. Csak a tulajdonos törölheti, vagy módosíthatja, kivel van megosztva.';
 
   @override
+  String get equipment_transfer_action => 'Átadás...';
+
+  @override
+  String get equipment_transfer_dialogTitle => 'Átadás';
+
+  @override
+  String get equipment_transfer_dialogBody =>
+      'A kiválasztott profil lesz a tulajdonos. A korábbi merülések megtartják ezt a felszerelést.';
+
+  @override
+  String get equipment_transfer_alsoMoves => 'Ezeket is átadja:';
+
+  @override
+  String get equipment_transfer_keepAccess => 'Hozzáférés megtartása számomra';
+
+  @override
+  String get equipment_transfer_keepAccessHint =>
+      'Továbbra is meg lesz osztva veled, így továbbra is használhatod.';
+
+  @override
+  String get equipment_transfer_moveRegistry =>
+      'A kapcsolódó búvárkomputerek és jeladók átadása is';
+
+  @override
+  String equipment_transfer_transmitterClash(String label, String profile) {
+    return '$label nálad marad: $profile már rendelkezik ilyen sorozatszámú vagy csatornájú jeladóval.';
+  }
+
+  @override
+  String get equipment_transfer_confirm => 'Átadás';
+
+  @override
+  String equipment_transfer_done(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem átadva: $name',
+      one: '$count elem átadva: $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_transfer_doneSkipped(int count, String name, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem átadva: $name',
+      one: '$count elem átadva: $name',
+    );
+    return '$_temp0, $skipped kihagyva, amely nem a tiéd';
+  }
+
+  @override
   String get equipment_bulkShare_action => 'Megosztás...';
 
   @override
@@ -28259,6 +28313,41 @@ class AppLocalizationsHu extends AppLocalizations {
       one: 'helyszín',
     );
     return 'Búvár törölve. $trips megosztott $_temp0 és $sites megosztott $_temp1 átrendelve ehhez: $name.';
+  }
+
+  @override
+  String divers_delete_keptEquipment_dialogLine(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count felszerelés, amelyet más profilok használnak, megmarad és átkerül hozzájuk.',
+      one:
+          '$count felszerelés, amelyet más profilok használnak, megmarad és átkerül hozzájuk.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divers_delete_keptEquipment_toOne(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count felszerelés átadva: $name.',
+      one: '$count felszerelés átadva: $name.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divers_delete_keptEquipment_toMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count felszerelés átadva az azokat használó profiloknak.',
+      one: '$count felszerelés átadva az azt használó profiloknak.',
+    );
+    return '$_temp0';
   }
 
   @override

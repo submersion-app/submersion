@@ -225,6 +225,60 @@ class AppLocalizationsAr extends AppLocalizations {
       'يمكن للملفات التي تختارها إضافة هذه المعدات إلى غطساتها وتسجيل صيانتها. يمكن للمالك وحده حذفها أو تغيير من تُشارَك معه.';
 
   @override
+  String get equipment_transfer_action => 'نقل إلى...';
+
+  @override
+  String get equipment_transfer_dialogTitle => 'نقل إلى';
+
+  @override
+  String get equipment_transfer_dialogBody =>
+      'يصبح ملف الغوص الذي تختاره هو المالك. تحتفظ الغطسات السابقة بهذه المعدات.';
+
+  @override
+  String get equipment_transfer_alsoMoves => 'يُنقل أيضًا:';
+
+  @override
+  String get equipment_transfer_keepAccess => 'الاحتفاظ بالوصول لي';
+
+  @override
+  String get equipment_transfer_keepAccessHint =>
+      'ستبقى مشتركة معك، لذا يمكنك الاستمرار في استخدامها.';
+
+  @override
+  String get equipment_transfer_moveRegistry =>
+      'نقل أجهزة كمبيوتر الغوص وأجهزة الإرسال المرتبطة أيضًا';
+
+  @override
+  String equipment_transfer_transmitterClash(String label, String profile) {
+    return 'يبقى $label معك: لدى $profile بالفعل جهاز إرسال بهذا الرقم التسلسلي أو القناة.';
+  }
+
+  @override
+  String get equipment_transfer_confirm => 'نقل';
+
+  @override
+  String equipment_transfer_done(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم نقل $count عناصر إلى $name',
+      one: 'تم نقل $count عنصر إلى $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_transfer_doneSkipped(int count, String name, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم نقل $count عناصر إلى $name',
+      one: 'تم نقل $count عنصر إلى $name',
+    );
+    return '$_temp0، وتم تخطي $skipped لا تملكها';
+  }
+
+  @override
   String get equipment_bulkShare_action => 'مشاركة مع...';
 
   @override
@@ -28017,6 +28071,41 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'موقع مشترك',
     );
     return 'تم حذف الغواص. $trips $_temp0 و$sites $_temp1 أُعيد تعيينها إلى $name.';
+  }
+
+  @override
+  String divers_delete_keptEquipment_dialogLine(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'سيتم الاحتفاظ بـ $count قطع معدات تستخدمها ملفات غوص أخرى وتسليمها إليها.',
+      one:
+          'سيتم الاحتفاظ بـ $count قطعة معدات تستخدمها ملفات غوص أخرى وتسليمها إليها.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divers_delete_keptEquipment_toOne(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تسليم $count قطع معدات إلى $name.',
+      one: 'تم تسليم $count قطعة معدات إلى $name.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divers_delete_keptEquipment_toMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تسليم $count قطع معدات إلى ملفات الغوص التي تستخدمها.',
+      one: 'تم تسليم $count قطعة معدات إلى ملفات الغوص التي تستخدمها.',
+    );
+    return '$_temp0';
   }
 
   @override

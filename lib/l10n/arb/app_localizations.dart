@@ -470,6 +470,72 @@ abstract class AppLocalizations {
   /// **'Profiles you choose can add this gear to their dives and log its servicing. Only the owner can delete it or change who it is shared with.'**
   String get equipment_sharing_dialogBody;
 
+  /// No description provided for @equipment_transfer_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer to...'**
+  String get equipment_transfer_action;
+
+  /// No description provided for @equipment_transfer_dialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer to'**
+  String get equipment_transfer_dialogTitle;
+
+  /// No description provided for @equipment_transfer_dialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The profile you choose becomes the owner. Past dives keep this gear.'**
+  String get equipment_transfer_dialogBody;
+
+  /// No description provided for @equipment_transfer_alsoMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'Also moves:'**
+  String get equipment_transfer_alsoMoves;
+
+  /// No description provided for @equipment_transfer_keepAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep access for me'**
+  String get equipment_transfer_keepAccess;
+
+  /// No description provided for @equipment_transfer_keepAccessHint.
+  ///
+  /// In en, this message translates to:
+  /// **'It stays shared with you, so you can still use it.'**
+  String get equipment_transfer_keepAccessHint;
+
+  /// No description provided for @equipment_transfer_moveRegistry.
+  ///
+  /// In en, this message translates to:
+  /// **'Also move linked dive computers and transmitters'**
+  String get equipment_transfer_moveRegistry;
+
+  /// Under the registry switch in the transfer dialog: a transmitter that stays with the current owner because the chosen profile already has one with the same serial or channel.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} stays with you: {profile} already has a transmitter with this serial or channel.'**
+  String equipment_transfer_transmitterClash(String label, String profile);
+
+  /// No description provided for @equipment_transfer_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get equipment_transfer_confirm;
+
+  /// Snackbar after transferring equipment to another profile.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Transferred {count} item to {name}} other{Transferred {count} items to {name}}}'**
+  String equipment_transfer_done(int count, String name);
+
+  /// Snackbar after a bulk transfer that skipped items the active profile does not own.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Transferred {count} item to {name}} other{Transferred {count} items to {name}}}, skipped {skipped} you do not own'**
+  String equipment_transfer_doneSkipped(int count, String name, int skipped);
+
   /// No description provided for @equipment_bulkShare_action.
   ///
   /// In en, this message translates to:
@@ -44625,6 +44691,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Diver deleted. {trips} shared {trips, plural, one{trip} other{trips}} and {sites} shared {sites, plural, one{site} other{sites}} reassigned to {name}.'**
   String divers_delete_reassigned_snackbar(int trips, int sites, String name);
+
+  /// Line in the delete-profile confirmation when some of the profile's gear is used by other profiles and will be handed to them.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} piece of gear in use by other profiles will be kept and handed to them.} other{{count} pieces of gear in use by other profiles will be kept and handed to them.}}'**
+  String divers_delete_keptEquipment_dialogLine(int count);
+
+  /// Sentence in the snackbar after deleting a profile whose kept gear all went to one profile.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} piece of gear handed to {name}.} other{{count} pieces of gear handed to {name}.}}'**
+  String divers_delete_keptEquipment_toOne(int count, String name);
+
+  /// Sentence in the snackbar after deleting a profile whose kept gear went to several profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} piece of gear handed to the profiles that use it.} other{{count} pieces of gear handed to the profiles that use them.}}'**
+  String divers_delete_keptEquipment_toMany(int count);
 
   /// Title of the banner on the Cloud Sync page when two or more diver profiles share a name.
   ///

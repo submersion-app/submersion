@@ -67,6 +67,60 @@
   "equipment_sharing_ownedByLabel": "Owned by",
   "equipment_sharing_dialogTitle": "Share with",
   "equipment_sharing_dialogBody": "Profiles you choose can add this gear to their dives and log its servicing. Only the owner can delete it or change who it is shared with.",
+  "equipment_transfer_action": "Transfer to...",
+  "equipment_transfer_dialogTitle": "Transfer to",
+  "equipment_transfer_dialogBody": "The profile you choose becomes the owner. Past dives keep this gear.",
+  "equipment_transfer_alsoMoves": "Also moves:",
+  "equipment_transfer_keepAccess": "Keep access for me",
+  "equipment_transfer_keepAccessHint": "It stays shared with you, so you can still use it.",
+  "equipment_transfer_moveRegistry": "Also move linked dive computers and transmitters",
+  "equipment_transfer_transmitterClash": "{label} stays with you: {profile} already has a transmitter with this serial or channel.",
+  "@equipment_transfer_transmitterClash": {
+    "description": "Under the registry switch in the transfer dialog: a transmitter that stays with the current owner because the chosen profile already has one with the same serial or channel.",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "example": "Back gas"
+      },
+      "profile": {
+        "type": "String",
+        "example": "Anna"
+      }
+    }
+  },
+  "equipment_transfer_confirm": "Transfer",
+  "equipment_transfer_done": "{count, plural, one{Transferred {count} item to {name}} other{Transferred {count} items to {name}}}",
+  "@equipment_transfer_done": {
+    "description": "Snackbar after transferring equipment to another profile.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      },
+      "name": {
+        "type": "String",
+        "example": "Anna"
+      }
+    }
+  },
+  "equipment_transfer_doneSkipped": "{count, plural, one{Transferred {count} item to {name}} other{Transferred {count} items to {name}}}, skipped {skipped} you do not own",
+  "@equipment_transfer_doneSkipped": {
+    "description": "Snackbar after a bulk transfer that skipped items the active profile does not own.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      },
+      "name": {
+        "type": "String",
+        "example": "Anna"
+      },
+      "skipped": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
   "equipment_bulkShare_action": "Share with...",
   "equipment_bulkShare_done": "{count, plural, =1{Shared 1 item} other{Shared {count} items}}",
   "@equipment_bulkShare_done": {"placeholders": {"count": {"type": "int"}}},
@@ -18239,6 +18293,40 @@
       "name": {
         "type": "String",
         "example": "Alice"
+      }
+    }
+  },
+  "divers_delete_keptEquipment_dialogLine": "{count, plural, one{{count} piece of gear in use by other profiles will be kept and handed to them.} other{{count} pieces of gear in use by other profiles will be kept and handed to them.}}",
+  "@divers_delete_keptEquipment_dialogLine": {
+    "description": "Line in the delete-profile confirmation when some of the profile's gear is used by other profiles and will be handed to them.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "divers_delete_keptEquipment_toOne": "{count, plural, one{{count} piece of gear handed to {name}.} other{{count} pieces of gear handed to {name}.}}",
+  "@divers_delete_keptEquipment_toOne": {
+    "description": "Sentence in the snackbar after deleting a profile whose kept gear all went to one profile.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      },
+      "name": {
+        "type": "String",
+        "example": "Anna"
+      }
+    }
+  },
+  "divers_delete_keptEquipment_toMany": "{count, plural, one{{count} piece of gear handed to the profiles that use it.} other{{count} pieces of gear handed to the profiles that use them.}}",
+  "@divers_delete_keptEquipment_toMany": {
+    "description": "Sentence in the snackbar after deleting a profile whose kept gear went to several profiles.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
       }
     }
   },

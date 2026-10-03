@@ -226,6 +226,60 @@ class AppLocalizationsIt extends AppLocalizations {
       'I profili scelti possono aggiungere questa attrezzatura alle loro immersioni e registrarne la manutenzione. Solo il proprietario può eliminarla o cambiare con chi è condivisa.';
 
   @override
+  String get equipment_transfer_action => 'Trasferisci a...';
+
+  @override
+  String get equipment_transfer_dialogTitle => 'Trasferisci a';
+
+  @override
+  String get equipment_transfer_dialogBody =>
+      'Il profilo scelto diventa il proprietario. Le immersioni passate mantengono questa attrezzatura.';
+
+  @override
+  String get equipment_transfer_alsoMoves => 'Trasferisce anche:';
+
+  @override
+  String get equipment_transfer_keepAccess => 'Mantieni l\'accesso per me';
+
+  @override
+  String get equipment_transfer_keepAccessHint =>
+      'Resta condivisa con te, quindi puoi continuare a usarla.';
+
+  @override
+  String get equipment_transfer_moveRegistry =>
+      'Trasferisci anche i computer subacquei e i trasmettitori collegati';
+
+  @override
+  String equipment_transfer_transmitterClash(String label, String profile) {
+    return '$label resta a te: $profile ha già un trasmettitore con questo numero di serie o canale.';
+  }
+
+  @override
+  String get equipment_transfer_confirm => 'Trasferisci';
+
+  @override
+  String equipment_transfer_done(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementi trasferiti a $name',
+      one: '$count elemento trasferito a $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_transfer_doneSkipped(int count, String name, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementi trasferiti a $name',
+      one: '$count elemento trasferito a $name',
+    );
+    return '$_temp0, $skipped saltati perché non tuoi';
+  }
+
+  @override
   String get equipment_bulkShare_action => 'Condividi con...';
 
   @override
@@ -28356,6 +28410,41 @@ class AppLocalizationsIt extends AppLocalizations {
       one: 'sito condiviso',
     );
     return 'Subacqueo eliminato. $trips $_temp0 e $sites $_temp1 riassegnati a $name.';
+  }
+
+  @override
+  String divers_delete_keptEquipment_dialogLine(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count pezzi di attrezzatura usati da altri profili verranno mantenuti e consegnati a loro.',
+      one:
+          '$count pezzo di attrezzatura usato da altri profili verrà mantenuto e consegnato a loro.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divers_delete_keptEquipment_toOne(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pezzi di attrezzatura consegnati a $name.',
+      one: '$count pezzo di attrezzatura consegnato a $name.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divers_delete_keptEquipment_toMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pezzi di attrezzatura consegnati ai profili che li usano.',
+      one: '$count pezzo di attrezzatura consegnato ai profili che lo usano.',
+    );
+    return '$_temp0';
   }
 
   @override
