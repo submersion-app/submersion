@@ -334,6 +334,9 @@
   "o2Toxicity_prior": "Korábbi: {value} OTU",
   "o2Toxicity_start": "Kezdet: {value} OTU",
   "o2Toxicity_thisDive": "Ez a merülés",
+  "o2Toxicity_lastDive": "Utolsó merülés",
+  "o2Toxicity_lastDiveStart": "Utolsó merülés előtt: {percent}%",
+  "o2Toxicity_lastDiveDelta": "Utolsó merülés: +{percent}%",
   "o2Toxicity_weekly": "Heti",
   "trips_story_dayLabel": "{number}. nap",
   "trips_story_surfaceDay": "Felszíni nap",
@@ -8929,6 +8932,7 @@
     }
   },
   "safetySettings_noFlyHeader": "Repülés merülés után",
+  "safetySettings_cnsOtuHeader": "Jelenlegi CNS/OTU terhelés",
   "safetySettings_noFlyPreset_standard": "Normál (12/18/24 ó)",
   "safetySettings_noFlyPreset_strict": "Szigorú (18/24/48 ó)",
   "safetySettings_noFlyPreset_subtitle": "Irányadó időközök egyetlen nullidős merülés, ismétlő merülések és dekós merülések után",
@@ -8976,6 +8980,9 @@
   },
   "safetyHub_noFly_clear_title": "Nincs repülési korlátozás",
   "safetyHub_noFly_clear_subtitle": "Nincs aktív repülési korlátozás",
+  "safetyHub_cnsOtu_clear_title": "Nincs aktív terhelés",
+  "safetyHub_cnsOtu_clear_subtitle": "A CNS és az OTU lecsengett az utolsó merülés óta",
+  "safetyHub_cnsOtu_sinceLastDive": "Az utolsó merülés {duration} ezelőtt ért véget",
   "safetyHub_noFly_category_single": "Egyetlen nullidős merülés után: {hours} ó irányelv",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -9193,6 +9200,7 @@
     }
   },
   "planning_card_noFly_subtitle": "Irányadó visszaszámlálás az utolsó merüléseidtől",
+  "planning_card_cnsOtu_subtitle": "Élő csökkenés az utolsó merülés óta",
   "settings_section_safety_title": "Biztonság",
   "settings_section_safety_subtitle": "Áttekintési szabályok és repülés merülés után",
   "settings_section_equipmentCondition_title": "Felszerelés állapota",

@@ -1395,16 +1395,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get o2Toxicity_thisDive => 'Ez a merülés';
 
   @override
-  String get o2Toxicity_lastDive => 'Last Dive';
+  String get o2Toxicity_lastDive => 'Utolsó merülés';
 
   @override
   String o2Toxicity_lastDiveStart(String percent) {
-    return 'Before last dive: $percent%';
+    return 'Utolsó merülés előtt: $percent%';
   }
 
   @override
   String o2Toxicity_lastDiveDelta(String percent) {
-    return 'Last dive: +$percent%';
+    return 'Utolsó merülés: +$percent%';
   }
 
   @override
@@ -30271,7 +30271,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Repülés merülés után';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Current CNS/OTU load';
+  String get safetySettings_cnsOtuHeader => 'Jelenlegi CNS/OTU terhelés';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Normál (12/18/24 ó)';
@@ -30323,15 +30323,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs aktív repülési korlátozás';
 
   @override
-  String get safetyHub_cnsOtu_clear_title => 'No active load';
+  String get safetyHub_cnsOtu_clear_title => 'Nincs aktív terhelés';
 
   @override
   String get safetyHub_cnsOtu_clear_subtitle =>
-      'CNS and OTU have cleared since your last dive';
+      'A CNS és az OTU lecsengett az utolsó merülés óta';
 
   @override
   String safetyHub_cnsOtu_sinceLastDive(String duration) {
-    return 'Last dive ended $duration ago';
+    return 'Az utolsó merülés $duration ezelőtt ért véget';
   }
 
   @override
@@ -30771,7 +30771,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Irányadó visszaszámlálás az utolsó merüléseidtől';
 
   @override
-  String get planning_card_cnsOtu_subtitle => 'Live decay since your last dive';
+  String get planning_card_cnsOtu_subtitle =>
+      'Élő csökkenés az utolsó merülés óta';
 
   @override
   String get settings_section_safety_title => 'Biztonság';

@@ -1377,16 +1377,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get o2Toxicity_thisDive => 'צלילה זו';
 
   @override
-  String get o2Toxicity_lastDive => 'Last Dive';
+  String get o2Toxicity_lastDive => 'צלילה אחרונה';
 
   @override
   String o2Toxicity_lastDiveStart(String percent) {
-    return 'Before last dive: $percent%';
+    return 'לפני הצלילה האחרונה: $percent%';
   }
 
   @override
   String o2Toxicity_lastDiveDelta(String percent) {
-    return 'Last dive: +$percent%';
+    return 'צלילה אחרונה: +$percent%';
   }
 
   @override
@@ -29684,7 +29684,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'טיסה אחרי צלילה';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Current CNS/OTU load';
+  String get safetySettings_cnsOtuHeader => 'עומס CNS/OTU נוכחי';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'רגיל (12/18/24 ש\')';
@@ -29734,15 +29734,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetyHub_noFly_clear_subtitle => 'אין הגבלת טיסה פעילה';
 
   @override
-  String get safetyHub_cnsOtu_clear_title => 'No active load';
+  String get safetyHub_cnsOtu_clear_title => 'אין עומס פעיל';
 
   @override
   String get safetyHub_cnsOtu_clear_subtitle =>
-      'CNS and OTU have cleared since your last dive';
+      'ה-CNS וה-OTU דעכו מאז הצלילה האחרונה שלך';
 
   @override
   String safetyHub_cnsOtu_sinceLastDive(String duration) {
-    return 'Last dive ended $duration ago';
+    return 'הצלילה האחרונה הסתיימה לפני $duration';
   }
 
   @override
@@ -30174,7 +30174,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'ספירה לאחור מנחה מהצלילות האחרונות שלך';
 
   @override
-  String get planning_card_cnsOtu_subtitle => 'Live decay since your last dive';
+  String get planning_card_cnsOtu_subtitle =>
+      'דעיכה בזמן אמת מאז הצלילה האחרונה שלך';
 
   @override
   String get settings_section_safety_title => 'בטיחות';

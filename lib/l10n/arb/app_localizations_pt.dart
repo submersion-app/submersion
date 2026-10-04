@@ -1395,16 +1395,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get o2Toxicity_thisDive => 'Este mergulho';
 
   @override
-  String get o2Toxicity_lastDive => 'Last Dive';
+  String get o2Toxicity_lastDive => 'Último mergulho';
 
   @override
   String o2Toxicity_lastDiveStart(String percent) {
-    return 'Before last dive: $percent%';
+    return 'Antes do último mergulho: $percent%';
   }
 
   @override
   String o2Toxicity_lastDiveDelta(String percent) {
-    return 'Last dive: +$percent%';
+    return 'Último mergulho: +$percent%';
   }
 
   @override
@@ -30409,7 +30409,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Voar depois de mergulhar';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Current CNS/OTU load';
+  String get safetySettings_cnsOtuHeader => 'Carga atual de CNS/OTU';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Padrão (12/18/24 h)';
@@ -30460,15 +30460,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get safetyHub_noFly_clear_subtitle => 'Nenhuma restrição de voo ativa';
 
   @override
-  String get safetyHub_cnsOtu_clear_title => 'No active load';
+  String get safetyHub_cnsOtu_clear_title => 'Sem carga ativa';
 
   @override
   String get safetyHub_cnsOtu_clear_subtitle =>
-      'CNS and OTU have cleared since your last dive';
+      'O CNS e a OTU se dissiparam desde o seu último mergulho';
 
   @override
   String safetyHub_cnsOtu_sinceLastDive(String duration) {
-    return 'Last dive ended $duration ago';
+    return 'Último mergulho terminou há $duration';
   }
 
   @override
@@ -30909,7 +30909,8 @@ class AppLocalizationsPt extends AppLocalizations {
       'Contagem orientativa desde seus últimos mergulhos';
 
   @override
-  String get planning_card_cnsOtu_subtitle => 'Live decay since your last dive';
+  String get planning_card_cnsOtu_subtitle =>
+      'Decaimento em tempo real desde o seu último mergulho';
 
   @override
   String get settings_section_safety_title => 'Segurança';

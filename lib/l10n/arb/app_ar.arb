@@ -334,6 +334,9 @@
   "o2Toxicity_prior": "سابق: {value} OTU",
   "o2Toxicity_start": "البداية: {value} OTU",
   "o2Toxicity_thisDive": "هذه الغطسة",
+  "o2Toxicity_lastDive": "الغطسة الأخيرة",
+  "o2Toxicity_lastDiveStart": "قبل الغطسة الأخيرة: {percent}%",
+  "o2Toxicity_lastDiveDelta": "الغطسة الأخيرة: +{percent}%",
   "o2Toxicity_weekly": "أسبوعي",
   "trips_story_dayLabel": "اليوم {number}",
   "trips_story_surfaceDay": "يوم سطح",
@@ -8929,6 +8932,7 @@
     }
   },
   "safetySettings_noFlyHeader": "الطيران بعد الغوص",
+  "safetySettings_cnsOtuHeader": "الحمل الحالي لـ CNS/OTU",
   "safetySettings_noFlyPreset_standard": "قياسي (12/18/24 س)",
   "safetySettings_noFlyPreset_strict": "صارم (18/24/48 س)",
   "safetySettings_noFlyPreset_subtitle": "فترات إرشادية بعد غطسة واحدة بلا توقفات، وغطسات متكررة، وغطسات بتخفيف الضغط",
@@ -8976,6 +8980,9 @@
   },
   "safetyHub_noFly_clear_title": "لا قيود على الطيران",
   "safetyHub_noFly_clear_subtitle": "لا يوجد قيد نشط على الطيران",
+  "safetyHub_cnsOtu_clear_title": "لا يوجد حمل نشط",
+  "safetyHub_cnsOtu_clear_subtitle": "تلاشى كل من CNS وOTU منذ غطستك الأخيرة",
+  "safetyHub_cnsOtu_sinceLastDive": "انتهت الغطسة الأخيرة منذ {duration}",
   "safetyHub_noFly_category_single": "بعد غطسة واحدة بلا توقفات: إرشاد {hours} ساعة",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -9193,6 +9200,7 @@
     }
   },
   "planning_card_noFly_subtitle": "عدّاد إرشادي منذ آخر غطساتك",
+  "planning_card_cnsOtu_subtitle": "تناقص مباشر منذ غطستك الأخيرة",
   "settings_section_safety_title": "السلامة",
   "settings_section_safety_subtitle": "قواعد المراجعة والطيران بعد الغوص",
   "settings_section_equipmentCondition_title": "حالة المعدات",

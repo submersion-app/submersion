@@ -1398,16 +1398,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get o2Toxicity_thisDive => 'Questa immersione';
 
   @override
-  String get o2Toxicity_lastDive => 'Last Dive';
+  String get o2Toxicity_lastDive => 'Ultima immersione';
 
   @override
   String o2Toxicity_lastDiveStart(String percent) {
-    return 'Before last dive: $percent%';
+    return 'Prima dell\'ultima immersione: $percent%';
   }
 
   @override
   String o2Toxicity_lastDiveDelta(String percent) {
-    return 'Last dive: +$percent%';
+    return 'Ultima immersione: +$percent%';
   }
 
   @override
@@ -30393,7 +30393,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Volare dopo l\'immersione';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Current CNS/OTU load';
+  String get safetySettings_cnsOtuHeader => 'Carico attuale di CNS/OTU';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Standard (12/18/24 h)';
@@ -30445,15 +30445,15 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessuna restrizione di volo attiva';
 
   @override
-  String get safetyHub_cnsOtu_clear_title => 'No active load';
+  String get safetyHub_cnsOtu_clear_title => 'Nessun carico attivo';
 
   @override
   String get safetyHub_cnsOtu_clear_subtitle =>
-      'CNS and OTU have cleared since your last dive';
+      'CNS e OTU si sono dissipati dall\'ultima immersione';
 
   @override
   String safetyHub_cnsOtu_sinceLastDive(String duration) {
-    return 'Last dive ended $duration ago';
+    return 'Ultima immersione terminata $duration fa';
   }
 
   @override
@@ -30895,7 +30895,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'Conto alla rovescia indicativo dalle ultime immersioni';
 
   @override
-  String get planning_card_cnsOtu_subtitle => 'Live decay since your last dive';
+  String get planning_card_cnsOtu_subtitle =>
+      'Decadimento in tempo reale dall\'ultima immersione';
 
   @override
   String get settings_section_safety_title => 'Sicurezza';

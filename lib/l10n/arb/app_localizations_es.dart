@@ -1396,16 +1396,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get o2Toxicity_thisDive => 'Esta inmersión';
 
   @override
-  String get o2Toxicity_lastDive => 'Last Dive';
+  String get o2Toxicity_lastDive => 'Última inmersión';
 
   @override
   String o2Toxicity_lastDiveStart(String percent) {
-    return 'Before last dive: $percent%';
+    return 'Antes de la última inmersión: $percent%';
   }
 
   @override
   String o2Toxicity_lastDiveDelta(String percent) {
-    return 'Last dive: +$percent%';
+    return 'Última inmersión: +$percent%';
   }
 
   @override
@@ -30424,7 +30424,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Volar después de bucear';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Current CNS/OTU load';
+  String get safetySettings_cnsOtuHeader => 'Carga actual de CNS/OTU';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Estándar (12/18/24 h)';
@@ -30476,15 +30476,15 @@ class AppLocalizationsEs extends AppLocalizations {
       'Sin restricción de vuelo activa';
 
   @override
-  String get safetyHub_cnsOtu_clear_title => 'No active load';
+  String get safetyHub_cnsOtu_clear_title => 'Sin carga activa';
 
   @override
   String get safetyHub_cnsOtu_clear_subtitle =>
-      'CNS and OTU have cleared since your last dive';
+      'El CNS y la OTU se han disipado desde tu última inmersión';
 
   @override
   String safetyHub_cnsOtu_sinceLastDive(String duration) {
-    return 'Last dive ended $duration ago';
+    return 'Última inmersión terminó hace $duration';
   }
 
   @override
@@ -30925,7 +30925,8 @@ class AppLocalizationsEs extends AppLocalizations {
       'Cuenta atrás orientativa desde tus últimas inmersiones';
 
   @override
-  String get planning_card_cnsOtu_subtitle => 'Live decay since your last dive';
+  String get planning_card_cnsOtu_subtitle =>
+      'Disminución en vivo desde tu última inmersión';
 
   @override
   String get settings_section_safety_title => 'Seguridad';

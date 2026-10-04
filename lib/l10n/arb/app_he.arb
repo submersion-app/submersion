@@ -334,6 +334,9 @@
   "o2Toxicity_prior": "קודם: {value} OTU",
   "o2Toxicity_start": "התחלה: {value} OTU",
   "o2Toxicity_thisDive": "צלילה זו",
+  "o2Toxicity_lastDive": "צלילה אחרונה",
+  "o2Toxicity_lastDiveStart": "לפני הצלילה האחרונה: {percent}%",
+  "o2Toxicity_lastDiveDelta": "צלילה אחרונה: +{percent}%",
   "o2Toxicity_weekly": "שבועי",
   "trips_story_dayLabel": "יום {number}",
   "trips_story_surfaceDay": "יום פני השטח",
@@ -8929,6 +8932,7 @@
     }
   },
   "safetySettings_noFlyHeader": "טיסה אחרי צלילה",
+  "safetySettings_cnsOtuHeader": "עומס CNS/OTU נוכחי",
   "safetySettings_noFlyPreset_standard": "רגיל (12/18/24 ש')",
   "safetySettings_noFlyPreset_strict": "מחמיר (18/24/48 ש')",
   "safetySettings_noFlyPreset_subtitle": "מרווחים מנחים אחרי צלילה בודדת ללא דקו, צלילות חוזרות וצלילות דקומפרסיה",
@@ -8976,6 +8980,9 @@
   },
   "safetyHub_noFly_clear_title": "אין הגבלת טיסה",
   "safetyHub_noFly_clear_subtitle": "אין הגבלת טיסה פעילה",
+  "safetyHub_cnsOtu_clear_title": "אין עומס פעיל",
+  "safetyHub_cnsOtu_clear_subtitle": "ה-CNS וה-OTU דעכו מאז הצלילה האחרונה שלך",
+  "safetyHub_cnsOtu_sinceLastDive": "הצלילה האחרונה הסתיימה לפני {duration}",
   "safetyHub_noFly_category_single": "אחרי צלילה בודדת ללא דקו: הנחיה של {hours} שעות",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -9193,6 +9200,7 @@
     }
   },
   "planning_card_noFly_subtitle": "ספירה לאחור מנחה מהצלילות האחרונות שלך",
+  "planning_card_cnsOtu_subtitle": "דעיכה בזמן אמת מאז הצלילה האחרונה שלך",
   "settings_section_safety_title": "בטיחות",
   "settings_section_safety_subtitle": "כללי סקירה וטיסה אחרי צלילה",
   "settings_section_equipmentCondition_title": "מצב הציוד",

@@ -334,6 +334,9 @@
   "o2Toxicity_prior": "此前：{value} OTU",
   "o2Toxicity_start": "起始：{value} OTU",
   "o2Toxicity_thisDive": "本次潜水",
+  "o2Toxicity_lastDive": "上次潜水",
+  "o2Toxicity_lastDiveStart": "上次潜水前：{percent}%",
+  "o2Toxicity_lastDiveDelta": "上次潜水：+{percent}%",
   "o2Toxicity_weekly": "每周",
   "trips_story_dayLabel": "第 {number} 天",
   "trips_story_surfaceDay": "水面日",
@@ -8929,6 +8932,7 @@
     }
   },
   "safetySettings_noFlyHeader": "潜水后飞行",
+  "safetySettings_cnsOtuHeader": "当前CNS/OTU负荷",
   "safetySettings_noFlyPreset_standard": "标准(12/18/24 小时)",
   "safetySettings_noFlyPreset_strict": "严格(18/24/48 小时)",
   "safetySettings_noFlyPreset_subtitle": "单次免减压潜水、重复潜水和减压潜水后的指导间隔",
@@ -8976,6 +8980,9 @@
   },
   "safetyHub_noFly_clear_title": "无飞行限制",
   "safetyHub_noFly_clear_subtitle": "无活动的飞行限制",
+  "safetyHub_cnsOtu_clear_title": "无活跃负荷",
+  "safetyHub_cnsOtu_clear_subtitle": "自上次潜水以来CNS和OTU已消退",
+  "safetyHub_cnsOtu_sinceLastDive": "上次潜水结束于{duration}前",
   "safetyHub_noFly_category_single": "单次免减压潜水后:{hours} 小时指导值",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -9193,6 +9200,7 @@
     }
   },
   "planning_card_noFly_subtitle": "基于最近潜水的指导倒计时",
+  "planning_card_cnsOtu_subtitle": "自上次潜水以来的实时衰减",
   "settings_section_safety_title": "安全",
   "settings_section_safety_subtitle": "回顾规则与潜水后飞行",
   "settings_section_equipmentCondition_title": "装备状况",

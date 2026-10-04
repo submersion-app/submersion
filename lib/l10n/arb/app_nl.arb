@@ -334,6 +334,9 @@
   "o2Toxicity_prior": "Eerder: {value} OTU",
   "o2Toxicity_start": "Start: {value} OTU",
   "o2Toxicity_thisDive": "Deze duik",
+  "o2Toxicity_lastDive": "Laatste duik",
+  "o2Toxicity_lastDiveStart": "Voor de laatste duik: {percent}%",
+  "o2Toxicity_lastDiveDelta": "Laatste duik: +{percent}%",
   "o2Toxicity_weekly": "Wekelijks",
   "trips_story_dayLabel": "Dag {number}",
   "trips_story_surfaceDay": "Oppervlaktedag",
@@ -8929,6 +8932,7 @@
     }
   },
   "safetySettings_noFlyHeader": "Vliegen na het duiken",
+  "safetySettings_cnsOtuHeader": "Huidige CNS/OTU-belasting",
   "safetySettings_noFlyPreset_standard": "Standaard (12/18/24 u)",
   "safetySettings_noFlyPreset_strict": "Strikt (18/24/48 u)",
   "safetySettings_noFlyPreset_subtitle": "Richttijden na een enkele duik zonder deco, herhalingsduiken en decoduiken",
@@ -8976,6 +8980,9 @@
   },
   "safetyHub_noFly_clear_title": "Geen vliegbeperking",
   "safetyHub_noFly_clear_subtitle": "Geen actieve vliegbeperking",
+  "safetyHub_cnsOtu_clear_title": "Geen actieve belasting",
+  "safetyHub_cnsOtu_clear_subtitle": "CNS en OTU zijn afgenomen sinds je laatste duik",
+  "safetyHub_cnsOtu_sinceLastDive": "Laatste duik eindigde {duration} geleden",
   "safetyHub_noFly_category_single": "Na een enkele duik zonder deco: richtlijn van {hours} u",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -9193,6 +9200,7 @@
     }
   },
   "planning_card_noFly_subtitle": "Richtlijn-aftelling vanaf je laatste duiken",
+  "planning_card_cnsOtu_subtitle": "Live afname sinds je laatste duik",
   "settings_section_safety_title": "Veiligheid",
   "settings_section_safety_subtitle": "Controleregels & vliegen na het duiken",
   "settings_section_equipmentCondition_title": "Staat van uitrusting",

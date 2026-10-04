@@ -1387,16 +1387,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get o2Toxicity_thisDive => 'Deze duik';
 
   @override
-  String get o2Toxicity_lastDive => 'Last Dive';
+  String get o2Toxicity_lastDive => 'Laatste duik';
 
   @override
   String o2Toxicity_lastDiveStart(String percent) {
-    return 'Before last dive: $percent%';
+    return 'Voor de laatste duik: $percent%';
   }
 
   @override
   String o2Toxicity_lastDiveDelta(String percent) {
-    return 'Last dive: +$percent%';
+    return 'Laatste duik: +$percent%';
   }
 
   @override
@@ -30192,7 +30192,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Vliegen na het duiken';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Current CNS/OTU load';
+  String get safetySettings_cnsOtuHeader => 'Huidige CNS/OTU-belasting';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Standaard (12/18/24 u)';
@@ -30243,15 +30243,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get safetyHub_noFly_clear_subtitle => 'Geen actieve vliegbeperking';
 
   @override
-  String get safetyHub_cnsOtu_clear_title => 'No active load';
+  String get safetyHub_cnsOtu_clear_title => 'Geen actieve belasting';
 
   @override
   String get safetyHub_cnsOtu_clear_subtitle =>
-      'CNS and OTU have cleared since your last dive';
+      'CNS en OTU zijn afgenomen sinds je laatste duik';
 
   @override
   String safetyHub_cnsOtu_sinceLastDive(String duration) {
-    return 'Last dive ended $duration ago';
+    return 'Laatste duik eindigde $duration geleden';
   }
 
   @override
@@ -30691,7 +30691,8 @@ class AppLocalizationsNl extends AppLocalizations {
       'Richtlijn-aftelling vanaf je laatste duiken';
 
   @override
-  String get planning_card_cnsOtu_subtitle => 'Live decay since your last dive';
+  String get planning_card_cnsOtu_subtitle =>
+      'Live afname sinds je laatste duik';
 
   @override
   String get settings_section_safety_title => 'Veiligheid';

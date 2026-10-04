@@ -334,6 +334,9 @@
   "o2Toxicity_prior": "Precedente: {value} OTU",
   "o2Toxicity_start": "Inizio: {value} OTU",
   "o2Toxicity_thisDive": "Questa immersione",
+  "o2Toxicity_lastDive": "Ultima immersione",
+  "o2Toxicity_lastDiveStart": "Prima dell'ultima immersione: {percent}%",
+  "o2Toxicity_lastDiveDelta": "Ultima immersione: +{percent}%",
   "o2Toxicity_weekly": "Settimanale",
   "trips_story_dayLabel": "Giorno {number}",
   "trips_story_surfaceDay": "Giorno di superficie",
@@ -8929,6 +8932,7 @@
     }
   },
   "safetySettings_noFlyHeader": "Volare dopo l'immersione",
+  "safetySettings_cnsOtuHeader": "Carico attuale di CNS/OTU",
   "safetySettings_noFlyPreset_standard": "Standard (12/18/24 h)",
   "safetySettings_noFlyPreset_strict": "Rigoroso (18/24/48 h)",
   "safetySettings_noFlyPreset_subtitle": "Intervalli indicativi dopo una singola immersione senza deco, immersioni ripetitive e immersioni con deco",
@@ -8976,6 +8980,9 @@
   },
   "safetyHub_noFly_clear_title": "Nessuna restrizione di volo",
   "safetyHub_noFly_clear_subtitle": "Nessuna restrizione di volo attiva",
+  "safetyHub_cnsOtu_clear_title": "Nessun carico attivo",
+  "safetyHub_cnsOtu_clear_subtitle": "CNS e OTU si sono dissipati dall'ultima immersione",
+  "safetyHub_cnsOtu_sinceLastDive": "Ultima immersione terminata {duration} fa",
   "safetyHub_noFly_category_single": "Dopo una singola immersione senza deco: linea guida di {hours} h",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -9193,6 +9200,7 @@
     }
   },
   "planning_card_noFly_subtitle": "Conto alla rovescia indicativo dalle ultime immersioni",
+  "planning_card_cnsOtu_subtitle": "Decadimento in tempo reale dall'ultima immersione",
   "settings_section_safety_title": "Sicurezza",
   "settings_section_safety_subtitle": "Regole di revisione e volo dopo l'immersione",
   "settings_section_equipmentCondition_title": "Stato dell'attrezzatura",
