@@ -2519,7 +2519,9 @@ class SyncDataSerializer {
   /// it via a non-cascading FK, which would otherwise fail the deferred-FK
   /// COMMIT and abort the whole sync. Must run inside
   /// [applyInDeferredFkTransaction] so COMMIT sees a consistent graph. Loops
-  /// because deleting an orphan can in turn dangle its own children.
+  /// because deleting an orphan can in turn dangle its own children. Each
+  /// raw write announces its table, since a parent deleted without an FK
+  /// action of its own leaves Drift no rule that would reach the child.
   ///
   /// Every batch apply path ends here, so it then re-derives the one value a
   /// peer's row may not carry: a linked route's owner (see
@@ -2538,8 +2540,13 @@ class SyncDataSerializer {
   /// by the conflict resolution's single-record writes, which skip that
   /// repair. Not marked pending: every device derives the same owner from
   /// the same synced dive.
+  ///
+  /// Raw SQL that Drift cannot see, and usually the dive alone changed in
+  /// this apply, so it announces a re-owned route itself; otherwise the
+  /// routes list keeps showing the route to its old owner (#2851). Only when
+  /// a row actually changed, so an ordinary sync wakes no route watcher.
   Future<void> alignLinkedRouteOwners() async {
-    await _db.customStatement('''
+    final reowned = await _db.customUpdate('''
       UPDATE nav_tracks
       SET diver_id = (
         SELECT d.diver_id FROM dives d WHERE d.id = nav_tracks.dive_id
@@ -2549,6 +2556,11 @@ class SyncDataSerializer {
           SELECT d.diver_id FROM dives d WHERE d.id = nav_tracks.dive_id
         )
     ''');
+    if (reowned > 0) {
+      _db.notifyUpdates({
+        TableUpdate.onTable(_db.navTracks, kind: UpdateKind.update),
+      });
+    }
   }
 
   Future<void> _repairDanglingReferences() async {
@@ -2586,12 +2598,14 @@ class SyncDataSerializer {
           await _db.customStatement('DELETE FROM "$table" WHERE rowid = ?', [
             rowid,
           ]);
+          _db.notifyUpdates({TableUpdate(table, kind: UpdateKind.delete)});
         } else {
           _log.warning('Sync repair: clearing dangling $table."$column"');
           await _db.customStatement(
             'UPDATE "$table" SET "$column" = NULL WHERE rowid = ?',
             [rowid],
           );
+          _db.notifyUpdates({TableUpdate(table, kind: UpdateKind.update)});
         }
       }
     }

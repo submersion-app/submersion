@@ -277,8 +277,7 @@ void main() {
   });
 
   testWidgets(
-    '"Choose dive" pre-selects the sole dive NavTrackMatchService suggests '
-    '(#2394)',
+    '"Choose dive" pre-selects the sole time-overlapping dive (#2394)',
     (tester) async {
       // Entry time equals the route's own startTime (1755856800000ms), so
       // this is the sole dive NavTrackMatcher.candidatesFor overlaps --
