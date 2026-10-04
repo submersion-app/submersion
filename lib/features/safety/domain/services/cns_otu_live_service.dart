@@ -20,14 +20,41 @@ class CnsOtuLiveService {
   /// as the inter-dive residual lookback ([CnsTable.cnsAfterSurfaceInterval]).
   ///
   /// A [now] at or before [lastDiveEnd] (clock skew, or evaluating right at
-  /// the dive's end) applies no decay rather than negative elapsed minutes.
+  /// the dive's end) applies no decay rather than a negative elapsed span.
+  ///
+  /// The guard checks the true elapsed [Duration], not whole minutes: a
+  /// `now` a few seconds after [lastDiveEnd] must not be mistaken for "at or
+  /// before" just because it truncates to 0 minutes.
   static double currentCns({
     required double cnsAtDiveEnd,
     required DateTime lastDiveEnd,
     required DateTime now,
   }) {
-    final elapsedMinutes = now.difference(lastDiveEnd).inMinutes;
-    if (elapsedMinutes <= 0) return cnsAtDiveEnd;
-    return CnsTable.cnsAfterSurfaceInterval(cnsAtDiveEnd, elapsedMinutes);
+    final elapsed = now.difference(lastDiveEnd);
+    if (elapsed <= Duration.zero) return cnsAtDiveEnd;
+    return CnsTable.cnsAfterSurfaceInterval(cnsAtDiveEnd, elapsed.inMinutes);
+  }
+
+  /// Today's OTU daily total, or [otuDailyAtDiveEnd] unchanged if [now] is
+  /// still the same calendar day as [lastDiveEnd].
+  ///
+  /// Unlike CNS, OTU does not decay -- but [otuDailyAtDiveEnd] (the dive's
+  /// own `O2Exposure.otuDaily`) is fixed to THAT dive's calendar day. Once
+  /// "now" rolls into a later day, that total no longer describes today's
+  /// exposure and must read as 0, not as a stale near-limit figure.
+  ///
+  /// Both [lastDiveEnd] and [now] are wall-clock-as-UTC (the dive-time
+  /// frame; see `NoFlyService.wallClockNowUtc`), so comparing their calendar
+  /// components directly is correct.
+  static double currentOtuDaily({
+    required double otuDailyAtDiveEnd,
+    required DateTime lastDiveEnd,
+    required DateTime now,
+  }) {
+    final sameDay =
+        now.year == lastDiveEnd.year &&
+        now.month == lastDiveEnd.month &&
+        now.day == lastDiveEnd.day;
+    return sameDay ? otuDailyAtDiveEnd : 0.0;
   }
 }

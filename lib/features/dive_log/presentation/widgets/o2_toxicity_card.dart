@@ -31,6 +31,26 @@ class O2ToxicityCard extends StatelessWidget {
   /// progress, which read as wrong once decayed live against the clock.
   final bool isLiveSinceLastDive;
 
+  /// Replaces `exposure.cnsDelta` ("+X% last dive") when set.
+  ///
+  /// `cnsDelta` is a getter (`cnsEnd - cnsStart`), so on
+  /// [isLiveSinceLastDive] -- where [exposure].cnsEnd has been overwritten
+  /// with a live, still-decaying value -- it would silently count DOWN
+  /// toward zero under a label that claims to describe a fixed, already-over
+  /// dive. Callers projecting a live exposure must pass the dive's own
+  /// (non-live) delta here instead.
+  final double? cnsDeltaOverride;
+
+  /// Replaces `exposure.otuDaily`/`otuDailyPercentOfLimit` in the "Daily"
+  /// OTU row when set.
+  ///
+  /// `otuDaily` is fixed at the dive's own calendar day; on
+  /// [isLiveSinceLastDive], if "now" has rolled into a later day than the
+  /// dive, that total no longer describes today's exposure. Callers
+  /// projecting a live exposure across a day boundary must pass 0 (or
+  /// today's own total, once this page tracks same-day dives) here instead.
+  final double? otuDailyOverride;
+
   /// Unit preferences, so the max-ppO2 depth renders in m or ft.
   ///
   /// Passed rather than read from a provider: this widget is a plain
@@ -47,6 +67,8 @@ class O2ToxicityCard extends StatelessWidget {
     this.useCard = true,
     this.weeklyOtu,
     this.isLiveSinceLastDive = false,
+    this.cnsDeltaOverride,
+    this.otuDailyOverride,
   });
 
   @override
@@ -209,7 +231,9 @@ class O2ToxicityCard extends StatelessWidget {
               Text(
                 isLiveSinceLastDive
                     ? context.l10n.o2Toxicity_lastDiveDelta(
-                        exposure.cnsDelta.toStringAsFixed(1),
+                        (cnsDeltaOverride ?? exposure.cnsDelta).toStringAsFixed(
+                          1,
+                        ),
                       )
                     : context.l10n.diveLog_o2tox_deltaDive(
                         exposure.cnsDelta.toStringAsFixed(1),
@@ -236,7 +260,8 @@ class O2ToxicityCard extends StatelessWidget {
       return Colors.green;
     }
 
-    final dailyPct = exposure.otuDailyPercentOfLimit;
+    final dailyTotal = otuDailyOverride ?? exposure.otuDaily;
+    final dailyPct = (dailyTotal / O2Exposure.dailyOtuLimit) * 100;
     final weeklyTotal = weeklyOtu ?? exposure.otu;
     final weeklyPct = (weeklyTotal / O2Exposure.weeklyOtuLimit) * 100;
 
@@ -265,7 +290,7 @@ class O2ToxicityCard extends StatelessWidget {
         _buildOtuProgressRow(
           context,
           label: context.l10n.o2Toxicity_daily,
-          value: exposure.otuDaily,
+          value: dailyTotal,
           limit: O2Exposure.dailyOtuLimit,
           percent: dailyPct,
           color: otuLimitColor(dailyPct),

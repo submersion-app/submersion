@@ -101,6 +101,60 @@ void main() {
     expect(find.text('Blue Hole'), findsOneWidget);
   });
 
+  testWidgets(
+    'the "last dive" CNS delta stays at the dive\'s own value as CNS decays, '
+    'not shrinking toward 0',
+    (tester) async {
+      // cnsStart 10, cnsEnd 50 -> the dive itself added 40 points. Long
+      // enough ago that live CNS has decayed well below that 40-point delta,
+      // so a delta re-derived from the LIVE value would read lower than 40.
+      final lastDiveEnd = NoFlyService.wallClockNowUtc().subtract(
+        const Duration(hours: 3),
+      );
+      await pumpCard(
+        tester,
+        CnsOtuSnapshot(
+          lastDiveId: 'dive-1',
+          lastDiveEnd: lastDiveEnd,
+          exposure: const O2Exposure(cnsStart: 10.0, cnsEnd: 50.0),
+          weeklyOtu: 0.0,
+        ),
+      );
+
+      expect(find.textContaining('Last dive: +40.0%'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'daily OTU resets to 0 once "now" is a later calendar day than the last '
+    'dive, instead of showing a stale near-limit total',
+    (tester) async {
+      final now = NoFlyService.wallClockNowUtc();
+      // Yesterday, just before midnight: guaranteed a different calendar
+      // day from "now" regardless of the time this test happens to run.
+      final lastDiveEnd = DateTime.utc(
+        now.year,
+        now.month,
+        now.day,
+      ).subtract(const Duration(hours: 1));
+      await pumpCard(
+        tester,
+        CnsOtuSnapshot(
+          lastDiveId: 'dive-1',
+          lastDiveEnd: lastDiveEnd,
+          // otuStart carries a near-limit daily total from the dive's own
+          // (now past) day; weeklyOtu alone keeps the card in its active
+          // state so the daily row is actually rendered to check.
+          exposure: const O2Exposure(cnsEnd: 0.0, otuStart: 250.0, otu: 0.0),
+          weeklyOtu: 250.0,
+        ),
+      );
+
+      expect(find.textContaining('0 / 300 OTU (0%)'), findsOneWidget);
+      expect(find.textContaining('250 / 300 OTU'), findsNothing);
+    },
+  );
+
   testWidgets('a weekly OTU carryover alone counts as an active load', (
     tester,
   ) async {

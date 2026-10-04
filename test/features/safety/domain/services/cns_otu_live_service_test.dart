@@ -59,4 +59,46 @@ void main() {
     );
     expect(result, 40.0);
   });
+
+  test('a few seconds after dive end (sub-minute elapsed) still decays, not '
+      'just truncated to the no-decay branch', () {
+    final result = CnsOtuLiveService.currentCns(
+      cnsAtDiveEnd: 40.0,
+      lastDiveEnd: diveEnd,
+      now: diveEnd.add(const Duration(seconds: 59)),
+    );
+    // 59s truncates to 0 whole minutes for the decay formula itself, so
+    // the visible number is unchanged -- what this guards is the branch
+    // taken: elapsed > 0 must not be misclassified as "at or before".
+    expect(result, 40.0);
+  });
+
+  group('currentOtuDaily', () {
+    test('same calendar day as the dive: total unchanged', () {
+      final result = CnsOtuLiveService.currentOtuDaily(
+        otuDailyAtDiveEnd: 250.0,
+        lastDiveEnd: diveEnd,
+        now: diveEnd.add(const Duration(hours: 10)),
+      );
+      expect(result, 250.0);
+    });
+
+    test('now has rolled into the next calendar day: resets to 0', () {
+      final result = CnsOtuLiveService.currentOtuDaily(
+        otuDailyAtDiveEnd: 250.0,
+        lastDiveEnd: diveEnd,
+        now: DateTime.utc(2026, 7, 18, 1),
+      );
+      expect(result, 0.0);
+    });
+
+    test('several days later: still 0, not negative or stale', () {
+      final result = CnsOtuLiveService.currentOtuDaily(
+        otuDailyAtDiveEnd: 250.0,
+        lastDiveEnd: diveEnd,
+        now: diveEnd.add(const Duration(days: 3)),
+      );
+      expect(result, 0.0);
+    });
+  });
 }

@@ -127,7 +127,11 @@ class CnsOtuStatusCard extends ConsumerWidget {
       lastDiveEnd: snap.lastDiveEnd,
       now: now,
     );
-    final otuDaily = snap.exposure.otuDaily;
+    final otuDaily = CnsOtuLiveService.currentOtuDaily(
+      otuDailyAtDiveEnd: snap.exposure.otuDaily,
+      lastDiveEnd: snap.lastDiveEnd,
+      now: now,
+    );
 
     final hasActiveLoad =
         liveCns >= _loadEpsilon ||
@@ -165,6 +169,13 @@ class CnsOtuStatusCard extends ConsumerWidget {
           // "This dive" implied one was in progress; "last dive" is what
           // these two rows actually are.
           isLiveSinceLastDive: true,
+          // liveExposure.cnsDelta would otherwise count down as liveCns
+          // decays; the dive's own (non-live) delta is the fixed historical
+          // fact this label claims to show.
+          cnsDeltaOverride: snap.exposure.cnsDelta,
+          // Rolls to 0 once "now" is a later calendar day than the dive --
+          // see currentOtuDaily.
+          otuDailyOverride: otuDaily,
         ),
       ],
     );
