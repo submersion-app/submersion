@@ -9,6 +9,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -411,6 +413,44 @@ void main() {
     expect(find.text('Could not change the gear. Try again.'), findsOneWidget);
     expect(find.textContaining('database is locked'), findsNothing);
     expect(h.packs.unpacked, isEmpty);
+  });
+
+  testWidgets('a slotless tank shows its size as a slot does', (tester) async {
+    const al80 = EquipmentItem(
+      id: 'al80',
+      name: 'AL80',
+      type: EquipmentType.tank,
+      attributes: [
+        EquipmentAttribute(
+          id: 'a1',
+          equipmentId: 'al80',
+          key: EquipmentAttrKeys.volumeL,
+          valueNum: 11.1,
+        ),
+        EquipmentAttribute(
+          id: 'a2',
+          equipmentId: 'al80',
+          key: EquipmentAttrKeys.workingPressureBar,
+          valueNum: 207,
+        ),
+      ],
+    );
+    await _pumpTab(
+      tester,
+      gear: const [al80],
+      settings: const AppSettings(
+        volumeUnit: VolumeUnit.cubicFeet,
+        pressureUnit: PressureUnit.psi,
+      ),
+    );
+    final specs = tester.widget<Text>(
+      find.descendant(
+        of: find.byKey(const Key('trip-gear-tank-al80')),
+        matching: find.textContaining('psi'),
+      ),
+    );
+    // Rated gas in imperial, about 78 cuft, then the working pressure.
+    expect(specs.data, matches(RegExp(r'^~?7[0-9] cuft · 3,?00[0-9] psi$')));
   });
 
   testWidgets('a slotless tank shows its service clock', (tester) async {

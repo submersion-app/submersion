@@ -534,6 +534,20 @@ void main() {
       expect(made.single.sortOrder, 0);
     });
 
+    test('appendCylinders writes the whole batch or none of it', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      // The second row reuses an id, so the insert fails part way.
+      await expectLater(
+        repository.appendCylinders(tripId, [
+          slot(label: 'B'),
+          slot(label: 'C').copyWith(id: a.id),
+        ]),
+        throwsA(anything),
+      );
+      final listed = await repository.getCylindersForTrip(tripId);
+      expect(listed.map((x) => x.label), ['A']);
+    });
+
     test('two appends from the same view of the board do not tie', () async {
       // Two taps before the board refreshes (#2873): each reads the end
       // inside its own write, so the second lands after the first.
