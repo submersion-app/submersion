@@ -1182,6 +1182,42 @@ void main() {
         },
       );
 
+      testWidgets('an unreadable catalog counts as newest-first', (
+        tester,
+      ) async {
+        final adapter = _RecordingAdapter();
+        await tester.pumpWidget(
+          _buildDownloadStep(
+            adapter: adapter,
+            // An oldest-first backend, so only the fallback can say false.
+            discoveryState: DiscoveryState(selectedDevice: _testDevice),
+            extraOverrides: [
+              deviceDescriptorsProvider.overrideWith(
+                (ref) => Future.error(StateError('no native library')),
+              ),
+            ],
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DcAdapterDownloadStep)),
+        );
+        container.read(downloadNotifierProvider.notifier).state = DownloadState(
+          phase: DownloadPhase.error,
+          errorMessage: 'Failed to download the dive.',
+          downloadedDives: [_downloadedDive()],
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Import 1 downloaded dive'));
+        await tester.pumpAndSettle();
+
+        expect(adapter.lastInterrupted, isTrue);
+        expect(adapter.lastDeliversOldestFirst, isFalse);
+      });
+
       testWidgets('a complete download is not marked interrupted', (
         tester,
       ) async {
