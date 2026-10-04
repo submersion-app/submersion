@@ -88,6 +88,32 @@ class LastPromotionTest(unittest.TestCase):
         last = cooldown.last_promotion(gh, "o/r", since=NOW - timedelta(hours=60), exclude_run=None)
         self.assertEqual(last, NOW - timedelta(hours=29))
 
+    def test_the_old_direct_upload_counts_as_a_promotion(self):
+        # Before #2887 the job uploaded straight to open testing. Counting that
+        # step keeps the first run after the switch from resetting a review.
+        legacy = {
+            "name": "Upload Android beta to Play open testing",
+            "steps": [{"name": "Upload to Play open testing", "conclusion": "success",
+                       "completed_at": iso(NOW - timedelta(hours=6))}],
+        }
+        gh = FakeGh([run_entry(2, NOW - timedelta(hours=7))], {2: [legacy]})
+        last = cooldown.last_promotion(gh, "o/r", since=NOW - timedelta(hours=60), exclude_run=None)
+        self.assertEqual(last, NOW - timedelta(hours=6))
+
+    def test_other_jobs_and_steps_are_ignored(self):
+        gh = FakeGh(
+            [run_entry(2, NOW - timedelta(hours=7))],
+            {2: [
+                {"name": "Upload iOS beta to TestFlight",
+                 "steps": [{"name": cooldown.PROMOTE_STEP, "conclusion": "success",
+                            "completed_at": iso(NOW - timedelta(hours=6))}]},
+                skipped_promotion_job(NOW - timedelta(hours=6)),
+            ]},
+        )
+        self.assertIsNone(
+            cooldown.last_promotion(gh, "o/r", since=NOW - timedelta(hours=60), exclude_run=None)
+        )
+
     def test_a_failed_promotion_does_not_count(self):
         # A refused promotion committed nothing, so no review was started.
         gh = FakeGh(

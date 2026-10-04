@@ -45,6 +45,15 @@ from urllib.parse import quote
 PLAY_JOB = "Upload Android beta to Play"
 PROMOTE_STEP = "Promote to Play open testing"
 
+# Every (job, step) that submitted a release to open testing. The second is the
+# job before #2887, which uploaded each beta straight to open testing; counting
+# it stops the first run after the switch from resetting a running review.
+# Drop it once no run older than the cooldown plus WINDOW_MARGIN carries it.
+PROMOTIONS = frozenset({
+    (PLAY_JOB, PROMOTE_STEP),
+    ("Upload Android beta to Play open testing", "Upload to Play open testing"),
+})
+
 WORKFLOW_FILE = "beta.yml"
 
 # Longer than a typical review. 8556 cleared in under a day, and Google warns
@@ -96,10 +105,10 @@ def last_promotion(gh, repo, since, exclude_run):
             gh, f"repos/{repo}/actions/runs/{run['id']}/jobs?filter=all&per_page=100", "jobs"
         )
         for job in jobs:
-            if job.get("name") != PLAY_JOB:
-                continue
             for step in job.get("steps") or []:
-                if step.get("name") != PROMOTE_STEP or step.get("conclusion") != "success":
+                if (job.get("name"), step.get("name")) not in PROMOTIONS:
+                    continue
+                if step.get("conclusion") != "success":
                     continue
                 ended = _parse_time(step["completed_at"])
                 if newest is None or ended > newest:
