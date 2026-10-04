@@ -548,6 +548,64 @@ void main() {
       expect(listed.map((x) => x.label), ['A']);
     });
 
+    test('appendCylinders skips a tank already on the trip\'s board', () async {
+      // A second Put on board for the same tank (a tap after the first
+      // wrote its slot, before the board refreshed) adds nothing (#2873).
+      // Another trip's slot for the tank does not count, and rental slots
+      // carry no tank.
+      for (final id in ['al80', 'hp100']) {
+        await db
+            .into(db.equipment)
+            .insert(
+              EquipmentCompanion.insert(
+                id: id,
+                name: id,
+                type: 'tank',
+                createdAt: 1,
+                updatedAt: 1,
+              ),
+            );
+      }
+      await repository.createCylinder(
+        slot(
+          label: 'Other',
+        ).copyWith(tripId: otherTripId, equipmentId: 'hp100'),
+      );
+      final first = await repository.appendCylinders(tripId, [
+        slot(label: 'A').copyWith(equipmentId: 'al80'),
+        slot(label: 'Rental'),
+      ]);
+      expect(first.map((x) => x.label), ['A', 'Rental']);
+      final again = await repository.appendCylinders(tripId, [
+        slot(label: 'A again').copyWith(equipmentId: 'al80'),
+        slot(label: 'B').copyWith(equipmentId: 'hp100'),
+        slot(label: 'B twice').copyWith(equipmentId: 'hp100'),
+      ]);
+      expect(again.map((x) => x.label), ['B']);
+      final listed = await repository.getCylindersForTrip(tripId);
+      expect(listed.map((x) => x.label), ['A', 'Rental', 'B']);
+    });
+
+    test('two appends of one tank from the same view make one slot', () async {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: 'al80',
+              name: 'al80',
+              type: 'tank',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      final tank = slot(label: 'A').copyWith(equipmentId: 'al80');
+      await Future.wait([
+        repository.appendCylinders(tripId, [tank]),
+        repository.appendCylinders(tripId, [tank]),
+      ]);
+      expect(await repository.getCylindersForTrip(tripId), hasLength(1));
+    });
+
     test('two appends from the same view of the board do not tie', () async {
       // Two taps before the board refreshes (#2873): each reads the end
       // inside its own write, so the second lands after the first.

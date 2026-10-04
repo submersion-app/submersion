@@ -310,10 +310,13 @@ class TripCylinderRepository {
   }
 
   /// As [createCylinders], with the slots placed after [tripId]'s last one
-  /// in their given order, whatever sort order they carry. The end of the
-  /// board is read inside the write, and writes run one at a time, so two
-  /// appends made from the same view of the board (two taps before it
-  /// refreshes, #2873) land one after the other instead of tying.
+  /// in their given order, whatever sort order they carry, and a slot for a
+  /// tank already on that board (or earlier in [cylinders]) left out.
+  /// Returns the slots written. The board is read inside the write, and
+  /// writes run one at a time, so appends made from the same view of the
+  /// board (taps before it refreshes, #2873) land one after the other, and
+  /// a repeated one for the same tank adds nothing instead of a second
+  /// slot.
   Future<List<domain.TripCylinder>> appendCylinders(
     String tripId,
     List<domain.TripCylinder> cylinders,
@@ -328,8 +331,18 @@ class TripCylinderRepository {
                   ..where(_db.tripCylinders.tripId.equals(tripId)))
                 .getSingle();
         final start = (row.read(last) ?? -1) + 1;
+        // Tanks already on the board, and each tank kept here as it goes,
+        // so a batch naming one twice slots it once.
+        final taken = {...await equipmentIdsForTrip(tripId)};
+        final fresh = <domain.TripCylinder>[];
+        for (final c in cylinders) {
+          final tank = c.equipmentId;
+          if (tank != null && taken.contains(tank)) continue;
+          if (tank != null) taken.add(tank);
+          fresh.add(c);
+        }
         return [
-          for (final (i, c) in cylinders.indexed)
+          for (final (i, c) in fresh.indexed)
             await _insertCylinder(
               c.copyWith(tripId: tripId, sortOrder: start + i),
               now,

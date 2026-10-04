@@ -195,7 +195,8 @@ class TripGearTab extends ConsumerWidget {
   /// written (two tanks put on before the board refreshes would otherwise
   /// tie); then its packed link goes, as Add packs none for a cylinder.
   /// Should the unpack fail, the slot still lists the tank once (a slotted
-  /// tank's link is not shown).
+  /// tank's link is not shown), and a repeat adds no second slot (the
+  /// append skips a tank already on the board) but retries the unpack.
   Future<void> _putOnBoard(
     BuildContext context,
     WidgetRef ref,

@@ -42,8 +42,9 @@ class TripUnslottedTankRow extends StatefulWidget {
 }
 
 class _TripUnslottedTankRowState extends State<TripUnslottedTankRow> {
-  /// True while the slot is written: a second tap would add a second slot
-  /// for the same tank before the board's refresh removes this row.
+  /// True while the slot is written, so a double tap runs one write. A tap
+  /// after it, before the board's refresh removes this row, is safe: the
+  /// append skips a tank already on the board.
   bool _putting = false;
 
   Future<void> _put() async {
