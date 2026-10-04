@@ -6,7 +6,6 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -28,11 +27,7 @@ void main() {
 
   setUp(() async {
     db = await setUpTestDatabase();
-    container = ProviderContainer(
-      overrides: [
-        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
-      ],
-    );
+    container = ProviderContainer();
     addTearDown(container.dispose);
     cylinders = TripCylinderRepository();
     tripId = (await TripRepository().createTrip(

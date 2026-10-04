@@ -211,8 +211,8 @@ class _ItineraryDayEditSheetState
                 setState(() {
                   // A rest day plans no dives: the field shows the 0 it saves
                   // and is locked. Leaving Rest drops that 0, so the day goes
-                  // back to the estimate instead of a dive day planned at
-                  // none.
+                  // back to the trip's default instead of a dive day planned
+                  // at none.
                   if (value == DayType.rest) {
                     _plannedDivesController.text = '0';
                     _plannedDivesError = null;
