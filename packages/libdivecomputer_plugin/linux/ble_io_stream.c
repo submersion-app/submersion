@@ -652,8 +652,9 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
     g_ptr_array_unref(read_poll_parents);
     // BlueZ lists characteristics flat, so the notify pass above spans every
     // service: a stray notify characteristic anywhere on the device (Battery
-    // Level, a DFU service) would otherwise shadow the allowlisted service,
-    // where Android, darwin and Windows would still pick it. Only a notify
+    // Level, a DFU service) would otherwise shadow the allowlisted service.
+    // Android, darwin and Windows let the Seac service win over every other
+    // service's pair for the same reason (issue #1454). Only a notify
     // characteristic under the Seac service itself keeps the notify path.
     gboolean seac_notifies = FALSE;
     if (best_notify_service_path) {
