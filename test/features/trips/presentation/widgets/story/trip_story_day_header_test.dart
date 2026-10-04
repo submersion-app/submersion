@@ -243,6 +243,27 @@ void main() {
       expect(find.text('Dive Day - Blue Corner'), findsOneWidget);
       expect(find.textContaining('Surface day'), findsNothing);
     });
+
+    // #2875: a day typed Rest is a dive day once a dive is logged on it.
+    testWidgets('a Rest-typed day with a dive reads Dive Day', (tester) async {
+      final day = TripStoryDay(
+        date: DateTime(2026, 3, 8),
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        itineraryDay: restRow().copyWith(dayType: DayType.rest),
+        dives: [
+          Dive(
+            id: 'd1',
+            dateTime: DateTime(2026, 3, 8, 9),
+            site: const DiveSite(id: 'site-a', name: 'Blue Corner'),
+          ),
+        ],
+      );
+      await pumpHeader(tester, day);
+
+      expect(find.text('Dive Day - Blue Corner'), findsOneWidget);
+      expect(find.textContaining('Rest'), findsNothing);
+    });
   });
 
   group('surface day', () {

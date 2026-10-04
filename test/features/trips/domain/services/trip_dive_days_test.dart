@@ -111,4 +111,24 @@ void main() {
       expect(isBarePlanDay(bare.copyWith(notes: 'Manta point')), isFalse);
     });
   });
+
+  group('shownDayType', () {
+    test('a Rest day with a dive logged reads as a dive day (#2875)', () {
+      expect(
+        shownDayType(row(9, DayType.rest), hasDives: true),
+        DayType.diveDay,
+      );
+    });
+
+    test('a Rest day with no dive stays a rest day', () {
+      expect(shownDayType(row(9, DayType.rest), hasDives: false), DayType.rest);
+    });
+
+    test('every other type keeps its own, dived or not', () {
+      for (final type in DayType.values.where((t) => t != DayType.rest)) {
+        expect(shownDayType(row(9, type), hasDives: true), type);
+        expect(shownDayType(row(9, type), hasDives: false), type);
+      }
+    });
+  });
 }
