@@ -1,4 +1,5 @@
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 
 /// The items of [items] that go on a trip whose gear ids are [onTrip]
 /// (packed, or on a slot of its cylinder board), in their given order. An
@@ -24,5 +25,22 @@ List<EquipmentItem> gearOnTrip(List<EquipmentItem> items, Set<String> onTrip) {
   return [
     for (final item in items)
       if (goes(item)) item,
+  ];
+}
+
+/// The packed items of [packed] that the Gear tab lists under Packed, in
+/// their given order: an owned tank on one of [slots] is listed under
+/// Cylinders only, so it is left out here (issue #2874).
+List<EquipmentItem> packedOffBoard(
+  List<EquipmentItem> packed,
+  List<TripCylinder> slots,
+) {
+  final slotted = {
+    for (final s in slots)
+      if (s.equipmentId != null) s.equipmentId!,
+  };
+  return [
+    for (final item in packed)
+      if (!slotted.contains(item.id)) item,
   ];
 }

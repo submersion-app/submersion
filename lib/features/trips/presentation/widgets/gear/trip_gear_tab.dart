@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_gear_scope.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
@@ -87,14 +88,7 @@ class TripGearTab extends ConsumerWidget {
     };
     final marginByItem = {for (final m in margins) m.item.id: m};
     // An owned cylinder on the board is listed under Cylinders only.
-    final slotted = {
-      for (final s in states)
-        if (s.cylinder.equipmentId != null) s.cylinder.equipmentId!,
-    };
-    final packed = [
-      for (final i in gear)
-        if (!slotted.contains(i.id)) i,
-    ];
+    final packed = packedOffBoard(gear, [for (final s in states) s.cylinder]);
 
     Future<void> add() => showTripGearAddSheet(
       context,

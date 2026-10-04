@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
+import 'package:submersion/features/trips/domain/services/trip_gear_scope.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
@@ -58,7 +59,13 @@ class TripOverviewSummaryCard extends ConsumerWidget {
     if (gear != null && slots != null) {
       final alertCount = alerts == null ? 0 : tripServiceAlertItemCount(alerts);
       gearSpans = [
-        TextSpan(text: l10n.trips_overview_gear_packed(gear.length)),
+        // Counted as the Gear tab lists them: an owned tank on a slot is a
+        // cylinder, not a packed item too (#2874).
+        TextSpan(
+          text: l10n.trips_overview_gear_packed(
+            packedOffBoard(gear, [for (final s in slots) s.cylinder]).length,
+          ),
+        ),
         if (slots.isNotEmpty)
           TextSpan(
             text: ' · ${l10n.trips_overview_gear_cylinders(slots.length)}',

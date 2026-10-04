@@ -52,11 +52,12 @@ TripChecklistItem _todo(String id, {bool done = false, DateTime? due}) =>
       updatedAt: DateTime(2026, 1, 1),
     );
 
-TripCylinderState _slot(String id) => foldCylinderState(
+TripCylinderState _slot(String id, {String? equipmentId}) => foldCylinderState(
   cylinder: TripCylinder(
     id: id,
     tripId: 't1',
     label: id,
+    equipmentId: equipmentId,
     createdAt: DateTime(2026, 1, 1),
     updatedAt: DateTime(2026, 1, 1),
   ),
@@ -210,6 +211,22 @@ void main() {
       find.text('2 items packed · 3 cylinders · 1 service alert'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('the packed count leaves out owned tanks on a cylinder slot, '
+      'as the Gear tab does (#2874)', (tester) async {
+    await _pump(
+      tester,
+      gear: const [
+        EquipmentItem(id: 'g1', name: 'Reg', type: EquipmentType.regulator),
+        EquipmentItem(id: 'tank1', name: 'AL80', type: EquipmentType.tank),
+      ],
+      slots: [
+        _slot('c1', equipmentId: 'tank1'),
+        _slot('c2'),
+      ],
+    );
+    expect(find.text('1 item packed · 2 cylinders'), findsOneWidget);
   });
 
   testWidgets('the itinerary row sums planned dives and falls back to the '
