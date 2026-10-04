@@ -2311,6 +2311,12 @@ abstract class AppLocalizations {
   /// **'Dive {number}'**
   String trips_story_dayMap_divePin(int number);
 
+  /// No description provided for @trips_story_dayMap_diveGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, other{{count} dives here}}'**
+  String trips_story_dayMap_diveGroup(int count);
+
   /// No description provided for @diveLog_bulkEdit_groupRebreather.
   ///
   /// In en, this message translates to:

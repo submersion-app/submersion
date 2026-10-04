@@ -375,6 +375,7 @@
       }
     }
   },
+  "trips_story_dayMap_diveGroup": "{count, plural, two{غوصتان هنا} few{{count} غوصات هنا} many{{count} غوصة هنا} other{{count} غوصة هنا}}",
   "diveLog_bulkEdit_groupRebreather": "وضع الغوص وجهاز التنفس",
   "diveLog_bulkEdit_fieldSetpointLow": "النقطة المحددة المنخفضة",
   "diveLog_bulkEdit_fieldSetpointHigh": "النقطة المحددة العالية",

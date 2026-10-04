@@ -375,6 +375,7 @@
       }
     }
   },
+  "trips_story_dayMap_diveGroup": "{count, plural, other{{count} inmersiones aquí}}",
   "diveLog_bulkEdit_groupRebreather": "Modo de buceo y rebreather",
   "diveLog_bulkEdit_fieldSetpointLow": "Setpoint bajo",
   "diveLog_bulkEdit_fieldSetpointHigh": "Setpoint alto",

@@ -993,6 +993,14 @@
       }
     }
   },
+  "trips_story_dayMap_diveGroup": "{count, plural, other{{count} dives here}}",
+  "@trips_story_dayMap_diveGroup": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_bulkEdit_groupRebreather": "Dive Mode & Rebreather",
   "diveLog_bulkEdit_fieldSetpointLow": "Setpoint low",
   "diveLog_bulkEdit_fieldSetpointHigh": "Setpoint high",

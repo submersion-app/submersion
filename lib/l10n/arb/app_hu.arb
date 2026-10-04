@@ -375,6 +375,7 @@
       }
     }
   },
+  "trips_story_dayMap_diveGroup": "{count, plural, other{{count} merülés itt}}",
   "diveLog_bulkEdit_groupRebreather": "Merülési mód és rebreather",
   "diveLog_bulkEdit_fieldSetpointLow": "Alacsony alapérték",
   "diveLog_bulkEdit_fieldSetpointHigh": "Magas alapérték",

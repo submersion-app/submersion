@@ -375,6 +375,7 @@
       }
     }
   },
+  "trips_story_dayMap_diveGroup": "{count, plural, other{{count} plongées ici}}",
   "diveLog_bulkEdit_groupRebreather": "Mode de plongée et recycleur",
   "diveLog_bulkEdit_fieldSetpointLow": "Consigne basse",
   "diveLog_bulkEdit_fieldSetpointHigh": "Consigne haute",

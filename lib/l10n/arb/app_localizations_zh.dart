@@ -1450,6 +1450,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String trips_story_dayMap_diveGroup(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此处 $count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => '潜水模式与循环呼吸器';
 
   @override

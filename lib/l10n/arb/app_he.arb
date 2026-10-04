@@ -375,6 +375,7 @@
       }
     }
   },
+  "trips_story_dayMap_diveGroup": "{count, plural, other{{count} צלילות כאן}}",
   "diveLog_bulkEdit_groupRebreather": "מצב צלילה וריבריא'תר",
   "diveLog_bulkEdit_fieldSetpointLow": "ערך יעד נמוך",
   "diveLog_bulkEdit_fieldSetpointHigh": "ערך יעד גבוה",

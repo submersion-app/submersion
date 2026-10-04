@@ -386,6 +386,7 @@
       }
     }
   },
+  "trips_story_dayMap_diveGroup": "{count, plural, other{{count} Tauchgänge hier}}",
   "diveLog_bulkEdit_groupRebreather": "Tauchmodus & Kreislaufgerät",
   "diveLog_bulkEdit_fieldSetpointLow": "Sollwert niedrig",
   "diveLog_bulkEdit_fieldSetpointHigh": "Sollwert hoch",

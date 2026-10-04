@@ -375,6 +375,7 @@
       }
     }
   },
+  "trips_story_dayMap_diveGroup": "{count, plural, other{{count} duiken hier}}",
   "diveLog_bulkEdit_groupRebreather": "Duikmodus & rebreather",
   "diveLog_bulkEdit_fieldSetpointLow": "Setpoint laag",
   "diveLog_bulkEdit_fieldSetpointHigh": "Setpoint hoog",
