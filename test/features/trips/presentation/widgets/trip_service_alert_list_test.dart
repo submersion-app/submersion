@@ -1,3 +1,5 @@
+import 'dart:ui' show SemanticsAction;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -102,10 +104,18 @@ void main() {
     final row = tester.widget<ListTile>(find.byType(ListTile));
     expect((row.title! as Text).data, startsWith('Hydrostatic test due'));
     expect(row.subtitle, isNull);
-    // A screen reader hears the clock once, not the item name.
+    // A screen reader hears the clock once, not the item name: one button
+    // node carries it, and that node is the one that taps.
     expect(
-      tester.getSemantics(find.byType(ListTile)).label,
-      startsWith('Hydrostatic test due'),
+      find.bySemanticsLabel(RegExp('^Hydrostatic test due')),
+      findsOneWidget,
+    );
+    expect(
+      tester
+          .getSemantics(find.byType(ListTile))
+          .getSemanticsData()
+          .hasAction(SemanticsAction.tap),
+      isTrue,
     );
 
     // The row still opens its item.

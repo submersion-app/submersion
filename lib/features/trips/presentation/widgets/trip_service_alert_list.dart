@@ -52,22 +52,21 @@ class TripServiceAlertList extends ConsumerWidget {
     );
   }
 
+  // No Semantics wrapper: a tappable ListTile is already one button node
+  // that reads its title and subtitle, and a wrapper adds a second,
+  // actionless node announcing the same row.
   Widget _row(BuildContext context, DueClock alert, String clockLine) {
-    return Semantics(
-      button: true,
-      label: showItemName ? alert.item.name : clockLine,
-      child: ListTile(
-        dense: true,
-        contentPadding: EdgeInsets.zero,
-        leading: Icon(
-          Icons.circle,
-          size: 12,
-          color: serviceSeverityDotColor(context, alert.status.severity),
-        ),
-        title: Text(showItemName ? alert.item.name : clockLine),
-        subtitle: showItemName ? Text(clockLine) : null,
-        onTap: () => context.push('/equipment/${alert.item.id}'),
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(
+        Icons.circle,
+        size: 12,
+        color: serviceSeverityDotColor(context, alert.status.severity),
       ),
+      title: Text(showItemName ? alert.item.name : clockLine),
+      subtitle: showItemName ? Text(clockLine) : null,
+      onTap: () => context.push('/equipment/${alert.item.id}'),
     );
   }
 }
