@@ -1777,8 +1777,13 @@ final syncMessageProvider = Provider<String?>((ref) {
   return ref.watch(syncStateProvider).message;
 });
 
-/// Get conflicts provider
-final conflictsProvider = FutureProvider<List<SyncConflict>>((ref) async {
+/// The unresolved sync conflicts, read fresh each time the Resolve Conflicts
+/// dialog opens. Nothing invalidates this after a sync or a resolution, so a
+/// cached list outlived the conflicts it showed: a reopened dialog offered
+/// conflicts already resolved and hid ones raised since (#2943).
+final conflictsProvider = FutureProvider.autoDispose<List<SyncConflict>>((
+  ref,
+) async {
   final syncService = ref.watch(syncServiceProvider);
   return syncService.getConflicts();
 });

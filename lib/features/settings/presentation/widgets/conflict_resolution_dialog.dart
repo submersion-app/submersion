@@ -74,6 +74,9 @@ class _ConflictResolutionDialogState
       );
     }
 
+    // The list reloads under an open dialog when the sync service it reads
+    // is rebuilt, and can come back shorter than the card being shown.
+    if (_currentIndex >= conflicts.length) _currentIndex = conflicts.length - 1;
     final conflict = conflicts[_currentIndex];
     final hasResolution = _resolutions.containsKey(_conflictKey(conflict));
 
