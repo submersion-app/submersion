@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart' show MediaCompanion;
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -337,9 +338,12 @@ void main() {
       await diveRepo.deleteDive('dive-44');
 
       // Peer edited the dive AFTER our deletion (updatedAt in the far future).
+      // A real edit restamps the row's clock too, and the clocks decide
+      // when both the copy and the tombstone carry one (#2943).
       await uploadPeerDive(serializer, {
         ...diveJson!,
         'updatedAt': 99999999999999,
+        'hlc': const Hlc(99999999999999, 0, 'peer-dev').toString(),
       });
 
       await buildService().performSync();

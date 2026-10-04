@@ -106,8 +106,8 @@ class SyncDeletion {
   final int deletedAt;
 
   /// The clock of the delete itself, as the deleting device stamped it
-  /// (DeletionLog.originHlc). The merge compares it with a child row's own
-  /// HLC. Null from a peer that predates it; omitted from the JSON then, so
+  /// (DeletionLog.originHlc). The merge compares it with the local row's own
+  /// HLC, for every entity (#2943). Null from a peer that predates it; omitted from the JSON then, so
   /// such a tombstone reads exactly as before.
   final String? hlc;
 
