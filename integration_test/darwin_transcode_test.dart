@@ -6,8 +6,10 @@ import 'package:path/path.dart' as p;
 import 'package:submersion_transcoder/submersion_transcoder.dart';
 
 /// Real-engine integration test for the AVFoundation transcoder (spec §14).
-/// Runs on a macOS build (`flutter test integration_test -d macos`); it is
-/// NOT part of plain `flutter test`. It synthesizes its input with ffmpeg if
+/// Runs on a macOS build
+/// (`flutter test integration_test/darwin_transcode_test.dart -d macos`; one
+/// file per invocation, since a second desktop launch in one run fails to
+/// attach); it is NOT part of plain `flutter test`. It synthesizes its input with ffmpeg if
 /// one is on PATH (mirroring the Linux smoke), and skips otherwise so no
 /// binary fixture needs committing. iOS is covered by the same shared Swift
 /// but verified by a manual device run.

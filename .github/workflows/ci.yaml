@@ -122,13 +122,42 @@ jobs:
             # database-security code whose keychain fallback only macOS takes,
             # the two tests, the macOS runner project they are built into, and
             # the Flutter SDK. An edit to the job in this file is not listed:
-            # use [full-ci] for that.
+            # use [full-ci] for that. The test files here must match the run
+            # loop in integration-test-macos.
             case "$f" in
               .github/flutter-version.txt|macos/*|packages/submersion_transcoder/*) macos_native=true ;;
               lib/core/services/secure_storage/*|lib/core/services/security/*) macos_native=true ;;
               integration_test/darwin_transcode_test.dart|integration_test/db_security_test.dart) macos_native=true ;;
             esac
           done <<< "$files"
+          # A version change of a native package that db_security_test runs on
+          # macOS also counts: sqlite3 (whose build hook, selected by the
+          # pubspec `hooks:` block, supplies the macOS SQLCipher binary) and
+          # the flutter_secure_storage Keychain plugin. Only those entries are
+          # compared, so an unrelated dependency bump takes no macOS runner. A
+          # merge base that cannot be found counts as a change (fail-safe).
+          if [ "$macos_native" = false ] && printf '%s\n' "$files" | grep -qxE 'pubspec\.(yaml|lock)'; then
+            if [ "$EVENT" = "pull_request" ]; then
+              cmp_base="$(git merge-base "$base" "$head")" || cmp_base=""
+            else
+              cmp_base="$base"
+            fi
+            macos_deps() {
+              {
+                git show "$1:pubspec.lock" 2>/dev/null | awk '
+                  /^[^ ]/ { keep = 0 }
+                  /^  [^ ]/ { keep = ($1 ~ /^(sqlite3|flutter_secure_storage|flutter_secure_storage_darwin):$/) }
+                  keep'
+                git show "$1:pubspec.yaml" 2>/dev/null | awk '
+                  /^[^ #]/ { keep = ($1 == "hooks:") }
+                  keep'
+              } || true
+            }
+            if [ -z "$cmp_base" ] || [ "$(macos_deps "$cmp_base")" != "$(macos_deps "$head")" ]; then
+              echo "A macOS native dependency changed (sqlite3, flutter_secure_storage or pubspec hooks)."
+              macos_native=true
+            fi
+          fi
           echo "Result: code=$code macos_native=$macos_native"
           echo "code=$code" >> "$GITHUB_OUTPUT"
           echo "macos_native=$macos_native" >> "$GITHUB_OUTPUT"
@@ -963,7 +992,8 @@ jobs:
         run: |
           # One `flutter test` process per file: a second sequential desktop
           # launch in one invocation fails to attach on macOS ("log reader
-          # stopped unexpectedly").
+          # stopped unexpectedly"). Keep this list in step with the test files
+          # in the changes job's macos_native pattern.
           reports=()
           for name in darwin_transcode_test db_security_test; do
             echo "== Running integration_test/$name.dart =="
