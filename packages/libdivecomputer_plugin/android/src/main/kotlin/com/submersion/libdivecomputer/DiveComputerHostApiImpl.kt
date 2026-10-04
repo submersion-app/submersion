@@ -102,7 +102,8 @@ class DiveComputerHostApiImpl(
                         vendor = info.vendor,
                         product = info.product,
                         model = info.model.toLong(),
-                        transports = mapTransports(info.transports)
+                        transports = mapTransports(info.transports),
+                        deliversOldestFirst = info.deliversOldestFirst
                     )
                 )
             }

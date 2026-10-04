@@ -707,7 +707,8 @@ static void handle_get_device_descriptors(
     LibdivecomputerPluginDeviceDescriptor* desc =
         libdivecomputer_plugin_device_descriptor_new(
             info.vendor, info.product,
-            static_cast<int64_t>(info.model), transports);
+            static_cast<int64_t>(info.model), transports,
+            info.delivers_oldest_first ? TRUE : FALSE);
     fl_value_unref(transports);
     fl_value_append_take(descriptors,
                          fl_value_new_custom_object(130, G_OBJECT(desc)));

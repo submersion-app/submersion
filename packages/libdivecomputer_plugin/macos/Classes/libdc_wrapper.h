@@ -62,6 +62,12 @@ typedef struct {
     // libdc_descriptor_match and libdc_descriptor_lookup_model report the
     // descriptor's raw bitmask, which they need to route a discovered device.
     unsigned int transports;
+    // 1 when the backend hands dives to the dive callback oldest-first, 0 for
+    // libdivecomputer's usual newest-first order. Only then is a download
+    // that stopped part way a contiguous run of the oldest new dives, whose
+    // newest fingerprint is a safe resume point (issue #2902). Every function
+    // that fills this struct sets it.
+    int delivers_oldest_first;
 } libdc_descriptor_info_t;
 
 // Opaque iterator handle.
