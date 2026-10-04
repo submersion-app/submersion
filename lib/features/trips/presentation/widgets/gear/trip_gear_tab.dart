@@ -5,11 +5,13 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
-import 'package:submersion/features/trips/domain/services/trip_gear_scope.dart';
+import 'package:submersion/features/trips/domain/services/trip_cylinder_drafts.dart';
+import 'package:submersion/features/trips/domain/services/trip_gear_split.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
@@ -18,6 +20,7 @@ import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_fi
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_cylinder_slot_row.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_add_sheet.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_packed_item_row.dart';
+import 'package:submersion/features/trips/presentation/widgets/gear/trip_unslotted_tank_row.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 const _log = LoggerService('tripGearTab');
@@ -87,15 +90,17 @@ class TripGearTab extends ConsumerWidget {
             ),
     };
     final marginByItem = {for (final m in margins) m.item.id: m};
-    // An owned cylinder on the board is listed under Cylinders only.
-    final packed = packedOffBoard(gear, [for (final s in states) s.cylinder]);
+    final slots = [for (final s in states) s.cylinder];
+    // An owned cylinder on the board is listed under Cylinders only, and so
+    // is a tank packed without a slot (#2873), offered to the board.
+    final (:packed, :unslottedTanks) = splitTripGear(gear, slots);
 
     Future<void> add() => showTripGearAddSheet(
       context,
       ref,
       trip: trip,
       packed: gear,
-      slots: [for (final s in states) s.cylinder],
+      slots: slots,
     );
     void openBoard() => context.push('/trips/${trip.id}/cylinders');
     final addButton = FilledButton.tonalIcon(
@@ -105,7 +110,7 @@ class TripGearTab extends ConsumerWidget {
       onPressed: add,
     );
 
-    if (packed.isEmpty && states.isEmpty) {
+    if (packed.isEmpty && unslottedTanks.isEmpty && states.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -149,7 +154,7 @@ class TripGearTab extends ConsumerWidget {
               onUnpack: () => _unpack(context, ref, item.id),
             ),
         ],
-        if (states.isNotEmpty) ...[
+        if (states.isNotEmpty || unslottedTanks.isNotEmpty) ...[
           _SectionHeader(
             title: l10n.trips_gear_section_cylinders,
             action: started
@@ -172,9 +177,60 @@ class TripGearTab extends ConsumerWidget {
               units: units,
               onTap: openBoard,
             ),
+          for (final item in unslottedTanks)
+            TripUnslottedTankRow(
+              // Keyed by tank: the row holds its busy state, which must not
+              // pass to another tank's row when the list shifts.
+              key: ValueKey(item.id),
+              item: item,
+              units: units,
+              alerts: alertsByItem[item.id] ?? const [],
+              // An ended trip's board is history: no prompt to put it on.
+              onPutOnBoard: ended
+                  ? null
+                  : () => _putOnBoard(context, ref, item),
+              onUnpack: () => _unpack(context, ref, item.id),
+            ),
         ],
       ],
     );
+  }
+
+  /// Puts a packed tank with no slot on the board (#2873): a slot from the
+  /// item, as Add makes one, appended after the board's last slot as it is
+  /// written (two tanks put on before the board refreshes would otherwise
+  /// tie); then its packed link goes, as Add packs none for a cylinder.
+  /// Should the unpack fail, the slot still lists the tank once (a slotted
+  /// tank's link is not shown), and a repeat adds no second slot (the
+  /// append skips a tank already on the board) but retries the unpack.
+  Future<void> _putOnBoard(
+    BuildContext context,
+    WidgetRef ref,
+    EquipmentItem item,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final cylinders = ref.read(tripCylinderRepositoryProvider);
+    final packs = ref.read(tripEquipmentRepositoryProvider);
+    try {
+      final now = clock.now().toUtc();
+      await cylinders.appendCylinders(trip.id, [
+        tripCylinderDraftFromEquipment(
+          item,
+          tripId: trip.id,
+          sortOrder: 0,
+          now: now,
+        ),
+      ]);
+      await packs.unpack(trip.id, item.id);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to put a packed tank on the board',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      messenger.showSnackBar(SnackBar(content: Text(l10n.trips_gear_failed)));
+    }
   }
 
   Future<void> _unpack(BuildContext context, WidgetRef ref, String id) async {

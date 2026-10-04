@@ -39127,6 +39127,18 @@ abstract class AppLocalizations {
   /// **'Open board'**
   String get trips_gear_openBoard;
 
+  /// No description provided for @trips_gear_tank_notOnBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Not on the board'**
+  String get trips_gear_tank_notOnBoard;
+
+  /// No description provided for @trips_gear_tank_putOnBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Put on board'**
+  String get trips_gear_tank_putOnBoard;
+
   /// No description provided for @trips_cylinders_forecast_todayShort.
   ///
   /// In en, this message translates to:

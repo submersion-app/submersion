@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +9,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -192,14 +196,32 @@ class _FakePacks extends TripEquipmentRepository {
 }
 
 class _FakeSlots extends TripCylinderRepository {
+  bool failing = false;
+
+  /// When set, a create waits for it, so a test can act mid-write.
+  Completer<void>? gate;
   final created = <List<TripCylinder>>[];
 
   @override
   Future<List<TripCylinder>> createCylinders(
     List<TripCylinder> cylinders,
   ) async {
+    if (failing) throw StateError('database is locked');
+    await gate?.future;
     created.add(cylinders);
     return cylinders;
+  }
+
+  final appendedTo = <String>[];
+
+  /// Records the trip; the board's end is the repository's to read.
+  @override
+  Future<List<TripCylinder>> appendCylinders(
+    String tripId,
+    List<TripCylinder> cylinders,
+  ) async {
+    appendedTo.add(tripId);
+    return createCylinders(cylinders);
   }
 }
 
@@ -343,6 +365,153 @@ void main() {
     expect(find.textContaining('My equipment'), findsOneWidget);
   });
 
+  testWidgets('a packed tank with no slot is listed under Cylinders (#2873)', (
+    tester,
+  ) async {
+    await _pumpTab(tester, gear: const [bcd, tank], states: [slot('Truck 1')]);
+    expect(find.text('Packed'), findsOneWidget);
+    final cylinders = tester.getTopLeft(find.text('Cylinders')).dy;
+    expect(tester.getTopLeft(find.text('Faber 12')).dy, greaterThan(cylinders));
+    expect(find.textContaining('Not on the board'), findsOneWidget);
+    expect(find.byKey(const Key('trip-gear-putOnBoard-tk')), findsOneWidget);
+  });
+
+  testWidgets('an ended trip lists a slotless tank with no board prompt', (
+    tester,
+  ) async {
+    await _pumpTab(tester, onTrip: trip(past: true), gear: const [tank]);
+    expect(find.text('Cylinders'), findsOneWidget);
+    expect(find.text('Faber 12'), findsOneWidget);
+    expect(find.byKey(const Key('trip-gear-putOnBoard-tk')), findsNothing);
+    expect(find.textContaining('Not on the board'), findsNothing);
+    // A tank with no specs has nothing left to say under its name.
+    expect(
+      tester
+          .widget<ListTile>(find.byKey(const Key('trip-gear-tank-tk')))
+          .subtitle,
+      isNull,
+    );
+    // It can still be unpacked.
+    expect(find.byKey(const Key('trip-gear-menu-tk')), findsOneWidget);
+  });
+
+  testWidgets('a trip under way still offers Put on board', (tester) async {
+    await _pumpTab(tester, onTrip: trip(started: true), gear: const [tank]);
+    expect(find.byKey(const Key('trip-gear-putOnBoard-tk')), findsOneWidget);
+    expect(find.textContaining('Not on the board'), findsOneWidget);
+  });
+
+  testWidgets('a slotless tank alone is a cylinder, not packed gear', (
+    tester,
+  ) async {
+    await _pumpTab(tester, gear: const [tank]);
+    expect(find.text('Packed'), findsNothing);
+    expect(find.text('Cylinders'), findsOneWidget);
+    expect(find.text('Faber 12'), findsOneWidget);
+  });
+
+  testWidgets('Put on board appends the tank to the board and unpacks it', (
+    tester,
+  ) async {
+    final h = await _pumpTab(
+      tester,
+      gear: const [tank],
+      states: [slot('Truck 1')],
+    );
+    await tester.tap(find.byKey(const Key('trip-gear-putOnBoard-tk')));
+    await tester.pumpAndSettle();
+    final created = h.slots.created.single.single;
+    expect(created.equipmentId, 'tk');
+    expect(created.tripId, 't1');
+    expect(created.label, 'Faber 12');
+    expect(h.slots.appendedTo, ['t1']);
+    expect(h.packs.unpacked, [('t1', 'tk')]);
+  });
+
+  testWidgets('a failed Put on board says so and keeps the link', (
+    tester,
+  ) async {
+    final h = await _pumpTab(tester, gear: const [tank]);
+    h.slots.failing = true;
+    await tester.tap(find.byKey(const Key('trip-gear-putOnBoard-tk')));
+    await tester.pumpAndSettle();
+    expect(find.text('Could not change the gear. Try again.'), findsOneWidget);
+    expect(find.textContaining('database is locked'), findsNothing);
+    expect(h.packs.unpacked, isEmpty);
+  });
+
+  testWidgets('a slotless tank shows its size as a slot does', (tester) async {
+    const al80 = EquipmentItem(
+      id: 'al80',
+      name: 'AL80',
+      type: EquipmentType.tank,
+      attributes: [
+        EquipmentAttribute(
+          id: 'a1',
+          equipmentId: 'al80',
+          key: EquipmentAttrKeys.volumeL,
+          valueNum: 11.1,
+        ),
+        EquipmentAttribute(
+          id: 'a2',
+          equipmentId: 'al80',
+          key: EquipmentAttrKeys.workingPressureBar,
+          valueNum: 207,
+        ),
+      ],
+    );
+    await _pumpTab(
+      tester,
+      gear: const [al80],
+      settings: const AppSettings(
+        volumeUnit: VolumeUnit.cubicFeet,
+        pressureUnit: PressureUnit.psi,
+      ),
+    );
+    final specs = tester.widget<Text>(
+      find.descendant(
+        of: find.byKey(const Key('trip-gear-tank-al80')),
+        matching: find.textContaining('psi'),
+      ),
+    );
+    // Rated gas in imperial, about 78 cuft, then the working pressure.
+    expect(specs.data, matches(RegExp(r'^~?7[0-9] cuft · 3,?00[0-9] psi$')));
+  });
+
+  testWidgets('a slotless tank shows its service clock', (tester) async {
+    await _pumpTab(tester, gear: const [tank], alerts: [dueClock('tk')]);
+    expect(find.byKey(const Key('trip-gear-alert-tk')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('trip-gear-alert-tk')));
+    await tester.pumpAndSettle();
+    expect(find.byType(TripServiceAlertList), findsOneWidget);
+  });
+
+  testWidgets('a second tap while the slot is written adds no second slot', (
+    tester,
+  ) async {
+    final h = await _pumpTab(tester, gear: const [tank]);
+    final gate = h.slots.gate = Completer<void>();
+    final put = find.byKey(const Key('trip-gear-putOnBoard-tk'));
+    await tester.tap(put);
+    await tester.pump();
+    await tester.tap(put);
+    await tester.pump();
+    gate.complete();
+    await tester.pumpAndSettle();
+    expect(h.slots.created, hasLength(1));
+    expect(h.packs.unpacked, [('t1', 'tk')]);
+  });
+
+  testWidgets('a slotless tank can still be unpacked', (tester) async {
+    final h = await _pumpTab(tester, gear: const [tank]);
+    await tester.tap(find.byKey(const Key('trip-gear-menu-tk')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Unpack'));
+    await tester.pumpAndSettle();
+    expect(h.packs.unpacked, [('t1', 'tk')]);
+    expect(h.slots.created, isEmpty);
+  });
+
   testWidgets('before departure an owned slot names its item', (tester) async {
     // The slot carries the tank's mark, so the item's name is what tells
     // the diver which of their cylinders it is.
@@ -449,6 +618,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(h.packs.packed, isEmpty);
     expect(h.slots.created.single.single.equipmentId, 'tk');
+    // Appended, so the repository places it and skips a tank already on.
+    expect(h.slots.appendedTo, ['t1']);
   });
 
   testWidgets('An equipment set packs the members and slots its cylinders', (
@@ -467,6 +638,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(h.packs.packed.single.$2, ['bcd', 'fins']);
     expect(h.slots.created.single.single.equipmentId, 'tk');
+    expect(h.slots.appendedTo, ['t1']);
     // The slotted cylinder counts alongside the packed items (#2877).
     expect(find.text('Packed 3 items from Reef kit'), findsOneWidget);
   });

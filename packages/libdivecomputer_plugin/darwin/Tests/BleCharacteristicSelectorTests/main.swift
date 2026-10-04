@@ -450,8 +450,9 @@ do {
            "allowlist: another characteristic under the Seac service is not selected")
 }
 
-// 17. Strict fallback: any service with a write/notify pair beats the read
-// tier, whatever the discovery order, so no device that works today changes.
+// 17. The Seac service wins over a write/notify pair elsewhere on the device,
+// whatever the discovery order. A Tablet on Android 1.8.1 (issue #1454) took
+// the other service's pair, and its commands were rejected with ATT 0x0D.
 do {
     let notifyService = BleCharacteristicSelector.Service(
         uuid: CBUUID(string: "0000FFE0-0000-1000-8000-00805F9B34FB"),
@@ -462,11 +463,54 @@ do {
         characteristics: [char(seacData, [.read, .write])]
     )
     let seacFirst = BleCharacteristicSelector.select(services: [seac, notifyService])
-    expect(seacFirst?.responseMode == .notify && seacFirst?.serviceIndex == 1,
-           "fallback: the notify service wins when listed second")
+    expect(seacFirst?.responseMode == .read && seacFirst?.serviceIndex == 0,
+           "seac-first: the Seac service wins when listed first")
     let seacLast = BleCharacteristicSelector.select(services: [notifyService, seac])
-    expect(seacLast?.responseMode == .notify && seacLast?.serviceIndex == 0,
-           "fallback: the notify service wins when listed first")
+    expect(seacLast?.responseMode == .read && seacLast?.serviceIndex == 1,
+           "seac-first: the Seac service wins when listed second")
+}
+
+// 17b. Nordic's buttonless DFU service carries a write+indicate pair, so it is
+// the shape most likely to shadow the Seac service on real hardware.
+do {
+    let services = [
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: "0000180F-0000-1000-8000-00805F9B34FB"),
+            characteristics: [char("00002A19-0000-1000-8000-00805F9B34FB", [.read, .notify])]
+        ),
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: "0000FE59-0000-1000-8000-00805F9B34FB"),
+            characteristics: [char("8EC90003-F315-4F60-9FB8-838830DAEA50", [.write, .indicate])]
+        ),
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: seacService),
+            characteristics: [char(seacData, [.read, .write])]
+        ),
+    ]
+    let selection = BleCharacteristicSelector.select(services: services)
+    let result = resolve(services, selection)
+    expect(selection?.responseMode == .read, "seac-dfu: read-poll response path selected")
+    expect(result?.serviceIndex == 2, "seac-dfu: the Seac service is chosen")
+    expect(result?.write == CBUUID(string: seacData), "seac-dfu: commands go to the data characteristic")
+    expect(result?.notify == CBUUID(string: seacData), "seac-dfu: replies are read from the same characteristic")
+}
+
+// 17c. A Seac service that cannot carry the link (no READ, no pair of its own)
+// does not stop the search: another service's pair is still chosen.
+do {
+    let services = [
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: seacService),
+            characteristics: [char(seacData, [.write])]
+        ),
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: "0000FFE0-0000-1000-8000-00805F9B34FB"),
+            characteristics: [char("0000FFE1-0000-1000-8000-00805F9B34FB", [.writeWithoutResponse, .notify])]
+        ),
+    ]
+    let selection = BleCharacteristicSelector.select(services: services)
+    expect(selection?.responseMode == .notify && selection?.serviceIndex == 1,
+           "seac-unusable: another service's pair is chosen")
 }
 
 // 18. The allowlisted characteristic needs both directions: READ for replies
@@ -487,7 +531,8 @@ do {
 }
 
 // 19. If future firmware adds notify to the characteristic, the ordinary
-// notify path takes it and read-poll is never used.
+// notify path takes it, still on the Seac service even when another service's
+// pair scores higher.
 do {
     let services = [
         BleCharacteristicSelector.Service(
@@ -497,6 +542,19 @@ do {
     ]
     expect(BleCharacteristicSelector.select(services: services)?.responseMode == .notify,
            "seac-notify: a characteristic that notifies uses the notify path")
+    let withOther = [
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: "0000FFE0-0000-1000-8000-00805F9B34FB"),
+            characteristics: [char("0000FFE1-0000-1000-8000-00805F9B34FB", [.writeWithoutResponse, .notify])]
+        ),
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: seacService),
+            characteristics: [char(seacData, [.read, .write, .notify])]
+        ),
+    ]
+    let selection = BleCharacteristicSelector.select(services: withOther)
+    expect(selection?.responseMode == .notify && selection?.serviceIndex == 1,
+           "seac-notify: the Seac service's own pair beats a higher-scoring one elsewhere")
 }
 
 if failures == 0 {

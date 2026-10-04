@@ -7025,6 +7025,8 @@
   "trips_gear_slot_rental": "Leihflasche",
   "trips_gear_slot_own": "Meine Ausrüstung",
   "trips_gear_openBoard": "Übersicht öffnen",
+  "trips_gear_tank_notOnBoard": "Nicht in der Übersicht",
+  "trips_gear_tank_putOnBoard": "In die Übersicht",
   "trips_cylinders_forecast_todayShort": "Heute werden {needed} gebraucht, du hast {full} volle.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

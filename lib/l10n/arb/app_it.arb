@@ -6817,6 +6817,8 @@
   "trips_gear_slot_rental": "Noleggio",
   "trips_gear_slot_own": "La mia attrezzatura",
   "trips_gear_openBoard": "Apri il quadro",
+  "trips_gear_tank_notOnBoard": "Non è sul quadro",
+  "trips_gear_tank_putOnBoard": "Metti sul quadro",
   "trips_cylinders_forecast_todayShort": "Oggi ne servono {needed}, ne hai {full} piene.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

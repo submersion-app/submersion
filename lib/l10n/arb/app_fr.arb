@@ -6821,6 +6821,8 @@
   "trips_gear_slot_rental": "Location",
   "trips_gear_slot_own": "Mon matériel",
   "trips_gear_openBoard": "Ouvrir le tableau",
+  "trips_gear_tank_notOnBoard": "Pas sur le tableau",
+  "trips_gear_tank_putOnBoard": "Mettre au tableau",
   "trips_cylinders_forecast_todayShort": "Aujourd'hui il en faut {needed}, vous en avez {full} pleins.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

@@ -24712,6 +24712,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_gear_openBoard => 'Abrir quadro';
 
   @override
+  String get trips_gear_tank_notOnBoard => 'Não está no quadro';
+
+  @override
+  String get trips_gear_tank_putOnBoard => 'Colocar no quadro';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Hoje são precisos $needed, tem $full cheios.';
   }

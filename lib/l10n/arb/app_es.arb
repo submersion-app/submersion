@@ -6922,6 +6922,8 @@
   "trips_gear_slot_rental": "Alquiler",
   "trips_gear_slot_own": "Mi equipo",
   "trips_gear_openBoard": "Abrir tablero",
+  "trips_gear_tank_notOnBoard": "No está en el tablero",
+  "trips_gear_tank_putOnBoard": "Poner en el tablero",
   "trips_cylinders_forecast_todayShort": "Hoy se necesitan {needed}, tienes {full} llenas.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

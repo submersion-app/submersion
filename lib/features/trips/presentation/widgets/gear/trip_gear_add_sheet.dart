@@ -171,13 +171,16 @@ Future<void> _apply(
     }
     if (tanks.isNotEmpty) {
       final now = DateTime.now().toUtc();
-      final start = nextTripCylinderSortOrder(slots);
-      final created = await cylinders.createCylinders([
-        for (final (i, t) in tanks.indexed)
+      // Appended after the board's last slot as it is written, skipping a
+      // tank already on it: [slots] is the board as the tab last built it,
+      // which an Add opened again before it refreshed would not show. Only
+      // the slots written are counted.
+      final created = await cylinders.appendCylinders(trip.id, [
+        for (final t in tanks)
           tripCylinderDraftFromEquipment(
             t,
             tripId: trip.id,
-            sortOrder: start + i,
+            sortOrder: 0,
             now: now,
           ),
       ]);

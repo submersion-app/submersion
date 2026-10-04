@@ -6821,6 +6821,8 @@
   "trips_gear_slot_rental": "Bérelt",
   "trips_gear_slot_own": "Saját felszerelés",
   "trips_gear_openBoard": "Áttekintés megnyitása",
+  "trips_gear_tank_notOnBoard": "Nincs az áttekintésben",
+  "trips_gear_tank_putOnBoard": "Felvétel az áttekintésbe",
   "trips_cylinders_forecast_todayShort": "Ma {needed} kell, {full} teli van.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

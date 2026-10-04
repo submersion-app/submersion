@@ -14981,6 +14981,8 @@
   "trips_gear_slot_rental": "Rental",
   "trips_gear_slot_own": "My equipment",
   "trips_gear_openBoard": "Open board",
+  "trips_gear_tank_notOnBoard": "Not on the board",
+  "trips_gear_tank_putOnBoard": "Put on board",
   "trips_cylinders_forecast_todayShort": "Today needs {needed}, you have {full} full.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

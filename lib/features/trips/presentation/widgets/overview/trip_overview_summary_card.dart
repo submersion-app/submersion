@@ -10,7 +10,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
-import 'package:submersion/features/trips/domain/services/trip_gear_scope.dart';
+import 'package:submersion/features/trips/domain/services/trip_gear_split.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
@@ -64,17 +64,17 @@ class TripOverviewSummaryCard extends ConsumerWidget {
     List<InlineSpan>? gearSpans;
     if (gear != null && slots != null) {
       final alertCount = alerts == null ? 0 : tripServiceAlertItemCount(alerts);
+      // Counted as the Gear tab lists them (#2873): a slotted tank once, as
+      // its slot, and a packed tank with no slot as a cylinder.
+      final (:packed, :unslottedTanks) = splitTripGear(gear, [
+        for (final s in slots) s.cylinder,
+      ]);
+      final cylinderCount = slots.length + unslottedTanks.length;
       gearSpans = [
-        // Counted as the Gear tab lists them: an owned tank on a slot is a
-        // cylinder, not a packed item too (#2874).
-        TextSpan(
-          text: l10n.trips_overview_gear_packed(
-            packedOffBoard(gear, [for (final s in slots) s.cylinder]).length,
-          ),
-        ),
-        if (slots.isNotEmpty)
+        TextSpan(text: l10n.trips_overview_gear_packed(packed.length)),
+        if (cylinderCount > 0)
           TextSpan(
-            text: ' · ${l10n.trips_overview_gear_cylinders(slots.length)}',
+            text: ' · ${l10n.trips_overview_gear_cylinders(cylinderCount)}',
           ),
         if (alertCount > 0)
           TextSpan(

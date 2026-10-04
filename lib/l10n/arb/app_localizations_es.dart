@@ -24722,6 +24722,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_gear_openBoard => 'Abrir tablero';
 
   @override
+  String get trips_gear_tank_notOnBoard => 'No está en el tablero';
+
+  @override
+  String get trips_gear_tank_putOnBoard => 'Poner en el tablero';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Hoy se necesitan $needed, tienes $full llenas.';
   }

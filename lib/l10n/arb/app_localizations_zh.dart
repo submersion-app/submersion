@@ -23423,6 +23423,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_gear_openBoard => '打开看板';
 
   @override
+  String get trips_gear_tank_notOnBoard => '不在看板上';
+
+  @override
+  String get trips_gear_tank_putOnBoard => '放到看板';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return '今天需要 $needed 个，你有 $full 个满瓶。';
   }

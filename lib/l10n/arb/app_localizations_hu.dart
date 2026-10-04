@@ -24615,6 +24615,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_gear_openBoard => 'Áttekintés megnyitása';
 
   @override
+  String get trips_gear_tank_notOnBoard => 'Nincs az áttekintésben';
+
+  @override
+  String get trips_gear_tank_putOnBoard => 'Felvétel az áttekintésbe';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Ma $needed kell, $full teli van.';
   }

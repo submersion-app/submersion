@@ -7086,6 +7086,8 @@
   "trips_gear_slot_rental": "租用",
   "trips_gear_slot_own": "我的装备",
   "trips_gear_openBoard": "打开看板",
+  "trips_gear_tank_notOnBoard": "不在看板上",
+  "trips_gear_tank_putOnBoard": "放到看板",
   "trips_cylinders_forecast_todayShort": "今天需要 {needed} 个，你有 {full} 个满瓶。",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

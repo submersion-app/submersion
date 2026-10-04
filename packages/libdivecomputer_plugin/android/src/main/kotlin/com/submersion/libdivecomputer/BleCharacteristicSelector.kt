@@ -135,17 +135,27 @@ object BleCharacteristicSelector {
     val READ_POLL_SERVICES: Map<UUID, UUID> = mapOf(SEAC_SERVICE_UUID to SEAC_DATA_UUID)
 
     // Choose the characteristics to talk through, or null if nothing usable.
-    // The write/notify pass runs first and is unchanged; the read-poll tier is
-    // consulted only when it finds nothing, so no device that already works
-    // can be moved onto the read path.
+    //
+    // An allowlisted read-poll service is the computer's serial channel
+    // whatever else the device advertises, so it is consulted first. When the
+    // read tier only ran if no service anywhere had a write/notify pair, any
+    // such pair (a DFU or vendor service) hid it: a Seac Tablet on Android
+    // 1.8.1 (issue #1454) never reached the read path, and every command was
+    // rejected with ATT 0x0D. Subsurface, the one client known to download a
+    // Tablet over BLE, uses the first non-standard service with a write
+    // characteristic and never compares pairs across services. No other
+    // computer carries the allowlisted UUIDs, so every other device still gets
+    // the notify pass.
     fun select(services: List<Service>): Selection? =
-        selectNotify(services) ?: selectReadPoll(services)
+        selectReadPollService(services) ?: selectNotify(services)
 
-    // The first allowlisted read-poll service whose data characteristic can
-    // be both read and written, or null.
-    private fun selectReadPoll(services: List<Service>): Selection? {
+    // The first allowlisted read-poll service that can carry the link: its
+    // own write/notify pair if firmware ever adds one, otherwise its data
+    // characteristic read on demand. Null if no such service is present.
+    private fun selectReadPollService(services: List<Service>): Selection? {
         for ((serviceIndex, service) in services.withIndex()) {
             val dataUuid = READ_POLL_SERVICES[service.uuid] ?: continue
+            bestPair(serviceIndex, service)?.let { return it }
             val index = service.characteristics.indexOfFirst { it.uuid == dataUuid }
             if (index < 0) continue
             val props = service.characteristics[index].properties
@@ -188,37 +198,44 @@ object BleCharacteristicSelector {
     private fun selectNotify(services: List<Service>): Selection? {
         var best: Selection? = null
         for ((serviceIndex, service) in services.withIndex()) {
-            var bestWrite = -1
-            var bestWriteScore = -1
-            var bestNotify = -1
-            var bestNotifyScore = -1
-            for ((index, characteristic) in service.characteristics.withIndex()) {
-                val ws = writeScore(characteristic)
-                if (ws != null && ws > bestWriteScore) {
-                    bestWrite = index
-                    bestWriteScore = ws
-                }
-                val ns = notifyScore(characteristic)
-                if (ns != null && ns > bestNotifyScore) {
-                    bestNotify = index
-                    bestNotifyScore = ns
-                }
-            }
-            if (bestWrite < 0 || bestNotify < 0) continue
-
-            var score = bestWriteScore + bestNotifyScore
-            if (PREFERRED_SERVICE_UUIDS.contains(service.uuid)) score += 1000
-            if (best != null && best.score >= score) continue
-            best = Selection(
-                serviceIndex = serviceIndex,
-                writeIndex = bestWrite,
-                responseIndex = bestNotify,
-                responseMode = ResponseMode.NOTIFY,
-                score = score,
-                terminalIoCredits = terminalIoCredits(service)
-            )
+            val candidate = bestPair(serviceIndex, service) ?: continue
+            if (best != null && best.score >= candidate.score) continue
+            best = candidate
         }
         return best
+    }
+
+    // The best write/notify pair within one service, or null if it lacks
+    // either side.
+    private fun bestPair(serviceIndex: Int, service: Service): Selection? {
+        var bestWrite = -1
+        var bestWriteScore = -1
+        var bestNotify = -1
+        var bestNotifyScore = -1
+        for ((index, characteristic) in service.characteristics.withIndex()) {
+            val ws = writeScore(characteristic)
+            if (ws != null && ws > bestWriteScore) {
+                bestWrite = index
+                bestWriteScore = ws
+            }
+            val ns = notifyScore(characteristic)
+            if (ns != null && ns > bestNotifyScore) {
+                bestNotify = index
+                bestNotifyScore = ns
+            }
+        }
+        if (bestWrite < 0 || bestNotify < 0) return null
+
+        var score = bestWriteScore + bestNotifyScore
+        if (PREFERRED_SERVICE_UUIDS.contains(service.uuid)) score += 1000
+        return Selection(
+            serviceIndex = serviceIndex,
+            writeIndex = bestWrite,
+            responseIndex = bestNotify,
+            responseMode = ResponseMode.NOTIFY,
+            score = score,
+            terminalIoCredits = terminalIoCredits(service)
+        )
     }
 
     // The credit characteristics of a service, or null unless a complete known

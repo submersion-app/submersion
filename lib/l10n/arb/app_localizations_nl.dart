@@ -24520,6 +24520,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_gear_openBoard => 'Overzicht openen';
 
   @override
+  String get trips_gear_tank_notOnBoard => 'Niet in het overzicht';
+
+  @override
+  String get trips_gear_tank_putOnBoard => 'In overzicht zetten';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Vandaag zijn er $needed nodig, je hebt er $full vol.';
   }
