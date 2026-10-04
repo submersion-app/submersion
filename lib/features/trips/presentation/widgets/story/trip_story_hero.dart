@@ -17,11 +17,16 @@ class TripStoryHero extends ConsumerWidget {
   /// turns the empty state off.
   final bool showEmptyState;
 
+  /// The Prepare overview's summary card has a Checklist row with the same
+  /// progress, so it turns the checklist card off (#2881).
+  final bool showChecklist;
+
   const TripStoryHero({
     super.key,
     required this.story,
     this.onScanForDives,
     this.showEmptyState = true,
+    this.showChecklist = true,
   });
 
   @override
@@ -81,7 +86,7 @@ class TripStoryHero extends ConsumerWidget {
             ),
           ),
         ],
-        if (trip.isUpcoming && !story.checklist.isEmpty) ...[
+        if (showChecklist && trip.isUpcoming && !story.checklist.isEmpty) ...[
           const SizedBox(height: 12),
           _ChecklistCard(story: story),
         ],

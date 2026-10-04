@@ -25,7 +25,11 @@ class TripPrepareOverview extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.all(16),
-          child: TripStoryHero(story: story, showEmptyState: false),
+          child: TripStoryHero(
+            story: story,
+            showEmptyState: false,
+            showChecklist: false,
+          ),
         ),
         TripOverviewSummaryCard(trip: trip, onOpenTab: onOpenTab),
         if (trip.notes.isNotEmpty)
