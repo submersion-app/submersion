@@ -138,9 +138,10 @@ check(hint.match?(/Publishing overview/i),
       'the not-sent-for-review hint does not say where the pending changes are')
 check(hint.match?(/send .*for review/i), 'the not-sent-for-review hint does not say to send them for review')
 check(hint.match?(/re-?run/i), 'the not-sent-for-review hint does not say a re-run then succeeds')
-# The same wrapper serves mirror_beta, whose build upload_beta has already
-# committed: re-running that job repeats the upload into a reused version code.
-check(hint.match?(/closed-track copy/i),
+# The same wrapper serves promote_beta and mirror_beta, whose build
+# upload_internal has already committed: re-running that job repeats the upload
+# into a reused version code.
+check(hint.match?(/copy to open or closed testing/i),
       'the not-sent-for-review hint does not warn that a refused copy must not be re-run')
 
 # Anything else must get no hint: a wrong hint sends the reader the wrong way.
@@ -266,27 +267,31 @@ def write_beta_changelog(_metadata_root = nil)
   nil
 end
 
-lane_body = LANES[:upload_beta]
+lane_body = LANES[:upload_internal]
 if lane_body
   $upload_error = FakePlayError.new(UNREGISTERED_KEY_ERROR)
   $ui_errors = []
   begin
     with_env('GITHUB_ACTIONS' => nil) { lane_body.call }
-    check(false, 'the upload_beta lane swallowed a Play rejection')
+    check(false, 'the upload_internal lane swallowed a Play rejection')
   rescue FakePlayError
     check($ui_errors.any? { |m| m.match?(/internal app sharing/i) },
-          'the upload_beta lane failed without the hint')
+          'the upload_internal lane failed without the hint')
   end
 else
-  check(false, 'the android Fastfile no longer defines an upload_beta lane to check')
+  check(false, 'the android Fastfile no longer defines an upload_internal lane to check')
 end
 
 # Each lane that commits a Play edit, run against the stubs, reaches the action
-# with the rescue off. The upload_beta and mirror_beta lanes are the ones that
-# parked #2887's betas.
+# with the rescue off.
+def google_play_track_version_codes(track:)
+  track == 'beta' ? [8682] : []
+end
+
 $upload_error = nil
 {
-  upload_beta: -> { LANES[:upload_beta].call },
+  upload_internal: -> { LANES[:upload_internal].call },
+  promote_beta: -> { with_env('PLAY_VERSION_CODE' => '8682') { LANES[:promote_beta].call({}) } },
   mirror_beta: -> { with_env('PLAY_VERSION_CODE' => '8682') { LANES[:mirror_beta].call({}) } },
   promote_to_production: -> { LANES[:promote_to_production].call(version_code: '8682') },
 }.each do |name, run|

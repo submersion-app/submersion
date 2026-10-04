@@ -67,7 +67,7 @@ ios/fastlane/api_key.json
 ios/fastlane/AuthKey_*.p8
 android/fastlane/play-store-key.json
 
-# Play release notes, written per build by the upload_beta lane so they always
+# Play release notes, written per build by the upload_internal lane so they always
 # match the AAB being uploaded rather than whatever was last committed.
 android/fastlane/metadata/
 

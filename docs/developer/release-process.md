@@ -18,12 +18,13 @@ merge PR to main
        -> beta-builds release              dmg/exe/tar.gz/apk/aab/ipa/pkg
           + appcast-beta.xml               Sparkle beta feed
        -> TestFlight                       iOS + macOS, "Public Beta" group
-       -> Play testing track               PLAY_BETA_TRACK (see below)
+       -> Play internal testing            every beta, no review wait
+          -> open + closed testing         a copy, at most once per cooldown
 
 promote (workflow_dispatch, manual)
   -> Promote Beta (promote.yml)            copies the chosen beta's artifacts
        -> main-repo tag + stable release   + appcast.xml entry (stored sig)
-       -> Play: track -> production        identical AAB, staged rollout
+       -> Play: testing -> production      identical AAB, staged rollout
        -> App Store: submit existing build, releases on approval
        -> version-bump PR                  auto-merges; opens the next train
 ```
@@ -152,8 +153,9 @@ file; the no-emoji rule in CLAUDE.md governs everything except this format.
 
 ## Play Store state
 
-Google granted production access on 2026-09-22, so betas target the open
-`beta` track and the `promote-play` leg works. Before that they targeted the
+Google granted production access on 2026-09-22, so betas reach the open
+`beta` track (by way of internal testing, below) and the `promote-play` leg
+works. Before that they targeted the
 closed `alpha` track, because open testing is gated behind production access
 and a closed test with 12+ testers over 14 days is what earns it.
 
@@ -161,17 +163,49 @@ The track remains a single switch: `PLAY_BETA_TRACK` (default `beta` in
 `android/fastlane/Fastfile`), so a one-off run can still target `alpha`
 without a code change.
 
-**Closed testers get every beta too.** Play makes closed testers eligible for
-production and their closed track only, never open testing, so a beta that
-went only to open testing would reach none of them. After the upload, the
-`mirror_beta` lane copies the same release, notes included, onto the closed
-`alpha` track. It is a copy of the release, not a second upload, since Play
-takes each version code once.
+**Every beta goes to internal testing; open testing gets one on a cooldown.**
+Every Play release on a reviewed track (open, closed, production) goes through
+Google's review, and Google counts the review turnaround "from the last
+submitted change to an app": a new release submitted while another is in
+review sends the app to the back of the queue. With a beta per merge, often
+several a day, 1.8.1 sat in review for days while open testers stayed on
+8556 (#2887). So:
 
-It runs as its own step in `beta.yml` for the same reason: a retry repeats
-only the copy, never the upload. A failed copy turns the Play job red without
+- The `upload_internal` lane uploads every beta to the **internal testing**
+  track, which Play publishes without a review wait. It holds up to 100
+  testers, added by email under Test and release > Internal testing.
+- `scripts/release/play_beta_cooldown.py` then reads earlier Beta runs for the
+  last successful "Promote to Play open testing" step. If that is older than
+  the cooldown (or there is none), the `promote_beta` lane copies this build,
+  notes included, from internal to open testing. Otherwise the step is
+  skipped and the review in progress is left alone; the next merge after the
+  cooldown ships the newest build. The notes carry a cumulative section since
+  the last production release, so open testers who skip builds still see
+  everything that changed.
+- The cooldown is the `PLAY_OPEN_TESTING_COOLDOWN_HOURS` Actions variable,
+  48 when unset. `0` copies every beta, the old behaviour. The check fails the
+  job, rather than guessing, if it cannot read the run history.
+
+**Closed testers get each open beta too.** Play makes closed testers eligible
+for production and their closed track only, never open testing, so a beta
+that went only to open testing would reach none of them. After the copy to
+open testing, the `mirror_beta` lane copies the same release onto the closed
+`alpha` track. Each copy is a copy of the release, not a second upload, since
+Play takes each version code once.
+
+Each runs as its own step in `beta.yml` for the same reason: a retry repeats
+only that copy, never the upload. A failed copy turns the Play job red without
 holding up TestFlight or the beta-builds release. `PLAY_BETA_MIRROR_TRACK`
-overrides the target, and an empty value switches the copy off.
+overrides the mirror target, and an empty value switches the mirror off.
+
+**Production promotion** (`promote_to_production`, run by `promote.yml`) takes
+the chosen build from open testing when it is there and from internal testing
+otherwise. Each track holds only its newest beta, so an older build that has
+since been replaced on both cannot be promoted.
+
+`release.yml`'s legacy `upload` lane (manually pushed tags only; promoted tags
+skip it) puts a draft on the internal track. The next beta replaces it, since
+supply sets a track's releases to the one it uploads.
 
 **Rollout fraction:** `play-rollout` on `promote.yml` defaults to `1.0`,
 every user at once, and that is deliberate. A staged rollout needs enough
@@ -218,8 +252,9 @@ a build number above the current commit count. Expected to be rare.
 | Play upload: `Precondition check failed` | Track not set up in Play Console | Check the track exists and that `PLAY_BETA_TRACK` names it |
 | Play upload: "package name must be registered to your verified developer identity", although the Console lists it as Registered | One of the three keys Play checks is unregistered on Android developer verification: app signing (App integrity), upload (`android/upload-keystore.jks`), or internal app sharing (Test and release > Internal app sharing). The error never says which | Start a manual release on Open testing; its dialog prints the missing fingerprint. Register that key under Package names (Google-held keys verify without an APK), then discard the draft. The lane prints this hint itself (#2597) |
 | Play upload: "Version code N has already been used" | Play already holds a bundle with that version code, from an upload that went through or one added by hand in the Play Console (for example while diagnosing a rejection), and never takes a version code twice | A re-run of that build can never pass. Let the next merge ship a new build number |
-| Play upload: "Changes cannot be sent for review automatically. Please set the query parameter changesNotSentForReview to true" | The Play Console holds a change that must be sent for review by hand (a release, declaration or listing edit), so Play will not send an API edit for review on its own. Before #2887, supply silently committed such betas as "not sent for review" and reported success, leaving open testers on an older build | Open Publishing overview in the Play Console and send the pending changes for review, then re-run the job (nothing was committed, so the version code is unused). If only the closed-track copy was refused, do not re-run: the upload already used the version code, and the next beta copies its own build. Stable-release drafts (the `upload` lane) keep supply's rescue, since a draft is never sent for review. The lane prints this hint itself |
+| Play upload: "Changes cannot be sent for review automatically. Please set the query parameter changesNotSentForReview to true" | The Play Console holds a change that must be sent for review by hand (a release, declaration or listing edit), so Play will not send an API edit for review on its own. Before #2887, supply silently committed such betas as "not sent for review" and reported success, leaving open testers on an older build | Open Publishing overview in the Play Console and send the pending changes for review, then re-run the job (nothing was committed, so the version code is unused). If a copy to open or closed testing was refused, do not re-run: the internal upload already used the version code, and the next beta copies its own build. Stable-release drafts (the `upload` lane) keep supply's rescue, since a draft is never sent for review. The lane prints this hint itself |
 | TestFlight upload slow (~10+ min) | External distribution waits for Apple build processing | Normal; 45-minute job timeout absorbs it |
+| Open testers not getting new Play betas, every Play job green | Normal for up to `PLAY_OPEN_TESTING_COOLDOWN_HOURS` (48 by default): the job's "Promote to Play open testing" step is skipped inside the cooldown, and its notice says when the last copy ran. Past that, the copy is in Google's review (Publishing overview, "Changes in review") | Wait for the review. Do not remove changes from review: it restarts the turnaround. Internal testers have the newest build already (#2887) |
 | Testers not seeing a new TestFlight build | First build of a new version train awaits Beta App Review | Normal; once per train, internal testers unaffected |
 | Promotion: "pruned or never built" | The build aged out of the newest-30 window | Promote a retained build instead |
 | Store upload leg failed after release published | Legs are independent | Fix the cause, then dispatch the SAME promotion again - it is re-entrant (existing release is verified by checksum and left untouched; a merged or already-open bump PR is skipped). Avoid GitHub's "re-run failed jobs": it replays the workflow definition pinned at the original run, without any fixes merged since |

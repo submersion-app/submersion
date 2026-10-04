@@ -1,10 +1,12 @@
 # Fastfile for Submersion Google Play Store Automation
 #
 # Usage:
-#   bundle exec fastlane upload   # Upload AAB to internal testing track
-#   bundle exec fastlane validate # Validate AAB without uploading
-#
-# Production promotion is done manually in the Play Console after testing.
+#   bundle exec fastlane upload           # Upload AAB to internal testing as a draft
+#   bundle exec fastlane validate         # Validate AAB without uploading
+#   bundle exec fastlane upload_internal  # beta.yml: every beta to internal testing
+#   bundle exec fastlane promote_beta     # beta.yml: copy it to open testing
+#   bundle exec fastlane mirror_beta      # beta.yml: copy that to closed testing
+#   bundle exec fastlane promote_to_production version_code:N  # promote.yml
 #
 # Authentication:
 #   Set GOOGLE_PLAY_JSON_KEY_PATH to the service account JSON key file path,
@@ -29,6 +31,13 @@ PLAY_CHANGELOG_LIMIT = 500
 # so __dir__ only resolves while fastlane's own chdir into this folder is still
 # in effect.
 PLAY_METADATA_ROOT = File.expand_path(File.join(__dir__, "metadata", "android"))
+
+# The track every beta is uploaded to. Internal testing is published without a
+# review wait (up to 100 testers, added by email in the Play Console), so it
+# can take a build per merge; open testing gets a copy on a cooldown (#2887).
+# release.yml's legacy `upload` lane also puts a draft here; the next beta
+# replaces it, since supply sets a track's releases to the one it uploads.
+INTERNAL_TRACK = "internal"
 
 # Play rejections that no retry or rebuild can clear, each paired with what to
 # do about it. The API messages name the symptom only: five beta runs in a row
@@ -70,8 +79,9 @@ PLAY_ERROR_HINTS = [
     "declaration or listing edit), and send them for review. Nothing in this " \
     "edit was committed: if the upload was refused, its version " \
     "code is still free and the job can be re-run once the changes are sent; if " \
-    "only the closed-track copy was refused, do not re-run, since the upload " \
-    "already used the version code and the next beta copies its own build. " \
+    "a copy to open or closed testing was refused, do not re-run, since the " \
+    "internal upload already used the version code and the next beta copies " \
+    "its own build. " \
     "Betas uploaded before this check existed may be waiting there too (#2887).",
   ],
 ].freeze
@@ -114,16 +124,19 @@ platform :android do
     UI.success("AAB validation passed!")
   end
 
-  desc "Upload AAB to the beta testing track (PLAY_BETA_TRACK, default beta), released"
-  lane :upload_beta do
+  desc "Upload AAB to the internal testing track, released (every beta)"
+  # Every beta lands here first. Internal testing is published without a
+  # review wait, so it can take a build per merge; open testing gets a copy
+  # through promote_beta only when play_beta_cooldown.py says a review has had
+  # time to finish (#2887).
+  lane :upload_internal do
     aab_path = find_aab
-    track = beta_track
     changelog_root = write_beta_changelog
 
-    UI.message("Uploading to the '#{track}' testing track...")
+    UI.message("Uploading to the '#{INTERNAL_TRACK}' testing track...")
     upload_to_play_with_hint(
       aab: aab_path,
-      track: track,
+      track: INTERNAL_TRACK,
       release_status: "completed",
       # Passed explicitly, and taken from the helper that just wrote the file, so
       # the directory supply reads is the directory the notes went into. supply's
@@ -132,21 +145,35 @@ platform :android do
       metadata_path: changelog_root || PLAY_METADATA_ROOT,
       skip_upload_metadata: true,
       # Beta testers need to know what a build changed; the other lanes stay
-      # silent because their notes are managed in the Play Console.
+      # silent because their notes are managed in the Play Console. The copies
+      # made by promote_beta and mirror_beta carry these notes along.
       skip_upload_changelogs: changelog_root.nil?,
       skip_upload_images: true,
       skip_upload_screenshots: true,
     )
 
-    UI.success("AAB released to the '#{track}' track!")
+    UI.success("AAB released to the '#{INTERNAL_TRACK}' track!")
+  end
+
+  desc "Copy the internal beta onto the beta testing track (PLAY_BETA_TRACK, default beta)"
+  # A copy, not a second upload: Play accepts each version code exactly once.
+  # Its own lane and workflow step, like mirror_beta, so a retry repeats only
+  # the copy, which is idempotent.
+  #
+  # Each copy is a new release on a reviewed track, and Google counts its
+  # review turnaround from the last change submitted, so copying while a
+  # review runs sends the app to the back of the queue. beta.yml runs this lane
+  # only when play_beta_cooldown.py says the last copy is old enough (#2887).
+  lane :promote_beta do |options|
+    version_code = version_code_option(options)
+    copy_release(INTERNAL_TRACK, beta_track, version_code)
   end
 
   desc "Copy the beta release onto the closed track too (PLAY_BETA_MIRROR_TRACK, default alpha)"
   # A separate lane, run as a separate workflow step, rather than a second call
-  # inside upload_beta: beta.yml retries upload_beta on failure, and Play accepts
-  # each version code exactly once. An upload that succeeded followed by a mirror
-  # that failed would be retried into a duplicate-upload error. Here, a retry
-  # only repeats the copy, which is idempotent.
+  # inside promote_beta: a copy that succeeded followed by a mirror that failed
+  # would make a retry of both copy the open release twice. Here, a retry only
+  # repeats the mirror, which is idempotent.
   lane :mirror_beta do |options|
     target = mirror_track
     if target.nil?
@@ -154,37 +181,19 @@ platform :android do
       next
     end
 
-    version_code = (options[:version_code] || ENV["PLAY_VERSION_CODE"]).to_s.strip
-    UI.user_error!("PLAY_VERSION_CODE is required to choose the build to copy.") if version_code.empty?
-    unless version_code.match?(/\A\d+\z/)
-      UI.user_error!("PLAY_VERSION_CODE must be digits only; got '#{version_code}'.")
-    end
-
-    source = beta_track
-    UI.message("Copying build #{version_code} from '#{source}' to '#{target}'...")
-    # track_promote_to copies the release, notes included, without taking it off
-    # the source track. No rollout: a fraction would stage the closed release.
-    upload_to_play_with_hint(
-      track: source,
-      track_promote_to: target,
-      track_promote_release_status: "completed",
-      version_code: version_code,
-      skip_upload_aab: true,
-      skip_upload_apk: true,
-      skip_upload_metadata: true,
-      skip_upload_changelogs: true,
-      skip_upload_images: true,
-      skip_upload_screenshots: true,
-    )
-
-    UI.success("Build #{version_code} is on both the '#{source}' and '#{target}' tracks.")
+    version_code = version_code_option(options)
+    copy_release(beta_track, target, version_code)
   end
 
-  desc "Promote a build from the beta testing track (PLAY_BETA_TRACK, default beta) to production"
+  desc "Promote a beta build to production, from open testing or else internal testing"
+  # With open testing on a cooldown, the build chosen for production is either
+  # on open testing, where it soaked, or only on internal testing, as the
+  # newest build. It is taken from whichever track holds it, open testing
+  # first.
   lane :promote_to_production do |options|
     version_code = options[:version_code] || UI.user_error!("version_code is required")
     rollout = options[:rollout] || "1.0"
-    track = beta_track
+    track = production_source_track(version_code)
 
     UI.message("Promoting build #{version_code} from '#{track}' to production (rollout #{rollout})...")
     upload_to_play_with_hint(
@@ -253,6 +262,51 @@ platform :android do
 
   def default_mirror_track
     beta_track == "beta" ? "alpha" : ""
+  end
+
+  # The version code to copy, from the lane option or PLAY_VERSION_CODE.
+  def version_code_option(options)
+    version_code = (options[:version_code] || ENV["PLAY_VERSION_CODE"]).to_s.strip
+    UI.user_error!("PLAY_VERSION_CODE is required to choose the build to copy.") if version_code.empty?
+    unless version_code.match?(/\A\d+\z/)
+      UI.user_error!("PLAY_VERSION_CODE must be digits only; got '#{version_code}'.")
+    end
+    version_code
+  end
+
+  # Copies one build's release from one testing track to another.
+  # track_promote_to copies the release, notes included, without taking it off
+  # the source track. No rollout: a fraction would stage the copied release.
+  def copy_release(source, target, version_code)
+    UI.message("Copying build #{version_code} from '#{source}' to '#{target}'...")
+    upload_to_play_with_hint(
+      track: source,
+      track_promote_to: target,
+      track_promote_release_status: "completed",
+      version_code: version_code,
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+    UI.success("Build #{version_code} is on both the '#{source}' and '#{target}' tracks.")
+  end
+
+  # The testing track holding a build, open testing first, for promotion to
+  # production. Fails when neither holds it: Play would refuse the promotion
+  # with a less useful message.
+  def production_source_track(version_code)
+    [beta_track, INTERNAL_TRACK].uniq.each do |track|
+      codes = google_play_track_version_codes(track: track).map(&:to_s)
+      return track if codes.include?(version_code.to_s)
+    end
+    UI.user_error!(
+      "Build #{version_code} is on neither the '#{beta_track}' nor the " \
+      "'#{INTERNAL_TRACK}' track, so there is no release to promote. A newer " \
+      "beta replaces the older one on each track; promote a build still on one."
+    )
   end
 
   # Reads the notes the beta pipeline generated.
