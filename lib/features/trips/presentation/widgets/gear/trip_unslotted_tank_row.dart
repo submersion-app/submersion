@@ -6,9 +6,7 @@ import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_alert_sheet.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_list.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
@@ -85,20 +83,7 @@ class _TripUnslottedTankRowState extends State<TripUnslottedTankRow> {
         children: [
           if (specs.isNotEmpty) Text(specs.join(' · ')),
           if (alerts.isNotEmpty)
-            InkWell(
-              key: Key('trip-gear-alert-${item.id}'),
-              onTap: () =>
-                  showTripGearAlertSheet(context, item: item, alerts: alerts),
-              child: Text(
-                tripServiceAlertSubtitle(context, units, alerts.first.status),
-                style: TextStyle(
-                  color: serviceSeveritySwatch(
-                    status,
-                    alerts.first.status.severity,
-                  )?.accent,
-                ),
-              ),
-            ),
+            TripGearAlertLine(alerts: alerts, units: units),
           Text(
             l10n.trips_gear_tank_notOnBoard,
             style: TextStyle(color: status.warn.accent),

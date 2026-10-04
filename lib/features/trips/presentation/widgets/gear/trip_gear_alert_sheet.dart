@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/status_colors.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_scrubber_margin_details.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_list.dart';
@@ -55,4 +58,38 @@ Future<void> showTripGearAlertSheet(
       );
     },
   );
+}
+
+/// A gear row's tinted line for its most pressing service clock (#2845):
+/// [alerts] come most pressing first, the line reads the first and tapping
+/// it opens the sheet with them all. Shared by the slot rows and the
+/// slotless tank rows of the Gear tab.
+class TripGearAlertLine extends StatelessWidget {
+  final List<DueClock> alerts;
+  final UnitFormatter units;
+
+  const TripGearAlertLine({
+    super.key,
+    required this.alerts,
+    required this.units,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final item = alerts.first.item;
+    final worst = alerts.first.status;
+    return InkWell(
+      key: Key('trip-gear-alert-${item.id}'),
+      onTap: () => showTripGearAlertSheet(context, item: item, alerts: alerts),
+      child: Text(
+        tripServiceAlertSubtitle(context, units, worst),
+        style: TextStyle(
+          color: serviceSeveritySwatch(
+            StatusColors.of(context),
+            worst.severity,
+          )?.accent,
+        ),
+      ),
+    );
+  }
 }

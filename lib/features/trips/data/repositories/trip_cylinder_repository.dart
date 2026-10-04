@@ -323,24 +323,32 @@ class TripCylinderRepository {
   ) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
+      final t = _db.tripCylinders;
       final created = await _db.transaction(() async {
-        final last = _db.tripCylinders.sortOrder.max();
-        final row =
-            await (_db.selectOnly(_db.tripCylinders)
-                  ..addColumns([last])
-                  ..where(_db.tripCylinders.tripId.equals(tripId)))
-                .getSingle();
-        final start = (row.read(last) ?? -1) + 1;
-        // Tanks already on the board, and each tank kept here as it goes,
-        // so a batch naming one twice slots it once.
-        final taken = {...await equipmentIdsForTrip(tripId)};
-        final fresh = <domain.TripCylinder>[];
-        for (final c in cylinders) {
-          final tank = c.equipmentId;
-          if (tank != null && taken.contains(tank)) continue;
-          if (tank != null) taken.add(tank);
-          fresh.add(c);
-        }
+        final board =
+            await (_db.selectOnly(t)
+                  ..addColumns([t.equipmentId, t.sortOrder])
+                  ..where(t.tripId.equals(tripId)))
+                .get();
+        final start =
+            board.fold(-1, (end, r) {
+              final order = r.read(t.sortOrder) ?? 0;
+              return order > end ? order : end;
+            }) +
+            1;
+        final onBoard = {for (final r in board) ?r.read(t.equipmentId)};
+        // A tank already on the board is left out, as is a second draft
+        // for one tank in this batch.
+        final fresh = [
+          for (final (i, c) in cylinders.indexed)
+            if (c.equipmentId == null ||
+                (!onBoard.contains(c.equipmentId) &&
+                    cylinders.indexWhere(
+                          (o) => o.equipmentId == c.equipmentId,
+                        ) ==
+                        i))
+              c,
+        ];
         return [
           for (final (i, c) in fresh.indexed)
             await _insertCylinder(
@@ -349,7 +357,7 @@ class TripCylinderRepository {
             ),
         ];
       });
-      SyncEventBus.notifyLocalChange();
+      if (created.isNotEmpty) SyncEventBus.notifyLocalChange();
       return created;
     } catch (e, stackTrace) {
       _log.error(

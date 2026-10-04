@@ -179,6 +179,9 @@ class TripGearTab extends ConsumerWidget {
             ),
           for (final item in unslottedTanks)
             TripUnslottedTankRow(
+              // Keyed by tank: the row holds its busy state, which must not
+              // pass to another tank's row when the list shifts.
+              key: ValueKey(item.id),
               item: item,
               units: units,
               alerts: alertsByItem[item.id] ?? const [],
