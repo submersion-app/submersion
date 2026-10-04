@@ -5425,6 +5425,55 @@ class DiveRepository {
     return _mapDiveTimesRow(rows.first);
   }
 
+  /// The most recent EXECUTED dive of [diverId] (excludes planner rows with
+  /// `isPlanned = true`, mirroring [getNextDive]) whose effective start
+  /// (entryTime, falling back to the legacy diveDateTime) is at or before
+  /// [notAfter]. Reverse of [getNextDive]'s predicate and ordering.
+  ///
+  /// Used for "current state" readouts (e.g. live CNS/OTU decay since the
+  /// last dive): without the isPlanned filter, a dive planned for a future
+  /// date would otherwise sort ahead of the diver's actual last dive.
+  Future<domain.DiveTimes?> getMostRecentDiveTimes({
+    required String? diverId,
+    required DateTime notAfter,
+  }) async {
+    try {
+      final cutoffMs = notAfter.millisecondsSinceEpoch;
+      final clauses = <String>[
+        'd.is_planned = 0',
+        '(d.entry_time <= ? OR (d.entry_time IS NULL AND d.dive_date_time <= ?))',
+      ];
+      final args = <Variable<Object>>[
+        Variable<int>(cutoffMs),
+        Variable<int>(cutoffMs),
+      ];
+      if (diverId != null) {
+        clauses.add('d.diver_id = ?');
+        args.add(Variable<String>(diverId));
+      } else {
+        clauses.add('d.diver_id IS NULL');
+      }
+
+      final rows = await _db
+          .customSelect(
+            '$_diveTimesSelect WHERE ${clauses.join(' AND ')} '
+            'ORDER BY d.entry_time DESC, d.dive_date_time DESC LIMIT 1',
+            variables: args,
+            readsFrom: {_db.dives, _db.diveProfileSeries},
+          )
+          .get();
+      if (rows.isEmpty) return null;
+      return _mapDiveTimesRow(rows.first);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get most recent dive for diver: $diverId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
   /// Times-only equivalent of [getDivesInRange] (identical WHERE and
   /// ordering), for same-day and weekly exposure aggregation.
   Future<List<domain.DiveTimes>> getDiveTimesInRange(

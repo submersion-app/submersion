@@ -9041,6 +9041,7 @@
     }
   },
   "safetySettings_noFlyHeader": "Fliegen nach dem Tauchen",
+  "safetySettings_cnsOtuHeader": "Aktuelle CNS/OTU-Belastung",
   "safetySettings_noFlyPreset_standard": "Standard (12/18/24 h)",
   "safetySettings_noFlyPreset_strict": "Streng (18/24/48 h)",
   "safetySettings_noFlyPreset_subtitle": "Richtwerte nach einem einzelnen Nullzeit-Tauchgang, Wiederholungstauchgängen und Deko-Tauchgängen",
@@ -9088,6 +9089,17 @@
   },
   "safetyHub_noFly_clear_title": "Keine Flugeinschränkung",
   "safetyHub_noFly_clear_subtitle": "Keine aktive Flugbeschränkung",
+  "safetyHub_cnsOtu_clear_title": "Keine aktive Belastung",
+  "safetyHub_cnsOtu_clear_subtitle": "CNS und OTU sind seit deinem letzten Tauchgang abgeklungen",
+  "safetyHub_cnsOtu_sinceLastDive": "Letzter Tauchgang vor {duration}",
+  "@safetyHub_cnsOtu_sinceLastDive": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyHub_cnsOtu_historicalContext": "Start- und Delta-Werte unten stammen von diesem letzten Tauchgang, sie sind nicht live.",
   "safetyHub_noFly_category_single": "Nach einem einzelnen Nullzeit-Tauchgang: {hours} h Richtwert",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -9305,6 +9317,7 @@
     }
   },
   "planning_card_noFly_subtitle": "Richtwert-Countdown ab deinen letzten Tauchgängen",
+  "planning_card_cnsOtu_subtitle": "Live-Zerfall seit deinem letzten Tauchgang",
   "settings_section_safety_title": "Sicherheit",
   "settings_section_safety_subtitle": "Überprüfungsregeln & Fliegen nach dem Tauchen",
   "settings_section_equipmentCondition_title": "Ausrüstungszustand",

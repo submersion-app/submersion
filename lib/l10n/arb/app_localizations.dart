@@ -48048,6 +48048,12 @@ abstract class AppLocalizations {
   /// **'Flying after diving'**
   String get safetySettings_noFlyHeader;
 
+  /// No description provided for @safetySettings_cnsOtuHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Current CNS/OTU load'**
+  String get safetySettings_cnsOtuHeader;
+
   /// No description provided for @safetySettings_noFlyPreset_standard.
   ///
   /// In en, this message translates to:
@@ -48119,6 +48125,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No active flying restriction'**
   String get safetyHub_noFly_clear_subtitle;
+
+  /// No description provided for @safetyHub_cnsOtu_clear_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No active load'**
+  String get safetyHub_cnsOtu_clear_title;
+
+  /// No description provided for @safetyHub_cnsOtu_clear_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS and OTU have cleared since your last dive'**
+  String get safetyHub_cnsOtu_clear_subtitle;
+
+  /// No description provided for @safetyHub_cnsOtu_sinceLastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive ended {duration} ago'**
+  String safetyHub_cnsOtu_sinceLastDive(String duration);
+
+  /// No description provided for @safetyHub_cnsOtu_historicalContext.
+  ///
+  /// In en, this message translates to:
+  /// **'The start and this-dive figures below are from that last dive, not live.'**
+  String get safetyHub_cnsOtu_historicalContext;
 
   /// No description provided for @safetyHub_noFly_category_single.
   ///
@@ -48833,6 +48863,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Guideline countdown from your last dives'**
   String get planning_card_noFly_subtitle;
+
+  /// No description provided for @planning_card_cnsOtu_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Live decay since your last dive'**
+  String get planning_card_cnsOtu_subtitle;
 
   /// No description provided for @settings_section_safety_title.
   ///

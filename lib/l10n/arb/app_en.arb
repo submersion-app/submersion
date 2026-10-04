@@ -19429,6 +19429,7 @@
   "diveLog_filter_thicknessMin": "Min",
   "diveLog_filter_thicknessMax": "Max",
   "safetySettings_noFlyHeader": "Flying after diving",
+  "safetySettings_cnsOtuHeader": "Current CNS/OTU load",
   "safetySettings_noFlyPreset_standard": "Standard (12/18/24 h)",
   "safetySettings_noFlyPreset_strict": "Strict (18/24/48 h)",
   "safetySettings_noFlyPreset_subtitle": "Guideline intervals after a single no-deco dive, repetitive dives, and deco dives",
@@ -19476,6 +19477,17 @@
   },
   "safetyHub_noFly_clear_title": "No flying restriction",
   "safetyHub_noFly_clear_subtitle": "No active flying restriction",
+  "safetyHub_cnsOtu_clear_title": "No active load",
+  "safetyHub_cnsOtu_clear_subtitle": "CNS and OTU have cleared since your last dive",
+  "safetyHub_cnsOtu_sinceLastDive": "Last dive ended {duration} ago",
+  "@safetyHub_cnsOtu_sinceLastDive": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyHub_cnsOtu_historicalContext": "The start and this-dive figures below are from that last dive, not live.",
   "safetyHub_noFly_category_single": "After a single no-deco dive: {hours} h guideline",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -19715,6 +19727,7 @@
     }
   },
   "planning_card_noFly_subtitle": "Guideline countdown from your last dives",
+  "planning_card_cnsOtu_subtitle": "Live decay since your last dive",
   "settings_section_safety_title": "Safety",
   "settings_section_safety_subtitle": "Review rules & flying after diving",
   "settings_section_equipmentCondition_title": "Equipment condition",

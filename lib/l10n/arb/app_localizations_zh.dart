@@ -28778,6 +28778,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get safetySettings_noFlyHeader => '潜水后飞行';
 
   @override
+  String get safetySettings_cnsOtuHeader => 'Current CNS/OTU load';
+
+  @override
   String get safetySettings_noFlyPreset_standard => '标准(12/18/24 小时)';
 
   @override
@@ -28822,6 +28825,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get safetyHub_noFly_clear_subtitle => '无活动的飞行限制';
+
+  @override
+  String get safetyHub_cnsOtu_clear_title => 'No active load';
+
+  @override
+  String get safetyHub_cnsOtu_clear_subtitle =>
+      'CNS and OTU have cleared since your last dive';
+
+  @override
+  String safetyHub_cnsOtu_sinceLastDive(String duration) {
+    return 'Last dive ended $duration ago';
+  }
+
+  @override
+  String get safetyHub_cnsOtu_historicalContext =>
+      'The start and this-dive figures below are from that last dive, not live.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -29233,6 +29252,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get planning_card_noFly_subtitle => '基于最近潜水的指导倒计时';
+
+  @override
+  String get planning_card_cnsOtu_subtitle => 'Live decay since your last dive';
 
   @override
   String get settings_section_safety_title => '安全';

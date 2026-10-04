@@ -30013,6 +30013,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'الطيران بعد الغوص';
 
   @override
+  String get safetySettings_cnsOtuHeader => 'Current CNS/OTU load';
+
+  @override
   String get safetySettings_noFlyPreset_standard => 'قياسي (12/18/24 س)';
 
   @override
@@ -30059,6 +30062,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get safetyHub_noFly_clear_subtitle => 'لا يوجد قيد نشط على الطيران';
+
+  @override
+  String get safetyHub_cnsOtu_clear_title => 'No active load';
+
+  @override
+  String get safetyHub_cnsOtu_clear_subtitle =>
+      'CNS and OTU have cleared since your last dive';
+
+  @override
+  String safetyHub_cnsOtu_sinceLastDive(String duration) {
+    return 'Last dive ended $duration ago';
+  }
+
+  @override
+  String get safetyHub_cnsOtu_historicalContext =>
+      'The start and this-dive figures below are from that last dive, not live.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -30488,6 +30507,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get planning_card_noFly_subtitle => 'عدّاد إرشادي منذ آخر غطساتك';
+
+  @override
+  String get planning_card_cnsOtu_subtitle => 'Live decay since your last dive';
 
   @override
   String get settings_section_safety_title => 'السلامة';

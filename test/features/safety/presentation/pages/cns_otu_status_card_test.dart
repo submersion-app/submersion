@@ -1,0 +1,96 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/safety/domain/entities/cns_otu_snapshot.dart';
+import 'package:submersion/features/safety/presentation/pages/cns_otu_page.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
+void main() {
+  const units = UnitFormatter(AppSettings());
+
+  Future<void> pumpCard(WidgetTester tester, CnsOtuSnapshot? snapshot) {
+    return tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: CnsOtuStatusCard(snapshot: snapshot, units: units),
+        ),
+      ),
+    );
+  }
+
+  testWidgets('shows no active load without a snapshot', (tester) async {
+    await pumpCard(tester, null);
+    expect(find.text('No active load'), findsOneWidget);
+  });
+
+  testWidgets('shows no active load once CNS and OTU have both cleared', (
+    tester,
+  ) async {
+    final lastDiveEnd = DateTime.now().toUtc().subtract(
+      const Duration(hours: 30),
+    );
+    await pumpCard(
+      tester,
+      CnsOtuSnapshot(
+        lastDiveId: 'dive-1',
+        lastDiveEnd: lastDiveEnd,
+        exposure: const O2Exposure(cnsEnd: 40.0),
+        weeklyOtu: 0.0,
+      ),
+    );
+    expect(find.text('No active load'), findsOneWidget);
+  });
+
+  testWidgets('shows the live CNS/OTU card for a recent dive', (tester) async {
+    final lastDiveEnd = DateTime.now().toUtc().subtract(
+      const Duration(minutes: 30),
+    );
+    await pumpCard(
+      tester,
+      CnsOtuSnapshot(
+        lastDiveId: 'dive-1',
+        lastDiveEnd: lastDiveEnd,
+        exposure: const O2Exposure(cnsEnd: 40.0, otu: 20.0),
+        weeklyOtu: 50.0,
+      ),
+    );
+
+    expect(find.text('No active load'), findsNothing);
+    expect(find.textContaining('Oxygen Toxicity'), findsOneWidget);
+    expect(
+      find.text(
+        'The start and this-dive figures below are from that last '
+        'dive, not live.',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a weekly OTU carryover alone counts as an active load', (
+    tester,
+  ) async {
+    // The last dive itself added no CNS/OTU, but a 7-day rolling total from
+    // earlier dives is still above the daily/weekly limits worth tracking.
+    final lastDiveEnd = DateTime.now().toUtc().subtract(
+      const Duration(hours: 10),
+    );
+    await pumpCard(
+      tester,
+      CnsOtuSnapshot(
+        lastDiveId: 'dive-1',
+        lastDiveEnd: lastDiveEnd,
+        exposure: const O2Exposure(cnsEnd: 0.0, otu: 0.0),
+        weeklyOtu: 200.0,
+      ),
+    );
+
+    expect(find.text('No active load'), findsNothing);
+    expect(find.textContaining('Oxygen Toxicity'), findsOneWidget);
+  });
+}
