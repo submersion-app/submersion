@@ -634,6 +634,10 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
         litersToDisplayVolume(litres, settings),
         2,
       );
+      // The tank's own name, not a generated "gas / volume / pressure"
+      // summary: a real starting point for the diver, still freely editable
+      // afterwards (issue #2926 follow-up).
+      _label.text = picked.tank.name;
       // The working pressure is what the cylinder is filled to (issue
       // #2302). Still editable afterwards, since only the last gas of a
       // blend reaches it. Cleared rather than left as-is when the tank has

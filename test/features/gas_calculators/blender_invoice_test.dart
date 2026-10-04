@@ -716,6 +716,34 @@ void main() {
     });
 
     testWidgets(
+      "choosing a cylinder fills the description field with the tank's name, "
+      'still editable by hand (#2926 follow-up)',
+      (tester) async {
+        await _pump(
+          tester,
+          gear: [_tank('d12', 'D12 232', volumeL: 12, workingPressureBar: 232)],
+        );
+        await _openAddLine(tester);
+
+        String text(String key) =>
+            tester.widget<TextField>(find.byKey(Key(key))).controller!.text;
+
+        await tester.tap(find.byKey(const Key('blender-line-choose-cylinder')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('D12 232'));
+        await tester.pumpAndSettle();
+        expect(text('blender-line-description'), 'D12 232');
+
+        await tester.enterText(
+          find.byKey(const Key('blender-line-description')),
+          'Twinset',
+        );
+        await tester.pumpAndSettle();
+        expect(text('blender-line-description'), 'Twinset');
+      },
+    );
+
+    testWidgets(
       'choosing a cylinder with no recorded working pressure clears the end '
       'pressure, rather than keeping a previous pick\'s stale value (#2926)',
       (tester) async {
