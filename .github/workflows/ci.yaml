@@ -955,18 +955,10 @@ jobs:
           # here means the job checked nothing, so it fails.
           python3 scripts/check_no_skipped_tests.py "$report"
 
-  # Pushes to main only, not pull requests (#2510). A PR's iOS build produces
-  # nothing anyone can install (it is unsigned and uploads no artifact), and it
-  # held one of the organization's 5 concurrent macOS runners on every PR,
-  # often after an hour in the queue. An iOS-only compile break now surfaces on
-  # main instead; Build macOS still runs on every PR and shares the Swift and
-  # CocoaPods plugin code. native-plugin-tests.yml still builds the
-  # libdivecomputer plugin for iOS on PRs that change it.
   build-ios:
     name: Build iOS
     needs: codegen
     runs-on: macos-26
-    if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v7
         with:
