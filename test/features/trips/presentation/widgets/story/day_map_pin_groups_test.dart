@@ -89,6 +89,21 @@ void main() {
       ]);
     });
 
+    test('a pin bridged to an earlier group joins under its first pin', () {
+      // 3 sits between 0 and 1, which are too far apart to collide alone:
+      // 3 joins 0's group first, then 1 joins it through 3.
+      final groups = groupNearbyPins(const [
+        Offset(0, 0),
+        Offset(50, 0),
+        Offset(500, 0),
+        Offset(25, 0),
+      ], radius: 32);
+      expect(groups, [
+        [0, 1, 3],
+        [2],
+      ]);
+    });
+
     test('pins either side of the date line collide across the seam', () {
       // A 1000 px world: x 998 and x 3 are 5 px apart once wrapped.
       final groups = groupNearbyPins(
