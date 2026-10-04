@@ -31,7 +31,7 @@ Future<void> showTripGearAlertSheet(
             Text(item.name, style: theme.textTheme.titleLarge),
             if (alerts.isNotEmpty) ...[
               const SizedBox(height: 12),
-              TripServiceAlertList(alerts: alerts),
+              TripServiceAlertList(alerts: alerts, showItemName: false),
             ],
             if (margin != null) ...[
               const SizedBox(height: 16),

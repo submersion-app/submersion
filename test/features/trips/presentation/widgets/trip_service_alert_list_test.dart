@@ -51,13 +51,17 @@ void main() {
     );
   }
 
-  Widget buildList(List<DueClock> alerts) {
+  Widget buildList(List<DueClock> alerts, {bool showItemName = true}) {
     final router = GoRouter(
       routes: [
         GoRoute(
           path: '/',
-          builder: (_, _) =>
-              Scaffold(body: TripServiceAlertList(alerts: alerts)),
+          builder: (_, _) => Scaffold(
+            body: TripServiceAlertList(
+              alerts: alerts,
+              showItemName: showItemName,
+            ),
+          ),
         ),
         GoRoute(
           path: '/equipment/:id',
@@ -86,6 +90,28 @@ void main() {
 
     expect(find.text('AL80'), findsOneWidget);
     expect(find.textContaining('Hydrostatic test due'), findsOneWidget);
+  });
+
+  testWidgets('inside one item\'s sheet a row reads only its clock (#2882)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildList([hydroAlert()], showItemName: false));
+    await tester.pumpAndSettle();
+
+    expect(find.text('AL80'), findsNothing);
+    final row = tester.widget<ListTile>(find.byType(ListTile));
+    expect((row.title! as Text).data, startsWith('Hydrostatic test due'));
+    expect(row.subtitle, isNull);
+    // A screen reader hears the clock once, not the item name.
+    expect(
+      tester.getSemantics(find.byType(ListTile)).label,
+      startsWith('Hydrostatic test due'),
+    );
+
+    // The row still opens its item.
+    await tester.tap(find.byType(ListTile));
+    await tester.pumpAndSettle();
+    expect(find.text('EQUIPMENT_PAGE'), findsOneWidget);
   });
 
   test('two blocking clocks on one item still count as 1 item', () {
