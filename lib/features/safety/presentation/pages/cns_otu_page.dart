@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_tool_pane.dart';
 import 'package:submersion/features/safety/domain/entities/cns_otu_snapshot.dart';
@@ -94,7 +96,7 @@ class _CnsOtuPageState extends ConsumerState<CnsOtuPage> {
 /// The CNS/OTU readout card. Re-derives the live CNS% from [snapshot] on
 /// every build, so a parent that rebuilds on a timer (see [CnsOtuPage]) keeps
 /// the decay current without re-fetching anything.
-class CnsOtuStatusCard extends StatelessWidget {
+class CnsOtuStatusCard extends ConsumerWidget {
   final CnsOtuSnapshot? snapshot;
   final UnitFormatter units;
 
@@ -109,7 +111,7 @@ class CnsOtuStatusCard extends StatelessWidget {
   static const double _loadEpsilon = 1.0;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final snap = snapshot;
@@ -142,8 +144,9 @@ class CnsOtuStatusCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _LastDiveSummaryRow(diveId: snap.lastDiveId),
         Padding(
-          padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+          padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
           child: Text(
             l10n.safetyHub_cnsOtu_sinceLastDive(formatNoFlyRemaining(elapsed)),
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -172,6 +175,80 @@ class CnsOtuStatusCard extends StatelessWidget {
         leading: Icon(Icons.air, color: theme.colorScheme.primary),
         title: Text(l10n.safetyHub_cnsOtu_clear_title),
         subtitle: Text(l10n.safetyHub_cnsOtu_clear_subtitle),
+      ),
+    );
+  }
+}
+
+/// Compact identification of which dive this readout is projected from:
+/// number badge, name/site, and when it happened. Deliberately a small,
+/// purpose-built row rather than reusing DiveDetailPage's embedded header --
+/// that one also carries dive-to-dive navigation, a favorite toggle and a
+/// "log for buddy" action, none of which belong on a safety readout that
+/// is not browsing the dive itself.
+class _LastDiveSummaryRow extends ConsumerWidget {
+  final String diveId;
+
+  const _LastDiveSummaryRow({required this.diveId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dive = ref.watch(diveProvider(diveId)).valueOrNull;
+    if (dive == null) return const SizedBox.shrink();
+
+    final l10n = context.l10n;
+    final colorScheme = Theme.of(context).colorScheme;
+    final units = UnitFormatter(ref.watch(settingsProvider));
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 16,
+            backgroundColor: colorScheme.primaryContainer,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 3),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '#${dive.diveNumber ?? '-'}',
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  dive.effectiveName ??
+                      dive.site?.name ??
+                      l10n.diveLog_listPage_unknownSite,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  units.formatDateTimeBullet(dive.effectiveEntryTime),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

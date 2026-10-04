@@ -1,28 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/safety/domain/entities/cns_otu_snapshot.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/pages/cns_otu_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/mock_providers.dart';
+
 void main() {
   const units = UnitFormatter(AppSettings());
+  final lastDive = Dive(
+    id: 'dive-1',
+    dateTime: DateTime.utc(2026, 7, 17, 10),
+    entryTime: DateTime.utc(2026, 7, 17, 10),
+    diveNumber: 42,
+    name: 'Blue Hole',
+  );
 
-  Future<void> pumpCard(WidgetTester tester, CnsOtuSnapshot? snapshot) {
-    return tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: CnsOtuStatusCard(snapshot: snapshot, units: units),
+  Future<void> pumpCard(WidgetTester tester, CnsOtuSnapshot? snapshot) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          diveProvider.overrideWith((ref, id) async => lastDive),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: CnsOtuStatusCard(snapshot: snapshot, units: units),
+          ),
         ),
       ),
     );
+    // diveProvider resolves asynchronously; let _LastDiveSummaryRow's
+    // second build (with data) land before assertions run.
+    await tester.pump();
   }
 
   testWidgets('shows no active load without a snapshot', (tester) async {
@@ -70,6 +91,9 @@ void main() {
     expect(find.textContaining('Before last dive'), findsOneWidget);
     expect(find.textContaining('Last dive:'), findsOneWidget);
     expect(find.text('Last Dive'), findsOneWidget);
+    // Identifies which dive this live readout is projected from.
+    expect(find.text('#42'), findsOneWidget);
+    expect(find.text('Blue Hole'), findsOneWidget);
   });
 
   testWidgets('a weekly OTU carryover alone counts as an active load', (

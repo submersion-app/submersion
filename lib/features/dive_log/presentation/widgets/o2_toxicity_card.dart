@@ -72,9 +72,17 @@ class O2ToxicityCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              if (exposure.cnsWarning || exposure.ppO2Warning)
+              // ppO2 warning/critical is a peak the last dive already
+              // reached and ended -- on the live readout (isLiveSinceLastDive)
+              // only the still-decaying CNS% can justify a "current" warning;
+              // showing a ppO2 badge with showDetails:false hidden would flag
+              // a past event with no visible reason why.
+              if (exposure.cnsWarning ||
+                  (!isLiveSinceLastDive && exposure.ppO2Warning))
                 Semantics(
-                  label: exposure.cnsCritical || exposure.ppO2Critical
+                  label:
+                      exposure.cnsCritical ||
+                          (!isLiveSinceLastDive && exposure.ppO2Critical)
                       ? context.l10n.diveLog_o2tox_semantics_criticalWarning
                       : context.l10n.diveLog_o2tox_semantics_warning,
                   child: Container(
@@ -83,13 +91,16 @@ class O2ToxicityCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: exposure.cnsCritical || exposure.ppO2Critical
+                      color:
+                          exposure.cnsCritical ||
+                              (!isLiveSinceLastDive && exposure.ppO2Critical)
                           ? colorScheme.error
                           : Colors.orange,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      exposure.cnsCritical || exposure.ppO2Critical
+                      exposure.cnsCritical ||
+                              (!isLiveSinceLastDive && exposure.ppO2Critical)
                           ? context.l10n.diveLog_detail_badge_critical
                           : context.l10n.diveLog_detail_badge_warning,
                       style: textTheme.labelSmall?.copyWith(
