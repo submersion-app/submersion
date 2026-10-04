@@ -24348,7 +24348,7 @@ class AppLocalizationsIt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Altre $count foto',
-      one: 'Altra $count foto',
+      one: 'Un\'altra foto',
     );
     return '$_temp0';
   }

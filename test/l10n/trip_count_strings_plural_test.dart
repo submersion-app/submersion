@@ -179,7 +179,7 @@ void main() {
       'fr': ('1 photo supplémentaire', '3 photos supplémentaires'),
       'he': ('עוד תמונה אחת', 'עוד 3 תמונות'),
       'hu': ('1 további fotó', '3 további fotó'),
-      'it': ('Altra 1 foto', 'Altre 3 foto'),
+      'it': ("Un'altra foto", 'Altre 3 foto'),
       'nl': ('1 meer foto', "3 meer foto's"),
       'pt': ('1 foto a mais', '3 fotos a mais'),
       'zh': ('1 更多照片', '3 更多照片'),

@@ -7188,7 +7188,7 @@
   "trips_photos_empty_scanButton": "Scansiona galleria del dispositivo",
   "trips_photos_empty_title": "Nessuna foto ancora",
   "trips_photos_error_loading": "Errore nel caricamento delle foto",
-  "trips_photos_moreIndicator_semanticLabel": "{count, plural, =1{Altra {count} foto} other{Altre {count} foto}}",
+  "trips_photos_moreIndicator_semanticLabel": "{count, plural, =1{Un'altra foto} other{Altre {count} foto}}",
   "trips_photos_sectionTitle": "Foto",
   "trips_photos_tooltip_scan": "Scansiona galleria del dispositivo",
   "trips_photos_viewAll": "Visualizza tutte",
