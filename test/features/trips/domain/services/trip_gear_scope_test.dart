@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/services/trip_gear_scope.dart';
 
 /// Which of the diver's gear goes on a trip (issue #2727).
@@ -54,5 +55,34 @@ void main() {
     final b = item('b', parent: 'a');
     expect(gearOnTrip([a, b], {'c'}), isEmpty);
     expect(gearOnTrip([a, b], {'a'}), [a, b]);
+  });
+
+  group('packedOffBoard (#2874)', () {
+    TripCylinder slot(String id, {String? equipmentId}) => TripCylinder(
+      id: id,
+      tripId: 't1',
+      label: id,
+      equipmentId: equipmentId,
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+
+    test('with no slots every packed item is listed', () {
+      expect(packedOffBoard([regSet, tank, bcd], const []), [
+        regSet,
+        tank,
+        bcd,
+      ]);
+    });
+
+    test('an owned tank on a slot is left out, in order otherwise', () {
+      expect(
+        packedOffBoard(
+          [regSet, tank, bcd],
+          [slot('s1', equipmentId: 'tank'), slot('s2')],
+        ),
+        [regSet, bcd],
+      );
+    });
   });
 }

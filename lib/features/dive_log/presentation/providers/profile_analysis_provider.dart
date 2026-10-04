@@ -997,7 +997,76 @@ final analysisDiveProvider = FutureProvider.family<Dive?, String>((
   return repository.getDiveForAnalysis(diveId);
 });
 
+/// The primary of [sources]: the row flagged primary, or the first row when
+/// none is, the same rule [activeSourceProfileProvider] resolves the chart's
+/// series with.
+DiveDataSource primaryDataSource(List<DiveDataSource> sources) =>
+    sources.where((s) => s.isPrimary).firstOrNull ?? sources.first;
+
+/// The samples the dive-level analysis ([profileAnalysisProvider]) replays.
+///
+/// [sourceProfile] and [source] are set when [points] is one source's own
+/// bucket rather than `dive.profile`.
+typedef DiveAnalysisSeries = ({
+  List<DiveProfilePoint> points,
+  SourceProfile? sourceProfile,
+  DiveDataSource? source,
+});
+
+/// The series [profileAnalysisProvider] analyses: the one the chart draws
+/// when nothing is selected.
+///
+/// On a dive whose chart draws one source at a time
+/// ([usesPerSourceRendering]) that is the primary source's own samples.
+/// `dive.profile` there is every computer's samples interleaved by
+/// timestamp, and neighbouring samples from two computers disagree by their
+/// clock offset: replayed as one dive, every step between them reads as a
+/// sudden rise or descent (#2888). Everywhere else it is `dive.profile`.
+///
+/// A primary that owns no samples (a metadata-only source promoted to
+/// primary) falls back to `dive.profile` only while that is not interleaved,
+/// meaning at most one other source recorded the dive or the recordings
+/// follow one another. Otherwise there is no one recording to analyse, and
+/// this is null.
+///
+/// Null too when the dive has no profile.
+final diveAnalysisSeriesProvider =
+    FutureProvider.family<DiveAnalysisSeries?, String>((ref, diveId) async {
+      final dive = await ref.watch(analysisDiveProvider(diveId).future);
+      if (dive == null || dive.profile.isEmpty) return null;
+      final DiveAnalysisSeries whole = (
+        points: dive.profile,
+        sourceProfile: null,
+        source: null,
+      );
+      final sources = await ref.watch(diveDataSourcesProvider(diveId).future);
+      // One source can never render per source, so answer it without reading
+      // the buckets: the common case, and sourceProfilesProvider is a database
+      // round trip.
+      if (sources.length < 2) return whole;
+      final profiles = await ref.watch(sourceProfilesProvider(diveId).future);
+      if (!usesPerSourceRendering(sources, profiles.values)) return whole;
+      final primary = primaryDataSource(sources);
+      final own = profiles[primary.id];
+      if (own == null || own.points.isEmpty) {
+        final recorded = [
+          for (final p in profiles.values)
+            if (p.points.isNotEmpty) p,
+        ];
+        return recorded.length < 2 || sourceProfilesAreSequential(recorded)
+            ? whole
+            : null;
+      }
+      return (points: own.points, sourceProfile: own, source: primary);
+    });
+
 /// Provider for profile analysis of a specific dive.
+///
+/// Replays the samples [diveAnalysisSeriesProvider] picks: on a dive with
+/// several computers, the primary source's own. Every reader of the dive's
+/// analysis (the safety review, the residual CNS, tissue and OTU carried into
+/// the next dive, the deco classification, the planner) therefore sees the
+/// dive the chart draws, never two computers' samples interleaved.
 ///
 /// Recursively computes residual CNS from previous dives: looks up the
 /// previous dive via [profileAnalysisProvider] (different dive ID), applies
@@ -1026,7 +1095,23 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
       return null;
     }
 
-    return await computeAnalysisForProfile(ref, dive, dive.profile);
+    final series = await ref.watch(diveAnalysisSeriesProvider(diveId).future);
+    if (series == null) return null;
+    final own = series.sourceProfile;
+    final source = series.source;
+    if (own == null || source == null) {
+      return await computeAnalysisForProfile(ref, dive, series.points);
+    }
+    return await computeAnalysisForProfile(
+      ref,
+      dive,
+      own.points,
+      computerId: own.computerId,
+      sourceId: own.sourceId,
+      // No source flagged primary: the first row stands in, with its own GFs.
+      decoSource: source.isPrimary ? null : source,
+      perSource: true,
+    );
   } catch (e, stackTrace) {
     _log.error(
       'Failed to analyze profile for dive: $diveId',
@@ -1402,13 +1487,17 @@ typedef DiveSourceKey = ({String diveId, String? sourceId});
 
 /// Analysis computed from one data source's own samples -- the exact
 /// series the chart draws, index for index. On multi-source dives EVERY
-/// source (the primary included) is computed from its own bucket:
-/// `dive.profile` can be a merged superset of the primary's samples (e.g.
-/// dives consolidated by older app versions flagged both computers'
-/// rows primary), and index-pairing a merged-length analysis against the
-/// primary's bucket stretches every chart curve. Single-source dives
-/// delegate to [profileAnalysisProvider] so its cache and residual-CNS
-/// recursion are shared.
+/// source is computed from its own bucket: `dive.profile` can be a merged
+/// superset of the primary's samples (e.g. dives consolidated by older app
+/// versions flagged both computers' rows primary), and index-pairing a
+/// merged-length analysis against the primary's bucket stretches every
+/// chart curve.
+///
+/// The primary's bucket is what [profileAnalysisProvider] analyses, so the
+/// primary (by null, by its own id, or by a stale id) and single-source
+/// dives delegate to it: one cached analysis, whichever key the chart, the
+/// overlays and the safety review read it under, sharing its residual-CNS
+/// recursion.
 final sourceProfileAnalysisProvider =
     FutureProvider.family<ProfileAnalysis?, DiveSourceKey>((ref, key) async {
       try {
@@ -1436,32 +1525,27 @@ final sourceProfileAnalysisProvider =
         if (!usesPerSourceRendering(sources, profiles.values)) {
           return await ref.watch(profileAnalysisProvider(key.diveId).future);
         }
-        final primaryId =
-            sources.where((s) => s.isPrimary).map((s) => s.id).firstOrNull ??
-            sources.first.id;
+        final primary = primaryDataSource(sources);
         // A stale id (the selection outliving its source row, e.g. right
         // after a split) resolves to the primary, exactly as
         // activeSourceProfileProvider resolves the chart's series, so the
         // analysis is never computed over a different series than the one
-        // drawn. Falling through to the dive-level analysis here would pair
-        // merged-length curves with the primary's bucket (#543).
-        final requested = key.sourceId;
-        final effectiveSourceId =
-            requested != null && sources.any((s) => s.id == requested)
-            ? requested
-            : primaryId;
-        final dive = await ref.watch(analysisDiveProvider(key.diveId).future);
-        if (dive == null) return null;
-        final sourceProfile = profiles[effectiveSourceId];
-        if (sourceProfile == null) {
-          // Bucket unavailable (still loading, or stale id): fall back to
-          // the dive-level analysis rather than blanking the panels.
-          return await ref.watch(profileAnalysisProvider(key.diveId).future);
-        }
-        if (sourceProfile.points.isEmpty) {
+        // drawn (#543).
+        final source =
+            sources.where((s) => s.id == key.sourceId).firstOrNull ?? primary;
+        final sourceProfile = profiles[source.id];
+        // A source that owns no samples draws an empty chart.
+        if (sourceProfile != null && sourceProfile.points.isEmpty) {
           return null;
         }
-        final source = sources.firstWhere((s) => s.id == effectiveSourceId);
+        // The primary's own samples are the dive-level analysis. A bucket
+        // that is unavailable falls back to it too, rather than blanking the
+        // panels.
+        if (source.id == primary.id || sourceProfile == null) {
+          return await ref.watch(profileAnalysisProvider(key.diveId).future);
+        }
+        final dive = await ref.watch(analysisDiveProvider(key.diveId).future);
+        if (dive == null) return null;
         return await computeAnalysisForProfile(
           ref,
           dive,

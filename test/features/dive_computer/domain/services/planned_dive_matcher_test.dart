@@ -70,6 +70,39 @@ void main() {
     );
   });
 
+  // Dive times are the dive's wall clock flagged UTC, downloads and plans
+  // alike, so the day they fall on is their own date, wherever the device
+  // is. Converting them to the device's zone moved the day boundary by its
+  // UTC offset. These fail on a machine outside UTC (west of it for the
+  // first, east for the third, either side for the second) when that
+  // conversion comes back; in UTC CI,
+  // test/architecture/dive_time_to_local_single_source_test.dart guards it.
+  group('pairs by the dives\' own wall-clock day', () {
+    test('a download just after midnight fills that day\'s plan', () {
+      final pairs = matcher.pair(
+        incomingStarts: [DateTime.utc(2026, 9, 14, 0, 30)],
+        plannedDives: [planned('p', DateTime.utc(2026, 9, 14, 9))],
+      );
+      expect(pairs, {0: 'p'});
+    });
+
+    test('a download after midnight leaves the previous evening\'s plan', () {
+      final pairs = matcher.pair(
+        incomingStarts: [DateTime.utc(2026, 9, 15, 1)],
+        plannedDives: [planned('p', DateTime.utc(2026, 9, 14, 23))],
+      );
+      expect(pairs, isEmpty);
+    });
+
+    test('a plan just before midnight takes that day\'s morning download', () {
+      final pairs = matcher.pair(
+        incomingStarts: [DateTime.utc(2026, 9, 14, 8)],
+        plannedDives: [planned('p', DateTime.utc(2026, 9, 14, 23, 30))],
+      );
+      expect(pairs, {0: 'p'});
+    });
+  });
+
   test('empty inputs pair nothing', () {
     expect(matcher.pair(incomingStarts: const [], plannedDives: const []), {});
   });

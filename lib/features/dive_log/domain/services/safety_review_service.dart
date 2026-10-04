@@ -24,7 +24,12 @@ class SafetyReviewService {
   /// v4: with the NDL source set to the dive computer, a sample at the
   /// computer's deco stop reads as in deco instead of taking the calculated
   /// NDL, which can change the missed deco stop rule's answer (#2551).
-  static const int engineVersion = 4;
+  /// v5: a dive with several computers is graded on the primary source's own
+  /// samples, not every computer's interleaved by timestamp, whose clock
+  /// offsets read as rapid ascents no computer recorded (#2888). A finding
+  /// whose span moves onto the primary's own samples is a new finding, so a
+  /// dismissal made on the interleaved one does not carry over.
+  static const int engineVersion = 5;
 
   const SafetyReviewService();
 

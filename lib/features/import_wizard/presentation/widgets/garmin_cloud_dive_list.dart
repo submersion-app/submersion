@@ -1,5 +1,5 @@
 import 'package:submersion/core/services/garmin_connect/garmin_dive_mapper.dart';
-import 'package:submersion/features/import_wizard/presentation/widgets/cloud_import_dive_summary.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/downloaded_dive_summary.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Builds the same title/subtitle text shown for a Garmin dive both in the
@@ -8,4 +8,4 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 ({String title, String subtitle}) formatGarminDiveSummary(
   GarminParsedDive parsed,
   AppSettings settings,
-) => formatCloudDiveSummary(parsed.dive, settings);
+) => formatDownloadedDiveSummary(parsed.dive, settings);

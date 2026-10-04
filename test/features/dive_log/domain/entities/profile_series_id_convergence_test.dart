@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series_identity.dart';
@@ -69,15 +68,10 @@ void main() {
       samples: const [ProfileSample(timestamp: 0, depth: 5.0)],
       now: now,
     );
-    await series.insertSeries(
-      diveId: 'dive-1',
-      computerId: 'comp-2',
-      isPrimary: false,
-      samples: const [ProfileSample(timestamp: 0, depth: 6.0)],
-      now: now,
-    );
-
-    await DiveComputerRepository().setPrimaryProfile('dive-1', 'comp-2');
+    // Making another computer primary demotes this series first
+    // (DiveRepository.setPrimaryDataSource), as a profile edit and a restore
+    // do.
+    await series.demoteAll('dive-1', now: now + 1);
 
     final rows = await series.getRowsForDives(['dive-1']);
     final demoted = rows.firstWhere((r) => r.computerId == 'comp-1');

@@ -3,10 +3,14 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 /// Pairs downloaded dives with a profile's unfilled planned dives (issue
 /// #2002). Pure: takes start times and entities, returns an index-to-id map.
 ///
-/// Rule: same local calendar day, both lists sorted by start time, walked in
-/// order so no planned dive is offered twice and the earliest download takes
-/// the earliest plan. A day with more downloads than plans leaves the extra
-/// downloads unpaired; more plans than downloads leaves plans unfilled.
+/// Rule: same calendar day, both lists sorted by start time, walked in order
+/// so no planned dive is offered twice and the earliest download takes the
+/// earliest plan. Both start times are the dive's wall clock flagged UTC, so
+/// the day is their own date, compared as is: converting them to the device's
+/// zone would move the day boundary by its UTC offset and pair dives from
+/// different days near midnight. A day with more downloads than plans leaves
+/// the extra downloads unpaired; more plans than downloads leaves plans
+/// unfilled.
 class PlannedDiveMatcher {
   const PlannedDiveMatcher();
 
@@ -16,11 +20,11 @@ class PlannedDiveMatcher {
   }) {
     final incoming = [
       for (var i = 0; i < incomingStarts.length; i++)
-        (index: i, start: incomingStarts[i].toLocal()),
+        (index: i, start: incomingStarts[i]),
     ]..sort((a, b) => a.start.compareTo(b.start));
     final plans = [
       for (final d in plannedDives)
-        (id: d.id, start: (d.entryTime ?? d.dateTime).toLocal()),
+        (id: d.id, start: d.entryTime ?? d.dateTime),
     ]..sort((a, b) => a.start.compareTo(b.start));
 
     final byDay = <DateTime, List<({String id, DateTime start})>>{};

@@ -32,7 +32,10 @@ import 'package:submersion/features/dive_log/domain/services/deco_stop_curve.dar
 /// changed ceiling convention. Consumers that memoize an analysis-derived
 /// answer fold it into their cache key, so a bump invalidates their stored
 /// results. Currently used by the statistics deco-classification cache (#623).
-const int analysisEngineVersion = 1;
+///
+/// v2: a dive with several computers is analysed over the primary source's
+/// own samples, not every computer's interleaved by timestamp (#2888).
+const int analysisEngineVersion = 2;
 
 /// Represents SAC calculated over a segment of the dive.
 class SacSegment extends Equatable {

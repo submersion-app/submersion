@@ -230,6 +230,22 @@ void main() {
     expect(find.text('1 item packed · 2 cylinders'), findsOneWidget);
   });
 
+  testWidgets('the packed count leaves out owned tanks on a cylinder slot, '
+      'as the Gear tab does (#2874)', (tester) async {
+    await _pump(
+      tester,
+      gear: const [
+        EquipmentItem(id: 'g1', name: 'Reg', type: EquipmentType.regulator),
+        EquipmentItem(id: 'tank1', name: 'AL80', type: EquipmentType.tank),
+      ],
+      slots: [
+        _slot('c1', equipmentId: 'tank1'),
+        _slot('c2'),
+      ],
+    );
+    expect(find.text('1 item packed · 2 cylinders'), findsOneWidget);
+  });
+
   testWidgets('the itinerary row sums planned dives and falls back to the '
       'per-day target', (tester) async {
     await _pump(

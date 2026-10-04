@@ -30,6 +30,11 @@ final safetyFindingsRepositoryProvider = Provider<SafetyFindingsRepository>((
 /// A review is saved only from an analysis that ran on exactly those
 /// settings. While a metric source is switched on the chart the analysis is
 /// a view of the dive, not the diver's review, so the stored one is shown.
+///
+/// The review grades the dive-level analysis ([profileAnalysisProvider]),
+/// which on a dive the chart draws one source at a time replays the primary
+/// source's own samples rather than every computer's interleaved
+/// ([diveAnalysisSeriesProvider]).
 final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
   ref,
   diveId,
