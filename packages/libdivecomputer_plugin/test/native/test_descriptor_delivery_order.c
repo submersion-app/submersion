@@ -28,7 +28,10 @@
 static dc_family_t descriptor_family(const char *vendor, const char *product,
                                      unsigned int model) {
     dc_iterator_t *iter = NULL;
-    assert(dc_descriptor_iterator(&iter) == DC_STATUS_SUCCESS);
+    // Calls with side effects stay outside assert(), which NDEBUG removes.
+    dc_status_t status = dc_descriptor_iterator(&iter);
+    assert(status == DC_STATUS_SUCCESS);
+    (void)status;
     dc_descriptor_t *desc = NULL;
     dc_family_t family = DC_FAMILY_NULL;
     while (dc_iterator_next(iter, &desc) == DC_STATUS_SUCCESS) {
@@ -111,19 +114,23 @@ static void test_named_backends(void) {
 static void test_match_and_lookup_write_the_flag(void) {
     libdc_descriptor_info_t info;
 
+    int matched;
+
     memset(&info, 0x7F, sizeof(info));
-    assert(libdc_descriptor_match("Perdix 3", LIBDC_TRANSPORT_BLE, &info) == 1);
+    matched = libdc_descriptor_match("Perdix 3", LIBDC_TRANSPORT_BLE, &info);
+    assert(matched == 1);
     assert(info.delivers_oldest_first == 1);
 
     memset(&info, 0x7F, sizeof(info));
-    assert(libdc_descriptor_match("Petrel", LIBDC_TRANSPORT_BLE, &info) == 1);
+    matched = libdc_descriptor_match("Petrel", LIBDC_TRANSPORT_BLE, &info);
+    assert(matched == 1);
     assert(info.delivers_oldest_first == 1);
 
     // A Symbios HUD advertises its serial; model digits [4:6] are 01. The
     // date and unit digits are zeroed, as in the #357 regression test.
     memset(&info, 0x7F, sizeof(info));
-    assert(libdc_descriptor_match("0000010000", LIBDC_TRANSPORT_BLE, &info) ==
-           1);
+    matched = libdc_descriptor_match("0000010000", LIBDC_TRANSPORT_BLE, &info);
+    assert(matched == 1);
     assert(strcmp(info.vendor, "Halcyon") == 0);
     assert(info.delivers_oldest_first == 0);
 
@@ -131,8 +138,10 @@ static void test_match_and_lookup_write_the_flag(void) {
     // whichever descriptor the lookup returns rather than assume which one.
     libdc_descriptor_info_t perdix = catalog_entry("Shearwater", "Perdix 3");
     memset(&info, 0x7F, sizeof(info));
-    assert(libdc_descriptor_lookup_model(LIBDC_TRANSPORT_BLE, perdix.model,
-                                         &info) == 1);
+    matched = libdc_descriptor_lookup_model(LIBDC_TRANSPORT_BLE, perdix.model,
+                                            &info);
+    assert(matched == 1);
+    (void)matched;
     assert(info.delivers_oldest_first ==
            (descriptor_family(info.vendor, info.product, info.model) ==
             DC_FAMILY_SHEARWATER_PETREL));
