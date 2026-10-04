@@ -8,8 +8,8 @@ import 'package:submersion/core/deco/entities/o2_exposure.dart';
 /// that only changes when the dive table is written to (see
 /// `cnsOtuSnapshotProvider`).
 class CnsOtuSnapshot {
-  /// Not read by the current UI; carried so a future "view that dive" link
-  /// from the readout card does not need a second lookup.
+  /// Which dive this readout is projected from -- loaded by
+  /// `_LastDiveHeader` to render the hero header.
   final String lastDiveId;
 
   /// End of the most recent dive, wall-clock-as-UTC (the dive-time frame;
