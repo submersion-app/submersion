@@ -5433,6 +5433,11 @@ class DiveRepository {
   /// Used for "current state" readouts (e.g. live CNS/OTU decay since the
   /// last dive): without the isPlanned filter, a dive planned for a future
   /// date would otherwise sort ahead of the diver's actual last dive.
+  ///
+  /// Unlike most lookups in this file, a query failure is rethrown rather
+  /// than mapped to null: callers use null to mean "no executed dive", and
+  /// masking a real error the same way would render as "no load" on a
+  /// safety readout instead of surfacing the failure.
   Future<domain.DiveTimes?> getMostRecentDiveTimes({
     required String? diverId,
     required DateTime notAfter,
@@ -5470,7 +5475,12 @@ class DiveRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return null;
+      // Rethrows rather than returning null like most lookups here: this
+      // feeds a safety readout (cnsOtuSnapshotProvider) where null is
+      // overloaded to also mean "no executed dive on record". Swallowing a
+      // real DB failure into that same null would render as "all clear"
+      // instead of the page's explicit error state.
+      rethrow;
     }
   }
 
