@@ -1047,7 +1047,148 @@ void main() {
         expect(container.read(dcAdapterDownloadCanAdvanceProvider), isTrue);
       },
     );
+
+    group('tells the adapter how the dives arrived (issue #2902)', () {
+      final halcyon = DiscoveredDevice(
+        id: 'halcyon-1',
+        name: '0000010000',
+        connectionType: DeviceConnectionType.ble,
+        address: 'FD7D1384',
+        recognizedModel: const DeviceModel(
+          id: 'Halcyon_Symbios HUD_1',
+          manufacturer: 'Halcyon',
+          model: 'Symbios HUD',
+          connectionTypes: [DeviceConnectionType.ble],
+          dcModel: 1,
+        ),
+        discoveredAt: DateTime(2026, 9, 20),
+      );
+      final descriptors = [
+        pigeon.DeviceDescriptor(
+          vendor: 'Shearwater',
+          product: 'Perdix',
+          model: 5,
+          transports: [pigeon.TransportType.ble],
+          deliversOldestFirst: true,
+        ),
+        pigeon.DeviceDescriptor(
+          vendor: 'Halcyon',
+          product: 'Symbios HUD',
+          model: 1,
+          transports: [pigeon.TransportType.ble],
+        ),
+      ];
+
+      Future<_RecordingAdapter> importPartial(
+        WidgetTester tester,
+        DiscoveredDevice device,
+      ) async {
+        final adapter = _RecordingAdapter();
+        await tester.pumpWidget(
+          _buildDownloadStep(
+            adapter: adapter,
+            discoveryState: DiscoveryState(selectedDevice: device),
+            extraOverrides: [
+              deviceDescriptorsProvider.overrideWith(
+                (ref) async => descriptors,
+              ),
+            ],
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DcAdapterDownloadStep)),
+        );
+        container.read(downloadNotifierProvider.notifier).state = DownloadState(
+          phase: DownloadPhase.error,
+          errorMessage: 'Failed to download the dive.',
+          downloadedDives: [_downloadedDive()],
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Import 1 downloaded dive'));
+        await tester.pumpAndSettle();
+        return adapter;
+      }
+
+      testWidgets('a newest-first backend is marked interrupted', (
+        tester,
+      ) async {
+        final adapter = await importPartial(tester, halcyon);
+
+        expect(adapter.lastInterrupted, isTrue);
+        expect(adapter.lastDeliversOldestFirst, isFalse);
+      });
+
+      testWidgets('an oldest-first backend says so', (tester) async {
+        final adapter = await importPartial(tester, _testDevice);
+
+        expect(adapter.lastInterrupted, isTrue);
+        expect(adapter.lastDeliversOldestFirst, isTrue);
+      });
+
+      testWidgets('a complete download is not marked interrupted', (
+        tester,
+      ) async {
+        final adapter = _RecordingAdapter();
+        await tester.pumpWidget(
+          _buildDownloadStep(
+            adapter: adapter,
+            discoveryState: DiscoveryState(selectedDevice: halcyon),
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DcAdapterDownloadStep)),
+        );
+        container.read(downloadNotifierProvider.notifier).state = DownloadState(
+          phase: DownloadPhase.complete,
+          downloadedDives: [_downloadedDive()],
+        );
+        await tester.pumpAndSettle();
+
+        expect(adapter.lastInterrupted, isFalse);
+      });
+    });
   });
+}
+
+/// Records how the download step hands its dives over.
+class _RecordingAdapter extends DiveComputerAdapter {
+  _RecordingAdapter() : this._(_FakeDiveComputerRepository(), DiveRepository());
+
+  _RecordingAdapter._(
+    _FakeDiveComputerRepository repo,
+    DiveRepository diveRepository,
+  ) : super(
+        importService: DiveImportService(repository: repo),
+        computerRepository: repo,
+        diveRepository: diveRepository,
+        consolidationService: DiveConsolidationService(diveRepository),
+        diverId: 'diver-1',
+      );
+
+  bool? lastInterrupted;
+  bool? lastDeliversOldestFirst;
+
+  @override
+  void setDownloadedDives(
+    List<DownloadedDive> dives, {
+    bool interrupted = false,
+    bool deliversOldestFirst = false,
+  }) {
+    lastInterrupted = interrupted;
+    lastDeliversOldestFirst = deliversOldestFirst;
+    super.setDownloadedDives(
+      dives,
+      interrupted: interrupted,
+      deliversOldestFirst: deliversOldestFirst,
+    );
+  }
 }
 
 DownloadedDive _downloadedDive() => DownloadedDive(
