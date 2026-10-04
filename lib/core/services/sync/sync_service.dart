@@ -1777,12 +1777,10 @@ class SyncService {
     for (final parentType in parentTypes) {
       final tombs = tombstonesByEntity[parentType];
       final entry = recordsByType[parentType];
-      if (tombs == null ||
-          tombs.isEmpty ||
-          entry == null ||
-          !entry.hasUpdatedAt) {
-        continue;
-      }
+      // Every parent, whatever its merge flag: the merge guard revives a
+      // clock-only parent (species, media, diveTanks) too, so leaving it out
+      // here dropped a child that came with it against a stale tombstone.
+      if (tombs == null || tombs.isEmpty || entry == null) continue;
       for (final rec in entry.records) {
         final id = recordIdForEntity(parentType, rec);
         if (id == null) continue;
@@ -2005,8 +2003,8 @@ class SyncService {
         final rec = r.row;
         final id = recordIdForEntity(table, rec);
         if (id == null) continue;
-        if (parentTypes.contains(table) &&
-            _baseApplyEntityFlags[table] == true) {
+        // Every parent, whatever its merge flag, as in the payload apply.
+        if (parentTypes.contains(table)) {
           final u = _extractUpdatedAtMillis(rec);
           final c = _ownClock(table, rec);
           if (u != null || c != null) {
@@ -2198,8 +2196,8 @@ class SyncService {
         final rec = jsonDecode(utf8.decode(rowBytes)) as Map<String, dynamic>;
         final id = recordIdForEntity(table, rec);
         if (id == null) return;
-        if (parentTypes.contains(table) &&
-            _baseApplyEntityFlags[table] == true) {
+        // Every parent, whatever its merge flag, as in the payload apply.
+        if (parentTypes.contains(table)) {
           final u = _extractUpdatedAtMillis(rec);
           final c = _ownClock(table, rec);
           if (u != null || c != null) {

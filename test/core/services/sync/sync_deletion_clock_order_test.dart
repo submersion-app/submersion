@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -26,12 +27,16 @@ void main() {
   late SyncDataSerializer serializer;
 
   setUp(() async {
+    // The clock is process-wide and seeds once, so a far-future stamp a
+    // previous file received would otherwise outrank every clock here.
+    SyncClock.instance.reset();
     await setUpTestDatabase();
     cloud = FakeCloudStorageProvider();
     serializer = SyncDataSerializer();
   });
 
   tearDown(() async {
+    SyncClock.instance.reset();
     await tearDownTestDatabase();
   });
 
@@ -44,27 +49,28 @@ void main() {
   String clock(int physicalTime, String node, {int counter = 0}) =>
       Hlc(physicalTime, counter, node).toString();
 
+  SyncPayload peerPayload({
+    SyncData data = const SyncData(),
+    Map<String, List<SyncDeletion>> deletions = const {},
+    int exportedAt = 9000,
+  }) => SyncPayload(
+    version: syncFormatVersion,
+    exportedAt: exportedAt,
+    deviceId: 'peer-dev',
+    checksum: sha256.convert(utf8.encode(jsonEncode(data.toJson()))).toString(),
+    data: data,
+    deletions: deletions,
+  );
+
   Future<void> seedPeerPayload({
     SyncData data = const SyncData(),
     Map<String, List<SyncDeletion>> deletions = const {},
     int exportedAt = 9000,
-  }) async {
-    final checksum = sha256
-        .convert(utf8.encode(jsonEncode(data.toJson())))
-        .toString();
-    await seedPeerBaseFromPayload(
-      cloud,
-      'peer-dev',
-      SyncPayload(
-        version: syncFormatVersion,
-        exportedAt: exportedAt,
-        deviceId: 'peer-dev',
-        checksum: checksum,
-        data: data,
-        deletions: deletions,
-      ),
-    );
-  }
+  }) => seedPeerBaseFromPayload(
+    cloud,
+    'peer-dev',
+    peerPayload(data: data, deletions: deletions, exportedAt: exportedAt),
+  );
 
   Future<Map<String, dynamic>?> conflictFor(String entity, String id) async {
     for (final c in await SyncRepository().getConflictRecords()) {
@@ -327,6 +333,101 @@ void main() {
             'dives merge before diveSites, so the revival must already be '
             'known when the dive is applied',
       );
+    });
+  });
+
+  /// A parent that resolves by its clock alone (no updatedAt merge flag:
+  /// species, media, diveTanks, diveDataSources) is revived by the merge
+  /// guard when its copy is newer, so the revived-parent precompute must see
+  /// it too, or a child in the same payload is dropped against a tombstone
+  /// that no longer stands.
+  group('A clock-only parent revived in the same payload as its child', () {
+    Future<void> deleteLocalSpecies() async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'dive-s', diveNumber: 1),
+      );
+      await serializer.upsertRecord('species', {
+        'id': 'sp-1',
+        'commonName': 'Manta',
+        'category': 'fish',
+        'isBuiltIn': false,
+      });
+      await buildService().performSync();
+      await serializer.deleteRecord('species', 'sp-1');
+      await SyncRepository().logDeletion(
+        entityType: 'species',
+        recordId: 'sp-1',
+        deletedAt: 99999999999999,
+      );
+    }
+
+    SyncData revivedWithChild() {
+      final later = DateTime.now().millisecondsSinceEpoch + 86400000;
+      return SyncData(
+        species: [
+          {
+            'id': 'sp-1',
+            'commonName': 'Manta',
+            'category': 'fish',
+            'isBuiltIn': false,
+            'hlc': clock(later, 'peer-dev'),
+          },
+        ],
+        sightings: [
+          {
+            'id': 'sgt-1',
+            'diveId': 'dive-s',
+            'speciesId': 'sp-1',
+            'count': 1,
+            'notes': '',
+            'hlc': clock(later, 'peer-dev', counter: 1),
+          },
+        ],
+      );
+    }
+
+    Future<void> expectRevivedWithChild() async {
+      expect(await serializer.fetchRecord('species', 'sp-1'), isNotNull);
+      expect(
+        await serializer.fetchRecord('sightings', 'sgt-1'),
+        isNotNull,
+        reason: 'the sighting must not be dropped for a species coming back',
+      );
+    }
+
+    test('through the streaming base apply', () async {
+      await deleteLocalSpecies();
+      await seedPeerPayload(data: revivedWithChild());
+
+      final result = await buildService().performSync();
+
+      expect(result.status, isNot(SyncResultStatus.error));
+      await expectRevivedWithChild();
+    });
+
+    test('through the inline base apply', () async {
+      await deleteLocalSpecies();
+      await seedPeerPayload(data: revivedWithChild());
+
+      final result =
+          await (buildService()
+                ..baseParseClientSpawn = (_) async =>
+                    throw StateError('forced inline fallback'))
+              .performSync();
+
+      expect(result.status, isNot(SyncResultStatus.error));
+      await expectRevivedWithChild();
+    });
+
+    test('through the in-memory payload apply', () async {
+      await deleteLocalSpecies();
+
+      final result = await buildService().debugApplyPayload(
+        peerPayload(data: revivedWithChild()),
+      );
+
+      expect(result.recordsFailed, 0);
+      await expectRevivedWithChild();
     });
   });
 }
