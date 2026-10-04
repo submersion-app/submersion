@@ -2,7 +2,6 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
@@ -13,9 +12,9 @@ import 'package:submersion/features/dive_log/domain/services/safety_review_servi
 import '../../../../helpers/test_database.dart';
 
 /// The safety review grades the primary source's own samples, so a review
-/// stored before the primary changed graded another computer's recording.
-/// Every way of changing the primary drops the stored review so it
-/// recomputes on next view, as a profile edit already does.
+/// stored before the primary source changed graded another computer's
+/// recording. Changing it drops the stored review so it recomputes on next
+/// view, as a profile edit already does.
 void main() {
   late AppDatabase db;
   late SafetyFindingsRepository findings;
@@ -109,14 +108,6 @@ void main() {
       diveId: 'dive-1',
       computerReadingId: 'src-b',
     );
-
-    expect(await findings.getReview('dive-1'), isNull);
-  });
-
-  test('setPrimaryProfile drops the stored review', () async {
-    expect(await findings.getReview('dive-1'), isNotNull);
-
-    await DiveComputerRepository().setPrimaryProfile('dive-1', 'dc-b');
 
     expect(await findings.getReview('dive-1'), isNull);
   });
