@@ -218,6 +218,20 @@ void main() {
     );
   });
 
+  test('a dived slot with no end pressure keeps its mix, no dash', () {
+    final dived = TripCylinderState(
+      cylinder: slot,
+      bottleLabel: 'Truck 1',
+      status: TripCylinderStatus.partial,
+      mix: const GasMix(o2: 32),
+    );
+    expect(tripCylinderGasParts(l10n, units, dived), ['EAN32']);
+    expect(
+      tripCylinderPickerLabel(l10n, units, dived),
+      'Truck 1 · Partial · EAN32',
+    );
+  });
+
   test('the dive link strings exist in English', () {
     expect(l10n.diveLog_tank_tripCylinderLabel, 'Trip cylinder');
     expect(l10n.diveLog_tank_tripCylinderNone, 'None');
