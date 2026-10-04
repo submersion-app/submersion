@@ -298,19 +298,51 @@ class BleCharacteristicSelectorTest {
         )))
     }
 
-    // 17. Strict fallback: a write/notify service wins in either order.
+    // 17. The Seac service wins over a write/notify pair elsewhere on the
+    // device, in either order. A Tablet on Android 1.8.1 (issue #1454) took
+    // the other service's pair, and its commands were rejected with ATT 0x0D.
     @Test
-    fun notifyServiceBeatsTheReadPollService() {
+    fun readPollServiceBeatsANotifyServiceElsewhere() {
         val notifyService = service("0000ffe0-0000-1000-8000-00805f9b34fb", char("0000ffe1-0000-1000-8000-00805f9b34fb", WNR, N))
         val seac = service(SEAC_SERVICE, char(SEAC_DATA, R, W))
 
         val seacFirst = BleCharacteristicSelector.select(listOf(seac, notifyService))
-        assertEquals(ResponseMode.NOTIFY, seacFirst?.responseMode)
-        assertEquals(1, seacFirst?.serviceIndex)
+        assertEquals(ResponseMode.READ, seacFirst?.responseMode)
+        assertEquals(0, seacFirst?.serviceIndex)
 
         val seacLast = BleCharacteristicSelector.select(listOf(notifyService, seac))
-        assertEquals(ResponseMode.NOTIFY, seacLast?.responseMode)
-        assertEquals(0, seacLast?.serviceIndex)
+        assertEquals(ResponseMode.READ, seacLast?.responseMode)
+        assertEquals(1, seacLast?.serviceIndex)
+    }
+
+    // 17b. Nordic's buttonless DFU service carries a write+indicate pair, so
+    // it is the shape most likely to shadow the Seac service on real hardware.
+    @Test
+    fun seacTabletWithADfuServiceSelectsReadMode() {
+        val services = listOf(
+            service("0000180f-0000-1000-8000-00805f9b34fb", char("00002a19-0000-1000-8000-00805f9b34fb", R, N)),
+            service("0000fe59-0000-1000-8000-00805f9b34fb", char("8ec90003-f315-4f60-9fb8-838830daea50", W, I)),
+            service(SEAC_SERVICE, char(SEAC_DATA, R, W))
+        )
+        val selection = BleCharacteristicSelector.select(services)
+        val result = resolve(services, selection)
+        assertEquals(ResponseMode.READ, selection?.responseMode)
+        assertEquals(2, result?.serviceIndex)
+        assertEquals(uuid(SEAC_DATA), result?.write)
+        assertEquals(uuid(SEAC_DATA), result?.response)
+    }
+
+    // 17c. A Seac service that cannot carry the link (no READ, no pair of its
+    // own) does not stop the search: another service's pair is still chosen.
+    @Test
+    fun unusableSeacServiceLeavesTheNotifyPass() {
+        val services = listOf(
+            service(SEAC_SERVICE, char(SEAC_DATA, W)),
+            service("0000ffe0-0000-1000-8000-00805f9b34fb", char("0000ffe1-0000-1000-8000-00805f9b34fb", WNR, N))
+        )
+        val selection = BleCharacteristicSelector.select(services)
+        assertEquals(ResponseMode.NOTIFY, selection?.responseMode)
+        assertEquals(1, selection?.serviceIndex)
     }
 
     // 18. READ plus a write property are both required; write-without-response
@@ -324,11 +356,20 @@ class BleCharacteristicSelectorTest {
         assertEquals(ResponseMode.READ, selectSeac(R, WNR)?.responseMode)
     }
 
-    // 19. Firmware that adds notify gets the ordinary notify path.
+    // 19. Firmware that adds notify gets the ordinary notify path, still on the
+    // Seac service even when another service's pair scores higher.
     @Test
     fun seacCharacteristicThatNotifiesUsesTheNotifyPath() {
         val services = listOf(service(SEAC_SERVICE, char(SEAC_DATA, R, W, N)))
         assertEquals(ResponseMode.NOTIFY, BleCharacteristicSelector.select(services)?.responseMode)
+
+        val withOther = listOf(
+            service("0000ffe0-0000-1000-8000-00805f9b34fb", char("0000ffe1-0000-1000-8000-00805f9b34fb", WNR, N)),
+            service(SEAC_SERVICE, char(SEAC_DATA, R, W, N))
+        )
+        val selection = BleCharacteristicSelector.select(withOther)
+        assertEquals(ResponseMode.NOTIFY, selection?.responseMode)
+        assertEquals(1, selection?.serviceIndex)
     }
 
     // Issue #422: the Cressi service (Goa family) is preferred, as in

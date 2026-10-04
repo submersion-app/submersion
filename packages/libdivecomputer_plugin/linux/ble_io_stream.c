@@ -145,6 +145,35 @@ static gboolean device_connected(GDBusConnection* conn,
     return connected;
 }
 
+// Best write and notify characteristic under one GATT service. BlueZ lists
+// characteristics flat, so pairs are kept per parent service path and the
+// Seac service's own pair is looked up once every service UUID is known.
+typedef struct {
+    int write_score;
+    gchar* write_path;
+    int notify_score;
+    gchar* notify_path;
+} ServicePair;
+
+static void service_pair_free(gpointer data) {
+    ServicePair* pair = data;
+    g_free(pair->write_path);
+    g_free(pair->notify_path);
+    g_free(pair);
+}
+
+static ServicePair* service_pair_for(GHashTable* pairs,
+                                     const gchar* service_path) {
+    ServicePair* pair = g_hash_table_lookup(pairs, service_path);
+    if (!pair) {
+        pair = g_new0(ServicePair, 1);
+        pair->write_score = -1;
+        pair->notify_score = -1;
+        g_hash_table_insert(pairs, g_strdup(service_path), pair);
+    }
+    return pair;
+}
+
 // Check if a characteristic has a specific flag (e.g., "write", "notify").
 static gboolean has_flag(GDBusConnection* conn, const gchar* char_path,
                          const gchar* flag) {
@@ -493,9 +522,10 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
     GPtrArray* read_poll_candidates = g_ptr_array_new_with_free_func(g_free);
     GPtrArray* read_poll_parents = g_ptr_array_new_with_free_func(g_free);
     gchar* read_poll_path = NULL;
-    // Parent service of the best notify candidate, so the read tier can tell
-    // a notify characteristic under the Seac service from one elsewhere.
-    gchar* best_notify_service_path = NULL;
+    // Best write/notify pair per parent service path, so the Seac service's
+    // own pair can win over a higher-scoring pair elsewhere on the device.
+    GHashTable* service_pairs = g_hash_table_new_full(
+        g_str_hash, g_str_equal, g_free, service_pair_free);
     GHashTable* service_uuids =
         g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
@@ -542,6 +572,10 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
             continue;
         }
         const gchar* uuid = g_variant_get_string(uuid_var, NULL);
+        GVariant* parent_var = g_variant_lookup_value(
+            char_props, "Service", G_VARIANT_TYPE_OBJECT_PATH);
+        const gchar* parent_path =
+            parent_var ? g_variant_get_string(parent_var, NULL) : NULL;
         g_hash_table_replace(stream->characteristic_paths,
                              g_ascii_strdown(uuid, -1), g_strdup(obj_path));
 
@@ -564,13 +598,9 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
             g_free(ublox_credits_path);
             ublox_credits_path = g_strdup(obj_path);
         } else if (g_ascii_strcasecmp(uuid, SEAC_DATA_UUID) == 0) {
-            GVariant* parent = g_variant_lookup_value(
-                char_props, "Service", G_VARIANT_TYPE_OBJECT_PATH);
-            if (parent) {
+            if (parent_path) {
                 g_ptr_array_add(read_poll_candidates, g_strdup(obj_path));
-                g_ptr_array_add(read_poll_parents,
-                                g_variant_dup_string(parent, NULL));
-                g_variant_unref(parent);
+                g_ptr_array_add(read_poll_parents, g_strdup(parent_path));
             }
         }
 
@@ -595,6 +625,14 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
                 best_write_path = g_strdup(obj_path);
                 best_write_score = ws;
             }
+            if (parent_path) {
+                ServicePair* pair = service_pair_for(service_pairs, parent_path);
+                if (ws > pair->write_score) {
+                    g_free(pair->write_path);
+                    pair->write_path = g_strdup(obj_path);
+                    pair->write_score = ws;
+                }
+            }
         }
 
         // Score as notify candidate.
@@ -617,16 +655,18 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
                 g_free(best_notify_path);
                 best_notify_path = g_strdup(obj_path);
                 best_notify_score = ns;
-                g_free(best_notify_service_path);
-                GVariant* notify_parent = g_variant_lookup_value(
-                    char_props, "Service", G_VARIANT_TYPE_OBJECT_PATH);
-                best_notify_service_path =
-                    notify_parent ? g_variant_dup_string(notify_parent, NULL)
-                                  : NULL;
-                if (notify_parent) g_variant_unref(notify_parent);
+            }
+            if (parent_path) {
+                ServicePair* pair = service_pair_for(service_pairs, parent_path);
+                if (ns > pair->notify_score) {
+                    g_free(pair->notify_path);
+                    pair->notify_path = g_strdup(obj_path);
+                    pair->notify_score = ns;
+                }
             }
         }
 
+        if (parent_var) g_variant_unref(parent_var);
         g_variant_unref(uuid_var);
         g_variant_unref(char_props);
         g_variant_unref(ifaces);
@@ -650,20 +690,33 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
     }
     g_ptr_array_unref(read_poll_candidates);
     g_ptr_array_unref(read_poll_parents);
-    // BlueZ lists characteristics flat, so the notify pass above spans every
-    // service: a stray notify characteristic anywhere on the device (Battery
-    // Level, a DFU service) would otherwise shadow the allowlisted service,
-    // where Android, darwin and Windows would still pick it. Only a notify
-    // characteristic under the Seac service itself keeps the notify path.
-    gboolean seac_notifies = FALSE;
-    if (best_notify_service_path) {
-        const gchar* notify_parent_uuid =
-            g_hash_table_lookup(service_uuids, best_notify_service_path);
-        seac_notifies =
-            notify_parent_uuid &&
-            g_ascii_strcasecmp(notify_parent_uuid, SEAC_SERVICE_UUID) == 0;
+    // The Seac service is the computer's serial channel whatever else the
+    // device advertises (issue #1454), matching BleCharacteristicSelector on
+    // Android and darwin and DiscoverCharacteristics on Windows: its own
+    // write/notify pair if firmware ever adds one, otherwise the read tier.
+    // The flat notify pass above spans every service, so without this a pair
+    // elsewhere (Battery Level, a DFU service) would shadow it, or a write
+    // from another service could be paired with a Seac notify.
+    gchar* seac_write_path = NULL;
+    gchar* seac_notify_path = NULL;
+    GHashTableIter pair_iter;
+    gpointer pair_service_path;
+    gpointer pair_value;
+    g_hash_table_iter_init(&pair_iter, service_pairs);
+    while (g_hash_table_iter_next(&pair_iter, &pair_service_path,
+                                  &pair_value)) {
+        const ServicePair* pair = pair_value;
+        const gchar* service_uuid =
+            g_hash_table_lookup(service_uuids, pair_service_path);
+        if (service_uuid &&
+            g_ascii_strcasecmp(service_uuid, SEAC_SERVICE_UUID) == 0 &&
+            pair->write_path && pair->notify_path) {
+            seac_write_path = g_strdup(pair->write_path);
+            seac_notify_path = g_strdup(pair->notify_path);
+            break;
+        }
     }
-    g_free(best_notify_service_path);
+    g_hash_table_unref(service_pairs);
     g_hash_table_unref(service_uuids);
 
     // Only run the handshake on a complete known layout, so every other device
@@ -687,7 +740,12 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
     g_free(ublox_data_path);
     g_free(ublox_credits_path);
 
-    if (read_poll_path && !seac_notifies) {
+    if (seac_write_path) {
+        g_free(best_write_path);
+        g_free(best_notify_path);
+        best_write_path = seac_write_path;
+        best_notify_path = seac_notify_path;
+    } else if (read_poll_path) {
         // Read-poll tier (issue #1454): the computer cannot push its replies,
         // so there is no StartNotify, no PropertiesChanged subscription and no
         // credit handshake; the poller reads the characteristic whenever

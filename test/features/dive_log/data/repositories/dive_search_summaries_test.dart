@@ -115,6 +115,34 @@ void main() {
     expect(s.sortTimestamp, DateTime(2026, 3, 1).millisecondsSinceEpoch);
   });
 
+  test('matches a dive type by stored and translated name (#2884)', () async {
+    await repository.createDive(
+      domain.Dive(
+        id: 'ice',
+        dateTime: DateTime(2026, 1, 1),
+        notes: '',
+        diveTypeIds: const ['ice'],
+      ),
+    );
+    await repository.createDive(dive('reef', notes: 'coral garden'));
+
+    expect((await repository.searchDiveSummaries('ice')).map((s) => s.id), [
+      'ice',
+    ]);
+    expect((await repository.searchDiveSummaries('Eis')).map((s) => s.id), [
+      'ice',
+    ]);
+  });
+
+  test('LIKE wildcards in the term match literally', () async {
+    await repository.createDive(dive('pct', notes: '100% visibility'));
+    await repository.createDive(dive('other', notes: 'murky'));
+
+    expect((await repository.searchDiveSummaries('%')).map((s) => s.id), [
+      'pct',
+    ]);
+  });
+
   test('no matches returns empty', () async {
     await repository.createDive(dive('x1', notes: 'kelp forest'));
     expect(await repository.searchDiveSummaries('zzznope'), isEmpty);

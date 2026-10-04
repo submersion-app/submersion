@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
+import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
 import 'package:submersion/features/trips/presentation/helpers/day_type_l10n.dart';
 import 'package:submersion/features/trips/presentation/helpers/weather_icon.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -65,11 +66,15 @@ class TripStoryDayHeader extends ConsumerWidget {
     // subtitle outright - it reads in the same slot where an itinerary day
     // leads with its day type ("Dive Day", "Travel Day"). A dive day planned
     // at 0 dives reads the same way: its stored type contradicts the plan.
+    // A rest day with a dive logged reads as a dive day (#2875).
     final surfaceLabel = day.isSurface || day.isPlannedRest;
     final subtitleParts = <String>[
       if (surfaceLabel) context.l10n.trips_story_surfaceDay,
       if (itinerary != null && !surfaceLabel)
-        itinerary.dayType.localizedName(context),
+        shownDayType(
+          itinerary,
+          hasDives: day.dives.isNotEmpty,
+        ).localizedName(context),
       if (itinerary?.portName != null) itinerary!.portName!,
       ...day.siteNames,
     ].map((part) => part.trim()).where((part) => part.isNotEmpty).toList();

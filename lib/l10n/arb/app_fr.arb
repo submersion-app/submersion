@@ -378,6 +378,7 @@
       }
     }
   },
+  "trips_story_dayMap_diveGroup": "{count, plural, other{{count} plongées ici}}",
   "diveLog_bulkEdit_groupRebreather": "Mode de plongée et recycleur",
   "diveLog_bulkEdit_fieldSetpointLow": "Consigne basse",
   "diveLog_bulkEdit_fieldSetpointHigh": "Consigne haute",
@@ -6554,7 +6555,7 @@
   "trips_detail_dives_errorLoading": "Impossible de charger les plongées",
   "trips_detail_error_loading": "Impossible de charger le voyage.",
   "trips_detail_dives_unknownSite": "Site inconnu",
-  "trips_detail_durationDays": "{days} jours",
+  "trips_detail_durationDays": "{days, plural, =1{{days} jour} other{{days} jours}}",
   "trips_detail_export_csv_comingSoon": "Export CSV bientôt disponible",
   "trips_detail_export_csv_subtitle": "Toutes les plongées de ce voyage",
   "trips_detail_export_csv_title": "Exporter en CSV",
@@ -6571,7 +6572,7 @@
   "trips_detail_scan_addDivesFirst": "Ajoutez d'abord des plongées pour associer des photos",
   "trips_detail_scan_errorLinking": "Impossible d'associer les photos. Réessayez.",
   "trips_detail_scan_errorScanning": "Impossible de rechercher les photos. Réessayez.",
-  "trips_detail_scan_linkedPhotos": "{count} photos associées",
+  "trips_detail_scan_linkedPhotos": "{count, plural, =1{{count} photo associée} other{{count} photos associées}}",
   "trips_detail_scan_linkingPhotos": "Association des photos...",
   "trips_detail_sectionTitle_notes": "Notes",
   "trips_detail_sectionTitle_vessel": "Vessel",
@@ -6652,7 +6653,7 @@
   },
   "trips_overview_itinerary_none": "Pas encore planifié",
   "trips_overview_plan": "Plan",
-  "trips_overview_plan_divesPerDay": "{count} plongées/jour",
+  "trips_overview_plan_divesPerDay": "{count, plural, =1{{count} plongée/jour} other{{count} plongées/jour}}",
   "@trips_overview_plan_divesPerDay": {
     "placeholders": {
       "count": {
@@ -6704,7 +6705,7 @@
   "trips_edit_label_diversSharing": "Plongeurs partageant les blocs",
   "trips_edit_hint_diversSharing": "Vous compris. Vide signifie 1.",
   "trips_edit_label_divesPerDay": "Plongées par jour",
-  "trips_edit_hint_divesPerDay": "Pour la prévision de remplissage. Vide signifie estimer.",
+  "trips_edit_hint_divesPerDay": "Pour la prévision de remplissage. Laisser vide pour utiliser les plongées prévues ou le plan de chaque jour.",
   "trips_edit_label_expectedDives": "Plongées prévues",
   "trips_edit_hint_expectedDives": "Laisser vide pour estimer d'après vos voyages récents",
   "trips_edit_label_expectedRuntime": "Durée prévue par plongée (minutes)",
@@ -6823,6 +6824,8 @@
   "trips_gear_slot_rental": "Location",
   "trips_gear_slot_own": "Mon matériel",
   "trips_gear_openBoard": "Ouvrir le tableau",
+  "trips_gear_tank_notOnBoard": "Pas sur le tableau",
+  "trips_gear_tank_putOnBoard": "Mettre au tableau",
   "trips_cylinders_forecast_todayShort": "Aujourd'hui il en faut {needed}, vous en avez {full} pleins.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {
@@ -6871,7 +6874,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_useEstimate": "Utiliser l'estimation",
+  "trips_cylinders_forecast_clearPlan": "Effacer le plan",
   "trips_cylinders_forecast_fewer": "Moins de plongées",
   "trips_cylinders_forecast_more": "Plus de plongées",
   "trips_cylinders_forecast_saveError": "Impossible d'enregistrer le plan. Réessayez.",
@@ -7149,7 +7152,7 @@
   "trips_gallery_errorLinking": "Impossible d'associer les photos. Réessayez.",
   "trips_gallery_errorScanning": "Impossible de rechercher les photos. Réessayez.",
   "trips_gallery_error_loading": "Impossible de charger les photos.",
-  "trips_gallery_linkedPhotos": "{count} photos associées",
+  "trips_gallery_linkedPhotos": "{count, plural, =1{{count} photo associée} other{{count} photos associées}}",
   "trips_gallery_linkingPhotos": "Association des photos...",
   "trips_gallery_tooltip_scan": "Scanner la galerie de l'appareil",
   "trips_gallery_tripNotFound": "Voyage introuvable",
@@ -7171,6 +7174,7 @@
   },
   "trips_itinerary_plannedDives_label": "Plongées prévues",
   "trips_itinerary_plannedDives_invalid": "Saisissez un nombre entier de plongées, ou laissez vide.",
+  "trips_itinerary_plannedDives_tooMany": "Prévoyez au maximum {max} plongées par jour.",
   "trips_itinerary_location_label": "Lieu",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",
@@ -7187,7 +7191,7 @@
   "trips_list_inProgress": "En cours",
   "trips_list_pastSection": "Voyages passés",
   "trips_list_sort_title": "Trier les voyages",
-  "trips_list_tile_diveCount": "{count} plongées",
+  "trips_list_tile_diveCount": "{count, plural, =1{{count} plongée} other{{count} plongées}}",
   "trips_list_tooltip_addTrip": "Ajouter un voyage",
   "trips_list_tooltip_search": "Rechercher des voyages",
   "trips_list_tooltip_sort": "Trier",
@@ -7195,7 +7199,7 @@
   "trips_photos_empty_scanButton": "Scanner la galerie de l'appareil",
   "trips_photos_empty_title": "Aucune photo",
   "trips_photos_error_loading": "Erreur lors du chargement des photos",
-  "trips_photos_moreIndicator_semanticLabel": "{count} photos supplémentaires",
+  "trips_photos_moreIndicator_semanticLabel": "{count, plural, =1{{count} photo supplémentaire} other{{count} photos supplémentaires}}",
   "trips_photos_sectionTitle": "Photos",
   "trips_photos_tooltip_scan": "Scanner la galerie de l'appareil",
   "trips_photos_viewAll": "Voir tout",
@@ -7434,7 +7438,7 @@
       }
     }
   },
-  "trips_diveScan_addButton": "Ajouter {count} plongées",
+  "trips_diveScan_addButton": "{count, plural, =1{Ajouter {count} plongée} other{Ajouter {count} plongées}}",
   "@trips_diveScan_addButton": {
     "placeholders": {
       "count": {
@@ -7442,7 +7446,7 @@
       }
     }
   },
-  "trips_diveScan_added": "{count} plongées ajoutées au voyage",
+  "trips_diveScan_added": "{count, plural, =1{{count} plongée ajoutée au voyage} other{{count} plongées ajoutées au voyage}}",
   "@trips_diveScan_added": {
     "placeholders": {
       "count": {
@@ -7479,7 +7483,7 @@
   },
   "trips_diveScan_noMatches": "Aucune plongée correspondante trouvée",
   "trips_diveScan_noDiver": "Sélectionnez un plongeur actif pour rechercher des plongées",
-  "trips_diveScan_subtitle": "{count} plongées trouvées dans la plage de dates",
+  "trips_diveScan_subtitle": "{count, plural, =1{{count} plongée trouvée dans la plage de dates} other{{count} plongées trouvées dans la plage de dates}}",
   "@trips_diveScan_subtitle": {
     "placeholders": {
       "count": {

@@ -343,6 +343,8 @@ not depend on a developer account:
 	<true/>
 	<key>com.apple.security.device.bluetooth</key>
 	<true/>
+	<key>com.apple.security.device.camera</key>
+	<true/>
 	<key>com.apple.security.device.serial</key>
 	<true/>
 	<key>com.apple.security.device.usb</key>

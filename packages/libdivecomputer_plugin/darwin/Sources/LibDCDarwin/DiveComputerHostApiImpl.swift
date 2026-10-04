@@ -62,7 +62,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                     vendor: vendor,
                     product: product,
                     model: Int64(info.model),
-                    transports: transports
+                    transports: transports,
+                    deliversOldestFirst: info.delivers_oldest_first != 0
                 ))
             }
 

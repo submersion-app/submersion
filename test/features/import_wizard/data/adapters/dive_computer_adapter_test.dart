@@ -1131,6 +1131,65 @@ void main() {
       ).called(1);
     });
 
+    group('after an interrupted download (issue #2902)', () {
+      final older = makeDownloadedDive(
+        startTime: DateTime(2026, 9, 19, 10),
+        fingerprint: 'fp-older',
+      );
+      final newer = makeDownloadedDive(
+        startTime: DateTime(2026, 9, 20, 10),
+        fingerprint: 'fp-newer',
+      );
+
+      test('keeps the saved fingerprint for a newest-first backend', () async {
+        // A Halcyon Symbios session that stopped after its newest dive.
+        // Resuming from that dive would hide every older one it never sent.
+        adapter.setDownloadedDives([newer], interrupted: true);
+        final bundle = await adapter.buildBundle();
+
+        await adapter.performImport(bundle, {
+          ImportEntityType.dives: {0},
+        }, {});
+
+        verify(mockComputerRepo.updateLastDownload('computer-1')).called(1);
+        verifyNever(mockComputerRepo.updateLastFingerprint(any, any));
+      });
+
+      test(
+        'resumes from the newest dive for an oldest-first backend',
+        () async {
+          adapter.setDownloadedDives(
+            [older, newer],
+            interrupted: true,
+            deliversOldestFirst: true,
+          );
+          final bundle = await adapter.buildBundle();
+
+          await adapter.performImport(bundle, {
+            ImportEntityType.dives: {0, 1},
+          }, {});
+
+          verify(
+            mockComputerRepo.updateLastFingerprint('computer-1', 'fp-newer'),
+          ).called(1);
+        },
+      );
+
+      test('a later complete download resumes from its newest dive', () async {
+        adapter.setDownloadedDives([newer], interrupted: true);
+        adapter.setDownloadedDives([newer, older]);
+        final bundle = await adapter.buildBundle();
+
+        await adapter.performImport(bundle, {
+          ImportEntityType.dives: {0, 1},
+        }, {});
+
+        verify(
+          mockComputerRepo.updateLastFingerprint('computer-1', 'fp-newer'),
+        ).called(1);
+      });
+    });
+
     test('returns error result when no computer is available', () async {
       final adapterNoComputer = DiveComputerAdapter(
         importService: mockImportService,

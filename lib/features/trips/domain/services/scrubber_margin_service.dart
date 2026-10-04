@@ -85,8 +85,8 @@ ScrubberMargin computeScrubberMargin(ScrubberMarginInputs inputs) {
 int? positiveOverride(int? v) => v != null && v > 0 ? v : null;
 
 /// Dives per dive day from the diver's recent trips: their median, else
-/// [defaultDivesPerDiveDay]. Shared by the scrubber margin and the fill
-/// forecast so the two never disagree about the same diver.
+/// [defaultDivesPerDiveDay]. The scrubber margin's alone: the fill forecast
+/// never estimates from past trips (#2903).
 double estimatedDivesPerDiveDay(List<double> history) =>
     history.isEmpty ? defaultDivesPerDiveDay : medianOf(history);
 

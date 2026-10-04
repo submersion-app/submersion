@@ -38,6 +38,13 @@ bool isTripDiveDay(ItineraryDay? row) {
   return row.dayType == DayType.diveDay;
 }
 
+/// Pure. The type a day reads as: its stored type, except that a rest day
+/// with a dive logged on it reads as a dive day (#2875), the way the trip
+/// story reads a day planned at none that was dived anyway. Display only:
+/// the row keeps its stored type, so removing the dive brings Rest back.
+DayType shownDayType(ItineraryDay row, {required bool hasDives}) =>
+    row.dayType == DayType.rest && hasDives ? DayType.diveDay : row.dayType;
+
 /// Pure. Whether an itinerary row carries nothing but a plan: a dive day,
 /// or the rest day the board writes for a plan of 0 (#2658), with no port,
 /// position or notes. Its planned dive count is the plan

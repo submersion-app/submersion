@@ -53,7 +53,9 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/core/query/compiler/query_compiler.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
+import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
     as domain;
@@ -76,6 +78,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.d
     as domain;
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
+import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
@@ -2938,8 +2941,12 @@ class DiveRepository {
   }
 
   /// Search dives by name, notes, buddy, dive master, site name/country/
-  /// region, dive center name, linked buddy names, tag names, or custom
-  /// fields, returning lightweight [DiveSummary] rows.
+  /// region, dive center name, linked buddy names, tag names, custom fields,
+  /// or dive types, returning lightweight [DiveSummary] rows.
+  ///
+  /// Matches through the Dives search row's own text search
+  /// (`diveQueryEntity.textSearchSql`), so the two can never disagree on what
+  /// a term finds (issue #2884).
   ///
   /// Exactly four SQL statements regardless of match count (match ids,
   /// summary rows, batched tags, batched dive types), bounded to the [limit]
@@ -2966,7 +2973,13 @@ class DiveRepository {
         if (trimmed.isEmpty || limit <= 0) return <DiveSummary>[];
         // Match on the trimmed term so incidental leading/trailing whitespace
         // (e.g. "manta ") does not silently exclude otherwise-matching dives.
-        final likeTerm = '%$trimmed%';
+        // One text node is one phrase, as the old LIKE was.
+        final text = compileQuery(
+          TextNode([trimmed]),
+          diveQueryEntity,
+          appQueryRegistry,
+          rootAlias: 'd',
+        );
         final diverClause = diverId != null ? 'AND d.diver_id = ?' : '';
         final diverArgs = diverId != null
             ? [Variable<String>(diverId)]
@@ -2975,38 +2988,18 @@ class DiveRepository {
         final matchingIds = await _db
             .customSelect(
               '''
-              SELECT DISTINCT d.id,
+              SELECT d.id,
                 COALESCE(d.entry_time, d.dive_date_time) AS sort_ts,
                 d.dive_number AS dive_number
               FROM dives d
-              LEFT JOIN dive_sites ds ON d.site_id = ds.id
-              LEFT JOIN dive_centers dc ON d.dive_center_id = dc.id
-              LEFT JOIN dive_buddies db ON db.dive_id = d.id
-              LEFT JOIN buddies b ON db.buddy_id = b.id
-              LEFT JOIN dive_tags dt ON dt.dive_id = d.id
-              LEFT JOIN tags t ON dt.tag_id = t.id
-              LEFT JOIN dive_custom_fields cf ON cf.dive_id = d.id
-              WHERE (
-                d.notes LIKE ?
-                OR d.name LIKE ?
-                OR d.buddy LIKE ?
-                OR d.dive_master LIKE ?
-                OR ds.name LIKE ?
-                OR ds.country LIKE ?
-                OR ds.region LIKE ?
-                OR dc.name LIKE ?
-                OR b.name LIKE ?
-                OR t.name LIKE ?
-                OR cf.field_key LIKE ?
-                OR cf.field_value LIKE ?
-              )
+              WHERE ${text.where}
               $diverClause
               ORDER BY sort_ts DESC,
                 COALESCE(d.dive_number, 0) DESC, d.id DESC
               LIMIT ?
               ''',
               variables: [
-                for (var i = 0; i < 12; i++) Variable<String>(likeTerm),
+                for (final p in text.params) Variable(p),
                 ...diverArgs,
                 Variable<int>(limit),
               ],

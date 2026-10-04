@@ -2329,6 +2329,12 @@ abstract class AppLocalizations {
   /// **'Dive {number}'**
   String trips_story_dayMap_divePin(int number);
 
+  /// No description provided for @trips_story_dayMap_diveGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, other{{count} dives here}}'**
+  String trips_story_dayMap_diveGroup(int count);
+
   /// No description provided for @diveLog_bulkEdit_groupRebreather.
   ///
   /// In en, this message translates to:
@@ -37982,8 +37988,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_detail_durationDays.
   ///
   /// In en, this message translates to:
-  /// **'{days} days'**
-  String trips_detail_durationDays(Object days);
+  /// **'{days, plural, =1{1 day} other{{days} days}}'**
+  String trips_detail_durationDays(int days);
 
   /// No description provided for @trips_detail_export_csv_comingSoon.
   ///
@@ -38048,8 +38054,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_detail_scan_linkedPhotos.
   ///
   /// In en, this message translates to:
-  /// **'Linked {count} photos'**
-  String trips_detail_scan_linkedPhotos(Object count);
+  /// **'{count, plural, =1{Linked 1 photo} other{Linked {count} photos}}'**
+  String trips_detail_scan_linkedPhotos(int count);
 
   /// No description provided for @trips_detail_scan_linkingPhotos.
   ///
@@ -38120,13 +38126,13 @@ abstract class AppLocalizations {
   /// No description provided for @trips_diveScan_addButton.
   ///
   /// In en, this message translates to:
-  /// **'Add {count} Dives'**
+  /// **'{count, plural, =1{Add 1 Dive} other{Add {count} Dives}}'**
   String trips_diveScan_addButton(int count);
 
   /// No description provided for @trips_diveScan_added.
   ///
   /// In en, this message translates to:
-  /// **'Added {count} dives to trip'**
+  /// **'{count, plural, =1{Added 1 dive to trip} other{Added {count} dives to trip}}'**
   String trips_diveScan_added(int count);
 
   /// No description provided for @trips_diveScan_cancel.
@@ -38180,7 +38186,7 @@ abstract class AppLocalizations {
   /// No description provided for @trips_diveScan_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'{count} dives found in date range'**
+  /// **'{count, plural, =1{1 dive found in date range} other{{count} dives found in date range}}'**
   String trips_diveScan_subtitle(int count);
 
   /// No description provided for @trips_diveScan_title.
@@ -38468,8 +38474,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_gallery_linkedPhotos.
   ///
   /// In en, this message translates to:
-  /// **'Linked {count} photos'**
-  String trips_gallery_linkedPhotos(Object count);
+  /// **'{count, plural, =1{Linked 1 photo} other{Linked {count} photos}}'**
+  String trips_gallery_linkedPhotos(int count);
 
   /// No description provided for @trips_gallery_linkingPhotos.
   ///
@@ -38570,8 +38576,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_list_tile_diveCount.
   ///
   /// In en, this message translates to:
-  /// **'{count} dives'**
-  String trips_list_tile_diveCount(Object count);
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String trips_list_tile_diveCount(int count);
 
   /// No description provided for @trips_list_tooltip_addTrip.
   ///
@@ -38618,8 +38624,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_photos_moreIndicator_semanticLabel.
   ///
   /// In en, this message translates to:
-  /// **'{count} more photos'**
-  String trips_photos_moreIndicator_semanticLabel(Object count);
+  /// **'{count, plural, =1{1 more photo} other{{count} more photos}}'**
+  String trips_photos_moreIndicator_semanticLabel(int count);
 
   /// No description provided for @trips_photos_sectionTitle.
   ///
@@ -38936,7 +38942,7 @@ abstract class AppLocalizations {
   /// No description provided for @trips_edit_hint_divesPerDay.
   ///
   /// In en, this message translates to:
-  /// **'For the fill forecast. Blank means estimate.'**
+  /// **'For the fill forecast. Leave blank to use expected dives or each day\'s plan.'**
   String get trips_edit_hint_divesPerDay;
 
   /// No description provided for @trips_edit_label_expectedDives.
@@ -39139,6 +39145,18 @@ abstract class AppLocalizations {
   /// **'Open board'**
   String get trips_gear_openBoard;
 
+  /// No description provided for @trips_gear_tank_notOnBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Not on the board'**
+  String get trips_gear_tank_notOnBoard;
+
+  /// No description provided for @trips_gear_tank_putOnBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Put on board'**
+  String get trips_gear_tank_putOnBoard;
+
   /// No description provided for @trips_cylinders_forecast_todayShort.
   ///
   /// In en, this message translates to:
@@ -39181,11 +39199,11 @@ abstract class AppLocalizations {
   /// **'Planned dives, {date}'**
   String trips_cylinders_forecast_dayTitle(String date);
 
-  /// No description provided for @trips_cylinders_forecast_useEstimate.
+  /// No description provided for @trips_cylinders_forecast_clearPlan.
   ///
   /// In en, this message translates to:
-  /// **'Use the estimate'**
-  String get trips_cylinders_forecast_useEstimate;
+  /// **'Clear the plan'**
+  String get trips_cylinders_forecast_clearPlan;
 
   /// No description provided for @trips_cylinders_forecast_fewer.
   ///
@@ -39802,7 +39820,7 @@ abstract class AppLocalizations {
   /// No description provided for @trips_overview_plan_divesPerDay.
   ///
   /// In en, this message translates to:
-  /// **'{count} dives/day'**
+  /// **'{count, plural, =1{1 dive/day} other{{count} dives/day}}'**
   String trips_overview_plan_divesPerDay(int count);
 
   /// No description provided for @trips_overview_plan_sharing.
@@ -39954,6 +39972,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a whole number of dives, or leave it blank.'**
   String get trips_itinerary_plannedDives_invalid;
+
+  /// No description provided for @trips_itinerary_plannedDives_tooMany.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan at most {max} dives a day.'**
+  String trips_itinerary_plannedDives_tooMany(int max);
 
   /// No description provided for @trips_itinerary_location_label.
   ///

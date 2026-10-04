@@ -1,7 +1,6 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/theme/status_colors.dart';
@@ -11,7 +10,9 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
+import 'package:submersion/features/trips/domain/services/trip_gear_split.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
@@ -29,10 +30,16 @@ class TripOverviewSummaryCard extends ConsumerWidget {
   /// Where a row goes; without one the page's DefaultTabController is used.
   final ValueChanged<TripDetailTab>? onOpenTab;
 
+  /// Where the Plan row goes; without one the edit page is pushed, open at
+  /// its Planning section. The page passes one so that in the master-detail
+  /// pane the edit opens in the pane (#2880).
+  final VoidCallback? onEditPlan;
+
   const TripOverviewSummaryCard({
     super.key,
     required this.trip,
     this.onOpenTab,
+    this.onEditPlan,
   });
 
   void _open(BuildContext context, TripDetailTab tab) {
@@ -57,11 +64,17 @@ class TripOverviewSummaryCard extends ConsumerWidget {
     List<InlineSpan>? gearSpans;
     if (gear != null && slots != null) {
       final alertCount = alerts == null ? 0 : tripServiceAlertItemCount(alerts);
+      // Counted as the Gear tab lists them (#2873): a slotted tank once, as
+      // its slot, and a packed tank with no slot as a cylinder.
+      final (:packed, :unslottedTanks) = splitTripGear(gear, [
+        for (final s in slots) s.cylinder,
+      ]);
+      final cylinderCount = slots.length + unslottedTanks.length;
       gearSpans = [
-        TextSpan(text: l10n.trips_overview_gear_packed(gear.length)),
-        if (slots.isNotEmpty)
+        TextSpan(text: l10n.trips_overview_gear_packed(packed.length)),
+        if (cylinderCount > 0)
           TextSpan(
-            text: ' · ${l10n.trips_overview_gear_cylinders(slots.length)}',
+            text: ' · ${l10n.trips_overview_gear_cylinders(cylinderCount)}',
           ),
         if (alertCount > 0)
           TextSpan(
@@ -107,7 +120,14 @@ class TripOverviewSummaryCard extends ConsumerWidget {
             icon: Icons.tune,
             label: l10n.trips_overview_plan,
             summary: [TextSpan(text: _planText(l10n))],
-            onTap: () => context.push('/trips/${trip.id}/edit'),
+            onTap:
+                onEditPlan ??
+                () => openTripEdit(
+                  context,
+                  trip.id,
+                  embedded: false,
+                  section: TripEditSection.planning,
+                ),
           ),
         ],
       ),

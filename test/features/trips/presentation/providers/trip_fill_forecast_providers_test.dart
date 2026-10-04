@@ -6,7 +6,7 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -27,11 +27,7 @@ void main() {
 
   setUp(() async {
     db = await setUpTestDatabase();
-    container = ProviderContainer(
-      overrides: [
-        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
-      ],
-    );
+    container = ProviderContainer();
     addTearDown(container.dispose);
     cylinders = TripCylinderRepository();
     tripId = (await TripRepository().createTrip(
@@ -41,6 +37,7 @@ void main() {
         startDate: DateTime(2026, 3, 8),
         endDate: DateTime(2026, 3, 14),
         diversSharingCylinders: 2,
+        divesPerDayTarget: 2,
         createdAt: now,
         updatedAt: now,
       ),
@@ -121,7 +118,7 @@ void main() {
         now,
         () => container.read(tripFillForecastProvider(tripId).future),
       ))!;
-      // Two a day (no history, no target), 2 divers. Today: 1 dive left is 2
+      // Two a day (the trip's target), 2 divers. Today: 1 dive left is 2
       // cylinders; tomorrow 4. Three full leave 1 for tomorrow: 3 short.
       expect(f.fullCount, 3);
       expect(f.todayDemand, 2);
@@ -134,6 +131,64 @@ void main() {
       expect(f.remainingDemand, 18);
     },
   );
+
+  test('a blank day needs nothing, however busy past trips were', () async {
+    // Issue #2903: a past trip of three dives a day, and a trip with no
+    // target whose only plan is one dive tomorrow. Today needs nothing.
+    final past = (await TripRepository().createTrip(
+      Trip(
+        id: '',
+        name: 'Cozumel',
+        startDate: DateTime(2026, 1, 5),
+        endDate: DateTime(2026, 1, 6),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    )).id;
+    for (final (i, hour) in [8, 11, 14].indexed) {
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'past$i',
+              diveDateTime: DateTime.utc(
+                2026,
+                1,
+                5,
+                hour,
+              ).millisecondsSinceEpoch,
+              tripId: Value(past),
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+    }
+    final trip = (await TripRepository().createTrip(
+      Trip(
+        id: '',
+        name: 'Liveaboard',
+        startDate: DateTime(2026, 3, 8),
+        endDate: DateTime(2026, 3, 14),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    )).id;
+    tripId = trip;
+    await fullSlots(2);
+    await ItineraryDayRepository().setPlannedDives(
+      tripId: trip,
+      date: DateTime(2026, 3, 11),
+      plannedDives: 1,
+    );
+
+    final f = (await at(
+      now,
+      () => container.read(tripFillForecastProvider(trip).future),
+    ))!;
+    expect(f.todayDemand, 0);
+    expect(f.tomorrowDemand, 1);
+    expect([for (final d in f.days) d.plannedDives], [0, 1, 0, 0, 0]);
+  });
 
   test('an ended trip has no forecast', () async {
     await fullSlots(2);

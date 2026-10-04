@@ -36,12 +36,13 @@ G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDeviceDescriptor, libdivecomputer_plug
  * product: field in this object.
  * model: field in this object.
  * transports: field in this object.
+ * delivers_oldest_first: field in this object.
  *
  * Creates a new #DeviceDescriptor object.
  *
  * Returns: a new #LibdivecomputerPluginDeviceDescriptor
  */
-LibdivecomputerPluginDeviceDescriptor* libdivecomputer_plugin_device_descriptor_new(const gchar* vendor, const gchar* product, int64_t model, FlValue* transports);
+LibdivecomputerPluginDeviceDescriptor* libdivecomputer_plugin_device_descriptor_new(const gchar* vendor, const gchar* product, int64_t model, FlValue* transports, gboolean delivers_oldest_first);
 
 /**
  * libdivecomputer_plugin_device_descriptor_get_vendor
@@ -82,6 +83,19 @@ int64_t libdivecomputer_plugin_device_descriptor_get_model(LibdivecomputerPlugin
  * Returns: the field value.
  */
 FlValue* libdivecomputer_plugin_device_descriptor_get_transports(LibdivecomputerPluginDeviceDescriptor* object);
+
+/**
+ * libdivecomputer_plugin_device_descriptor_get_delivers_oldest_first
+ * @object: a #LibdivecomputerPluginDeviceDescriptor.
+ *
+ * Whether this backend hands dives over oldest-first. libdivecomputer is
+ * newest-first except where the fork reversed a driver (Shearwater
+ * Petrel, issue #480). Only for such a backend is an interrupted
+ * download's newest dive a safe resume point (issue #2902).
+ *
+ * Returns: the field value.
+ */
+gboolean libdivecomputer_plugin_device_descriptor_get_delivers_oldest_first(LibdivecomputerPluginDeviceDescriptor* object);
 
 /**
  * LibdivecomputerPluginDiscoveredDevice:

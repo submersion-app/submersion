@@ -145,6 +145,64 @@ void main() {
     });
   });
 
+  group('NavTrackMatcher.soleCandidateFor', () {
+    final routeStart = _sec(2026, 8, 22, 10, 10);
+    final routeEnd = _sec(2026, 8, 22, 11, 0);
+    final overlapping = _dive(
+      'd1',
+      DateTime.utc(2026, 8, 22, 10, 0),
+      exit: DateTime.utc(2026, 8, 22, 11, 30),
+    );
+
+    test('suggests the one dive whose window overlaps the route', () {
+      final farAway = _dive(
+        'd2',
+        DateTime.utc(2026, 8, 23, 10, 0),
+        exit: DateTime.utc(2026, 8, 23, 11, 0),
+      );
+      expect(
+        NavTrackMatcher.soleCandidateFor(
+          routeStartSeconds: routeStart,
+          routeEndSeconds: routeEnd,
+          dives: [farAway, overlapping],
+        ),
+        overlapping,
+      );
+    });
+
+    test('suggests nothing when two dives overlap (ambiguous)', () {
+      final alsoOverlapping = _dive(
+        'd2',
+        DateTime.utc(2026, 8, 22, 10, 20),
+        exit: DateTime.utc(2026, 8, 22, 10, 50),
+      );
+      expect(
+        NavTrackMatcher.soleCandidateFor(
+          routeStartSeconds: routeStart,
+          routeEndSeconds: routeEnd,
+          dives: [overlapping, alsoOverlapping],
+        ),
+        isNull,
+      );
+    });
+
+    test('suggests nothing when no dive is close in time (unmatched)', () {
+      final farAway = _dive(
+        'd2',
+        DateTime.utc(2026, 8, 23, 10, 0),
+        exit: DateTime.utc(2026, 8, 23, 11, 0),
+      );
+      expect(
+        NavTrackMatcher.soleCandidateFor(
+          routeStartSeconds: routeStart,
+          routeEndSeconds: routeEnd,
+          dives: [farAway],
+        ),
+        isNull,
+      );
+    });
+  });
+
   group('NavTrackMatcher.nearestByStart', () {
     test('orders every dive by distance from the route start, however far '
         'outside the tolerance window (a device clock set 2 hours ahead)', () {

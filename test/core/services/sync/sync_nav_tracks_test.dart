@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show TableUpdateQuery;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
@@ -163,6 +164,71 @@ void main() {
         .customSelect("SELECT diver_id FROM nav_tracks WHERE id = '$id'")
         .getSingle();
     expect(row.read<String?>('diver_id'), 'me');
+  });
+
+  group('re-owning a linked route after a synced dive changes diver', () {
+    late String routeId;
+
+    setUp(() async {
+      for (final id in ['me', 'buddy']) {
+        await db.customStatement(
+          "INSERT INTO divers (id, name, created_at, updated_at) "
+          "VALUES ('$id', '$id', 1, 1)",
+        );
+      }
+      await db.customStatement(
+        "INSERT INTO dives (id, diver_id, dive_date_time, created_at, "
+        "updated_at) VALUES ('d', 'me', 1700000000000, 1, 1)",
+      );
+      routeId = await repo.insertImportedRoute(
+        points: samplePoints(),
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: '008.DAT.csv',
+        diverId: 'me',
+      );
+      await repo.link(routeId, 'd', linkMode: NavTrackLinkMode.manual);
+    });
+
+    /// How many nav_tracks change notifications [body] sends, once its
+    /// transaction has committed and Drift has delivered them.
+    Future<int> routeNotificationsDuring(Future<void> Function() body) async {
+      // Let the seeding writes' own notifications drain first.
+      await pumpEventQueue();
+      var count = 0;
+      final sub = db
+          .tableUpdates(TableUpdateQuery.onTable(db.navTracks))
+          .listen((_) => count++);
+      addTearDown(sub.cancel);
+      await body();
+      await pumpEventQueue();
+      return count;
+    }
+
+    test('tells route watchers, so the routes list drops it (#2851)', () async {
+      final dive = (await serializer.fetchRecord('dives', 'd'))!;
+
+      final notifications = await routeNotificationsDuring(
+        () => serializer.applyInDeferredFkTransaction(() async {
+          // The dive alone arrives; its route is not in the payload.
+          await serializer.upsertRecord('dives', {...dive, 'diverId': 'buddy'});
+          await serializer.repairDanglingForeignKeys();
+        }),
+      );
+
+      final row = await db
+          .customSelect("SELECT diver_id FROM nav_tracks WHERE id = '$routeId'")
+          .getSingle();
+      expect(row.read<String?>('diver_id'), 'buddy');
+      expect(notifications, greaterThan(0));
+    });
+
+    test('stays quiet when every linked route already has its owner', () async {
+      final notifications = await routeNotificationsDuring(
+        serializer.alignLinkedRouteOwners,
+      );
+
+      expect(notifications, 0);
+    });
   });
 
   test(

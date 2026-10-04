@@ -3,6 +3,10 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 
+/// The most dives a diver can plan on one day: the cylinder planning board's
+/// stepper stops here, and the day sheet refuses more (#2876).
+const int kMaxPlannedDivesPerDay = 12;
+
 /// A single day in a trip itinerary
 class ItineraryDay extends Equatable {
   final String id;

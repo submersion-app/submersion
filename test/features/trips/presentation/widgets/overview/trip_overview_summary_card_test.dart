@@ -52,10 +52,11 @@ TripChecklistItem _todo(String id, {bool done = false, DateTime? due}) =>
       updatedAt: DateTime(2026, 1, 1),
     );
 
-TripCylinderState _slot(String id) => foldCylinderState(
+TripCylinderState _slot(String id, {String? equipmentId}) => foldCylinderState(
   cylinder: TripCylinder(
     id: id,
     tripId: 't1',
+    equipmentId: equipmentId,
     label: id,
     createdAt: DateTime(2026, 1, 1),
     updatedAt: DateTime(2026, 1, 1),
@@ -117,6 +118,7 @@ Future<({List<TripDetailTab> opened, List<String> pushed})> _pump(
   List<DueClock>? alerts,
   List<ItineraryDay>? days,
   bool loading = false,
+  VoidCallback? onEditPlan,
 }) async {
   final opened = <TripDetailTab>[];
   final pushed = <String>[];
@@ -129,13 +131,14 @@ Future<({List<TripDetailTab> opened, List<String> pushed})> _pump(
           body: TripOverviewSummaryCard(
             trip: trip ?? _trip(),
             onOpenTab: opened.add,
+            onEditPlan: onEditPlan,
           ),
         ),
       ),
       GoRoute(
         path: '/trips/:id/edit',
         builder: (_, s) {
-          pushed.add(s.uri.path);
+          pushed.add(s.uri.toString());
           return const Scaffold();
         },
       ),
@@ -212,6 +215,39 @@ void main() {
     );
   });
 
+  testWidgets('the gear row counts tanks as the Gear tab lists them (#2873)', (
+    tester,
+  ) async {
+    // A slotted tank still holding an old packed link counts once, as its
+    // slot; a packed tank with no slot counts as a cylinder, not packed.
+    await _pump(
+      tester,
+      gear: const [
+        EquipmentItem(id: 'g1', name: 'Reg', type: EquipmentType.regulator),
+        EquipmentItem(id: 'tk1', name: 'Faber', type: EquipmentType.tank),
+        EquipmentItem(id: 'tk2', name: 'Al80', type: EquipmentType.tank),
+      ],
+      slots: [_slot('c1', equipmentId: 'tk1')],
+    );
+    expect(find.text('1 item packed · 2 cylinders'), findsOneWidget);
+  });
+
+  testWidgets('the packed count leaves out owned tanks on a cylinder slot, '
+      'as the Gear tab does (#2874)', (tester) async {
+    await _pump(
+      tester,
+      gear: const [
+        EquipmentItem(id: 'g1', name: 'Reg', type: EquipmentType.regulator),
+        EquipmentItem(id: 'tank1', name: 'AL80', type: EquipmentType.tank),
+      ],
+      slots: [
+        _slot('c1', equipmentId: 'tank1'),
+        _slot('c2'),
+      ],
+    );
+    expect(find.text('1 item packed · 2 cylinders'), findsOneWidget);
+  });
+
   testWidgets('the itinerary row sums planned dives and falls back to the '
       'per-day target', (tester) async {
     await _pump(
@@ -253,6 +289,14 @@ void main() {
     expect(find.text('3 dives/day · 2 divers share cylinders'), findsOneWidget);
   });
 
+  testWidgets('a target of one dive a day reads in the singular', (
+    tester,
+  ) async {
+    // #2878: it read "1 dives/day".
+    await _pump(tester, trip: _trip(perDay: 1, sharing: 1));
+    expect(find.text('1 dive/day'), findsOneWidget);
+  });
+
   testWidgets('with no planning numbers the plan row says Not set', (
     tester,
   ) async {
@@ -282,6 +326,18 @@ void main() {
     ]);
     await tester.tap(find.text('Plan'));
     await tester.pumpAndSettle();
-    expect(h.pushed, ['/trips/t1/edit']);
+    // Without a handler the edit page opens at its Planning section (#2880).
+    expect(h.pushed, ['/trips/t1/edit?section=planning']);
+  });
+
+  testWidgets('Plan goes to the handler when one is given (#2880)', (
+    tester,
+  ) async {
+    var edits = 0;
+    final h = await _pump(tester, onEditPlan: () => edits++);
+    await tester.tap(find.text('Plan'));
+    await tester.pumpAndSettle();
+    expect(edits, 1);
+    expect(h.pushed, isEmpty);
   });
 }

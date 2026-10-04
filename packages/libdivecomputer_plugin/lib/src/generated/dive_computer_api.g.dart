@@ -37,6 +37,7 @@ class DeviceDescriptor {
     required this.product,
     required this.model,
     required this.transports,
+    this.deliversOldestFirst = false,
   });
 
   String vendor;
@@ -47,8 +48,14 @@ class DeviceDescriptor {
 
   List<TransportType> transports;
 
+  /// Whether this backend hands dives over oldest-first. libdivecomputer is
+  /// newest-first except where the fork reversed a driver (Shearwater
+  /// Petrel, issue #480). Only for such a backend is an interrupted
+  /// download's newest dive a safe resume point (issue #2902).
+  bool deliversOldestFirst;
+
   Object encode() {
-    return <Object?>[vendor, product, model, transports];
+    return <Object?>[vendor, product, model, transports, deliversOldestFirst];
   }
 
   static DeviceDescriptor decode(Object result) {
@@ -58,6 +65,7 @@ class DeviceDescriptor {
       product: result[1]! as String,
       model: result[2]! as int,
       transports: (result[3] as List<Object?>?)!.cast<TransportType>(),
+      deliversOldestFirst: result[4]! as bool,
     );
   }
 }

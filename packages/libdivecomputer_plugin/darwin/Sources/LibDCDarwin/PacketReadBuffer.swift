@@ -18,6 +18,7 @@ final class PacketReadBuffer {
     private var chunks: [Data] = []
     private let semaphore = DispatchSemaphore(value: 0)
     private var interrupted = false
+    private var closed = false
 
     /// Append one notification payload. Empty payloads are ignored because a
     /// zero-byte read is treated as a protocol error by the parsers.
@@ -71,7 +72,9 @@ final class PacketReadBuffer {
                 lock.unlock()
                 return count
             }
+            let isClosed = closed
             lock.unlock()
+            if isClosed { return nil }
 
             // Stale signals (from chunks consumed without waiting) cause a
             // spurious wakeup here; the loop re-checks against the absolute
@@ -80,6 +83,24 @@ final class PacketReadBuffer {
                 return nil
             }
         }
+    }
+
+    /// Mark the link as gone (issue #2902). Notifications already buffered
+    /// are still read, one per call; after that read() and poll() return at
+    /// once instead of waiting out their deadline. Closing is permanent: a
+    /// new connection gets a new buffer.
+    func close() {
+        lock.lock()
+        closed = true
+        lock.unlock()
+        semaphore.signal()
+    }
+
+    /// True once close() has been called.
+    var isClosed: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return closed
     }
 
     /// Wake a poll() that is waiting, which then returns false. Used when a
@@ -107,7 +128,7 @@ final class PacketReadBuffer {
     /// timeout or interrupt().
     func poll(deadline: DispatchTime) -> Bool {
         while !hasData {
-            if takeInterrupt() { return false }
+            if takeInterrupt() || isClosed { return false }
             // A consumed signal may be stale (its chunk was already read);
             // loop to re-check rather than report a false positive.
             if semaphore.wait(timeout: deadline) == .timedOut {

@@ -1503,6 +1503,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String trips_story_dayMap_diveGroup(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות כאן',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'מצב צלילה וריבריא\'תר';
 
   @override
@@ -23356,8 +23366,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_detail_dives_unknownSite => 'אתר לא ידוע';
 
   @override
-  String trips_detail_durationDays(Object days) {
-    return '$days ימים';
+  String trips_detail_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days ימים',
+      one: 'יום אחד',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23394,8 +23410,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לסרוק תמונות. נסו שוב.';
 
   @override
-  String trips_detail_scan_linkedPhotos(Object count) {
-    return 'קושרו $count תמונות';
+  String trips_detail_scan_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'קושרו $count תמונות',
+      one: 'קושרה תמונה אחת',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23433,12 +23455,24 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String trips_diveScan_addButton(int count) {
-    return 'הוסף $count צלילות';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הוסף $count צלילות',
+      one: 'הוסף צלילה אחת',
+    );
+    return '$_temp0';
   }
 
   @override
   String trips_diveScan_added(int count) {
-    return 'נוספו $count צלילות לטיול';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'נוספו $count צלילות לטיול',
+      one: 'נוספה צלילה אחת לטיול',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23473,7 +23507,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String trips_diveScan_subtitle(int count) {
-    return 'נמצאו $count צלילות בטווח התאריכים';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'נמצאו $count צלילות בטווח התאריכים',
+      one: 'נמצאה צלילה אחת בטווח התאריכים',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23641,8 +23681,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_gallery_error_loading => 'לא ניתן לטעון את התמונות.';
 
   @override
-  String trips_gallery_linkedPhotos(Object count) {
-    return 'קושרו $count תמונות';
+  String trips_gallery_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'קושרו $count תמונות',
+      one: 'קושרה תמונה אחת',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23706,8 +23752,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_list_sort_title => 'מיון טיולים';
 
   @override
-  String trips_list_tile_diveCount(Object count) {
-    return '$count צלילות';
+  String trips_list_tile_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23732,8 +23784,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_photos_error_loading => 'שגיאה בטעינת תמונות';
 
   @override
-  String trips_photos_moreIndicator_semanticLabel(Object count) {
-    return 'עוד $count תמונות';
+  String trips_photos_moreIndicator_semanticLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'עוד $count תמונות',
+      one: 'עוד תמונה אחת',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23902,7 +23960,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_label_divesPerDay => 'צלילות ליום';
 
   @override
-  String get trips_edit_hint_divesPerDay => 'לתחזית המילוי. ריק פירושו הערכה.';
+  String get trips_edit_hint_divesPerDay =>
+      'לתחזית המילוי. השאר ריק כדי להשתמש בצלילות הצפויות או בתוכנית של כל יום.';
 
   @override
   String get trips_edit_label_expectedDives => 'צלילות צפויות';
@@ -24064,6 +24123,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_gear_openBoard => 'פתיחת הלוח';
 
   @override
+  String get trips_gear_tank_notOnBoard => 'לא על הלוח';
+
+  @override
+  String get trips_gear_tank_putOnBoard => 'הוספה ללוח';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'היום צריך $needed, יש לך $full מלאים.';
   }
@@ -24101,7 +24166,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get trips_cylinders_forecast_useEstimate => 'להשתמש בהערכה';
+  String get trips_cylinders_forecast_clearPlan => 'לנקות את התוכנית';
 
   @override
   String get trips_cylinders_forecast_fewer => 'פחות צלילות';
@@ -24556,7 +24621,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String trips_overview_plan_divesPerDay(int count) {
-    return '$count צלילות ליום';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות ליום',
+      one: 'צלילה אחת ליום',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24660,6 +24731,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get trips_itinerary_plannedDives_invalid =>
       'הזינו מספר שלם של צלילות, או השאירו ריק.';
+
+  @override
+  String trips_itinerary_plannedDives_tooMany(int max) {
+    return 'תכננו עד $max צלילות ביום.';
+  }
 
   @override
   String get trips_itinerary_location_label => 'מיקום';

@@ -35,7 +35,6 @@ class FillForecastInputs {
     this.itinerary = const [],
     this.divesPerDayTarget,
     this.expectedDives,
-    this.divesPerDiveDayHistory = const [],
     this.diversSharing = 1,
     this.divesLoggedToday = 0,
     this.fillOpensAt,
@@ -52,7 +51,6 @@ class FillForecastInputs {
   final List<ItineraryDay> itinerary;
   final int? divesPerDayTarget;
   final int? expectedDives;
-  final List<double> divesPerDiveDayHistory;
   final int diversSharing;
   final int divesLoggedToday;
 
@@ -187,11 +185,12 @@ FillForecast? computeFillForecast(FillForecastInputs inputs) {
   );
 }
 
-/// Dives on an ordinary dive day, first match wins (the spec's order after
-/// an itinerary day's own plan): the trip's target, the expected dives
-/// spread over the trip's dive days, the median of recent trips, else the
-/// default. A fraction rounds up (decided 2026-09-29): a bottle too many,
-/// never one too few. A zero or negative number counts as unset.
+/// Dives on a dive day with no plan of its own, first match wins: the
+/// trip's target, else the expected dives spread over the trip's dive days,
+/// else none. Only what the diver typed counts; past trips never stand in
+/// for a day left blank (#2903). A fraction rounds up (decided 2026-09-29):
+/// a bottle too many, never one too few. A zero or negative number counts
+/// as unset.
 int _perDiveDay(FillForecastInputs inputs, DateTime start, DateTime end) {
   final target = positiveOverride(inputs.divesPerDayTarget);
   if (target != null) return target;
@@ -204,7 +203,7 @@ int _perDiveDay(FillForecastInputs inputs, DateTime start, DateTime end) {
     );
     if (diveDays > 0) return (expected / diveDays).ceil();
   }
-  return estimatedDivesPerDiveDay(inputs.divesPerDiveDayHistory).ceil();
+  return 0;
 }
 
 /// Pure. When the forecast next changes by itself: at the fill deadline

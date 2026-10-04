@@ -1463,6 +1463,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String trips_story_dayMap_diveGroup(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此处 $count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => '潜水模式与循环呼吸器';
 
   @override
@@ -22710,8 +22720,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_detail_dives_unknownSite => '未知潜水点';
 
   @override
-  String trips_detail_durationDays(Object days) {
-    return '$days 天';
+  String trips_detail_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days 天',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -22745,8 +22760,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_detail_scan_errorScanning => '无法扫描照片，请重试。';
 
   @override
-  String trips_detail_scan_linkedPhotos(Object count) {
-    return '已关联 $count 照片';
+  String trips_detail_scan_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已关联 $count 照片',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -22784,12 +22804,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String trips_diveScan_addButton(int count) {
-    return '添加 $count 潜水';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '添加 $count 潜水',
+    );
+    return '$_temp0';
   }
 
   @override
   String trips_diveScan_added(int count) {
-    return '已将 $count 次潜水添加到旅行';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已将 $count 次潜水添加到旅行',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -22824,7 +22854,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String trips_diveScan_subtitle(int count) {
-    return '在日期范围内找到 $count 次潜水';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '在日期范围内找到 $count 次潜水',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -22981,8 +23016,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_gallery_error_loading => '无法加载照片。';
 
   @override
-  String trips_gallery_linkedPhotos(Object count) {
-    return '已关联 $count 照片';
+  String trips_gallery_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已关联 $count 照片',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23043,8 +23083,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_list_sort_title => '排序旅行';
 
   @override
-  String trips_list_tile_diveCount(Object count) {
-    return '$count 次潜水';
+  String trips_list_tile_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23069,8 +23114,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_photos_error_loading => '加载照片时出错';
 
   @override
-  String trips_photos_moreIndicator_semanticLabel(Object count) {
-    return '$count 更多照片';
+  String trips_photos_moreIndicator_semanticLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 更多照片',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23236,7 +23286,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_label_divesPerDay => '每天潜水次数';
 
   @override
-  String get trips_edit_hint_divesPerDay => '用于充气预测。留空表示估算。';
+  String get trips_edit_hint_divesPerDay => '用于充气预测。留空则使用预计潜水次数或每天的计划。';
 
   @override
   String get trips_edit_label_expectedDives => '预计潜水次数';
@@ -23386,6 +23436,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_gear_openBoard => '打开看板';
 
   @override
+  String get trips_gear_tank_notOnBoard => '不在看板上';
+
+  @override
+  String get trips_gear_tank_putOnBoard => '放到看板';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return '今天需要 $needed 个，你有 $full 个满瓶。';
   }
@@ -23422,7 +23478,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get trips_cylinders_forecast_useEstimate => '使用估计值';
+  String get trips_cylinders_forecast_clearPlan => '清除计划';
 
   @override
   String get trips_cylinders_forecast_fewer => '减少潜水';
@@ -23857,7 +23913,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String trips_overview_plan_divesPerDay(int count) {
-    return '每天 $count 次潜水';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '每天 $count 次潜水',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23959,6 +24020,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_itinerary_plannedDives_invalid => '请输入整数的潜水次数，或留空。';
+
+  @override
+  String trips_itinerary_plannedDives_tooMany(int max) {
+    return '每天最多计划 $max 次潜水。';
+  }
 
   @override
   String get trips_itinerary_location_label => '地点';

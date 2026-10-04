@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -29,23 +30,36 @@ void main() {
     updatedAt: DateTime(2026, 1, 1),
   );
 
+  TripChecklistItem todo(String id, {bool done = false}) => TripChecklistItem(
+    id: id,
+    tripId: 't1',
+    title: id,
+    isDone: done,
+    createdAt: DateTime(2026, 1, 1),
+    updatedAt: DateTime(2026, 1, 1),
+  );
+
   /// Pumps the overview as the page does: inside a DefaultTabController,
   /// with no row handler, so rows switch the real tabs.
-  Future<void> pump(WidgetTester tester, Trip t) async {
+  Future<void> pump(
+    WidgetTester tester,
+    Trip t, {
+    List<TripChecklistItem> checklist = const [],
+  }) async {
     final story = buildTripStory(
       trip: t,
       dives: const [],
       itineraryDays: const [],
       mediaByDiveId: const {},
       sightingsByDiveId: const {},
-      checklistItems: const [],
+      checklistItems: checklist,
       today: now,
     );
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          tripChecklistProvider('t1').overrideWith((ref) async => const []),
+          tripChecklistProvider('t1').overrideWith((ref) async => checklist),
           tripGearProvider('t1').overrideWith((ref) async => const []),
           tripCylinderStatesProvider(
             't1',
@@ -89,5 +103,12 @@ void main() {
     await tester.tap(find.text('Gear'));
     await tester.pumpAndSettle();
     expect(controller.index, TripDetailTab.gear.index);
+  });
+
+  testWidgets('shows the checklist progress once, in the Checklist row '
+      '(#2881)', (tester) async {
+    await pump(tester, trip(), checklist: [todo('a', done: true), todo('b')]);
+    expect(find.text('1 of 2 done'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsNothing);
   });
 }

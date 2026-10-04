@@ -10,6 +10,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/trips/query/trip_query_entity.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/table_selection_owner.dart';
@@ -78,12 +79,7 @@ class _TripListPageState extends ConsumerState<TripListPage>
             },
           ),
           summaryBuilder: (context) => const TripSummaryWidget(),
-          editBuilder: (context, tripId, onSaved, onCancel) => TripEditPage(
-            tripId: tripId,
-            embedded: true,
-            onSaved: onSaved,
-            onCancel: onCancel,
-          ),
+          editBuilder: _buildEditPane,
           createBuilder: (context, onSaved, onCancel) => TripEditPage(
             embedded: true,
             onSaved: onSaved,
@@ -199,12 +195,7 @@ class _TripListPageState extends ConsumerState<TripListPage>
           },
         ),
         summaryBuilder: (context) => const TripSummaryWidget(),
-        editBuilder: (context, tripId, onSaved, onCancel) => TripEditPage(
-          tripId: tripId,
-          embedded: true,
-          onSaved: onSaved,
-          onCancel: onCancel,
-        ),
+        editBuilder: _buildEditPane,
         createBuilder: (context, onSaved, onCancel) =>
             TripEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
         floatingActionButton: fab,
@@ -216,4 +207,22 @@ class _TripListPageState extends ConsumerState<TripListPage>
       child: TripListContent(showAppBar: true, floatingActionButton: fab),
     );
   }
+}
+
+/// The pane's edit form, open at the section the URL names (#2880).
+Widget _buildEditPane(
+  BuildContext context,
+  String tripId,
+  void Function(String savedId) onSaved,
+  VoidCallback onCancel,
+) {
+  return TripEditPage(
+    tripId: tripId,
+    embedded: true,
+    onSaved: onSaved,
+    onCancel: onCancel,
+    initialSection: TripEditSection.fromQuery(
+      GoRouterState.of(context).uri.queryParameters['section'],
+    ),
+  );
 }

@@ -60,7 +60,7 @@ wizard and then fails to connect.
 | Platforms | Android, Darwin (iOS and macOS), Windows and Linux in one PR |
 | Read strategy | Read-on-demand, hardened (not a background poll loop) |
 | Selection scope | Allowlist of known read-poll services; today only Seac |
-| Tier priority | Strict fallback: consulted only when the notify pass finds nothing |
+| Tier priority | Seac service first (amended 2026-10-04, PR #2911); originally a strict fallback |
 | Empty read value | Re-read after a 100 ms backoff, bounded by the read deadline |
 | Timed-out read | Stays in flight and is adopted by the next `read()` |
 | Purge | Also discards the result of a read already in flight |
@@ -72,9 +72,19 @@ wizard and then fails to connect.
 
 ### 1. Selection tier and connect gating
 
-The existing write/notify selection runs unchanged on every platform. The read
-tier is consulted only when that pass finds no usable service, so no device
-that works today can change behaviour.
+When an allowlisted service is present, it is consulted first on every
+platform: its own write/notify pair if it has one, otherwise the read tier on
+its data characteristic. Only when no allowlisted service can carry the link
+does the existing write/notify selection run, unchanged, so a device without
+the allowlisted UUIDs cannot change behaviour. This matches Subsurface, which
+takes the first non-standard service with a write characteristic and never
+compares pairs across services.
+
+*History:* the first version (PR #2419) made the read tier a strict fallback,
+consulted only when the notify pass found no usable service. On real hardware
+that let any write/notify pair elsewhere on the device (a DFU or vendor
+service) win, and a Tablet on Android 1.8.1 never reached the read path. PR
+#2911 moved the allowlisted service first.
 
 Each platform carries one allowlist table mapping a read-poll service UUID to
 its data characteristic UUID. It holds one entry:
@@ -250,9 +260,10 @@ Unit tests, written first:
   "Build Windows" and "Build Linux" jobs of `native-plugin-tests.yml`, which
   run on any PR touching the plugin.
 
-Regression safety: the read tier runs only after the notify pass finds
-nothing, and only for allowlisted services. No existing device's path
-changes; Android's selector moves files, pinned by the ported tests.
+Regression safety: the allowlisted-service tier only ever matches the
+allowlisted service UUIDs, so a device without them goes straight to the
+unchanged notify pass and no existing device's path changes; Android's
+selector moves files, pinned by the ported tests.
 
 Hardware verification:
 

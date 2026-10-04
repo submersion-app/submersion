@@ -34,11 +34,13 @@ DeviceDescriptor::DeviceDescriptor(
   const std::string& vendor,
   const std::string& product,
   int64_t model,
-  const EncodableList& transports)
+  const EncodableList& transports,
+  bool delivers_oldest_first)
  : vendor_(vendor),
     product_(product),
     model_(model),
-    transports_(transports) {}
+    transports_(transports),
+    delivers_oldest_first_(delivers_oldest_first) {}
 
 const std::string& DeviceDescriptor::vendor() const {
   return vendor_;
@@ -76,13 +78,23 @@ void DeviceDescriptor::set_transports(const EncodableList& value_arg) {
 }
 
 
+bool DeviceDescriptor::delivers_oldest_first() const {
+  return delivers_oldest_first_;
+}
+
+void DeviceDescriptor::set_delivers_oldest_first(bool value_arg) {
+  delivers_oldest_first_ = value_arg;
+}
+
+
 EncodableList DeviceDescriptor::ToEncodableList() const {
   EncodableList list;
-  list.reserve(4);
+  list.reserve(5);
   list.push_back(EncodableValue(vendor_));
   list.push_back(EncodableValue(product_));
   list.push_back(EncodableValue(model_));
   list.push_back(EncodableValue(transports_));
+  list.push_back(EncodableValue(delivers_oldest_first_));
   return list;
 }
 
@@ -91,7 +103,8 @@ DeviceDescriptor DeviceDescriptor::FromEncodableList(const EncodableList& list) 
     std::get<std::string>(list[0]),
     std::get<std::string>(list[1]),
     std::get<int64_t>(list[2]),
-    std::get<EncodableList>(list[3]));
+    std::get<EncodableList>(list[3]),
+    std::get<bool>(list[4]));
   return decoded;
 }
 

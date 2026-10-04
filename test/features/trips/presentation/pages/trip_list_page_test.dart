@@ -9,6 +9,7 @@ import 'package:submersion/features/query/presentation/widgets/query_filter_shee
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
@@ -681,5 +682,40 @@ void main() {
 
       expect(find.byType(TripEditPage), findsOneWidget);
     });
+
+    // The Plan row's edit lands on Planning in the pane too (#2880).
+    for (final viewMode in [ListViewMode.detailed, ListViewMode.table]) {
+      testWidgets(
+        '${viewMode.name} edit pane opens at the section in the URL',
+        (tester) async {
+          tester.view.devicePixelRatio = 1.0;
+          tester.view.physicalSize = const Size(1200, 800);
+          addTearDown(() {
+            tester.view.resetPhysicalSize();
+            tester.view.resetDevicePixelRatio();
+          });
+
+          await tester.pumpWidget(
+            _buildTestWidget(
+              overrides: [
+                ...baseOverrides(viewMode: viewMode),
+                tableDetailsPaneProvider('trips').overrideWith((ref) => true),
+                highlightedTripIdProvider.overrideWith((ref) => 'test-trip-id'),
+              ],
+              initialLocation:
+                  '/trips?selected=test-trip-id&mode=edit&section=planning',
+            ),
+          );
+          await tester.pump();
+          tester.takeException();
+          await tester.pump();
+          tester.takeException();
+
+          final page = tester.widget<TripEditPage>(find.byType(TripEditPage));
+          expect(page.embedded, isTrue);
+          expect(page.initialSection, TripEditSection.planning);
+        },
+      );
+    }
   });
 }

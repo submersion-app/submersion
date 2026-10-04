@@ -81,6 +81,11 @@ struct DeviceDescriptor {
   var product: String
   var model: Int64
   var transports: [TransportType]
+  /// Whether this backend hands dives over oldest-first. libdivecomputer is
+  /// newest-first except where the fork reversed a driver (Shearwater
+  /// Petrel, issue #480). Only for such a backend is an interrupted
+  /// download's newest dive a safe resume point (issue #2902).
+  var deliversOldestFirst: Bool
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -89,12 +94,14 @@ struct DeviceDescriptor {
     let product = pigeonVar_list[1] as! String
     let model = pigeonVar_list[2] as! Int64
     let transports = pigeonVar_list[3] as! [TransportType]
+    let deliversOldestFirst = pigeonVar_list[4] as! Bool
 
     return DeviceDescriptor(
       vendor: vendor,
       product: product,
       model: model,
-      transports: transports
+      transports: transports,
+      deliversOldestFirst: deliversOldestFirst
     )
   }
   func toList() -> [Any?] {
@@ -103,6 +110,7 @@ struct DeviceDescriptor {
       product,
       model,
       transports,
+      deliversOldestFirst,
     ]
   }
 }

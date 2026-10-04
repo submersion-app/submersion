@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_computer/data/services/fingerprint_utils.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/domain/services/known_computer_reacquisition.dart';
@@ -556,25 +560,71 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       onError: (error) {
         // Download errors are shown by the DownloadStepWidget itself.
       },
-      onImportPartial: () {
-        // The user chose to keep the dives delivered before an interrupted
-        // download. For drivers that deliver oldest-first (as Shearwater
-        // does), this is a contiguous prefix of the oldest dives, so capturing
-        // it advances the fingerprint to a correct resume point for the next
-        // download. Ordering depends on the native driver, not this code.
-        _captureAndAdvance(ref.read(downloadNotifierProvider));
-      },
+      // The user chose to keep the dives delivered before an interrupted
+      // download.
+      onImportPartial: () => unawaited(_importPartial(device)),
+    );
+  }
+
+  /// Captures an interrupted download's dives, telling the adapter whether
+  /// the backend delivered them oldest-first.
+  ///
+  /// Only then (Shearwater Petrel, issue #480) are they the oldest run of new
+  /// dives, so that importing them may move the resume point. A newest-first
+  /// backend delivered the newest dives and skipped older ones, which a moved
+  /// resume point would hide for good (issue #2902). The order comes from the
+  /// native descriptor catalog; when it cannot be read, newest-first is
+  /// assumed, which at worst re-offers these dives next time.
+  Future<void> _importPartial(DiscoveredDevice? device) async {
+    // The dives to keep are the ones on screen now. Retry stays enabled
+    // during the lookup below, and a retry replaces this state.
+    final snapshot = ref.read(downloadNotifierProvider);
+    var descriptors = const <pigeon.DeviceDescriptor>[];
+    try {
+      descriptors = await ref.read(deviceDescriptorsProvider.future);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Could not read the descriptor catalog; treating the partial '
+        'download as newest-first',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+    if (!mounted) return;
+    // A retry started while the catalog was read: that attempt now owns the
+    // step, and capturing here would also block its own completion. A retry
+    // always starts a new phase and a fresh dive list.
+    final current = ref.read(downloadNotifierProvider);
+    if (current.phase != snapshot.phase ||
+        !identical(current.downloadedDives, snapshot.downloadedDives)) {
+      return;
+    }
+    _captureAndAdvance(
+      snapshot,
+      interrupted: true,
+      deliversOldestFirst: modelDeliversOldestFirst(
+        descriptors,
+        device?.recognizedModel,
+      ),
     );
   }
 
   /// Captures the downloaded dives into the adapter and advances the wizard to
   /// the Review step. Shared by the normal completion path and the
   /// import-partial action for an interrupted download.
-  void _captureAndAdvance(DownloadState state) {
+  void _captureAndAdvance(
+    DownloadState state, {
+    bool interrupted = false,
+    bool deliversOldestFirst = false,
+  }) {
     if (_captured) return;
     _captured = true;
     widget.adapter.setSinceCutoff(state.sinceCutoff);
-    widget.adapter.setDownloadedDives(state.downloadedDives);
+    widget.adapter.setDownloadedDives(
+      state.downloadedDives,
+      interrupted: interrupted,
+      deliversOldestFirst: deliversOldestFirst,
+    );
 
     // No dives — show an informational message instead of advancing to an
     // empty Review step. The computer itself is still saved below: reaching

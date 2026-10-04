@@ -95,13 +95,20 @@ class _ItineraryDayEditSheetState
   }
 
   Future<void> _save() async {
-    // Blank derives the count; 0 is a rest day; a word is refused in place.
+    // Blank derives the count; 0 is a rest day; a word, or more dives than
+    // the planning board can show, is refused in place.
     final int? plannedDives;
     switch (readNumber(
       _plannedDivesController.text,
       integer: true,
       allowNegative: false,
     )) {
+      case NumberValue(:final value) when value > kMaxPlannedDivesPerDay:
+        setState(
+          () => _plannedDivesError = context.l10n
+              .trips_itinerary_plannedDives_tooMany(kMaxPlannedDivesPerDay),
+        );
+        return;
       case NumberValue(:final value):
         plannedDives = value.toInt();
       case NumberBlank():
@@ -211,8 +218,8 @@ class _ItineraryDayEditSheetState
                 setState(() {
                   // A rest day plans no dives: the field shows the 0 it saves
                   // and is locked. Leaving Rest drops that 0, so the day goes
-                  // back to the estimate instead of a dive day planned at
-                  // none.
+                  // back to the trip's default instead of a dive day planned
+                  // at none.
                   if (value == DayType.rest) {
                     _plannedDivesController.text = '0';
                     _plannedDivesError = null;

@@ -29,6 +29,24 @@ const char *libdc_get_version(void) {
     return dc_version(NULL);
 }
 
+// Whether a backend delivers dives oldest-first. Upstream libdivecomputer is
+// newest-first throughout; the fork reverses only the shearwater_petrel.c
+// profile loop (issue #480). A family added to that list must have its
+// driver's foreach loop reversed too.
+static int family_delivers_oldest_first(dc_family_t family) {
+    return family == DC_FAMILY_SHEARWATER_PETREL;
+}
+
+// Copies a descriptor's identity into info, with its raw transport bitmask.
+static void fill_info(libdc_descriptor_info_t *info, dc_descriptor_t *desc) {
+    info->vendor = dc_descriptor_get_vendor(desc);
+    info->product = dc_descriptor_get_product(desc);
+    info->model = dc_descriptor_get_model(desc);
+    info->transports = dc_descriptor_get_transports(desc);
+    info->delivers_oldest_first =
+        family_delivers_oldest_first(dc_descriptor_get_type(desc));
+}
+
 // Internal iterator state.
 struct libdc_descriptor_iterator {
     dc_iterator_t *dc_iter;
@@ -71,9 +89,7 @@ int libdc_descriptor_iterator_next(libdc_descriptor_iterator_t *iter,
     }
 
     iter->current = desc;
-    info->vendor = dc_descriptor_get_vendor(desc);
-    info->product = dc_descriptor_get_product(desc);
-    info->model = dc_descriptor_get_model(desc);
+    fill_info(info, desc);
     // Raw USB devices (the Atomic Aquatics Cobalts) talk through USB control
     // transfers, and no platform bridge implements DC_IOCTL_USB_CONTROL_*, so
     // the bit is withheld: every platform maps it to the USB tab, where such a
@@ -348,19 +364,13 @@ int libdc_descriptor_match(const char *name, unsigned int transport,
         if (dc_descriptor_filter(desc, (dc_transport_t)transport, name)) {
             // Keep first family-level match as fallback.
             if (!found) {
-                info->vendor = dc_descriptor_get_vendor(desc);
-                info->product = dc_descriptor_get_product(desc);
-                info->model = dc_descriptor_get_model(desc);
-                info->transports = dc_descriptor_get_transports(desc);
+                fill_info(info, desc);
                 found = 1;
             }
 
             // If model code is present in the BLE name, prefer exact model match.
             if (has_name_model && dc_descriptor_get_model(desc) == name_model) {
-                info->vendor = dc_descriptor_get_vendor(desc);
-                info->product = dc_descriptor_get_product(desc);
-                info->model = dc_descriptor_get_model(desc);
-                info->transports = dc_descriptor_get_transports(desc);
+                fill_info(info, desc);
                 dc_descriptor_free(desc);
                 break;
             }
@@ -371,10 +381,7 @@ int libdc_descriptor_match(const char *name, unsigned int transport,
             if (!has_name_model) {
                 const char *product = dc_descriptor_get_product(desc);
                 if (product && strcasecmp_nospace(name, product) == 0) {
-                    info->vendor = dc_descriptor_get_vendor(desc);
-                    info->product = product;
-                    info->model = dc_descriptor_get_model(desc);
-                    info->transports = dc_descriptor_get_transports(desc);
+                    fill_info(info, desc);
                     dc_descriptor_free(desc);
                     break;
                 }
@@ -384,10 +391,7 @@ int libdc_descriptor_match(const char *name, unsigned int transport,
                 // which by definition cannot match an abbreviation.
                 if (alias_product && product &&
                     strcasecmp_nospace(alias_product, product) == 0) {
-                    info->vendor = dc_descriptor_get_vendor(desc);
-                    info->product = product;
-                    info->model = dc_descriptor_get_model(desc);
-                    info->transports = dc_descriptor_get_transports(desc);
+                    fill_info(info, desc);
                     dc_descriptor_free(desc);
                     break;
                 }
@@ -402,10 +406,7 @@ int libdc_descriptor_match(const char *name, unsigned int transport,
                     size_t plen = product_prefix_len(name, product);
                     if (plen > best_prefix_len) {
                         best_prefix_len = plen;
-                        info->vendor = dc_descriptor_get_vendor(desc);
-                        info->product = product;
-                        info->model = dc_descriptor_get_model(desc);
-                        info->transports = dc_descriptor_get_transports(desc);
+                        fill_info(info, desc);
                     }
                 }
             }
@@ -434,10 +435,7 @@ int libdc_descriptor_lookup_model(unsigned int transport, unsigned int model,
     while (dc_iterator_next(iter, &desc) == DC_STATUS_SUCCESS) {
         if ((dc_descriptor_get_transports(desc) & transport) != 0 &&
             dc_descriptor_get_model(desc) == model) {
-            info->vendor = dc_descriptor_get_vendor(desc);
-            info->product = dc_descriptor_get_product(desc);
-            info->model = dc_descriptor_get_model(desc);
-            info->transports = dc_descriptor_get_transports(desc);
+            fill_info(info, desc);
             found = 1;
             dc_descriptor_free(desc);
             break;

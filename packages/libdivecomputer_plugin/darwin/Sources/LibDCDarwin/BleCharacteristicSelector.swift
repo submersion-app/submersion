@@ -259,11 +259,18 @@ enum BleCharacteristicSelector {
 
     /// Choose the characteristics to talk through, or nil if nothing usable.
     ///
-    /// The write/notify pass runs first and is unchanged; the read-poll tier is
-    /// consulted only when it finds nothing, so no device that already works
-    /// can be moved onto the read path.
+    /// An allowlisted read-poll service is the computer's serial channel
+    /// whatever else the device advertises, so it is consulted first. When the
+    /// read tier only ran if no service anywhere had a write/notify pair, any
+    /// such pair (a DFU or vendor service) hid it: a Seac Tablet on Android
+    /// 1.8.1 (issue #1454) never reached the read path, and every command was
+    /// rejected with ATT 0x0D. Subsurface, the one client known to download a
+    /// Tablet over BLE, uses the first non-standard service with a write
+    /// characteristic and never compares pairs across services. No other
+    /// computer carries the allowlisted UUIDs, so every other device still gets
+    /// the notify pass.
     static func select(services: [Service]) -> Selection? {
-        selectNotify(services: services) ?? selectReadPoll(services: services)
+        selectReadPollService(services: services) ?? selectNotify(services: services)
     }
 
     /// Choose the best write/notify pair across all services, or nil if no
@@ -278,44 +285,53 @@ enum BleCharacteristicSelector {
     private static func selectNotify(services: [Service]) -> Selection? {
         var best: Selection?
         for (serviceIndex, service) in services.enumerated() {
-            var bestWrite: (index: Int, score: Int)?
-            var bestNotify: (index: Int, score: Int)?
-
-            for (index, characteristic) in service.characteristics.enumerated() {
-                if let score = writeScore(characteristic),
-                    bestWrite == nil || score > bestWrite!.score {
-                    bestWrite = (index, score)
-                }
-                if let score = notifyScore(characteristic),
-                    bestNotify == nil || score > bestNotify!.score {
-                    bestNotify = (index, score)
-                }
-            }
-
-            guard let write = bestWrite, let notify = bestNotify else { continue }
-
-            var serviceScore = write.score + notify.score
-            if preferredServiceUUIDs.contains(service.uuid) { serviceScore += 1000 }
-
-            if let existing = best, existing.score >= serviceScore { continue }
-            best = Selection(
-                serviceIndex: serviceIndex,
-                writeIndex: write.index,
-                responseIndex: notify.index,
-                responseMode: .notify,
-                score: serviceScore,
-                terminalIoCredits: terminalIoCredits(in: service)
-            )
+            guard let candidate = bestPair(serviceIndex: serviceIndex, in: service) else { continue }
+            if let existing = best, existing.score >= candidate.score { continue }
+            best = candidate
         }
         return best
     }
 
-    /// The first allowlisted read-poll service whose data characteristic can
-    /// be both read and written, or nil.
-    private static func selectReadPoll(services: [Service]) -> Selection? {
+    /// The best write/notify pair within one service, or nil if it lacks
+    /// either side.
+    private static func bestPair(serviceIndex: Int, in service: Service) -> Selection? {
+        var bestWrite: (index: Int, score: Int)?
+        var bestNotify: (index: Int, score: Int)?
+
+        for (index, characteristic) in service.characteristics.enumerated() {
+            if let score = writeScore(characteristic),
+                bestWrite == nil || score > bestWrite!.score {
+                bestWrite = (index, score)
+            }
+            if let score = notifyScore(characteristic),
+                bestNotify == nil || score > bestNotify!.score {
+                bestNotify = (index, score)
+            }
+        }
+
+        guard let write = bestWrite, let notify = bestNotify else { return nil }
+
+        var serviceScore = write.score + notify.score
+        if preferredServiceUUIDs.contains(service.uuid) { serviceScore += 1000 }
+
+        return Selection(
+            serviceIndex: serviceIndex,
+            writeIndex: write.index,
+            responseIndex: notify.index,
+            responseMode: .notify,
+            score: serviceScore,
+            terminalIoCredits: terminalIoCredits(in: service)
+        )
+    }
+
+    /// The first allowlisted read-poll service that can carry the link: its
+    /// own write/notify pair if firmware ever adds one, otherwise its data
+    /// characteristic read on demand. Nil if no such service is present.
+    private static func selectReadPollService(services: [Service]) -> Selection? {
         for (serviceIndex, service) in services.enumerated() {
-            guard let dataUUID = readPollServices[service.uuid],
-                let index = service.characteristics.firstIndex(where: { $0.uuid == dataUUID })
+            guard let dataUUID = readPollServices[service.uuid] else { continue }
+            if let pair = bestPair(serviceIndex: serviceIndex, in: service) { return pair }
+            guard let index = service.characteristics.firstIndex(where: { $0.uuid == dataUUID })
             else { continue }
             let properties = service.characteristics[index].properties
             guard properties.contains(.read),

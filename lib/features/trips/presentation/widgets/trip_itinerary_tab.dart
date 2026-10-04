@@ -157,6 +157,9 @@ class _ItineraryDayCard extends ConsumerWidget {
     final units = UnitFormatter(settings);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    // The badge, icon and colour follow the dives logged; the edit sheet
+    // keeps the stored type.
+    final dayType = shownDayType(day, hasDives: dives.isNotEmpty);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -183,15 +186,16 @@ class _ItineraryDayCard extends ConsumerWidget {
                       height: 36,
                       decoration: BoxDecoration(
                         color: _dayTypeColor(
+                          dayType,
                           colorScheme,
                         ).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Center(
                         child: Icon(
-                          _dayTypeIcon(),
+                          _dayTypeIcon(dayType),
                           size: 20,
-                          color: _dayTypeColor(colorScheme),
+                          color: _dayTypeColor(dayType, colorScheme),
                         ),
                       ),
                     ),
@@ -226,14 +230,15 @@ class _ItineraryDayCard extends ConsumerWidget {
                       ),
                       decoration: BoxDecoration(
                         color: _dayTypeColor(
+                          dayType,
                           colorScheme,
                         ).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        day.dayType.localizedName(context),
+                        dayType.localizedName(context),
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: _dayTypeColor(colorScheme),
+                          color: _dayTypeColor(dayType, colorScheme),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -330,8 +335,8 @@ class _ItineraryDayCard extends ConsumerWidget {
     );
   }
 
-  IconData _dayTypeIcon() {
-    switch (day.dayType) {
+  IconData _dayTypeIcon(DayType dayType) {
+    switch (dayType) {
       case DayType.embark:
         return Icons.login;
       case DayType.disembark:
@@ -349,8 +354,8 @@ class _ItineraryDayCard extends ConsumerWidget {
     }
   }
 
-  Color _dayTypeColor(ColorScheme colorScheme) {
-    switch (day.dayType) {
+  Color _dayTypeColor(DayType dayType, ColorScheme colorScheme) {
+    switch (dayType) {
       case DayType.embark:
         return Colors.green.shade700;
       case DayType.disembark:
