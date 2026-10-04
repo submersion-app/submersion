@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -11,11 +12,12 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import '../../../../helpers/test_database.dart';
 
 void main() {
+  late AppDatabase db;
   late DiveRepository repository;
   late ProviderContainer container;
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     repository = DiveRepository();
     container = ProviderContainer(
       overrides: [
@@ -63,5 +65,36 @@ void main() {
     final results = await container.read(diveSearchProvider('manta').future);
     expect(results, hasLength(1));
     expect(results.single.id, 'd1');
+  });
+
+  test('renaming a dive type re-runs an open search (#2884)', () async {
+    await db.customStatement(
+      'INSERT INTO dive_types '
+      '(id, name, is_built_in, sort_order, created_at, updated_at) '
+      "VALUES ('muck-1', 'Muck', 0, 99, 0, 0)",
+    );
+    await repository.createDive(
+      domain.Dive(
+        id: 'd1',
+        dateTime: DateTime(2026, 1, 1),
+        notes: '',
+        diveTypeIds: const ['muck-1'],
+      ),
+    );
+    final sub = container.listen(diveSearchProvider('sludge'), (_, _) {});
+    addTearDown(sub.close);
+    expect(await container.read(diveSearchProvider('sludge').future), isEmpty);
+
+    // A rename writes dive_types alone, never the dives row.
+    await db.customUpdate(
+      "UPDATE dive_types SET name = 'Sludge' WHERE id = 'muck-1'",
+      updates: {db.diveTypes},
+    );
+    await Future<void>.delayed(
+      DiveRepository.changeTickDebounce + const Duration(milliseconds: 200),
+    );
+
+    final results = await container.read(diveSearchProvider('sludge').future);
+    expect(results.map((s) => s.id), ['d1']);
   });
 }
