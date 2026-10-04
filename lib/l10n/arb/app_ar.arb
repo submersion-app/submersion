@@ -19,12 +19,12 @@
   "equipment_transfer_moveRegistry": "نقل أجهزة كمبيوتر الغوص وأجهزة الإرسال المرتبطة أيضًا",
   "equipment_transfer_transmitterClash": "يبقى {label} معك: لدى {profile} بالفعل جهاز إرسال بهذا الرقم التسلسلي أو القناة.",
   "equipment_transfer_confirm": "نقل",
-  "equipment_transfer_done": "{count, plural, one{تم نقل {count} عنصر إلى {name}} other{تم نقل {count} عناصر إلى {name}}}",
-  "equipment_transfer_doneSkipped": "{count, plural, one{تم نقل {count} عنصر إلى {name}} other{تم نقل {count} عناصر إلى {name}}}، وتم تخطي {skipped} لا تملكها",
+  "equipment_transfer_done": "{count, plural, one{تم نقل {count} عنصر إلى {name}} two{تم نقل عنصرين إلى {name}} few{تم نقل {count} عناصر إلى {name}} many{تم نقل {count} عنصرًا إلى {name}} other{تم نقل {count} عنصر إلى {name}}}",
+  "equipment_transfer_doneSkipped": "{count, plural, one{تم نقل {count} عنصر إلى {name}} two{تم نقل عنصرين إلى {name}} few{تم نقل {count} عناصر إلى {name}} many{تم نقل {count} عنصرًا إلى {name}} other{تم نقل {count} عنصر إلى {name}}}، وتم تخطي {skipped} لا تملكها",
   "equipment_bulkShare_action": "مشاركة مع...",
-  "equipment_bulkShare_done": "{count, plural, =1{تمت مشاركة عنصر واحد} other{تمت مشاركة {count} عناصر}}",
-  "equipment_bulkShare_doneSkipped": "{count, plural, =1{تمت مشاركة عنصر واحد} other{تمت مشاركة {count} عناصر}}، وتم تخطي {skipped} لا تملكها",
-  "equipment_bulkDelete_partial": "{deleted, plural, =1{تم حذف عنصر واحد} other{تم حذف {deleted} عناصر}}. {skipped, plural, =1{تم الإبقاء على عنصر مُشارَك واحد: يمكن لمالكه وحده حذفه} other{تم الإبقاء على {skipped} عناصر مُشارَكة: يمكن لمالكيها وحدهم حذفها}}",
+  "equipment_bulkShare_done": "{count, plural, =1{تمت مشاركة عنصر واحد} two{تمت مشاركة عنصرين} few{تمت مشاركة {count} عناصر} many{تمت مشاركة {count} عنصرًا} other{تمت مشاركة {count} عنصر}}",
+  "equipment_bulkShare_doneSkipped": "{count, plural, =1{تمت مشاركة عنصر واحد} two{تمت مشاركة عنصرين} few{تمت مشاركة {count} عناصر} many{تمت مشاركة {count} عنصرًا} other{تمت مشاركة {count} عنصر}}، وتم تخطي {skipped} لا تملكها",
+  "equipment_bulkDelete_partial": "{deleted, plural, =1{تم حذف عنصر واحد} two{تم حذف عنصرين} few{تم حذف {deleted} عناصر} many{تم حذف {deleted} عنصرًا} other{تم حذف {deleted} عنصر}}. {skipped, plural, =1{تم الإبقاء على عنصر مُشارَك واحد: يمكن لمالكه وحده حذفه} two{تم الإبقاء على عنصرين مُشارَكين: يمكن لمالكيهما وحدهم حذفهما} few{تم الإبقاء على {skipped} عناصر مُشارَكة: يمكن لمالكيها وحدهم حذفها} many{تم الإبقاء على {skipped} عنصرًا مُشارَكًا: يمكن لمالكيها وحدهم حذفها} other{تم الإبقاء على {skipped} عنصر مُشارَك: يمكن لمالكيها وحدهم حذفها}}",
   "equipment_filter_section_owner": "المالك",
   "equipment_filter_owner_mine": "خاصتي",
   "enum_equipmentField_owner": "المالك",
@@ -33,14 +33,14 @@
   "equipment_history_title": "السجل",
   "equipment_history_empty": "لم يُستخدم في أي غطسة بعد",
   "equipment_history_deletedProfile": "ملف محذوف",
-  "equipment_history_runDives": "{count, plural, =1{غطسة واحدة} other{{count} غطسات}}",
+  "equipment_history_runDives": "{count, plural, =1{غطسة واحدة} two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",
   "equipment_history_dateRange": "{from} إلى {to}",
   "equipment_history_added": "أضافه {name}",
   "equipment_history_shared": "تمت المشاركة مع {name}",
   "equipment_history_unshared": "توقفت المشاركة مع {name}",
   "equipment_history_transferred": "نُقل من {from} إلى {to}",
   "settings_shareAllEquipment_title": "مشاركة كل معداتي...",
-  "settings_shareAllEquipment_body": "{count, plural, =1{شارك عنصرك الوحيد مع الملفات التي تختارها.} other{شارك عناصرك الـ {count} مع الملفات التي تختارها.}}",
+  "settings_shareAllEquipment_body": "{count, plural, =1{شارك عنصرك الوحيد مع الملفات التي تختارها.} two{شارك عنصريك مع الملفات التي تختارها.} few{شارك عناصرك الـ {count} مع الملفات التي تختارها.} many{شارك عناصرك الـ {count} مع الملفات التي تختارها.} other{شارك عناصرك الـ {count} مع الملفات التي تختارها.}}",
   "settings_oauth_connect_browserFailed": "تعذر فتح المتصفح. استخدم نسخ الرابط والصق العنوان في متصفحك.",
   "settings_oauth_connect_copyFailed": "تعذر نسخ الرابط.",
   "settings_oauth_connect_copyLink": "نسخ الرابط",
@@ -67,7 +67,7 @@
   "settings_units_dialog_defaultCurrency": "العملة الافتراضية",
   "diveSites_list_menu_fillLocationDetails": "إكمال تفاصيل الموقع الناقصة",
   "diveSites_backfill_confirm_title": "إكمال تفاصيل الموقع الناقصة؟",
-  "diveSites_backfill_confirm_body": "{count, plural, =1{موقع غوص واحد له إحداثيات ينقصه البلد أو المنطقة أو البلدة أو المسطح المائي.} other{{count} مواقع غوص لها إحداثيات ينقصها البلد أو المنطقة أو البلدة أو المسطح المائي.}} سيبحث Submersion عن كل منها في OpenStreetMap ويملأ الحقول الفارغة فقط. يستغرق ذلك نحو {minutes, plural, =1{دقيقة واحدة} =2{دقيقتين} other{{minutes} دقائق}}.",
+  "diveSites_backfill_confirm_body": "{count, plural, =1{موقع غوص واحد له إحداثيات ينقصه البلد أو المنطقة أو البلدة أو المسطح المائي.} two{موقعا غوص لهما إحداثيات ينقصهما البلد أو المنطقة أو البلدة أو المسطح المائي.} few{{count} مواقع غوص لها إحداثيات ينقصها البلد أو المنطقة أو البلدة أو المسطح المائي.} many{{count} موقع غوص لها إحداثيات ينقصها البلد أو المنطقة أو البلدة أو المسطح المائي.} other{{count} موقع غوص لها إحداثيات ينقصها البلد أو المنطقة أو البلدة أو المسطح المائي.}} سيبحث Submersion عن كل منها في OpenStreetMap ويملأ الحقول الفارغة فقط. يستغرق ذلك نحو {minutes, plural, =1{دقيقة واحدة} =2{دقيقتين} few{{minutes} دقائق} many{{minutes} دقيقة} other{{minutes} دقيقة}}.",
   "diveSites_backfill_confirm_start": "بدء",
   "diveSites_backfill_nothingToFill": "كل مواقع الغوص التي لها إحداثيات لديها تفاصيل الموقع بالفعل.",
   "diveSites_backfill_progress_title": "جارٍ إكمال تفاصيل الموقع",
@@ -77,7 +77,7 @@
   "diveSites_backfill_offline": "البحث عن الموقع غير متاح. تحقق من الاتصال وحاول مرة أخرى.",
   "diveSites_list_menu_refreshPlaceNames": "تحديث أسماء الأماكن",
   "diveSites_refresh_confirm_title": "تحديث أسماء الأماكن؟",
-  "diveSites_refresh_confirm_body": "{count, plural, =1{سيتم البحث من جديد عن موقع غوص واحد له إحداثيات.} other{سيتم البحث من جديد عن {count} مواقع غوص لها إحداثيات.}} وستُستبدل الدولة والمنطقة والمدينة والمسطح المائي حيثما اختلفت عن لغة أسماء الأماكن ({language})، بما في ذلك القيم التي أدخلتها بنفسك. يستغرق ذلك نحو {minutes, plural, =1{دقيقة واحدة} other{{minutes} دقائق}}.",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{سيتم البحث من جديد عن موقع غوص واحد له إحداثيات.} two{سيتم البحث من جديد عن موقعي غوص لهما إحداثيات.} few{سيتم البحث من جديد عن {count} مواقع غوص لها إحداثيات.} many{سيتم البحث من جديد عن {count} موقع غوص لها إحداثيات.} other{سيتم البحث من جديد عن {count} موقع غوص لها إحداثيات.}} وستُستبدل الدولة والمنطقة والمدينة والمسطح المائي حيثما اختلفت عن لغة أسماء الأماكن ({language})، بما في ذلك القيم التي أدخلتها بنفسك. يستغرق ذلك نحو {minutes, plural, =1{دقيقة واحدة} two{دقيقتين} few{{minutes} دقائق} many{{minutes} دقيقة} other{{minutes} دقيقة}}.",
   "@diveSites_refresh_confirm_body": {
     "placeholders": {
       "count": {
@@ -225,27 +225,27 @@
   "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "إضافة مكوّن",
   "equipment_components_containsSection": "يحتوي على",
-  "equipment_components_count": "{count, plural, =1{مكوّن واحد} other{{count} مكوّنات}}",
+  "equipment_components_count": "{count, plural, =1{مكوّن واحد} two{مكوّنان} few{{count} مكوّنات} many{{count} مكوّنًا} other{{count} مكوّن}}",
   "equipment_rowLabel_identifier": "المعرّف {identifier}",
   "equipment_rowLabel_serial": "الرقم التسلسلي {serial}",
   "equipment_rowLabel_purchased": "تاريخ الشراء {date}",
-  "equipment_components_countOfTotal": "{total, plural, =1{{count} من مكوّن واحد} other{{count} من {total} مكوّنات}}",
+  "equipment_components_countOfTotal": "{total, plural, =1{{count} من مكوّن واحد} two{{count} من مكوّنين} few{{count} من {total} مكوّنات} many{{count} من {total} مكوّنًا} other{{count} من {total} مكوّن}}",
   "equipment_components_cycleError": "هذا العنصر يحتوي بالفعل على هذا، لذا لا يمكن إضافته كمكوّن.",
   "equipment_components_editRole": "تعديل الدور",
   "equipment_components_empty": "لا توجد مكوّنات. أضف الأجزاء التي يتكوّن منها هذا العنصر.",
   "equipment_components_emptyLeaf": "لا يحتوي على أجزاء خاصة به. أضفها إذا كان هذا العنصر يتكوّن من عناصر أخرى.",
-  "equipment_components_historyAlsoPast": "{count, plural, =1{تحديث غطسة واحدة أيضًا} other{تحديث {count} غطسات أيضًا}}",
+  "equipment_components_historyAlsoPast": "{count, plural, =1{تحديث غطسة واحدة أيضًا} two{تحديث غطستين أيضًا} few{تحديث {count} غطسات أيضًا} many{تحديث {count} غطسة أيضًا} other{تحديث {count} غطسة أيضًا}}",
   "equipment_components_historyAskAdded": "إضافة الجزء الجديد إلى تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟",
   "equipment_components_historyAskRemoved": "إزالة الجزء من تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟",
   "equipment_components_historyAskReplaced": "تبديل الجزء في تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟",
   "equipment_components_historyFutureOnly": "من الآن فصاعدًا",
-  "equipment_components_historyOnDives": "{count, plural, =1{هذه التجميعة موجودة في غطسة مسجلة واحدة.} other{هذه التجميعة موجودة في {count} غطسات مسجلة.}}",
+  "equipment_components_historyOnDives": "{count, plural, =1{هذه التجميعة موجودة في غطسة مسجلة واحدة.} two{هذه التجميعة موجودة في غطستين مسجلتين.} few{هذه التجميعة موجودة في {count} غطسات مسجلة.} many{هذه التجميعة موجودة في {count} غطسة مسجلة.} other{هذه التجميعة موجودة في {count} غطسة مسجلة.}}",
   "equipment_components_historyTitle": "تحديث الغطسات السابقة؟",
   "equipment_components_partOf": "جزء من {name}",
-  "equipment_components_partOfCount": "{count, plural, =1{جزء من تجميعة واحدة} other{جزء من {count} تجميعات}}",
+  "equipment_components_partOfCount": "{count, plural, =1{جزء من تجميعة واحدة} two{جزء من تجميعتين} few{جزء من {count} تجميعات} many{جزء من {count} تجميعة} other{جزء من {count} تجميعة}}",
   "equipment_components_partOfSection": "جزء من",
   "equipment_components_partOfSubtitle": "{role}، في {rigs}",
-  "equipment_components_pickerConfirm": "{count, plural, =0{إضافة} =1{إضافة 1} other{إضافة {count}}}",
+  "equipment_components_pickerConfirm": "{count, plural, =0{إضافة} =1{إضافة 1} two{إضافة {count}} few{إضافة {count}} many{إضافة {count}} other{إضافة {count}}}",
   "equipment_components_pickerEmpty": "لا توجد معدات نشطة أخرى يمكن إضافتها هنا.",
   "equipment_components_pickerReplaceConfirm": "استبدال",
   "equipment_components_pickerReplaceTitle": "استبدال بـ",
@@ -339,7 +339,7 @@
   "trips_story_surfaceDay": "يوم سطح",
   "trips_story_today": "اليوم",
   "trips_story_dayOfTrip": "اليوم {current} من {total}",
-  "trips_story_daysUntil": "{days, plural, =1{يوم واحد حتى المغادرة} other{{days} أيام حتى المغادرة}}",
+  "trips_story_daysUntil": "{days, plural, =1{يوم واحد حتى المغادرة} two{يومان حتى المغادرة} few{{days} أيام حتى المغادرة} many{{days} يومًا حتى المغادرة} other{{days} يوم حتى المغادرة}}",
   "trips_story_checklistProgress": "اكتمل {done} من {total}",
   "trips_story_generateItinerary": "إنشاء خط سير",
   "trips_story_openGallery": "فتح صور الرحلة",
@@ -354,7 +354,7 @@
   "trips_story_planned": "مخطط",
   "trips_story_empty_title": "لا توجد غطسات أو خط سير بعد",
   "trips_story_empty_subtitle": "أضف غطسات إلى هذه الرحلة أو خطط أيامها لرؤية القصة.",
-  "trips_story_history_dives": "{count, plural, =1{غطسة سابقة واحدة هنا} other{{count} غطسات سابقة هنا}}",
+  "trips_story_history_dives": "{count, plural, =1{غطسة سابقة واحدة هنا} two{غطستان سابقتان هنا} few{{count} غطسات سابقة هنا} many{{count} غطسة سابقة هنا} other{{count} غطسة سابقة هنا}}",
   "trips_story_history_avgTemp": "متوسط {value}",
   "trips_story_history_avgDepth": "متوسط العمق {value}",
   "trips_story_rhythm_semantics": "أوقات الغطس في هذا اليوم",
@@ -406,12 +406,12 @@
   "diveLog_bulkEdit_tankFieldMaterial": "المادة",
   "diveLog_bulkEdit_tankFieldGasMix": "خليط الغاز",
   "diveLog_bulkEdit_tankFieldName": "الاسم",
-  "diveLog_bulkEdit_tankSpecsSkipped": "{count, plural, =1{غطسة واحدة محددة لا تحتوي على أسطوانات وسيتم تخطيها.} other{{count} غطسات محددة لا تحتوي على أسطوانات وسيتم تخطيها.}}",
+  "diveLog_bulkEdit_tankSpecsSkipped": "{count, plural, =1{غطسة واحدة محددة لا تحتوي على أسطوانات وسيتم تخطيها.} two{غطستان محددتان لا تحتويان على أسطوانات وسيتم تخطيهما.} few{{count} غطسات محددة لا تحتوي على أسطوانات وسيتم تخطيها.} many{{count} غطسة محددة لا تحتوي على أسطوانات وسيتم تخطيها.} other{{count} غطسة محددة لا تحتوي على أسطوانات وسيتم تخطيها.}}",
   "diveLog_bulkEdit_tankOnlyIfEmpty": "الغطسات التي لا تحتوي على أسطوانة فقط",
   "diveLog_bulkEdit_confirmTitle": "تطبيق التغييرات؟",
   "diveLog_bulkEdit_confirmApply": "تطبيق",
-  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{إضافة إلى غطسة واحدة} other{إضافة إلى كل الـ {count} غطسة}}",
-  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{إزالة من غطسة واحدة} other{إزالة من كل الـ {count} غطسة}}",
+  "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{إضافة إلى غطسة واحدة} two{إضافة إلى الغطستين} few{إضافة إلى كل الـ {count} غطسات} many{إضافة إلى كل الـ {count} غطسة} other{إضافة إلى كل الـ {count} غطسة}}",
+  "diveLog_bulkEdit_confirmRemoving": "{count, plural, =1{إزالة من غطسة واحدة} two{إزالة من الغطستين} few{إزالة من كل الـ {count} غطسات} many{إزالة من كل الـ {count} غطسة} other{إزالة من كل الـ {count} غطسة}}",
   "diveLog_bulkEdit_nothingSelected": "فعّل حقلاً واحداً على الأقل لتطبيق التغييرات.",
   "diveLog_bulkEdit_applied": "تم تحديث {count} غطسة",
   "settings_cloudSync_error_icloudSignedOut": "iCloud غير متوفر. يُرجى تسجيل الدخول إلى iCloud من إعدادات جهازك.",
@@ -774,27 +774,27 @@
   "buddies_linkedProfile_refusedTaken": "{buddyName} مرتبط بالفعل بهذا الملف الشخصي.",
   "buddies_linkedProfile_suggestion": "لدى {name} ملف شخصي هنا. هل تريد ربط هذا الرفيق به؟",
   "buddies_merge_refusedDifferentLinks": "هؤلاء الرفاق مرتبطون بملفات شخصية مختلفة. ادمج الملفات الشخصية أولاً.",
-  "buddies_label_diveCount": "{count, plural, =1{غطسة واحدة} other{{count} غطسة}}",
+  "buddies_label_diveCount": "{count, plural, =1{غطسة واحدة} two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",
   "buddies_linkText_action": "ربط بسجلات الرفاق",
   "buddies_linkText_addName": "إضافة اسم",
   "buddies_linkText_chipWithRole": "{name} · {role}",
   "buddies_linkText_chooseExisting": "اختيار رفيق موجود",
   "buddies_linkText_editName": "تعديل الاسم",
   "buddies_linkText_error": "تعذر ربط الرفاق: {error}",
-  "buddies_linkText_linkCount": "{count, plural, =1{ربط 1} other{ربط {count}}}",
-  "buddies_linkText_linkedSnackbar": "{count, plural, =1{تم ربط رفيق واحد} other{تم ربط {count} رفيق}}",
+  "buddies_linkText_linkCount": "{count, plural, =1{ربط 1} two{ربط {count}} few{ربط {count}} many{ربط {count}} other{ربط {count}}}",
+  "buddies_linkText_linkedSnackbar": "{count, plural, =1{تم ربط رفيق واحد} two{تم ربط رفيقين} few{تم ربط {count} رفاق} many{تم ربط {count} رفيقًا} other{تم ربط {count} رفيق}}",
   "buddies_linkText_nameLabel": "الاسم",
   "buddies_linkText_newBuddyNote": "تم التحويل من نص الرفيق في غطسة",
   "buddies_linkText_noBuddiesFound": "لم يتم العثور على رفاق",
   "buddies_linkText_page_diveNumber": "#{number}",
   "buddies_linkText_page_empty": "كل أسماء الرفاق مرتبطة بسجل رفيق",
   "buddies_linkText_page_errorLoading": "تعذر تحميل الغطسات: {error}",
-  "buddies_linkText_page_linkDives": "{count, plural, =1{ربط غطسة واحدة} other{ربط {count} غطسة}}",
-  "buddies_linkText_page_linkedSnackbar": "{count, plural, =1{تم ربط الرفاق في غطسة واحدة} other{تم ربط الرفاق في {count} غطسة}}",
+  "buddies_linkText_page_linkDives": "{count, plural, =1{ربط غطسة واحدة} two{ربط غطستين} few{ربط {count} غطسات} many{ربط {count} غطسة} other{ربط {count} غطسة}}",
+  "buddies_linkText_page_linkedSnackbar": "{count, plural, =1{تم ربط الرفاق في غطسة واحدة} two{تم ربط الرفاق في غطستين} few{تم ربط الرفاق في {count} غطسات} many{تم ربط الرفاق في {count} غطسة} other{تم ربط الرفاق في {count} غطسة}}",
   "buddies_linkText_page_subtitle": "تحويل أسماء الرفاق في الغطسات المستوردة إلى سجلات رفاق",
-  "buddies_linkText_page_summaryDives": "{count, plural, =1{غطسة واحدة} other{{count} غطسة}}",
-  "buddies_linkText_page_summaryExisting": "{count, plural, =1{رفيق موجود واحد} other{{count} رفيق موجود}}",
-  "buddies_linkText_page_summaryNew": "{count, plural, =1{رفيق جديد واحد} other{{count} رفيق جديد}}",
+  "buddies_linkText_page_summaryDives": "{count, plural, =1{غطسة واحدة} two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",
+  "buddies_linkText_page_summaryExisting": "{count, plural, =1{رفيق موجود واحد} two{رفيقان موجودان} few{{count} رفاق موجودون} many{{count} رفيقًا موجودًا} other{{count} رفيق موجود}}",
+  "buddies_linkText_page_summaryNew": "{count, plural, =1{رفيق جديد واحد} two{رفيقان جديدان} few{{count} رفاق جدد} many{{count} رفيقًا جديدًا} other{{count} رفيق جديد}}",
   "buddies_linkText_page_title": "ربط أسماء الرفاق",
   "buddies_linkText_searchHint": "البحث عن رفاق",
   "buddies_linkText_sheetTitle": "ربط سجلات الرفاق",
@@ -803,7 +803,7 @@
   "buddies_linkText_statusExisting": "رفيق موجود",
   "buddies_linkText_statusNew": "رفيق جديد",
   "buddies_linkText_suggestion": "هل تقصد {name}؟",
-  "buddies_linkText_tie": "{count, plural, =1{رفيق واحد باسم {name}} other{{count} رفيق باسم {name}}}",
+  "buddies_linkText_tie": "{count, plural, =1{رفيق واحد باسم {name}} two{رفيقان باسم {name}} few{{count} رفاق باسم {name}} many{{count} رفيقًا باسم {name}} other{{count} رفيق باسم {name}}}",
   "buddies_linkText_undone": "تمت إزالة روابط الرفاق",
   "buddies_linkText_useSuggestion": "استخدام",
   "buddies_message_added": "تمت إضافة الرفيق بنجاح",
@@ -855,22 +855,22 @@
   "buddies_summary_totalBuddies": "إجمالي الرفاق",
   "buddies_summary_withCertification": "مع الاعتماد",
   "buddies_title": "الرفاق",
-  "buddies_list_count": "{count, plural, =1{رفيق واحد} other{{count} رفاق}}",
-  "buddies_list_countFiltered": "{shown} من {total, plural, =1{رفيق واحد} other{{total} رفاق}}",
+  "buddies_list_count": "{count, plural, =1{رفيق واحد} two{رفيقان} few{{count} رفاق} many{{count} رفيقًا} other{{count} رفيق}}",
+  "buddies_list_countFiltered": "{shown} من {total, plural, =1{رفيق واحد} two{رفيقين} few{{total} رفاق} many{{total} رفيقًا} other{{total} رفيق}}",
   "buddies_title_add": "إضافة رفيق",
   "buddies_title_edit": "تعديل الرفيق",
   "buddies_title_singular": "رفيق",
   "buddies_validation_emailInvalid": "الرجاء إدخال بريد إلكتروني صحيح",
   "buddies_validation_nameRequired": "الرجاء إدخال الاسم",
   "buddies_list_selection_mergeTooltip": "دمج المحددين",
-  "buddies_list_merge_snackbar": "تم دمج {count} {count, plural, =1{رفيق} other{رفاق}}",
+  "buddies_list_merge_snackbar": "تم دمج {count, plural, =1{رفيق واحد} two{رفيقين} few{{count} رفاق} many{{count} رفيقًا} other{{count} رفيق}}",
   "buddies_list_merge_undo": "تراجع",
   "buddies_list_merge_restored": "تم التراجع عن الدمج",
   "buddies_list_bulkDelete_title": "حذف الرفاق",
-  "buddies_list_bulkDelete_content": "هل أنت متأكد من حذف {count} {count, plural, =1{رفيق} other{رفاق}}؟ لا يمكن التراجع عن هذا الإجراء.",
+  "buddies_list_bulkDelete_content": "هل أنت متأكد من حذف {count, plural, =1{رفيق واحد} two{رفيقين} few{{count} رفاق} many{{count} رفيقًا} other{{count} رفيق}}؟ لا يمكن التراجع عن هذا الإجراء.",
   "buddies_list_bulkDelete_cancel": "إلغاء",
   "buddies_list_bulkDelete_confirm": "حذف",
-  "buddies_list_bulkDelete_snackbar": "تم حذف {count} {count, plural, =1{رفيق} other{رفاق}}",
+  "buddies_list_bulkDelete_snackbar": "تم حذف {count, plural, =1{رفيق واحد} two{رفيقين} few{{count} رفاق} many{{count} رفيقًا} other{{count} رفيق}}",
   "buddies_edit_merge_title": "دمج الرفاق",
   "buddies_edit_merge_fieldSourceCycleTooltip": "استخدام القيمة من الرفيق المحدد التالي",
   "buddies_edit_merge_fieldSourceLabel": "من {buddyName} ({current}/{total})",
@@ -883,8 +883,8 @@
   "buddies_instructorPicker_label": "المدرب من قائمة الرفاق",
   "buddies_instructorPicker_none": "لا يوجد (إدخال يدوي)",
   "certifications_appBar_title": "الشهادات",
-  "certifications_list_count": "{count, plural, =1{شهادة واحدة} other{{count} شهادات}}",
-  "certifications_list_countFiltered": "{shown} من {total, plural, =1{شهادة واحدة} other{{total} شهادات}}",
+  "certifications_list_count": "{count, plural, =1{شهادة واحدة} two{شهادتان} few{{count} شهادات} many{{count} شهادة} other{{count} شهادة}}",
+  "certifications_list_countFiltered": "{shown} من {total, plural, =1{شهادة واحدة} two{شهادتين} few{{total} شهادات} many{{total} شهادة} other{{total} شهادة}}",
   "certifications_card_issued": "صادرة",
   "certifications_certificate_cardNumber": "رقم البطاقة: {number}",
   "certifications_certificate_footer": "شهادة غوص رسمية",
@@ -1063,7 +1063,7 @@
   "checklists_menu_saveAsTemplate": "حفظ كقالب...",
   "checklists_menu_clearAll": "مسح قائمة التحقق...",
   "checklists_clear_title": "مسح قائمة التحقق",
-  "checklists_clear_content": "{count, plural, =1{هل تريد حذف العنصر الوحيد من قائمة التحقق هذه؟ لن تتأثر القوالب.} other{هل تريد حذف جميع العناصر البالغ عددها {count} من قائمة التحقق هذه؟ لن تتأثر القوالب.}}",
+  "checklists_clear_content": "{count, plural, =1{هل تريد حذف العنصر الوحيد من قائمة التحقق هذه؟ لن تتأثر القوالب.} two{هل تريد حذف العنصرين من قائمة التحقق هذه؟ لن تتأثر القوالب.} few{هل تريد حذف جميع العناصر البالغ عددها {count} من قائمة التحقق هذه؟ لن تتأثر القوالب.} many{هل تريد حذف جميع العناصر البالغ عددها {count} من قائمة التحقق هذه؟ لن تتأثر القوالب.} other{هل تريد حذف جميع العناصر البالغ عددها {count} من قائمة التحقق هذه؟ لن تتأثر القوالب.}}",
   "@checklists_clear_content": {
     "placeholders": {
       "count": {
@@ -1072,7 +1072,7 @@
     }
   },
   "checklists_clear_confirm": "مسح",
-  "checklists_clear_success": "{count, plural, =1{تمت إزالة عنصر واحد} other{تمت إزالة {count} عناصر}}",
+  "checklists_clear_success": "{count, plural, =1{تمت إزالة عنصر واحد} two{تمت إزالة عنصرين} few{تمت إزالة {count} عناصر} many{تمت إزالة {count} عنصرًا} other{تمت إزالة {count} عنصر}}",
   "@checklists_clear_success": {
     "placeholders": {
       "count": {
@@ -1082,9 +1082,9 @@
   },
   "checklists_applySheet_title": "تطبيق القالب",
   "checklists_applySheet_empty": "لا توجد قوالب بعد. يمكنك إنشاؤها من الإعدادات.",
-  "checklists_applySheet_itemCount": "{count, plural, =1{عنصر واحد} other{{count} عناصر}}",
-  "checklists_applySheet_confirmAppend": "{added, plural, =1{سيتم إضافة عنصر واحد} other{سيتم إضافة {added} عناصر}}، {skipped, plural, =0{دون تخطي أي عناصر مكررة} =1{مع تخطي عنصر مكرر واحد} other{مع تخطي {skipped} عناصر مكررة}}.",
-  "checklists_apply_success": "{count, plural, =0{لم تتم إضافة أي عناصر جديدة} =1{تمت إضافة عنصر واحد} other{تمت إضافة {count} عناصر}}",
+  "checklists_applySheet_itemCount": "{count, plural, =1{عنصر واحد} two{عنصران} few{{count} عناصر} many{{count} عنصرًا} other{{count} عنصر}}",
+  "checklists_applySheet_confirmAppend": "{added, plural, =1{سيتم إضافة عنصر واحد} two{سيتم إضافة عنصرين} few{سيتم إضافة {added} عناصر} many{سيتم إضافة {added} عنصرًا} other{سيتم إضافة {added} عنصر}}، {skipped, plural, =0{دون تخطي أي عناصر مكررة} =1{مع تخطي عنصر مكرر واحد} two{مع تخطي عنصرين مكررين} few{مع تخطي {skipped} عناصر مكررة} many{مع تخطي {skipped} عنصرًا مكررًا} other{مع تخطي {skipped} عنصر مكرر}}.",
+  "checklists_apply_success": "{count, plural, =0{لم تتم إضافة أي عناصر جديدة} =1{تمت إضافة عنصر واحد} two{تمت إضافة عنصرين} few{تمت إضافة {count} عناصر} many{تمت إضافة {count} عنصرًا} other{تمت إضافة {count} عنصر}}",
   "checklists_apply_templateGone": "القالب لم يعد موجودًا",
   "checklists_saveTemplate_title": "حفظ كقالب",
   "checklists_saveTemplate_nameLabel": "اسم القالب",
@@ -1348,7 +1348,7 @@
   "connections_editor_links": "الروابط",
   "connections_editor_link": "{a} مع {b}",
   "@connections_editor_link": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
-  "connections_editor_minShared": "{count, plural, =1{غوصة مشتركة واحدة على الأقل} other{{count} غوصة مشتركة على الأقل}}",
+  "connections_editor_minShared": "{count, plural, =1{غوصة مشتركة واحدة على الأقل} two{غوصتان مشتركتان على الأقل} few{{count} غوصات مشتركة على الأقل} many{{count} غوصة مشتركة على الأقل} other{{count} غوصة مشتركة على الأقل}}",
   "@connections_editor_minShared": {"placeholders": {"count": {"type": "int"}}},
   "connections_editor_saveAsMap": "حفظ كخريطة",
   "connections_savedMap_saveTitle": "حفظ الخريطة",
@@ -1371,10 +1371,10 @@
   "connections_summary_title": "الملخص",
   "connections_summary_mostConnected": "الأكثر ارتباطًا",
   "connections_summary_strongestPair": "أقوى ثنائي",
-  "connections_summary_pairValue": "{count, plural, =1{{a} و{b}، غوصة واحدة} other{{a} و{b}، {count} غوصة}}",
+  "connections_summary_pairValue": "{count, plural, =1{{a} و{b}، غوصة واحدة} two{{a} و{b}، غوصتان} few{{a} و{b}، {count} غوصات} many{{a} و{b}، {count} غوصة} other{{a} و{b}، {count} غوصة}}",
   "@connections_summary_pairValue": {"placeholders": {"count": {"type": "int"}, "a": {"type": "String"}, "b": {"type": "String"}}},
   "connections_summary_closest": "الأقرب",
-  "connections_summary_entitiesAround": "{count, plural, =1{عنصر واحد} other{{count} عنصرًا}}",
+  "connections_summary_entitiesAround": "{count, plural, =1{عنصر واحد} two{عنصران} few{{count} عناصر} many{{count} عنصرًا} other{{count} عنصر}}",
   "@connections_summary_entitiesAround": {"placeholders": {"count": {"type": "int"}}},
   "connections_filter_allFilters": "كل عوامل التصفية",
   "connections_filter_clear": "مسح",
@@ -1382,9 +1382,9 @@
   "connections_loading": "جارٍ تحميل الروابط",
   "connections_tooltip_relayout": "إعادة الترتيب",
   "connections_tooltip_showWholeWeb": "العودة إلى الخريطة الكاملة",
-  "connections_filterBar_edges": "{count, plural, =1{رابط واحد} other{{count} رابطًا}}",
+  "connections_filterBar_edges": "{count, plural, =1{رابط واحد} two{رابطان} few{{count} روابط} many{{count} رابطًا} other{{count} رابط}}",
   "@connections_filterBar_edges": {"placeholders": {"count": {"type": "int"}}},
-  "connections_hiddenNodes": "{count, plural, =1{عقدة أخرى غير معروضة} other{{count} عقدة أخرى غير معروضة}}",
+  "connections_hiddenNodes": "{count, plural, =1{عقدة أخرى غير معروضة} two{عقدتان أخريان غير معروضتين} few{{count} عقد أخرى غير معروضة} many{{count} عقدة أخرى غير معروضة} other{{count} عقدة أخرى غير معروضة}}",
   "@connections_hiddenNodes": {"placeholders": {"count": {"type": "int"}}},
   "connections_showAll": "عرض الكل",
   "connections_showAll_confirmTitle": "عرض كل العقد؟",
@@ -1393,9 +1393,9 @@
   "connections_action_open": "فتح",
   "connections_action_showDives": "عرض الغوصات",
   "connections_action_openInConnections": "فتح في الروابط",
-  "connections_selection_divesTogether": "{count, plural, =1{غوصة واحدة معًا} other{{count} غوصة معًا}}",
+  "connections_selection_divesTogether": "{count, plural, =1{غوصة واحدة معًا} two{غوصتان معًا} few{{count} غوصات معًا} many{{count} غوصة معًا} other{{count} غوصة معًا}}",
   "@connections_selection_divesTogether": {"placeholders": {"count": {"type": "int"}}},
-  "connections_selection_dives": "{count, plural, =1{غوصة واحدة} other{{count} غوصة}}",
+  "connections_selection_dives": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
   "@connections_selection_dives": {"placeholders": {"count": {"type": "int"}}},
   "connections_selection_topConnections": "أقوى الروابط",
   "connections_selection_hint": "انقر على عقدة أو خط لعرض التفاصيل.",
@@ -1532,8 +1532,8 @@
   "courses_summary_title": "الدورات التدريبية",
   "courses_summary_total": "الإجمالي",
   "courses_title": "الدورات التدريبية",
-  "courses_list_count": "{count, plural, =1{دورة واحدة} other{{count} دورات}}",
-  "courses_list_countFiltered": "{shown} من {total, plural, =1{دورة واحدة} other{{total} دورات}}",
+  "courses_list_count": "{count, plural, =1{دورة واحدة} two{دورتان} few{{count} دورات} many{{count} دورة} other{{count} دورة}}",
+  "courses_list_countFiltered": "{shown} من {total, plural, =1{دورة واحدة} two{دورتين} few{{total} دورات} many{{total} دورة} other{{total} دورة}}",
   "courses_title_edit": "تعديل الدورة",
   "courses_title_new": "دورة جديدة",
   "courses_title_singular": "دورة",
@@ -1615,12 +1615,12 @@
   "diveCenters_action_settings": "الإعدادات",
   "diveCenters_action_useMyLocation": "استخدم موقعي",
   "diveCenters_action_view": "عرض",
-  "diveCenters_detail_divesLogged": "{count, plural, =1{غطسة واحدة مسجلة} other{{count} غطسة مسجلة}}",
+  "diveCenters_detail_divesLogged": "{count, plural, =1{غطسة واحدة مسجلة} two{غطستان مسجلتان} few{{count} غطسات مسجلة} many{{count} غطسة مسجلة} other{{count} غطسة مسجلة}}",
   "diveCenters_detail_divesWithCenter": "الغطسات مع هذا المركز",
   "diveCenters_detail_noDivesLogged": "لا توجد غطسات مسجلة بعد",
   "diveCenters_dialog_deleteMessage": "هل أنت متأكد من حذف \"{name}\"؟",
   "diveCenters_dialog_deleteTitle": "حذف مركز الغوص",
-  "diveCenters_dialog_deleteDivesKept": "{count, plural, =1{ستبقى غطسة واحدة بدون مركز غوص.} other{ستبقى {count} غطسة بدون مركز غوص.}}",
+  "diveCenters_dialog_deleteDivesKept": "{count, plural, =1{ستبقى غطسة واحدة بدون مركز غوص.} two{ستبقى غطستان بدون مركز غوص.} few{ستبقى {count} غطسات بدون مركز غوص.} many{ستبقى {count} غطسة بدون مركز غوص.} other{ستبقى {count} غطسة بدون مركز غوص.}}",
   "diveCenters_dialog_discard": "تجاهل",
   "diveCenters_dialog_discardMessage": "لديك تغييرات غير محفوظة. هل تريد تجاهلها؟",
   "diveCenters_dialog_discardTitle": "تجاهل التغييرات؟",
@@ -1670,7 +1670,7 @@
   "diveCenters_import_searchHint": "جرب البحث بالاسم أو البلد أو وكالة الاعتماد.",
   "diveCenters_import_searchTitle": "البحث عن مراكز الغوص",
   "diveCenters_label_alreadyImported": "مستورد بالفعل",
-  "diveCenters_label_diveCount": "{count, plural, =1{غطسة واحدة} other{{count} غطسة}}",
+  "diveCenters_label_diveCount": "{count, plural, =1{غطسة واحدة} two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",
   "diveCenters_label_email": "البريد الإلكتروني",
   "diveCenters_label_imported": "مستورد",
   "diveCenters_label_locationNotSet": "الموقع غير محدد",
@@ -1716,8 +1716,8 @@
   "diveCenters_summary_totalCenters": "إجمالي المراكز",
   "diveCenters_summary_withGps": "مع GPS",
   "diveCenters_title": "مراكز الغوص",
-  "diveCenters_list_count": "{count, plural, =1{مركز غوص واحد} other{{count} مراكز غوص}}",
-  "diveCenters_list_countFiltered": "{shown} من {total, plural, =1{مركز غوص واحد} other{{total} مراكز غوص}}",
+  "diveCenters_list_count": "{count, plural, =1{مركز غوص واحد} two{مركزا غوص} few{{count} مراكز غوص} many{{count} مركز غوص} other{{count} مركز غوص}}",
+  "diveCenters_list_countFiltered": "{shown} من {total, plural, =1{مركز غوص واحد} two{مركزي غوص} few{{total} مراكز غوص} many{{total} مركز غوص} other{{total} مركز غوص}}",
   "diveCenters_title_add": "إضافة مركز غوص",
   "diveCenters_title_edit": "تعديل مركز الغوص",
   "diveCenters_title_import": "استيراد مركز الغوص",
@@ -1866,7 +1866,7 @@
   "diveComputer_downloadStep_progressPercent": "{percent}%",
   "diveComputer_downloadStep_progressSemanticLabel": "تقدم التنزيل: {status}{percent}",
   "diveComputer_downloadStep_retry": "إعادة المحاولة",
-  "diveComputer_downloadStep_importPartialCount": "{count, plural, =1{استيراد غطسة واحدة تم تنزيلها} other{استيراد {count} غطسات تم تنزيلها}}",
+  "diveComputer_downloadStep_importPartialCount": "{count, plural, =1{استيراد غطسة واحدة تم تنزيلها} two{استيراد غطستين تم تنزيلهما} few{استيراد {count} غطسات تم تنزيلها} many{استيراد {count} غطسة تم تنزيلها} other{استيراد {count} غطسة تم تنزيلها}}",
   "diveComputer_download_computerNotFound": "لم يتم العثور على الكمبيوتر",
   "diveComputer_download_durationMin": "{duration} min",
   "diveComputer_download_noSerialPortsFound": "لم يتم العثور على منافذ USB تسلسلية. هل حاسوب الغوص متصل وقيد التشغيل؟",
@@ -1954,9 +1954,9 @@
   "diveImport_uddf_media": "الصور",
   "diveImport_uddf_fills": "التعبئات",
   "diveImport_uddf_trips": "الرحلات",
-  "diveLog_bulkDelete_confirm": "هل أنت متأكد أنك تريد حذف {count} {count, plural, =1{غوصة} other{غوصات}}؟ لا يمكن التراجع عن هذا الإجراء.",
+  "diveLog_bulkDelete_confirm": "هل أنت متأكد أنك تريد حذف {count, plural, =1{غوصة واحدة} two{غوصتين} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}؟ لا يمكن التراجع عن هذا الإجراء.",
   "diveLog_bulkDelete_restored": "تمت استعادة الغوصات",
-  "diveLog_bulkDelete_snackbar": "تم حذف {count} {count, plural, =1{غوصة} other{غوصات}}",
+  "diveLog_bulkDelete_snackbar": "تم حذف {count, plural, =1{غوصة واحدة} two{غوصتين} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
   "diveLog_bulkDelete_title": "حذف الغوصات",
   "diveLog_bulkDelete_undo": "تراجع",
   "diveLog_bulkExport_csv": "CSV",
@@ -1964,8 +1964,8 @@
   "diveLog_bulkExport_failed": "فشل التصدير: {error}",
   "diveLog_bulkExport_pdf": "سجل PDF",
   "diveLog_bulkExport_pdfDescription": "صفحات سجل غوص قابلة للطباعة",
-  "diveLog_bulkExport_success": "تم تصدير {count} {count, plural, =1{غوصة} other{غوصات}} بنجاح",
-  "diveLog_bulkExport_title": "تصدير {count} {count, plural, =1{غوصة} other{غوصات}}",
+  "diveLog_bulkExport_success": "تم تصدير {count, plural, =1{غوصة واحدة} two{غوصتين} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}} بنجاح",
+  "diveLog_bulkExport_title": "تصدير {count, plural, =1{غوصة واحدة} two{غوصتين} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
   "diveLog_bulkExport_uddf": "UDDF",
   "diveLog_bulkExport_uddfDescription": "تنسيق بيانات الغوص العالمي",
   "diveLog_ccr_diluent_air": "هواء",
@@ -1996,7 +1996,7 @@
   "diveLog_combine_profilePreview": "الملف المدمج",
   "diveLog_combine_previewIntro": "ستُدمَج هذه الغوصات الـ {count} في غوصة واحدة متواصلة. تتحول الفجوات بينها إلى وقت على السطح.",
   "diveLog_combine_resultSummary": "النتيجة: {runtime} إجمالاً، أقصى عمق {maxDepth}، ووقت القاع {bottomTime}",
-  "diveLog_combine_snackbar": "تم دمج {count} {count, plural, =1{غوصة} other{غوصات}}",
+  "diveLog_combine_snackbar": "تم دمج {count, plural, =1{غوصة واحدة} two{غوصتين} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
   "diveLog_combine_title": "دمج الغوصات",
   "diveLog_combine_undoError": "تعذّر التراجع عن الدمج.",
   "diveLog_combine_undone": "تم التراجع عن الدمج",
@@ -2041,12 +2041,12 @@
   "diveLog_detail_appBar": "تفاصيل الغوصة",
   "diveLog_detail_badge_critical": "حرج",
   "diveLog_detail_badge_warning": "تحذير",
-  "diveLog_detail_buddyCount": "{count} {count, plural, =1{زميل غوص} other{زملاء غوص}}",
+  "diveLog_detail_buddyCount": "{count, plural, =1{زميل غوص واحد} two{زميلا غوص} few{{count} زملاء غوص} many{{count} زميل غوص} other{{count} زميل غوص}}",
   "diveLog_detail_button_rangeAnalysis": "إحصائيات النطاق",
   "diveLog_detail_captureSignature": "التقاط توقيع المدرب",
   "diveLog_detail_collapsed_atTime": "عند {timestamp}",
-  "diveLog_detail_customFieldCount": "{count, plural, =1{1 field} other{{count} fields}}",
-  "diveLog_detail_equipmentCount": "{count} {count, plural, =1{عنصر} other{عناصر}}",
+  "diveLog_detail_customFieldCount": "{count, plural, =1{حقل واحد} two{حقلان} few{{count} حقول} many{{count} حقلًا} other{{count} حقل}}",
+  "diveLog_detail_equipmentCount": "{count, plural, =1{عنصر واحد} two{عنصران} few{{count} عناصر} many{{count} عنصرًا} other{{count} عنصر}}",
   "diveLog_detail_errorLoading": "خطأ في تحميل الغوصة",
   "diveLog_detail_label_airTemp": "درجة حرارة الهواء",
   "diveLog_detail_label_avgDepth": "متوسط العمق",
@@ -2107,7 +2107,7 @@
   "diveLog_detail_profileRevision_editType_trimEndZeros": "قص الأصفار النهائية",
   "diveLog_detail_section_equipment": "المعدات",
   "diveLog_detail_section_marineLife": "الأنواع",
-  "diveLog_detail_sightingPhotos": "{count, plural, =1{صورة واحدة} other{{count} صور}}",
+  "diveLog_detail_sightingPhotos": "{count, plural, =1{صورة واحدة} two{صورتان} few{{count} صور} many{{count} صورة} other{{count} صورة}}",
   "diveLog_detail_section_notes": "الملاحظات",
   "diveLog_detail_section_oxygenToxicity": "سمية الأكسجين",
   "diveLog_detail_section_sacRateBySegment": "استهلاك الغاز حسب المقطع",
@@ -2123,7 +2123,7 @@
   "diveLog_detail_stat_maxDepth": "أقصى عمق",
   "diveLog_detail_stat_runtime": "وقت التشغيل",
   "diveLog_detail_stat_waterTemp": "درجة حرارة الماء",
-  "diveLog_detail_tagCount": "{count} {count, plural, =1{وسم} other{وسوم}}",
+  "diveLog_detail_tagCount": "{count, plural, =1{وسم واحد} two{وسمان} few{{count} وسوم} many{{count} وسمًا} other{{count} وسم}}",
   "diveLog_detail_tideCalculated": "محسوب من نموذج المد والجزر",
   "diveLog_detail_tooltip_addToFavorites": "إضافة إلى المفضلة",
   "diveLog_detail_tooltip_edit": "تعديل",
@@ -2200,8 +2200,8 @@
   "diveLog_edit_tanksCaption": "ما تنفست منه. تأتي رسوم الغاز البيانية واستهلاك الغاز والإحصاءات من هذه الأسطوانات.",
   "diveLog_edit_profile_draw": "رسم ملف الغوص",
   "diveLog_edit_profile_none": "غير مسجل",
-  "diveLog_edit_profile_outliers": "{count, plural, one{تم اكتشاف قيمة شاذة محتملة واحدة} other{تم اكتشاف {count} قيم شاذة محتملة}}",
-  "diveLog_edit_profile_points": "{count, plural, one{نقطة واحدة} other{{count} نقاط}}",
+  "diveLog_edit_profile_outliers": "{count, plural, one{تم اكتشاف قيمة شاذة محتملة واحدة} two{تم اكتشاف قيمتين شاذتين محتملتين} few{تم اكتشاف {count} قيم شاذة محتملة} many{تم اكتشاف {count} قيمة شاذة محتملة} other{تم اكتشاف {count} قيمة شاذة محتملة}}",
+  "diveLog_edit_profile_points": "{count, plural, one{نقطة واحدة} two{نقطتان} few{{count} نقاط} many{{count} نقطة} other{{count} نقطة}}",
   "diveLog_edit_row_diveProfile": "ملف الغوص",
   "diveLog_edit_row_addSite": "إضافة موقع",
   "diveLog_edit_row_diveCenter": "مركز الغوص",
@@ -2213,7 +2213,7 @@
   "diveLog_edit_row_trip": "الرحلة",
   "diveLog_edit_save": "حفظ",
   "diveLog_edit_saveAsSet": "حفظ كطقم",
-  "diveLog_edit_saveAsSetDialog_content": "حفظ {count} {count, plural, =1{عنصر} other{عناصر}} كطقم معدات جديد.",
+  "diveLog_edit_saveAsSetDialog_content": "حفظ {count, plural, =1{عنصر واحد} two{عنصرين} few{{count} عناصر} many{{count} عنصرًا} other{{count} عنصر}} كطقم معدات جديد.",
   "diveLog_edit_saveAsSetDialog_description": "الوصف (اختياري)",
   "diveLog_edit_saveAsSetDialog_descriptionHint": "مثال: معدات خفيفة للمياه الدافئة",
   "diveLog_edit_saveAsSetDialog_error": "خطأ في إنشاء الطقم: {error}",
@@ -2244,10 +2244,10 @@
   "diveLog_edit_snackbar_unableToCalculateAvgDepth": "تعذر حساب متوسط العمق من الملف",
   "diveLog_edit_snackbar_unableToCalculateMaxDepth": "تعذر حساب أقصى عمق من الملف",
   "diveLog_edit_snackbar_unableToCalculateRuntime": "تعذر حساب وقت التشغيل من الملف",
-  "diveLog_edit_summary_items": "{count, plural, one{عنصر واحد} other{{count} عناصر}}",
+  "diveLog_edit_summary_items": "{count, plural, one{عنصر واحد} two{عنصران} few{{count} عناصر} many{{count} عنصرًا} other{{count} عنصر}}",
   "diveLog_edit_summary_notes": "ملاحظات",
-  "diveLog_edit_summary_species": "{count, plural, one{نوع واحد} other{{count} أنواع}}",
-  "diveLog_edit_summary_tanks": "{count, plural, one{أسطوانة واحدة} other{{count} أسطوانات}}",
+  "diveLog_edit_summary_species": "{count, plural, one{نوع واحد} two{نوعان} few{{count} أنواع} many{{count} نوعًا} other{{count} نوع}}",
+  "diveLog_edit_summary_tanks": "{count, plural, one{أسطوانة واحدة} two{أسطوانتان} few{{count} أسطوانات} many{{count} أسطوانة} other{{count} أسطوانة}}",
   "diveLog_edit_surfacePressureDefault": "1013",
   "diveLog_edit_tankCard_done": "تم",
   "diveLog_edit_tankCard_title": "أسطوانة {number}",
@@ -2263,7 +2263,7 @@
   "diveLog_edit_weightPreset_save": "حفظ كإعداد مسبق",
   "diveLog_edit_weightPreset_pickerTitle": "تطبيق إعداد أوزان مسبق",
   "diveLog_edit_weightPreset_empty": "لم تحفظ أي إعدادات أوزان مسبقة بعد.",
-  "diveLog_edit_weightPreset_summary": "{count, plural, =1{وزن واحد · {total}} other{{count} أوزان · {total}}}",
+  "diveLog_edit_weightPreset_summary": "{count, plural, =1{وزن واحد · {total}} two{وزنان · {total}} few{{count} أوزان · {total}} many{{count} وزنًا · {total}} other{{count} وزن · {total}}}",
   "diveLog_edit_weightPreset_applied": "تم تطبيق إعداد الأوزان. عدّل المدخلات حسب الحاجة.",
   "diveLog_edit_weightPreset_saveTitle": "حفظ الأوزان كإعداد مسبق",
   "diveLog_edit_weightPreset_nameLabel": "اسم الإعداد",
@@ -2287,7 +2287,7 @@
   "diveLog_equipmentSetPicker_emptySet": "طقم فارغ",
   "diveLog_equipmentSetPicker_errorItems": "خطأ في تحميل العناصر",
   "diveLog_equipmentSetPicker_errorLoading": "خطأ في تحميل أطقم المعدات: {error}",
-  "diveLog_equipmentSetPicker_itemsSummary": "{count, plural, one{عنصر واحد} other{{count} عناصر}}: {names}",
+  "diveLog_equipmentSetPicker_itemsSummary": "{count, plural, one{عنصر واحد} two{عنصران} few{{count} عناصر} many{{count} عنصرًا} other{{count} عنصر}}: {names}",
   "diveLog_equipmentSetPicker_loading": "جارٍ التحميل...",
   "diveLog_equipmentSetPicker_noSets": "لا توجد أطقم معدات بعد",
   "diveLog_equipmentSetPicker_title": "استخدام طقم معدات",
@@ -2412,8 +2412,8 @@
   "diveLog_edit_planned_switch": "غوصة مخططة",
   "diveLog_edit_planned_switchSubtitle": "في انتظار بيانات كمبيوتر الغوص. لا رقم للغوصة حتى يتم تسجيلها.",
   "diveLog_listPage_compactTitle": "الغوصات",
-  "diveLog_listPage_count": "{count, plural, =1{غوصة واحدة} other{{count} غوصات}}",
-  "diveLog_listPage_countFiltered": "{shown} من {total, plural, =1{غوصة واحدة} other{{total} غوصات}}",
+  "diveLog_listPage_count": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
+  "diveLog_listPage_countFiltered": "{shown} من {total, plural, =1{غوصة واحدة} two{غوصتين} few{{total} غوصات} many{{total} غوصة} other{{total} غوصة}}",
   "diveLog_listPage_errorLoading": "خطأ: {error}",
   "diveLog_listPage_fab_addDive": "اضافة غوصة",
   "diveLog_listPage_fab_logDive": "تسجيل غوصة",
@@ -2421,16 +2421,16 @@
   "diveLog_listPage_menuMatchSites": "مطابقة الغوصات بالمواقع",
   "diveLog_listPage_menuFetchConditions": "جلب الظروف لجميع الغطسات",
   "diveLog_fetchConditions_confirmTitle": "جلب الظروف؟",
-  "diveLog_fetchConditions_confirmBody": "{count, plural, =1{تنقص الظروف في غطسة واحدة.} other{تنقص الظروف في {count} غطسات.}} تُملأ الحقول الفارغة فقط، ولن يتغير أي شيء أدخلته من قبل.",
+  "diveLog_fetchConditions_confirmBody": "{count, plural, =1{تنقص الظروف في غطسة واحدة.} two{تنقص الظروف في غطستين.} few{تنقص الظروف في {count} غطسات.} many{تنقص الظروف في {count} غطسة.} other{تنقص الظروف في {count} غطسة.}} تُملأ الحقول الفارغة فقط، ولن يتغير أي شيء أدخلته من قبل.",
   "diveLog_fetchConditions_confirmAction": "جلب",
   "diveLog_fetchConditions_noneNeeded": "لا توجد غطسات تنقصها الظروف.",
   "diveLog_fetchConditions_progressTitle": "جارٍ جلب الظروف",
   "diveLog_fetchConditions_progressCount": "{completed} من {total}",
   "diveLog_fetchConditions_summaryTitle": "تم جلب الظروف",
-  "diveLog_fetchConditions_summaryFilled": "{count, plural, =1{تم تحديث غطسة واحدة} other{تم تحديث {count} غطسات}}",
-  "diveLog_fetchConditions_summaryUnavailable": "{count, plural, =1{لا تتوفر بيانات لغطسة واحدة} other{لا تتوفر بيانات لـ {count} غطسات}}",
-  "diveLog_fetchConditions_summaryUnchanged": "{count, plural, =1{لا يوجد ما يُملأ في غطسة واحدة} other{لا يوجد ما يُملأ في {count} غطسات}}",
-  "diveLog_fetchConditions_summaryCancelled": "{count, plural, =1{توقّف مبكرًا؛ تمت معالجة غطسة واحدة.} other{توقّف مبكرًا؛ تمت معالجة {count} غطسات.}}",
+  "diveLog_fetchConditions_summaryFilled": "{count, plural, =1{تم تحديث غطسة واحدة} two{تم تحديث غطستين} few{تم تحديث {count} غطسات} many{تم تحديث {count} غطسة} other{تم تحديث {count} غطسة}}",
+  "diveLog_fetchConditions_summaryUnavailable": "{count, plural, =1{لا تتوفر بيانات لغطسة واحدة} two{لا تتوفر بيانات لغطستين} few{لا تتوفر بيانات لـ {count} غطسات} many{لا تتوفر بيانات لـ {count} غطسة} other{لا تتوفر بيانات لـ {count} غطسة}}",
+  "diveLog_fetchConditions_summaryUnchanged": "{count, plural, =1{لا يوجد ما يُملأ في غطسة واحدة} two{لا يوجد ما يُملأ في غطستين} few{لا يوجد ما يُملأ في {count} غطسات} many{لا يوجد ما يُملأ في {count} غطسة} other{لا يوجد ما يُملأ في {count} غطسة}}",
+  "diveLog_fetchConditions_summaryCancelled": "{count, plural, =1{توقّف مبكرًا؛ تمت معالجة غطسة واحدة.} two{توقّف مبكرًا؛ تمت معالجة غطستين.} few{توقّف مبكرًا؛ تمت معالجة {count} غطسات.} many{توقّف مبكرًا؛ تمت معالجة {count} غطسة.} other{توقّف مبكرًا؛ تمت معالجة {count} غطسة.}}",
   "diveLog_sighting_decreaseCount": "تقليل العدد",
   "diveLog_sighting_increaseCount": "زيادة العدد",
   "diveLog_speciesPicker_errorLoading": "خطأ في تحميل الأنواع: {error}",
@@ -2517,7 +2517,7 @@
   "forms_discard_keepEditing": "متابعة التحرير",
   "forms_discard_title": "تجاهل التغييرات؟",
   "forms_save": "حفظ",
-  "forms_section_issues": "{count, plural, one{مشكلة واحدة} other{{count} مشاكل}}",
+  "forms_section_issues": "{count, plural, one{مشكلة واحدة} two{مشكلتان} few{{count} مشاكل} many{{count} مشكلة} other{{count} مشكلة}}",
   "siteMatchReview_title": "مطابقة المواقع",
   "siteMatchReview_diveNumber": "الغوصة #{number}",
   "siteMatchReview_empty": "لا شيء للمطابقة.",
@@ -2531,7 +2531,7 @@
   "siteTypes_builtIn": "مدمج",
   "siteTypes_custom": "مخصص",
   "siteTypes_deleteDialog_content": "حذف \"{name}\"؟",
-  "siteTypes_deleteDialog_inUse": "{count, plural, =1{يستخدم موقع واحد \"{name}\". سيؤدي حذفه إلى إزالته من ذلك الموقع.} other{يستخدم {count} مواقع \"{name}\". سيؤدي حذفه إلى إزالته من تلك المواقع.}}",
+  "siteTypes_deleteDialog_inUse": "{count, plural, =1{يستخدم موقع واحد \"{name}\". سيؤدي حذفه إلى إزالته من ذلك الموقع.} two{يستخدم موقعان \"{name}\". سيؤدي حذفه إلى إزالته من هذين الموقعين.} few{يستخدم {count} مواقع \"{name}\". سيؤدي حذفه إلى إزالته من تلك المواقع.} many{يستخدم {count} موقعًا \"{name}\". سيؤدي حذفه إلى إزالته من تلك المواقع.} other{يستخدم {count} موقع \"{name}\". سيؤدي حذفه إلى إزالته من تلك المواقع.}}",
   "siteTypes_deleteDialog_title": "حذف نوع الموقع؟",
   "siteTypes_deleteTooltip": "حذف نوع الموقع",
   "siteTypes_dialog_addTitle": "إضافة نوع موقع",
@@ -2539,7 +2539,7 @@
   "siteTypes_dialog_nameLabel": "الاسم",
   "siteTypes_dialog_nameRequired": "يرجى إدخال اسم",
   "siteTypes_editTooltip": "تعديل نوع الموقع",
-  "siteTypes_siteCount": "{count, plural, =0{لا توجد مواقع} =1{موقع واحد} other{{count} مواقع}}",
+  "siteTypes_siteCount": "{count, plural, =0{لا توجد مواقع} =1{موقع واحد} two{موقعان} few{{count} مواقع} many{{count} موقعًا} other{{count} موقع}}",
   "siteTypes_snackbar_error": "تعذر حفظ نوع الموقع: {error}",
   "siteTypes_title": "أنواع المواقع",
   "siteType_builtin_artificial_reef": "شعاب اصطناعية",
@@ -2585,7 +2585,7 @@
   "diveLog_listPage_menuExpandAllTrips": "توسيع كل الرحلات",
   "diveLog_listPage_menuCollapseAllTrips": "طي كل الرحلات",
   "diveLog_listPage_tripGroupLabel": "رحلة",
-  "diveLog_listPage_tripGroupDiveCount": "{count, plural, =1{غوصة واحدة} other{{count} غوصات}}",
+  "diveLog_listPage_tripGroupDiveCount": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
   "diveLog_listPage_tripGroupDiveCountPartial": "{loaded} من {total} غوصات",
   "diveLog_listPage_tripGroupExpand": "إظهار غوصات {tripName}",
   "diveLog_listPage_tripGroupCollapse": "إخفاء غوصات {tripName}",
@@ -2600,8 +2600,8 @@
   "diveLog_refine_groupPeople": "الأشخاص والكائنات",
   "diveLog_refine_groupCustomFields": "الحقول المخصصة",
   "diveLog_refine_summaryAny": "أي",
-  "diveLog_refine_summaryCount": "{count, plural, =1{عامل واحد} other{{count} عوامل}}",
-  "diveLog_refine_showDives": "{count, plural, =1{عرض غوصة واحدة} other{عرض {count} غوصات}}",
+  "diveLog_refine_summaryCount": "{count, plural, =1{عامل واحد} two{عاملان} few{{count} عوامل} many{{count} عاملًا} other{{count} عامل}}",
+  "diveLog_refine_showDives": "{count, plural, =1{عرض غوصة واحدة} two{عرض غوصتين} few{عرض {count} غوصات} many{عرض {count} غوصة} other{عرض {count} غوصة}}",
   "diveLog_refine_showDivesNoCount": "عرض الغوصات",
   "diveLog_search_fieldHint": "ابحث، أو جرّب depth > 30m",
   "diveLog_search_refineTooltip": "تحسين البحث",
@@ -2647,7 +2647,7 @@
   "diveLog_numbering_snackbar_renumbered": "تمت إعادة ترقيم جميع الغوصات بدءاً من #{number}",
   "diveLog_numbering_summary": "{total} إجمالي الغوصات • {numbered} مرقمة",
   "diveLog_numbering_title": "ترقيم الغوصات",
-  "diveLog_numbering_unnumberedDives": "{count} {count, plural, =1{غوصة} other{غوصات}} بدون أرقام",
+  "diveLog_numbering_unnumberedDives": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}} بدون أرقام",
   "diveLog_o2tox_cnsBadgeLabel": "CNS {value}",
   "diveLog_o2tox_cnsOxygenClock": "ساعة أكسجين CNS",
   "diveLog_o2tox_deltaDive": "+{value}% في هذه الغوصة",
@@ -2757,7 +2757,7 @@
   "diveLog_speciesPicker_tooltip_clearSearch": "مسح البحث",
   "diveLog_summary_action_importComputer": "استيراد من الكمبيوتر",
   "diveLog_summary_action_viewInsights": "عرض الرؤى",
-  "diveLog_summary_diveCount": "{count} {count, plural, =1{غوصة} other{غوصات}}",
+  "diveLog_summary_diveCount": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
   "diveLog_summary_overview": "نظرة عامة",
   "diveLog_summary_record_coldest": "أبرد غوصة",
   "diveLog_summary_record_deepest": "أعمق غوصة",
@@ -2840,7 +2840,7 @@
   "diveLog_sources_row_otu": "OTU",
   "diveLog_sources_row_decoAlgorithm": "خوارزمية إزالة التشبع",
   "diveLog_sources_row_gf": "GF",
-  "diveLog_sources_minutes": "{count, plural, =1{دقيقة واحدة} other{{count} دقيقة}}",
+  "diveLog_sources_minutes": "{count, plural, =1{دقيقة واحدة} two{دقيقتان} few{{count} دقائق} many{{count} دقيقة} other{{count} دقيقة}}",
   "diveLog_sources_unknownComputer": "جهاز غير معروف",
   "diveLog_sources_manualEntry": "إدخال يدوي",
   "diveLog_sources_importedFile": "ملف مستورد",
@@ -2858,7 +2858,7 @@
   "diveLog_sources_separateDialog_title": "فصل الغوصات المدمجة؟",
   "diveLog_sources_separateDialog_body": "تم دمج هذه الغوصة من {count} غوصات. يعود ملف كل غوصة وأحداثها وأسطواناتها وتبديلات الغاز إلى غوصتها الخاصة. أما بقية بيانات السجل، بما فيها رفقاء الغوص والوسوم والمعدات والوسائط والملاحظات ورقم الغوصة، فتبقى في هذه الغوصة.",
   "diveLog_sources_separateDialog_confirm": "فصل",
-  "diveLog_sources_separateDone": "{count, plural, =1{تمت استعادة غوصة واحدة} other{تمت استعادة {count} غوصات}}",
+  "diveLog_sources_separateDone": "{count, plural, =1{تمت استعادة غوصة واحدة} two{تمت استعادة غوصتين} few{تمت استعادة {count} غوصات} many{تمت استعادة {count} غوصة} other{تمت استعادة {count} غوصة}}",
   "diveLog_sources_separateFailed": "تعذّر فصل هذه الغوصة",
   "divePlanner_action_addTank": "إضافة أسطوانة",
   "divePlanner_action_convertToDive": "تحويل إلى غطسة",
@@ -2972,8 +2972,8 @@
   "diveSites_detail_deleteDialog_confirm": "حذف",
   "diveSites_detail_deleteDialog_content": "هل أنت متأكد من حذف هذا الموقع؟ لا يمكن التراجع عن هذا الإجراء.",
   "diveSites_detail_deleteDialog_title": "حذف الموقع",
-  "diveSites_deleteDialog_divesKept": "{count, plural, =1{ستبقى غطسة واحدة بدون موقع.} other{ستبقى {count} غطسة بدون موقع.}}",
-  "diveSites_deleteDialog_plansKept": "{count, plural, =1{ستبقى خطة محفوظة واحدة بدون موقع.} other{ستبقى {count} خطة محفوظة بدون موقع.}}",
+  "diveSites_deleteDialog_divesKept": "{count, plural, =1{ستبقى غطسة واحدة بدون موقع.} two{ستبقى غطستان بدون موقع.} few{ستبقى {count} غطسات بدون موقع.} many{ستبقى {count} غطسة بدون موقع.} other{ستبقى {count} غطسة بدون موقع.}}",
+  "diveSites_deleteDialog_plansKept": "{count, plural, =1{ستبقى خطة محفوظة واحدة بدون موقع.} two{ستبقى خطتان محفوظتان بدون موقع.} few{ستبقى {count} خطط محفوظة بدون موقع.} many{ستبقى {count} خطة محفوظة بدون موقع.} other{ستبقى {count} خطة محفوظة بدون موقع.}}",
   "diveSites_detail_deleteMenu_label": "حذف",
   "diveSites_detail_deleteSnackbar": "تم حذف الموقع",
   "diveSites_detail_depth_maximum": "الأقصى",
@@ -3017,7 +3017,7 @@
   "diveSites_detail_stats_maxDepth": "أعمق غطسة",
   "diveSites_detail_stats_minDepth": "أقل غطسة عمقًا",
   "diveSites_detail_stats_notAvailable": "غير متوفر",
-  "diveSites_detail_stats_viewAllDives": "{count, plural, =1{عرض غطسة واحدة} other{عرض كل الغطسات ({count})}}",
+  "diveSites_detail_stats_viewAllDives": "{count, plural, =1{عرض غطسة واحدة} two{عرض الغطستين} few{عرض كل الغطسات ({count})} many{عرض كل الغطسات ({count})} other{عرض كل الغطسات ({count})}}",
   "diveSites_detail_semantics_openLinkedDive": "{label}، فتح هذه الغطسة",
   "diveSites_detail_semantics_copyToClipboard": "نسخ {label} إلى الحافظة",
   "diveSites_detail_semantics_viewFullscreenMap": "عرض الخريطة بملء الشاشة",
@@ -3035,8 +3035,8 @@
   "diveSites_edit_access_parkingInfo_label": "معلومات موقف السيارات",
   "diveSites_edit_access_entryMethod_label": "طريقة الدخول",
   "diveSites_edit_access_exitMethod_label": "طريقة الخروج",
-  "diveSites_edit_access_entrySuggestionPair": "{count, plural, =1{غطستك هنا: دخول {entry}، خروج {exit}} other{غطساتك الـ{count} هنا: دخول {entry}، خروج {exit}}}",
-  "diveSites_edit_access_entrySuggestionEntryOnly": "{count, plural, =1{غطستك هنا: دخول {entry}} other{غطساتك الـ{count} هنا: دخول {entry}}}",
+  "diveSites_edit_access_entrySuggestionPair": "{count, plural, =1{غطستك هنا: دخول {entry}، خروج {exit}} two{غطستاك هنا: دخول {entry}، خروج {exit}} few{غطساتك الـ{count} هنا: دخول {entry}، خروج {exit}} many{غطساتك الـ{count} هنا: دخول {entry}، خروج {exit}} other{غطساتك الـ{count} هنا: دخول {entry}، خروج {exit}}}",
+  "diveSites_edit_access_entrySuggestionEntryOnly": "{count, plural, =1{غطستك هنا: دخول {entry}} two{غطستاك هنا: دخول {entry}} few{غطساتك الـ{count} هنا: دخول {entry}} many{غطساتك الـ{count} هنا: دخول {entry}} other{غطساتك الـ{count} هنا: دخول {entry}}}",
   "diveSites_detail_access_entryMethod": "الدخول",
   "diveSites_detail_access_exitMethod": "الخروج",
   "diveSites_edit_altitude_hint": "مثال: 2000",
@@ -3089,7 +3089,7 @@
   "diveSites_edit_merge_loadingErrorTitle": "دمج المواقع",
   "diveSites_edit_merge_notEnoughBody": "عدد المواقع غير كافٍ للدمج.",
   "diveSites_edit_merge_notEnoughTitle": "دمج المواقع",
-  "diveSites_edit_rating_starTooltip": "{count} {count, plural, =1{نجمة} other{نجوم}}",
+  "diveSites_edit_rating_starTooltip": "{count, plural, =1{نجمة واحدة} two{نجمتان} few{{count} نجوم} many{{count} نجمة} other{{count} نجمة}}",
   "diveSites_edit_section_altitude": "الارتفاع",
   "diveSites_edit_section_difficultyLevel": "مستوى الصعوبة",
   "diveSites_edit_section_expectedMarineLife": "الأنواع المتوقعة",
@@ -3176,17 +3176,17 @@
   "diveSites_list_activeFilter_hasDives": "يحتوي على غوصات",
   "diveSites_list_activeFilter_region": "المنطقة: {region}",
   "diveSites_list_appBar_title": "مواقع الغوص",
-  "diveSites_list_count": "{count, plural, =1{موقع واحد} other{{count} مواقع}}",
-  "diveSites_list_countFiltered": "{shown} من {total, plural, =1{موقع واحد} other{{total} مواقع}}",
+  "diveSites_list_count": "{count, plural, =1{موقع واحد} two{موقعان} few{{count} مواقع} many{{count} موقعًا} other{{count} موقع}}",
+  "diveSites_list_countFiltered": "{shown} من {total, plural, =1{موقع واحد} two{موقعين} few{{total} مواقع} many{{total} موقعًا} other{{total} موقع}}",
   "diveSites_list_bulkDelete_cancel": "إلغاء",
   "diveSites_list_bulkDelete_confirm": "حذف",
-  "diveSites_list_bulkDelete_content": "هل أنت متأكد من حذف {count} {count, plural, =1{موقع} other{مواقع}}؟ يمكن التراجع عن هذا الإجراء خلال 5 ثوانٍ.",
+  "diveSites_list_bulkDelete_content": "هل أنت متأكد من حذف {count, plural, =1{موقع واحد} two{موقعين} few{{count} مواقع} many{{count} موقعًا} other{{count} موقع}}؟ يمكن التراجع عن هذا الإجراء خلال 5 ثوانٍ.",
   "diveSites_list_bulkDelete_restored": "تمت استعادة المواقع",
-  "diveSites_list_bulkDelete_snackbar": "تم حذف {count} {count, plural, =1{موقع} other{مواقع}}",
+  "diveSites_list_bulkDelete_snackbar": "تم حذف {count, plural, =1{موقع واحد} two{موقعين} few{{count} مواقع} many{{count} موقعًا} other{{count} موقع}}",
   "diveSites_list_bulkDelete_title": "حذف المواقع",
   "diveSites_list_bulkDelete_undo": "تراجع",
   "diveSites_list_merge_restored": "تم التراجع عن الدمج",
-  "diveSites_list_merge_snackbar": "تم دمج {count} {count, plural, =1{موقع} other{مواقع}}",
+  "diveSites_list_merge_snackbar": "تم دمج {count, plural, =1{موقع واحد} two{موقعين} few{{count} مواقع} many{{count} موقعًا} other{{count} موقع}}",
   "diveSites_list_merge_undo": "تراجع",
   "diveSites_list_emptyFiltered_clearAll": "مسح جميع الفلاتر",
   "diveSites_list_emptyFiltered_subtitle": "جرّب تعديل أو مسح الفلاتر",
@@ -3206,7 +3206,7 @@
   "diveSites_list_search_placeholder": "البحث في المواقع...",
   "diveSites_list_selection_mergeTooltip": "دمج المحدد",
   "diveSites_list_sort_title": "ترتيب المواقع",
-  "diveSites_list_tile_diveCount": "{count, plural, =1{غوصة واحدة} other{{count} غوصات}}",
+  "diveSites_list_tile_diveCount": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
   "diveSites_list_tile_semantics": "موقع غوص: {name}",
   "diveSites_list_tooltip_filterSites": "تصفية المواقع",
   "diveSites_list_tooltip_mapView": "عرض الخريطة",
@@ -3230,7 +3230,7 @@
   "diveSites_map_empty_title": "لا توجد مواقع بإحداثيات",
   "diveSites_map_error_loadingSites": "خطأ في تحميل المواقع: {error}",
   "diveSites_map_error_retry": "إعادة المحاولة",
-  "diveSites_map_infoCard_diveCount": "{count, plural, =1{غوصة واحدة} other{{count} غوصات}}",
+  "diveSites_map_infoCard_diveCount": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
   "diveSites_map_semantics_diveSiteMarker": "موقع غوص: {name}",
   "diveSites_map_builtInSites_add": "إضافة إلى مواقعي",
   "diveSites_map_builtInSites_addError": "تعذّر إضافة الموقع. يرجى المحاولة مرة أخرى.",
@@ -3713,8 +3713,8 @@
   "enum_weightType_mixed": "مختلطة/مدمجة",
   "enum_weightType_trimWeights": "أثقال التوازن",
   "equipment_appBar_title": "المعدات",
-  "equipment_list_count": "{count, plural, =1{قطعة واحدة} other{{count} قطع}}",
-  "equipment_list_countFiltered": "{shown} من {total, plural, =1{قطعة واحدة} other{{total} قطع}}",
+  "equipment_list_count": "{count, plural, =1{قطعة واحدة} two{قطعتان} few{{count} قطع} many{{count} قطعة} other{{count} قطعة}}",
+  "equipment_list_countFiltered": "{shown} من {total, plural, =1{قطعة واحدة} two{قطعتين} few{{total} قطع} many{{total} قطعة} other{{total} قطعة}}",
   "equipment_bulkTags_action": "تعديل الوسوم",
   "equipment_bulkTags_adding": "إضافة إلى كل الـ {total}",
   "equipment_bulkTags_applied": "{count, plural, one{تم تحديث الوسوم على عنصر واحد} two{تم تحديث الوسوم على عنصرين} few{تم تحديث الوسوم على {count} عناصر} many{تم تحديث الوسوم على {count} عنصرًا} other{تم تحديث الوسوم على {count} عنصر}}",
@@ -3754,7 +3754,7 @@
   "passport_fill_analysis": "O2 {o2}، He {he}",
   "passport_fill_temperature": "درجة حرارة الغاز {temperature}",
   "passport_history_title": "سجل التعبئة",
-  "passport_history_sinceHydro": "{count, plural, =0{لا تعبئات منذ آخر اختبار هيدروستاتيكي} =1{{count} تعبئة منذ آخر اختبار هيدروستاتيكي} other{{count} تعبئات منذ آخر اختبار هيدروستاتيكي}}",
+  "passport_history_sinceHydro": "{count, plural, =0{لا تعبئات منذ آخر اختبار هيدروستاتيكي} =1{{count} تعبئة منذ آخر اختبار هيدروستاتيكي} two{تعبئتان منذ آخر اختبار هيدروستاتيكي} few{{count} تعبئات منذ آخر اختبار هيدروستاتيكي} many{{count} تعبئة منذ آخر اختبار هيدروستاتيكي} other{{count} تعبئة منذ آخر اختبار هيدروستاتيكي}}",
   "passport_history_delete": "حذف التعبئة",
   "passport_history_deleteConfirm": "هل تريد حذف سجل التعبئة هذا؟",
   "passport_tag_title": "البطاقة",
@@ -3920,7 +3920,7 @@
   "cylinderConfigs_label": "التسمية",
   "cylinderConfigs_fromPreset": "من قالب",
   "cylinderConfigs_applyAction": "تطبيق إعداد",
-  "cylinderConfigs_applyAdded": "{count, plural, =1{تمت إضافة أسطوانة واحدة} other{تمت إضافة {count} أسطوانات}}",
+  "cylinderConfigs_applyAdded": "{count, plural, =1{تمت إضافة أسطوانة واحدة} two{تمت إضافة أسطوانتين} few{تمت إضافة {count} أسطوانات} many{تمت إضافة {count} أسطوانة} other{تمت إضافة {count} أسطوانة}}",
   "@cylinderConfigs_applyAdded": {
     "placeholders": {
       "count": {
@@ -3928,7 +3928,7 @@
       }
     }
   },
-  "cylinderConfigs_applyKept": "{count, plural, =1{مع الإبقاء على واحدة} other{مع الإبقاء على {count}}}",
+  "cylinderConfigs_applyKept": "{count, plural, =1{مع الإبقاء على واحدة} two{مع الإبقاء على اثنتين} few{مع الإبقاء على {count}} many{مع الإبقاء على {count}} other{مع الإبقاء على {count}}}",
   "@cylinderConfigs_applyKept": {
     "placeholders": {
       "count": {
@@ -3937,7 +3937,7 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "هذه الغوصة تطابق الإعداد بالفعل",
-  "cylinderConfigs_applyUpdated": "{count, plural, =1{مع تحديث واحدة} other{مع تحديث {count}}}",
+  "cylinderConfigs_applyUpdated": "{count, plural, =1{مع تحديث واحدة} two{مع تحديث اثنتين} few{مع تحديث {count}} many{مع تحديث {count}} other{مع تحديث {count}}}",
   "@cylinderConfigs_applyUpdated": {
     "placeholders": {
       "count": {
@@ -4030,13 +4030,13 @@
   "trips_serviceAlert_dueBefore": "{kind} مستحقة في {date}",
   "equipment_service_overdue": "{kind} متأخرة",
   "equipment_service_dueRelative": "{kind} مستحقة {relative}",
-  "equipment_service_shortDives": "{count, plural, other{خلال {count} غوصة}}",
+  "equipment_service_shortDives": "{count, plural, one{خلال غوصة واحدة} two{خلال غوصتين} few{خلال {count} غوصات} many{خلال {count} غوصة} other{خلال {count} غوصة}}",
   "equipment_service_shortHours": "خلال {count} ساعة",
   "equipment_service_shortSaltHours": "خلال {count} ساعة في الماء المالح",
-  "equipment_service_shortColdDives": "{count, plural, other{خلال {count} غطسة في الماء البارد}}",
+  "equipment_service_shortColdDives": "{count, plural, one{خلال غطسة واحدة في الماء البارد} two{خلال غطستين في الماء البارد} few{خلال {count} غطسات في الماء البارد} many{خلال {count} غطسة في الماء البارد} other{خلال {count} غطسة في الماء البارد}}",
   "equipment_service_shortO2Hours": "خلال {count} ساعة بأكسجين مرتفع",
-  "equipment_service_shortDeepCycles": "{count, plural, other{خلال {count} غطسة عميقة}}",
-  "equipment_service_shortCycles": "{count, plural, other{خلال {count} دورة بطارية}}",
+  "equipment_service_shortDeepCycles": "{count, plural, one{خلال غطسة عميقة واحدة} two{خلال غطستين عميقتين} few{خلال {count} غطسات عميقة} many{خلال {count} غطسة عميقة} other{خلال {count} غطسة عميقة}}",
+  "equipment_service_shortCycles": "{count, plural, one{خلال دورة بطارية واحدة} two{خلال دورتي بطارية} few{خلال {count} دورات بطارية} many{خلال {count} دورة بطارية} other{خلال {count} دورة بطارية}}",
   "settings_notifications_tripLeadTitle": "مهلة التنبيه لصيانة الرحلة",
   "settings_notifications_tripLeadDays": "{days} أيام قبل الرحلة",
   "equipment_detail_showEquipmentWith": "عرض المعدات التي تحمل {name}",
@@ -4143,20 +4143,20 @@
   "equipment_menu_delete": "حذف",
   "equipment_menu_reactivate": "إعادة تفعيل",
   "equipment_menu_retireEquipment": "إيقاف المعدات",
-  "equipment_retypeOther_apply": "{count, plural, =1{تغيير نوع عنصر واحد} other{تغيير نوع {count} عنصر}}",
+  "equipment_retypeOther_apply": "{count, plural, =1{تغيير نوع عنصر واحد} two{تغيير نوع عنصرين} few{تغيير نوع {count} عناصر} many{تغيير نوع {count} عنصرًا} other{تغيير نوع {count} عنصر}}",
   "equipment_retypeOther_becomes": "النوع الجديد: {type}",
   "equipment_retypeOther_becomesWithThickness": "النوع الجديد: {type}، {thickness}",
   "equipment_retypeOther_deselectAll": "إلغاء تحديد الكل",
   "equipment_retypeOther_empty": "لا توجد معدات مصنفة كأخرى يذكر اسمها نوعها",
   "equipment_retypeOther_errorLoading": "تعذر تحميل المعدات: {error}",
-  "equipment_retypeOther_failedSnackbar": "{count, plural, =1{تعذر تغيير نوع عنصر واحد} other{تعذر تغيير نوع {count} عنصر}}",
+  "equipment_retypeOther_failedSnackbar": "{count, plural, =1{تعذر تغيير نوع عنصر واحد} two{تعذر تغيير نوع عنصرين} few{تعذر تغيير نوع {count} عناصر} many{تعذر تغيير نوع {count} عنصرًا} other{تعذر تغيير نوع {count} عنصر}}",
   "equipment_retypeOther_intro": "هذه العناصر مصنفة كأخرى، لكن أسماءها تبين ما هي. ألغِ تحديد العناصر الخاطئة.",
-  "equipment_retypeOther_retypedSnackbar": "{count, plural, =1{تم تغيير نوع عنصر واحد} other{تم تغيير نوع {count} عنصر}}",
+  "equipment_retypeOther_retypedSnackbar": "{count, plural, =1{تم تغيير نوع عنصر واحد} two{تم تغيير نوع عنصرين} few{تم تغيير نوع {count} عناصر} many{تم تغيير نوع {count} عنصرًا} other{تم تغيير نوع {count} عنصر}}",
   "equipment_retypeOther_selectAll": "تحديد الكل",
   "equipment_retypeOther_subtitle": "منح المعدات المستوردة النوع الذي يذكره اسمها",
   "equipment_retypeOther_title": "تصحيح المعدات المصنفة كأخرى",
-  "equipment_retypeOther_undoFailed": "{count, plural, =1{تعذرت استعادة عنصر واحد} other{تعذرت استعادة {count} عنصر}}",
-  "equipment_retypeOther_undoSkipped": "{count, plural, =1{تغير عنصر واحد منذ ذلك الحين وتُرك كما هو} other{تغير {count} عنصر منذ ذلك الحين وتُركت كما هي}}",
+  "equipment_retypeOther_undoFailed": "{count, plural, =1{تعذرت استعادة عنصر واحد} two{تعذرت استعادة عنصرين} few{تعذرت استعادة {count} عناصر} many{تعذرت استعادة {count} عنصرًا} other{تعذرت استعادة {count} عنصر}}",
+  "equipment_retypeOther_undoSkipped": "{count, plural, =1{تغير عنصر واحد منذ ذلك الحين وتُرك كما هو} two{تغير عنصران منذ ذلك الحين وتُركا كما هما} few{تغيرت {count} عناصر منذ ذلك الحين وتُركت كما هي} many{تغير {count} عنصرًا منذ ذلك الحين وتُركت كما هي} other{تغير {count} عنصر منذ ذلك الحين وتُركت كما هي}}",
   "equipment_retypeOther_undone": "تم التراجع عن تغيير النوع",
   "equipment_search_backTooltip": "رجوع",
   "equipment_search_clearTooltip": "مسح البحث",
@@ -4219,7 +4219,7 @@
   "equipment_service_filterClear": "مسح عامل التصفية",
   "equipment_service_filterNoMatches": "لا توجد صيانة تطابق عامل التصفية",
   "equipment_service_filterMatchCount": "عرض {count} من {total}",
-  "equipment_service_showMore": "{count, plural, =1{إظهار عنصر واحد إضافي} other{إظهار {count} عناصر إضافية}}",
+  "equipment_service_showMore": "{count, plural, =1{إظهار عنصر واحد إضافي} two{إظهار عنصرين إضافيين} few{إظهار {count} عناصر إضافية} many{إظهار {count} عنصرًا إضافيًا} other{إظهار {count} عنصر إضافي}}",
   "equipment_service_showFewer": "إظهار عدد أقل",
   "equipment_serviceKinds_defaultCategoryLabel": "الفئة الافتراضية",
   "equipment_serviceKinds_defaultCategoryNone": "بدون افتراضي",
@@ -4286,7 +4286,7 @@
   "equipment_sets_itemCountSingular": "{count} عنصر",
   "equipment_figure_itemLabel": "{number}، {type}، {name}",
   "equipment_figure_itemLabelUnnumbered": "{type}، {name}",
-  "equipment_figure_summary": "{name}، {count, plural, =1{عنصر واحد} other{{count} عناصر}}",
+  "equipment_figure_summary": "{name}، {count, plural, =1{عنصر واحد} two{عنصران} few{{count} عناصر} many{{count} عنصرًا} other{{count} عنصر}}",
   "equipment_figure_trayTitle": "يُحمل أيضًا",
   "equipment_figure_frontCount": "الأمام · {count}",
   "equipment_figure_backCount": "الخلف · {count}",
@@ -4477,15 +4477,15 @@
   "gpsLogger_matchResultNone": "لا توجد غطسات تطابق مسارًا مسجّلًا",
   "gpsLogger_noFixYet": "في انتظار إشارة GPS",
   "gpsLogger_permissionDenied": "يلزم إذن الموقع لتسجيل مسار GPS. فعّله من إعدادات النظام.",
-  "gpsLogger_recordingStatus": "جارٍ التسجيل - {count, plural, one{نقطة واحدة} two{نقطتان} few{{count} نقاط} other{{count} نقطة}}",
+  "gpsLogger_recordingStatus": "جارٍ التسجيل - {count, plural, one{نقطة واحدة} two{نقطتان} few{{count} نقاط} many{{count} نقطة} other{{count} نقطة}}",
   "gpsLogger_reviewSites": "مراجعة مطابقات مواقع الغطس",
   "gpsLogger_startButton": "بدء التسجيل",
   "gpsLogger_stopButton": "إيقاف التسجيل",
-  "gpsLogger_stripStatus": "جارٍ تسجيل مسار GPS · {count, plural, one{نقطة واحدة} two{نقطتان} few{{count} نقاط} other{{count} نقطة}}",
+  "gpsLogger_stripStatus": "جارٍ تسجيل مسار GPS · {count, plural, one{نقطة واحدة} two{نقطتان} few{{count} نقاط} many{{count} نقطة} other{{count} نقطة}}",
   "gpsLogger_summary_tracks": "المسارات",
   "gpsLogger_summary_recordedTime": "الوقت المسجّل",
   "gpsLogger_summary_divesCovered": "الغطسات المغطاة",
-  "gpsLogger_trackSubtitle": "{count, plural, one{نقطة واحدة} two{نقطتان} few{{count} نقاط} other{{count} نقطة}}، {duration}",
+  "gpsLogger_trackSubtitle": "{count, plural, one{نقطة واحدة} two{نقطتان} few{{count} نقاط} many{{count} نقطة} other{{count} نقطة}}، {duration}",
   "gpsLogger_trackSubtitleTrimmed": "مقتطع، {duration}",
   "gpsTrack_action_trim": "اقتصاص...",
   "gpsTrack_action_split": "تقسيم...",
@@ -4502,7 +4502,7 @@
   "gpsTrack_import_confirm": "استيراد",
   "gpsTrack_import_csvMapping": "طابق الأعمدة",
   "gpsTrack_import_firstFix": "أول نقطة",
-  "gpsTrack_import_fixCount": "{count, plural, one{نقطة واحدة} two{نقطتان} few{{count} نقاط} other{{count} نقطة}}",
+  "gpsTrack_import_fixCount": "{count, plural, one{نقطة واحدة} two{نقطتان} few{{count} نقاط} many{{count} نقطة} other{{count} نقطة}}",
   "gpsTrack_import_failed": "تعذّرت قراءة الملف: {reason}",
   "gpsTrack_importError_unsupportedFormat": "نوع الملف هذا غير مدعوم. قم باستيراد ملف GPX أو KML أو CSV أو FIT.",
   "gpsTrack_importError_unreadable": "تعذرت قراءة هذا الملف. قد يكون تالفًا أو غير مكتمل.",
@@ -4643,7 +4643,7 @@
   "marineLife_speciesDetail_noSightings": "لم يتم تسجيل مشاهدات بعد",
   "marineLife_speciesDetail_statsError": "تعذر تحميل إحصائيات المشاهدات",
   "marineLife_speciesDetail_notFound": "النوع غير موجود",
-  "marineLife_speciesDetail_sightingCount": "{count} {count, plural, =1{مشاهدة} other{مشاهدات}}",
+  "marineLife_speciesDetail_sightingCount": "{count, plural, =1{مشاهدة واحدة} two{مشاهدتان} few{{count} مشاهدات} many{{count} مشاهدة} other{{count} مشاهدة}}",
   "marineLife_speciesDetail_sightingPeriodTitle": "فترة المشاهدة",
   "marineLife_speciesDetail_sightingStatsTitle": "إحصائيات المشاهدات",
   "marineLife_speciesDetail_sitesLabel": "المواقع",
@@ -4700,7 +4700,7 @@
   "marineLife_lookup_errorServer": "أعاد iNaturalist خطأ. حاول مرة أخرى لاحقًا.",
   "marineLife_lookup_errorMalformed": "استجابة غير متوقعة من iNaturalist.",
   "marineLife_lookup_retry": "إعادة المحاولة",
-  "marineLife_lookup_observations": "{count, plural, =1{مشاهدة واحدة} other{{count} مشاهدات}}",
+  "marineLife_lookup_observations": "{count, plural, =1{مشاهدة واحدة} two{مشاهدتان} few{{count} مشاهدات} many{{count} مشاهدة} other{{count} مشاهدة}}",
   "marineLife_lookup_unresolvableRank": "{rank}: اختر نوعًا",
   "marineLife_speciesDetail_suggestForCatalog": "اقتراح للفهرس",
   "marineLife_suggest_couldNotOpen": "تعذر فتح المتصفح",
@@ -4710,15 +4710,15 @@
   "marineLife_speciesPhotos_tagPhotos": "وسم الصور",
   "marineLife_speciesPhotos_addPhotos": "إضافة صور",
   "marineLife_speciesPhotos_thumbnailLabel": "صورة النوع",
-  "marineLife_speciesPhotos_importAdded": "{count, plural, =1{تمت إضافة صورة واحدة} other{تمت إضافة {count} صور}}",
-  "marineLife_speciesPhotos_importSkipped": "{count, plural, =1{تم تخطي صورة واحدة} other{تم تخطي {count}}}",
-  "marineLife_speciesPhotos_importFailed": "{count, plural, =1{فشلت صورة واحدة} other{فشل {count}}}",
+  "marineLife_speciesPhotos_importAdded": "{count, plural, =1{تمت إضافة صورة واحدة} two{تمت إضافة صورتين} few{تمت إضافة {count} صور} many{تمت إضافة {count} صورة} other{تمت إضافة {count} صورة}}",
+  "marineLife_speciesPhotos_importSkipped": "{count, plural, =1{تم تخطي صورة واحدة} two{تم تخطي صورتين} few{تم تخطي {count}} many{تم تخطي {count}} other{تم تخطي {count}}}",
+  "marineLife_speciesPhotos_importFailed": "{count, plural, =1{فشلت صورة واحدة} two{فشلت صورتان} few{فشل {count}} many{فشل {count}} other{فشل {count}}}",
   "marineLife_tagPicker_title": "وسم الصور",
   "marineLife_tagPicker_empty": "لا توجد صور غير موسومة في الغوصات التي سجلت فيها هذا النوع.",
   "marineLife_tagPicker_emptyHint": "استخدم إضافة صور لاستيراد الصور من ألبوم الكاميرا.",
   "marineLife_tagPicker_selectAll": "تحديد الكل",
-  "marineLife_tagPicker_confirm": "{count, plural, =1{وسم صورة واحدة} other{وسم {count} صور}}",
-  "marineLife_tagPicker_tagged": "{count, plural, =1{تم وسم صورة واحدة} other{تم وسم {count} صور}}",
+  "marineLife_tagPicker_confirm": "{count, plural, =1{وسم صورة واحدة} two{وسم صورتين} few{وسم {count} صور} many{وسم {count} صورة} other{وسم {count} صورة}}",
+  "marineLife_tagPicker_tagged": "{count, plural, =1{تم وسم صورة واحدة} two{تم وسم صورتين} few{تم وسم {count} صور} many{تم وسم {count} صورة} other{تم وسم {count} صورة}}",
   "marineLife_tagPicker_diveLabel": "الغوصة {number}",
   "marineLife_speciesPage_title": "الأنواع",
   "marineLife_speciesPage_searchHint": "ابحث في الأنواع التي رأيتها",
@@ -4729,9 +4729,9 @@
   "marineLife_speciesPage_sort_recentlySeen": "شوهدت مؤخرًا",
   "marineLife_speciesPage_sort_firstSeen": "شوهدت أولًا",
   "marineLife_speciesPage_sort_name": "الاسم",
-  "marineLife_speciesPage_speciesCount": "{count, plural, =1{نوع واحد} other{{count} أنواع}}",
-  "marineLife_speciesPage_sightingsCount": "{count, plural, =1{مشاهدة واحدة} other{{count} مشاهدات}}",
-  "marineLife_speciesPage_divesCount": "{count, plural, =1{غوصة واحدة} other{{count} غوصات}}",
+  "marineLife_speciesPage_speciesCount": "{count, plural, =1{نوع واحد} two{نوعان} few{{count} أنواع} many{{count} نوعًا} other{{count} نوع}}",
+  "marineLife_speciesPage_sightingsCount": "{count, plural, =1{مشاهدة واحدة} two{مشاهدتان} few{{count} مشاهدات} many{{count} مشاهدة} other{{count} مشاهدة}}",
+  "marineLife_speciesPage_divesCount": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
   "marineLife_speciesPage_lastSeen": "آخر مشاهدة {date}",
   "marineLife_speciesPage_emptyTitle": "لا توجد أنواع بعد",
   "marineLife_speciesPage_emptyHint": "مشاهدات الأنواع المضافة إلى غوصة ستظهر هنا.",
@@ -4772,7 +4772,7 @@
   "media_library_unlinkConfirmTitle": "إلغاء ربط {count} عنصر؟",
   "media_siteMediaSection_unlinkError": "فشل في إلغاء الربط: {error}",
   "media_library_unlinkConfirmBody": "ستغادر مكتبتك، مع نسخها السحابية والصور المصغرة. لن تتأثر ملفاتك الأصلية. لا يمكن التراجع عن هذا.",
-  "media_library_unlinkMetadataNote": "{count,plural, =1{يحتوي واحد منها على تعليق أو علامة مفضلة محفوظة في Submersion، وستُفقد هذه التفاصيل.} other{يحتوي {count} منها على تعليق أو علامة مفضلة محفوظة في Submersion، وستُفقد هذه التفاصيل.}}",
+  "media_library_unlinkMetadataNote": "{count,plural, =1{يحتوي واحد منها على تعليق أو علامة مفضلة محفوظة في Submersion، وستُفقد هذه التفاصيل.} two{يحتوي اثنان منها على تعليق أو علامة مفضلة محفوظة في Submersion، وستُفقد هذه التفاصيل.} few{يحتوي {count} منها على تعليق أو علامة مفضلة محفوظة في Submersion، وستُفقد هذه التفاصيل.} many{يحتوي {count} منها على تعليق أو علامة مفضلة محفوظة في Submersion، وستُفقد هذه التفاصيل.} other{يحتوي {count} منها على تعليق أو علامة مفضلة محفوظة في Submersion، وستُفقد هذه التفاصيل.}}",
   "media_siteMediaSection_title": "وسائط الموقع",
   "media_siteMediaSection_addPhotos": "إضافة صور أو مقاطع فيديو",
   "media_siteMediaSection_addDocument": "إضافة مستند",
@@ -4791,13 +4791,13 @@
   "media_gpsBanner_dismissTooltip": "تجاهل اقتراح GPS",
   "mediaImport_offerSiteReview": "يمكن لـ {count} غوصات الحصول على موقع من صورها",
   "mediaImport_reviewSitesAction": "مراجعة المواقع",
-  "media_import_allAlreadyLinked": "{count, plural, =1{صورة واحدة مرتبطة بالفعل بهذه الغوصة} other{{count} صورة مرتبطة بالفعل بهذه الغوصة}}",
-  "media_import_failedToImport": "فشل في استيراد {count, plural, =1{صورة} other{صور}}",
+  "media_import_allAlreadyLinked": "{count, plural, =1{صورة واحدة مرتبطة بالفعل بهذه الغوصة} two{صورتان مرتبطتان بالفعل بهذه الغوصة} few{{count} صور مرتبطة بالفعل بهذه الغوصة} many{{count} صورة مرتبطة بالفعل بهذه الغوصة} other{{count} صورة مرتبطة بالفعل بهذه الغوصة}}",
+  "media_import_failedToImport": "فشل في استيراد {count, plural, =1{صورة} two{صورتين} few{صور} many{صور} other{صور}}",
   "media_import_failedToImportError": "فشل في استيراد الصور: {error}",
   "media_import_importedAndFailed": "تم استيراد {imported}، فشل {failed}",
-  "media_import_importedAndSkipped": "{imported, plural, =1{تم استيراد صورة واحدة} other{تم استيراد {imported} صورة}} ({skipped} مرتبطة بالفعل)",
-  "media_import_importedPhotos": "تم استيراد {count} {count, plural, =1{صورة} other{صور}}",
-  "media_import_importingPhotos": "جارٍ استيراد {count} {count, plural, =1{صورة} other{صور}}...",
+  "media_import_importedAndSkipped": "{imported, plural, =1{تم استيراد صورة واحدة} two{تم استيراد صورتين} few{تم استيراد {imported} صور} many{تم استيراد {imported} صورة} other{تم استيراد {imported} صورة}} ({skipped} مرتبطة بالفعل)",
+  "media_import_importedPhotos": "تم استيراد {count, plural, =1{صورة واحدة} two{صورتين} few{{count} صور} many{{count} صورة} other{{count} صورة}}",
+  "media_import_importingPhotos": "جارٍ استيراد {count, plural, =1{صورة واحدة} two{صورتين} few{{count} صور} many{{count} صورة} other{{count} صورة}}...",
   "media_lightroom_openInLightroom": "فتح في Lightroom",
   "media_lightroom_suggestion_accept": "إضافة إلى هذه الغطسة",
   "media_lightroom_suggestion_dismiss": "تجاهل",
@@ -4829,14 +4829,14 @@
   "media_photoPicker_files_pickFolderButton": "اختيار مجلد…",
   "media_photoPicker_files_autoMatchLabel": "مطابقة الصور ومقاطع الفيديو تلقائيًا مع الغوصات حسب التاريخ",
   "media_photoPicker_files_emptyHint": "اختر ملفات أو مجلدًا للبدء.",
-  "media_photoPicker_files_linkButton": "{count, plural, =1{ربط عنصر واحد} other{ربط {count} عناصر}}",
-  "media_photoPicker_files_attachToSiteButton": "{count, plural, =1{إرفاق عنصر واحد بهذا الموقع} other{إرفاق {count} عناصر بهذا الموقع}}",
-  "media_photoPicker_files_summary": "{fileCount, plural, =1{ملف واحد} other{{fileCount} ملفات}}، {diveCount, plural, =1{غوصة واحدة} other{{diveCount} غوصات}}، {unmatchedCount} غير مطابق",
-  "media_photoPicker_files_itemCount": "{count, plural, =1{عنصر واحد} other{{count} عناصر}}",
+  "media_photoPicker_files_linkButton": "{count, plural, =1{ربط عنصر واحد} two{ربط عنصرين} few{ربط {count} عناصر} many{ربط {count} عنصرًا} other{ربط {count} عنصر}}",
+  "media_photoPicker_files_attachToSiteButton": "{count, plural, =1{إرفاق عنصر واحد بهذا الموقع} two{إرفاق عنصرين بهذا الموقع} few{إرفاق {count} عناصر بهذا الموقع} many{إرفاق {count} عنصرًا بهذا الموقع} other{إرفاق {count} عنصر بهذا الموقع}}",
+  "media_photoPicker_files_summary": "{fileCount, plural, =1{ملف واحد} two{ملفان} few{{fileCount} ملفات} many{{fileCount} ملفًا} other{{fileCount} ملف}}، {diveCount, plural, =1{غوصة واحدة} two{غوصتان} few{{diveCount} غوصات} many{{diveCount} غوصة} other{{diveCount} غوصة}}، {unmatchedCount} غير مطابق",
+  "media_photoPicker_files_itemCount": "{count, plural, =1{عنصر واحد} two{عنصران} few{{count} عناصر} many{{count} عنصرًا} other{{count} عنصر}}",
   "media_photoPicker_files_diveGroupTitle": "الغوصة {diveId}",
-  "media_photoPicker_files_groupCount": "{count, plural, =1{ملف واحد} other{{count} ملفات}}",
+  "media_photoPicker_files_groupCount": "{count, plural, =1{ملف واحد} two{ملفان} few{{count} ملفات} many{{count} ملفًا} other{{count} ملف}}",
   "media_photoPicker_files_unmatchedGroupTitle": "غير مطابق",
-  "media_photoPicker_files_addAllToDive": "{count, plural, =1{إضافة عنصر واحد إلى هذه الغوصة} other{إضافة كل الـ {count} إلى هذه الغوصة}}",
+  "media_photoPicker_files_addAllToDive": "{count, plural, =1{إضافة عنصر واحد إلى هذه الغوصة} two{إضافة العنصرين إلى هذه الغوصة} few{إضافة كل الـ {count} إلى هذه الغوصة} many{إضافة كل الـ {count} إلى هذه الغوصة} other{إضافة كل الـ {count} إلى هذه الغوصة}}",
   "media_photoPicker_files_addToDiveTooltip": "إضافة إلى هذه الغوصة",
   "media_photoPicker_files_chooseDiveTooltip": "اختيار غوصة",
   "media_photoPicker_files_removeTooltip": "إزالة من التحديد",
@@ -4853,8 +4853,8 @@
   "media_photoPicker_files_offsetResetTooltip": "إعادة تعيين الإزاحة",
   "media_photoPicker_files_offsetBackTooltip": "إزاحة {amount} للخلف",
   "media_photoPicker_files_offsetForwardTooltip": "إزاحة {amount} للأمام",
-  "media_photoPicker_files_linkedCount": "{count, plural, =1{تم ربط عنصر واحد} other{تم ربط {count} عناصر}}",
-  "media_photoPicker_files_attachedToSiteCount": "{count, plural, =1{تم إرفاق عنصر واحد بهذا الموقع} other{تم إرفاق {count} عناصر بهذا الموقع}}",
+  "media_photoPicker_files_linkedCount": "{count, plural, =1{تم ربط عنصر واحد} two{تم ربط عنصرين} few{تم ربط {count} عناصر} many{تم ربط {count} عنصرًا} other{تم ربط {count} عنصر}}",
+  "media_photoPicker_files_attachedToSiteCount": "{count, plural, =1{تم إرفاق عنصر واحد بهذا الموقع} two{تم إرفاق عنصرين بهذا الموقع} few{تم إرفاق {count} عناصر بهذا الموقع} many{تم إرفاق {count} عنصرًا بهذا الموقع} other{تم إرفاق {count} عنصر بهذا الموقع}}",
   "media_photoPicker_files_undo": "تراجع",
   "media_perdixOverlay_labelCns": "CNS",
   "media_perdixOverlay_labelDepth": "العمق",
@@ -5030,13 +5030,13 @@
   "media_library_viewMode_timeline": "الخط الزمني",
   "media_library_viewMode_map": "خريطة",
   "media_map_closeStrip": "إغلاق",
-  "media_map_clusterSemantics": "{count, plural, =1{عنصر واحد في {place}} =2{عنصران في {place}} other{{count} عناصر في {place}}}",
+  "media_map_clusterSemantics": "{count, plural, =1{عنصر واحد في {place}} =2{عنصران في {place}} few{{count} عناصر في {place}} many{{count} عنصرًا في {place}} other{{count} عنصر في {place}}}",
   "media_map_emptyHint": "تُوضع الصور ومقاطع الفيديو حسب إحداثيات GPS الخاصة بها، أو نقطة دخول الغوصة، أو موقع الغوص.",
   "media_map_emptyTitle": "لا توجد وسائط لها موقع",
   "media_map_errorLoading": "خطأ في تحميل مواقع الوسائط: {error}",
   "media_map_markerSemantics": "فتح الوسائط",
-  "media_map_placeItemCount": "{count, plural, =1{عنصر واحد} =2{عنصران} other{{count} عناصر}}",
-  "media_map_unlocatedCount": "{count, plural, =1{عنصر واحد بلا موقع} =2{عنصران بلا موقع} other{{count} عناصر بلا موقع}}",
+  "media_map_placeItemCount": "{count, plural, =1{عنصر واحد} =2{عنصران} few{{count} عناصر} many{{count} عنصرًا} other{{count} عنصر}}",
+  "media_map_unlocatedCount": "{count, plural, =1{عنصر واحد بلا موقع} =2{عنصران بلا موقع} few{{count} عناصر بلا موقع} many{{count} عنصرًا بلا موقع} other{{count} عنصر بلا موقع}}",
   "media_viewer_goToDive": "الانتقال إلى الغطسة",
   "nav_media": "الوسائط",
   "nav_more": "المزيد",
@@ -5063,7 +5063,7 @@
   "plannerCanvas_pscr_ratio": "نسبة pSCR",
   "plannerCanvas_pscr_ratio_hint": "أكبر = غاز طازج أكثر وانخفاض أقل في الأكسجين",
   "plannerCanvas_chip_cns": "CNS {value}%",
-  "plannerCanvas_chip_issues": "{count, plural, =1{مشكلة واحدة} other{{count} مشكلات}}",
+  "plannerCanvas_chip_issues": "{count, plural, =1{مشكلة واحدة} two{مشكلتان} few{{count} مشكلات} many{{count} مشكلة} other{{count} مشكلة}}",
   "plannerCanvas_compare_action": "مقارنة",
   "plannerCanvas_compare_needTwo": "اختر خطتين على الأقل للمقارنة",
   "plannerCanvas_compare_title": "مقارنة الخطط",
@@ -5152,7 +5152,7 @@
   "plannerMission_results_memberLineExits": "{name}: {status} ({exits})",
   "plannerMission_results_abandonmentUnknown": "تعذر تحديد النقاط التي يمكن الخروج منها",
   "plannerMission_results_safeSurfaceUnknown": "سطح آمن: تعذر الحساب",
-  "plannerMission_chip_issues": "{count, plural, =1{المهمة: {count} مشكلة} other{المهمة: {count} مشكلات}}",
+  "plannerMission_chip_issues": "{count, plural, =1{المهمة: {count} مشكلة} two{المهمة: مشكلتان} few{المهمة: {count} مشكلات} many{المهمة: {count} مشكلة} other{المهمة: {count} مشكلة}}",
   "plannerMission_factor_battery": "احتياطي البطارية",
   "plannerMission_factor_blockedByCurrent": "تيار يعيق طريق الخروج",
   "plannerMission_factor_exposure": "التعرض للأكسجين",
@@ -5361,7 +5361,7 @@
   "settings_cloudSync_appBar_title": "المزامنة السحابية لقاعدة البيانات",
   "settings_cloudSync_autoSync": "المزامنة التلقائية",
   "settings_cloudSync_autoSync_subtitle": "المزامنة تلقائيًا بعد التغييرات",
-  "settings_cloudSync_conflictItems": "{count, plural, =1{عنصر واحد يحتاج اهتمامًا} other{{count} عناصر تحتاج اهتمامًا}}",
+  "settings_cloudSync_conflictItems": "{count, plural, =1{عنصر واحد يحتاج اهتمامًا} two{عنصران يحتاجان اهتمامًا} few{{count} عناصر تحتاج اهتمامًا} many{{count} عنصرًا يحتاج اهتمامًا} other{{count} عنصر يحتاج اهتمامًا}}",
   "settings_cloudSync_disabledBanner_content": "المزامنة السحابية المُدارة من التطبيق معطلة لأنك تستخدم مجلد تخزين مخصصًا. تتولى خدمة مزامنة المجلد (Dropbox، Google Drive، OneDrive، إلخ) عملية المزامنة.",
   "settings_cloudSync_disabledBanner_title": "المزامنة السحابية معطلة",
   "settings_cloudSync_entry_subtitle": "المزامنة عبر التخزين السحابي",
@@ -5374,8 +5374,8 @@
   "settings_cloudSync_replaceLibrary_tileSubtitle": "اجعل مكتبة هذا الجهاز هي المكتبة التي تستخدمها جميع الأجهزة",
   "settings_cloudSync_replaceLibrary_dialogTitle": "استبدال مكتبة السحابة؟",
   "settings_cloudSync_replaceLibrary_dialogIntro": "تصبح مكتبة هذا الجهاز هي المكتبة التي تستخدمها جميع الأجهزة.",
-  "settings_cloudSync_replaceLibrary_dialogBody": "{diveCount, plural, =1{تُمحى مكتبة السحابة ويحل محلها الغوص الواحد الموجود على هذا الجهاز.} other{تُمحى مكتبة السحابة ويحل محلها {diveCount} غوصات الموجودة على هذا الجهاز.}}",
-  "settings_cloudSync_replaceLibrary_peers": "{peerCount, plural, =0{لا يوجد جهاز آخر يتزامن بعد، لذا لا يوجد ما يمكن اعتماده.} =1{سيُطلب من جهاز واحد آخر اعتمادها؛ وحتى ذلك الحين لن تُدمج تغييراته.} other{سيُطلب من {peerCount} أجهزة أخرى اعتمادها؛ وحتى ذلك الحين لن تُدمج تغييراتها.}}",
+  "settings_cloudSync_replaceLibrary_dialogBody": "{diveCount, plural, =1{تُمحى مكتبة السحابة ويحل محلها الغوص الواحد الموجود على هذا الجهاز.} two{تُمحى مكتبة السحابة ويحل محلها الغوصتان الموجودتان على هذا الجهاز.} few{تُمحى مكتبة السحابة ويحل محلها {diveCount} غوصات موجودة على هذا الجهاز.} many{تُمحى مكتبة السحابة ويحل محلها {diveCount} غوصة موجودة على هذا الجهاز.} other{تُمحى مكتبة السحابة ويحل محلها {diveCount} غوصة موجودة على هذا الجهاز.}}",
+  "settings_cloudSync_replaceLibrary_peers": "{peerCount, plural, =0{لا يوجد جهاز آخر يتزامن بعد، لذا لا يوجد ما يمكن اعتماده.} =1{سيُطلب من جهاز واحد آخر اعتمادها؛ وحتى ذلك الحين لن تُدمج تغييراته.} two{سيُطلب من جهازين آخرين اعتمادها؛ وحتى ذلك الحين لن تُدمج تغييراتهما.} few{سيُطلب من {peerCount} أجهزة أخرى اعتمادها؛ وحتى ذلك الحين لن تُدمج تغييراتها.} many{سيُطلب من {peerCount} جهازًا آخر اعتمادها؛ وحتى ذلك الحين لن تُدمج تغييراتها.} other{سيُطلب من {peerCount} جهاز آخر اعتمادها؛ وحتى ذلك الحين لن تُدمج تغييراتها.}}",
   "settings_cloudSync_replaceLibrary_peersUnknown": "سيُطلب من كل الأجهزة الأخرى اعتمادها؛ وحتى ذلك الحين لن تُدمج تغييراتها.",
   "settings_cloudSync_replaceLibrary_backupNote": "تُنشأ نسخة احتياطية من هذا الجهاز أولاً. لا يمكن التراجع عن هذا الإجراء.",
   "settings_cloudSync_replaceLibrary_confirmWord": "استبدال",
@@ -5401,7 +5401,7 @@
   "settings_cloudSync_header_conflicts": "التعارضات ({count})",
   "settings_cloudSync_header_syncBehavior": "سلوك المزامنة",
   "settings_cloudSync_lastSynced": "آخر مزامنة: {time}",
-  "settings_cloudSync_pendingChanges": "{count, plural, =1{تغيير معلق واحد} other{{count} تغييرات معلقة}}",
+  "settings_cloudSync_pendingChanges": "{count, plural, =1{تغيير معلق واحد} two{تغييران معلقان} few{{count} تغييرات معلقة} many{{count} تغييرًا معلقًا} other{{count} تغيير معلق}}",
   "settings_cloudSync_peerBehind_action": "يلحق كل جهاز منها بمجرد أن يشغّل إصدارًا لا يقل حداثة عن إصدار هذا الجهاز. إذا لم يُعرض عليه هذا التحديث بعد، فسيصل مع الإصدار التالي، أو في وقت أبكر بالانضمام إلى البيتا.",
   "settings_cloudSync_peerBehind_banner": "{deviceList} يشغّل إصدارًا أقدم من Submersion لا يستطيع قراءة أحدث تغييرات هذا الجهاز، لذا لن يستلمها حتى يتم تحديثه.",
   "settings_cloudSync_peerBehind_bannerPlural": "{deviceList} تشغّل إصدارًا أقدم من Submersion لا يستطيع قراءة أحدث تغييرات هذا الجهاز، لذا لن تستلمها حتى يتم تحديثها.",
@@ -5465,10 +5465,10 @@
   "settings_cloudSync_syncOnResume": "المزامنة عند الاستئناف",
   "settings_cloudSync_syncOnResume_subtitle": "التحقق من التحديثات عندما يصبح التطبيق نشطًا",
   "settings_cloudSync_syncProgressPercent": "تقدم المزامنة: {percent} بالمئة",
-  "settings_cloudSync_time_daysAgo": "{count, plural, =1{منذ يوم واحد} other{منذ {count} أيام}}",
-  "settings_cloudSync_time_hoursAgo": "{count, plural, =1{منذ ساعة واحدة} other{منذ {count} ساعات}}",
+  "settings_cloudSync_time_daysAgo": "{count, plural, =1{منذ يوم واحد} two{منذ يومين} few{منذ {count} أيام} many{منذ {count} يومًا} other{منذ {count} يوم}}",
+  "settings_cloudSync_time_hoursAgo": "{count, plural, =1{منذ ساعة واحدة} two{منذ ساعتين} few{منذ {count} ساعات} many{منذ {count} ساعة} other{منذ {count} ساعة}}",
   "settings_cloudSync_time_justNow": "الآن",
-  "settings_cloudSync_time_minutesAgo": "{count, plural, =1{منذ دقيقة واحدة} other{منذ {count} دقائق}}",
+  "settings_cloudSync_time_minutesAgo": "{count, plural, =1{منذ دقيقة واحدة} two{منذ دقيقتين} few{منذ {count} دقائق} many{منذ {count} دقيقة} other{منذ {count} دقيقة}}",
   "settings_conflict_applyAll": "تطبيق الكل",
   "settings_conflict_cancel": "إلغاء",
   "settings_conflict_chooseResolution": "اختر الحل",
@@ -5526,7 +5526,7 @@
   "settings_conflict_ref_trip": "الرحلة",
   "settings_conflict_ref_tripCylinder": "أسطوانة الرحلة",
   "settings_conflict_remoteVersion": "النسخة البعيدة",
-  "settings_conflict_resolved": "تم حل {count, plural, =1{تعارض واحد} other{{count} تعارضات}}",
+  "settings_conflict_resolved": "تم حل {count, plural, =1{تعارض واحد} two{تعارضين} few{{count} تعارضات} many{{count} تعارضًا} other{{count} تعارض}}",
   "settings_conflict_title": "حل التعارضات",
   "settings_data_appDefaultLocation": "موقع التطبيق الافتراضي",
   "settings_data_backup": "نسخ احتياطي واستعادة",
@@ -5733,7 +5733,7 @@
   "settings_profileHub_deleteDiver": "حذف الغواص",
   "settings_profileHub_deleted": "تم حذف الغواص",
   "settings_profileHub_emergencyContacts": "جهات الاتصال في حالات الطوارئ",
-  "settings_profileHub_emergencyContacts_count": "{count, plural, =0{غير محدد} =1{جهة اتصال واحدة} other{{count} جهات اتصال}}",
+  "settings_profileHub_emergencyContacts_count": "{count, plural, =0{غير محدد} =1{جهة اتصال واحدة} two{جهتا اتصال} few{{count} جهات اتصال} many{{count} جهة اتصال} other{{count} جهة اتصال}}",
   "settings_profileHub_insurance": "التأمين",
   "settings_profileHub_insurance_expired": "منتهي الصلاحية",
   "settings_profileHub_insurance_notSet": "غير محدد",
@@ -6078,7 +6078,7 @@
   "insights_equipment_exposureUnit_cycles": "دورات بطارية",
   "insights_error_loadingInsights": "خطأ في تحميل الرؤى",
   "insights_filterBar_clear": "مسح التصفية",
-  "insights_filterBar_diveCount": "{count, plural, =1{غوصة واحدة} other{{count} غوصات}}",
+  "insights_filterBar_diveCount": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
   "insights_gas_appBar_title": "استهلاك الهواء",
   "insights_gas_gasMix_error": "فشل تحميل بيانات خليط الغاز",
   "insights_gas_gasMix_subtitle": "الغوصات حسب نوع الغاز",
@@ -6221,7 +6221,7 @@
   "insights_summary_diveTypes_title": "أنواع الغوص",
   "insights_summary_maxDepth": "أقصى عمق",
   "insights_summary_sitesVisited": "المواقع التي تمت زيارتها",
-  "insights_summary_tagUsage_diveCount": "{count, plural, =1{غوصة واحدة} other{{count} غوصات}}",
+  "insights_summary_tagUsage_diveCount": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
   "insights_summary_totalDives": "إجمالي الغوصات",
   "insights_summary_totalTime": "إجمالي الوقت",
   "insights_timePatterns_appBar_title": "أنماط الوقت",
@@ -6327,28 +6327,28 @@
   "tags_picker_errorLoading": "خطأ في تحميل الوسوم: {error}",
   "tags_picker_allAdded": "تمت إضافة جميع الوسوم بالفعل.",
   "tags_picker_noMatches": "لا توجد وسوم تطابق بحثك.",
-  "tags_picker_addCount": "{count, plural, =0{إضافة وسوم} =1{إضافة وسم واحد} other{إضافة {count} وسم}}",
+  "tags_picker_addCount": "{count, plural, =0{إضافة وسوم} =1{إضافة وسم واحد} two{إضافة وسمين} few{إضافة {count} وسوم} many{إضافة {count} وسمًا} other{إضافة {count} وسم}}",
   "tags_action_showDives": "عرض الغطسات الموسومة بـ \"{tagName}\"",
   "tags_hint_addMoreTags": "إضافة المزيد من الوسوم...",
   "importWizard_tagsLabel": "Tags",
-  "importWizard_photos_foundCount": "{count, plural, one{صورة واحدة مشار إليها في هذا السجل} other{{count} صور مشار إليها في هذا السجل}}",
+  "importWizard_photos_foundCount": "{count, plural, one{صورة واحدة مشار إليها في هذا السجل} two{صورتان مشار إليهما في هذا السجل} few{{count} صور مشار إليها في هذا السجل} many{{count} صورة مشار إليها في هذا السجل} other{{count} صورة مشار إليها في هذا السجل}}",
   "importWizard_photos_chooseFolder": "اختر مجلد الصور...",
   "importWizard_photos_scanning": "جارٍ فحص المجلد...",
   "importWizard_photos_matchSummary": "{matched} مطابقة، {byName} بالاسم فقط، {missing} غير موجودة",
   "importWizard_photos_skip": "تخطي الصور",
   "importWizard_photos_mobileUnsupported": "يتطلب استيراد الصور مجلدًا على قرص هذا الجهاز. شغّل هذا الاستيراد على جهاز كمبيوتر لتضمينها. تُستورد الغطسات والمواقع بشكل طبيعي.",
-  "importWizard_photos_bundledCount": "{count, plural, one{صورة واحدة مضمّنة في الأرشيف} other{{count} صور مضمّنة في الأرشيف}}",
+  "importWizard_photos_bundledCount": "{count, plural, one{صورة واحدة مضمّنة في الأرشيف} two{صورتان مضمّنتان في الأرشيف} few{{count} صور مضمّنة في الأرشيف} many{{count} صورة مضمّنة في الأرشيف} other{{count} صورة مضمّنة في الأرشيف}}",
   "importWizard_photos_chooseDestination": "اختر مكان حفظ الصور...",
   "importWizard_photos_destinationNote": "تُحفظ الصور في هذا المجلد ويتم ربطها من هناك. لا يحتفظ Submersion بنسخة خاصة به أبدًا.",
   "importWizard_photos_destinationUnwritable": "لا يمكن الكتابة في هذا المجلد. اختر مجلدًا آخر.",
   "importWizard_photos_downloadCount": "{count, plural, one{{count} صورة للتنزيل} two{{count} صورتان للتنزيل} few{{count} صور للتنزيل} many{{count} صورة للتنزيل} other{{count} صورة للتنزيل}}",
-  "importWizard_review_olderDivesSkipped": "{count, plural, one{تم تخطي غطسة واحدة أقدم — موجودة بالفعل في سجلك} other{تم تخطي {count} غطسات أقدم — موجودة بالفعل في سجلك}}",
+  "importWizard_review_olderDivesSkipped": "{count, plural, one{تم تخطي غطسة واحدة أقدم: موجودة بالفعل في سجلك} two{تم تخطي غطستين أقدم: موجودتان بالفعل في سجلك} few{تم تخطي {count} غطسات أقدم: موجودة بالفعل في سجلك} many{تم تخطي {count} غطسة أقدم: موجودة بالفعل في سجلك} other{تم تخطي {count} غطسة أقدم: موجودة بالفعل في سجلك}}",
   "tags_hint_addTags": "إضافة وسوم...",
   "tags_manage_autoTagImports": "وسم الاستيرادات تلقائيا",
   "tags_manage_autoTagImports_subtitle": "يبدأ كل استيراد جديد بوسم يحمل اسم المصدر والتاريخ. يمكن تغيير ذلك لعملية استيراد واحدة في خيارات تلك العملية.",
-  "tags_manage_bulkDeleteMessage": "سيتم إزالة هذه الوسوم من {diveCount, plural, =0{0 غوصات} =1{غوصة واحدة} other{{diveCount} غوصة}} إجمالاً. لا يمكن التراجع عن هذا الإجراء.",
-  "tags_manage_bulkDeleteMessage_sites": "سيتم إزالة هذه الوسوم من {siteCount, plural, =1{موقع واحد} other{{siteCount} مواقع}} إجمالاً. لا يمكن التراجع عن هذا الإجراء.",
-  "tags_manage_bulkDeleteMessage_divesAndSites": "سيتم إزالة هذه الوسوم من {diveCount, plural, =1{غوصة واحدة} other{{diveCount} غوصة}} و{siteCount, plural, =1{موقع واحد} other{{siteCount} مواقع}} إجمالاً. لا يمكن التراجع عن هذا الإجراء.",
+  "tags_manage_bulkDeleteMessage": "سيتم إزالة هذه الوسوم من {diveCount, plural, =0{0 غوصات} =1{غوصة واحدة} two{غوصتين} few{{diveCount} غوصات} many{{diveCount} غوصة} other{{diveCount} غوصة}} إجمالاً. لا يمكن التراجع عن هذا الإجراء.",
+  "tags_manage_bulkDeleteMessage_sites": "سيتم إزالة هذه الوسوم من {siteCount, plural, =1{موقع واحد} two{موقعين} few{{siteCount} مواقع} many{{siteCount} موقعًا} other{{siteCount} موقع}} إجمالاً. لا يمكن التراجع عن هذا الإجراء.",
+  "tags_manage_bulkDeleteMessage_divesAndSites": "سيتم إزالة هذه الوسوم من {diveCount, plural, =1{غوصة واحدة} two{غوصتين} few{{diveCount} غوصات} many{{diveCount} غوصة} other{{diveCount} غوصة}} و{siteCount, plural, =1{موقع واحد} two{موقعين} few{{siteCount} مواقع} many{{siteCount} موقعًا} other{{siteCount} موقع}} إجمالاً. لا يمكن التراجع عن هذا الإجراء.",
   "tags_manage_bulkDeleteMessage_equipment": "سيتم إزالة هذه الوسوم من {equipmentCount, plural, one{قطعة معدات واحدة} two{قطعتي معدات} few{{equipmentCount} قطع معدات} many{{equipmentCount} قطعة معدات} other{{equipmentCount} قطعة معدات}} إجمالاً. لا يمكن التراجع عن هذا الإجراء.",
   "tags_manage_bulkDeleteMessage_divesAndEquipment": "سيتم إزالة هذه الوسوم من {diveCount, plural, one{غوصة واحدة} two{غوصتين} few{{diveCount} غوصات} many{{diveCount} غوصة} other{{diveCount} غوصة}} و{equipmentCount, plural, one{قطعة معدات واحدة} two{قطعتي معدات} few{{equipmentCount} قطع معدات} many{{equipmentCount} قطعة معدات} other{{equipmentCount} قطعة معدات}} إجمالاً. لا يمكن التراجع عن هذا الإجراء.",
   "tags_manage_bulkDeleteMessage_sitesAndEquipment": "سيتم إزالة هذه الوسوم من {siteCount, plural, one{موقع واحد} two{موقعين} few{{siteCount} مواقع} many{{siteCount} موقعًا} other{{siteCount} موقع}} و{equipmentCount, plural, one{قطعة معدات واحدة} two{قطعتي معدات} few{{equipmentCount} قطع معدات} many{{equipmentCount} قطعة معدات} other{{equipmentCount} قطعة معدات}} إجمالاً. لا يمكن التراجع عن هذا الإجراء.",
@@ -6357,37 +6357,37 @@
   "tags_manage_bulkDeleteTitle": "حذف {count} وسم؟",
   "tags_manage_colorLabel": "اللون",
   "tags_manage_narrowDialog_confirm": "إزالة",
-  "tags_manage_narrowDialog_dives": "{count, plural, =1{هذا الوسم على غوصة واحدة. إيقاف \"استخدام للغوصات\" يزيله من تلك الغوصة.} other{هذا الوسم على {count} غوصات. إيقاف \"استخدام للغوصات\" يزيله من تلك الغوصات.}}",
+  "tags_manage_narrowDialog_dives": "{count, plural, =1{هذا الوسم على غوصة واحدة. إيقاف \"استخدام للغوصات\" يزيله من تلك الغوصة.} two{هذا الوسم على غوصتين. إيقاف \"استخدام للغوصات\" يزيله من هاتين الغوصتين.} few{هذا الوسم على {count} غوصات. إيقاف \"استخدام للغوصات\" يزيله من تلك الغوصات.} many{هذا الوسم على {count} غوصة. إيقاف \"استخدام للغوصات\" يزيله من تلك الغوصات.} other{هذا الوسم على {count} غوصة. إيقاف \"استخدام للغوصات\" يزيله من تلك الغوصات.}}",
   "tags_manage_narrowDialog_equipment": "{count, plural, one{هذا الوسم على قطعة معدات واحدة. إيقاف \"استخدام للمعدات\" يزيله من تلك القطعة.} two{هذا الوسم على قطعتي معدات. إيقاف \"استخدام للمعدات\" يزيله من هاتين القطعتين.} few{هذا الوسم على {count} قطع معدات. إيقاف \"استخدام للمعدات\" يزيله من تلك القطع.} many{هذا الوسم على {count} قطعة معدات. إيقاف \"استخدام للمعدات\" يزيله من تلك القطع.} other{هذا الوسم على {count} قطعة معدات. إيقاف \"استخدام للمعدات\" يزيله من تلك القطع.}}",
-  "tags_manage_narrowDialog_sites": "{count, plural, =1{هذا الوسم على موقع واحد. إيقاف \"استخدام للمواقع\" يزيله من ذلك الموقع.} other{هذا الوسم على {count} مواقع. إيقاف \"استخدام للمواقع\" يزيله من تلك المواقع.}}",
+  "tags_manage_narrowDialog_sites": "{count, plural, =1{هذا الوسم على موقع واحد. إيقاف \"استخدام للمواقع\" يزيله من ذلك الموقع.} two{هذا الوسم على موقعين. إيقاف \"استخدام للمواقع\" يزيله من هذين الموقعين.} few{هذا الوسم على {count} مواقع. إيقاف \"استخدام للمواقع\" يزيله من تلك المواقع.} many{هذا الوسم على {count} موقعًا. إيقاف \"استخدام للمواقع\" يزيله من تلك المواقع.} other{هذا الوسم على {count} موقع. إيقاف \"استخدام للمواقع\" يزيله من تلك المواقع.}}",
   "tags_manage_narrowDialog_title": "إزالة الوسم من العناصر الحالية؟",
   "tags_manage_scopeRequired": "اختر واحدًا على الأقل: الغوصات أو المواقع أو المعدات",
   "tags_manage_scope_dives": "الغوصات",
   "tags_manage_scope_equipment": "المعدات",
   "tags_manage_scope_sites": "المواقع",
-  "tags_manage_siteCount": "{count, plural, =0{0 مواقع} =1{موقع واحد} other{{count} مواقع}}",
+  "tags_manage_siteCount": "{count, plural, =0{0 مواقع} =1{موقع واحد} two{موقعان} few{{count} مواقع} many{{count} موقعًا} other{{count} موقع}}",
   "tags_manage_equipmentCount": "{count, plural, zero{0 قطع معدات} one{قطعة معدات واحدة} two{قطعتا معدات} few{{count} قطع معدات} many{{count} قطعة معدات} other{{count} قطعة معدات}}",
   "tags_manage_useForDives": "استخدام للغوصات",
   "tags_manage_useForEquipment": "استخدام للمعدات",
   "tags_manage_useForSites": "استخدام للمواقع",
   "tags_manage_createTitle": "إنشاء وسم",
-  "tags_manage_deleteMessage": "سيتم إزالة \"{tagName}\" من {count, plural, =0{0 غوصات} =1{غوصة واحدة} other{{count} غوصة}}. لا يمكن التراجع عن هذا الإجراء.",
-  "tags_manage_deleteMessage_sites": "سيتم إزالة \"{tagName}\" من {count, plural, =1{موقع واحد} other{{count} مواقع}}. لا يمكن التراجع عن هذا الإجراء.",
-  "tags_manage_deleteMessage_divesAndSites": "سيتم إزالة \"{tagName}\" من {diveCount, plural, =1{غوصة واحدة} other{{diveCount} غوصة}} و{siteCount, plural, =1{موقع واحد} other{{siteCount} مواقع}}. لا يمكن التراجع عن هذا الإجراء.",
+  "tags_manage_deleteMessage": "سيتم إزالة \"{tagName}\" من {count, plural, =0{0 غوصات} =1{غوصة واحدة} two{غوصتين} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}. لا يمكن التراجع عن هذا الإجراء.",
+  "tags_manage_deleteMessage_sites": "سيتم إزالة \"{tagName}\" من {count, plural, =1{موقع واحد} two{موقعين} few{{count} مواقع} many{{count} موقعًا} other{{count} موقع}}. لا يمكن التراجع عن هذا الإجراء.",
+  "tags_manage_deleteMessage_divesAndSites": "سيتم إزالة \"{tagName}\" من {diveCount, plural, =1{غوصة واحدة} two{غوصتين} few{{diveCount} غوصات} many{{diveCount} غوصة} other{{diveCount} غوصة}} و{siteCount, plural, =1{موقع واحد} two{موقعين} few{{siteCount} مواقع} many{{siteCount} موقعًا} other{{siteCount} موقع}}. لا يمكن التراجع عن هذا الإجراء.",
   "tags_manage_deleteMessage_equipment": "سيتم إزالة \"{tagName}\" من {count, plural, one{قطعة معدات واحدة} two{قطعتي معدات} few{{count} قطع معدات} many{{count} قطعة معدات} other{{count} قطعة معدات}}. لا يمكن التراجع عن هذا الإجراء.",
   "tags_manage_deleteMessage_divesAndEquipment": "سيتم إزالة \"{tagName}\" من {diveCount, plural, one{غوصة واحدة} two{غوصتين} few{{diveCount} غوصات} many{{diveCount} غوصة} other{{diveCount} غوصة}} و{equipmentCount, plural, one{قطعة معدات واحدة} two{قطعتي معدات} few{{equipmentCount} قطع معدات} many{{equipmentCount} قطعة معدات} other{{equipmentCount} قطعة معدات}}. لا يمكن التراجع عن هذا الإجراء.",
   "tags_manage_deleteMessage_sitesAndEquipment": "سيتم إزالة \"{tagName}\" من {siteCount, plural, one{موقع واحد} two{موقعين} few{{siteCount} مواقع} many{{siteCount} موقعًا} other{{siteCount} موقع}} و{equipmentCount, plural, one{قطعة معدات واحدة} two{قطعتي معدات} few{{equipmentCount} قطع معدات} many{{equipmentCount} قطعة معدات} other{{equipmentCount} قطعة معدات}}. لا يمكن التراجع عن هذا الإجراء.",
   "tags_manage_deleteMessage_all": "سيتم إزالة \"{tagName}\" من {diveCount, plural, one{غوصة واحدة} two{غوصتين} few{{diveCount} غوصات} many{{diveCount} غوصة} other{{diveCount} غوصة}} و{siteCount, plural, one{موقع واحد} two{موقعين} few{{siteCount} مواقع} many{{siteCount} موقعًا} other{{siteCount} موقع}} و{equipmentCount, plural, one{قطعة معدات واحدة} two{قطعتي معدات} few{{equipmentCount} قطع معدات} many{{equipmentCount} قطعة معدات} other{{equipmentCount} قطعة معدات}}. لا يمكن التراجع عن هذا الإجراء.",
   "tags_manage_deleteMessage_unused": "\"{tagName}\" غير مستخدم في أي غوصة أو موقع أو قطعة معدات. لا يمكن التراجع عن هذا الإجراء.",
   "tags_manage_deleteTitle": "حذف الوسم؟",
-  "tags_manage_diveCount": "{count, plural, =0{0 غوصات} =1{غوصة واحدة} other{{count} غوصة}}",
+  "tags_manage_diveCount": "{count, plural, =0{0 غوصات} =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
   "tags_manage_editTitle": "تعديل الوسم",
   "tags_manage_emptyState": "لا توجد وسوم بعد. أنشئ واحداً للبدء.",
   "tags_manage_importsSection": "الاستيراد",
   "tags_manage_mergeAction": "دمج",
-  "tags_manage_mergeAffectedDives": "سيؤثر هذا على {count, plural, =0{0 غوصات} =1{غوصة واحدة} other{{count} غوصة}} إجمالاً.",
-  "tags_manage_mergeAffected_sites": "سيؤثر هذا على {count, plural, =1{موقع واحد} other{{count} مواقع}} إجمالاً.",
-  "tags_manage_mergeAffected_divesAndSites": "سيؤثر هذا على {diveCount, plural, =1{غوصة واحدة} other{{diveCount} غوصة}} و{siteCount, plural, =1{موقع واحد} other{{siteCount} مواقع}} إجمالاً.",
+  "tags_manage_mergeAffectedDives": "سيؤثر هذا على {count, plural, =0{0 غوصات} =1{غوصة واحدة} two{غوصتين} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}} إجمالاً.",
+  "tags_manage_mergeAffected_sites": "سيؤثر هذا على {count, plural, =1{موقع واحد} two{موقعين} few{{count} مواقع} many{{count} موقعًا} other{{count} موقع}} إجمالاً.",
+  "tags_manage_mergeAffected_divesAndSites": "سيؤثر هذا على {diveCount, plural, =1{غوصة واحدة} two{غوصتين} few{{diveCount} غوصات} many{{diveCount} غوصة} other{{diveCount} غوصة}} و{siteCount, plural, =1{موقع واحد} two{موقعين} few{{siteCount} مواقع} many{{siteCount} موقعًا} other{{siteCount} موقع}} إجمالاً.",
   "tags_manage_mergeAffected_equipment": "سيؤثر هذا على {count, plural, one{قطعة معدات واحدة} two{قطعتي معدات} few{{count} قطع معدات} many{{count} قطعة معدات} other{{count} قطعة معدات}} إجمالاً.",
   "tags_manage_mergeAffected_divesAndEquipment": "سيؤثر هذا على {diveCount, plural, one{غوصة واحدة} two{غوصتين} few{{diveCount} غوصات} many{{diveCount} غوصة} other{{diveCount} غوصة}} و{equipmentCount, plural, one{قطعة معدات واحدة} two{قطعتي معدات} few{{equipmentCount} قطع معدات} many{{equipmentCount} قطعة معدات} other{{equipmentCount} قطعة معدات}} إجمالاً.",
   "tags_manage_mergeAffected_sitesAndEquipment": "سيؤثر هذا على {siteCount, plural, one{موقع واحد} two{موقعين} few{{siteCount} مواقع} many{{siteCount} موقعًا} other{{siteCount} موقع}} و{equipmentCount, plural, one{قطعة معدات واحدة} two{قطعتي معدات} few{{equipmentCount} قطع معدات} many{{equipmentCount} قطعة معدات} other{{equipmentCount} قطعة معدات}} إجمالاً.",
@@ -6540,11 +6540,11 @@
   "transfer_computers_connectSubtitle": "اكتشاف وإقران حاسوب غوص",
   "transfer_computers_connectTitle": "توصيل حاسوب جديد",
   "transfer_computers_errorLoading": "خطأ في تحميل الحواسيب",
-  "transfer_computers_diveCount": "{count, plural, =1{غوصة واحدة} other{{count} غوصات}}",
+  "transfer_computers_diveCount": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
   "transfer_computers_downloadTooltip": "تنزيل الغوصات",
   "transfer_computers_knownComputersHeader": "أجهزة الكمبيوتر المعروفة",
   "transfer_computers_lastDownloadDaysAgo": "قبل {days} أيام",
-  "transfer_computers_lastDownloadHoursAgo": "{hours, plural, =1{قبل ساعة} other{قبل {hours} ساعات}}",
+  "transfer_computers_lastDownloadHoursAgo": "{hours, plural, =1{قبل ساعة} two{قبل ساعتين} few{قبل {hours} ساعات} many{قبل {hours} ساعة} other{قبل {hours} ساعة}}",
   "transfer_computers_lastDownloadMinutesAgo": "قبل {minutes} دقيقة",
   "transfer_computers_lastDownloadNever": "أبدًا",
   "transfer_computers_lastDownloadYesterday": "أمس",
@@ -6638,8 +6638,8 @@
   "transfer_summary_title": "النقل",
   "transfer_unknownSection": "قسم غير معروف: {sectionId}",
   "trips_appBar_title": "الرحلات",
-  "trips_list_count": "{count, plural, =1{رحلة واحدة} other{{count} رحلات}}",
-  "trips_list_countFiltered": "{shown} من {total, plural, =1{رحلة واحدة} other{{total} رحلات}}",
+  "trips_list_count": "{count, plural, =1{رحلة واحدة} two{رحلتان} few{{count} رحلات} many{{count} رحلة} other{{count} رحلة}}",
+  "trips_list_countFiltered": "{shown} من {total, plural, =1{رحلة واحدة} two{رحلتين} few{{total} رحلات} many{{total} رحلة} other{{total} رحلة}}",
   "trips_breakdown_column_sites": "Sites",
   "trips_detail_action_delete": "حذف",
   "trips_detail_action_export": "تصدير",
@@ -6692,7 +6692,7 @@
       }
     }
   },
-  "trips_overview_checklist_dueSoon": "{count, plural, =1{مهمة واحدة مستحقة هذا الأسبوع} other{{count} مستحقة هذا الأسبوع}}",
+  "trips_overview_checklist_dueSoon": "{count, plural, =1{مهمة واحدة مستحقة هذا الأسبوع} two{مهمتان مستحقتان هذا الأسبوع} few{{count} مهام مستحقة هذا الأسبوع} many{{count} مهمة مستحقة هذا الأسبوع} other{{count} مهمة مستحقة هذا الأسبوع}}",
   "@trips_overview_checklist_dueSoon": {
     "placeholders": {
       "count": {
@@ -6700,7 +6700,7 @@
       }
     }
   },
-  "trips_overview_checklist_overdue": "{count, plural, =1{مهمة واحدة متأخرة} other{{count} متأخرة}}",
+  "trips_overview_checklist_overdue": "{count, plural, =1{مهمة واحدة متأخرة} two{مهمتان متأخرتان} few{{count} مهام متأخرة} many{{count} مهمة متأخرة} other{{count} مهمة متأخرة}}",
   "@trips_overview_checklist_overdue": {
     "placeholders": {
       "count": {
@@ -6708,7 +6708,7 @@
       }
     }
   },
-  "trips_overview_gear_packed": "{count, plural, =0{لم يُجهز شيء} =1{عنصر واحد مُجهز} other{{count} عناصر مُجهزة}}",
+  "trips_overview_gear_packed": "{count, plural, =0{لم يُجهز شيء} =1{عنصر واحد مُجهز} two{عنصران مُجهزان} few{{count} عناصر مُجهزة} many{{count} عنصرًا مُجهزًا} other{{count} عنصر مُجهز}}",
   "@trips_overview_gear_packed": {
     "placeholders": {
       "count": {
@@ -6716,7 +6716,7 @@
       }
     }
   },
-  "trips_overview_gear_cylinders": "{count, plural, =1{أسطوانة واحدة} other{{count} أسطوانات}}",
+  "trips_overview_gear_cylinders": "{count, plural, =1{أسطوانة واحدة} two{أسطوانتان} few{{count} أسطوانات} many{{count} أسطوانة} other{{count} أسطوانة}}",
   "@trips_overview_gear_cylinders": {
     "placeholders": {
       "count": {
@@ -6724,7 +6724,7 @@
       }
     }
   },
-  "trips_overview_gear_serviceAlerts": "{count, plural, =1{تنبيه صيانة واحد} other{{count} تنبيهات صيانة}}",
+  "trips_overview_gear_serviceAlerts": "{count, plural, =1{تنبيه صيانة واحد} two{تنبيها صيانة} few{{count} تنبيهات صيانة} many{{count} تنبيه صيانة} other{{count} تنبيه صيانة}}",
   "@trips_overview_gear_serviceAlerts": {
     "placeholders": {
       "count": {
@@ -6732,7 +6732,7 @@
       }
     }
   },
-  "trips_overview_itinerary_days": "{count, plural, =1{يوم واحد} other{{count} أيام}}",
+  "trips_overview_itinerary_days": "{count, plural, =1{يوم واحد} two{يومان} few{{count} أيام} many{{count} يومًا} other{{count} يوم}}",
   "@trips_overview_itinerary_days": {
     "placeholders": {
       "count": {
@@ -6740,7 +6740,7 @@
       }
     }
   },
-  "trips_overview_itinerary_divesPlanned": "{count, plural, =1{غوصة واحدة مخططة} other{{count} غوصات مخططة}}",
+  "trips_overview_itinerary_divesPlanned": "{count, plural, =1{غوصة واحدة مخططة} two{غوصتان مخططتان} few{{count} غوصات مخططة} many{{count} غوصة مخططة} other{{count} غوصة مخططة}}",
   "@trips_overview_itinerary_divesPlanned": {
     "placeholders": {
       "count": {
@@ -6758,7 +6758,7 @@
       }
     }
   },
-  "trips_overview_plan_sharing": "{count, plural, =1{غواص واحد يتشارك الأسطوانات} other{{count} غواصين يتشاركون الأسطوانات}}",
+  "trips_overview_plan_sharing": "{count, plural, =1{غواص واحد يتشارك الأسطوانات} two{غواصان يتشاركان الأسطوانات} few{{count} غواصين يتشاركون الأسطوانات} many{{count} غواصًا يتشاركون الأسطوانات} other{{count} غواص يتشاركون الأسطوانات}}",
   "@trips_overview_plan_sharing": {
     "placeholders": {
       "count": {
@@ -6785,7 +6785,7 @@
   "trips_edit_dialog_discardContent": "لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد المغادرة؟",
   "trips_edit_dialog_discardTitle": "تجاهل التغييرات؟",
   "trips_edit_dialog_keepEditing": "متابعة التعديل",
-  "trips_edit_durationDays": "{days, plural, =1{يوم واحد} =2{يومان} other{{days} أيام}}",
+  "trips_edit_durationDays": "{days, plural, =1{يوم واحد} =2{يومان} few{{days} أيام} many{{days} يومًا} other{{days} يوم}}",
   "trips_edit_hint_cabinType": "e.g. Deluxe Double",
   "trips_edit_hint_disembarkPort": "e.g. Hurghada Marina",
   "trips_edit_hint_embarkPort": "e.g. Hurghada Marina",
@@ -6953,7 +6953,7 @@
   },
   "trips_cylinders_forecast_enough": "أسطوانات ممتلئة كافية حتى الغد.",
   "trips_cylinders_forecast_daysTitle": "الغطسات المخططة",
-  "trips_cylinders_forecast_plannedDives": "{count, plural, one{{count} غطسة} other{{count} غطسات}}",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, one{{count} غطسة} two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",
   "@trips_cylinders_forecast_plannedDives": {
     "placeholders": {
       "count": {
@@ -6976,7 +6976,7 @@
   "trips_cylinders_forecast_dayPlanned": "خططتها أنت",
   "trips_cylinders_segment_record": "استهلاك الغاز",
   "trips_cylinders_recordEmpty": "لا توجد غطسات من هذه الأسطوانات بعد.",
-  "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} تعبئة مسجلة} other{{count} تعبئات مسجلة}}",
+  "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} تعبئة مسجلة} two{تعبئتان مسجلتان} few{{count} تعبئات مسجلة} many{{count} تعبئة مسجلة} other{{count} تعبئة مسجلة}}",
   "@trips_cylinders_record_fillsLogged": {
     "placeholders": {
       "count": {
@@ -6984,7 +6984,7 @@
       }
     }
   },
-  "trips_cylinders_record_leftOut": "{count, plural, one{{count} غطسة غير محسوبة} other{{count} غطسات غير محسوبة}}",
+  "trips_cylinders_record_leftOut": "{count, plural, one{{count} غطسة غير محسوبة} two{غطستان غير محسوبتين} few{{count} غطسات غير محسوبة} many{{count} غطسة غير محسوبة} other{{count} غطسة غير محسوبة}}",
   "@trips_cylinders_record_leftOut": {
     "placeholders": {
       "count": {
@@ -6992,7 +6992,7 @@
       }
     }
   },
-  "trips_cylinders_record_packageFills": "{count, plural, one{{count} تعبئة ضمن باقة} other{{count} تعبئات ضمن باقة}}",
+  "trips_cylinders_record_packageFills": "{count, plural, one{{count} تعبئة ضمن باقة} two{تعبئتان ضمن باقة} few{{count} تعبئات ضمن باقة} many{{count} تعبئة ضمن باقة} other{{count} تعبئة ضمن باقة}}",
   "@trips_cylinders_record_packageFills": {
     "placeholders": {
       "count": {
@@ -7000,7 +7000,7 @@
       }
     }
   },
-  "trips_cylinders_record_unlinked": "{count, plural, one{{count} أسطوانة غطس غير مرتبطة بأسطوانة رحلة} other{{count} أسطوانات غطس غير مرتبطة بأسطوانة رحلة}}",
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} أسطوانة غطس غير مرتبطة بأسطوانة رحلة} two{أسطوانتا غطس غير مرتبطتين بأسطوانة رحلة} few{{count} أسطوانات غطس غير مرتبطة بأسطوانة رحلة} many{{count} أسطوانة غطس غير مرتبطة بأسطوانة رحلة} other{{count} أسطوانة غطس غير مرتبطة بأسطوانة رحلة}}",
   "@trips_cylinders_record_unlinked": {
     "placeholders": {
       "count": {
@@ -7078,7 +7078,7 @@
       }
     }
   },
-  "trips_cylinders_linkedDives": "{count, plural, one{{count} غطسة} other{{count} غطسات}}",
+  "trips_cylinders_linkedDives": "{count, plural, one{{count} غطسة} two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",
   "@trips_cylinders_linkedDives": {
     "placeholders": {
       "count": {
@@ -7137,7 +7137,7 @@
   "trips_cylinders_kind_fill": "تعبئة",
   "trips_cylinders_kind_adjustment": "تعديل",
   "trips_cylinders_deleteConfirmUnused": "حذف هذه الأسطوانة وتعبئاتها؟",
-  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{حذف هذه الأسطوانة وتعبئاتها؟ استخدمتها {count} غطسة. تحتفظ الغطسة بأسطوانتها ويُزال الربط فقط.} other{حذف هذه الأسطوانة وتعبئاتها؟ استخدمتها {count} غطسات. تحتفظ الغطسات بأسطواناتها ويُزال الربط فقط.}}",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{حذف هذه الأسطوانة وتعبئاتها؟ استخدمتها {count} غطسة. تحتفظ الغطسة بأسطوانتها ويُزال الربط فقط.} two{حذف هذه الأسطوانة وتعبئاتها؟ استخدمتها غطستان. تحتفظ الغطستان بأسطوانتيهما ويُزال الربط فقط.} few{حذف هذه الأسطوانة وتعبئاتها؟ استخدمتها {count} غطسات. تحتفظ الغطسات بأسطواناتها ويُزال الربط فقط.} many{حذف هذه الأسطوانة وتعبئاتها؟ استخدمتها {count} غطسة. تحتفظ الغطسات بأسطواناتها ويُزال الربط فقط.} other{حذف هذه الأسطوانة وتعبئاتها؟ استخدمتها {count} غطسة. تحتفظ الغطسات بأسطواناتها ويُزال الربط فقط.}}",
   "@trips_cylinders_deleteConfirmUsed": {
     "placeholders": {
       "count": {
@@ -7240,7 +7240,7 @@
   "trips_gallery_accessDenied": "تم رفض الوصول إلى مكتبة الصور",
   "trips_gallery_addDivesFirst": "أضف غوصات أولًا لربط الصور",
   "trips_gallery_appBar_title": "صور الرحلة",
-  "trips_gallery_diveSection_photoCount": "{count, plural, =1{صورة} other{صور}}",
+  "trips_gallery_diveSection_photoCount": "{count, plural, =1{صورة} two{صورتان} few{صور} many{صورة} other{صورة}}",
   "trips_gallery_diveSection_title": "غوصة #{number} - {site}",
   "trips_gallery_empty_subtitle": "انقر على أيقونة الكاميرا لمسح معرض الصور",
   "trips_gallery_empty_title": "لا توجد صور في هذه الرحلة",
@@ -7253,13 +7253,13 @@
   "trips_gallery_tripNotFound": "الرحلة غير موجودة",
   "trips_itinerary_dayLabel": "Day {dayNumber}",
   "trips_itinerary_dayType_label": "Day Type",
-  "trips_itinerary_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "trips_itinerary_diveCount": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
   "trips_itinerary_editDay": "Edit Day",
   "trips_itinerary_error_loading": "تعذّر تحميل برنامج الرحلة.",
   "trips_itinerary_daySaveError": "تعذّر حفظ اليوم. حاول مرة أخرى.",
   "trips_itinerary_empty": "لا يوجد برنامج رحلة بعد. أنشئ واحدًا من تواريخ الرحلة.",
   "trips_itinerary_fillMissing": "إكمال الأيام الناقصة",
-  "trips_itinerary_plannedDives": "{count, plural, =1{غوصة واحدة مخططة} other{{count} غوصات مخططة}}",
+  "trips_itinerary_plannedDives": "{count, plural, =1{غوصة واحدة مخططة} two{غوصتان مخططتان} few{{count} غوصات مخططة} many{{count} غوصة مخططة} other{{count} غوصة مخططة}}",
   "@trips_itinerary_plannedDives": {
     "placeholders": {
       "count": {
@@ -7273,7 +7273,7 @@
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",
   "trips_list_button_retry": "إعادة المحاولة",
-  "trips_list_countdown": "{days, plural, =0{يبدأ اليوم} =1{خلال يوم واحد} other{خلال {days} أيام}}",
+  "trips_list_countdown": "{days, plural, =0{يبدأ اليوم} =1{خلال يوم واحد} two{خلال يومين} few{خلال {days} أيام} many{خلال {days} يومًا} other{خلال {days} يوم}}",
   "trips_list_empty_button": "أضف رحلتك الأولى",
   "trips_list_empty_filtered_subtitle": "حاول تعديل أو مسح عوامل التصفية",
   "trips_list_empty_filtered_title": "لا توجد رحلات تطابق عوامل التصفية",
@@ -7349,8 +7349,8 @@
   "universalImport_action_changeFile": "تغيير الملف",
   "universalImport_action_selectFiles": "تحديد الملفات",
   "universalImport_action_chooseFolder": "اختيار مجلد",
-  "universalImport_triage_readyCount": "{count, plural, =1{ملف واحد جاهز للاستيراد} other{{count} ملفات جاهزة للاستيراد}}",
-  "universalImport_label_filesSelected": "{count, plural, =1{تم تحديد ملف واحد} other{تم تحديد {count} ملفات}}",
+  "universalImport_triage_readyCount": "{count, plural, =1{ملف واحد جاهز للاستيراد} two{ملفان جاهزان للاستيراد} few{{count} ملفات جاهزة للاستيراد} many{{count} ملفًا جاهزًا للاستيراد} other{{count} ملف جاهز للاستيراد}}",
+  "universalImport_label_filesSelected": "{count, plural, =1{تم تحديد ملف واحد} two{تم تحديد ملفين} few{تم تحديد {count} ملفات} many{تم تحديد {count} ملفًا} other{تم تحديد {count} ملف}}",
   "universalImport_triage_excludedCsv": "استيراد فردي (CSV)",
   "universalImport_triage_unsupported": "تنسيق غير مدعوم",
   "universalImport_triage_parseFailed": "تعذرت القراءة",
@@ -7360,9 +7360,9 @@
   "universalImport_triage_noneImportable": "لا يمكن استيراد أي من الملفات المحددة.",
   "universalImport_review_inBatchDuplicate": "نسخة مكررة من غطسة أخرى في دفعة الاستيراد هذه.",
   "universalImport_summary_filesTitle": "الملفات",
-  "universalImport_divers_intro": "{count, plural, other{يحتوي هذا السجل على غطسات لـ {count} غواصين. اختر وجهة غطسات وشهادات كل غواص.}}",
-  "universalImport_divers_diveCount": "{count, plural, =1{غطسة واحدة} other{{count} غطسات}}",
-  "universalImport_divers_certificationCount": "{count, plural, =1{شهادة واحدة} other{{count} شهادات}}",
+  "universalImport_divers_intro": "{count, plural, two{يحتوي هذا السجل على غطسات لغواصَين اثنين. اختر وجهة غطسات وشهادات كل غواص.} few{يحتوي هذا السجل على غطسات لـ {count} غواصين. اختر وجهة غطسات وشهادات كل غواص.} many{يحتوي هذا السجل على غطسات لـ {count} غواصًا. اختر وجهة غطسات وشهادات كل غواص.} other{يحتوي هذا السجل على غطسات لـ {count} غواص. اختر وجهة غطسات وشهادات كل غواص.}}",
+  "universalImport_divers_diveCount": "{count, plural, =1{غطسة واحدة} two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",
+  "universalImport_divers_certificationCount": "{count, plural, =1{شهادة واحدة} two{شهادتان} few{{count} شهادات} many{{count} شهادة} other{{count} شهادة}}",
   "universalImport_divers_unownedRow": "غطسات بلا غواص",
   "universalImport_divers_targetLabel": "استيراد إلى",
   "universalImport_divers_targetNew": "إنشاء ملف غواص جديد \"{name}\"",
@@ -7374,15 +7374,15 @@
   "universalImport_summary_noticesTitle": "ملاحظات الاستيراد",
   "universalImport_summary_noticeNoTankPressureTitle": "لم يتم تسجيل ضغط الأسطوانة",
   "universalImport_summary_noticeNoTankPressureBody": "لا يمكن حساب استهلاك الهواء و SAC. يمكنك إضافة ضغط البداية والنهاية بتعديل الغطسة.",
-  "universalImport_summary_noticeAffectedDives": "{count, plural, =1{يؤثر على غطسة واحدة} other{يؤثر على {count} غطسات}}",
+  "universalImport_summary_noticeAffectedDives": "{count, plural, =1{يؤثر على غطسة واحدة} two{يؤثر على غطستين} few{يؤثر على {count} غطسات} many{يؤثر على {count} غطسة} other{يؤثر على {count} غطسة}}",
   "universalImport_summary_unreadableDatesTitle": "لم يتم استيراد بعض الصفوف",
   "universalImport_summary_unreadableDatesBody": "تعذّرت قراءة التاريخ في هذه الصفوف. تحقق من عمود التاريخ في الملف، وصحّح هذه الصفوف، ثم أعد استيراد الملف.",
-  "universalImport_summary_unreadableDatesCount": "{count, plural, =1{لم يتم استيراد صف واحد} other{لم يتم استيراد {count} صفوف}}",
-  "universalImport_summary_unreadableDatesRows": "{count, plural, =1{الصف {rows}} other{الصفوف {rows}}}",
-  "universalImport_summary_unreadableDatesRowsMore": "{count, plural, =1{الصفوف {rows} وصف آخر} other{الصفوف {rows} و{count} أخرى}}",
+  "universalImport_summary_unreadableDatesCount": "{count, plural, =1{لم يتم استيراد صف واحد} two{لم يتم استيراد صفين} few{لم يتم استيراد {count} صفوف} many{لم يتم استيراد {count} صفًا} other{لم يتم استيراد {count} صف}}",
+  "universalImport_summary_unreadableDatesRows": "{count, plural, =1{الصف {rows}} two{الصفوف {rows}} few{الصفوف {rows}} many{الصفوف {rows}} other{الصفوف {rows}}}",
+  "universalImport_summary_unreadableDatesRowsMore": "{count, plural, =1{الصفوف {rows} وصف آخر} two{الصفوف {rows} وصفان آخران} few{الصفوف {rows} و{count} صفوف أخرى} many{الصفوف {rows} و{count} صفًا آخر} other{الصفوف {rows} و{count} صف آخر}}",
   "universalImport_summary_noticeDivesSkippedTitle": "تعذّرت قراءة بعض الغطسات",
   "universalImport_summary_noticeDivesSkippedBody": "تم تخطي هذه الغطسات لأنه تعذّرت قراءة بياناتها في الملف.",
-  "universalImport_summary_noticeDivesSkippedCount": "{count, plural, =1{تم تخطي غطسة واحدة} other{تم تخطي {count} غطسات}}",
+  "universalImport_summary_noticeDivesSkippedCount": "{count, plural, =1{تم تخطي غطسة واحدة} two{تم تخطي غطستين} few{تم تخطي {count} غطسات} many{تم تخطي {count} غطسة} other{تم تخطي {count} غطسة}}",
   "universalImport_summary_noticeProfileUnreadableTitle": "تعذّرت قراءة بعض ملفات العمق",
   "universalImport_summary_noticeProfileUnreadableBody": "تم استيراد هذه الغطسات بدون ملف العمق لأن بيانات ملف العمق في الملف مفقودة أو تعذّرت قراءتها.",
   "universalImport_summary_noticeMacdiveProfileUndecodableTitle": "لم يُفك ترميز ملفات العمق من MacDive",
@@ -7392,9 +7392,9 @@
   "universalImport_summary_noticeColumnsNotImportedTitle": "لم يتم استيراد بعض الأعمدة",
   "universalImport_summary_noticeColumnsNotImportedBody": "طابقت هذه الأعمدة حقلًا يملؤه عمود آخر بالفعل، لذا تم استبعادها: {names}. لاستخدام أحدها بدلاً من ذلك، استورد الملف مجددًا واختره في خطوة \"Map Fields\".",
   "universalImport_summary_noticeValuesNotConvertedTitle": "تُركت بعض القيم فارغة",
-  "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{تعذّر تحويل قيمة واحدة فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.} other{تعذّر تحويل {count} قيم فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.}}",
+  "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{تعذّر تحويل قيمة واحدة فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.} two{تعذّر تحويل قيمتين فتُركتا فارغتين. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.} few{تعذّر تحويل {count} قيم فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.} many{تعذّر تحويل {count} قيمة فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.} other{تعذّر تحويل {count} قيمة فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.}}",
   "universalImport_summary_noticePhotosSkippedTitle": "تم تخطي بعض الصور",
-  "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{لم يكن لصورة واحدة اسم ملف فتعذّر ربطها.} other{لم يكن لـ {count} صور اسم ملف فتعذّر ربطها.}}",
+  "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{لم يكن لصورة واحدة اسم ملف فتعذّر ربطها.} two{لم يكن لصورتين اسم ملف فتعذّر ربطهما.} few{لم يكن لـ {count} صور اسم ملف فتعذّر ربطها.} many{لم يكن لـ {count} صورة اسم ملف فتعذّر ربطها.} other{لم يكن لـ {count} صورة اسم ملف فتعذّر ربطها.}}",
   "universalImport_summary_noticeSitesUnresolvedTitle": "بعض الغطسات بلا موقع غوص",
   "universalImport_summary_noticeSitesUnresolvedBody": "أشارت هذه الغطسات إلى موقع غوص لا يصفه الملف، فاستُوردت بدون موقع. يمكنك تعيين موقع بتحرير الغطسة.",
   "universalImport_summary_noticeGearUnavailableTitle": "لم يتم استيراد المعدات",
@@ -7411,7 +7411,7 @@
   "universalImport_summary_noticeMacdiveLogbooksBody": "دفاتر سجل MacDive ({names}) هي عمليات بحث محفوظة وليست قوائم ثابتة من الغطسات، لذا لا يوجد ما يُستورد. يمكنك إعادة إنشائها كعوامل تصفية للغطسات.",
   "universalImport_summary_noticeMacdiveDeviceTimeZoneTitle": "قُرئت أوقات الغطس بالمنطقة الزمنية لهذا الجهاز",
   "universalImport_summary_noticeMacdiveDeviceTimeZoneBody": "لم يحفظ MacDive منطقة زمنية قابلة للقراءة لهذه الغطسات، ولا تحتوي مواقع الغوص الخاصة بها على موقع GPS، لذا قُرئت أوقاتها بالمنطقة الزمنية لهذا الجهاز. إذا أجريت هذه الغطسات في مكان آخر، فتحقق من أوقات بدئها.",
-  "universalImport_summary_fileImported": "{count, plural, =1{تم استيراد غطسة واحدة} other{تم استيراد {count} غطسات}}",
+  "universalImport_summary_fileImported": "{count, plural, =1{تم استيراد غطسة واحدة} two{تم استيراد غطستين} few{تم استيراد {count} غطسات} many{تم استيراد {count} غطسة} other{تم استيراد {count} غطسة}}",
   "universalImport_summary_importAsUnderwaterTrack": "استيراد كمسار تحت الماء",
   "universalImport_summary_fileNeedsIndividualImport": "يتطلب استيرادًا فرديًا",
   "universalImport_summary_fileUnsupported": "تنسيق غير مدعوم",
@@ -7421,7 +7421,7 @@
   "universalImport_error_duplicateCheckFailed": "تعذّر تشغيل كشف التكرارات، لذلك لم يُوسم أي عنصر في هذه القائمة بأنه موجود مسبقًا في سجلك. راجع القائمة قبل الاستيراد.",
   "universalImport_error_noColumnsToMap": "لا يحتوي هذا الملف على أعمدة لربطها. ارجع واختر الملف مرة أخرى، أو اختر مصدرًا آخر.",
   "universalImport_error_stepFailed": "تعذّر متابعة الاستيراد: {details}",
-  "universalImport_error_unreadableDatesHeadline": "{count, plural, =1{لم يتم استيراد أي شيء: تعذّرت قراءة التاريخ في صف واحد.} other{لم يتم استيراد أي شيء: تعذّرت قراءة التواريخ في {count} صفوف.}}",
+  "universalImport_error_unreadableDatesHeadline": "{count, plural, =1{لم يتم استيراد أي شيء: تعذّرت قراءة التاريخ في صف واحد.} two{لم يتم استيراد أي شيء: تعذّرت قراءة التاريخ في صفين.} few{لم يتم استيراد أي شيء: تعذّرت قراءة التواريخ في {count} صفوف.} many{لم يتم استيراد أي شيء: تعذّرت قراءة التواريخ في {count} صفًا.} other{لم يتم استيراد أي شيء: تعذّرت قراءة التواريخ في {count} صف.}}",
   "universalImport_error_unreadableDatesHint": "تحقق من ربط عمودي التاريخ والوقت في هذه الخطوة، ومن أنهما يحتويان على تواريخ.",
   "universalImport_error_unreadableDatesHintNoMapping": "تحقق من أن عمود التاريخ يحتوي على تواريخ مكتوبة بالصيغة التي يذكرها عنوانه.",
   "universalImport_error_noDataInFile": "لم يتم العثور على بيانات قابلة للاستيراد في هذا الملف.",
@@ -7495,7 +7495,7 @@
   "media_diveScan_scanTooltip": "مسح المعرض بحثا عن الصور",
   "media_diveScan_noPhotosFound": "لم يتم العثور على صور جديدة بالقرب من هذه الغوصة",
   "media_diveScan_accessDenied": "يلزم الوصول إلى مكتبة الصور للبحث عن الصور",
-  "media_diveScan_foundPhotos": "تم العثور على {count, plural, =1{صورة واحدة} other{{count} صور}} بالقرب من هذه الغوصة. هل تريد ربطها؟",
+  "media_diveScan_foundPhotos": "تم العثور على {count, plural, =1{صورة واحدة} two{صورتين} few{{count} صور} many{{count} صورة} other{{count} صورة}} بالقرب من هذه الغوصة. هل تريد ربطها؟",
   "@media_diveScan_foundPhotos": {
     "placeholders": {
       "count": {
@@ -7504,7 +7504,7 @@
     }
   },
   "media_diveScan_foundTitle": "تم العثور على صور",
-  "media_diveScan_linkButton": "ربط {count, plural, =1{الصورة} other{الصور}}",
+  "media_diveScan_linkButton": "ربط {count, plural, =1{الصورة} two{الصورتين} few{الصور} many{الصور} other{الصور}}",
   "@media_diveScan_linkButton": {
     "placeholders": {
       "count": {
@@ -7664,8 +7664,8 @@
   "dashboard_gauges_addGear": "إضافة معدات",
   "dashboard_gauges_gearDueIn": "{name} يحتاج صيانة خلال {days} يوم",
   "dashboard_gauges_gearOverdue": "{name} متأخر عن الصيانة",
-  "dashboard_gauges_gearOverdueCount": "{count, plural, =1{عنصر واحد متأخر عن الصيانة} =2{عنصران متأخران عن الصيانة} other{{count} عناصر متأخرة عن الصيانة}}",
-  "dashboard_gauges_gearDueSoonCount": "{count, plural, =1{عنصر واحد يحتاج صيانة خلال {days} يوم} =2{عنصران يحتاجان صيانة خلال {days} يوم} other{{count} عناصر تحتاج صيانة خلال {days} يوم}}",
+  "dashboard_gauges_gearOverdueCount": "{count, plural, =1{عنصر واحد متأخر عن الصيانة} =2{عنصران متأخران عن الصيانة} few{{count} عناصر متأخرة عن الصيانة} many{{count} عنصرًا متأخرًا عن الصيانة} other{{count} عنصر متأخر عن الصيانة}}",
+  "dashboard_gauges_gearDueSoonCount": "{count, plural, =1{عنصر واحد يحتاج صيانة خلال {days} يوم} =2{عنصران يحتاجان صيانة خلال {days} يوم} few{{count} عناصر تحتاج صيانة خلال {days} يوم} many{{count} عنصرًا يحتاج صيانة خلال {days} يوم} other{{count} عنصر يحتاج صيانة خلال {days} يوم}}",
   "dashboard_gauges_insuranceOk": "التأمين سليم",
   "dashboard_gauges_insuranceExpires": "ينتهي التأمين في {date}",
   "dashboard_gauges_insuranceExpired": "انتهى التأمين",
@@ -7734,7 +7734,7 @@
   "dashboard_gauges_backupDays": "نسخ احتياطي منذ {days} يوم",
   "dashboard_gauges_syncPending": "{count} غير متزامنة",
   "dashboard_gauges_synced": "متزامن",
-  "dashboard_gauges_dataIssues": "{count, plural, =1{مشكلة واحدة في البيانات} other{{count} مشاكل في البيانات}}",
+  "dashboard_gauges_dataIssues": "{count, plural, =1{مشكلة واحدة في البيانات} two{مشكلتان في البيانات} few{{count} مشاكل في البيانات} many{{count} مشكلة في البيانات} other{{count} مشكلة في البيانات}}",
   "dashboard_gauges_retry": "الحالة غير متاحة - انقر لإعادة المحاولة",
   "dashboard_media_title": "أحدث الوسائط",
   "dashboard_recentSites_title": "المواقع الأخيرة",
@@ -7904,7 +7904,7 @@
   "settings_appearance_mapStyle_esriSatellite": "قمر صناعي",
   "settings_appearance_bathymetryRefresh": "إعادة تحميل بيانات الخريطة",
   "settings_appearance_bathymetryRefresh_subtitle": "التحقق من تحديثات بيانات أعماق swissBATHY3D",
-  "settings_appearance_bathymetryRefresh_resultUpdated": "{count, plural, =1{تم تحديث بلاطة واحدة} other{تم تحديث {count} بلاطات}}",
+  "settings_appearance_bathymetryRefresh_resultUpdated": "{count, plural, =1{تم تحديث بلاطة واحدة} two{تم تحديث بلاطتين} few{تم تحديث {count} بلاطات} many{تم تحديث {count} بلاطة} other{تم تحديث {count} بلاطة}}",
   "@settings_appearance_bathymetryRefresh_resultUpdated": {
     "placeholders": {
       "count": {
@@ -7931,7 +7931,7 @@
   "maps3d_reload": "إعادة تحميل بيانات الخرائط",
   "maps3d_reload_subtitle": "يحذف جميع بيانات قياس الأعماق المخزَّنة مؤقتًا ويعيد تنزيلها لكل موقع غوص",
   "maps3d_reload_confirmTitle": "إعادة تحميل بيانات الخرائط لكل مواقع الغوص؟",
-  "maps3d_reload_confirm_siteCount": "{count, plural, =0{لا يوجد موقع غوص له إحداثيات.} =1{سيُعاد تحميل موقع غوص واحد.} other{سيُعاد تحميل {count} موقع غوص.}}",
+  "maps3d_reload_confirm_siteCount": "{count, plural, =0{لا يوجد موقع غوص له إحداثيات.} =1{سيُعاد تحميل موقع غوص واحد.} two{سيُعاد تحميل موقعي غوص.} few{سيُعاد تحميل {count} مواقع غوص.} many{سيُعاد تحميل {count} موقع غوص.} other{سيُعاد تحميل {count} موقع غوص.}}",
   "@maps3d_reload_confirm_siteCount": {
     "placeholders": {
       "count": {
@@ -7966,7 +7966,7 @@
   "maps3d_reload_cancelled": "تم إلغاء إعادة التحميل",
   "maps3d_reload_failed": "فشلت إعادة التحميل؛ قد لا تكون بعض مواقع الغوص قد أُعيد تحميلها",
   "maps3d_busy_notice": "هناك إجراء آخر للتضاريس ثلاثية الأبعاد قيد التنفيذ. يُرجى الانتظار حتى ينتهي.",
-  "maps3d_reload_remainingSeconds": "{count, plural, =1{يتبقّى حوالي ثانية واحدة} other{يتبقّى حوالي {count} ثانية}}",
+  "maps3d_reload_remainingSeconds": "{count, plural, =1{يتبقّى حوالي ثانية واحدة} two{يتبقّى حوالي ثانيتين} few{يتبقّى حوالي {count} ثوانٍ} many{يتبقّى حوالي {count} ثانية} other{يتبقّى حوالي {count} ثانية}}",
   "@maps3d_reload_remainingSeconds": {
     "placeholders": {
       "count": {
@@ -7974,7 +7974,7 @@
       }
     }
   },
-  "maps3d_reload_remainingMinutes": "{count, plural, =1{يتبقّى حوالي دقيقة واحدة} other{يتبقّى حوالي {count} دقيقة}}",
+  "maps3d_reload_remainingMinutes": "{count, plural, =1{يتبقّى حوالي دقيقة واحدة} two{يتبقّى حوالي دقيقتين} few{يتبقّى حوالي {count} دقائق} many{يتبقّى حوالي {count} دقيقة} other{يتبقّى حوالي {count} دقيقة}}",
   "@maps3d_reload_remainingMinutes": {
     "placeholders": {
       "count": {
@@ -7996,7 +7996,7 @@
       }
     }
   },
-  "maps3d_reload_elapsedSeconds": "{count, plural, =1{قيد التشغيل منذ ثانية واحدة} other{قيد التشغيل منذ {count} ثانية}}",
+  "maps3d_reload_elapsedSeconds": "{count, plural, =1{قيد التشغيل منذ ثانية واحدة} two{قيد التشغيل منذ ثانيتين} few{قيد التشغيل منذ {count} ثوانٍ} many{قيد التشغيل منذ {count} ثانية} other{قيد التشغيل منذ {count} ثانية}}",
   "@maps3d_reload_elapsedSeconds": {
     "placeholders": {
       "count": {
@@ -8004,7 +8004,7 @@
       }
     }
   },
-  "maps3d_reload_elapsedMinutes": "{count, plural, =1{قيد التشغيل منذ دقيقة واحدة} other{قيد التشغيل منذ {count} دقيقة}}",
+  "maps3d_reload_elapsedMinutes": "{count, plural, =1{قيد التشغيل منذ دقيقة واحدة} two{قيد التشغيل منذ دقيقتين} few{قيد التشغيل منذ {count} دقائق} many{قيد التشغيل منذ {count} دقيقة} other{قيد التشغيل منذ {count} دقيقة}}",
   "@maps3d_reload_elapsedMinutes": {
     "placeholders": {
       "count": {
@@ -8047,10 +8047,10 @@
   "common_action_unshare": "إلغاء المشاركة",
   "common_error_tryAgain": "حدث خطأ ما. يُرجى المحاولة مرة أخرى.",
   "common_label_shareWithAllProfiles": "المشاركة مع جميع ملفات الغوص",
-  "divers_delete_reassigned_snackbar": "تم حذف الغواص. {trips} {trips, plural, one{رحلة مشتركة} other{رحلات مشتركة}} و{sites} {sites, plural, one{موقع مشترك} other{مواقع مشتركة}} أُعيد تعيينها إلى {name}.",
-  "divers_delete_keptEquipment_dialogLine": "{count, plural, one{سيتم الاحتفاظ بـ {count} قطعة معدات تستخدمها ملفات غوص أخرى وتسليمها إليها.} other{سيتم الاحتفاظ بـ {count} قطع معدات تستخدمها ملفات غوص أخرى وتسليمها إليها.}}",
-  "divers_delete_keptEquipment_toOne": "{count, plural, one{تم تسليم {count} قطعة معدات إلى {name}.} other{تم تسليم {count} قطع معدات إلى {name}.}}",
-  "divers_delete_keptEquipment_toMany": "{count, plural, one{تم تسليم {count} قطعة معدات إلى ملفات الغوص التي تستخدمها.} other{تم تسليم {count} قطع معدات إلى ملفات الغوص التي تستخدمها.}}",
+  "divers_delete_reassigned_snackbar": "تم حذف الغواص. {trips, plural, one{رحلة مشتركة واحدة} two{رحلتان مشتركتان} few{{trips} رحلات مشتركة} many{{trips} رحلة مشتركة} other{{trips} رحلة مشتركة}} و{sites, plural, one{موقع مشترك واحد} two{موقعان مشتركان} few{{sites} مواقع مشتركة} many{{sites} موقعًا مشتركًا} other{{sites} موقع مشترك}} أُعيد تعيينها إلى {name}.",
+  "divers_delete_keptEquipment_dialogLine": "{count, plural, one{سيتم الاحتفاظ بـ {count} قطعة معدات تستخدمها ملفات غوص أخرى وتسليمها إليها.} two{سيتم الاحتفاظ بقطعتي معدات تستخدمهما ملفات غوص أخرى وتسليمهما إليها.} few{سيتم الاحتفاظ بـ {count} قطع معدات تستخدمها ملفات غوص أخرى وتسليمها إليها.} many{سيتم الاحتفاظ بـ {count} قطعة معدات تستخدمها ملفات غوص أخرى وتسليمها إليها.} other{سيتم الاحتفاظ بـ {count} قطعة معدات تستخدمها ملفات غوص أخرى وتسليمها إليها.}}",
+  "divers_delete_keptEquipment_toOne": "{count, plural, one{تم تسليم {count} قطعة معدات إلى {name}.} two{تم تسليم قطعتي معدات إلى {name}.} few{تم تسليم {count} قطع معدات إلى {name}.} many{تم تسليم {count} قطعة معدات إلى {name}.} other{تم تسليم {count} قطعة معدات إلى {name}.}}",
+  "divers_delete_keptEquipment_toMany": "{count, plural, one{تم تسليم {count} قطعة معدات إلى ملفات الغوص التي تستخدمها.} two{تم تسليم قطعتي معدات إلى ملفات الغوص التي تستخدمهما.} few{تم تسليم {count} قطع معدات إلى ملفات الغوص التي تستخدمها.} many{تم تسليم {count} قطعة معدات إلى ملفات الغوص التي تستخدمها.} other{تم تسليم {count} قطعة معدات إلى ملفات الغوص التي تستخدمها.}}",
   "settings_shareAllSites_confirm": "هل تريد جعل كل {count} من مواقعك مرئية لكل ملفات الغوص في هذا التطبيق؟ يمكنك إلغاء مشاركة مواقع فردية لاحقًا.",
   "settings_shareAllSites_snackbar": "تمت مشاركة {count} من المواقع مع جميع ملفات الغوص.",
   "settings_shareAllSites_title": "مشاركة جميع مواقعي",
@@ -8070,24 +8070,24 @@
   "settings_hiddenItems_title": "مخفي عن هذا الملف",
   "settings_hiddenItems_trips": "الرحلات",
   "settings_hiddenItems_unhide": "إظهار",
-  "sharedItems_bulkDeleteCount_sites": "{count, plural, one{سيتم حذف {count} موقع.} other{سيتم حذف {count} مواقع.}}",
-  "sharedItems_bulkDeleteCount_trips": "{count, plural, one{سيتم حذف {count} رحلة.} other{سيتم حذف {count} رحلات.}}",
-  "sharedItems_bulkHiddenSnackbar": "{count, plural, one{تمت إزالة {count} عنصر من ملفك} other{تمت إزالة {count} عناصر من ملفك}}",
-  "sharedItems_bulkHideCount_sites": "{count, plural, one{ستتم إزالة {count} موقع مشترك من ملفك فقط.} other{ستتم إزالة {count} مواقع مشتركة من ملفك فقط.}}",
-  "sharedItems_bulkHideCount_trips": "{count, plural, one{ستتم إزالة {count} رحلة مشتركة من ملفك فقط.} other{ستتم إزالة {count} رحلات مشتركة من ملفك فقط.}}",
-  "sharedItems_bulkRemoveTitle": "{count, plural, one{إزالة {count} عنصر من ملفك؟} other{إزالة {count} عناصر من ملفك؟}}",
-  "sharedItems_bulkSharedWarning_sites": "{count, plural, one{{count} منها مشترك مع ملفات غوص أخرى وسيُحذف للجميع.} other{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.}}",
-  "sharedItems_bulkSharedWarning_trips": "{count, plural, one{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.} other{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.}}",
+  "sharedItems_bulkDeleteCount_sites": "{count, plural, one{سيتم حذف {count} موقع.} two{سيتم حذف موقعين.} few{سيتم حذف {count} مواقع.} many{سيتم حذف {count} موقعًا.} other{سيتم حذف {count} موقع.}}",
+  "sharedItems_bulkDeleteCount_trips": "{count, plural, one{سيتم حذف {count} رحلة.} two{سيتم حذف رحلتين.} few{سيتم حذف {count} رحلات.} many{سيتم حذف {count} رحلة.} other{سيتم حذف {count} رحلة.}}",
+  "sharedItems_bulkHiddenSnackbar": "{count, plural, one{تمت إزالة {count} عنصر من ملفك} two{تمت إزالة عنصرين من ملفك} few{تمت إزالة {count} عناصر من ملفك} many{تمت إزالة {count} عنصرًا من ملفك} other{تمت إزالة {count} عنصر من ملفك}}",
+  "sharedItems_bulkHideCount_sites": "{count, plural, one{ستتم إزالة {count} موقع مشترك من ملفك فقط.} two{ستتم إزالة موقعين مشتركين من ملفك فقط.} few{ستتم إزالة {count} مواقع مشتركة من ملفك فقط.} many{ستتم إزالة {count} موقعًا مشتركًا من ملفك فقط.} other{ستتم إزالة {count} موقع مشترك من ملفك فقط.}}",
+  "sharedItems_bulkHideCount_trips": "{count, plural, one{ستتم إزالة {count} رحلة مشتركة من ملفك فقط.} two{ستتم إزالة رحلتين مشتركتين من ملفك فقط.} few{ستتم إزالة {count} رحلات مشتركة من ملفك فقط.} many{ستتم إزالة {count} رحلة مشتركة من ملفك فقط.} other{ستتم إزالة {count} رحلة مشتركة من ملفك فقط.}}",
+  "sharedItems_bulkRemoveTitle": "{count, plural, one{إزالة {count} عنصر من ملفك؟} two{إزالة عنصرين من ملفك؟} few{إزالة {count} عناصر من ملفك؟} many{إزالة {count} عنصرًا من ملفك؟} other{إزالة {count} عنصر من ملفك؟}}",
+  "sharedItems_bulkSharedWarning_sites": "{count, plural, one{{count} منها مشترك مع ملفات غوص أخرى وسيُحذف للجميع.} two{اثنان منها مشتركان مع ملفات غوص أخرى وسيُحذفان للجميع.} few{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.} many{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.} other{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.}}",
+  "sharedItems_bulkSharedWarning_trips": "{count, plural, one{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.} two{اثنتان منها مشتركتان مع ملفات غوص أخرى وستُحذفان للجميع.} few{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.} many{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.} other{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.}}",
   "sharedItems_hiddenHere": "مخفي عن ملفك",
   "sharedItems_mergeTooManyShared": "يمكن أن ينتمي موقع واحد فقط من المواقع المحددة إلى ملف غوص آخر. ألغِ تحديد المواقع الأخرى للدمج.",
   "sharedItems_notOwner_site": "يمكن لمالك هذا الموقع فقط حذفه",
   "sharedItems_notOwner_trip": "يمكن لمالك هذه الرحلة فقط حذفها",
-  "sharedItems_otherProfilesDives_site": "{count, plural, one{ستفقد {count} غطسة في ملف غوص آخر هذا الموقع.} other{ستفقد {count} غطسات في ملفات غوص أخرى هذا الموقع.}}",
-  "sharedItems_otherProfilesDives_trip": "{count, plural, one{ستفقد {count} غطسة في ملف غوص آخر هذه الرحلة.} other{ستفقد {count} غطسات في ملفات غوص أخرى هذه الرحلة.}}",
+  "sharedItems_otherProfilesDives_site": "{count, plural, one{ستفقد {count} غطسة في ملف غوص آخر هذا الموقع.} two{ستفقد غطستان في ملفات غوص أخرى هذا الموقع.} few{ستفقد {count} غطسات في ملفات غوص أخرى هذا الموقع.} many{ستفقد {count} غطسة في ملفات غوص أخرى هذا الموقع.} other{ستفقد {count} غطسة في ملفات غوص أخرى هذا الموقع.}}",
+  "sharedItems_otherProfilesDives_trip": "{count, plural, one{ستفقد {count} غطسة في ملف غوص آخر هذه الرحلة.} two{ستفقد غطستان في ملفات غوص أخرى هذه الرحلة.} few{ستفقد {count} غطسات في ملفات غوص أخرى هذه الرحلة.} many{ستفقد {count} غطسة في ملفات غوص أخرى هذه الرحلة.} other{ستفقد {count} غطسة في ملفات غوص أخرى هذه الرحلة.}}",
   "sharedItems_ownerUnknown": "ملف غوص آخر",
   "sharedItems_removeAction": "إزالة من ملفي",
   "sharedItems_removeBody": "سيبقى في سجل {owner} وفي كل ملف غوص آخر. سيُخفى هنا فقط.",
-  "sharedItems_removeOwnDives": "{count, plural, one{ستبقى {count} من غطساتك مرتبطة به.} other{ستبقى {count} من غطساتك مرتبطة به.}}",
+  "sharedItems_removeOwnDives": "{count, plural, one{ستبقى {count} من غطساتك مرتبطة به.} two{ستبقى اثنتان من غطساتك مرتبطتين به.} few{ستبقى {count} من غطساتك مرتبطة به.} many{ستبقى {count} من غطساتك مرتبطة به.} other{ستبقى {count} من غطساتك مرتبطة به.}}",
   "sharedItems_removeRestoreHint": "يمكنك استعادته من الإعدادات > البيانات المشتركة.",
   "sharedItems_removeTitle": "إزالة «{name}» من ملفك؟",
   "sharedItems_removedSnackbar": "تمت الإزالة من ملفك",
@@ -8104,7 +8104,7 @@
   "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} ملفات)",
   "settings_cloudSync_duplicateDivers_mergeButton": "دمج",
   "settings_cloudSync_duplicateDivers_confirmTitle": "دمج ملفات الغواصين؟",
-  "settings_cloudSync_duplicateDivers_confirmBody": "سيتم نقل جميع الغطسات والشهادات والمعدات والبيانات الأخرى من {count, plural, =1{ملف مكرر} other{{count} ملفات مكررة}} إلى \"{name}\". لا يمكن التراجع عن هذا تلقائيًا.",
+  "settings_cloudSync_duplicateDivers_confirmBody": "سيتم نقل جميع الغطسات والشهادات والمعدات والبيانات الأخرى من {count, plural, =1{ملف مكرر} two{ملفين مكررين} few{{count} ملفات مكررة} many{{count} ملفًا مكررًا} other{{count} ملف مكرر}} إلى \"{name}\". لا يمكن التراجع عن هذا تلقائيًا.",
   "settings_cloudSync_duplicateDivers_confirmCancel": "إلغاء",
   "settings_cloudSync_duplicateDivers_confirmAction": "دمج",
   "settings_cloudSync_duplicateDivers_successSnack": "تم الدمج في {name}",
@@ -8134,7 +8134,7 @@
   "diveLog_detail_surfaceGps_site": "الموقع",
   "diveLog_detail_surfaceGps_track": "مسار السطح",
   "diveLog_detail_surfaceGps_showFullTrack": "المسار الكامل",
-  "diveLog_detail_surfaceGps_trackFixes": "{count, plural, one{نقطة واحدة} two{نقطتان} few{{count} نقاط} other{{count} نقطة}}",
+  "diveLog_detail_surfaceGps_trackFixes": "{count, plural, one{نقطة واحدة} two{نقطتان} few{{count} نقاط} many{{count} نقطة} other{{count} نقطة}}",
   "diveLog_detail_locationsMap_title": "مواقع الغوص",
   "diveLog_detail_coordinatesCopied": "تم نسخ الإحداثيات إلى الحافظة",
   "db_location_choose_volume": "اختيار موقع التخزين",
@@ -8181,7 +8181,7 @@
   "settings_mediaStorage_report_running": "جارٍ إنشاء تقرير الوسائط...",
   "settings_mediaStorage_verify_action": "التحقق من المكتبة",
   "settings_mediaStorage_verify_running": "جارٍ التحقق من مكتبة الوسائط...",
-  "settings_mediaStorage_verify_summary": "تم فحص {checked} عنصرًا سحابيًا ({originals, plural, =1{أصل واحد} other{{originals} أصلية}}، {thumbs, plural, =1{صورة مصغرة واحدة} other{{thumbs} صور مصغرة}}، {renditions, plural, =1{نسخة مضغوطة واحدة} other{{renditions} نسخ مضغوطة}}): أزيل {removed} يتيمًا، وأُدرج {repaired} إصلاحًا في قائمة الانتظار، وأُلغي {aborted} رفعًا قديمًا",
+  "settings_mediaStorage_verify_summary": "تم فحص {checked} عنصرًا سحابيًا ({originals, plural, =1{أصل واحد} two{نسختان أصليتان} few{{originals} نسخ أصلية} many{{originals} نسخة أصلية} other{{originals} نسخة أصلية}}، {thumbs, plural, =1{صورة مصغرة واحدة} two{صورتان مصغرتان} few{{thumbs} صور مصغرة} many{{thumbs} صورة مصغرة} other{{thumbs} صورة مصغرة}}، {renditions, plural, =1{نسخة مضغوطة واحدة} two{نسختان مضغوطتان} few{{renditions} نسخ مضغوطة} many{{renditions} نسخة مضغوطة} other{{renditions} نسخة مضغوطة}}): أزيل {removed} يتيمًا، وأُدرج {repaired} إصلاحًا في قائمة الانتظار، وأُلغي {aborted} رفعًا قديمًا",
   "settings_mediaStorage_backfill_action": "رفع المكتبة الحالية",
   "settings_mediaStorage_backfill_enqueued": "{count} عمليات رفع في قائمة الانتظار",
   "settings_mediaStorage_policy_autoUpload": "رفع الصور تلقائيا",
@@ -8769,7 +8769,7 @@
   "diveDetailSection_safetyReview_name": "مراجعة السلامة",
   "diveDetailSection_safetyReview_description": "ملاحظات تلقائية على ملف الغوص بعد الغطسة",
   "safetyReview_sectionTitle": "مراجعة السلامة",
-  "safetyReview_findingCount": "{count, plural, =1{ملاحظة واحدة} other{{count} ملاحظات}}",
+  "safetyReview_findingCount": "{count, plural, =1{ملاحظة واحدة} two{ملاحظتان} few{{count} ملاحظات} many{{count} ملاحظة} other{{count} ملاحظة}}",
   "@safetyReview_findingCount": {
     "placeholders": {
       "count": {
@@ -8858,7 +8858,7 @@
       }
     }
   },
-  "safetySettings_dismissAll_done": "{count, plural, =0{لا توجد ملاحظات لتجاهلها} =1{تم تجاهل ملاحظة واحدة} other{تم تجاهل {count} ملاحظات}}",
+  "safetySettings_dismissAll_done": "{count, plural, =0{لا توجد ملاحظات لتجاهلها} =1{تم تجاهل ملاحظة واحدة} two{تم تجاهل ملاحظتين} few{تم تجاهل {count} ملاحظات} many{تم تجاهل {count} ملاحظة} other{تم تجاهل {count} ملاحظة}}",
   "@safetySettings_dismissAll_done": {
     "placeholders": {
       "count": {
@@ -8866,7 +8866,7 @@
       }
     }
   },
-  "safetySettings_dismissAll_doneWithErrors": "{count, plural, =0{لم يتم تجاهل أي ملاحظة} =1{تم تجاهل ملاحظة واحدة} other{تم تجاهل {count} ملاحظات}}، {failed, plural, =1{تعذّر تحديث غطسة واحدة} other{تعذّر تحديث {failed} غطسات}}",
+  "safetySettings_dismissAll_doneWithErrors": "{count, plural, =0{لم يتم تجاهل أي ملاحظة} =1{تم تجاهل ملاحظة واحدة} two{تم تجاهل ملاحظتين} few{تم تجاهل {count} ملاحظات} many{تم تجاهل {count} ملاحظة} other{تم تجاهل {count} ملاحظة}}، {failed, plural, =1{تعذّر تحديث غطسة واحدة} two{تعذّر تحديث غطستين} few{تعذّر تحديث {failed} غطسات} many{تعذّر تحديث {failed} غطسة} other{تعذّر تحديث {failed} غطسة}}",
   "@safetySettings_dismissAll_doneWithErrors": {
     "placeholders": {
       "count": {
@@ -8881,7 +8881,7 @@
   "safetySettings_analyzeAll_failed": "تعذّر تحليل الغطسات.",
   "safetyReview_details": "التفاصيل",
   "safetyReview_clearHighlight": "مسح التمييز",
-  "safetyReview_findingGroupSemantics": "{count, plural, =1{ملاحظة سلامة واحدة} other{{count} ملاحظات سلامة}}",
+  "safetyReview_findingGroupSemantics": "{count, plural, =1{ملاحظة سلامة واحدة} two{ملاحظتا سلامة} few{{count} ملاحظات سلامة} many{{count} ملاحظة سلامة} other{{count} ملاحظة سلامة}}",
   "@safetyReview_findingGroupSemantics": {
     "placeholders": {
       "count": {
@@ -8889,7 +8889,7 @@
       }
     }
   },
-  "safetyReview_showDismissed": "{count, plural, =1{إظهار ملاحظة متجاهلة واحدة} other{إظهار {count} ملاحظات متجاهلة}}",
+  "safetyReview_showDismissed": "{count, plural, =1{إظهار ملاحظة متجاهلة واحدة} two{إظهار ملاحظتين متجاهلتين} few{إظهار {count} ملاحظات متجاهلة} many{إظهار {count} ملاحظة متجاهلة} other{إظهار {count} ملاحظة متجاهلة}}",
   "@safetyReview_showDismissed": {
     "placeholders": {
       "count": {
@@ -8920,7 +8920,7 @@
     }
   },
   "safetySettings_analyzeAll_done": "اكتمل التحليل",
-  "safetySettings_analyzeAll_doneWithErrors": "اكتمل التحليل — {count, plural, =1{تعذّر تحليل غوصة واحدة} other{تعذّر تحليل {count} غوصات}}",
+  "safetySettings_analyzeAll_doneWithErrors": "اكتمل التحليل — {count, plural, =1{تعذّر تحليل غوصة واحدة} two{تعذّر تحليل غوصتين} few{تعذّر تحليل {count} غوصات} many{تعذّر تحليل {count} غوصة} other{تعذّر تحليل {count} غوصة}}",
   "@safetySettings_analyzeAll_doneWithErrors": {
     "placeholders": {
       "count": {
@@ -9094,7 +9094,7 @@
   "chambersDirectory_title": "غرف الضغط العالي",
   "chambersDirectory_search": "ابحث بالاسم أو المدينة أو الدولة",
   "chambersDirectory_empty": "لا توجد غرفة ضغط تطابق البحث.",
-  "chambersDirectory_count": "{count, plural, =1{غرفة ضغط واحدة} other{{count} غرف ضغط}}",
+  "chambersDirectory_count": "{count, plural, =1{غرفة ضغط واحدة} two{غرفتا ضغط} few{{count} غرف ضغط} many{{count} غرفة ضغط} other{{count} غرفة ضغط}}",
   "@chambersDirectory_count": {
     "placeholders": {
       "count": {
@@ -9184,7 +9184,7 @@
   "diveLog_detail_menu_logForBuddy": "التسجيل في ملف رفيق",
   "diveLog_detail_loggedWith": "مسجلة مع",
   "diveLog_detail_loggedWithPlanned": "في انتظار كمبيوتر الغوص الخاص بهم",
-  "diveLog_detail_linkedIncidents": "{count, plural, =1{حادث وشيك واحد مرتبط بهذه الغطسة} other{{count} حوادث وشيكة مرتبطة بهذه الغطسة}}",
+  "diveLog_detail_linkedIncidents": "{count, plural, =1{حادث وشيك واحد مرتبط بهذه الغطسة} two{حادثان وشيكان مرتبطان بهذه الغطسة} few{{count} حوادث وشيكة مرتبطة بهذه الغطسة} many{{count} حادثًا وشيكًا مرتبطًا بهذه الغطسة} other{{count} حادث وشيك مرتبط بهذه الغطسة}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {
       "count": {
@@ -9218,7 +9218,7 @@
       }
     }
   },
-  "equipmentCondition_children_ageDays": "{days, plural, =0{اليوم} =1{قبل يوم واحد} other{قبل {days} أيام}}",
+  "equipmentCondition_children_ageDays": "{days, plural, =0{اليوم} =1{قبل يوم واحد} two{قبل يومين} few{قبل {days} أيام} many{قبل {days} يومًا} other{قبل {days} يوم}}",
   "@equipmentCondition_children_ageDays": {
     "placeholders": {
       "days": {
@@ -9226,7 +9226,7 @@
       }
     }
   },
-  "equipmentCondition_children_ageMonths": "{months, plural, =1{قبل شهر واحد} other{قبل {months} أشهر}}",
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{قبل شهر واحد} two{قبل شهرين} few{قبل {months} أشهر} many{قبل {months} شهرًا} other{قبل {months} شهر}}",
   "@equipmentCondition_children_ageMonths": {
     "placeholders": {
       "months": {
@@ -9268,7 +9268,7 @@
   "equipmentCondition_children_empty": "لا توجد خلايا أو بطاريات مسجّلة",
   "equipmentCondition_children_add": "إضافة",
   "equipmentCondition_findings_title": "نتائج الحالة",
-  "equipmentCondition_findings_count": "{count, plural, =1{نتيجة واحدة} other{{count} نتائج}}",
+  "equipmentCondition_findings_count": "{count, plural, =1{نتيجة واحدة} two{نتيجتان} few{{count} نتائج} many{{count} نتيجة} other{{count} نتيجة}}",
   "@equipmentCondition_findings_count": {
     "placeholders": {
       "count": {
@@ -9279,7 +9279,7 @@
   "equipmentCondition_findings_evidence": "غطسات الدليل",
   "equipmentCondition_findings_dismiss": "تجاهل",
   "equipmentCondition_findings_restore": "استعادة",
-  "equipmentCondition_findings_showDismissed": "{count, plural, =1{إظهار نتيجة متجاهلة واحدة} other{إظهار {count} نتائج متجاهلة}}",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{إظهار نتيجة متجاهلة واحدة} two{إظهار نتيجتين متجاهلتين} few{إظهار {count} نتائج متجاهلة} many{إظهار {count} نتيجة متجاهلة} other{إظهار {count} نتيجة متجاهلة}}",
   "@equipmentCondition_findings_showDismissed": {
     "placeholders": {
       "count": {
@@ -9324,7 +9324,7 @@
   "equipmentCondition_trend_axis_minutes": "دقيقة",
   "equipmentCondition_exposure_title": "التعرّض",
   "equipmentCondition_exposure_empty": "لا توجد غطسات بهذه القطعة بعد",
-  "equipmentCondition_exposure_footer": "{n, plural, =1{غطسة واحدة} other{{n} غطسات}}، {range}",
+  "equipmentCondition_exposure_footer": "{n, plural, =1{غطسة واحدة} two{غطستان} few{{n} غطسات} many{{n} غطسة} other{{n} غطسة}}، {range}",
   "@equipmentCondition_exposure_footer": {
     "placeholders": {
       "n": {
@@ -9335,7 +9335,7 @@
       }
     }
   },
-  "equipmentCondition_exposure_dives": "{n, plural, =1{غطسة واحدة} other{{n} غطسات}}",
+  "equipmentCondition_exposure_dives": "{n, plural, =1{غطسة واحدة} two{غطستان} few{{n} غطسات} many{{n} غطسة} other{{n} غطسة}}",
   "@equipmentCondition_exposure_dives": {
     "placeholders": {
       "n": {
@@ -9359,7 +9359,7 @@
       }
     }
   },
-  "equipmentCondition_exposure_coldDives": "{n, plural, =1{غطسة باردة واحدة} other{{n} غطسات باردة}}",
+  "equipmentCondition_exposure_coldDives": "{n, plural, =1{غطسة باردة واحدة} two{غطستان باردتان} few{{n} غطسات باردة} many{{n} غطسة باردة} other{{n} غطسة باردة}}",
   "@equipmentCondition_exposure_coldDives": {
     "placeholders": {
       "n": {
@@ -9375,7 +9375,7 @@
       }
     }
   },
-  "equipmentCondition_exposure_deepCycles": "{n, plural, =1{غطسة عميقة واحدة} other{{n} غطسات عميقة}}",
+  "equipmentCondition_exposure_deepCycles": "{n, plural, =1{غطسة عميقة واحدة} two{غطستان عميقتان} few{{n} غطسات عميقة} many{{n} غطسة عميقة} other{{n} غطسة عميقة}}",
   "@equipmentCondition_exposure_deepCycles": {
     "placeholders": {
       "n": {
@@ -9383,7 +9383,7 @@
       }
     }
   },
-  "equipmentCondition_exposure_cycles": "{n, plural, =1{دورة بطارية واحدة} other{{n} دورات بطارية}}",
+  "equipmentCondition_exposure_cycles": "{n, plural, =1{دورة بطارية واحدة} two{دورتا بطارية} few{{n} دورات بطارية} many{{n} دورة بطارية} other{{n} دورة بطارية}}",
   "@equipmentCondition_exposure_cycles": {
     "placeholders": {
       "n": {
@@ -9532,7 +9532,7 @@
       }
     }
   },
-  "equipmentCondition_finding_incidentLinked": "{count, plural, =1{حادث واحد يذكر هذه القطعة} other{{count} حوادث تذكر هذه القطعة}}",
+  "equipmentCondition_finding_incidentLinked": "{count, plural, =1{حادث واحد يذكر هذه القطعة} two{حادثان يذكران هذه القطعة} few{{count} حوادث تذكر هذه القطعة} many{{count} حادثًا يذكر هذه القطعة} other{{count} حادث يذكر هذه القطعة}}",
   "@equipmentCondition_finding_incidentLinked": {
     "placeholders": {
       "count": {
@@ -9540,7 +9540,7 @@
       }
     }
   },
-  "equipmentCondition_finding_window": "{n, plural, =1{غطسة واحدة} other{{n} غطسات}}، {range}",
+  "equipmentCondition_finding_window": "{n, plural, =1{غطسة واحدة} two{غطستان} few{{n} غطسات} many{{n} غطسة} other{{n} غطسة}}، {range}",
   "@equipmentCondition_finding_window": {
     "placeholders": {
       "n": {
@@ -9573,7 +9573,7 @@
     }
   },
   "equipmentConditionSettings_rebuild_done": "أُعيد بناء ملخصات المستشعرات",
-  "equipmentConditionSettings_rebuild_doneWithErrors": "أُعيد بناء ملخصات المستشعرات؛ {count, plural, =1{تعذّر تلخيص غطسة واحدة} other{تعذّر تلخيص {count} غطسات}}",
+  "equipmentConditionSettings_rebuild_doneWithErrors": "أُعيد بناء ملخصات المستشعرات؛ {count, plural, =1{تعذّر تلخيص غطسة واحدة} two{تعذّر تلخيص غطستين} few{تعذّر تلخيص {count} غطسات} many{تعذّر تلخيص {count} غطسة} other{تعذّر تلخيص {count} غطسة}}",
   "@equipmentConditionSettings_rebuild_doneWithErrors": {
     "placeholders": {
       "count": {
@@ -9581,7 +9581,7 @@
       }
     }
   },
-  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{تعذّر تلخيص غطسة واحدة} other{تعذّر تلخيص {dives} غطسات}}؛ {items, plural, =1{تعذّر تحديث نتائج الحالة لقطعة معدات واحدة} other{تعذّر تحديث نتائج الحالة لـ {items} قطع معدات}}",
+  "equipmentConditionSettings_rebuild_doneWithBothErrors": "{dives, plural, =1{تعذّر تلخيص غطسة واحدة} two{تعذّر تلخيص غطستين} few{تعذّر تلخيص {dives} غطسات} many{تعذّر تلخيص {dives} غطسة} other{تعذّر تلخيص {dives} غطسة}}؛ {items, plural, =1{تعذّر تحديث نتائج الحالة لقطعة معدات واحدة} two{تعذّر تحديث نتائج الحالة لقطعتي معدات} few{تعذّر تحديث نتائج الحالة لـ {items} قطع معدات} many{تعذّر تحديث نتائج الحالة لـ {items} قطعة معدات} other{تعذّر تحديث نتائج الحالة لـ {items} قطعة معدات}}",
   "@equipmentConditionSettings_rebuild_doneWithBothErrors": {
     "placeholders": {
       "dives": {
@@ -9592,7 +9592,7 @@
       }
     }
   },
-  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "أُعيد بناء ملخصات المستشعرات؛ {count, plural, =1{تعذّر تحديث نتائج الحالة لقطعة معدات واحدة} other{تعذّر تحديث نتائج الحالة لـ {count} قطع معدات}}",
+  "equipmentConditionSettings_rebuild_doneWithFindingErrors": "أُعيد بناء ملخصات المستشعرات؛ {count, plural, =1{تعذّر تحديث نتائج الحالة لقطعة معدات واحدة} two{تعذّر تحديث نتائج الحالة لقطعتي معدات} few{تعذّر تحديث نتائج الحالة لـ {count} قطع معدات} many{تعذّر تحديث نتائج الحالة لـ {count} قطعة معدات} other{تعذّر تحديث نتائج الحالة لـ {count} قطعة معدات}}",
   "@equipmentConditionSettings_rebuild_doneWithFindingErrors": {
     "placeholders": {
       "count": {
@@ -9698,7 +9698,7 @@
   "dataQuality_scan_start": "فحص المكتبة",
   "dataQuality_scan_progress": "تم فحص {done} من {total} غوصة",
   "dataQuality_scan_cancel": "إلغاء",
-  "dataQuality_scan_done": "{count, plural, =0{اكتمل الفحص - لا توجد نتائج جديدة} =1{اكتمل الفحص - عنصر واحد للمراجعة} other{اكتمل الفحص - {count} عناصر للمراجعة}}",
+  "dataQuality_scan_done": "{count, plural, =0{اكتمل الفحص: لا توجد نتائج جديدة} =1{اكتمل الفحص: عنصر واحد للمراجعة} two{اكتمل الفحص: عنصران للمراجعة} few{اكتمل الفحص: {count} عناصر للمراجعة} many{اكتمل الفحص: {count} عنصرًا للمراجعة} other{اكتمل الفحص: {count} عنصر للمراجعة}}",
   "dataQuality_scan_errors": "تعذّر فحص {count} غوصة بالكامل",
   "dataQuality_lastScan": "آخر فحص: {when}",
   "dataQuality_neverScanned": "لم يتم فحص سجل الغوص الخاص بك بعد",
@@ -9739,10 +9739,10 @@
   "dataQuality_msg_clock_offset": "تختلف ساعة أحد المصادر بمقدار {hours} ساعة",
   "dataQuality_msg_clock_overlap": "تتداخل مع غوصة أخرى بمقدار {minutes} دقيقة",
   "dataQuality_msg_shared_gear_overlap": "{item} موجودة في غطسة {diverA} عند {timeA} وفي غطسة {diverB} عند {timeB}.",
-  "dataQuality_msg_shared_gear_overlap_parts": "{count, plural, one{تشمل {count} قطعة مركّبة.} other{تشمل {count} قطع مركّبة.}}",
+  "dataQuality_msg_shared_gear_overlap_parts": "{count, plural, one{تشمل {count} قطعة مركّبة.} two{تشمل قطعتين مركّبتين.} few{تشمل {count} قطع مركّبة.} many{تشمل {count} قطعة مركّبة.} other{تشمل {count} قطعة مركّبة.}}",
   "dataQuality_msg_duplicate": "تطابق بنسبة {percent}% مع غوصة تفصلها {minutes} دقيقة",
   "dataQuality_msg_split": "استؤنف الكمبيوتر نفسه بعد فترة سطح مدتها {minutes} دقيقة",
-  "dataQuality_msg_gap": "{count, plural, =1{فجوة واحدة في العينات} other{{count} فجوات في العينات}}، أطولها {longest}",
+  "dataQuality_msg_gap": "{count, plural, =1{فجوة واحدة في العينات} two{فجوتان في العينات} few{{count} فجوات في العينات} many{{count} فجوة في العينات} other{{count} فجوة في العينات}}، أطولها {longest}",
   "dataQuality_msg_spike": "قفزة في العمق إلى {depth} عند {time}",
   "dataQuality_msg_negativeDepth": "{count} عينات عمق سالبة",
   "dataQuality_msg_maxDepthMismatch": "العمق الأقصى المسجّل {stored} لكن المخطط يُظهر {profile}",
@@ -9754,7 +9754,7 @@
   "dataQuality_msg_pressureSwap": "ضغط النهاية {end} أعلى من ضغط البداية {start}",
   "dataQuality_msg_pressureEndpoint": "يذكر سجل الأسطوانة {record} لكن سلسلة المستشعر تُظهر {series}",
   "dataQuality_msg_pressureRise": "ارتفع الضغط {rise} في منتصف الغوصة دون تبديل للغاز",
-  "dataQuality_msg_pressureDropout": "{count, plural, =1{سجّل مستشعر الضغط قراءة خاطئة مرة واحدة (انقطاع أو قفزة)} other{سجّل مستشعر الضغط قراءات خاطئة {count} مرات (انقطاعات أو قفزات)}}",
+  "dataQuality_msg_pressureDropout": "{count, plural, =1{سجّل مستشعر الضغط قراءة خاطئة مرة واحدة (انقطاع أو قفزة)} two{سجّل مستشعر الضغط قراءات خاطئة مرتين (انقطاعات أو قفزات)} few{سجّل مستشعر الضغط قراءات خاطئة {count} مرات (انقطاعات أو قفزات)} many{سجّل مستشعر الضغط قراءات خاطئة {count} مرة (انقطاعات أو قفزات)} other{سجّل مستشعر الضغط قراءات خاطئة {count} مرة (انقطاعات أو قفزات)}}",
   "dataQuality_msg_pressureMixed": "تمزج سلسلة الضغط قراءات مصدرين",
   "dataQuality_msg_sac": "معدل الاستهلاك السطحي الضمني {sac} غير معقول",
   "dataQuality_msg_ppo2": "بلغ ppO2 القيمة {ppo2} على {gas} عند {depth}",
@@ -9775,13 +9775,13 @@
   "dataQuality_deleteDuplicate_keep": "الاحتفاظ: {dive}",
   "dataQuality_deleteDuplicate_delete": "الحذف: {dive}",
   "dataQuality_deleteDuplicate_carries": "تحتوي هذه النسخة أيضًا على: {items}",
-  "dataQuality_carries_gear": "{count, plural, one{قطعة معدات واحدة} other{{count} قطع معدات}}",
-  "dataQuality_carries_weights": "{count, plural, one{وزن واحد} other{{count} أوزان}}",
-  "dataQuality_carries_buddies": "{count, plural, one{رفيق واحد} other{{count} رفقاء}}",
-  "dataQuality_carries_tags": "{count, plural, one{وسم واحد} other{{count} وسوم}}",
-  "dataQuality_carries_media": "{count, plural, one{صورة أو فيديو واحد} other{{count} صور أو مقاطع فيديو}}",
-  "dataQuality_carries_attachments": "{count, plural, one{مرفق واحد} other{{count} مرفقات}}",
-  "dataQuality_carries_customFields": "{count, plural, one{حقل مخصص واحد} other{{count} حقول مخصصة}}",
+  "dataQuality_carries_gear": "{count, plural, one{قطعة معدات واحدة} two{قطعتا معدات} few{{count} قطع معدات} many{{count} قطعة معدات} other{{count} قطعة معدات}}",
+  "dataQuality_carries_weights": "{count, plural, one{وزن واحد} two{وزنان} few{{count} أوزان} many{{count} وزنًا} other{{count} وزن}}",
+  "dataQuality_carries_buddies": "{count, plural, one{رفيق واحد} two{رفيقان} few{{count} رفقاء} many{{count} رفيقًا} other{{count} رفيق}}",
+  "dataQuality_carries_tags": "{count, plural, one{وسم واحد} two{وسمان} few{{count} وسوم} many{{count} وسمًا} other{{count} وسم}}",
+  "dataQuality_carries_media": "{count, plural, one{صورة أو فيديو واحد} two{صورتان أو مقطعا فيديو} few{{count} صور أو مقاطع فيديو} many{{count} صورة أو مقطع فيديو} other{{count} صورة أو مقطع فيديو}}",
+  "dataQuality_carries_attachments": "{count, plural, one{مرفق واحد} two{مرفقان} few{{count} مرفقات} many{{count} مرفقًا} other{{count} مرفق}}",
+  "dataQuality_carries_customFields": "{count, plural, one{حقل مخصص واحد} two{حقلان مخصصان} few{{count} حقول مخصصة} many{{count} حقلًا مخصصًا} other{{count} حقل مخصص}}",
   "dataQuality_carries_rating": "تقييم",
   "dataQuality_carries_favorite": "علامة مفضلة",
   "dataQuality_carries_site": "موقع غوص",
@@ -9805,7 +9805,7 @@
   "dataQuality_repairLabel_compare": "مقارنة المخططات",
   "dataQuality_settings_title": "جودة البيانات",
   "dataQuality_settings_subtitle": "اختر الفحوصات التي تُجرى أثناء الفحص",
-  "dataQuality_summary_flagged": "{count, plural, =1{عنصر واحد مُعلَّم للمراجعة} other{{count} عناصر مُعلَّمة للمراجعة}}",
+  "dataQuality_summary_flagged": "{count, plural, =1{عنصر واحد مُعلَّم للمراجعة} two{عنصران مُعلَّمان للمراجعة} few{{count} عناصر مُعلَّمة للمراجعة} many{{count} عنصرًا مُعلَّمًا للمراجعة} other{{count} عنصر مُعلَّم للمراجعة}}",
   "dataQuality_summary_review": "مراجعة",
   "dataQuality_detail_chipCount": "مراجعة ({count})",
   "settings_mediaStorage_quality_section": "جودة الرفع",
@@ -9875,7 +9875,7 @@
   "settings_security_biometrics": "فتح القفل بالقياسات الحيوية",
   "settings_security_autoLock": "القفل التلقائي",
   "settings_security_autoLock_immediately": "فورًا",
-  "settings_security_autoLock_minutes": "{minutes, plural, =1{بعد دقيقة واحدة} other{بعد {minutes} دقائق}}",
+  "settings_security_autoLock_minutes": "{minutes, plural, =1{بعد دقيقة واحدة} two{بعد دقيقتين} few{بعد {minutes} دقائق} many{بعد {minutes} دقيقة} other{بعد {minutes} دقيقة}}",
   "@settings_security_autoLock_minutes": {
     "placeholders": {
       "minutes": {
@@ -11821,7 +11821,7 @@
   "diveLog_filter_sectionDepthRangeUnit": "نطاق العمق ({unit})",
   "diveLog_filter_sectionDiveComputer": "حاسوب الغوص",
   "diveLog_filterChip_speciesCount": "{count} أنواع",
-  "diveLog_filterChip_weekdayCount": "{count, plural, =1{يوم واحد من الأسبوع} other{{count} أيام من الأسبوع}}",
+  "diveLog_filterChip_weekdayCount": "{count, plural, =1{يوم واحد من الأسبوع} two{يومان من الأسبوع} few{{count} أيام من الأسبوع} many{{count} يومًا من الأسبوع} other{{count} يوم من الأسبوع}}",
   "diveLog_filterChip_siteCount": "{count} مواقع",
   "diveLog_filterChip_visibilityRange": "الرؤية {min} إلى {max} {unit}",
   "diveLog_filterChip_visibilityMin": "الرؤية أكثر من {value} {unit}",
@@ -12179,9 +12179,9 @@
   "common_action_yes": "نعم",
   "common_action_no": "لا",
   "universalImport_counts_new": "{count, plural, zero{{count} جديد} one{{count} جديد} two{{count} جديدان} few{{count} جديدة} many{{count} جديدًا} other{{count} جديد}}",
-  "universalImport_counts_merging": "{count, plural, other{{count} قيد الدمج}}",
-  "universalImport_counts_replacing": "{count, plural, other{{count} قيد الاستبدال}}",
-  "universalImport_counts_filling": "{count, plural, other{{count} لإكمال غوصات مخططة}}",
+  "universalImport_counts_merging": "{count, plural, two{{count} قيد الدمج} few{{count} قيد الدمج} many{{count} قيد الدمج} other{{count} قيد الدمج}}",
+  "universalImport_counts_replacing": "{count, plural, two{{count} قيد الاستبدال} few{{count} قيد الاستبدال} many{{count} قيد الاستبدال} other{{count} قيد الاستبدال}}",
+  "universalImport_counts_filling": "{count, plural, one{{count} لإكمال غوصة مخططة} two{{count} لإكمال غوصات مخططة} few{{count} لإكمال غوصات مخططة} many{{count} لإكمال غوصات مخططة} other{{count} لإكمال غوصات مخططة}}",
   "universalImport_counts_skipped": "{count, plural, zero{{count} متخطى} one{{count} متخطى} two{{count} متخطيان} few{{count} متخطاة} many{{count} متخطى} other{{count} متخطى}}",
   "universalImport_counts_nothingSelected": "لم يتم تحديد أي شيء",
   "universalImport_section_potentialDuplicates": "تكرارات محتملة",
@@ -12804,8 +12804,8 @@
   "suuntoCloud_fetch_listing": "جارٍ سرد الغوصات…",
   "suuntoCloud_fetch_fetchingDiveOf": "جلب الغوصة {current} من {total}…",
   "suuntoCloud_fetch_failedTitle": "تعذّر جلب الغوصات",
-  "suuntoCloud_fetch_foundDives": "{count, plural, =0{لم يتم العثور على غوصات} =1{تم العثور على غوصة واحدة} other{تم العثور على {count} غوصة}}",
-  "suuntoCloud_fetch_someFailed": "{count, plural, =1{تعذّر تحويل غوصة واحدة وتم تخطيها.} other{تعذّر تحويل {count} غوصة وتم تخطيها.}}",
+  "suuntoCloud_fetch_foundDives": "{count, plural, =0{لم يتم العثور على غوصات} =1{تم العثور على غوصة واحدة} two{تم العثور على غوصتين} few{تم العثور على {count} غوصات} many{تم العثور على {count} غوصة} other{تم العثور على {count} غوصة}}",
+  "suuntoCloud_fetch_someFailed": "{count, plural, =1{تعذّر تحويل غوصة واحدة وتم تخطيها.} two{تعذّر تحويل غوصتين وتم تخطيهما.} few{تعذّر تحويل {count} غوصات وتم تخطيها.} many{تعذّر تحويل {count} غوصة وتم تخطيها.} other{تعذّر تحويل {count} غوصة وتم تخطيها.}}",
   "garminConnect_signIn_title": "تسجيل الدخول إلى Garmin Connect",
   "garminConnect_signIn_description": "سجّل الدخول بحساب Garmin Connect الخاص بك لاستيراد غوصاتك مباشرة. لا يتم تخزين كلمة المرور مطلقًا، بل يتم تخزين الجلسة الناتجة فقط.",
   "garminConnect_signIn_emailLabel": "البريد الإلكتروني",
@@ -12826,8 +12826,8 @@
   "garminConnect_fetch_failedTitle": "تعذّر جلب الغوصات",
   "garminConnect_fetch_retry": "إعادة المحاولة",
   "garminConnect_fetch_loadMore": "تحميل المزيد",
-  "garminConnect_fetch_foundDives": "{count, plural, =0{لم يتم العثور على غوصات} =1{تم العثور على غوصة واحدة} other{تم العثور على {count} غوصة}}",
-  "garminConnect_fetch_someFailed": "{count, plural, =1{تعذّر تحويل غوصة واحدة وتم تخطيها.} other{تعذّر تحويل {count} غوصة وتم تخطيها.}}",
+  "garminConnect_fetch_foundDives": "{count, plural, =0{لم يتم العثور على غوصات} =1{تم العثور على غوصة واحدة} two{تم العثور على غوصتين} few{تم العثور على {count} غوصات} many{تم العثور على {count} غوصة} other{تم العثور على {count} غوصة}}",
+  "garminConnect_fetch_someFailed": "{count, plural, =1{تعذّر تحويل غوصة واحدة وتم تخطيها.} two{تعذّر تحويل غوصتين وتم تخطيهما.} few{تعذّر تحويل {count} غوصات وتم تخطيها.} many{تعذّر تحويل {count} غوصة وتم تخطيها.} other{تعذّر تحويل {count} غوصة وتم تخطيها.}}",
   "garminConnect_fetch_fetchAll": "تحميل الكل",
   "transfer_importCloud_suuntoTitle": "Suunto",
   "transfer_importCloud_suuntoSubtitle": "استيراد الغوصات من تطبيق Suunto أو حساب app.suunto.com",
@@ -12893,10 +12893,10 @@
   "diveComputer_merge_keepLabel": "الاحتفاظ بهذا السجل",
   "diveComputer_merge_serialLabel": "الرقم التسلسلي {serial}",
   "diveComputer_merge_noSerial": "لا يوجد رقم تسلسلي",
-  "diveComputer_merge_affectedDives": "{count, plural, =0{لا توجد غطسات مرتبطة بالسجلات الأخرى.} =1{ستنتقل غطسة واحدة إلى السجل المحتفظ به.} other{ستنتقل {count} غطسات إلى السجل المحتفظ به.}}",
+  "diveComputer_merge_affectedDives": "{count, plural, =0{لا توجد غطسات مرتبطة بالسجلات الأخرى.} =1{ستنتقل غطسة واحدة إلى السجل المحتفظ به.} two{ستنتقل غطستان إلى السجل المحتفظ به.} few{ستنتقل {count} غطسات إلى السجل المحتفظ به.} many{ستنتقل {count} غطسة إلى السجل المحتفظ به.} other{ستنتقل {count} غطسة إلى السجل المحتفظ به.}}",
   "diveComputer_merge_serialMismatchWarning": "تُبلغ هذه السجلات عن أرقام تسلسلية مختلفة. قد تكون أجهزة مختلفة.",
   "diveComputer_merge_action": "دمج",
-  "diveComputer_merge_snackbar": "{count, plural, =1{تم دمج سجل واحد في {name}} other{تم دمج {count} سجلات في {name}}}",
+  "diveComputer_merge_snackbar": "{count, plural, =1{تم دمج سجل واحد في {name}} two{تم دمج سجلين في {name}} few{تم دمج {count} سجلات في {name}} many{تم دمج {count} سجلًا في {name}} other{تم دمج {count} سجل في {name}}}",
   "diveComputer_merge_failed": "تعذّر دمج أجهزة الكمبيوتر: {error}",
   "diveComputer_list_selection_mergeTooltip": "دمج أجهزة الكمبيوتر",
   "diveComputer_detail_mergeMenu": "الدمج مع جهاز كمبيوتر آخر",
@@ -12927,8 +12927,8 @@
   "startup_diveLogUnavailable_startNew_confirmBody": "سيتم إنشاء سجل غوص فارغ في {folder}. إذا عاد سجل الغوص القديم لاحقًا، على سبيل المثال عند انتهاء المزامنة، فسيتعارض مع السجل الجديد.",
   "startup_diveLogUnavailable_startNew_confirm": "بدء سجل غوص جديد",
   "backup_history_preDowngradeSubtitle": "قاعدة بيانات أحدث، محفوظة عند الرجوع - {size}",
-  "backup_history_manualSubtitle": "{diveCount, plural, =1{غوصة واحدة} other{{diveCount} غوصات}}, {siteCount, plural, =1{موقع غوص واحد} other{{siteCount} مواقع غوص}} - {size}",
-  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{غوصة واحدة} other{{diveCount} غوصات}}, {siteCount, plural, =1{موقع غوص واحد} other{{siteCount} مواقع غوص}} - {size} (تلقائي)",
+  "backup_history_manualSubtitle": "{diveCount, plural, =1{غوصة واحدة} two{غوصتان} few{{diveCount} غوصات} many{{diveCount} غوصة} other{{diveCount} غوصة}}, {siteCount, plural, =1{موقع غوص واحد} two{موقعا غوص} few{{siteCount} مواقع غوص} many{{siteCount} موقع غوص} other{{siteCount} موقع غوص}} - {size}",
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{غوصة واحدة} two{غوصتان} few{{diveCount} غوصات} many{{diveCount} غوصة} other{{diveCount} غوصة}}, {siteCount, plural, =1{موقع غوص واحد} two{موقعا غوص} few{{siteCount} مواقع غوص} many{{siteCount} موقع غوص} other{{siteCount} موقع غوص}} - {size} (تلقائي)",
   "settings_manage_transmitters": "أجهزة الإرسال",
   "settings_manage_transmitters_subtitle": "ربط أجهزة إرسال الضغط بالأسطوانات",
   "transmitters_title": "أجهزة الإرسال",
@@ -12948,7 +12948,7 @@
   "transmitters_delete_content": "ستستخدم التنزيلات القادمة من {label} الإعداد الافتراضي مجددًا.",
   "transmitters_channel": "{computer}، القناة {channel}",
   "transmitters_serial": "جهاز الإرسال {serial}",
-  "transmitters_dives": "{count, plural, =1{غطسة واحدة} other{{count} غطسة}}",
+  "transmitters_dives": "{count, plural, =1{غطسة واحدة} two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",
   "transmitters_edit_title": "تعديل جهاز الإرسال",
   "transmitters_new_title": "جهاز إرسال جديد",
   "transmitters_field_label": "التسمية",
@@ -12972,7 +12972,7 @@
   "diveLog_reassignSheet_title": "سلاسل الضغط",
   "diveLog_reassignSheet_swap": "تبديل",
   "diveLog_reassignSheet_moveTo": "نقل إلى",
-  "diveLog_reassignSheet_readings": "{count, plural, =1{قراءة واحدة} other{{count} قراءة}}",
+  "diveLog_reassignSheet_readings": "{count, plural, =1{قراءة واحدة} two{قراءتان} few{{count} قراءات} many{{count} قراءة} other{{count} قراءة}}",
   "diveLog_reassignSheet_noSeries": "لا توجد سلسلة ضغط",
   "diveLog_reassignSheet_applied": "تمت إعادة تعيين سلسلة الضغط",
   "universalImport_summary_noticeUnknownTransmitterTitle": "أجهزة إرسال غير معيّنة",
@@ -12994,9 +12994,9 @@
   "backup_unrecognized_ownership_otherDevice": "جهاز آخر",
   "backup_unrecognized_ownership_unattributed": "جهاز غير معروف",
   "backup_unrecognized_fileDetail": "{size} • {date}",
-  "backup_unrecognized_deleteSelected": "{count, plural, =1{حذف ملف واحد ({size})} other{حذف {count} ملفات ({size})}}",
+  "backup_unrecognized_deleteSelected": "{count, plural, =1{حذف ملف واحد ({size})} two{حذف ملفين ({size})} few{حذف {count} ملفات ({size})} many{حذف {count} ملفًا ({size})} other{حذف {count} ملف ({size})}}",
   "backup_unrecognized_confirm_title": "حذف ملفات النسخ الاحتياطي هذه؟",
-  "backup_unrecognized_confirm_message": "{count, plural, =1{سيُحذف ملف نسخ احتياطي واحد نهائيًا. لا يمكن التراجع عن ذلك.} other{ستُحذف {count} من ملفات النسخ الاحتياطي نهائيًا. لا يمكن التراجع عن ذلك.}}",
+  "backup_unrecognized_confirm_message": "{count, plural, =1{سيُحذف ملف نسخ احتياطي واحد نهائيًا. لا يمكن التراجع عن ذلك.} two{سيُحذف ملفا نسخ احتياطي نهائيًا. لا يمكن التراجع عن ذلك.} few{ستُحذف {count} من ملفات النسخ الاحتياطي نهائيًا. لا يمكن التراجع عن ذلك.} many{ستُحذف {count} من ملفات النسخ الاحتياطي نهائيًا. لا يمكن التراجع عن ذلك.} other{ستُحذف {count} من ملفات النسخ الاحتياطي نهائيًا. لا يمكن التراجع عن ذلك.}}",
   "backup_unrecognized_deleteFailed": "تعذّر حذف الملفات المحددة.",
   "backup_unrecognized_freed": "تم تحرير {size}",
   "backup_quarantined_sectionTitle": "قواعد بيانات محفوظة جانبًا",
@@ -13013,7 +13013,7 @@
   "backup_quarantined_deleted": "تم حذف نسخة قاعدة البيانات",
   "backup_quarantined_deleteFailed": "تعذّر حذف نسخة قاعدة البيانات.",
   "backup_quarantined_loadFailed": "تعذّر فحص مجلد قاعدة البيانات بحثًا عن نسخ محفوظة جانبًا.",
-  "settings_storageUsage_unrecognized_title": "{count, plural, =1{ملف واحد غير موجود في سجل النسخ الاحتياطي} other{{count} ملفات غير موجودة في سجل النسخ الاحتياطي}}",
+  "settings_storageUsage_unrecognized_title": "{count, plural, =1{ملف واحد غير موجود في سجل النسخ الاحتياطي} two{ملفان غير موجودين في سجل النسخ الاحتياطي} few{{count} ملفات غير موجودة في سجل النسخ الاحتياطي} many{{count} ملفًا غير موجود في سجل النسخ الاحتياطي} other{{count} ملف غير موجود في سجل النسخ الاحتياطي}}",
   "settings_storageUsage_unrecognized_action": "مراجعة",
   "enum_equipmentTypeOrder_none": "عدم الترتيب حسب النوع",
   "enum_equipmentTypeOrder_alphabetical": "أبجدي",
@@ -13115,14 +13115,14 @@
   "navTrack_list_importFailed": "فشل الاستيراد: {error}",
   "navTrack_list_deleteMessage": "حذف \"{name}\"؟",
   "navTrack_review_trackSavedConfirmation": "تم حفظ المسار تحت الماء.",
-  "navTrack_list_pendingTrackChoice": "{count, plural, one{مسار تحت الماء واحد ينتظر اختيارك} two{مساران تحت الماء ينتظران اختيارك} few{{count} مسارات تحت الماء تنتظر اختيارك} other{{count} مسار تحت الماء ينتظر اختيارك}}",
+  "navTrack_list_pendingTrackChoice": "{count, plural, one{مسار تحت الماء واحد ينتظر اختيارك} two{مساران تحت الماء ينتظران اختيارك} few{{count} مسارات تحت الماء تنتظر اختيارك} many{{count} مسارًا تحت الماء ينتظر اختيارك} other{{count} مسار تحت الماء ينتظر اختيارك}}",
   "navTrack_seascape_trackTitle": "المشهد البحري للمسار",
   "navTrack_seascape_trackNoScene": "لا يحتوي هذا المسار على مشهد بحري قابل للاستخدام.",
   "navTrack_handoff_recognized": "تم التعرف على سجل ملاحة Seacraft ENC",
   "navTrack_handoff_trackDescription": "هذا مسار تحت الماء، وليس سجل غطس. له مكانه الخاص في Submersion، منفصل عن استيراد غطساتك.",
   "navTrack_handoff_reviewTrackButton": "مراجعة المسار تحت الماء",
   "navTrack_section_trackTitle": "مسار تحت الماء",
-  "navTrack_section_trackCount": "{count, plural, one{مسار واحد} two{مساران} few{{count} مسارات} other{{count} مسار}}",
+  "navTrack_section_trackCount": "{count, plural, one{مسار واحد} two{مساران} few{{count} مسارات} many{{count} مسارًا} other{{count} مسار}}",
   "navTrack_section_noTrackLinked": "لا يوجد مسار مرتبط",
   "navTrack_section_linkTrackButton": "ربط مسار",
   "navTrack_section_importButton": "استيراد ملف",
