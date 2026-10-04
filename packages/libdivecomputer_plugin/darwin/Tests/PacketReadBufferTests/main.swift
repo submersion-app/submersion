@@ -171,6 +171,52 @@ do {
     expect(buffer.poll(deadline: .now() + .milliseconds(100)), "interrupt-once: next poll sees data")
 }
 
+// 13. A dropped link (issue #2902): a reader blocked on an empty buffer wakes
+// as soon as the buffer closes, instead of waiting out libdivecomputer's
+// timeout and reporting a timeout for what was a disconnect.
+do {
+    let buffer = PacketReadBuffer()
+    let started = DispatchTime.now()
+    DispatchQueue.global().asyncAfter(deadline: .now() + .milliseconds(50)) {
+        buffer.close()
+    }
+    let got = readBytes(buffer, max: 260, timeoutMs: 10_000)
+    let elapsedMs = (DispatchTime.now().uptimeNanoseconds - started.uptimeNanoseconds) / 1_000_000
+    expect(got == nil, "close: the woken read returns no bytes")
+    expect(elapsedMs < 2000, "close: read returned in \(elapsedMs) ms, not at its deadline")
+    expect(buffer.isClosed, "close: the buffer reports itself closed")
+}
+
+// 14. Notifications that arrived before the link dropped are still delivered,
+// one per read; only then do reads stop waiting.
+do {
+    let buffer = PacketReadBuffer()
+    buffer.append(Data([0x89, 0x06, 0x01]))
+    buffer.append(Data([0x89, 0x06, 0x02]))
+    buffer.close()
+    expect(readBytes(buffer, max: 260, timeoutMs: 100) == [0x89, 0x06, 0x01],
+           "close-drain: the first buffered packet is still read")
+    expect(readBytes(buffer, max: 260, timeoutMs: 100) == [0x89, 0x06, 0x02],
+           "close-drain: the second buffered packet is still read")
+    let started = DispatchTime.now()
+    expect(readBytes(buffer, max: 260, timeoutMs: 10_000) == nil,
+           "close-drain: an empty closed buffer returns nothing")
+    let elapsedMs = (DispatchTime.now().uptimeNanoseconds - started.uptimeNanoseconds) / 1_000_000
+    expect(elapsedMs < 2000, "close-drain: it does so without waiting (\(elapsedMs) ms)")
+    expect(!buffer.poll(deadline: .now() + .seconds(10)),
+           "close-drain: poll on an empty closed buffer reports no data")
+}
+
+// 15. Closing is sticky: a purge does not reopen the buffer.
+do {
+    let buffer = PacketReadBuffer()
+    buffer.close()
+    buffer.purge()
+    expect(buffer.isClosed, "close-sticky: purge leaves the buffer closed")
+    let fresh = PacketReadBuffer()
+    expect(!fresh.isClosed, "close-sticky: a new buffer starts open")
+}
+
 if failures == 0 {
     print("All PacketReadBuffer tests passed.")
     exit(0)
