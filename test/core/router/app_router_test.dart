@@ -28,6 +28,8 @@ import 'package:submersion/features/settings/presentation/pages/settings_page.da
 import 'package:submersion/features/settings/presentation/pages/site_detail_sections_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/unrecognized_backups_notice.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Finds a [GoRoute] by name in a route tree recursively.
@@ -142,6 +144,50 @@ void main() {
 
   tearDown(() {
     container.dispose();
+  });
+
+  group('trip edit (#2880)', () {
+    test('openTripEdit pushes the editTrip route', () {
+      // openTripEdit writes the path by hand; it must stay this route's.
+      expect(
+        _locationOfRoute(router.configuration.routes, 'editTrip'),
+        '/trips/:tripId/edit',
+      );
+    });
+
+    testWidgets('editTrip opens the form at the section in the URL', (
+      tester,
+    ) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      TripEditPage build(String location) =>
+          _findRouteByName(router.configuration.routes, 'editTrip')!.builder!(
+                capturedContext,
+                GoRouterState(
+                  router.configuration,
+                  uri: Uri.parse(location),
+                  matchedLocation: Uri.parse(location).path,
+                  fullPath: '/trips/:tripId/edit',
+                  pathParameters: const {'tripId': 't1'},
+                  pageKey: ValueKey(location),
+                ),
+              )
+              as TripEditPage;
+
+      final planning = build('/trips/t1/edit?section=planning');
+      expect(planning.tripId, 't1');
+      expect(planning.initialSection, TripEditSection.planning);
+      expect(build('/trips/t1/edit').initialSection, isNull);
+    });
   });
 
   group('tracks area', () {
