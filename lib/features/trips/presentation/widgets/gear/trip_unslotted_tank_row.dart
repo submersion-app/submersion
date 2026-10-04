@@ -16,7 +16,7 @@ import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 /// board, where it gets a fill state and counts toward the plan. Its service
 /// clocks read on it as on any packed item. It can still be unpacked;
 /// tapping the rest of the row opens the item. An ended trip's board is
-/// history, so there the row offers no Put on board.
+/// history, so there the row shows neither the line nor the action.
 class TripUnslottedTankRow extends StatefulWidget {
   final EquipmentItem item;
   final UnitFormatter units;
@@ -25,7 +25,8 @@ class TripUnslottedTankRow extends StatefulWidget {
   /// the tinted line, the sheet lists them all.
   final List<DueClock> alerts;
 
-  /// Null hides the action (an ended trip).
+  /// Null on an ended trip, which hides the "not on the board" line and
+  /// the action both.
   final Future<void> Function()? onPutOnBoard;
   final Future<void> Function() onUnpack;
 
@@ -75,31 +76,37 @@ class _TripUnslottedTankRowState extends State<TripUnslottedTankRow> {
         units.formatPressure(item.workingPressureBar),
     ];
 
+    final lines = [
+      if (specs.isNotEmpty) Text(specs.join(' · ')),
+      if (alerts.isNotEmpty) TripGearAlertLine(alerts: alerts, units: units),
+      if (putOnBoard != null) ...[
+        Text(
+          l10n.trips_gear_tank_notOnBoard,
+          style: TextStyle(color: status.warn.accent),
+        ),
+        TileSubtitleAction(
+          actionKey: Key('trip-gear-putOnBoard-${item.id}'),
+          label: l10n.trips_gear_tank_putOnBoard,
+          onPressed: _putting ? null : () => _put(putOnBoard),
+        ),
+      ],
+    ];
+
     return ListTile(
       key: Key('trip-gear-tank-${item.id}'),
       leading: Icon(MdiIcons.divingScubaTank, color: theme.colorScheme.primary),
       title: Text(item.name),
       // The action sits under the subtitle, not in trailing, so a long
       // translation never squeezes the tank's name (#2717).
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (specs.isNotEmpty) Text(specs.join(' · ')),
-          if (alerts.isNotEmpty)
-            TripGearAlertLine(alerts: alerts, units: units),
-          Text(
-            l10n.trips_gear_tank_notOnBoard,
-            style: TextStyle(color: status.warn.accent),
-          ),
-          if (putOnBoard != null)
-            TileSubtitleAction(
-              actionKey: Key('trip-gear-putOnBoard-${item.id}'),
-              label: l10n.trips_gear_tank_putOnBoard,
-              onPressed: _putting ? null : () => _put(putOnBoard),
+      // None on an ended trip's tank with no specs: an empty column would
+      // still pad the row.
+      subtitle: lines.isEmpty
+          ? null
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: lines,
             ),
-        ],
-      ),
       trailing: PopupMenuButton<String>(
         key: Key('trip-gear-menu-${item.id}'),
         onSelected: (_) => widget.onUnpack(),
