@@ -1,6 +1,8 @@
 import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion_transcoder/submersion_transcoder.dart';
 
 /// Real-engine integration test for the AVFoundation transcoder (spec §14).
@@ -35,7 +37,7 @@ void main() {
     // could only grow it (CI saw 35 KB in, 39 KB out). Temporal noise and an
     // explicit 3 Mbps make it look like camera footage, which the transcoder
     // exists to shrink.
-    final input = File('${dir.path}/in.mp4');
+    final input = File(p.join(dir.path, 'in.mp4'));
     final gen = await Process.run(ffmpeg, [
       '-y',
       '-f',
@@ -73,7 +75,7 @@ void main() {
     final probe = (await engine.probe(input))!;
     expect(probe.height, 480);
 
-    final output = File('${dir.path}/out.mp4');
+    final output = File(p.join(dir.path, 'out.mp4'));
     final fractions = <double>[];
     await engine.transcode(
       source: input,

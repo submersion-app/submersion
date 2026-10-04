@@ -30,10 +30,11 @@ jobs:
   # Escape hatch: put [full-ci] in the PR title or a commit message to force the
   # full pipeline even for a docs/CI-only change (e.g. to validate a ci.yaml edit).
   #
-  # A second output, macos_native, gates the macOS integration test (#2940): it
-  # is true only when a change can affect the AVFoundation transcoder or the
-  # macOS runner it is tested in. It follows the same fail-safe rules: an
-  # unknown base or a [full-ci] marker sets it too.
+  # A second output, macos_native, gates the macOS integration tests (#2940): it
+  # is true only when a change can affect the AVFoundation transcoder, the
+  # macOS keychain path of the database key, or the macOS runner they are
+  # tested in. It follows the same fail-safe rules: an unknown base or a
+  # [full-ci] marker sets it too.
   changes:
     name: Detect code changes
     runs-on: ubuntu-latest
@@ -95,7 +96,10 @@ jobs:
             echo "macos_native=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          files="$(git diff --name-only "$diff_range")"
+          # --no-renames: rename detection lists only a moved file's new path,
+          # so moving lib/a.dart to docs/ would read as a docs-only change.
+          # Listing both sides keeps every gate below fail-safe.
+          files="$(git diff --no-renames --name-only "$diff_range")"
           echo "Changed files:"
           printf '%s\n' "$files"
           # code=true unless EVERY changed file matches an inert pattern below.
@@ -113,13 +117,16 @@ jobs:
               *.png|*.jpg|*.jpeg|*.gif|*.svg|*.webp|*.ico) ;;
               *) code=true ;;
             esac
-            # What the macOS integration test can see change: the transcoder
-            # package (Swift and its Dart channel), the test itself, the macOS
-            # runner project it is built into, and the Flutter SDK. An edit to
-            # the job in this file is not listed: use [full-ci] for that.
+            # What the macOS integration tests can see change: the transcoder
+            # package (Swift and its Dart channel), the secure-storage and
+            # database-security code whose keychain fallback only macOS takes,
+            # the two tests, the macOS runner project they are built into, and
+            # the Flutter SDK. An edit to the job in this file is not listed:
+            # use [full-ci] for that.
             case "$f" in
-              .github/flutter-version.txt|macos/*|packages/submersion_transcoder/*|integration_test/darwin_transcode_test.dart)
-                macos_native=true ;;
+              .github/flutter-version.txt|macos/*|packages/submersion_transcoder/*) macos_native=true ;;
+              lib/core/services/secure_storage/*|lib/core/services/security/*) macos_native=true ;;
+              integration_test/darwin_transcode_test.dart|integration_test/db_security_test.dart) macos_native=true ;;
             esac
           done <<< "$files"
           echo "Result: code=$code macos_native=$macos_native"
@@ -843,7 +850,10 @@ jobs:
           # Prove the keyring takes a write before any app build, so a broken
           # setup fails here in one line instead of minutes later inside a test.
           echo 'probe' | secret-tool store --label='CI keyring probe' ci probe
-          [ "$(secret-tool lookup ci probe)" = 'probe' ]
+          if [ "$(secret-tool lookup ci probe)" != 'probe' ]; then
+            echo "::error::the Secret Service keyring did not return a stored secret"
+            exit 1
+          fi
           # One `flutter test` process per file, as the macOS job always did:
           # a second sequential desktop launch in one invocation failed to
           # attach on macOS, and one process per file also gives each file its
@@ -871,10 +881,14 @@ jobs:
           # running (a missing tool, a platform check) would still pass.
           python3 scripts/check_no_skipped_tests.py "${reports[@]}"
 
-  # The one integration test that needs macOS: the AVFoundation transcoder
-  # behind its platform channel (#2940). Gated on changes.macos_native so a
-  # PR that cannot affect it does not take a macOS runner; Build iOS and Build
-  # macOS already use two of the organization's 5 per PR.
+  # The integration tests whose behaviour is macOS-specific (#2940): the
+  # AVFoundation transcoder behind its platform channel, and db_security_test,
+  # whose key write goes through FallbackSecureStorage. Its probe picks the
+  # data-protection or the legacy file-based keychain (the -34018 fallback),
+  # a decision only macOS makes; Linux stores the key with libsecret.
+  # Gated on changes.macos_native so a PR that cannot affect them does not
+  # take a macOS runner; Build iOS and Build macOS already use two of the
+  # organization's 5 per PR.
   integration-test-macos:
     name: Integration Test (macOS)
     needs: [changes, codegen]
@@ -945,15 +959,23 @@ jobs:
       - name: Unpack generated code
         run: tar -xzf generated-code.tar.gz
 
-      - name: Run the AVFoundation transcoder integration test
+      - name: Run the macOS integration tests
         run: |
-          report="$RUNNER_TEMP/darwin_transcode_test.json"
-          flutter test integration_test/darwin_transcode_test.dart \
-            -d macos \
-            --file-reporter "json:$report"
-          # The test skips rather than fails when ffmpeg is missing; a skip
-          # here means the job checked nothing, so it fails.
-          python3 scripts/check_no_skipped_tests.py "$report"
+          # One `flutter test` process per file: a second sequential desktop
+          # launch in one invocation fails to attach on macOS ("log reader
+          # stopped unexpectedly").
+          reports=()
+          for name in darwin_transcode_test db_security_test; do
+            echo "== Running integration_test/$name.dart =="
+            report="$RUNNER_TEMP/$name.json"
+            flutter test "integration_test/$name.dart" \
+              -d macos \
+              --file-reporter "json:$report"
+            reports+=("$report")
+          done
+          # The transcoder test skips rather than fails when ffmpeg is
+          # missing; a skip here means the job checked nothing, so it fails.
+          python3 scripts/check_no_skipped_tests.py "${reports[@]}"
 
   build-ios:
     name: Build iOS
