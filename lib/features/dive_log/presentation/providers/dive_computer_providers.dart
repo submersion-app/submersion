@@ -93,68 +93,6 @@ final computersForDiveProvider =
       return repository.getComputersForDive(diveId);
     });
 
-/// Get the primary computer ID for a dive.
-///
-/// Takes the dive DETAIL tick, not the computers tick: this reads the per-dive
-/// `dive_data_sources` rows, so it goes stale when a download or a sync adds a
-/// source to the dive, not when the computer registry changes.
-final primaryComputerIdProvider = FutureProvider.family<String?, String>((
-  ref,
-  diveId,
-) async {
-  final repository = ref.watch(diveComputerRepositoryProvider);
-  ref.invalidateSelfWhen(
-    ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
-  );
-  return repository.getPrimaryComputerId(diveId);
-});
-
-/// State notifier for selected computer on dive detail view
-class SelectedComputerNotifier extends StateNotifier<String?> {
-  final DiveComputerRepository _repository;
-  final String _diveId;
-
-  SelectedComputerNotifier(this._repository, this._diveId) : super(null) {
-    logFailure(
-      _loadPrimaryComputer(),
-      SelectedComputerNotifier,
-      'load primary computer',
-    );
-  }
-
-  Future<void> _loadPrimaryComputer() async {
-    final primaryId = await _repository.getPrimaryComputerId(_diveId);
-    if (primaryId != null) {
-      state = primaryId;
-    } else {
-      // Fall back to first available computer
-      final computers = await _repository.getComputersForDive(_diveId);
-      if (computers.isNotEmpty) {
-        state = computers.first.id;
-      }
-    }
-  }
-
-  void selectComputer(String computerId) {
-    state = computerId;
-  }
-
-  Future<void> setPrimaryComputer(String computerId) async {
-    await _repository.setPrimaryProfile(_diveId, computerId);
-    state = computerId;
-  }
-}
-
-/// Provider for selected computer on dive detail view
-final selectedComputerProvider =
-    StateNotifierProvider.family<SelectedComputerNotifier, String?, String>((
-      ref,
-      diveId,
-    ) {
-      final repository = ref.watch(diveComputerRepositoryProvider);
-      return SelectedComputerNotifier(repository, diveId);
-    });
-
 /// State notifier for managing dive computers
 class DiveComputerNotifier
     extends StateNotifier<AsyncValue<List<DiveComputer>>> {
@@ -264,7 +202,6 @@ class DiveComputerNotifier
     _ref.invalidate(favoriteDiveComputerProvider);
     _ref.invalidate(possibleDuplicateComputersProvider);
     _ref.invalidate(computersForDiveProvider);
-    _ref.invalidate(primaryComputerIdProvider);
     _ref.invalidate(diveComputerByIdProvider(survivorId));
     for (final id in result.mergedComputerIds) {
       _ref.invalidate(diveComputerByIdProvider(id));

@@ -1,6 +1,7 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series_identity.dart';
@@ -76,8 +77,28 @@ void main() {
       samples: const [ProfileSample(timestamp: 0, depth: 6.0)],
       now: now,
     );
+    for (final (id, computerId, primary) in [
+      ('src-1', 'comp-1', true),
+      ('src-2', 'comp-2', false),
+    ]) {
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion.insert(
+              id: id,
+              diveId: 'dive-1',
+              computerId: Value(computerId),
+              isPrimary: Value(primary),
+              importedAt: DateTime(2026, 9, 14),
+              createdAt: DateTime(2026, 9, 14),
+            ),
+          );
+    }
 
-    await DiveComputerRepository().setPrimaryProfile('dive-1', 'comp-2');
+    await DiveRepository().setPrimaryDataSource(
+      diveId: 'dive-1',
+      computerReadingId: 'src-2',
+    );
 
     final rows = await series.getRowsForDives(['dive-1']);
     final demoted = rows.firstWhere((r) => r.computerId == 'comp-1');

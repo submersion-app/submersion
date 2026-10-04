@@ -43,7 +43,7 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  test('computer ids and the primary computer come from the series', () async {
+  test('computer ids come from the series', () async {
     await series.insertSeries(
       diveId: 'dive-1',
       computerId: 'comp-2',
@@ -66,22 +66,19 @@ void main() {
       'comp-1',
       'comp-2',
     });
-    expect(await computers.getPrimaryComputerId('dive-1'), 'comp-1');
   });
 
-  test('a dive whose only series has a null computer id has no computer ids '
-      'and no primary computer', () async {
+  test('a dive whose only series has a null computer id has no computer '
+      'ids', () async {
     await series.insertSeries(
       diveId: 'dive-1',
       samples: const [ProfileSample(timestamp: 0, depth: 1.0)],
       now: now,
     );
     expect(await computers.getComputerIdsForDive('dive-1'), isEmpty);
-    expect(await computers.getPrimaryComputerId('dive-1'), isNull);
   });
 
   test('a dive with no series has no computers', () async {
     expect(await computers.getComputerIdsForDive('dive-1'), isEmpty);
-    expect(await computers.getPrimaryComputerId('dive-1'), isNull);
   });
 }

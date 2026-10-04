@@ -424,10 +424,6 @@ void main() {
       name: 'favoriteDiveComputerProvider',
       read: (c) => c.read(favoriteDiveComputerProvider.future),
     ),
-    (
-      name: 'primaryComputerIdProvider',
-      read: (c) => c.read(primaryComputerIdProvider(_id).future),
-    ),
   ]);
 
   _tickGroup('dive log', [

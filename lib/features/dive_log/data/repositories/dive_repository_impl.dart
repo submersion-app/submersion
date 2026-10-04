@@ -1372,9 +1372,9 @@ class DiveRepository {
         // data-quality prefilters all silently skip it. That is reachable
         // whenever the primary source names a computer that owns no samples
         // (a metadata-only source, or one whose samples a consolidation
-        // re-stamped onto a different computer). setPrimaryDataSource and
-        // DiveComputerRepository.setPrimaryProfile guard their own
-        // demote-then-promote pairs the same way (issue #1149).
+        // re-stamped onto a different computer). setPrimaryDataSource
+        // guards its own demote-then-promote pair the same way (issue
+        // #1149).
         if (primaryComputerId != null &&
             await _profileSeries.ownsComputer(diveId, primaryComputerId)) {
           // Multi-computer dive: only the previously-primary computer's
