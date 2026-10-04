@@ -30,7 +30,11 @@ void main() {
     final dir = await Directory.systemTemp.createTemp('avf_it');
     addTearDown(() => dir.delete(recursive: true));
 
-    // Synthesize a 2s 640x480 H.264+AAC input with ffmpeg.
+    // Synthesize a 2s 640x480 H.264+AAC input with ffmpeg. Plain testsrc
+    // compresses to well under the 300 kbps target below, so the transcode
+    // could only grow it (CI saw 35 KB in, 39 KB out). Temporal noise and an
+    // explicit 3 Mbps make it look like camera footage, which the transcoder
+    // exists to shrink.
     final input = File('${dir.path}/in.mp4');
     final gen = await Process.run(ffmpeg, [
       '-y',
@@ -42,16 +46,29 @@ void main() {
       'lavfi',
       '-i',
       'sine=frequency=440:duration=2',
+      '-vf',
+      'noise=alls=40:allf=t+u',
       '-c:v',
       'libx264',
+      '-b:v',
+      '3M',
       '-pix_fmt',
       'yuv420p',
       '-c:a',
       'aac',
+      '-b:a',
+      '192k',
       '-shortest',
       input.path,
     ]);
     expect(gen.exitCode, 0, reason: 'fixture generation: ${gen.stderr}');
+    // About 750 KB at 3 Mbps. Far above what 300 kbps for 2s can produce, so
+    // the size check at the end tests the transcoder, not the fixture.
+    expect(
+      await input.length(),
+      greaterThan(200 * 1024),
+      reason: 'the input must be high-bitrate for "smaller" to mean anything',
+    );
 
     final probe = (await engine.probe(input))!;
     expect(probe.height, 480);

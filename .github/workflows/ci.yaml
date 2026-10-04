@@ -795,6 +795,7 @@ jobs:
       # headless runner: xvfb gives the app a display, and dbus-x11 plus
       # gnome-keyring provide the Secret Service that flutter_secure_storage
       # (libsecret) stores the database key in during db_security_test.
+      # libsecret-tools supplies secret-tool for the keyring check below.
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
@@ -811,7 +812,8 @@ jobs:
             libssl-dev \
             xvfb \
             dbus-x11 \
-            gnome-keyring
+            gnome-keyring \
+            libsecret-tools
 
       - name: Install dependencies
         run: flutter pub get
@@ -827,12 +829,21 @@ jobs:
       - name: Run integration tests
         run: |
           # dbus-launch starts a session bus and exports its address to the
-          # rest of this shell, so every app launched below shares it. Given an
-          # empty password on stdin, the keyring daemon creates and unlocks a
-          # login keyring on that bus, so a libsecret write never waits on an
-          # unlock prompt that nobody can answer.
+          # rest of this shell, so every app launched below shares it. Given a
+          # password on stdin, the keyring daemon creates and unlocks a login
+          # keyring on that bus, so a libsecret write never waits on an unlock
+          # prompt that nobody can answer. With an empty password and no
+          # keyrings directory, the daemon started but no login collection was
+          # created, and the first write failed with "Object does not exist at
+          # path /org/freedesktop/secrets/collection/login" (run 37220591254).
+          # The password guards nothing on a throwaway runner.
           eval "$(dbus-launch --sh-syntax)"
-          echo -n '' | gnome-keyring-daemon --unlock --components=secrets > /dev/null
+          mkdir -p "$HOME/.local/share/keyrings"
+          echo 'ci-keyring' | gnome-keyring-daemon --unlock --components=secrets > /dev/null
+          # Prove the keyring takes a write before any app build, so a broken
+          # setup fails here in one line instead of minutes later inside a test.
+          echo 'probe' | secret-tool store --label='CI keyring probe' ci probe
+          [ "$(secret-tool lookup ci probe)" = 'probe' ]
           # One `flutter test` process per file, as the macOS job always did:
           # a second sequential desktop launch in one invocation failed to
           # attach on macOS, and one process per file also gives each file its
