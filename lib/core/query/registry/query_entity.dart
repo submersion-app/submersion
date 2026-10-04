@@ -27,8 +27,13 @@ class QueryEntity {
   /// or more `?` each; every `?` binds the LIKE term.
   final List<String> textSearchSql;
 
-  /// Tables [textSearchSql] reads besides the entity's own.
+  /// Tables [textSearchSql] and [textSearchExpansions] read besides the
+  /// entity's own.
   final List<String> textSearchTables;
+
+  /// Text search alternatives whose binds come from the term itself rather
+  /// than from a LIKE, for names the database does not hold.
+  final List<TextSearchExpansion> textSearchExpansions;
 
   const QueryEntity({
     required this.subject,
@@ -40,6 +45,7 @@ class QueryEntity {
     this.relations = const [],
     this.textSearchSql = const [],
     this.textSearchTables = const [],
+    this.textSearchExpansions = const [],
   });
 
   QueryField? field(String keyOrAlias) =>
@@ -53,4 +59,18 @@ class QueryEntity {
     for (final f in fields) ...[f.key, ...f.aliases],
     for (final r in relations) ...[r.key, ...r.aliases],
   ];
+}
+
+/// One text search alternative matched in Dart rather than by a LIKE: a
+/// built-in row's translated labels live in the app, not in its table.
+///
+/// [values] maps the raw search term to the bind values; [sql] is a template
+/// over `{r}` whose `{values}` becomes one `?` per value. No values leaves the
+/// alternative out, so the compiler never emits an empty `IN ()`.
+@immutable
+class TextSearchExpansion {
+  final String sql;
+  final Iterable<String> Function(String term) values;
+
+  const TextSearchExpansion({required this.sql, required this.values});
 }
