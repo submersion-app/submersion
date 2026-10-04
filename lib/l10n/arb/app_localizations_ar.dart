@@ -11209,7 +11209,7 @@ class AppLocalizationsAr extends AppLocalizations {
       other: 'تم العثور على $count غوصة',
       many: 'تم العثور على $count غوصة',
       few: 'تم العثور على $count غوصات',
-      two: 'تم العثور على $count غوصتين',
+      two: 'تم العثور على غوصتين',
       one: 'تم العثور على $count غوصة',
       zero: 'لم يتم العثور على أي غوصة',
     );
@@ -11224,7 +11224,7 @@ class AppLocalizationsAr extends AppLocalizations {
       other: '$count صورة للاستيراد',
       many: '$count صورة للاستيراد',
       few: '$count صور للاستيراد',
-      two: '$count صورتان للاستيراد',
+      two: 'صورتان للاستيراد',
       one: '$count صورة للاستيراد',
       zero: 'لا توجد صور لاستيرادها',
     );
@@ -11255,7 +11255,7 @@ class AppLocalizationsAr extends AppLocalizations {
       other: 'تعذّر سرد صور $count غوصة.',
       many: 'تعذّر سرد صور $count غوصة.',
       few: 'تعذّر سرد صور $count غوصات.',
-      two: 'تعذّر سرد صور $count غوصتين.',
+      two: 'تعذّر سرد صور غوصتين.',
       one: 'تعذّر سرد صور $count غوصة.',
     );
     return '$_temp0';
@@ -11276,7 +11276,7 @@ class AppLocalizationsAr extends AppLocalizations {
       other: 'تعذّرت قراءة $count غوصة وسيتم تخطيها.',
       many: 'تعذّرت قراءة $count غوصة وسيتم تخطيها.',
       few: 'تعذّرت قراءة $count غوصات وسيتم تخطيها.',
-      two: 'تعذّرت قراءة $count غوصتين وسيتم تخطيهما.',
+      two: 'تعذّرت قراءة غوصتين وسيتم تخطيهما.',
       one: 'تعذّرت قراءة $count غوصة وسيتم تخطيها.',
     );
     return '$_temp0';
@@ -22837,7 +22837,7 @@ class AppLocalizationsAr extends AppLocalizations {
       other: '$count صورة للتنزيل',
       many: '$count صورة للتنزيل',
       few: '$count صور للتنزيل',
-      two: '$count صورتان للتنزيل',
+      two: 'صورتان للتنزيل',
       one: '$count صورة للتنزيل',
     );
     return '$_temp0';
@@ -25973,7 +25973,7 @@ class AppLocalizationsAr extends AppLocalizations {
       other: 'تعذّر سرد صور $count غطسة، لذا لم يتم استيرادها.',
       many: 'تعذّر سرد صور $count غطسة، لذا لم يتم استيرادها.',
       few: 'تعذّر سرد صور $count غطسات، لذا لم يتم استيرادها.',
-      two: 'تعذّر سرد صور $count غطستين، لذا لم يتم استيرادها.',
+      two: 'تعذّر سرد صور غطستين، لذا لم يتم استيرادها.',
       one: 'تعذّر سرد صور $count غطسة، لذا لم يتم استيرادها.',
     );
     return '$_temp0';
@@ -25995,7 +25995,7 @@ class AppLocalizationsAr extends AppLocalizations {
       few:
           'تعذّر تنزيل $count صور. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
       two:
-          'تعذّر تنزيل $count صورتين. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
+          'تعذّر تنزيل صورتين. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
       one:
           'تعذّر تنزيل $count صورة. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
     );

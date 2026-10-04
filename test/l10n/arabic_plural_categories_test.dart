@@ -92,5 +92,40 @@ void main() {
     expect(ar.trips_overview_gear_cylinders(2), 'أسطوانتان');
     expect(ar.trips_overview_gear_cylinders(10), '10 أسطوانات');
     expect(ar.trips_overview_gear_cylinders(25), '25 أسطوانة');
+
+    // many (11 to 99): a masculine noun takes the accusative tanween, which
+    // is the only visible difference from other.
+    expect(ar.trips_overview_gear_packed(11), '11 عنصرًا مُجهزًا');
+    expect(ar.trips_overview_gear_packed(100), '100 عنصر مُجهز');
+    expect(ar.trips_overview_plan_sharing(12), '12 غواصًا يتشاركون الأسطوانات');
+  });
+
+  // The dual already says "two", so a numeral in front of it reads "2 two
+  // dives". These strings were written with the count before the dual.
+  test('a dual noun is not preceded by its own count', () {
+    final ar = lookupAppLocalizations(const Locale('ar'));
+
+    final duals = <String, String>{
+      'divelogsImport_fetch_foundDives': ar.divelogsImport_fetch_foundDives(2),
+      'divelogsImport_fetch_foundPhotos': ar.divelogsImport_fetch_foundPhotos(
+        2,
+      ),
+      'divelogsImport_fetch_photoListingsFailed': ar
+          .divelogsImport_fetch_photoListingsFailed(2),
+      'divelogsImport_fetch_skippedDives': ar.divelogsImport_fetch_skippedDives(
+        2,
+      ),
+      'importWizard_photos_downloadCount': ar.importWizard_photos_downloadCount(
+        2,
+      ),
+      'universalImport_summary_noticePhotoListingsUnavailableBody': ar
+          .universalImport_summary_noticePhotoListingsUnavailableBody(2),
+      'universalImport_summary_noticePhotosNotDownloadedBody': ar
+          .universalImport_summary_noticePhotosNotDownloadedBody(2),
+    };
+
+    duals.forEach((key, text) {
+      expect(text, isNot(contains('2')), reason: '$key: $text');
+    });
   });
 }
