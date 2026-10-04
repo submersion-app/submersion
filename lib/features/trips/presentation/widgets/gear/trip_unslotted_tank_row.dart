@@ -15,7 +15,8 @@ import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 /// specs, a tinted "not on the board" line and an action to put it on the
 /// board, where it gets a fill state and counts toward the plan. Its service
 /// clocks read on it as on any packed item. It can still be unpacked;
-/// tapping the rest of the row opens the item.
+/// tapping the rest of the row opens the item. An ended trip's board is
+/// history, so there the row offers no Put on board.
 class TripUnslottedTankRow extends StatefulWidget {
   final EquipmentItem item;
   final UnitFormatter units;
@@ -23,7 +24,9 @@ class TripUnslottedTankRow extends StatefulWidget {
   /// Every blocking clock on the tank, most pressing first: the first is
   /// the tinted line, the sheet lists them all.
   final List<DueClock> alerts;
-  final Future<void> Function() onPutOnBoard;
+
+  /// Null hides the action (an ended trip).
+  final Future<void> Function()? onPutOnBoard;
   final Future<void> Function() onUnpack;
 
   const TripUnslottedTankRow({
@@ -31,7 +34,7 @@ class TripUnslottedTankRow extends StatefulWidget {
     required this.item,
     required this.units,
     this.alerts = const [],
-    required this.onPutOnBoard,
+    this.onPutOnBoard,
     required this.onUnpack,
   });
 
@@ -45,10 +48,10 @@ class _TripUnslottedTankRowState extends State<TripUnslottedTankRow> {
   /// append skips a tank already on the board.
   bool _putting = false;
 
-  Future<void> _put() async {
+  Future<void> _put(Future<void> Function() putOnBoard) async {
     setState(() => _putting = true);
     try {
-      await widget.onPutOnBoard();
+      await putOnBoard();
     } finally {
       if (mounted) setState(() => _putting = false);
     }
@@ -59,6 +62,7 @@ class _TripUnslottedTankRowState extends State<TripUnslottedTankRow> {
     final item = widget.item;
     final units = widget.units;
     final alerts = widget.alerts;
+    final putOnBoard = widget.onPutOnBoard;
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final status = StatusColors.of(context);
@@ -88,11 +92,12 @@ class _TripUnslottedTankRowState extends State<TripUnslottedTankRow> {
             l10n.trips_gear_tank_notOnBoard,
             style: TextStyle(color: status.warn.accent),
           ),
-          TileSubtitleAction(
-            actionKey: Key('trip-gear-putOnBoard-${item.id}'),
-            label: l10n.trips_gear_tank_putOnBoard,
-            onPressed: _putting ? null : _put,
-          ),
+          if (putOnBoard != null)
+            TileSubtitleAction(
+              actionKey: Key('trip-gear-putOnBoard-${item.id}'),
+              label: l10n.trips_gear_tank_putOnBoard,
+              onPressed: _putting ? null : () => _put(putOnBoard),
+            ),
         ],
       ),
       trailing: PopupMenuButton<String>(

@@ -185,7 +185,10 @@ class TripGearTab extends ConsumerWidget {
               item: item,
               units: units,
               alerts: alertsByItem[item.id] ?? const [],
-              onPutOnBoard: () => _putOnBoard(context, ref, item),
+              // An ended trip's board is history: nothing to put on it.
+              onPutOnBoard: ended
+                  ? null
+                  : () => _putOnBoard(context, ref, item),
               onUnpack: () => _unpack(context, ref, item.id),
             ),
         ],

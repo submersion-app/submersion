@@ -376,6 +376,21 @@ void main() {
     expect(find.byKey(const Key('trip-gear-putOnBoard-tk')), findsOneWidget);
   });
 
+  testWidgets('an ended trip lists a slotless tank but offers no Put on '
+      'board', (tester) async {
+    await _pumpTab(tester, onTrip: trip(past: true), gear: const [tank]);
+    expect(find.text('Cylinders'), findsOneWidget);
+    expect(find.text('Faber 12'), findsOneWidget);
+    expect(find.byKey(const Key('trip-gear-putOnBoard-tk')), findsNothing);
+    // It can still be unpacked.
+    expect(find.byKey(const Key('trip-gear-menu-tk')), findsOneWidget);
+  });
+
+  testWidgets('a trip under way still offers Put on board', (tester) async {
+    await _pumpTab(tester, onTrip: trip(started: true), gear: const [tank]);
+    expect(find.byKey(const Key('trip-gear-putOnBoard-tk')), findsOneWidget);
+  });
+
   testWidgets('a slotless tank alone is a cylinder, not packed gear', (
     tester,
   ) async {
