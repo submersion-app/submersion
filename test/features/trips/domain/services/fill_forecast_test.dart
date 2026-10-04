@@ -29,7 +29,6 @@ void main() {
     List<ItineraryDay> itinerary = const [],
     int? target,
     int? expected,
-    List<double> history = const [],
     int divers = 1,
     int logged = 0,
     int? opens,
@@ -45,7 +44,6 @@ void main() {
       itinerary: itinerary,
       divesPerDayTarget: target,
       expectedDives: expected,
-      divesPerDiveDayHistory: history,
       diversSharing: divers,
       divesLoggedToday: logged,
       fillOpensAt: opens,
@@ -56,20 +54,24 @@ void main() {
   List<int> planned(FillForecast f) => [for (final d in f.days) d.plannedDives];
 
   group('planned dives per day, first match wins', () {
-    test('nothing set: two a day, today through the last day', () {
+    test('nothing set: no dives, today through the last day', () {
       final f = forecast()!;
       expect(f.days.first.date, DateTime(2026, 3, 10));
-      expect(planned(f), [2, 2, 2, 2, 2]);
+      expect(planned(f), [0, 0, 0, 0, 0]);
     });
 
-    test('the median of recent trips, rounded up', () {
-      // Median of 2.0 and 3.0 is 2.5, rounded up to 3.
-      expect(planned(forecast(history: [2.0, 3.0])!).first, 3);
+    test('a blank day needs nothing, whatever past trips did (#2903)', () {
+      // Today has no plan and tomorrow is planned at 1: nothing stands in
+      // for today's plan, so today needs no cylinders.
+      final f = forecast(itinerary: [day(11, planned: 1)])!;
+      expect(planned(f), [0, 1, 0, 0, 0]);
+      expect(f.todayDemand, 0);
+      expect(f.tomorrowDemand, 1);
     });
 
-    test('the expected dives spread over the dive days beat history', () {
+    test('the expected dives spread over the dive days', () {
       // 15 dives over 7 dive days is 2.14 a day, rounded up to 3.
-      expect(planned(forecast(expected: 15, history: [1.0])!).first, 3);
+      expect(planned(forecast(expected: 15)!).first, 3);
     });
 
     test('the spread counts only dive days', () {
@@ -87,7 +89,7 @@ void main() {
     });
 
     test('a zero or negative target counts as unset', () {
-      expect(planned(forecast(target: 0, history: [3.0])!).first, 3);
+      expect(planned(forecast(target: 0, expected: 21)!).first, 3);
     });
 
     test('a planned itinerary day beats everything, even off a dive day', () {
@@ -107,10 +109,11 @@ void main() {
   });
 
   group('demand and supply', () {
+    // Two dives a day, from the trip's target, unless a test says otherwise.
     test('the spec example: tomorrow short once today has used its share', () {
       // 2 divers, 2 dives a day: today needs 4 of the 6 full, leaving 2 for
       // tomorrow's 4.
-      final f = forecast(divers: 2)!;
+      final f = forecast(target: 2, divers: 2)!;
       expect(f.todayDemand, 4);
       expect(f.tomorrowDemand, 4);
       expect(f.tomorrowSupply, 2);
@@ -123,7 +126,7 @@ void main() {
     test('dives logged today reduce today\'s planned dives', () {
       // 3 divers, 1 of 2 dives logged: 1 dive left is 3 cylinders. 4 full
       // leaves 1 for tomorrow's 6: 5 short.
-      final f = forecast(divers: 3, logged: 1, full: 4)!;
+      final f = forecast(target: 2, divers: 3, logged: 1, full: 4)!;
       expect(f.todayDemand, 3);
       expect(f.tomorrowDemand, 6);
       expect(f.tomorrowSupply, 1);
@@ -131,12 +134,12 @@ void main() {
     });
 
     test('more dives logged than planned needs nothing more today', () {
-      expect(forecast(logged: 3)!.todayDemand, 0);
+      expect(forecast(target: 2, logged: 3)!.todayDemand, 0);
     });
 
     test('today short: caution, and nothing left for tomorrow', () {
       // 1 full, today needs 2: 1 short; tomorrow's 2 have none left.
-      final f = forecast(full: 1)!;
+      final f = forecast(target: 2, full: 1)!;
       expect(f.todayShortfall, 1);
       expect(f.caution, isTrue);
       expect(f.tomorrowSupply, 0);
@@ -144,20 +147,20 @@ void main() {
     });
 
     test('enough: 6 full cover today\'s 2 and tomorrow\'s 2', () {
-      final f = forecast()!;
+      final f = forecast(target: 2)!;
       expect(f.tomorrowSupply, 4);
       expect(f.isShort, isFalse);
     });
 
     test('partial slots are reported, never counted', () {
-      final f = forecast(full: 1, partial: 5)!;
+      final f = forecast(target: 2, full: 1, partial: 5)!;
       expect(f.partialCount, 5);
       expect(f.caution, isTrue);
     });
 
     test('the whole trip\'s remaining demand', () {
       // Today 2, then Mar 11 to 14 at 2 each: 10.
-      expect(forecast()!.remainingDemand, 10);
+      expect(forecast(target: 2)!.remainingDemand, 10);
     });
   });
 
@@ -171,13 +174,13 @@ void main() {
     });
 
     test('the last day asks nothing of tomorrow', () {
-      final f = forecast(now: DateTime(2026, 3, 14, 9))!;
+      final f = forecast(target: 2, now: DateTime(2026, 3, 14, 9))!;
       expect(f.tomorrowDemand, 0);
       expect(f.days, hasLength(1));
     });
 
     test('the evening before the trip, tomorrow is its first day', () {
-      final f = forecast(now: DateTime(2026, 3, 7, 20))!;
+      final f = forecast(target: 2, now: DateTime(2026, 3, 7, 20))!;
       expect(f.todayDemand, 0);
       expect(f.tomorrowDemand, 2);
       expect(f.days.first.date, DateTime(2026, 3, 8));

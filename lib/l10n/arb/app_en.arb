@@ -14848,7 +14848,7 @@
   "trips_edit_label_diversSharing": "Divers sharing cylinders",
   "trips_edit_hint_diversSharing": "Including you. Blank means 1.",
   "trips_edit_label_divesPerDay": "Dives per day",
-  "trips_edit_hint_divesPerDay": "For the fill forecast. Blank means estimate.",
+  "trips_edit_hint_divesPerDay": "For the fill forecast. Leave blank to use expected dives or each day's plan.",
   "trips_edit_label_expectedDives": "Expected dives",
   "trips_edit_hint_expectedDives": "Leave empty to estimate from your recent trips",
   "trips_edit_label_expectedRuntime": "Expected runtime per dive (minutes)",
@@ -15021,7 +15021,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_useEstimate": "Use the estimate",
+  "trips_cylinders_forecast_clearPlan": "Clear the plan",
   "trips_cylinders_forecast_fewer": "Fewer dives",
   "trips_cylinders_forecast_more": "More dives",
   "trips_cylinders_forecast_saveError": "Couldn't save the plan. Try again.",

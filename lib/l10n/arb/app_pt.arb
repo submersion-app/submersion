@@ -6802,7 +6802,7 @@
   "trips_edit_label_diversSharing": "Mergulhadores que partilham cilindros",
   "trips_edit_hint_diversSharing": "Incluindo você. Em branco significa 1.",
   "trips_edit_label_divesPerDay": "Mergulhos por dia",
-  "trips_edit_hint_divesPerDay": "Para a previsão de enchimento. Em branco significa estimativa.",
+  "trips_edit_hint_divesPerDay": "Para a previsão de enchimento. Deixe vazio para usar os mergulhos previstos ou o plano de cada dia.",
   "trips_edit_label_expectedDives": "Mergulhos previstos",
   "trips_edit_hint_expectedDives": "Deixe vazio para estimar a partir das suas viagens recentes",
   "trips_edit_label_expectedRuntime": "Duração prevista por mergulho (minutos)",
@@ -6969,7 +6969,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_useEstimate": "Usar a estimativa",
+  "trips_cylinders_forecast_clearPlan": "Limpar o plano",
   "trips_cylinders_forecast_fewer": "Menos mergulhos",
   "trips_cylinders_forecast_more": "Mais mergulhos",
   "trips_cylinders_forecast_saveError": "Não foi possível guardar o plano. Tente novamente.",

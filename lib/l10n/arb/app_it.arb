@@ -6697,7 +6697,7 @@
   "trips_edit_label_diversSharing": "Subacquei che condividono le bombole",
   "trips_edit_hint_diversSharing": "Te compreso. Vuoto significa 1.",
   "trips_edit_label_divesPerDay": "Immersioni al giorno",
-  "trips_edit_hint_divesPerDay": "Per la previsione di ricarica. Vuoto significa stima.",
+  "trips_edit_hint_divesPerDay": "Per la previsione di ricarica. Lascia vuoto per usare le immersioni previste o il piano di ogni giorno.",
   "trips_edit_label_expectedDives": "Immersioni previste",
   "trips_edit_hint_expectedDives": "Lascia vuoto per stimare dai tuoi viaggi recenti",
   "trips_edit_label_expectedRuntime": "Durata prevista per immersione (minuti)",
@@ -6864,7 +6864,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_useEstimate": "Usa la stima",
+  "trips_cylinders_forecast_clearPlan": "Cancella il piano",
   "trips_cylinders_forecast_fewer": "Meno immersioni",
   "trips_cylinders_forecast_more": "Più immersioni",
   "trips_cylinders_forecast_saveError": "Impossibile salvare il piano. Riprova.",

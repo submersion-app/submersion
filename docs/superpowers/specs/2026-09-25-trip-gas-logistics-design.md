@@ -278,9 +278,10 @@ id. No full dive hydration. It invalidates on dives table changes the way
 Inputs: today (device local day); remaining dive days (itinerary days typed
 dive day from today onward, else calendar days to the trip end); planned
 dives per day, first match wins: the itinerary day's `planned_dives`, the
-trip's `dives_per_day_target`, `expectedDives` spread over dive days, the
-diver's median dives per dive day from `TripHistoryRepository.divesPerDiveDay`,
-else 2; `divers_sharing_cylinders`; slot states; fill hours from the dive
+trip's `dives_per_day_target`, `expectedDives` spread over dive days, else
+none (issue #2903, 2026-10-04: a day left blank needs no cylinders, and the
+diver's past trips never stand in for it); `divers_sharing_cylinders`; slot
+states; fill hours from the dive
 center of the trip's most recent fill, when set.
 
 Rules: a day's demand is planned dives times divers sharing. Today's demand

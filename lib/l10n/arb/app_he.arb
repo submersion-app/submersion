@@ -6802,7 +6802,7 @@
   "trips_edit_label_diversSharing": "צוללים החולקים מכלים",
   "trips_edit_hint_diversSharing": "כולל אותך. ריק פירושו 1.",
   "trips_edit_label_divesPerDay": "צלילות ליום",
-  "trips_edit_hint_divesPerDay": "לתחזית המילוי. ריק פירושו הערכה.",
+  "trips_edit_hint_divesPerDay": "לתחזית המילוי. השאר ריק כדי להשתמש בצלילות הצפויות או בתוכנית של כל יום.",
   "trips_edit_label_expectedDives": "צלילות צפויות",
   "trips_edit_hint_expectedDives": "השאר ריק כדי להעריך מהטיולים האחרונים שלך",
   "trips_edit_label_expectedRuntime": "זמן ריצה צפוי לכל צלילה (דקות)",
@@ -6969,7 +6969,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_useEstimate": "להשתמש בהערכה",
+  "trips_cylinders_forecast_clearPlan": "לנקות את התוכנית",
   "trips_cylinders_forecast_fewer": "פחות צלילות",
   "trips_cylinders_forecast_more": "יותר צלילות",
   "trips_cylinders_forecast_saveError": "לא ניתן לשמור את התוכנית. נסו שוב.",

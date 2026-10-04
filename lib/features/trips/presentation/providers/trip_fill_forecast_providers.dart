@@ -5,12 +5,10 @@ import 'package:clock/clock.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/trips/domain/services/fill_forecast.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
-import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
@@ -21,13 +19,10 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 /// a trip no longer on screen keeps no timer and no table subscriptions.
 final tripFillForecastProvider = FutureProvider.autoDispose
     .family<FillForecast?, String>((ref, tripId) async {
-      // The history and today's count read the dives and past trips tables
-      // directly, outside the providers watched below.
+      // Today's count reads the dives table directly, outside the providers
+      // watched below.
       ref.invalidateSelfWhen(
         ref.watch(diveRepositoryProvider).watchDivesChanges(),
-      );
-      ref.invalidateSelfWhen(
-        ref.watch(tripRepositoryProvider).watchTripsChanges(),
       );
       final trip = await ref.watch(tripByIdProvider(tripId).future);
       // An unknown or ended trip has no forecast: skip every query below.
@@ -35,11 +30,7 @@ final tripFillForecastProvider = FutureProvider.autoDispose
       final states = await ref.watch(tripCylinderStatesProvider(tripId).future);
       if (states.isEmpty) return null;
       final itinerary = await ref.watch(itineraryDaysProvider(tripId).future);
-      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       final now = clock.now();
-      final history = await ref
-          .watch(tripHistoryRepositoryProvider)
-          .divesPerDiveDay(diverId: diverId, before: trip.startDate);
       final logged = await ref
           .watch(tripCylinderRepositoryProvider)
           .countTripDiveRoundsOn(tripId, now);
@@ -59,7 +50,6 @@ final tripFillForecastProvider = FutureProvider.autoDispose
           itinerary: itinerary,
           divesPerDayTarget: trip.divesPerDayTarget,
           expectedDives: trip.expectedDives,
-          divesPerDiveDayHistory: history,
           diversSharing: trip.diversSharingCylinders,
           divesLoggedToday: logged,
           fillOpensAt: center?.fillOpensAt,

@@ -6701,7 +6701,7 @@
   "trips_edit_label_diversSharing": "Palackokon osztozó búvárok",
   "trips_edit_hint_diversSharing": "Önnel együtt. Üresen 1.",
   "trips_edit_label_divesPerDay": "Merülés naponta",
-  "trips_edit_hint_divesPerDay": "A töltési előrejelzéshez. Üresen becslés.",
+  "trips_edit_hint_divesPerDay": "A töltési előrejelzéshez. Hagyd üresen a várható merülések vagy a napi terv használatához.",
   "trips_edit_label_expectedDives": "Várható merülések",
   "trips_edit_hint_expectedDives": "Hagyd üresen, hogy a legutóbbi utazásaidból becsüljük",
   "trips_edit_label_expectedRuntime": "Várható futásidő merülésenként (perc)",
@@ -6868,7 +6868,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_useEstimate": "Becslés használata",
+  "trips_cylinders_forecast_clearPlan": "Terv törlése",
   "trips_cylinders_forecast_fewer": "Kevesebb merülés",
   "trips_cylinders_forecast_more": "Több merülés",
   "trips_cylinders_forecast_saveError": "Nem sikerült menteni a tervet. Próbáld újra.",

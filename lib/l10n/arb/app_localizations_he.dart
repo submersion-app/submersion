@@ -23889,7 +23889,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_label_divesPerDay => 'צלילות ליום';
 
   @override
-  String get trips_edit_hint_divesPerDay => 'לתחזית המילוי. ריק פירושו הערכה.';
+  String get trips_edit_hint_divesPerDay =>
+      'לתחזית המילוי. השאר ריק כדי להשתמש בצלילות הצפויות או בתוכנית של כל יום.';
 
   @override
   String get trips_edit_label_expectedDives => 'צלילות צפויות';
@@ -24088,7 +24089,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get trips_cylinders_forecast_useEstimate => 'להשתמש בהערכה';
+  String get trips_cylinders_forecast_clearPlan => 'לנקות את התוכנית';
 
   @override
   String get trips_cylinders_forecast_fewer => 'פחות צלילות';

@@ -6905,7 +6905,7 @@
   "trips_edit_label_diversSharing": "Taucher, die sich Flaschen teilen",
   "trips_edit_hint_diversSharing": "Dich eingeschlossen. Leer bedeutet 1.",
   "trips_edit_label_divesPerDay": "Tauchgänge pro Tag",
-  "trips_edit_hint_divesPerDay": "Für die Füllprognose. Leer bedeutet Schätzung.",
+  "trips_edit_hint_divesPerDay": "Für die Füllprognose. Leer lassen, um die erwarteten Tauchgänge oder den Plan jedes Tages zu verwenden.",
   "trips_edit_label_expectedDives": "Erwartete Tauchgänge",
   "trips_edit_hint_expectedDives": "Leer lassen, um aus deinen letzten Reisen zu schätzen",
   "trips_edit_label_expectedRuntime": "Erwartete Laufzeit je Tauchgang (Minuten)",
@@ -7072,7 +7072,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_useEstimate": "Schätzung verwenden",
+  "trips_cylinders_forecast_clearPlan": "Plan löschen",
   "trips_cylinders_forecast_fewer": "Weniger Tauchgänge",
   "trips_cylinders_forecast_more": "Mehr Tauchgänge",
   "trips_cylinders_forecast_saveError": "Der Plan konnte nicht gespeichert werden. Versuche es erneut.",

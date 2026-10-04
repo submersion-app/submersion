@@ -24565,7 +24565,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get trips_edit_hint_divesPerDay =>
-      'Pour la prévision de remplissage. Vide signifie estimer.';
+      'Pour la prévision de remplissage. Laisser vide pour utiliser les plongées prévues ou le plan de chaque jour.';
 
   @override
   String get trips_edit_label_expectedDives => 'Plongées prévues';
@@ -24764,7 +24764,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get trips_cylinders_forecast_useEstimate => 'Utiliser l\'estimation';
+  String get trips_cylinders_forecast_clearPlan => 'Effacer le plan';
 
   @override
   String get trips_cylinders_forecast_fewer => 'Moins de plongées';

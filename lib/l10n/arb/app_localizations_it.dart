@@ -24475,7 +24475,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get trips_edit_hint_divesPerDay =>
-      'Per la previsione di ricarica. Vuoto significa stima.';
+      'Per la previsione di ricarica. Lascia vuoto per usare le immersioni previste o il piano di ogni giorno.';
 
   @override
   String get trips_edit_label_expectedDives => 'Immersioni previste';
@@ -24675,7 +24675,7 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get trips_cylinders_forecast_useEstimate => 'Usa la stima';
+  String get trips_cylinders_forecast_clearPlan => 'Cancella il piano';
 
   @override
   String get trips_cylinders_forecast_fewer => 'Meno immersioni';

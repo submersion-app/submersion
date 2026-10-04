@@ -6966,7 +6966,7 @@
   "trips_edit_label_diversSharing": "共用气瓶的潜水员",
   "trips_edit_hint_diversSharing": "包括你自己。留空表示 1。",
   "trips_edit_label_divesPerDay": "每天潜水次数",
-  "trips_edit_hint_divesPerDay": "用于充气预测。留空表示估算。",
+  "trips_edit_hint_divesPerDay": "用于充气预测。留空则使用预计潜水次数或每天的计划。",
   "trips_edit_label_expectedDives": "预计潜水次数",
   "trips_edit_hint_expectedDives": "留空则根据近期行程估算",
   "trips_edit_label_expectedRuntime": "每次潜水预计运行时间（分钟）",
@@ -7133,7 +7133,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_useEstimate": "使用估计值",
+  "trips_cylinders_forecast_clearPlan": "清除计划",
   "trips_cylinders_forecast_fewer": "减少潜水",
   "trips_cylinders_forecast_more": "增加潜水",
   "trips_cylinders_forecast_saveError": "无法保存计划，请重试。",

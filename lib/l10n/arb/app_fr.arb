@@ -6701,7 +6701,7 @@
   "trips_edit_label_diversSharing": "Plongeurs partageant les blocs",
   "trips_edit_hint_diversSharing": "Vous compris. Vide signifie 1.",
   "trips_edit_label_divesPerDay": "Plongées par jour",
-  "trips_edit_hint_divesPerDay": "Pour la prévision de remplissage. Vide signifie estimer.",
+  "trips_edit_hint_divesPerDay": "Pour la prévision de remplissage. Laisser vide pour utiliser les plongées prévues ou le plan de chaque jour.",
   "trips_edit_label_expectedDives": "Plongées prévues",
   "trips_edit_hint_expectedDives": "Laisser vide pour estimer d'après vos voyages récents",
   "trips_edit_label_expectedRuntime": "Durée prévue par plongée (minutes)",
@@ -6868,7 +6868,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_useEstimate": "Utiliser l'estimation",
+  "trips_cylinders_forecast_clearPlan": "Effacer le plan",
   "trips_cylinders_forecast_fewer": "Moins de plongées",
   "trips_cylinders_forecast_more": "Plus de plongées",
   "trips_cylinders_forecast_saveError": "Impossible d'enregistrer le plan. Réessayez.",

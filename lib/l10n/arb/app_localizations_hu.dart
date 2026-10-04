@@ -24395,7 +24395,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_edit_hint_divesPerDay =>
-      'A töltési előrejelzéshez. Üresen becslés.';
+      'A töltési előrejelzéshez. Hagyd üresen a várható merülések vagy a napi terv használatához.';
 
   @override
   String get trips_edit_label_expectedDives => 'Várható merülések';
@@ -24594,7 +24594,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get trips_cylinders_forecast_useEstimate => 'Becslés használata';
+  String get trips_cylinders_forecast_clearPlan => 'Terv törlése';
 
   @override
   String get trips_cylinders_forecast_fewer => 'Kevesebb merülés';

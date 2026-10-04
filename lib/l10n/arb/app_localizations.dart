@@ -38918,7 +38918,7 @@ abstract class AppLocalizations {
   /// No description provided for @trips_edit_hint_divesPerDay.
   ///
   /// In en, this message translates to:
-  /// **'For the fill forecast. Blank means estimate.'**
+  /// **'For the fill forecast. Leave blank to use expected dives or each day\'s plan.'**
   String get trips_edit_hint_divesPerDay;
 
   /// No description provided for @trips_edit_label_expectedDives.
@@ -39163,11 +39163,11 @@ abstract class AppLocalizations {
   /// **'Planned dives, {date}'**
   String trips_cylinders_forecast_dayTitle(String date);
 
-  /// No description provided for @trips_cylinders_forecast_useEstimate.
+  /// No description provided for @trips_cylinders_forecast_clearPlan.
   ///
   /// In en, this message translates to:
-  /// **'Use the estimate'**
-  String get trips_cylinders_forecast_useEstimate;
+  /// **'Clear the plan'**
+  String get trips_cylinders_forecast_clearPlan;
 
   /// No description provided for @trips_cylinders_forecast_fewer.
   ///

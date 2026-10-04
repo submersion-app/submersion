@@ -120,8 +120,8 @@ class _TripFillForecastStripState extends ConsumerState<TripFillForecastStrip> {
 }
 
 /// Asks for [day]'s planned dives, 0 to 12. Returns the number, or a null
-/// number to return the day to the estimate (offered when the day has its
-/// own plan), or null when the diver cancels.
+/// number to clear the day's own plan (offered when it has one), or null
+/// when the diver cancels.
 Future<({int? plannedDives})?> showTripDayPlanDialog(
   BuildContext context, {
   required FillForecastDay day,
@@ -172,10 +172,10 @@ Future<({int? plannedDives})?> showTripDayPlanDialog(
           actions: [
             if (day.isOverride)
               TextButton(
-                key: const Key('plan-use-estimate'),
+                key: const Key('plan-clear'),
                 onPressed: () =>
                     Navigator.of(dialogContext).pop((plannedDives: null)),
-                child: Text(l10n.trips_cylinders_forecast_useEstimate),
+                child: Text(l10n.trips_cylinders_forecast_clearPlan),
               ),
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),

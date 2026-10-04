@@ -24301,7 +24301,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_edit_hint_divesPerDay =>
-      'Voor de vulprognose. Leeg betekent schatting.';
+      'Voor de vulprognose. Laat leeg om de verwachte duiken of het plan van elke dag te gebruiken.';
 
   @override
   String get trips_edit_label_expectedDives => 'Verwachte duiken';
@@ -24500,7 +24500,7 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get trips_cylinders_forecast_useEstimate => 'Schatting gebruiken';
+  String get trips_cylinders_forecast_clearPlan => 'Plan wissen';
 
   @override
   String get trips_cylinders_forecast_fewer => 'Minder duiken';

@@ -6802,7 +6802,7 @@
   "trips_edit_label_diversSharing": "Buceadores que comparten botellas",
   "trips_edit_hint_diversSharing": "Contándote a ti. En blanco significa 1.",
   "trips_edit_label_divesPerDay": "Inmersiones por día",
-  "trips_edit_hint_divesPerDay": "Para la previsión de llenado. En blanco significa estimar.",
+  "trips_edit_hint_divesPerDay": "Para la previsión de llenado. Déjalo vacío para usar las inmersiones previstas o el plan de cada día.",
   "trips_edit_label_expectedDives": "Inmersiones previstas",
   "trips_edit_hint_expectedDives": "Déjalo vacío para estimar a partir de tus viajes recientes",
   "trips_edit_label_expectedRuntime": "Duración prevista por inmersión (minutos)",
@@ -6969,7 +6969,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_useEstimate": "Usar la estimación",
+  "trips_cylinders_forecast_clearPlan": "Borrar el plan",
   "trips_cylinders_forecast_fewer": "Menos inmersiones",
   "trips_cylinders_forecast_more": "Más inmersiones",
   "trips_cylinders_forecast_saveError": "No se pudo guardar el plan. Inténtalo de nuevo.",

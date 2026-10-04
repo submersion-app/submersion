@@ -24088,7 +24088,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_edit_hint_divesPerDay =>
-      'For the fill forecast. Blank means estimate.';
+      'For the fill forecast. Leave blank to use expected dives or each day\'s plan.';
 
   @override
   String get trips_edit_label_expectedDives => 'Expected dives';
@@ -24286,7 +24286,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get trips_cylinders_forecast_useEstimate => 'Use the estimate';
+  String get trips_cylinders_forecast_clearPlan => 'Clear the plan';
 
   @override
   String get trips_cylinders_forecast_fewer => 'Fewer dives';

@@ -6802,7 +6802,7 @@
   "trips_edit_label_diversSharing": "الغواصون المشتركون في الأسطوانات",
   "trips_edit_hint_diversSharing": "بما في ذلك أنت. الفراغ يعني 1.",
   "trips_edit_label_divesPerDay": "غطسات في اليوم",
-  "trips_edit_hint_divesPerDay": "لتوقع التعبئة. الفراغ يعني التقدير.",
+  "trips_edit_hint_divesPerDay": "لتوقع التعبئة. اتركه فارغًا لاستخدام الغطسات المتوقعة أو خطة كل يوم.",
   "trips_edit_label_expectedDives": "الغطسات المتوقعة",
   "trips_edit_hint_expectedDives": "اتركه فارغًا للتقدير من رحلاتك الأخيرة",
   "trips_edit_label_expectedRuntime": "مدة التشغيل المتوقعة لكل غطسة (بالدقائق)",
@@ -6969,7 +6969,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_useEstimate": "استخدام التقدير",
+  "trips_cylinders_forecast_clearPlan": "مسح الخطة",
   "trips_cylinders_forecast_fewer": "غطسات أقل",
   "trips_cylinders_forecast_more": "غطسات أكثر",
   "trips_cylinders_forecast_saveError": "تعذّر حفظ الخطة. حاول مرة أخرى.",

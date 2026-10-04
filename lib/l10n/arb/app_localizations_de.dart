@@ -24440,7 +24440,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trips_edit_hint_divesPerDay =>
-      'Für die Füllprognose. Leer bedeutet Schätzung.';
+      'Für die Füllprognose. Leer lassen, um die erwarteten Tauchgänge oder den Plan jedes Tages zu verwenden.';
 
   @override
   String get trips_edit_label_expectedDives => 'Erwartete Tauchgänge';
@@ -24639,7 +24639,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get trips_cylinders_forecast_useEstimate => 'Schätzung verwenden';
+  String get trips_cylinders_forecast_clearPlan => 'Plan löschen';
 
   @override
   String get trips_cylinders_forecast_fewer => 'Weniger Tauchgänge';

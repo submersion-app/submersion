@@ -24171,7 +24171,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_edit_hint_divesPerDay =>
-      'لتوقع التعبئة. الفراغ يعني التقدير.';
+      'لتوقع التعبئة. اتركه فارغًا لاستخدام الغطسات المتوقعة أو خطة كل يوم.';
 
   @override
   String get trips_edit_label_expectedDives => 'الغطسات المتوقعة';
@@ -24381,7 +24381,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get trips_cylinders_forecast_useEstimate => 'استخدام التقدير';
+  String get trips_cylinders_forecast_clearPlan => 'مسح الخطة';
 
   @override
   String get trips_cylinders_forecast_fewer => 'غطسات أقل';

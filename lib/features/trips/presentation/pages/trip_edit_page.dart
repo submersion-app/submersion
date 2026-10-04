@@ -640,7 +640,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   const SizedBox(height: 16),
                   // Fill forecast (#2325): who breathes from the trip's
                   // cylinders, and a dives-per-day target. Blank sharing is
-                  // one diver; a blank target derives it.
+                  // one diver; a blank target falls back to the expected
+                  // dives, else only the days the diver plans (#2903).
                   TextFormField(
                     controller: _diversSharingController,
                     inputFormatters: numberInputFormatters(),

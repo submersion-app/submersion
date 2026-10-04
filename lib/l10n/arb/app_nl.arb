@@ -6802,7 +6802,7 @@
   "trips_edit_label_diversSharing": "Duikers die flessen delen",
   "trips_edit_hint_diversSharing": "Jij meegerekend. Leeg betekent 1.",
   "trips_edit_label_divesPerDay": "Duiken per dag",
-  "trips_edit_hint_divesPerDay": "Voor de vulprognose. Leeg betekent schatting.",
+  "trips_edit_hint_divesPerDay": "Voor de vulprognose. Laat leeg om de verwachte duiken of het plan van elke dag te gebruiken.",
   "trips_edit_label_expectedDives": "Verwachte duiken",
   "trips_edit_hint_expectedDives": "Laat leeg om te schatten op basis van je recente reizen",
   "trips_edit_label_expectedRuntime": "Verwachte looptijd per duik (minuten)",
@@ -6969,7 +6969,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_useEstimate": "Schatting gebruiken",
+  "trips_cylinders_forecast_clearPlan": "Plan wissen",
   "trips_cylinders_forecast_fewer": "Minder duiken",
   "trips_cylinders_forecast_more": "Meer duiken",
   "trips_cylinders_forecast_saveError": "Kan het plan niet opslaan. Probeer het opnieuw.",

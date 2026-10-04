@@ -23223,7 +23223,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_label_divesPerDay => '每天潜水次数';
 
   @override
-  String get trips_edit_hint_divesPerDay => '用于充气预测。留空表示估算。';
+  String get trips_edit_hint_divesPerDay => '用于充气预测。留空则使用预计潜水次数或每天的计划。';
 
   @override
   String get trips_edit_label_expectedDives => '预计潜水次数';
@@ -23409,7 +23409,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get trips_cylinders_forecast_useEstimate => '使用估计值';
+  String get trips_cylinders_forecast_clearPlan => '清除计划';
 
   @override
   String get trips_cylinders_forecast_fewer => '减少潜水';

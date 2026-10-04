@@ -24493,7 +24493,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get trips_edit_hint_divesPerDay =>
-      'Para a previsão de enchimento. Em branco significa estimativa.';
+      'Para a previsão de enchimento. Deixe vazio para usar os mergulhos previstos ou o plano de cada dia.';
 
   @override
   String get trips_edit_label_expectedDives => 'Mergulhos previstos';
@@ -24692,7 +24692,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get trips_cylinders_forecast_useEstimate => 'Usar a estimativa';
+  String get trips_cylinders_forecast_clearPlan => 'Limpar o plano';
 
   @override
   String get trips_cylinders_forecast_fewer => 'Menos mergulhos';
