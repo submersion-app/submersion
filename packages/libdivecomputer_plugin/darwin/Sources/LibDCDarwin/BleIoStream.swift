@@ -82,8 +82,8 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
     private var timeoutMs: Int = 10000
     private var connectError: Error?
     private var isReady = false
-    /// True from a successful connectAndDiscover until the link drops, so a
-    /// disconnect during a failed connect attempt never closes the buffer.
+    /// True from the moment this attempt's link is up until it drops, so a
+    /// disconnect before the connect succeeded never closes the buffer.
     private var linkUp = false
     private var notifySetupStep: NotifySetupStep = .idle
     private var lastWriteError: Error?
@@ -221,6 +221,9 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         // preferred values. High-rate dumps (e.g. the OSTC nano logbook, #280)
         // therefore rely on the device pacing itself; the hw_ostc3 read fix
         // handles correctly-delivered data and a retry covers transient loss.
+        // From here a disconnect closes the buffer, including one during the
+        // discovery, credit grant or settle delay below.
+        linkUp = true
         NativeLogger.d("BleIoStream", category: "BLE", "Connected; discovering services")
         peripheral.discoverServices(nil)
         let discoverResult = discoverSemaphore.wait(timeout: .now() + .seconds(10))
@@ -254,7 +257,13 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             "Discovery ready (write=\(self.writeCharacteristic?.uuid.uuidString ?? "nil")"
                 + " notify=\(self.notifyCharacteristic?.uuid.uuidString ?? "nil")"
                 + " read=\(self.readCharacteristic?.uuid.uuidString ?? "nil"))")
-        linkUp = true
+        // The link may have dropped during setup; a download must not start
+        // on a dead stream and fail later as a timeout (issue #2902).
+        if packetBuffer.isClosed {
+            NativeLogger.w("BleIoStream", category: "BLE",
+                "Link dropped during setup; abandoning this attempt")
+            return .other
+        }
         return nil
     }
 
