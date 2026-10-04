@@ -2238,9 +2238,9 @@ class SyncService {
           await _deletionMaps();
 
       // Revived parents: a parent row whose remote copy is newer than our
-      // local tombstone (_outlivesDelete). Combines pass-2 file data with post-deletion
-      // tombstones, so it is complete before any row is merged (a child may
-      // precede its parent in file order).
+      // local tombstone (_outlivesDelete). Combines pass-2 file data with
+      // post-deletion tombstones, so it is complete before any row is merged
+      // (a child may precede its parent in file order).
       final revivedParents = <String, Set<String>>{};
       for (final parentType in parentTypes) {
         final tombs = tombstonesByEntity[parentType];
