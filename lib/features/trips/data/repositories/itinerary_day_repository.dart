@@ -150,9 +150,10 @@ class ItineraryDayRepository {
   }
 
   /// Sets one day's planned dives for the fill forecast; null clears the
-  /// day's own plan, so the trip's default applies (#2903). A day with no itinerary row gets one, typed dive
-  /// day, or rest day when the plan is 0 (decided 2026-09-29: a trip may plan
-  /// single days without an itinerary); null on such a day writes nothing.
+  /// day's own plan, so the trip's default applies (#2903). A day with no
+  /// itinerary row gets one, typed dive day, or rest day when the plan is 0
+  /// (decided 2026-09-29: a trip may plan single days without an
+  /// itinerary); null on such a day writes nothing.
   /// On an existing row, 0 turns a dive day into a rest day, and a positive
   /// count or null turns a rest day back (#2658); other types keep. The find
   /// and the insert share one transaction, and the table has no (trip, date)
