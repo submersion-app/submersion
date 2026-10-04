@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -193,6 +195,9 @@ class _FakePacks extends TripEquipmentRepository {
 
 class _FakeSlots extends TripCylinderRepository {
   bool failing = false;
+
+  /// When set, a create waits for it, so a test can act mid-write.
+  Completer<void>? gate;
   final created = <List<TripCylinder>>[];
 
   @override
@@ -200,6 +205,7 @@ class _FakeSlots extends TripCylinderRepository {
     List<TripCylinder> cylinders,
   ) async {
     if (failing) throw StateError('database is locked');
+    await gate?.future;
     created.add(cylinders);
     return cylinders;
   }
@@ -392,6 +398,30 @@ void main() {
     expect(find.text('Could not change the gear. Try again.'), findsOneWidget);
     expect(find.textContaining('database is locked'), findsNothing);
     expect(h.packs.unpacked, isEmpty);
+  });
+
+  testWidgets('a slotless tank shows its service clock', (tester) async {
+    await _pumpTab(tester, gear: const [tank], alerts: [dueClock('tk')]);
+    expect(find.byKey(const Key('trip-gear-alert-tk')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('trip-gear-alert-tk')));
+    await tester.pumpAndSettle();
+    expect(find.byType(TripServiceAlertList), findsOneWidget);
+  });
+
+  testWidgets('a second tap while the slot is written adds no second slot', (
+    tester,
+  ) async {
+    final h = await _pumpTab(tester, gear: const [tank]);
+    final gate = h.slots.gate = Completer<void>();
+    final put = find.byKey(const Key('trip-gear-putOnBoard-tk'));
+    await tester.tap(put);
+    await tester.pump();
+    await tester.tap(put);
+    await tester.pump();
+    gate.complete();
+    await tester.pumpAndSettle();
+    expect(h.slots.created, hasLength(1));
+    expect(h.packs.unpacked, [('t1', 'tk')]);
   });
 
   testWidgets('a slotless tank can still be unpacked', (tester) async {

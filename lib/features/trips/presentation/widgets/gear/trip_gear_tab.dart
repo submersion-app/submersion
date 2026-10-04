@@ -5,10 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_drafts.dart';
@@ -182,6 +182,7 @@ class TripGearTab extends ConsumerWidget {
             TripUnslottedTankRow(
               item: item,
               units: units,
+              alerts: alertsByItem[item.id] ?? const [],
               onPutOnBoard: () => _putOnBoard(context, ref, item, slots),
               onUnpack: () => _unpack(context, ref, item.id),
             ),
