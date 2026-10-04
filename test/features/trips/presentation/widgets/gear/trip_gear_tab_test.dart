@@ -192,12 +192,14 @@ class _FakePacks extends TripEquipmentRepository {
 }
 
 class _FakeSlots extends TripCylinderRepository {
+  bool failing = false;
   final created = <List<TripCylinder>>[];
 
   @override
   Future<List<TripCylinder>> createCylinders(
     List<TripCylinder> cylinders,
   ) async {
+    if (failing) throw StateError('database is locked');
     created.add(cylinders);
     return cylinders;
   }
@@ -341,6 +343,65 @@ void main() {
     );
     expect(find.text('Faber 12'), findsOneWidget);
     expect(find.textContaining('My equipment'), findsOneWidget);
+  });
+
+  testWidgets('a packed tank with no slot is listed under Cylinders (#2873)', (
+    tester,
+  ) async {
+    await _pumpTab(tester, gear: const [bcd, tank], states: [slot('Truck 1')]);
+    expect(find.text('Packed'), findsOneWidget);
+    final cylinders = tester.getTopLeft(find.text('Cylinders')).dy;
+    expect(tester.getTopLeft(find.text('Faber 12')).dy, greaterThan(cylinders));
+    expect(find.textContaining('Not on the board'), findsOneWidget);
+    expect(find.byKey(const Key('trip-gear-putOnBoard-tk')), findsOneWidget);
+  });
+
+  testWidgets('a slotless tank alone is a cylinder, not packed gear', (
+    tester,
+  ) async {
+    await _pumpTab(tester, gear: const [tank]);
+    expect(find.text('Packed'), findsNothing);
+    expect(find.text('Cylinders'), findsOneWidget);
+    expect(find.text('Faber 12'), findsOneWidget);
+  });
+
+  testWidgets('Put on board makes the tank a slot after the last and unpacks '
+      'it', (tester) async {
+    final h = await _pumpTab(
+      tester,
+      gear: const [tank],
+      states: [slot('Truck 1')],
+    );
+    await tester.tap(find.byKey(const Key('trip-gear-putOnBoard-tk')));
+    await tester.pumpAndSettle();
+    final created = h.slots.created.single.single;
+    expect(created.equipmentId, 'tk');
+    expect(created.tripId, 't1');
+    expect(created.label, 'Faber 12');
+    expect(created.sortOrder, 1);
+    expect(h.packs.unpacked, [('t1', 'tk')]);
+  });
+
+  testWidgets('a failed Put on board says so and keeps the link', (
+    tester,
+  ) async {
+    final h = await _pumpTab(tester, gear: const [tank]);
+    h.slots.failing = true;
+    await tester.tap(find.byKey(const Key('trip-gear-putOnBoard-tk')));
+    await tester.pumpAndSettle();
+    expect(find.text('Could not change the gear. Try again.'), findsOneWidget);
+    expect(find.textContaining('database is locked'), findsNothing);
+    expect(h.packs.unpacked, isEmpty);
+  });
+
+  testWidgets('a slotless tank can still be unpacked', (tester) async {
+    final h = await _pumpTab(tester, gear: const [tank]);
+    await tester.tap(find.byKey(const Key('trip-gear-menu-tk')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Unpack'));
+    await tester.pumpAndSettle();
+    expect(h.packs.unpacked, [('t1', 'tk')]);
+    expect(h.slots.created, isEmpty);
   });
 
   testWidgets('before departure an owned slot names its item', (tester) async {

@@ -24343,6 +24343,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_gear_openBoard => 'فتح اللوحة';
 
   @override
+  String get trips_gear_tank_notOnBoard => 'ليست على اللوحة';
+
+  @override
+  String get trips_gear_tank_putOnBoard => 'ضعها على اللوحة';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'اليوم يحتاج إلى $needed، ولديك $full ممتلئة.';
   }

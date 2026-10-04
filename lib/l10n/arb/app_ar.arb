@@ -6921,6 +6921,8 @@
   "trips_gear_slot_rental": "مستأجرة",
   "trips_gear_slot_own": "معداتي",
   "trips_gear_openBoard": "فتح اللوحة",
+  "trips_gear_tank_notOnBoard": "ليست على اللوحة",
+  "trips_gear_tank_putOnBoard": "ضعها على اللوحة",
   "trips_cylinders_forecast_todayShort": "اليوم يحتاج إلى {needed}، ولديك {full} ممتلئة.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {
