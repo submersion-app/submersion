@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_day_map.dart';
@@ -38,6 +39,55 @@ const _dive2 = TripStoryMapPoint(
   siteId: 'site-a',
   diveId: 'd2',
   diveNumber: 2,
+);
+
+/// Two entries of one pier: different sites a few metres apart.
+const _pierNorth = TripStoryMapPoint(
+  latitude: 12.1,
+  longitude: -68.2,
+  dayIndex: 1,
+  label: 'Pier North',
+  siteId: 'site-n',
+  diveId: 'd1',
+  diveNumber: 1,
+);
+const _pierSouth = TripStoryMapPoint(
+  latitude: 12.09996,
+  longitude: -68.20002,
+  dayIndex: 1,
+  label: 'Pier South',
+  siteId: 'site-s',
+  diveId: 'd2',
+  diveNumber: 2,
+);
+const _farDive = TripStoryMapPoint(
+  latitude: 12.3,
+  longitude: -68.4,
+  dayIndex: 1,
+  label: 'Klein Bonaire',
+  siteId: 'site-k',
+  diveId: 'd3',
+  diveNumber: 3,
+);
+
+/// A hundred metres apart.
+const _reefA = TripStoryMapPoint(
+  latitude: 12.1,
+  longitude: -68.2,
+  dayIndex: 1,
+  label: 'Reef A',
+  siteId: 'site-ra',
+  diveId: 'd4',
+  diveNumber: 4,
+);
+const _reefB = TripStoryMapPoint(
+  latitude: 12.1,
+  longitude: -68.1991,
+  dayIndex: 1,
+  label: 'Reef B',
+  siteId: 'site-rb',
+  diveId: 'd5',
+  diveNumber: 5,
 );
 
 Future<List<String?>> _pump(
@@ -80,10 +130,10 @@ void main() {
     tester,
   ) async {
     final handle = tester.ensureSemantics();
-    await _pump(tester, points: [_port, _dive1, _dive2]);
+    await _pump(tester, points: [_port, _dive1, _farDive]);
     expect(find.byType(FlutterMap), findsOneWidget);
     expect(find.bySemanticsLabel('Dive 1'), findsOneWidget);
-    expect(find.bySemanticsLabel('Dive 2'), findsOneWidget);
+    expect(find.bySemanticsLabel('Dive 3'), findsOneWidget);
     expect(find.bySemanticsLabel('Kralendijk'), findsOneWidget);
     expect(find.bySemanticsLabel(RegExp('^Map of day 2')), findsOneWidget);
     handle.dispose();
@@ -117,17 +167,99 @@ void main() {
     expect(taps, [null]);
   });
 
-  testWidgets('same-site dives get distinct pins', (tester) async {
-    final taps = await _pump(tester, points: [_dive1, _dive2]);
-    final a = tester.getCenter(find.byKey(const Key('day-map-pin-d1')));
-    final b = tester.getCenter(find.byKey(const Key('day-map-pin-d2')));
-    expect(a.dy, b.dy);
-    // Each pin answers a tap on its own dot, though the hit boxes overlap.
-    await tester.tapAt(a);
-    await tester.pump(const Duration(seconds: 1));
-    await tester.tapAt(b);
-    await tester.pump(const Duration(seconds: 1));
-    expect(taps, ['d1', 'd2']);
+  testWidgets('same-site dives share one badge', (tester) async {
+    await _pump(tester, points: [_dive1, _dive2]);
+    expect(find.byKey(const Key('day-map-group-d1')), findsOneWidget);
+    expect(find.byKey(const Key('day-map-pin-d1')), findsNothing);
+    expect(find.byKey(const Key('day-map-pin-d2')), findsNothing);
+  });
+
+  testWidgets('dives at nearby sites share one badge (#2883)', (tester) async {
+    await _pump(tester, points: [_pierNorth, _pierSouth]);
+    final badge = find.byKey(const Key('day-map-group-d1'));
+    expect(badge, findsOneWidget);
+    expect(find.byKey(const Key('day-map-pin-d1')), findsNothing);
+    expect(find.byKey(const Key('day-map-pin-d2')), findsNothing);
+    // The earliest dive's number, with the group's size on its corner.
+    expect(
+      find.descendant(of: badge, matching: find.text('1')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: badge, matching: find.text('2')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('distant dives keep their own pins', (tester) async {
+    await _pump(tester, points: [_dive1, _farDive]);
+    expect(find.byKey(const Key('day-map-pin-d1')), findsOneWidget);
+    expect(find.byKey(const Key('day-map-pin-d3')), findsOneWidget);
+    expect(find.byKey(const Key('day-map-group-d1')), findsNothing);
+  });
+
+  testWidgets('a screen reader reads the badge as its dive count', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await _pump(tester, points: [_pierNorth, _pierSouth]);
+    final node = tester.getSemantics(find.byKey(const Key('day-map-group-d1')));
+    expect(node.label, '2 dives here');
+    expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
+    handle.dispose();
+  });
+
+  testWidgets('tapping the badge lists its dives; choosing one reports it', (
+    tester,
+  ) async {
+    final taps = await _pump(tester, points: [_pierNorth, _pierSouth]);
+    await tester.tap(find.byKey(const Key('day-map-group-d1')));
+    await tester.pumpAndSettle();
+    expect(find.text('Dive 1 \u00b7 Pier North'), findsOneWidget);
+    expect(find.text('Dive 2 \u00b7 Pier South'), findsOneWidget);
+    await tester.tap(find.text('Dive 2 \u00b7 Pier South'));
+    await tester.pumpAndSettle();
+    expect(taps, ['d2']);
+  });
+
+  testWidgets('choosing the highlighted dive from the badge clears it', (
+    tester,
+  ) async {
+    final taps = await _pump(
+      tester,
+      points: [_pierNorth, _pierSouth],
+      highlighted: 'd2',
+    );
+    await tester.tap(find.byKey(const Key('day-map-group-d1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Dive 2 \u00b7 Pier South'));
+    await tester.pumpAndSettle();
+    expect(taps, [null]);
+  });
+
+  testWidgets('the badge shows as selected while one of its dives is', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await _pump(tester, points: [_pierNorth, _pierSouth], highlighted: 'd2');
+    final node = tester.getSemantics(find.byKey(const Key('day-map-group-d1')));
+    expect(node, isSemantics(isSelected: true, isButton: true));
+    handle.dispose();
+  });
+
+  testWidgets('zooming in splits a badge back into pins', (tester) async {
+    // The port, kilometres off, keeps the fitted zoom wide enough that two
+    // dives a hundred metres apart land on the same pixels.
+    await _pump(tester, points: [_port, _reefA, _reefB]);
+    expect(find.byKey(const Key('day-map-group-d4')), findsOneWidget);
+    tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .mapController!
+        .move(const LatLng(12.1, -68.2), 18);
+    await tester.pump();
+    expect(find.byKey(const Key('day-map-group-d4')), findsNothing);
+    expect(find.byKey(const Key('day-map-pin-d4')), findsOneWidget);
+    expect(find.byKey(const Key('day-map-pin-d5')), findsOneWidget);
   });
 
   testWidgets('the port pin is not a button', (tester) async {
