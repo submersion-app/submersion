@@ -2149,6 +2149,24 @@ abstract class AppLocalizations {
   /// **'This Dive'**
   String get o2Toxicity_thisDive;
 
+  /// No description provided for @o2Toxicity_lastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Dive'**
+  String get o2Toxicity_lastDive;
+
+  /// No description provided for @o2Toxicity_lastDiveStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Before last dive: {percent}%'**
+  String o2Toxicity_lastDiveStart(String percent);
+
+  /// No description provided for @o2Toxicity_lastDiveDelta.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive: +{percent}%'**
+  String o2Toxicity_lastDiveDelta(String percent);
+
   /// No description provided for @o2Toxicity_weekly.
   ///
   /// In en, this message translates to:
@@ -48143,12 +48161,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last dive ended {duration} ago'**
   String safetyHub_cnsOtu_sinceLastDive(String duration);
-
-  /// No description provided for @safetyHub_cnsOtu_historicalContext.
-  ///
-  /// In en, this message translates to:
-  /// **'The start and this-dive figures below are from that last dive, not live.'**
-  String get safetyHub_cnsOtu_historicalContext;
 
   /// No description provided for @safetyHub_noFly_category_single.
   ///

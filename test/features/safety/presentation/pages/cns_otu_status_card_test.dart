@@ -64,13 +64,12 @@ void main() {
 
     expect(find.text('No active load'), findsNothing);
     expect(find.textContaining('Oxygen Toxicity'), findsOneWidget);
-    expect(
-      find.text(
-        'The start and this-dive figures below are from that last '
-        'dive, not live.',
-      ),
-      findsOneWidget,
-    );
+    // "This dive"/"this-dive" wording would wrongly imply a dive in
+    // progress; the card must use the "last dive" phrasing instead.
+    expect(find.textContaining('this dive'), findsNothing);
+    expect(find.textContaining('Before last dive'), findsOneWidget);
+    expect(find.textContaining('Last dive:'), findsOneWidget);
+    expect(find.text('Last Dive'), findsOneWidget);
   });
 
   testWidgets('a weekly OTU carryover alone counts as an active load', (

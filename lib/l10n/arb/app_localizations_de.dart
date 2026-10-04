@@ -1393,6 +1393,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get o2Toxicity_thisDive => 'Dieser Tauchgang';
 
   @override
+  String get o2Toxicity_lastDive => 'Letzter Tauchgang';
+
+  @override
+  String o2Toxicity_lastDiveStart(String percent) {
+    return 'Vor letztem Tauchgang: $percent%';
+  }
+
+  @override
+  String o2Toxicity_lastDiveDelta(String percent) {
+    return 'Letzter Tauchgang: +$percent%';
+  }
+
+  @override
   String get o2Toxicity_weekly => 'Wöchentlich';
 
   @override
@@ -30405,10 +30418,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String safetyHub_cnsOtu_sinceLastDive(String duration) {
     return 'Letzter Tauchgang vor $duration';
   }
-
-  @override
-  String get safetyHub_cnsOtu_historicalContext =>
-      'Start- und Delta-Werte unten stammen von diesem letzten Tauchgang, sie sind nicht live.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {

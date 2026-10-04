@@ -897,6 +897,23 @@
     }
   },
   "o2Toxicity_thisDive": "This Dive",
+  "o2Toxicity_lastDive": "Last Dive",
+  "o2Toxicity_lastDiveStart": "Before last dive: {percent}%",
+  "@o2Toxicity_lastDiveStart": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "o2Toxicity_lastDiveDelta": "Last dive: +{percent}%",
+  "@o2Toxicity_lastDiveDelta": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
   "o2Toxicity_weekly": "Weekly",
   "trips_story_dayLabel": "Day {number}",
   "@trips_story_dayLabel": {
@@ -19487,7 +19504,6 @@
       }
     }
   },
-  "safetyHub_cnsOtu_historicalContext": "The start and this-dive figures below are from that last dive, not live.",
   "safetyHub_noFly_category_single": "After a single no-deco dive: {hours} h guideline",
   "@safetyHub_noFly_category_single": {
     "placeholders": {

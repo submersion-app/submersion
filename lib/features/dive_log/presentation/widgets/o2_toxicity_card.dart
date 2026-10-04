@@ -24,6 +24,13 @@ class O2ToxicityCard extends StatelessWidget {
   /// Weekly OTU rolling total (7-day window, null if not yet loaded)
   final double? weeklyOtu;
 
+  /// Swaps the "this dive" wording (CNS start/delta, the OTU row label) for
+  /// "last dive" phrasing. Set when [exposure] is not the dive currently
+  /// being viewed but a live readout projected forward from the diver's
+  /// most recent dive (see `CnsOtuPage`) -- "this dive" implied one was in
+  /// progress, which read as wrong once decayed live against the clock.
+  final bool isLiveSinceLastDive;
+
   /// Unit preferences, so the max-ppO2 depth renders in m or ft.
   ///
   /// Passed rather than read from a provider: this widget is a plain
@@ -39,6 +46,7 @@ class O2ToxicityCard extends StatelessWidget {
     this.showHeader = true,
     this.useCard = true,
     this.weeklyOtu,
+    this.isLiveSinceLastDive = false,
   });
 
   @override
@@ -176,17 +184,25 @@ class O2ToxicityCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                context.l10n.diveLog_o2tox_startPercent(
-                  exposure.cnsStart.toStringAsFixed(0),
-                ),
+                isLiveSinceLastDive
+                    ? context.l10n.o2Toxicity_lastDiveStart(
+                        exposure.cnsStart.toStringAsFixed(0),
+                      )
+                    : context.l10n.diveLog_o2tox_startPercent(
+                        exposure.cnsStart.toStringAsFixed(0),
+                      ),
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
               Text(
-                context.l10n.diveLog_o2tox_deltaDive(
-                  exposure.cnsDelta.toStringAsFixed(1),
-                ),
+                isLiveSinceLastDive
+                    ? context.l10n.o2Toxicity_lastDiveDelta(
+                        exposure.cnsDelta.toStringAsFixed(1),
+                      )
+                    : context.l10n.diveLog_o2tox_deltaDive(
+                        exposure.cnsDelta.toStringAsFixed(1),
+                      ),
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -225,7 +241,9 @@ class O2ToxicityCard extends StatelessWidget {
         // This Dive
         _buildOtuRow(
           context,
-          label: context.l10n.o2Toxicity_thisDive,
+          label: isLiveSinceLastDive
+              ? context.l10n.o2Toxicity_lastDive
+              : context.l10n.o2Toxicity_thisDive,
           value: exposure.otu,
           textTheme: textTheme,
           colorScheme: colorScheme,

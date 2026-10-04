@@ -155,16 +155,12 @@ class CnsOtuStatusCard extends StatelessWidget {
           exposure: liveExposure,
           units: units,
           weeklyOtu: snap.weeklyOtu,
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
-          child: Text(
-            l10n.safetyHub_cnsOtu_historicalContext,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontStyle: FontStyle.italic,
-            ),
-          ),
+          // Max ppO2, its depth, and time above threshold are facts about
+          // the last dive itself, not the live readout this page is for.
+          showDetails: false,
+          // "This dive" implied one was in progress; "last dive" is what
+          // these two rows actually are.
+          isLiveSinceLastDive: true,
         ),
       ],
     );

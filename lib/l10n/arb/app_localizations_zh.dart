@@ -1341,6 +1341,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get o2Toxicity_thisDive => '本次潜水';
 
   @override
+  String get o2Toxicity_lastDive => 'Last Dive';
+
+  @override
+  String o2Toxicity_lastDiveStart(String percent) {
+    return 'Before last dive: $percent%';
+  }
+
+  @override
+  String o2Toxicity_lastDiveDelta(String percent) {
+    return 'Last dive: +$percent%';
+  }
+
+  @override
   String get o2Toxicity_weekly => '每周';
 
   @override
@@ -28837,10 +28850,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String safetyHub_cnsOtu_sinceLastDive(String duration) {
     return 'Last dive ended $duration ago';
   }
-
-  @override
-  String get safetyHub_cnsOtu_historicalContext =>
-      'The start and this-dive figures below are from that last dive, not live.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
