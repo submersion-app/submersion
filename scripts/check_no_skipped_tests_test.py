@@ -60,6 +60,21 @@ SKIPPED = _LOADER + [
     {"type": "done", "success": True},
 ]
 
+# A test declared with `skip: 'reason'`: the reason arrives in the testStart
+# metadata, and no "skip" print follows.
+STATIC_SKIP = _LOADER + [
+    {
+        "type": "testStart",
+        "test": {
+            "id": 2,
+            "name": "needs a dive computer",
+            "metadata": {"skip": True, "skipReason": "no hardware in CI"},
+        },
+    },
+    _done(2, skipped=True),
+    {"type": "done", "success": True},
+]
+
 ONLY_HIDDEN = _LOADER + [{"type": "done", "success": True}]
 
 
@@ -84,6 +99,13 @@ class SummarizeTests(unittest.TestCase):
         name, reason = summary.skipped[0]
         self.assertEqual(name, "AVFoundation transcodes a real clip smaller")
         self.assertIn("ffmpeg not on PATH", reason)
+
+    def test_declared_skip_is_reported_with_its_metadata_reason(self):
+        summary = guard.summarize(json.dumps(e) for e in STATIC_SKIP)
+        self.assertEqual(summary.ran, 0)
+        self.assertEqual(
+            summary.skipped, [("needs a dive computer", "no hardware in CI")]
+        )
 
     def test_hidden_tests_are_ignored(self):
         summary = guard.summarize(json.dumps(e) for e in ONLY_HIDDEN)
