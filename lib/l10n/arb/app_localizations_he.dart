@@ -24110,6 +24110,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_gear_openBoard => 'פתיחת הלוח';
 
   @override
+  String get trips_gear_tank_notOnBoard => 'לא על הלוח';
+
+  @override
+  String get trips_gear_tank_putOnBoard => 'הוספה ללוח';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'היום צריך $needed, יש לך $full מלאים.';
   }

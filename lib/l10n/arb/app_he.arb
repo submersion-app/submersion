@@ -6922,6 +6922,8 @@
   "trips_gear_slot_rental": "השכרה",
   "trips_gear_slot_own": "הציוד שלי",
   "trips_gear_openBoard": "פתיחת הלוח",
+  "trips_gear_tank_notOnBoard": "לא על הלוח",
+  "trips_gear_tank_putOnBoard": "הוספה ללוח",
   "trips_cylinders_forecast_todayShort": "היום צריך {needed}, יש לך {full} מלאים.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

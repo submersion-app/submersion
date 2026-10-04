@@ -6922,6 +6922,8 @@
   "trips_gear_slot_rental": "Huur",
   "trips_gear_slot_own": "Mijn uitrusting",
   "trips_gear_openBoard": "Overzicht openen",
+  "trips_gear_tank_notOnBoard": "Niet in het overzicht",
+  "trips_gear_tank_putOnBoard": "In overzicht zetten",
   "trips_cylinders_forecast_todayShort": "Vandaag zijn er {needed} nodig, je hebt er {full} vol.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

@@ -28,9 +28,10 @@ List<EquipmentItem> gearOnTrip(List<EquipmentItem> items, Set<String> onTrip) {
   ];
 }
 
-/// The packed items of [packed] that the Gear tab lists under Packed, in
-/// their given order: an owned tank on one of [slots] is listed under
-/// Cylinders only, so it is left out here (issue #2874).
+/// The packed items of [packed] that are on none of [slots], in their
+/// given order: an owned tank on a slot is listed under Cylinders only, so
+/// it is left out here (issue #2874). splitTripGear divides the rest into
+/// the Gear tab's Packed section and its slotless tanks (#2873).
 List<EquipmentItem> packedOffBoard(
   List<EquipmentItem> packed,
   List<TripCylinder> slots,

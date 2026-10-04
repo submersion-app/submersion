@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/icons/mdi_icons.dart';
-import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_alert_sheet.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_list.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -38,25 +35,8 @@ class TripCylinderSlotRow extends ConsumerWidget {
   });
 
   /// The tinted, tappable line for the slot's most pressing clock, or null.
-  Widget? _alertLine(BuildContext context) {
-    if (alerts.isEmpty) return null;
-    final status = StatusColors.of(context);
-    final worst = alerts.first.status;
-    return InkWell(
-      key: Key('trip-gear-alert-${state.cylinder.equipmentId}'),
-      onTap: () => showTripGearAlertSheet(
-        context,
-        item: alerts.first.item,
-        alerts: alerts,
-      ),
-      child: Text(
-        tripServiceAlertSubtitle(context, units, worst),
-        style: TextStyle(
-          color: serviceSeveritySwatch(status, worst.severity)?.accent,
-        ),
-      ),
-    );
-  }
+  Widget? _alertLine(BuildContext context) =>
+      alerts.isEmpty ? null : TripGearAlertLine(alerts: alerts, units: units);
 
   /// [text] with the alert line under it when there is one.
   Widget _subtitle(BuildContext context, String text) {

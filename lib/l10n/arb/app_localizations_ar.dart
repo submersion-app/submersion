@@ -24262,7 +24262,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '$days أيام',
+      other: '$days يوم',
+      many: '$days يومًا',
+      few: '$days أيام',
+      two: 'يومان',
       one: 'يوم واحد',
     );
     return '$_temp0';
@@ -24306,7 +24309,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'تم ربط $count صور',
+      other: 'تم ربط $count صورة',
+      many: 'تم ربط $count صورة',
+      few: 'تم ربط $count صور',
+      two: 'تم ربط صورتين',
       one: 'تم ربط صورة واحدة',
     );
     return '$_temp0';
@@ -24350,7 +24356,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'إضافة $count غوصات',
+      other: 'إضافة $count غوصة',
+      many: 'إضافة $count غوصة',
+      few: 'إضافة $count غوصات',
+      two: 'إضافة غوصتين',
       one: 'إضافة غوصة واحدة',
     );
     return '$_temp0';
@@ -24361,7 +24370,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'تمت إضافة $count غوصات إلى الرحلة',
+      other: 'تمت إضافة $count غوصة إلى الرحلة',
+      many: 'تمت إضافة $count غوصة إلى الرحلة',
+      few: 'تمت إضافة $count غوصات إلى الرحلة',
+      two: 'تمت إضافة غوصتين إلى الرحلة',
       one: 'تمت إضافة غوصة واحدة إلى الرحلة',
     );
     return '$_temp0';
@@ -24402,7 +24414,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'تم العثور على $count غوصات في نطاق التاريخ',
+      other: 'تم العثور على $count غوصة في نطاق التاريخ',
+      many: 'تم العثور على $count غوصة في نطاق التاريخ',
+      few: 'تم العثور على $count غوصات في نطاق التاريخ',
+      two: 'تم العثور على غوصتين في نطاق التاريخ',
       one: 'تم العثور على غوصة واحدة في نطاق التاريخ',
     );
     return '$_temp0';
@@ -24583,7 +24598,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'تم ربط $count صور',
+      other: 'تم ربط $count صورة',
+      many: 'تم ربط $count صورة',
+      few: 'تم ربط $count صور',
+      two: 'تم ربط صورتين',
       one: 'تم ربط صورة واحدة',
     );
     return '$_temp0';
@@ -24656,7 +24674,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count غوصات',
+      other: '$count غوصة',
+      many: '$count غوصة',
+      few: '$count غوصات',
+      two: 'غوصتان',
       one: 'غوصة واحدة',
     );
     return '$_temp0';
@@ -24688,7 +24709,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count صور إضافية',
+      other: '$count صورة إضافية',
+      many: '$count صورة إضافية',
+      few: '$count صور إضافية',
+      two: 'صورتان إضافيتان',
       one: 'صورة إضافية واحدة',
     );
     return '$_temp0';
@@ -25033,6 +25057,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_gear_openBoard => 'فتح اللوحة';
+
+  @override
+  String get trips_gear_tank_notOnBoard => 'ليست على اللوحة';
+
+  @override
+  String get trips_gear_tank_putOnBoard => 'ضعها على اللوحة';
 
   @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
@@ -25579,7 +25609,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count غوصات/يوم',
+      other: '$count غوصة/يوم',
+      many: '$count غوصة/يوم',
+      few: '$count غوصات/يوم',
+      two: 'غوصتان/يوم',
       one: 'غوصة واحدة/يوم',
     );
     return '$_temp0';

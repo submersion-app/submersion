@@ -56,8 +56,8 @@ TripCylinderState _slot(String id, {String? equipmentId}) => foldCylinderState(
   cylinder: TripCylinder(
     id: id,
     tripId: 't1',
-    label: id,
     equipmentId: equipmentId,
+    label: id,
     createdAt: DateTime(2026, 1, 1),
     updatedAt: DateTime(2026, 1, 1),
   ),
@@ -213,6 +213,23 @@ void main() {
       find.text('2 items packed · 3 cylinders · 1 service alert'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('the gear row counts tanks as the Gear tab lists them (#2873)', (
+    tester,
+  ) async {
+    // A slotted tank still holding an old packed link counts once, as its
+    // slot; a packed tank with no slot counts as a cylinder, not packed.
+    await _pump(
+      tester,
+      gear: const [
+        EquipmentItem(id: 'g1', name: 'Reg', type: EquipmentType.regulator),
+        EquipmentItem(id: 'tk1', name: 'Faber', type: EquipmentType.tank),
+        EquipmentItem(id: 'tk2', name: 'Al80', type: EquipmentType.tank),
+      ],
+      slots: [_slot('c1', equipmentId: 'tk1')],
+    );
+    expect(find.text('1 item packed · 2 cylinders'), findsOneWidget);
   });
 
   testWidgets('the packed count leaves out owned tanks on a cylinder slot, '

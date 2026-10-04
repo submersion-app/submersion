@@ -24784,6 +24784,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_gear_openBoard => 'Ouvrir le tableau';
 
   @override
+  String get trips_gear_tank_notOnBoard => 'Pas sur le tableau';
+
+  @override
+  String get trips_gear_tank_putOnBoard => 'Mettre au tableau';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Aujourd\'hui il en faut $needed, vous en avez $full pleins.';
   }

@@ -6653,7 +6653,7 @@
   "trips_detail_dives_errorLoading": "تعذر تحميل الغوصات",
   "trips_detail_error_loading": "تعذّر تحميل الرحلة.",
   "trips_detail_dives_unknownSite": "موقع غوص غير معروف",
-  "trips_detail_durationDays": "{days, plural, =1{يوم واحد} other{{days} أيام}}",
+  "trips_detail_durationDays": "{days, plural, =1{يوم واحد} two{يومان} few{{days} أيام} many{{days} يومًا} other{{days} يوم}}",
   "trips_detail_export_csv_comingSoon": "تصدير CSV قريبًا",
   "trips_detail_export_csv_subtitle": "جميع الغوصات في هذه الرحلة",
   "trips_detail_export_csv_title": "تصدير إلى CSV",
@@ -6670,7 +6670,7 @@
   "trips_detail_scan_addDivesFirst": "أضف غوصات أولًا لربط الصور",
   "trips_detail_scan_errorLinking": "تعذّر ربط الصور. حاول مرة أخرى.",
   "trips_detail_scan_errorScanning": "تعذّر البحث عن الصور. حاول مرة أخرى.",
-  "trips_detail_scan_linkedPhotos": "{count, plural, =1{تم ربط صورة واحدة} other{تم ربط {count} صور}}",
+  "trips_detail_scan_linkedPhotos": "{count, plural, =1{تم ربط صورة واحدة} two{تم ربط صورتين} few{تم ربط {count} صور} many{تم ربط {count} صورة} other{تم ربط {count} صورة}}",
   "trips_detail_scan_linkingPhotos": "جارٍ ربط الصور...",
   "trips_detail_sectionTitle_notes": "ملاحظات",
   "trips_detail_sectionTitle_vessel": "Vessel",
@@ -6751,7 +6751,7 @@
   },
   "trips_overview_itinerary_none": "لم يُخطط بعد",
   "trips_overview_plan": "الخطة",
-  "trips_overview_plan_divesPerDay": "{count, plural, =1{غوصة واحدة/يوم} other{{count} غوصات/يوم}}",
+  "trips_overview_plan_divesPerDay": "{count, plural, =1{غوصة واحدة/يوم} two{غوصتان/يوم} few{{count} غوصات/يوم} many{{count} غوصة/يوم} other{{count} غوصة/يوم}}",
   "@trips_overview_plan_divesPerDay": {
     "placeholders": {
       "count": {
@@ -6922,6 +6922,8 @@
   "trips_gear_slot_rental": "مستأجرة",
   "trips_gear_slot_own": "معداتي",
   "trips_gear_openBoard": "فتح اللوحة",
+  "trips_gear_tank_notOnBoard": "ليست على اللوحة",
+  "trips_gear_tank_putOnBoard": "ضعها على اللوحة",
   "trips_cylinders_forecast_todayShort": "اليوم يحتاج إلى {needed}، ولديك {full} ممتلئة.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {
@@ -7248,7 +7250,7 @@
   "trips_gallery_errorLinking": "تعذّر ربط الصور. حاول مرة أخرى.",
   "trips_gallery_errorScanning": "تعذّر البحث عن الصور. حاول مرة أخرى.",
   "trips_gallery_error_loading": "تعذّر تحميل الصور.",
-  "trips_gallery_linkedPhotos": "{count, plural, =1{تم ربط صورة واحدة} other{تم ربط {count} صور}}",
+  "trips_gallery_linkedPhotos": "{count, plural, =1{تم ربط صورة واحدة} two{تم ربط صورتين} few{تم ربط {count} صور} many{تم ربط {count} صورة} other{تم ربط {count} صورة}}",
   "trips_gallery_linkingPhotos": "جارٍ ربط الصور...",
   "trips_gallery_tooltip_scan": "مسح معرض الجهاز",
   "trips_gallery_tripNotFound": "الرحلة غير موجودة",
@@ -7287,7 +7289,7 @@
   "trips_list_inProgress": "جارية",
   "trips_list_pastSection": "الرحلات السابقة",
   "trips_list_sort_title": "ترتيب الرحلات",
-  "trips_list_tile_diveCount": "{count, plural, =1{غوصة واحدة} other{{count} غوصات}}",
+  "trips_list_tile_diveCount": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
   "trips_list_tooltip_addTrip": "إضافة رحلة",
   "trips_list_tooltip_search": "البحث في الرحلات",
   "trips_list_tooltip_sort": "ترتيب",
@@ -7295,7 +7297,7 @@
   "trips_photos_empty_scanButton": "مسح معرض الجهاز",
   "trips_photos_empty_title": "لا توجد صور بعد",
   "trips_photos_error_loading": "خطأ في تحميل الصور",
-  "trips_photos_moreIndicator_semanticLabel": "{count, plural, =1{صورة إضافية واحدة} other{{count} صور إضافية}}",
+  "trips_photos_moreIndicator_semanticLabel": "{count, plural, =1{صورة إضافية واحدة} two{صورتان إضافيتان} few{{count} صور إضافية} many{{count} صورة إضافية} other{{count} صورة إضافية}}",
   "trips_photos_sectionTitle": "الصور",
   "trips_photos_tooltip_scan": "مسح معرض الجهاز",
   "trips_photos_viewAll": "عرض الكل",
@@ -7534,7 +7536,7 @@
       }
     }
   },
-  "trips_diveScan_addButton": "{count, plural, =1{إضافة غوصة واحدة} other{إضافة {count} غوصات}}",
+  "trips_diveScan_addButton": "{count, plural, =1{إضافة غوصة واحدة} two{إضافة غوصتين} few{إضافة {count} غوصات} many{إضافة {count} غوصة} other{إضافة {count} غوصة}}",
   "@trips_diveScan_addButton": {
     "placeholders": {
       "count": {
@@ -7542,7 +7544,7 @@
       }
     }
   },
-  "trips_diveScan_added": "{count, plural, =1{تمت إضافة غوصة واحدة إلى الرحلة} other{تمت إضافة {count} غوصات إلى الرحلة}}",
+  "trips_diveScan_added": "{count, plural, =1{تمت إضافة غوصة واحدة إلى الرحلة} two{تمت إضافة غوصتين إلى الرحلة} few{تمت إضافة {count} غوصات إلى الرحلة} many{تمت إضافة {count} غوصة إلى الرحلة} other{تمت إضافة {count} غوصة إلى الرحلة}}",
   "@trips_diveScan_added": {
     "placeholders": {
       "count": {
@@ -7579,7 +7581,7 @@
   },
   "trips_diveScan_noMatches": "لم يتم العثور على غوصات مطابقة",
   "trips_diveScan_noDiver": "اختر غوّاصًا نشطًا للبحث عن الغطسات",
-  "trips_diveScan_subtitle": "{count, plural, =1{تم العثور على غوصة واحدة في نطاق التاريخ} other{تم العثور على {count} غوصات في نطاق التاريخ}}",
+  "trips_diveScan_subtitle": "{count, plural, =1{تم العثور على غوصة واحدة في نطاق التاريخ} two{تم العثور على غوصتين في نطاق التاريخ} few{تم العثور على {count} غوصات في نطاق التاريخ} many{تم العثور على {count} غوصة في نطاق التاريخ} other{تم العثور على {count} غوصة في نطاق التاريخ}}",
   "@trips_diveScan_subtitle": {
     "placeholders": {
       "count": {
