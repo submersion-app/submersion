@@ -409,6 +409,12 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     final l10n = context.l10n;
     final editorContext = _editorContext(watch: true);
     final panelAxes = filter.panelAxisCount;
+    // What Save stores: the whole search as the field shows it, typing
+    // still on the debounce included, so a first query can be saved at
+    // once and an emptied field offers nothing.
+    final saveable = normalizeQuery(
+      filter.copyWith(query: _local, clearQuery: _local == null).toQuery(),
+    );
     final ask = ref.watch(diveAskProvider);
     // An error stays with the text that caused it: once the field is
     // re-printed from outside, there is no sentence left to retry.
@@ -502,7 +508,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
             },
           ),
         if (panelAxes > 0) const DiveSearchScopeToggle(),
-        if (filter.hasActiveFilters)
+        if (filter.hasActiveFilters || saveable != null)
           Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 8, 4),
             // The row's own width: on desktop it sits in the narrow master
@@ -524,14 +530,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
                   ),
                   // The whole search as one saved query; under All dives,
                   // what applies is the typed query alone (toQuery()).
-                  // What the field shows (typing still on the debounce
-                  // included), so an emptied field offers nothing to save.
-                  if (normalizeQuery(
-                        filter
-                            .copyWith(query: _local, clearQuery: _local == null)
-                            .toQuery(),
-                      ) !=
-                      null)
+                  if (saveable != null)
                     IconButton(
                       key: kDiveSearchSaveKey,
                       tooltip: l10n.common_action_save,

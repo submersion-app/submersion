@@ -782,6 +782,21 @@ void main() {
     expect(typed, ['mantas']);
   });
 
+  // Review: from an empty search, Save waited for the debounce to apply
+  // the first query.
+  testWidgets('Save offers a first query still on the debounce', (
+    tester,
+  ) async {
+    QueryNode? saved;
+    await pumpHeader(tester, saveOverride: (node) => saved = node);
+    expect(find.byKey(kDiveSearchSaveKey), findsNothing);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump();
+    await tester.tap(find.byKey(kDiveSearchSaveKey));
+    await tester.pumpAndSettle();
+    expect(saved, TextNode(['manta']));
+  });
+
   // Review: Save stayed up for a field just emptied, and its tap did
   // nothing.
   testWidgets('no Save once the field is emptied', (tester) async {
