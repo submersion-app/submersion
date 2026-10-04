@@ -6,6 +6,7 @@ import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_alert_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
@@ -79,6 +80,8 @@ class _TripUnslottedTankRowState extends State<TripUnslottedTankRow> {
     final lines = [
       if (specs.isNotEmpty) Text(specs.join(' · ')),
       if (alerts.isNotEmpty) TripGearAlertLine(alerts: alerts, units: units),
+      // The prompt goes under the subtitle, not in trailing, so a long
+      // translation never squeezes the tank's name (#2717).
       if (putOnBoard != null) ...[
         Text(
           l10n.trips_gear_tank_notOnBoard,
@@ -96,12 +99,10 @@ class _TripUnslottedTankRowState extends State<TripUnslottedTankRow> {
       key: Key('trip-gear-tank-${item.id}'),
       leading: Icon(MdiIcons.divingScubaTank, color: theme.colorScheme.primary),
       title: Text(item.name),
-      // The action sits under the subtitle, not in trailing, so a long
-      // translation never squeezes the tank's name (#2717).
-      // None on an ended trip's tank with no specs: an empty column would
-      // still pad the row.
+      // With nothing else to say (an ended trip's tank with no specs) the
+      // row reads its type, as a packed row does.
       subtitle: lines.isEmpty
-          ? null
+          ? Text(item.type.localizedName(l10n))
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,

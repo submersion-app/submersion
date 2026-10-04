@@ -384,12 +384,13 @@ void main() {
     expect(find.text('Faber 12'), findsOneWidget);
     expect(find.byKey(const Key('trip-gear-putOnBoard-tk')), findsNothing);
     expect(find.textContaining('Not on the board'), findsNothing);
-    // A tank with no specs has nothing left to say under its name.
+    // A tank with no specs reads its type, as a packed row does.
     expect(
-      tester
-          .widget<ListTile>(find.byKey(const Key('trip-gear-tank-tk')))
-          .subtitle,
-      isNull,
+      find.descendant(
+        of: find.byKey(const Key('trip-gear-tank-tk')),
+        matching: find.text('Tank'),
+      ),
+      findsOneWidget,
     );
     // It can still be unpacked.
     expect(find.byKey(const Key('trip-gear-menu-tk')), findsOneWidget);
