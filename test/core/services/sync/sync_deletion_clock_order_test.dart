@@ -197,6 +197,41 @@ void main() {
       expect(conflict['hlc'], deleteClock);
     });
 
+    test('a row ordered by its clock alone is stamped with its clock time '
+        'when it conflicts', () async {
+      // Every clocked parent has a timestamp today; a row that lacks one
+      // still conflicts, dated by its own clock rather than failing.
+      await seedReceivedDive(
+        'dive-unstamped',
+        updatedAt: 3000,
+        hlc: clock(9000, 'device-b'),
+      );
+      await seedPeerPayload(
+        deletions: {
+          'dives': [
+            SyncDeletion(
+              id: 'dive-unstamped',
+              deletedAt: 5000,
+              hlc: clock(6000, 'device-a'),
+            ),
+          ],
+        },
+      );
+      await impersonateFreshDevice();
+
+      final result = await SyncService(
+        syncRepository: SyncRepository(),
+        serializer: _UnstampedDivesSerializer(),
+        cloudProvider: cloud,
+      ).performSync();
+
+      expect(result.conflictsFound, 1);
+      final record = (await SyncRepository().getConflictRecords()).singleWhere(
+        (c) => c.recordId == 'dive-unstamped',
+      );
+      expect(record.localUpdatedAt, 9000);
+    });
+
     test('a tombstone with no clock still falls back to the wall-clock '
         'age guard', () async {
       await seedReceivedDive(
@@ -510,4 +545,20 @@ void main() {
       await expectSiteKeptWithLink();
     });
   });
+}
+
+/// Reads dives without their timestamps, so a dive can only be ordered by
+/// its clock.
+class _UnstampedDivesSerializer extends SyncDataSerializer {
+  @override
+  Future<Map<String, dynamic>?> fetchRecord(
+    String entityType,
+    String recordId,
+  ) async {
+    final row = await super.fetchRecord(entityType, recordId);
+    if (entityType != 'dives' || row == null) return row;
+    return {...row}
+      ..remove('updatedAt')
+      ..remove('createdAt');
+  }
 }
