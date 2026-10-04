@@ -16839,13 +16839,13 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count صورة',
-      many: '$count صورة',
-      few: '$count صور',
-      two: 'صورتين',
-      one: 'صورة واحدة',
+      other: '$count صورة بالقرب من هذه الغوصة. هل تريد ربطها؟',
+      many: '$count صورة بالقرب من هذه الغوصة. هل تريد ربطها؟',
+      few: '$count صور بالقرب من هذه الغوصة. هل تريد ربطها؟',
+      two: 'صورتين بالقرب من هذه الغوصة. هل تريد ربطهما؟',
+      one: 'صورة واحدة بالقرب من هذه الغوصة. هل تريد ربطها؟',
     );
-    return 'تم العثور على $_temp0 بالقرب من هذه الغوصة. هل تريد ربطها؟';
+    return 'تم العثور على $_temp0';
   }
 
   @override

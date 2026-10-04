@@ -7495,7 +7495,7 @@
   "media_diveScan_scanTooltip": "مسح المعرض بحثا عن الصور",
   "media_diveScan_noPhotosFound": "لم يتم العثور على صور جديدة بالقرب من هذه الغوصة",
   "media_diveScan_accessDenied": "يلزم الوصول إلى مكتبة الصور للبحث عن الصور",
-  "media_diveScan_foundPhotos": "تم العثور على {count, plural, =1{صورة واحدة} two{صورتين} few{{count} صور} many{{count} صورة} other{{count} صورة}} بالقرب من هذه الغوصة. هل تريد ربطها؟",
+  "media_diveScan_foundPhotos": "تم العثور على {count, plural, =1{صورة واحدة بالقرب من هذه الغوصة. هل تريد ربطها؟} two{صورتين بالقرب من هذه الغوصة. هل تريد ربطهما؟} few{{count} صور بالقرب من هذه الغوصة. هل تريد ربطها؟} many{{count} صورة بالقرب من هذه الغوصة. هل تريد ربطها؟} other{{count} صورة بالقرب من هذه الغوصة. هل تريد ربطها؟}}",
   "@media_diveScan_foundPhotos": {
     "placeholders": {
       "count": {
