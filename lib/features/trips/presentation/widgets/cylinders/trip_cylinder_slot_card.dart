@@ -72,9 +72,8 @@ class TripCylinderSlotCard extends ConsumerWidget {
   /// The card's place in a ReorderableListView, which then draws no drag
   /// handles of its own: they would sit on the list item's edge, past the
   /// card's margin (#2957). The card carries the drag instead, as a handle
-  /// inside it on desktop and a long press on a phone. Null for a card
-  /// that cannot be moved.
-  final int? reorderIndex;
+  /// inside it on desktop and a long press on a phone.
+  final int reorderIndex;
 
   /// Every slot on the trip, so a fill started here can default its
   /// station from the trip's last fill.
@@ -86,7 +85,7 @@ class TripCylinderSlotCard extends ConsumerWidget {
     required this.state,
     required this.allStates,
     required this.centerNames,
-    this.reorderIndex,
+    required this.reorderIndex,
   });
 
   Future<void> _act(BuildContext context, WidgetRef ref, _SlotAction action) {
@@ -124,8 +123,7 @@ class TripCylinderSlotCard extends ConsumerWidget {
       centerNames: centerNames,
     );
     final small = theme.textTheme.bodySmall;
-    final index = reorderIndex;
-    final handle = index != null && _dragsByHandle(theme.platform);
+    final handle = _dragsByHandle(theme.platform);
     final card = Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
@@ -162,10 +160,10 @@ class TripCylinderSlotCard extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             _menu(context, ref),
-            if (index != null && handle)
+            if (handle)
               ReorderableDragStartListener(
                 key: Key('slot-drag-${c.id}'),
-                index: index,
+                index: reorderIndex,
                 child: const Padding(
                   padding: EdgeInsets.all(8),
                   child: Icon(Icons.drag_handle),
@@ -175,8 +173,11 @@ class TripCylinderSlotCard extends ConsumerWidget {
         ),
       ),
     );
-    if (index == null || handle) return card;
-    return ReorderableDelayedDragStartListener(index: index, child: card);
+    if (handle) return card;
+    return ReorderableDelayedDragStartListener(
+      index: reorderIndex,
+      child: card,
+    );
   }
 
   /// Desktop drags by a handle and a phone by a long press, as
