@@ -1,10 +1,28 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/downloaded_dive_summary.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 void main() {
   const settings = AppSettings();
+
+  // The spelled month and AM/PM come from intl, which resolves against
+  // Intl.defaultLocale, a process global another test file in the same
+  // isolate may change. Pin it, and restore it so the global stays contained.
+  // Setting it explicitly makes intl demand real symbol data, so the locale
+  // is initialized first.
+  late String? previousLocale;
+
+  setUpAll(() => initializeDateFormatting('en'));
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+
+  tearDown(() => Intl.defaultLocale = previousLocale);
 
   DownloadedDive diveAt(DateTime startTime) => DownloadedDive(
     startTime: startTime,
