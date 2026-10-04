@@ -272,9 +272,12 @@ class _TripCylinderBoardListState extends ConsumerState<TripCylinderBoardList> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: states.length,
       onReorderItem: _reorder,
+      // Each card carries its own drag, inside its border (#2957).
+      buildDefaultDragHandles: false,
       itemBuilder: (context, i) => TripCylinderSlotCard(
         key: ValueKey(states[i].cylinder.id),
         state: states[i],
+        reorderIndex: i,
         allStates: widget.states,
         centerNames: widget.centerNames,
       ),

@@ -25,6 +25,18 @@ String tripCylinderStatusLabel(
   TripCylinderStatus.unknown => l10n.trips_cylinders_status_unknown,
 };
 
+/// The slot's mix and pressure as the board shows them, leaving out each
+/// one the slot does not know rather than standing a dash in its place: an
+/// unfilled slot knows neither, and its status already says why (#2957).
+List<String> tripCylinderGasParts(
+  AppLocalizations l10n,
+  UnitFormatter units,
+  TripCylinderState state,
+) => [
+  if (state.mix case final mix?) tripCylinderMixLabel(l10n, mix),
+  if (state.pressure != null) units.formatPressure(state.pressure),
+];
+
 /// The status dot's colour. Always shown beside the status word, never
 /// alone, so the colour is a cue and not the only signal.
 Color tripCylinderStatusColor(ColorScheme scheme, TripCylinderStatus status) =>
@@ -120,8 +132,7 @@ String tripCylinderPickerLabel(
   return [
     state.cylinder.label,
     tripCylinderStatusLabel(l10n, state.status),
-    state.mix == null ? '--' : tripCylinderMixLabel(l10n, state.mix!),
-    state.pressure == null ? '--' : units.formatPressure(state.pressure),
+    ...tripCylinderGasParts(l10n, units, state),
     if (bottle != state.cylinder.label) l10n.trips_cylinders_bottle(bottle),
   ].join(' · ');
 }

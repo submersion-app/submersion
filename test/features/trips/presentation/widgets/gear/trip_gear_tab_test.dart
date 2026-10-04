@@ -566,6 +566,18 @@ void main() {
     expect(find.text('Open board'), findsOneWidget);
   });
 
+  testWidgets('under way an unfilled slot says so instead of dashes (#2957)', (
+    tester,
+  ) async {
+    await _pumpTab(
+      tester,
+      onTrip: trip(started: true),
+      states: [slot('Truck 1')],
+    );
+    expect(find.text('Truck 1 · Not filled yet'), findsOneWidget);
+    expect(find.textContaining('--'), findsNothing);
+  });
+
   testWidgets('tapping a slot opens the board', (tester) async {
     final h = await _pumpTab(tester, states: [slot('Truck 1')]);
     await tester.tap(find.text('Truck 1'));

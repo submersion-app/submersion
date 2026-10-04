@@ -207,6 +207,17 @@ void main() {
     );
   });
 
+  test('the picker leaves out what an unfilled slot does not know (#2957)', () {
+    expect(
+      tripCylinderPickerLabel(
+        l10n,
+        units,
+        state(status: TripCylinderStatus.unknown),
+      ),
+      'Truck 1 · Not filled yet',
+    );
+  });
+
   test('the dive link strings exist in English', () {
     expect(l10n.diveLog_tank_tripCylinderLabel, 'Trip cylinder');
     expect(l10n.diveLog_tank_tripCylinderNone, 'None');

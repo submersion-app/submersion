@@ -67,20 +67,23 @@ class TripCylinderSlotRow extends ConsumerWidget {
               : itemName);
 
     if (started) {
-      final mix = state.mix;
-      final pressure = state.pressure;
+      final status = tripCylinderStatusLabel(l10n, state.status);
       return ListTile(
         key: Key('trip-gear-slot-${c.id}'),
         leading: Icon(
           Icons.circle,
           size: 14,
           color: tripCylinderStatusColor(theme.colorScheme, state.status),
-          semanticLabel: tripCylinderStatusLabel(l10n, state.status),
+          semanticLabel: status,
         ),
+        // An unfilled slot has no mix or pressure to show, and its grey dot
+        // says little, so it names its status instead.
         title: Text(
-          '${state.bottleLabel} · '
-          '${mix == null ? '--' : tripCylinderMixLabel(l10n, mix)} · '
-          '${pressure == null ? '--' : units.formatPressure(pressure)}',
+          [
+            state.bottleLabel,
+            ...tripCylinderGasParts(l10n, units, state),
+            if (state.status == TripCylinderStatus.unknown) status,
+          ].join(' · '),
         ),
         subtitle: _subtitle(context, '${c.label} · $origin'),
         trailing: const Icon(Icons.chevron_right),
