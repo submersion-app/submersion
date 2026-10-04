@@ -13,6 +13,7 @@ import 'package:submersion/features/safety/domain/services/cns_otu_live_service.
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/formatters/no_fly_format.dart';
 import 'package:submersion/features/safety/presentation/providers/cns_otu_providers.dart';
+import 'package:submersion/features/safety/presentation/widgets/last_dive_hero_header.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -144,7 +145,7 @@ class CnsOtuStatusCard extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _LastDiveSummaryRow(diveId: snap.lastDiveId),
+        _LastDiveHeader(diveId: snap.lastDiveId, units: units),
         Padding(
           padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
           child: Text(
@@ -180,76 +181,23 @@ class CnsOtuStatusCard extends ConsumerWidget {
   }
 }
 
-/// Compact identification of which dive this readout is projected from:
-/// number badge, name/site, and when it happened. Deliberately a small,
-/// purpose-built row rather than reusing DiveDetailPage's embedded header --
-/// that one also carries dive-to-dive navigation, a favorite toggle and a
-/// "log for buddy" action, none of which belong on a safety readout that
-/// is not browsing the dive itself.
-class _LastDiveSummaryRow extends ConsumerWidget {
+/// Loads the dive this readout is projected from and hands it to
+/// [LastDiveHeroHeader]. Renders nothing while loading or on a miss rather
+/// than a placeholder -- the CNS/OTU content above it already identifies
+/// this as a safety readout; a loading flicker here isn't worth it.
+class _LastDiveHeader extends ConsumerWidget {
   final String diveId;
+  final UnitFormatter units;
 
-  const _LastDiveSummaryRow({required this.diveId});
+  const _LastDiveHeader({required this.diveId, required this.units});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dive = ref.watch(diveProvider(diveId)).valueOrNull;
     if (dive == null) return const SizedBox.shrink();
-
-    final l10n = context.l10n;
-    final colorScheme = Theme.of(context).colorScheme;
-    final units = UnitFormatter(ref.watch(settingsProvider));
-
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: colorScheme.primaryContainer,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 3),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  '#${dive.diveNumber ?? '-'}',
-                  maxLines: 1,
-                  style: TextStyle(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 11,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  dive.effectiveName ??
-                      dive.site?.name ??
-                      l10n.diveLog_listPage_unknownSite,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  units.formatDateTimeBullet(dive.effectiveEntryTime),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.only(bottom: 4),
+      child: LastDiveHeroHeader(dive: dive, units: units),
     );
   }
 }

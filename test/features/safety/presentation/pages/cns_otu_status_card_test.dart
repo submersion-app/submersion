@@ -6,6 +6,8 @@ import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/safety/domain/entities/cns_otu_snapshot.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/pages/cns_otu_page.dart';
@@ -30,6 +32,9 @@ void main() {
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           diveProvider.overrideWith((ref, id) async => lastDive),
+          diveTypesProvider.overrideWith(
+            (ref) async => const <DiveTypeEntity>[],
+          ),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -41,8 +46,8 @@ void main() {
         ),
       ),
     );
-    // diveProvider resolves asynchronously; let _LastDiveSummaryRow's
-    // second build (with data) land before assertions run.
+    // diveProvider resolves asynchronously; let _LastDiveHeader's second
+    // build (with data) land before assertions run.
     await tester.pump();
   }
 
