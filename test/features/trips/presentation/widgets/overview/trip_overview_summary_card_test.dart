@@ -253,6 +253,14 @@ void main() {
     expect(find.text('3 dives/day · 2 divers share cylinders'), findsOneWidget);
   });
 
+  testWidgets('a target of one dive a day reads in the singular', (
+    tester,
+  ) async {
+    // #2878: it read "1 dives/day".
+    await _pump(tester, trip: _trip(perDay: 1, sharing: 1));
+    expect(find.text('1 dive/day'), findsOneWidget);
+  });
+
   testWidgets('with no planning numbers the plan row says Not set', (
     tester,
   ) async {

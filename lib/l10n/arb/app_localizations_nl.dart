@@ -23744,8 +23744,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_detail_dives_unknownSite => 'Onbekende duikstek';
 
   @override
-  String trips_detail_durationDays(Object days) {
-    return '$days dagen';
+  String trips_detail_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days dagen',
+      one: '$days dag',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23786,8 +23792,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan niet naar foto\'s zoeken. Probeer het opnieuw.';
 
   @override
-  String trips_detail_scan_linkedPhotos(Object count) {
-    return '$count foto\'s gekoppeld';
+  String trips_detail_scan_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto\'s gekoppeld',
+      one: '$count foto gekoppeld',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23825,12 +23837,24 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String trips_diveScan_addButton(int count) {
-    return '$count duiken toevoegen';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken toevoegen',
+      one: '$count duik toevoegen',
+    );
+    return '$_temp0';
   }
 
   @override
   String trips_diveScan_added(int count) {
-    return '$count duiken toegevoegd aan reis';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken toegevoegd aan reis',
+      one: '$count duik toegevoegd aan reis',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23867,7 +23891,13 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String trips_diveScan_subtitle(int count) {
-    return '$count duiken gevonden in het datumbereik';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken gevonden in het datumbereik',
+      one: '$count duik gevonden in het datumbereik',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24038,8 +24068,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_gallery_error_loading => 'Kan de foto\'s niet laden.';
 
   @override
-  String trips_gallery_linkedPhotos(Object count) {
-    return '$count foto\'s gekoppeld';
+  String trips_gallery_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto\'s gekoppeld',
+      one: '$count foto gekoppeld',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24103,8 +24139,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_list_sort_title => 'Reizen sorteren';
 
   @override
-  String trips_list_tile_diveCount(Object count) {
-    return '$count duiken';
+  String trips_list_tile_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '$count duik',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24129,8 +24171,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_photos_error_loading => 'Fout bij laden van foto\'s';
 
   @override
-  String trips_photos_moreIndicator_semanticLabel(Object count) {
-    return '$count meer foto\'s';
+  String trips_photos_moreIndicator_semanticLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count meer foto\'s',
+      one: '$count meer foto',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24958,7 +25006,13 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String trips_overview_plan_divesPerDay(int count) {
-    return '$count duiken/dag';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken/dag',
+      one: '$count duik/dag',
+    );
+    return '$_temp0';
   }
 
   @override

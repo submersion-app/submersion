@@ -6551,7 +6551,7 @@
   "trips_detail_dives_errorLoading": "Nem sikerült a merülések betöltése",
   "trips_detail_error_loading": "Nem sikerült betölteni az utat.",
   "trips_detail_dives_unknownSite": "Ismeretlen merülőhely",
-  "trips_detail_durationDays": "{days} nap",
+  "trips_detail_durationDays": "{days, plural, =1{{days} nap} other{{days} nap}}",
   "trips_detail_export_csv_comingSoon": "CSV exportálás hamarosan",
   "trips_detail_export_csv_subtitle": "Az út összes merülése",
   "trips_detail_export_csv_title": "Exportálás CSV-be",
@@ -6568,7 +6568,7 @@
   "trips_detail_scan_addDivesFirst": "Előbb adjon hozzá merüléseket a fotók csatolásához",
   "trips_detail_scan_errorLinking": "Nem sikerült csatolni a fotókat. Próbáld újra.",
   "trips_detail_scan_errorScanning": "Nem sikerült fotókat keresni. Próbáld újra.",
-  "trips_detail_scan_linkedPhotos": "{count} fotó csatolva",
+  "trips_detail_scan_linkedPhotos": "{count, plural, =1{{count} fotó csatolva} other{{count} fotó csatolva}}",
   "trips_detail_scan_linkingPhotos": "Fotók csatolása...",
   "trips_detail_sectionTitle_notes": "Jegyzetek",
   "trips_detail_sectionTitle_vessel": "Vessel",
@@ -6649,7 +6649,7 @@
   },
   "trips_overview_itinerary_none": "Még nincs megtervezve",
   "trips_overview_plan": "Terv",
-  "trips_overview_plan_divesPerDay": "{count} merülés/nap",
+  "trips_overview_plan_divesPerDay": "{count, plural, =1{{count} merülés/nap} other{{count} merülés/nap}}",
   "@trips_overview_plan_divesPerDay": {
     "placeholders": {
       "count": {
@@ -7146,7 +7146,7 @@
   "trips_gallery_errorLinking": "Nem sikerült csatolni a fotókat. Próbáld újra.",
   "trips_gallery_errorScanning": "Nem sikerült fotókat keresni. Próbáld újra.",
   "trips_gallery_error_loading": "Nem sikerült betölteni a fotókat.",
-  "trips_gallery_linkedPhotos": "{count} fotó csatolva",
+  "trips_gallery_linkedPhotos": "{count, plural, =1{{count} fotó csatolva} other{{count} fotó csatolva}}",
   "trips_gallery_linkingPhotos": "Fotók csatolása...",
   "trips_gallery_tooltip_scan": "Eszköz galéria átnézés",
   "trips_gallery_tripNotFound": "Út nem található",
@@ -7184,7 +7184,7 @@
   "trips_list_inProgress": "Folyamatban",
   "trips_list_pastSection": "Korábbi utak",
   "trips_list_sort_title": "Utak rendezése",
-  "trips_list_tile_diveCount": "{count} merülés",
+  "trips_list_tile_diveCount": "{count, plural, =1{{count} merülés} other{{count} merülés}}",
   "trips_list_tooltip_addTrip": "Út hozzáadása",
   "trips_list_tooltip_search": "Utak keresése",
   "trips_list_tooltip_sort": "Rendezés",
@@ -7192,7 +7192,7 @@
   "trips_photos_empty_scanButton": "Eszköz galéria átnézés",
   "trips_photos_empty_title": "Még nincsenek fotók",
   "trips_photos_error_loading": "Hiba a fotók betöltésekor",
-  "trips_photos_moreIndicator_semanticLabel": "{count} további fotó",
+  "trips_photos_moreIndicator_semanticLabel": "{count, plural, =1{{count} további fotó} other{{count} további fotó}}",
   "trips_photos_sectionTitle": "Fotók",
   "trips_photos_tooltip_scan": "Eszköz galéria átnézés",
   "trips_photos_viewAll": "Összes megtekintése",
@@ -7431,7 +7431,7 @@
       }
     }
   },
-  "trips_diveScan_addButton": "{count} merülés hozzáadása",
+  "trips_diveScan_addButton": "{count, plural, =1{{count} merülés hozzáadása} other{{count} merülés hozzáadása}}",
   "@trips_diveScan_addButton": {
     "placeholders": {
       "count": {
@@ -7439,7 +7439,7 @@
       }
     }
   },
-  "trips_diveScan_added": "{count} merülés hozzáadva az úthoz",
+  "trips_diveScan_added": "{count, plural, =1{{count} merülés hozzáadva az úthoz} other{{count} merülés hozzáadva az úthoz}}",
   "@trips_diveScan_added": {
     "placeholders": {
       "count": {
@@ -7476,7 +7476,7 @@
   },
   "trips_diveScan_noMatches": "Nem találhatók egyező merülések",
   "trips_diveScan_noDiver": "Válassz ki egy aktív búvárt a merülések kereséséhez",
-  "trips_diveScan_subtitle": "{count} merülés található a dátumtartományban",
+  "trips_diveScan_subtitle": "{count, plural, =1{{count} merülés található a dátumtartományban} other{{count} merülés található a dátumtartományban}}",
   "@trips_diveScan_subtitle": {
     "placeholders": {
       "count": {

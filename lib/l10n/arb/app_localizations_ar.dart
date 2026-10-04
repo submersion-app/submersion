@@ -23622,8 +23622,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_detail_dives_unknownSite => 'موقع غوص غير معروف';
 
   @override
-  String trips_detail_durationDays(Object days) {
-    return '$days أيام';
+  String trips_detail_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days أيام',
+      one: 'يوم واحد',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23660,8 +23666,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّر البحث عن الصور. حاول مرة أخرى.';
 
   @override
-  String trips_detail_scan_linkedPhotos(Object count) {
-    return 'تم ربط $count صور';
+  String trips_detail_scan_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم ربط $count صور',
+      one: 'تم ربط صورة واحدة',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23699,12 +23711,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String trips_diveScan_addButton(int count) {
-    return 'إضافة $count غوصات';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إضافة $count غوصات',
+      one: 'إضافة غوصة واحدة',
+    );
+    return '$_temp0';
   }
 
   @override
   String trips_diveScan_added(int count) {
-    return 'تمت إضافة $count غوصات إلى الرحلة';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت إضافة $count غوصات إلى الرحلة',
+      one: 'تمت إضافة غوصة واحدة إلى الرحلة',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23739,7 +23763,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String trips_diveScan_subtitle(int count) {
-    return 'تم العثور على $count غوصات في نطاق التاريخ';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم العثور على $count غوصات في نطاق التاريخ',
+      one: 'تم العثور على غوصة واحدة في نطاق التاريخ',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23908,8 +23938,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_gallery_error_loading => 'تعذّر تحميل الصور.';
 
   @override
-  String trips_gallery_linkedPhotos(Object count) {
-    return 'تم ربط $count صور';
+  String trips_gallery_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم ربط $count صور',
+      one: 'تم ربط صورة واحدة',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23972,8 +24008,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_list_sort_title => 'ترتيب الرحلات';
 
   @override
-  String trips_list_tile_diveCount(Object count) {
-    return '$count غوصات';
+  String trips_list_tile_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصات',
+      one: 'غوصة واحدة',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23998,8 +24040,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_photos_error_loading => 'خطأ في تحميل الصور';
 
   @override
-  String trips_photos_moreIndicator_semanticLabel(Object count) {
-    return '$count صور إضافية';
+  String trips_photos_moreIndicator_semanticLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صور إضافية',
+      one: 'صورة إضافية واحدة',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24839,7 +24887,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String trips_overview_plan_divesPerDay(int count) {
-    return '$count غوصات/يوم';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصات/يوم',
+      one: 'غوصة واحدة/يوم',
+    );
+    return '$_temp0';
   }
 
   @override

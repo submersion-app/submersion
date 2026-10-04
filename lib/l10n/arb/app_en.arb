@@ -14640,7 +14640,7 @@
   "trips_detail_dives_errorLoading": "Unable to load dives",
   "trips_detail_error_loading": "Couldn't load the trip.",
   "trips_detail_dives_unknownSite": "Unknown Site",
-  "trips_detail_durationDays": "{days} days",
+  "trips_detail_durationDays": "{days, plural, =1{1 day} other{{days} days}}",
   "trips_detail_export_csv_comingSoon": "CSV export coming soon",
   "trips_detail_export_csv_subtitle": "All dives in this trip",
   "trips_detail_export_csv_title": "Export to CSV",
@@ -14651,7 +14651,7 @@
   "trips_detail_scan_addDivesFirst": "Add dives first to link photos",
   "trips_detail_scan_errorLinking": "Couldn't link the photos. Try again.",
   "trips_detail_scan_errorScanning": "Couldn't scan for photos. Try again.",
-  "trips_detail_scan_linkedPhotos": "Linked {count} photos",
+  "trips_detail_scan_linkedPhotos": "{count, plural, =1{Linked 1 photo} other{Linked {count} photos}}",
   "trips_detail_scan_linkingPhotos": "Linking photos...",
   "trips_detail_sectionTitle_notes": "Notes",
   "trips_detail_snackBar_deleted": "Trip deleted",
@@ -14663,7 +14663,7 @@
   "trips_detail_tooltip_editShort": "Edit",
   "trips_detail_tooltip_moreOptions": "More options",
   "trips_detail_tooltip_viewOnMap": "View on Map",
-  "trips_diveScan_addButton": "Add {count} Dives",
+  "trips_diveScan_addButton": "{count, plural, =1{Add 1 Dive} other{Add {count} Dives}}",
   "@trips_diveScan_addButton": {
     "placeholders": {
       "count": {
@@ -14671,7 +14671,7 @@
       }
     }
   },
-  "trips_diveScan_added": "Added {count} dives to trip",
+  "trips_diveScan_added": "{count, plural, =1{Added 1 dive to trip} other{Added {count} dives to trip}}",
   "@trips_diveScan_added": {
     "placeholders": {
       "count": {
@@ -14708,7 +14708,7 @@
   },
   "trips_diveScan_noMatches": "No matching dives found",
   "trips_diveScan_noDiver": "Select an active diver to scan for dives",
-  "trips_diveScan_subtitle": "{count} dives found in date range",
+  "trips_diveScan_subtitle": "{count, plural, =1{1 dive found in date range} other{{count} dives found in date range}}",
   "@trips_diveScan_subtitle": {
     "placeholders": {
       "count": {
@@ -14763,7 +14763,7 @@
   "trips_gallery_errorLinking": "Couldn't link the photos. Try again.",
   "trips_gallery_errorScanning": "Couldn't scan for photos. Try again.",
   "trips_gallery_error_loading": "Couldn't load the photos.",
-  "trips_gallery_linkedPhotos": "Linked {count} photos",
+  "trips_gallery_linkedPhotos": "{count, plural, =1{Linked 1 photo} other{Linked {count} photos}}",
   "trips_gallery_linkingPhotos": "Linking photos...",
   "trips_gallery_tooltip_scan": "Scan device gallery",
   "trips_gallery_tripNotFound": "Trip not found",
@@ -14787,7 +14787,7 @@
   "trips_list_inProgress": "In progress",
   "trips_list_pastSection": "Past Trips",
   "trips_list_sort_title": "Sort Trips",
-  "trips_list_tile_diveCount": "{count} dives",
+  "trips_list_tile_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "trips_list_tooltip_addTrip": "Add Trip",
   "trips_list_tooltip_search": "Search trips",
   "trips_list_tooltip_sort": "Sort",
@@ -14795,7 +14795,7 @@
   "trips_photos_empty_scanButton": "Scan device gallery",
   "trips_photos_empty_title": "No photos yet",
   "trips_photos_error_loading": "Error loading photos",
-  "trips_photos_moreIndicator_semanticLabel": "{count} more photos",
+  "trips_photos_moreIndicator_semanticLabel": "{count, plural, =1{1 more photo} other{{count} more photos}}",
   "trips_photos_sectionTitle": "Photos",
   "trips_photos_tooltip_scan": "Scan device gallery",
   "trips_photos_viewAll": "View All",
@@ -15342,7 +15342,7 @@
   },
   "trips_overview_itinerary_none": "Not planned yet",
   "trips_overview_plan": "Plan",
-  "trips_overview_plan_divesPerDay": "{count} dives/day",
+  "trips_overview_plan_divesPerDay": "{count, plural, =1{1 dive/day} other{{count} dives/day}}",
   "@trips_overview_plan_divesPerDay": {
     "placeholders": {
       "count": {
@@ -15418,14 +15418,14 @@
   "@trips_detail_durationDays": {
     "placeholders": {
       "days": {
-        "type": "Object"
+        "type": "int"
       }
     }
   },
   "@trips_detail_scan_linkedPhotos": {
     "placeholders": {
       "count": {
-        "type": "Object"
+        "type": "int"
       }
     }
   },
@@ -15456,21 +15456,21 @@
   "@trips_gallery_linkedPhotos": {
     "placeholders": {
       "count": {
-        "type": "Object"
+        "type": "int"
       }
     }
   },
   "@trips_list_tile_diveCount": {
     "placeholders": {
       "count": {
-        "type": "Object"
+        "type": "int"
       }
     }
   },
   "@trips_photos_moreIndicator_semanticLabel": {
     "placeholders": {
       "count": {
-        "type": "Object"
+        "type": "int"
       }
     }
   },

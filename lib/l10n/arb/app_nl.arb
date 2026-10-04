@@ -6652,7 +6652,7 @@
   "trips_detail_dives_errorLoading": "Kan duiken niet laden",
   "trips_detail_error_loading": "Kan de reis niet laden.",
   "trips_detail_dives_unknownSite": "Onbekende duikstek",
-  "trips_detail_durationDays": "{days} dagen",
+  "trips_detail_durationDays": "{days, plural, =1{{days} dag} other{{days} dagen}}",
   "trips_detail_export_csv_comingSoon": "CSV-export binnenkort beschikbaar",
   "trips_detail_export_csv_subtitle": "Alle duiken van deze reis",
   "trips_detail_export_csv_title": "Exporteren naar CSV",
@@ -6669,7 +6669,7 @@
   "trips_detail_scan_addDivesFirst": "Voeg eerst duiken toe om foto's te koppelen",
   "trips_detail_scan_errorLinking": "Kan de foto's niet koppelen. Probeer het opnieuw.",
   "trips_detail_scan_errorScanning": "Kan niet naar foto's zoeken. Probeer het opnieuw.",
-  "trips_detail_scan_linkedPhotos": "{count} foto's gekoppeld",
+  "trips_detail_scan_linkedPhotos": "{count, plural, =1{{count} foto gekoppeld} other{{count} foto's gekoppeld}}",
   "trips_detail_scan_linkingPhotos": "Foto's koppelen...",
   "trips_detail_sectionTitle_notes": "Notities",
   "trips_detail_sectionTitle_vessel": "Vessel",
@@ -6750,7 +6750,7 @@
   },
   "trips_overview_itinerary_none": "Nog niet gepland",
   "trips_overview_plan": "Planning",
-  "trips_overview_plan_divesPerDay": "{count} duiken/dag",
+  "trips_overview_plan_divesPerDay": "{count, plural, =1{{count} duik/dag} other{{count} duiken/dag}}",
   "@trips_overview_plan_divesPerDay": {
     "placeholders": {
       "count": {
@@ -7247,7 +7247,7 @@
   "trips_gallery_errorLinking": "Kan de foto's niet koppelen. Probeer het opnieuw.",
   "trips_gallery_errorScanning": "Kan niet naar foto's zoeken. Probeer het opnieuw.",
   "trips_gallery_error_loading": "Kan de foto's niet laden.",
-  "trips_gallery_linkedPhotos": "{count} foto's gekoppeld",
+  "trips_gallery_linkedPhotos": "{count, plural, =1{{count} foto gekoppeld} other{{count} foto's gekoppeld}}",
   "trips_gallery_linkingPhotos": "Foto's koppelen...",
   "trips_gallery_tooltip_scan": "Apparaatgalerij scannen",
   "trips_gallery_tripNotFound": "Reis niet gevonden",
@@ -7285,7 +7285,7 @@
   "trips_list_inProgress": "Bezig",
   "trips_list_pastSection": "Afgelopen reizen",
   "trips_list_sort_title": "Reizen sorteren",
-  "trips_list_tile_diveCount": "{count} duiken",
+  "trips_list_tile_diveCount": "{count, plural, =1{{count} duik} other{{count} duiken}}",
   "trips_list_tooltip_addTrip": "Reis toevoegen",
   "trips_list_tooltip_search": "Reizen zoeken",
   "trips_list_tooltip_sort": "Sorteren",
@@ -7293,7 +7293,7 @@
   "trips_photos_empty_scanButton": "Apparaatgalerij scannen",
   "trips_photos_empty_title": "Nog geen foto's",
   "trips_photos_error_loading": "Fout bij laden van foto's",
-  "trips_photos_moreIndicator_semanticLabel": "{count} meer foto's",
+  "trips_photos_moreIndicator_semanticLabel": "{count, plural, =1{{count} meer foto} other{{count} meer foto's}}",
   "trips_photos_sectionTitle": "Foto's",
   "trips_photos_tooltip_scan": "Apparaatgalerij scannen",
   "trips_photos_viewAll": "Alles bekijken",
@@ -7532,7 +7532,7 @@
       }
     }
   },
-  "trips_diveScan_addButton": "{count} duiken toevoegen",
+  "trips_diveScan_addButton": "{count, plural, =1{{count} duik toevoegen} other{{count} duiken toevoegen}}",
   "@trips_diveScan_addButton": {
     "placeholders": {
       "count": {
@@ -7540,7 +7540,7 @@
       }
     }
   },
-  "trips_diveScan_added": "{count} duiken toegevoegd aan reis",
+  "trips_diveScan_added": "{count, plural, =1{{count} duik toegevoegd aan reis} other{{count} duiken toegevoegd aan reis}}",
   "@trips_diveScan_added": {
     "placeholders": {
       "count": {
@@ -7577,7 +7577,7 @@
   },
   "trips_diveScan_noMatches": "Geen overeenkomende duiken gevonden",
   "trips_diveScan_noDiver": "Selecteer een actieve duiker om naar duiken te zoeken",
-  "trips_diveScan_subtitle": "{count} duiken gevonden in het datumbereik",
+  "trips_diveScan_subtitle": "{count, plural, =1{{count} duik gevonden in het datumbereik} other{{count} duiken gevonden in het datumbereik}}",
   "@trips_diveScan_subtitle": {
     "placeholders": {
       "count": {

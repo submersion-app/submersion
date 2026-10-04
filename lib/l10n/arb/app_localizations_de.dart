@@ -23878,8 +23878,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_detail_dives_unknownSite => 'Unbekannter Tauchplatz';
 
   @override
-  String trips_detail_durationDays(Object days) {
-    return '$days Tage';
+  String trips_detail_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days Tage',
+      one: '$days Tag',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23918,8 +23924,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Fotos konnten nicht gescannt werden. Versuche es erneut.';
 
   @override
-  String trips_detail_scan_linkedPhotos(Object count) {
-    return '$count Fotos verknüpft';
+  String trips_detail_scan_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Fotos verknüpft',
+      one: '$count Foto verknüpft',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23957,12 +23969,24 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String trips_diveScan_addButton(int count) {
-    return '$count Tauchgänge hinzufügen';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge hinzufügen',
+      one: '$count Tauchgang hinzufügen',
+    );
+    return '$_temp0';
   }
 
   @override
   String trips_diveScan_added(int count) {
-    return '$count Tauchgänge zur Reise hinzugefügt';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge zur Reise hinzugefügt',
+      one: '$count Tauchgang zur Reise hinzugefügt',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23999,7 +24023,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String trips_diveScan_subtitle(int count) {
-    return '$count Tauchgänge im Datumsbereich gefunden';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge im Datumsbereich gefunden',
+      one: '$count Tauchgang im Datumsbereich gefunden',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24172,8 +24202,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Fotos konnten nicht geladen werden.';
 
   @override
-  String trips_gallery_linkedPhotos(Object count) {
-    return '$count Fotos verknüpft';
+  String trips_gallery_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Fotos verknüpft',
+      one: '$count Foto verknüpft',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24238,8 +24274,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_list_sort_title => 'Reisen sortieren';
 
   @override
-  String trips_list_tile_diveCount(Object count) {
-    return '$count Tauchgänge';
+  String trips_list_tile_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '$count Tauchgang',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24264,8 +24306,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_photos_error_loading => 'Fehler beim Laden der Fotos';
 
   @override
-  String trips_photos_moreIndicator_semanticLabel(Object count) {
-    return '$count weitere Fotos';
+  String trips_photos_moreIndicator_semanticLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weitere Fotos',
+      one: '$count weiteres Foto',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -25101,7 +25149,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String trips_overview_plan_divesPerDay(int count) {
-    return '$count Tauchgänge/Tag';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge/Tag',
+      one: '$count Tauchgang/Tag',
+    );
+    return '$_temp0';
   }
 
   @override

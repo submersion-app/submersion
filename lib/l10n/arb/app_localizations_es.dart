@@ -23938,8 +23938,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_detail_dives_unknownSite => 'Punto desconocido';
 
   @override
-  String trips_detail_durationDays(Object days) {
-    return '$days días';
+  String trips_detail_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days días',
+      one: '$days día',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23981,8 +23987,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudieron escanear las fotos. Inténtalo de nuevo.';
 
   @override
-  String trips_detail_scan_linkedPhotos(Object count) {
-    return 'Se vincularon $count fotos';
+  String trips_detail_scan_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se vincularon $count fotos',
+      one: 'Se vinculó $count foto',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24020,12 +24032,24 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String trips_diveScan_addButton(int count) {
-    return 'Agregar $count inmersiones';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Agregar $count inmersiones',
+      one: 'Agregar $count inmersión',
+    );
+    return '$_temp0';
   }
 
   @override
   String trips_diveScan_added(int count) {
-    return 'Se agregaron $count inmersiones al viaje';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se agregaron $count inmersiones al viaje',
+      one: 'Se agregó $count inmersión al viaje',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24063,7 +24087,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String trips_diveScan_subtitle(int count) {
-    return '$count inmersiones encontradas en el rango de fechas';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones encontradas en el rango de fechas',
+      one: '$count inmersión encontrada en el rango de fechas',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24236,8 +24266,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_gallery_error_loading => 'No se pudieron cargar las fotos.';
 
   @override
-  String trips_gallery_linkedPhotos(Object count) {
-    return 'Se vincularon $count fotos';
+  String trips_gallery_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se vincularon $count fotos',
+      one: 'Se vinculó $count foto',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24301,8 +24337,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_list_sort_title => 'Ordenar viajes';
 
   @override
-  String trips_list_tile_diveCount(Object count) {
-    return '$count inmersiones';
+  String trips_list_tile_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones',
+      one: '$count inmersión',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24328,8 +24370,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_photos_error_loading => 'Error al cargar fotos';
 
   @override
-  String trips_photos_moreIndicator_semanticLabel(Object count) {
-    return '$count fotos más';
+  String trips_photos_moreIndicator_semanticLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos más',
+      one: '$count foto más',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -25161,7 +25209,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String trips_overview_plan_divesPerDay(int count) {
-    return '$count inmersiones/día';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones/día',
+      one: '$count inmersión/día',
+    );
+    return '$_temp0';
   }
 
   @override

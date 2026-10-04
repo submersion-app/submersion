@@ -37964,8 +37964,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_detail_durationDays.
   ///
   /// In en, this message translates to:
-  /// **'{days} days'**
-  String trips_detail_durationDays(Object days);
+  /// **'{days, plural, =1{1 day} other{{days} days}}'**
+  String trips_detail_durationDays(int days);
 
   /// No description provided for @trips_detail_export_csv_comingSoon.
   ///
@@ -38030,8 +38030,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_detail_scan_linkedPhotos.
   ///
   /// In en, this message translates to:
-  /// **'Linked {count} photos'**
-  String trips_detail_scan_linkedPhotos(Object count);
+  /// **'{count, plural, =1{Linked 1 photo} other{Linked {count} photos}}'**
+  String trips_detail_scan_linkedPhotos(int count);
 
   /// No description provided for @trips_detail_scan_linkingPhotos.
   ///
@@ -38102,13 +38102,13 @@ abstract class AppLocalizations {
   /// No description provided for @trips_diveScan_addButton.
   ///
   /// In en, this message translates to:
-  /// **'Add {count} Dives'**
+  /// **'{count, plural, =1{Add 1 Dive} other{Add {count} Dives}}'**
   String trips_diveScan_addButton(int count);
 
   /// No description provided for @trips_diveScan_added.
   ///
   /// In en, this message translates to:
-  /// **'Added {count} dives to trip'**
+  /// **'{count, plural, =1{Added 1 dive to trip} other{Added {count} dives to trip}}'**
   String trips_diveScan_added(int count);
 
   /// No description provided for @trips_diveScan_cancel.
@@ -38162,7 +38162,7 @@ abstract class AppLocalizations {
   /// No description provided for @trips_diveScan_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'{count} dives found in date range'**
+  /// **'{count, plural, =1{1 dive found in date range} other{{count} dives found in date range}}'**
   String trips_diveScan_subtitle(int count);
 
   /// No description provided for @trips_diveScan_title.
@@ -38450,8 +38450,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_gallery_linkedPhotos.
   ///
   /// In en, this message translates to:
-  /// **'Linked {count} photos'**
-  String trips_gallery_linkedPhotos(Object count);
+  /// **'{count, plural, =1{Linked 1 photo} other{Linked {count} photos}}'**
+  String trips_gallery_linkedPhotos(int count);
 
   /// No description provided for @trips_gallery_linkingPhotos.
   ///
@@ -38552,8 +38552,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_list_tile_diveCount.
   ///
   /// In en, this message translates to:
-  /// **'{count} dives'**
-  String trips_list_tile_diveCount(Object count);
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String trips_list_tile_diveCount(int count);
 
   /// No description provided for @trips_list_tooltip_addTrip.
   ///
@@ -38600,8 +38600,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_photos_moreIndicator_semanticLabel.
   ///
   /// In en, this message translates to:
-  /// **'{count} more photos'**
-  String trips_photos_moreIndicator_semanticLabel(Object count);
+  /// **'{count, plural, =1{1 more photo} other{{count} more photos}}'**
+  String trips_photos_moreIndicator_semanticLabel(int count);
 
   /// No description provided for @trips_photos_sectionTitle.
   ///
@@ -39784,7 +39784,7 @@ abstract class AppLocalizations {
   /// No description provided for @trips_overview_plan_divesPerDay.
   ///
   /// In en, this message translates to:
-  /// **'{count} dives/day'**
+  /// **'{count, plural, =1{1 dive/day} other{{count} dives/day}}'**
   String trips_overview_plan_divesPerDay(int count);
 
   /// No description provided for @trips_overview_plan_sharing.

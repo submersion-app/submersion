@@ -6755,7 +6755,7 @@
   "trips_detail_dives_errorLoading": "Tauchgänge konnten nicht geladen werden",
   "trips_detail_error_loading": "Die Reise konnte nicht geladen werden.",
   "trips_detail_dives_unknownSite": "Unbekannter Tauchplatz",
-  "trips_detail_durationDays": "{days} Tage",
+  "trips_detail_durationDays": "{days, plural, =1{{days} Tag} other{{days} Tage}}",
   "trips_detail_export_csv_comingSoon": "CSV-Export kommt bald",
   "trips_detail_export_csv_subtitle": "Alle Tauchgänge dieser Reise",
   "trips_detail_export_csv_title": "Als CSV exportieren",
@@ -6772,7 +6772,7 @@
   "trips_detail_scan_addDivesFirst": "Fügen Sie zuerst Tauchgänge hinzu, um Fotos zu verknüpfen",
   "trips_detail_scan_errorLinking": "Die Fotos konnten nicht verknüpft werden. Versuche es erneut.",
   "trips_detail_scan_errorScanning": "Die Fotos konnten nicht gescannt werden. Versuche es erneut.",
-  "trips_detail_scan_linkedPhotos": "{count} Fotos verknüpft",
+  "trips_detail_scan_linkedPhotos": "{count, plural, =1{{count} Foto verknüpft} other{{count} Fotos verknüpft}}",
   "trips_detail_scan_linkingPhotos": "Fotos werden verknüpft...",
   "trips_detail_sectionTitle_notes": "Notizen",
   "trips_detail_sectionTitle_vessel": "Vessel",
@@ -6853,7 +6853,7 @@
   },
   "trips_overview_itinerary_none": "Noch nicht geplant",
   "trips_overview_plan": "Planung",
-  "trips_overview_plan_divesPerDay": "{count} Tauchgänge/Tag",
+  "trips_overview_plan_divesPerDay": "{count, plural, =1{{count} Tauchgang/Tag} other{{count} Tauchgänge/Tag}}",
   "@trips_overview_plan_divesPerDay": {
     "placeholders": {
       "count": {
@@ -7350,7 +7350,7 @@
   "trips_gallery_errorLinking": "Die Fotos konnten nicht verknüpft werden. Versuche es erneut.",
   "trips_gallery_errorScanning": "Die Fotos konnten nicht gescannt werden. Versuche es erneut.",
   "trips_gallery_error_loading": "Die Fotos konnten nicht geladen werden.",
-  "trips_gallery_linkedPhotos": "{count} Fotos verknüpft",
+  "trips_gallery_linkedPhotos": "{count, plural, =1{{count} Foto verknüpft} other{{count} Fotos verknüpft}}",
   "trips_gallery_linkingPhotos": "Fotos werden verknüpft...",
   "trips_gallery_tooltip_scan": "Gerätegalerie durchsuchen",
   "trips_gallery_tripNotFound": "Reise nicht gefunden",
@@ -7388,7 +7388,7 @@
   "trips_list_inProgress": "Läuft gerade",
   "trips_list_pastSection": "Vergangene Reisen",
   "trips_list_sort_title": "Reisen sortieren",
-  "trips_list_tile_diveCount": "{count} Tauchgänge",
+  "trips_list_tile_diveCount": "{count, plural, =1{{count} Tauchgang} other{{count} Tauchgänge}}",
   "trips_list_tooltip_addTrip": "Reise hinzufügen",
   "trips_list_tooltip_search": "Reisen durchsuchen",
   "trips_list_tooltip_sort": "Sortieren",
@@ -7396,7 +7396,7 @@
   "trips_photos_empty_scanButton": "Gerätegalerie durchsuchen",
   "trips_photos_empty_title": "Noch keine Fotos",
   "trips_photos_error_loading": "Fehler beim Laden der Fotos",
-  "trips_photos_moreIndicator_semanticLabel": "{count} weitere Fotos",
+  "trips_photos_moreIndicator_semanticLabel": "{count, plural, =1{{count} weiteres Foto} other{{count} weitere Fotos}}",
   "trips_photos_sectionTitle": "Fotos",
   "trips_photos_tooltip_scan": "Gerätegalerie durchsuchen",
   "trips_photos_viewAll": "Alle anzeigen",
@@ -7635,7 +7635,7 @@
       }
     }
   },
-  "trips_diveScan_addButton": "{count} Tauchgänge hinzufügen",
+  "trips_diveScan_addButton": "{count, plural, =1{{count} Tauchgang hinzufügen} other{{count} Tauchgänge hinzufügen}}",
   "@trips_diveScan_addButton": {
     "placeholders": {
       "count": {
@@ -7643,7 +7643,7 @@
       }
     }
   },
-  "trips_diveScan_added": "{count} Tauchgänge zur Reise hinzugefügt",
+  "trips_diveScan_added": "{count, plural, =1{{count} Tauchgang zur Reise hinzugefügt} other{{count} Tauchgänge zur Reise hinzugefügt}}",
   "@trips_diveScan_added": {
     "placeholders": {
       "count": {
@@ -7680,7 +7680,7 @@
   },
   "trips_diveScan_noMatches": "Keine passenden Tauchgänge gefunden",
   "trips_diveScan_noDiver": "Wähle einen aktiven Taucher aus, um nach Tauchgängen zu suchen",
-  "trips_diveScan_subtitle": "{count} Tauchgänge im Datumsbereich gefunden",
+  "trips_diveScan_subtitle": "{count, plural, =1{{count} Tauchgang im Datumsbereich gefunden} other{{count} Tauchgänge im Datumsbereich gefunden}}",
   "@trips_diveScan_subtitle": {
     "placeholders": {
       "count": {
