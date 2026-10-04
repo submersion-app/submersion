@@ -626,6 +626,14 @@ void main() {
       final rows = await series.getSeriesForDive('dive-1');
       expect(rows.where((s) => s.isPrimary).map((s) => s.id), [b]);
       expect((await dives.getDiveProfile('dive-1')).single.depth, 2.0);
+      // A swap flips flags in place. A series deleted and re-inserted would
+      // tombstone it, and the tombstone would delete it on every peer.
+      final seriesTombstones =
+          await (db.select(db.deletionLog)..where(
+                (t) => t.entityType.equals(ProfileSeriesRepository.entityType),
+              ))
+              .get();
+      expect(seriesTombstones, isEmpty);
     },
   );
 
