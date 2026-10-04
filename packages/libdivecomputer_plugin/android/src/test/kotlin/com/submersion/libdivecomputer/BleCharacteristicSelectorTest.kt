@@ -327,8 +327,22 @@ class BleCharacteristicSelectorTest {
         val selection = BleCharacteristicSelector.select(services)
         val result = resolve(services, selection)
         assertEquals(ResponseMode.READ, selection?.responseMode)
+        assertEquals(2, result?.serviceIndex)
         assertEquals(uuid(SEAC_DATA), result?.write)
         assertEquals(uuid(SEAC_DATA), result?.response)
+    }
+
+    // 17c. A Seac service that cannot carry the link (no READ, no pair of its
+    // own) does not stop the search: another service's pair is still chosen.
+    @Test
+    fun unusableSeacServiceLeavesTheNotifyPass() {
+        val services = listOf(
+            service(SEAC_SERVICE, char(SEAC_DATA, W)),
+            service("0000ffe0-0000-1000-8000-00805f9b34fb", char("0000ffe1-0000-1000-8000-00805f9b34fb", WNR, N))
+        )
+        val selection = BleCharacteristicSelector.select(services)
+        assertEquals(ResponseMode.NOTIFY, selection?.responseMode)
+        assertEquals(1, selection?.serviceIndex)
     }
 
     // 18. READ plus a write property are both required; write-without-response

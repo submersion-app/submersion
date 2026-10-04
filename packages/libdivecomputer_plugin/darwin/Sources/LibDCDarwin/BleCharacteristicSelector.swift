@@ -329,10 +329,9 @@ enum BleCharacteristicSelector {
     /// characteristic read on demand. Nil if no such service is present.
     private static func selectReadPollService(services: [Service]) -> Selection? {
         for (serviceIndex, service) in services.enumerated() {
-            guard readPollServices[service.uuid] != nil else { continue }
+            guard let dataUUID = readPollServices[service.uuid] else { continue }
             if let pair = bestPair(serviceIndex: serviceIndex, in: service) { return pair }
-            guard let dataUUID = readPollServices[service.uuid],
-                let index = service.characteristics.firstIndex(where: { $0.uuid == dataUUID })
+            guard let index = service.characteristics.firstIndex(where: { $0.uuid == dataUUID })
             else { continue }
             let properties = service.characteristics[index].properties
             guard properties.contains(.read),

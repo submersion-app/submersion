@@ -490,8 +490,27 @@ do {
     let selection = BleCharacteristicSelector.select(services: services)
     let result = resolve(services, selection)
     expect(selection?.responseMode == .read, "seac-dfu: read-poll response path selected")
+    expect(result?.serviceIndex == 2, "seac-dfu: the Seac service is chosen")
     expect(result?.write == CBUUID(string: seacData), "seac-dfu: commands go to the data characteristic")
     expect(result?.notify == CBUUID(string: seacData), "seac-dfu: replies are read from the same characteristic")
+}
+
+// 17c. A Seac service that cannot carry the link (no READ, no pair of its own)
+// does not stop the search: another service's pair is still chosen.
+do {
+    let services = [
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: seacService),
+            characteristics: [char(seacData, [.write])]
+        ),
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: "0000FFE0-0000-1000-8000-00805F9B34FB"),
+            characteristics: [char("0000FFE1-0000-1000-8000-00805F9B34FB", [.writeWithoutResponse, .notify])]
+        ),
+    ]
+    let selection = BleCharacteristicSelector.select(services: services)
+    expect(selection?.responseMode == .notify && selection?.serviceIndex == 1,
+           "seac-unusable: another service's pair is chosen")
 }
 
 // 18. The allowlisted characteristic needs both directions: READ for replies

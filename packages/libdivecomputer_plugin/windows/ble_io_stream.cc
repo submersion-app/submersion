@@ -433,9 +433,9 @@ bool BleIoStream::DiscoverCharacteristics() {
     // Subsurface uses the first non-standard service with a write
     // characteristic and never compares pairs across services. Mirrors
     // BleCharacteristicSelector on Android and darwin.
-    if (seac_pair.score >= 0) best = seac_pair;
-
-    if (seac_pair.score < 0 && read_poll_candidate) {
+    if (seac_pair.score >= 0) {
+        best = seac_pair;
+    } else if (read_poll_candidate) {
         // Read-poll tier: the computer cannot push its replies, so there is no
         // CCCD to write, no ValueChanged handler and no credit handshake; the
         // poller reads the characteristic whenever libdivecomputer wants bytes.

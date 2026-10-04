@@ -60,7 +60,7 @@ wizard and then fails to connect.
 | Platforms | Android, Darwin (iOS and macOS), Windows and Linux in one PR |
 | Read strategy | Read-on-demand, hardened (not a background poll loop) |
 | Selection scope | Allowlist of known read-poll services; today only Seac |
-| Tier priority | Strict fallback: consulted only when the notify pass finds nothing |
+| Tier priority | Seac service first (amended 2026-10-04, PR #2911); originally a strict fallback |
 | Empty read value | Re-read after a 100 ms backoff, bounded by the read deadline |
 | Timed-out read | Stays in flight and is adopted by the next `read()` |
 | Purge | Also discards the result of a read already in flight |
@@ -75,6 +75,15 @@ wizard and then fails to connect.
 The existing write/notify selection runs unchanged on every platform. The read
 tier is consulted only when that pass finds no usable service, so no device
 that works today can change behaviour.
+
+**Amended 2026-10-04 (PR #2911).** The strict fallback shadowed the read tier
+on real hardware: any write/notify pair elsewhere on the device (a DFU or
+vendor service) won, and a Tablet on Android 1.8.1 never reached the read path.
+The allowlisted service is now consulted first on every platform, using its
+own write/notify pair if it has one and the read tier otherwise. This matches
+Subsurface, which takes the first non-standard service with a write
+characteristic, and Linux, which already preferred the read tier. Devices
+without the allowlisted UUIDs are unaffected.
 
 Each platform carries one allowlist table mapping a read-poll service UUID to
 its data characteristic UUID. It holds one entry:
