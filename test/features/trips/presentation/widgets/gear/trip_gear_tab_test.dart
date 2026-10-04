@@ -467,7 +467,47 @@ void main() {
     await tester.pumpAndSettle();
     expect(h.packs.packed.single.$2, ['bcd', 'fins']);
     expect(h.slots.created.single.single.equipmentId, 'tk');
-    expect(find.text('Packed 2 items from Reef kit'), findsOneWidget);
+    // The slotted cylinder counts alongside the packed items (#2877).
+    expect(find.text('Packed 3 items from Reef kit'), findsOneWidget);
+  });
+
+  testWidgets('a set of only cylinders counts the slots it adds (#2877)', (
+    tester,
+  ) async {
+    await _pumpTab(
+      tester,
+      sets: [
+        kit(const [tank]),
+      ],
+    );
+    await _openAdd(tester);
+    await tester.tap(find.text('An equipment set'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Reef kit'));
+    await tester.pumpAndSettle();
+    expect(find.text('Packed 1 item from Reef kit'), findsOneWidget);
+  });
+
+  testWidgets('a set whose cylinder is already a slot adds nothing', (
+    tester,
+  ) async {
+    final h = await _pumpTab(
+      tester,
+      states: [slot('c1', equipmentId: 'tk')],
+      sets: [
+        kit(const [tank]),
+      ],
+    );
+    await _openAdd(tester);
+    await tester.tap(find.text('An equipment set'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Reef kit'));
+    await tester.pumpAndSettle();
+    expect(h.slots.created, isEmpty);
+    expect(
+      find.text('Everything in Reef kit is already packed'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Rental cylinders opens the rental form alone', (tester) async {

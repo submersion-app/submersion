@@ -123,8 +123,8 @@ Future<(EquipmentSet, List<EquipmentItem>)?> _pickSet(BuildContext context) =>
     );
 
 /// Packs the non-cylinder items the diver may use and slots the cylinders
-/// not already on the board; says how many a set packed. A failure is
-/// logged and said.
+/// not already on the board; says how many a set added, counting the slots
+/// with the packed items (#2877). A failure is logged and said.
 Future<void> _apply(
   BuildContext context,
   WidgetRef ref,
@@ -165,14 +165,14 @@ Future<void> _apply(
       for (final i in usable)
         if (i.type != EquipmentType.tank) i,
     ];
-    var packedCount = 0;
+    var addedCount = 0;
     if (others.isNotEmpty) {
-      packedCount = await packs.pack(trip.id, [for (final i in others) i.id]);
+      addedCount = await packs.pack(trip.id, [for (final i in others) i.id]);
     }
     if (tanks.isNotEmpty) {
       final now = DateTime.now().toUtc();
       final start = nextTripCylinderSortOrder(slots);
-      await cylinders.createCylinders([
+      final created = await cylinders.createCylinders([
         for (final (i, t) in tanks.indexed)
           tripCylinderDraftFromEquipment(
             t,
@@ -181,11 +181,12 @@ Future<void> _apply(
             now: now,
           ),
       ]);
+      addedCount += created.length;
     }
     if (setName != null) {
       messenger.showSnackBar(
         SnackBar(
-          content: Text(l10n.trips_gear_packedFromSet(packedCount, setName)),
+          content: Text(l10n.trips_gear_packedFromSet(addedCount, setName)),
         ),
       );
     }
