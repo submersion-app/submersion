@@ -209,6 +209,18 @@ class _FakeSlots extends TripCylinderRepository {
     created.add(cylinders);
     return cylinders;
   }
+
+  final appendedTo = <String>[];
+
+  /// Records the trip; the board's end is the repository's to read.
+  @override
+  Future<List<TripCylinder>> appendCylinders(
+    String tripId,
+    List<TripCylinder> cylinders,
+  ) async {
+    appendedTo.add(tripId);
+    return createCylinders(cylinders);
+  }
 }
 
 typedef _Harness = ({_FakePacks packs, _FakeSlots slots, List<String> pushed});
@@ -371,8 +383,9 @@ void main() {
     expect(find.text('Faber 12'), findsOneWidget);
   });
 
-  testWidgets('Put on board makes the tank a slot after the last and unpacks '
-      'it', (tester) async {
+  testWidgets('Put on board appends the tank to the board and unpacks it', (
+    tester,
+  ) async {
     final h = await _pumpTab(
       tester,
       gear: const [tank],
@@ -384,7 +397,7 @@ void main() {
     expect(created.equipmentId, 'tk');
     expect(created.tripId, 't1');
     expect(created.label, 'Faber 12');
-    expect(created.sortOrder, 1);
+    expect(h.slots.appendedTo, ['t1']);
     expect(h.packs.unpacked, [('t1', 'tk')]);
   });
 

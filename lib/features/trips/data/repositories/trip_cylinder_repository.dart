@@ -309,6 +309,45 @@ class TripCylinderRepository {
     }
   }
 
+  /// As [createCylinders], with the slots placed after [tripId]'s last one
+  /// in their given order, whatever sort order they carry. The end of the
+  /// board is read inside the write, and writes run one at a time, so two
+  /// appends made from the same view of the board (two taps before it
+  /// refreshes, #2873) land one after the other instead of tying.
+  Future<List<domain.TripCylinder>> appendCylinders(
+    String tripId,
+    List<domain.TripCylinder> cylinders,
+  ) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final created = await _db.transaction(() async {
+        final last = _db.tripCylinders.sortOrder.max();
+        final row =
+            await (_db.selectOnly(_db.tripCylinders)
+                  ..addColumns([last])
+                  ..where(_db.tripCylinders.tripId.equals(tripId)))
+                .getSingle();
+        final start = (row.read(last) ?? -1) + 1;
+        return [
+          for (final (i, c) in cylinders.indexed)
+            await _insertCylinder(
+              c.copyWith(tripId: tripId, sortOrder: start + i),
+              now,
+            ),
+        ];
+      });
+      SyncEventBus.notifyLocalChange();
+      return created;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to append cylinders',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Inserts every event in [events] in one transaction, so one save of
   /// several fills commits once (one refresh) and a failure adds none. They
   /// share one creation time, so the ledger can order them by the board.

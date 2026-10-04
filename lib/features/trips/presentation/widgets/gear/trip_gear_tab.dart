@@ -10,7 +10,6 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
-import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_drafts.dart';
 import 'package:submersion/features/trips/domain/services/trip_gear_split.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
@@ -183,7 +182,7 @@ class TripGearTab extends ConsumerWidget {
               item: item,
               units: units,
               alerts: alertsByItem[item.id] ?? const [],
-              onPutOnBoard: () => _putOnBoard(context, ref, item, slots),
+              onPutOnBoard: () => _putOnBoard(context, ref, item),
               onUnpack: () => _unpack(context, ref, item.id),
             ),
         ],
@@ -192,14 +191,15 @@ class TripGearTab extends ConsumerWidget {
   }
 
   /// Puts a packed tank with no slot on the board (#2873): a slot from the
-  /// item, after the last, as Add makes one; then its packed link goes, as
-  /// Add packs none for a cylinder. Should the unpack fail, the slot still
-  /// lists the tank once (a slotted tank's link is not shown).
+  /// item, as Add makes one, appended after the board's last slot as it is
+  /// written (two tanks put on before the board refreshes would otherwise
+  /// tie); then its packed link goes, as Add packs none for a cylinder.
+  /// Should the unpack fail, the slot still lists the tank once (a slotted
+  /// tank's link is not shown).
   Future<void> _putOnBoard(
     BuildContext context,
     WidgetRef ref,
     EquipmentItem item,
-    List<TripCylinder> slots,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
@@ -207,11 +207,11 @@ class TripGearTab extends ConsumerWidget {
     final packs = ref.read(tripEquipmentRepositoryProvider);
     try {
       final now = clock.now().toUtc();
-      await cylinders.createCylinders([
+      await cylinders.appendCylinders(trip.id, [
         tripCylinderDraftFromEquipment(
           item,
           tripId: trip.id,
-          sortOrder: nextTripCylinderSortOrder(slots),
+          sortOrder: 0,
           now: now,
         ),
       ]);

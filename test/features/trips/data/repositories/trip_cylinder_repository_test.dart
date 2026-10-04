@@ -508,6 +508,43 @@ void main() {
       expect(await pendingCountFor('tripCylinders', a.id), 0);
     });
 
+    test(
+      'appendCylinders places the batch after the trip\'s last slot',
+      () async {
+        await repository.createCylinders([
+          slot(label: 'A', sortOrder: 0),
+          slot(label: 'B', sortOrder: 4),
+        ]);
+        // Another trip's board does not move this one's end.
+        await repository.createCylinder(
+          slot(label: 'X', sortOrder: 9).copyWith(tripId: otherTripId),
+        );
+        final made = await repository.appendCylinders(tripId, [
+          slot(label: 'C'),
+          slot(label: 'D'),
+        ]);
+        expect(made.map((x) => x.sortOrder), [5, 6]);
+        final listed = await repository.getCylindersForTrip(tripId);
+        expect(listed.map((x) => x.label), ['A', 'B', 'C', 'D']);
+      },
+    );
+
+    test('appendCylinders on an empty board starts at zero', () async {
+      final made = await repository.appendCylinders(tripId, [slot()]);
+      expect(made.single.sortOrder, 0);
+    });
+
+    test('two appends from the same view of the board do not tie', () async {
+      // Two taps before the board refreshes (#2873): each reads the end
+      // inside its own write, so the second lands after the first.
+      await repository.createCylinder(slot(label: 'A'));
+      final made = await Future.wait([
+        repository.appendCylinders(tripId, [slot(label: 'B')]),
+        repository.appendCylinders(tripId, [slot(label: 'C')]),
+      ]);
+      expect({for (final m in made) m.single.sortOrder}, {1, 2});
+    });
+
     test('createCylinders writes the whole batch or none of it', () async {
       final made = await repository.createCylinders([
         slot(label: 'A'),
