@@ -8,12 +8,8 @@ enum TripEditSection {
 
   /// The section a `section` query parameter names; null when there is none
   /// or the name is unknown.
-  static TripEditSection? fromQuery(String? name) {
-    for (final section in values) {
-      if (section.name == name) return section;
-    }
-    return null;
-  }
+  static TripEditSection? fromQuery(String? name) =>
+      name == null ? null : values.asNameMap()[name];
 }
 
 /// Opens trip [tripId]'s edit form, at [section] when one is given.
