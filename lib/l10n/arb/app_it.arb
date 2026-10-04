@@ -374,6 +374,7 @@
       }
     }
   },
+  "trips_story_dayMap_diveGroup": "{count, plural, other{{count} immersioni qui}}",
   "diveLog_bulkEdit_groupRebreather": "Modalità e rebreather",
   "diveLog_bulkEdit_fieldSetpointLow": "Setpoint basso",
   "diveLog_bulkEdit_fieldSetpointHigh": "Setpoint alto",
@@ -6546,7 +6547,7 @@
   "trips_detail_dives_errorLoading": "Impossibile caricare le immersioni",
   "trips_detail_error_loading": "Impossibile caricare il viaggio.",
   "trips_detail_dives_unknownSite": "Sito sconosciuto",
-  "trips_detail_durationDays": "{days} giorni",
+  "trips_detail_durationDays": "{days, plural, =1{{days} giorno} other{{days} giorni}}",
   "trips_detail_export_csv_comingSoon": "Esportazione CSV in arrivo",
   "trips_detail_export_csv_subtitle": "Tutte le immersioni di questo viaggio",
   "trips_detail_export_csv_title": "Esporta in CSV",
@@ -6563,7 +6564,7 @@
   "trips_detail_scan_addDivesFirst": "Aggiungi prima le immersioni per collegare le foto",
   "trips_detail_scan_errorLinking": "Impossibile collegare le foto. Riprova.",
   "trips_detail_scan_errorScanning": "Impossibile cercare le foto. Riprova.",
-  "trips_detail_scan_linkedPhotos": "Collegate {count} foto",
+  "trips_detail_scan_linkedPhotos": "{count, plural, =1{Collegata {count} foto} other{Collegate {count} foto}}",
   "trips_detail_scan_linkingPhotos": "Collegamento foto in corso...",
   "trips_detail_sectionTitle_notes": "Note",
   "trips_detail_sectionTitle_vessel": "Vessel",
@@ -6644,7 +6645,7 @@
   },
   "trips_overview_itinerary_none": "Non ancora pianificato",
   "trips_overview_plan": "Piano",
-  "trips_overview_plan_divesPerDay": "{count} immersioni/giorno",
+  "trips_overview_plan_divesPerDay": "{count, plural, =1{{count} immersione/giorno} other{{count} immersioni/giorno}}",
   "@trips_overview_plan_divesPerDay": {
     "placeholders": {
       "count": {
@@ -7141,7 +7142,7 @@
   "trips_gallery_errorLinking": "Impossibile collegare le foto. Riprova.",
   "trips_gallery_errorScanning": "Impossibile cercare le foto. Riprova.",
   "trips_gallery_error_loading": "Impossibile caricare le foto.",
-  "trips_gallery_linkedPhotos": "Collegate {count} foto",
+  "trips_gallery_linkedPhotos": "{count, plural, =1{Collegata {count} foto} other{Collegate {count} foto}}",
   "trips_gallery_linkingPhotos": "Collegamento foto in corso...",
   "trips_gallery_tooltip_scan": "Scansiona galleria del dispositivo",
   "trips_gallery_tripNotFound": "Viaggio non trovato",
@@ -7180,7 +7181,7 @@
   "trips_list_inProgress": "In corso",
   "trips_list_pastSection": "Viaggi passati",
   "trips_list_sort_title": "Ordina viaggi",
-  "trips_list_tile_diveCount": "{count} immersioni",
+  "trips_list_tile_diveCount": "{count, plural, =1{{count} immersione} other{{count} immersioni}}",
   "trips_list_tooltip_addTrip": "Aggiungi viaggio",
   "trips_list_tooltip_search": "Cerca viaggi",
   "trips_list_tooltip_sort": "Ordina",
@@ -7188,7 +7189,7 @@
   "trips_photos_empty_scanButton": "Scansiona galleria del dispositivo",
   "trips_photos_empty_title": "Nessuna foto ancora",
   "trips_photos_error_loading": "Errore nel caricamento delle foto",
-  "trips_photos_moreIndicator_semanticLabel": "Altre {count} foto",
+  "trips_photos_moreIndicator_semanticLabel": "{count, plural, =1{Un'altra foto} other{Altre {count} foto}}",
   "trips_photos_sectionTitle": "Foto",
   "trips_photos_tooltip_scan": "Scansiona galleria del dispositivo",
   "trips_photos_viewAll": "Visualizza tutte",
@@ -7427,7 +7428,7 @@
       }
     }
   },
-  "trips_diveScan_addButton": "Aggiungi {count} immersioni",
+  "trips_diveScan_addButton": "{count, plural, =1{Aggiungi {count} immersione} other{Aggiungi {count} immersioni}}",
   "@trips_diveScan_addButton": {
     "placeholders": {
       "count": {
@@ -7435,7 +7436,7 @@
       }
     }
   },
-  "trips_diveScan_added": "{count} immersioni aggiunte al viaggio",
+  "trips_diveScan_added": "{count, plural, =1{{count} immersione aggiunta al viaggio} other{{count} immersioni aggiunte al viaggio}}",
   "@trips_diveScan_added": {
     "placeholders": {
       "count": {
@@ -7472,7 +7473,7 @@
   },
   "trips_diveScan_noMatches": "Nessuna immersione corrispondente trovata",
   "trips_diveScan_noDiver": "Seleziona un subacqueo attivo per cercare le immersioni",
-  "trips_diveScan_subtitle": "{count} immersioni trovate nell'intervallo di date",
+  "trips_diveScan_subtitle": "{count, plural, =1{{count} immersione trovata nell'intervallo di date} other{{count} immersioni trovate nell'intervallo di date}}",
   "@trips_diveScan_subtitle": {
     "placeholders": {
       "count": {

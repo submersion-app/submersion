@@ -145,13 +145,21 @@ class _Ctx {
     // One node is one search term: a bare word, or a quoted phrase (or a
     // builder text row) whose words must appear together, in order. Bare
     // words arrive as separate one-word nodes under an AND (#2773).
-    final term = '%${escapeLike(words.join(' '))}%';
+    final raw = words.join(' ');
+    final term = '%${escapeLike(raw)}%';
     final alts = <String>[];
     for (final t in entity.textSearchSql) {
       alts.add(substituteRow(t, alias));
       for (var i = 0; i < countPlaceholders(t); i++) {
         params.add(term);
       }
+    }
+    for (final e in entity.textSearchExpansions) {
+      final values = e.values(raw).toList();
+      if (values.isEmpty) continue;
+      final marks = List.filled(values.length, '?').join(', ');
+      alts.add(substituteRow(e.sql, alias).replaceAll('{values}', marks));
+      params.addAll(values);
     }
     return '((${alts.join(' OR ')}))';
   }

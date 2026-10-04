@@ -73,7 +73,8 @@ void DiveComputerHostApiImpl::GetDeviceDescriptors(
 
         descriptors.push_back(flutter::CustomEncodableValue(DeviceDescriptor(
             std::string(info.vendor), std::string(info.product),
-            static_cast<int64_t>(info.model), transports)));
+            static_cast<int64_t>(info.model), transports,
+            info.delivers_oldest_first != 0)));
     }
     libdc_descriptor_iterator_free(iter);
 

@@ -14,6 +14,7 @@ import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
@@ -30,12 +31,17 @@ class TripEditPage extends ConsumerStatefulWidget {
   final void Function(String savedId)? onSaved;
   final VoidCallback? onCancel;
 
+  /// The section the form scrolls to once the trip has loaded; null opens
+  /// at the top (#2880).
+  final TripEditSection? initialSection;
+
   const TripEditPage({
     super.key,
     this.tripId,
     this.embedded = false,
     this.onSaved,
     this.onCancel,
+    this.initialSection,
   });
 
   @override
@@ -44,6 +50,7 @@ class TripEditPage extends ConsumerStatefulWidget {
 
 class _TripEditPageState extends ConsumerState<TripEditPage> {
   final _formKey = GlobalKey<FormState>();
+  final _planningKey = GlobalKey();
   final _nameController = TextEditingController();
   final _locationController = TextEditingController();
   final _resortController = TextEditingController();
@@ -186,6 +193,13 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           _isLoading = false;
           _hasChanges = false;
         });
+        if (widget.initialSection == TripEditSection.planning) {
+          // The form replaces the spinner on the next frame.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final planning = _planningKey.currentContext;
+            if (planning != null) Scrollable.ensureVisible(planning);
+          });
+        }
       }
     } catch (e, stackTrace) {
       _log.error('Failed to load trip', error: e, stackTrace: stackTrace);
@@ -607,6 +621,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   // two overrides. Empty means estimate from history.
                   Text(
                     context.l10n.trips_edit_sectionTitle_planning,
+                    key: _planningKey,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),

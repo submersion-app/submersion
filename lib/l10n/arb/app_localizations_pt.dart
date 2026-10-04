@@ -1508,6 +1508,16 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String trips_story_dayMap_diveGroup(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos aqui',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_groupRebreather =>
       'Modo de mergulho e rebreather';
 
@@ -23927,8 +23937,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_detail_dives_unknownSite => 'Ponto Desconhecido';
 
   @override
-  String trips_detail_durationDays(Object days) {
-    return '$days dias';
+  String trips_detail_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days dias',
+      one: '$days dia',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23968,8 +23984,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível procurar fotos. Tente novamente.';
 
   @override
-  String trips_detail_scan_linkedPhotos(Object count) {
-    return '$count fotos vinculadas';
+  String trips_detail_scan_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos vinculadas',
+      one: '$count foto vinculada',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24007,12 +24029,24 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String trips_diveScan_addButton(int count) {
-    return 'Adicionar $count mergulhos';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Adicionar $count mergulhos',
+      one: 'Adicionar $count mergulho',
+    );
+    return '$_temp0';
   }
 
   @override
   String trips_diveScan_added(int count) {
-    return '$count mergulhos adicionados a viagem';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos adicionados à viagem',
+      one: '$count mergulho adicionado à viagem',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24050,7 +24084,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String trips_diveScan_subtitle(int count) {
-    return '$count mergulhos encontrados no intervalo de datas';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos encontrados no intervalo de datas',
+      one: '$count mergulho encontrado no intervalo de datas',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24223,8 +24263,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível carregar as fotos.';
 
   @override
-  String trips_gallery_linkedPhotos(Object count) {
-    return '$count fotos vinculadas';
+  String trips_gallery_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos vinculadas',
+      one: '$count foto vinculada',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24289,8 +24335,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_list_sort_title => 'Ordenar Viagens';
 
   @override
-  String trips_list_tile_diveCount(Object count) {
-    return '$count mergulhos';
+  String trips_list_tile_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '$count mergulho',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24315,8 +24367,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_photos_error_loading => 'Erro ao carregar fotos';
 
   @override
-  String trips_photos_moreIndicator_semanticLabel(Object count) {
-    return '$count fotos a mais';
+  String trips_photos_moreIndicator_semanticLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos a mais',
+      one: '$count foto a mais',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -25151,7 +25209,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String trips_overview_plan_divesPerDay(int count) {
-    return '$count mergulhos/dia';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos/dia',
+      one: '$count mergulho/dia',
+    );
+    return '$_temp0';
   }
 
   @override

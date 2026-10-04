@@ -74,6 +74,7 @@ import 'package:submersion/features/equipment/presentation/pages/service_kind_li
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
 import 'package:submersion/features/media/presentation/pages/media_section_page.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
@@ -853,8 +854,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'edit',
                     name: 'editTrip',
-                    builder: (context, state) =>
-                        TripEditPage(tripId: state.pathParameters['tripId']),
+                    builder: (context, state) => TripEditPage(
+                      tripId: state.pathParameters['tripId'],
+                      initialSection: TripEditSection.fromQuery(
+                        state.uri.queryParameters['section'],
+                      ),
+                    ),
                   ),
                   GoRoute(
                     path: 'gallery',

@@ -154,6 +154,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   bool get forceFullDownload => _forceFullDownload;
 
   List<DownloadedDive> _downloadedDives = [];
+  bool _downloadInterrupted = false;
+  bool _deliversOldestFirst = false;
   DiveComputer? _computer;
   String? _customDeviceName;
   DateTime? _sinceCutoff;
@@ -199,10 +201,20 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
   /// Load the list of downloaded dives into this adapter.
   ///
-  /// Called by the download step widget when the download completes.
+  /// Called by the download step widget when the download completes, or
+  /// with [interrupted] set when the user keeps the dives a failed or
+  /// cancelled download delivered. [deliversOldestFirst] says whether the
+  /// backend sent them oldest-first; together they decide whether the import
+  /// may move the saved fingerprint (see [selectResumeFingerprint]).
   /// Must be called before [buildBundle].
-  void setDownloadedDives(List<DownloadedDive> dives) {
+  void setDownloadedDives(
+    List<DownloadedDive> dives, {
+    bool interrupted = false,
+    bool deliversOldestFirst = false,
+  }) {
     _downloadedDives = List.unmodifiable(dives);
+    _downloadInterrupted = interrupted;
+    _deliversOldestFirst = deliversOldestFirst;
   }
 
   /// Set the first-sync cutoff captured from the download state.
@@ -389,6 +401,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   @override
   void resetState() {
     _sinceCutoff = null;
+    _downloadInterrupted = false;
+    _deliversOldestFirst = false;
     _pendingComputerSave = null;
     _computerSaveError = null;
     _pendingClockSyncStatus = null;
@@ -1097,11 +1111,15 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
     await _computerRepository.updateLastDownload(comp.id);
 
-    final newestFingerprint = selectNewestFingerprint(importedDives);
-    if (newestFingerprint != null) {
+    final resumeFingerprint = selectResumeFingerprint(
+      importedDives,
+      downloadComplete: !_downloadInterrupted,
+      deliversOldestFirst: _deliversOldestFirst,
+    );
+    if (resumeFingerprint != null) {
       await _computerRepository.updateLastFingerprint(
         comp.id,
-        newestFingerprint,
+        resumeFingerprint,
       );
     }
   }

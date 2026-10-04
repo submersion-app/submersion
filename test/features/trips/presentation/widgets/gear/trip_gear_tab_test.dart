@@ -539,6 +539,33 @@ void main() {
     expect(h.pushed, isEmpty);
   });
 
+  testWidgets('the alert sheet names its item once, not on every row (#2882)', (
+    tester,
+  ) async {
+    await _pumpTab(
+      tester,
+      gear: const [reg],
+      alerts: [dueClock('reg'), dueClock('reg', overdue: true)],
+    );
+    await tester.tap(find.byKey(const Key('trip-gear-alert-reg')));
+    await tester.pumpAndSettle();
+    final sheet = find.byType(BottomSheet);
+    expect(
+      find.descendant(of: sheet, matching: find.text('Regulator')),
+      findsOneWidget,
+    );
+    // dueClock names each alert's item by its id; no row may repeat it.
+    expect(
+      find.descendant(of: sheet, matching: find.text('reg')),
+      findsNothing,
+    );
+    final rows = find.descendant(of: sheet, matching: find.byType(ListTile));
+    expect(rows, findsNWidgets(2));
+    for (final row in tester.widgetList<ListTile>(rows)) {
+      expect(row.subtitle, isNull);
+    }
+  });
+
   testWidgets('tapping a scrubber line opens the breakdown', (tester) async {
     await _pumpTab(tester, gear: const [ccr], margins: [margin()]);
     await tester.tap(find.byKey(const Key('trip-gear-alert-ccr')));

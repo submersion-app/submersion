@@ -10,6 +10,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -419,6 +420,72 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('My Test Trip'), findsOneWidget);
+    });
+  });
+
+  group('TripEditPage - opening at a section (#2880)', () {
+    Future<void> pump(WidgetTester tester, {TripEditSection? section}) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithTrip(),
+            ),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(tripId: 'test-id', initialSection: section),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    /// The form's scroll offset.
+    double offset(WidgetTester tester) => tester
+        .state<ScrollableState>(
+          find
+              .descendant(
+                of: find.byType(SingleChildScrollView),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        )
+        .position
+        .pixels;
+
+    testWidgets('opens at the top by default', (tester) async {
+      await pump(tester);
+      expect(offset(tester), 0);
+    });
+
+    testWidgets('opens with the Planning section below the fold', (
+      tester,
+    ) async {
+      await pump(tester);
+      final screenBottom = tester.getBottomLeft(find.byType(Scaffold)).dy;
+      expect(
+        tester.getTopLeft(find.text('Planning')).dy,
+        greaterThan(screenBottom),
+      );
+    });
+
+    testWidgets('scrolls the Planning section into view once loaded', (
+      tester,
+    ) async {
+      await pump(tester, section: TripEditSection.planning);
+      expect(offset(tester), greaterThan(0));
+      // The heading sits on screen, below the app bar.
+      final heading = tester.getRect(find.text('Planning'));
+      final appBarBottom = tester.getBottomLeft(find.byType(AppBar)).dy;
+      final screenBottom = tester.getBottomLeft(find.byType(Scaffold)).dy;
+      expect(heading.top, greaterThanOrEqualTo(appBarBottom));
+      expect(heading.bottom, lessThanOrEqualTo(screenBottom));
     });
   });
 

@@ -115,6 +115,7 @@ class DescriptorInfo {
     @JvmField var product: String = ""
     @JvmField var model: Int = 0
     @JvmField var transports: Int = 0
+    @JvmField var deliversOldestFirst: Boolean = false
 }
 
 // Base I/O operations called from native code. The JNI bridge resolves these

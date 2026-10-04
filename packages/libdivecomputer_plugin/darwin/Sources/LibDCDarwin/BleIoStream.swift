@@ -82,6 +82,9 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
     private var timeoutMs: Int = 10000
     private var connectError: Error?
     private var isReady = false
+    /// True from the moment this attempt's link is up until it drops, so a
+    /// disconnect before the connect succeeded never closes the buffer.
+    private var linkUp = false
     private var notifySetupStep: NotifySetupStep = .idle
     private var lastWriteError: Error?
     private var lastCreditWriteError: Error?
@@ -156,6 +159,7 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
 
         connectError = nil
         isReady = false
+        linkUp = false
         notifySetupStep = .idle
         discoverySignaled = false
         remainingServiceDiscoveries = 0
@@ -217,6 +221,9 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         // preferred values. High-rate dumps (e.g. the OSTC nano logbook, #280)
         // therefore rely on the device pacing itself; the hw_ostc3 read fix
         // handles correctly-delivered data and a retry covers transient loss.
+        // From here a disconnect closes the buffer, including one during the
+        // discovery, credit grant or settle delay below.
+        linkUp = true
         NativeLogger.d("BleIoStream", category: "BLE", "Connected; discovering services")
         peripheral.discoverServices(nil)
         let discoverResult = discoverSemaphore.wait(timeout: .now() + .seconds(10))
@@ -250,6 +257,13 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             "Discovery ready (write=\(self.writeCharacteristic?.uuid.uuidString ?? "nil")"
                 + " notify=\(self.notifyCharacteristic?.uuid.uuidString ?? "nil")"
                 + " read=\(self.readCharacteristic?.uuid.uuidString ?? "nil"))")
+        // The link may have dropped during setup; a download must not start
+        // on a dead stream and fail later as a timeout (issue #2902).
+        if packetBuffer.isClosed {
+            NativeLogger.w("BleIoStream", category: "BLE",
+                "Link dropped during setup; abandoning this attempt")
+            return .other
+        }
         return nil
     }
 
@@ -404,8 +418,11 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         if let readChar = stream.readCharacteristic {
             return stream.awaitPolledPacket(readChar, deadline: deadline)
         }
-        return stream.packetBuffer.poll(deadline: deadline)
-            ? Int32(LIBDC_STATUS_SUCCESS) : Int32(LIBDC_STATUS_TIMEOUT)
+        if stream.packetBuffer.poll(deadline: deadline) {
+            return Int32(LIBDC_STATUS_SUCCESS)
+        }
+        return stream.packetBuffer.isClosed
+            ? Int32(LIBDC_STATUS_IO) : Int32(LIBDC_STATUS_TIMEOUT)
     }
 
     // MARK: - I/O Operations
@@ -434,6 +451,9 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         guard let bytesToRead = packetBuffer.read(
             into: data, maxBytes: size, deadline: deadline) else {
             actual.pointee = 0
+            // The link dropped (issue #2902): no reply is coming, so report
+            // the I/O error now rather than as a timeout after the full wait.
+            if packetBuffer.isClosed { return Int32(LIBDC_STATUS_IO) }
             consecutiveReadTimeouts += 1
             maybeFlipWriteModeAfterReadTimeout()
             return Int32(LIBDC_STATUS_TIMEOUT)
@@ -1177,9 +1197,29 @@ extension BleIoStream: CBCentralManagerDelegate {
     func centralManager(_ central: CBCentralManager,
                          didDisconnectPeripheral peripheral: CBPeripheral,
                          error: Error?) {
+        guard peripheral.identifier == self.peripheral.identifier else { return }
+        // CoreBluetooth passes an error only when the app did not ask for the
+        // disconnect, so a nil error is this stream's own close.
+        if let error {
+            NativeLogger.w("BleIoStream", category: "BLE",
+                "Link to \(peripheral.identifier.uuidString) lost:"
+                    + " \(error.localizedDescription)"
+                    + " (code \((error as NSError).code))")
+        } else {
+            NativeLogger.d("BleIoStream", category: "BLE",
+                "Disconnected from \(peripheral.identifier.uuidString)")
+        }
         // A characteristic read in flight gets no reply once the link is
         // down; wake its waiter rather than leave it to the timeout (#422).
         pendingRead.cancel()
+        // Nor does a notification or a read-poll reply (issue #2902). Without
+        // this a dropped link only surfaced as a read timeout, which reads
+        // the same in the log as a device that stopped answering.
+        if linkUp {
+            linkUp = false
+            withReadPoll { $0.close() }
+            packetBuffer.close()
+        }
     }
 
     func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral) {

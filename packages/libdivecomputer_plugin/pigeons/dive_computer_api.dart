@@ -26,11 +26,18 @@ class DeviceDescriptor {
     required this.product,
     required this.model,
     required this.transports,
+    this.deliversOldestFirst = false,
   });
   final String vendor;
   final String product;
   final int model;
   final List<TransportType> transports;
+
+  /// Whether this backend hands dives over oldest-first. libdivecomputer is
+  /// newest-first except where the fork reversed a driver (Shearwater
+  /// Petrel, issue #480). Only for such a backend is an interrupted
+  /// download's newest dive a safe resume point (issue #2902).
+  final bool deliversOldestFirst;
 }
 
 class DiscoveredDevice {

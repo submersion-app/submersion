@@ -26,6 +26,7 @@ import 'package:submersion/features/settings/presentation/widgets/coordinate_for
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/place_name_language_picker.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_value_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/visibility_scale_picker.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
@@ -596,23 +597,11 @@ class _UnitsSectionContent extends ConsumerWidget {
                       showCoordinateFormatPicker(context, ref, settings),
                 ),
                 const Divider(height: 1),
-                ListTile(
-                  title: Text(context.l10n.settings_placeNameLanguage_title),
-                  subtitle: Text(
-                    context.l10n.settings_placeNameLanguage_subtitle,
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        placeNameLanguageLabel(settings.placeNameLanguage),
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      const Icon(Icons.chevron_right),
-                    ],
-                  ),
+                _buildUnitTile(
+                  context,
+                  title: context.l10n.settings_placeNameLanguage_title,
+                  subtitle: context.l10n.settings_placeNameLanguage_subtitle,
+                  value: placeNameLanguageLabel(settings.placeNameLanguage),
                   onTap: () =>
                       unawaited(_pickPlaceNameLanguage(context, ref, settings)),
                 ),
@@ -710,21 +699,10 @@ class _UnitsSectionContent extends ConsumerWidget {
     required String value,
     required VoidCallback onTap,
   }) {
-    return ListTile(
-      title: Text(title),
-      subtitle: subtitle == null ? null : Text(subtitle),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            value,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-          const Icon(Icons.chevron_right),
-        ],
-      ),
+    return SettingsValueTile(
+      title: title,
+      subtitle: subtitle,
+      value: value,
       onTap: onTap,
     );
   }

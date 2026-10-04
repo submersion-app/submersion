@@ -1508,6 +1508,16 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String trips_story_dayMap_diveGroup(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés itt',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'Merülési mód és rebreather';
 
   @override
@@ -23842,8 +23852,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_detail_dives_unknownSite => 'Ismeretlen merülőhely';
 
   @override
-  String trips_detail_durationDays(Object days) {
-    return '$days nap';
+  String trips_detail_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days nap',
+      one: '$days nap',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23882,8 +23898,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült fotókat keresni. Próbáld újra.';
 
   @override
-  String trips_detail_scan_linkedPhotos(Object count) {
-    return '$count fotó csatolva';
+  String trips_detail_scan_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotó csatolva',
+      one: '$count fotó csatolva',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23921,12 +23943,24 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String trips_diveScan_addButton(int count) {
-    return '$count merülés hozzáadása';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés hozzáadása',
+      one: '$count merülés hozzáadása',
+    );
+    return '$_temp0';
   }
 
   @override
   String trips_diveScan_added(int count) {
-    return '$count merülés hozzáadva az úthoz';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés hozzáadva az úthoz',
+      one: '$count merülés hozzáadva az úthoz',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23963,7 +23997,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String trips_diveScan_subtitle(int count) {
-    return '$count merülés található a dátumtartományban';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés található a dátumtartományban',
+      one: '$count merülés található a dátumtartományban',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24129,8 +24169,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_gallery_error_loading => 'Nem sikerült betölteni a fotókat.';
 
   @override
-  String trips_gallery_linkedPhotos(Object count) {
-    return '$count fotó csatolva';
+  String trips_gallery_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotó csatolva',
+      one: '$count fotó csatolva',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24194,8 +24240,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_list_sort_title => 'Utak rendezése';
 
   @override
-  String trips_list_tile_diveCount(Object count) {
-    return '$count merülés';
+  String trips_list_tile_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '$count merülés',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24220,8 +24272,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_photos_error_loading => 'Hiba a fotók betöltésekor';
 
   @override
-  String trips_photos_moreIndicator_semanticLabel(Object count) {
-    return '$count további fotó';
+  String trips_photos_moreIndicator_semanticLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count további fotó',
+      one: '$count további fotó',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -25052,7 +25110,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String trips_overview_plan_divesPerDay(int count) {
-    return '$count merülés/nap';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés/nap',
+      one: '$count merülés/nap',
+    );
+    return '$_temp0';
   }
 
   @override

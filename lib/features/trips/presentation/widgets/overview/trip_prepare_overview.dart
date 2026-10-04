@@ -13,7 +13,15 @@ class TripPrepareOverview extends StatelessWidget {
   final TripStory story;
   final ValueChanged<TripDetailTab>? onOpenTab;
 
-  const TripPrepareOverview({super.key, required this.story, this.onOpenTab});
+  /// Where the summary card's Plan row goes; see [TripOverviewSummaryCard].
+  final VoidCallback? onEditPlan;
+
+  const TripPrepareOverview({
+    super.key,
+    required this.story,
+    this.onOpenTab,
+    this.onEditPlan,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +39,11 @@ class TripPrepareOverview extends StatelessWidget {
             showChecklist: false,
           ),
         ),
-        TripOverviewSummaryCard(trip: trip, onOpenTab: onOpenTab),
+        TripOverviewSummaryCard(
+          trip: trip,
+          onOpenTab: onOpenTab,
+          onEditPlan: onEditPlan,
+        ),
         if (trip.notes.isNotEmpty)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
