@@ -1762,40 +1762,31 @@ class SyncService {
           ),
         ];
 
-    // Precompute the locally-tombstoned parents this payload will REVIVE (a
-    // remote edit strictly newer than our deletion). A child must not be
+    // Precompute the locally-tombstoned parents this payload will REVIVE
+    // (_revivedParents). A child must not be
     // dropped/cleared for a parent that is coming back. The merge order does
     // not guarantee a parent is processed before its children, and a revival
     // only clears the tombstone in the DB (not the in-memory snapshot used by
     // the guard below), so this is computed up front to stay order-independent.
-    final recordsByType = {for (final e in mergeOrder) e.type: e};
-    final revivedParents = <String, Set<String>>{};
     final parentTypes = <String>{
       for (final refs in parentRefs.values)
         for (final ref in refs) ref.parent,
     };
-    for (final parentType in parentTypes) {
-      final tombs = tombstonesByEntity[parentType];
-      final entry = recordsByType[parentType];
-      // Every parent, whatever its merge flag: the merge guard revives a
-      // clock-only parent (species, media, diveTanks) too, so leaving it out
-      // here dropped a child that came with it against a stale tombstone.
-      if (tombs == null || tombs.isEmpty || entry == null) continue;
-      for (final rec in entry.records) {
-        final id = recordIdForEntity(parentType, rec);
-        if (id == null) continue;
-        final deletedAt = tombs[id];
-        if (deletedAt == null) continue;
-        if (_outlivesDelete(
-          copyClock: _ownClock(parentType, rec),
-          copyUpdatedAt: _extractUpdatedAtMillis(rec),
-          deleteClock: tombstoneClocks[parentType]?[id],
-          deletedAt: deletedAt,
-        )) {
-          revivedParents.putIfAbsent(parentType, () => <String>{}).add(id);
-        }
-      }
-    }
+    final revivedParents = _revivedParents(
+      parentTypes: parentTypes,
+      stamps: {
+        for (final e in mergeOrder)
+          if (parentTypes.contains(e.type) &&
+              tombstonesByEntity[e.type]?.isNotEmpty == true)
+            e.type: {
+              for (final rec in e.records)
+                ?recordIdForEntity(e.type, rec): _parentStamp(e.type, rec),
+            },
+      },
+      tombstones: tombstonesByEntity,
+      tombstoneClocks: tombstoneClocks,
+      contradicted: contradictedByEntity,
+    );
 
     for (final entry in mergeOrder) {
       final result = await _mergeEntity(
@@ -1981,10 +1972,8 @@ class SyncService {
     final deletionIds = <String, Set<String>>{
       for (final e in deletions.entries) e.key: {for (final d in e.value) d.id},
     };
-    // Each parent row's stamps, for the revived-parent check: its updatedAt
-    // and its own clock.
-    final parentStamps =
-        <String, Map<String, ({int? updatedAt, Hlc? clock})>>{};
+    // Each parent row's stamps, for the revived-parent check.
+    final parentStamps = <String, Map<String, _ParentStamp>>{};
     final contradictedByEntity = <String, Set<String>>{};
     final payloadScopes = _payloadEventScopes(deletions, baseExportedAt);
     final pass2Tables = <String>{
@@ -2005,11 +1994,7 @@ class SyncService {
         if (id == null) continue;
         // Every parent, whatever its merge flag, as in the payload apply.
         if (parentTypes.contains(table)) {
-          final u = _extractUpdatedAtMillis(rec);
-          final c = _ownClock(table, rec);
-          if (u != null || c != null) {
-            (parentStamps[table] ??= {})[id] = (updatedAt: u, clock: c);
-          }
+          (parentStamps[table] ??= {})[id] = _parentStamp(table, rec);
         }
         if (deletionIds[table]?.contains(id) == true) {
           (contradictedByEntity[table] ??= {}).add(id);
@@ -2040,24 +2025,13 @@ class SyncService {
       final (deletedAt: tombstonesByEntity, clocks: tombstoneClocks) =
           await _deletionMaps();
 
-      final revivedParents = <String, Set<String>>{};
-      for (final parentType in parentTypes) {
-        final tombs = tombstonesByEntity[parentType];
-        final stamps = parentStamps[parentType];
-        if (tombs == null || tombs.isEmpty || stamps == null) continue;
-        stamps.forEach((id, stamp) {
-          final deletedAt = tombs[id];
-          if (deletedAt != null &&
-              _outlivesDelete(
-                copyClock: stamp.clock,
-                copyUpdatedAt: stamp.updatedAt,
-                deleteClock: tombstoneClocks[parentType]?[id],
-                deletedAt: deletedAt,
-              )) {
-            (revivedParents[parentType] ??= {}).add(id);
-          }
-        });
-      }
+      final revivedParents = _revivedParents(
+        parentTypes: parentTypes,
+        stamps: parentStamps,
+        tombstones: tombstonesByEntity,
+        tombstoneClocks: tombstoneClocks,
+        contradicted: contradictedByEntity,
+      );
 
       // ---- Pass 3: batched apply ----
       const batchSize = 500;
@@ -2177,10 +2151,8 @@ class SyncService {
     final deletionIds = <String, Set<String>>{
       for (final e in deletions.entries) e.key: {for (final d in e.value) d.id},
     };
-    // Each parent row's stamps, for the revived-parent check: its updatedAt
-    // and its own clock.
-    final parentStamps =
-        <String, Map<String, ({int? updatedAt, Hlc? clock})>>{};
+    // Each parent row's stamps, for the revived-parent check.
+    final parentStamps = <String, Map<String, _ParentStamp>>{};
     final contradictedByEntity = <String, Set<String>>{};
     final payloadScopes = _payloadEventScopes(deletions, baseExportedAt);
     progress.beginPass(1);
@@ -2198,11 +2170,7 @@ class SyncService {
         if (id == null) return;
         // Every parent, whatever its merge flag, as in the payload apply.
         if (parentTypes.contains(table)) {
-          final u = _extractUpdatedAtMillis(rec);
-          final c = _ownClock(table, rec);
-          if (u != null || c != null) {
-            (parentStamps[table] ??= {})[id] = (updatedAt: u, clock: c);
-          }
+          (parentStamps[table] ??= {})[id] = _parentStamp(table, rec);
         }
         if (deletionIds[table]?.contains(id) == true) {
           (contradictedByEntity[table] ??= {}).add(id);
@@ -2235,28 +2203,16 @@ class SyncService {
       final (deletedAt: tombstonesByEntity, clocks: tombstoneClocks) =
           await _deletionMaps();
 
-      // Revived parents: a parent row whose remote copy is newer than our
-      // local tombstone (_outlivesDelete). Combines pass-2 file data with
+      // Revived parents (_revivedParents). Combines pass-2 file data with
       // post-deletion tombstones, so it is complete before any row is merged
       // (a child may precede its parent in file order).
-      final revivedParents = <String, Set<String>>{};
-      for (final parentType in parentTypes) {
-        final tombs = tombstonesByEntity[parentType];
-        final stamps = parentStamps[parentType];
-        if (tombs == null || tombs.isEmpty || stamps == null) continue;
-        stamps.forEach((id, stamp) {
-          final deletedAt = tombs[id];
-          if (deletedAt != null &&
-              _outlivesDelete(
-                copyClock: stamp.clock,
-                copyUpdatedAt: stamp.updatedAt,
-                deleteClock: tombstoneClocks[parentType]?[id],
-                deletedAt: deletedAt,
-              )) {
-            (revivedParents[parentType] ??= {}).add(id);
-          }
-        });
-      }
+      final revivedParents = _revivedParents(
+        parentTypes: parentTypes,
+        stamps: parentStamps,
+        tombstones: tombstonesByEntity,
+        tombstoneClocks: tombstoneClocks,
+        contradicted: contradictedByEntity,
+      );
 
       // ---- Pass 3: batched apply ----
       const batchSize = 500;
@@ -3686,6 +3642,52 @@ class SyncService {
       return copyClock.compareTo(deleteClock) > 0;
     }
     return copyUpdatedAt != null && copyUpdatedAt > deletedAt;
+  }
+
+  /// What [_revivedParents] reads of a peer's copy of a parent row.
+  _ParentStamp _parentStamp(String entityType, Map<String, dynamic> row) => (
+    updatedAt: _extractUpdatedAtMillis(row),
+    clock: _ownClock(entityType, row),
+  );
+
+  /// The locally tombstoned parents a payload brings back, by type, decided
+  /// as [_mergeEntity]'s local-deletion guard decides them: a copy newer
+  /// than our delete ([_outlivesDelete]), or one the same payload both
+  /// deletes and sends live ([contradicted]), which the merge applies over
+  /// our tombstone. Every parent counts, whatever its merge flag (species,
+  /// media and diveTanks resolve by their clock alone). Computed before any
+  /// row merges, so a child keeps its link to a parent that is coming back
+  /// whichever of the two merges first.
+  static Map<String, Set<String>> _revivedParents({
+    required Set<String> parentTypes,
+    required Map<String, Map<String, _ParentStamp>> stamps,
+    required Map<String, Map<String, int>> tombstones,
+    required Map<String, Map<String, Hlc>> tombstoneClocks,
+    required Map<String, Set<String>> contradicted,
+  }) {
+    final revived = <String, Set<String>>{};
+    for (final parentType in parentTypes) {
+      final tombs = tombstones[parentType];
+      if (tombs == null || tombs.isEmpty) continue;
+      final ids = <String>{
+        for (final id in contradicted[parentType] ?? const <String>{})
+          if (tombs.containsKey(id)) id,
+      };
+      stamps[parentType]?.forEach((id, stamp) {
+        final deletedAt = tombs[id];
+        if (deletedAt != null &&
+            _outlivesDelete(
+              copyClock: stamp.clock,
+              copyUpdatedAt: stamp.updatedAt,
+              deleteClock: tombstoneClocks[parentType]?[id],
+              deletedAt: deletedAt,
+            )) {
+          ids.add(id);
+        }
+      });
+      if (ids.isNotEmpty) revived[parentType] = ids;
+    }
+    return revived;
   }
 
   /// Whether a local row and a peer's copy can be ordered: both carry a
@@ -5202,3 +5204,7 @@ class _MergeResult {
     this.recordsFailed = 0,
   });
 }
+
+/// A peer copy's stamps for the revived-parent check: its updatedAt and its
+/// own clock.
+typedef _ParentStamp = ({int? updatedAt, Hlc? clock});

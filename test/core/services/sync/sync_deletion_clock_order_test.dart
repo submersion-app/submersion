@@ -430,4 +430,84 @@ void main() {
       await expectRevivedWithChild();
     });
   });
+
+  /// A payload that both deletes a parent and sends it live is the
+  /// publisher's current truth: the merge applies the live row over a local
+  /// tombstone, so a child in the same payload keeps its link to it.
+  group('A parent the same payload deletes and sends live', () {
+    Map<String, dynamic> site() => {
+      'id': 'site-k',
+      'name': 'Reef',
+      'description': '',
+      'notes': '',
+      'isShared': false,
+      'createdAt': 1000,
+      'updatedAt': 1000,
+    };
+
+    Future<Map<String, dynamic>> deleteLocalSite() async {
+      await serializer.upsertRecord('diveSites', site());
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'dive-k', diveNumber: 1),
+      );
+      final dive = await serializer.fetchRecord('dives', 'dive-k');
+      await buildService().performSync();
+      await serializer.deleteRecord('dives', 'dive-k');
+      await serializer.deleteRecord('diveSites', 'site-k');
+      await SyncRepository().logDeletion(
+        entityType: 'diveSites',
+        recordId: 'site-k',
+        deletedAt: 99999999999999,
+      );
+      return dive!;
+    }
+
+    SyncPayload contradictedPayload(Map<String, dynamic> dive) => peerPayload(
+      data: SyncData(
+        diveSites: [site()],
+        dives: [
+          {...dive, 'siteId': 'site-k'},
+        ],
+      ),
+      deletions: {
+        'diveSites': [const SyncDeletion(id: 'site-k', deletedAt: 500)],
+      },
+    );
+
+    Future<void> expectSiteKeptWithLink() async {
+      expect(await serializer.fetchRecord('diveSites', 'site-k'), isNotNull);
+      final dive = await serializer.fetchRecord('dives', 'dive-k');
+      expect(dive, isNotNull);
+      expect(
+        dive!['siteId'],
+        'site-k',
+        reason: 'the site comes back, so the dive must keep its link',
+      );
+    }
+
+    test('through the streaming base apply', () async {
+      final dive = await deleteLocalSite();
+      await seedPeerBaseFromPayload(
+        cloud,
+        'peer-dev',
+        contradictedPayload(dive),
+      );
+
+      final result = await buildService().performSync();
+
+      expect(result.status, isNot(SyncResultStatus.error));
+      await expectSiteKeptWithLink();
+    });
+
+    test('through the in-memory payload apply', () async {
+      final dive = await deleteLocalSite();
+
+      final result = await buildService().debugApplyPayload(
+        contradictedPayload(dive),
+      );
+
+      expect(result.recordsFailed, 0);
+      await expectSiteKeptWithLink();
+    });
+  });
 }
