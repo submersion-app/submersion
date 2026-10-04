@@ -593,6 +593,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(h.packs.packed, isEmpty);
     expect(h.slots.created.single.single.equipmentId, 'tk');
+    // Appended, so the repository places it and skips a tank already on.
+    expect(h.slots.appendedTo, ['t1']);
   });
 
   testWidgets('An equipment set packs the members and slots its cylinders', (
@@ -611,6 +613,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(h.packs.packed.single.$2, ['bcd', 'fins']);
     expect(h.slots.created.single.single.equipmentId, 'tk');
+    expect(h.slots.appendedTo, ['t1']);
     expect(find.text('Packed 2 items from Reef kit'), findsOneWidget);
   });
 
