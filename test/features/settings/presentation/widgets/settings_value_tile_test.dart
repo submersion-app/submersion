@@ -65,4 +65,26 @@ void main() {
     await tester.tap(find.text('Depth'));
     expect(taps, 1);
   });
+
+  // ListTile caps `trailing` at 56 px tall. At a large text scale two lines
+  // of the value no longer fit, so the value drops to the lines that do
+  // instead of painting over the next row.
+  testWidgets('at a large text scale the value stays inside its box', (
+    tester,
+  ) async {
+    const value = 'DD.MM.YYYY HH:MM';
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+        child: host(
+          SettingsValueTile(title: 'Date format', value: value, onTap: () {}),
+        ),
+      ),
+    );
+
+    final paragraph = tester.renderObject<RenderParagraph>(find.text(value));
+    expect(paragraph.textSize.height, lessThanOrEqualTo(paragraph.size.height));
+    expect(paragraph.size.height, lessThanOrEqualTo(56));
+    expect(tester.takeException(), isNull);
+  });
 }

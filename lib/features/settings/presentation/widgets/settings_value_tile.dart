@@ -25,9 +25,15 @@ class SettingsValueTile extends StatelessWidget {
   final String value;
   final VoidCallback onTap;
 
+  /// The most lines the value wraps onto when there is height for them.
+  static const int _maxValueLines = 2;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final valueStyle = theme.textTheme.bodyLarge?.copyWith(
+      color: theme.colorScheme.primary,
+    );
     return ListTile(
       title: Text(title),
       subtitle: subtitle == null ? null : Text(subtitle!),
@@ -43,11 +49,13 @@ class SettingsValueTile extends StatelessWidget {
                 child: Text(
                   value,
                   textAlign: TextAlign.end,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.primary,
+                  maxLines: _linesThatFit(
+                    context,
+                    valueStyle,
+                    constraints.maxHeight,
                   ),
+                  overflow: TextOverflow.ellipsis,
+                  style: valueStyle,
                 ),
               ),
               const Icon(Icons.chevron_right),
@@ -57,5 +65,24 @@ class SettingsValueTile extends StatelessWidget {
       ),
       onTap: onTap,
     );
+  }
+
+  /// ListTile caps `trailing` at a fixed height (56 px), so at a large text
+  /// scale a second line would paint over the next row. Wrap only onto the
+  /// lines that fit, and always allow one.
+  static int _linesThatFit(
+    BuildContext context,
+    TextStyle? style,
+    double maxHeight,
+  ) {
+    if (!maxHeight.isFinite) return _maxValueLines;
+    final painter = TextPainter(
+      text: TextSpan(text: ' ', style: style),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout();
+    final lineHeight = painter.preferredLineHeight;
+    painter.dispose();
+    return (maxHeight / lineHeight).floor().clamp(1, _maxValueLines);
   }
 }
