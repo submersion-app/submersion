@@ -81,8 +81,7 @@ PLAY_ERROR_HINTS = [
     "code is still free and the job can be re-run once the changes are sent; if " \
     "a copy to open or closed testing was refused, do not re-run, since the " \
     "internal upload already used the version code and the next beta copies " \
-    "its own build. " \
-    "Betas uploaded before this check existed may be waiting there too (#2887).",
+    "its own build.",
   ],
 ].freeze
 
@@ -384,11 +383,11 @@ platform :android do
   # supply's rescue_changes_not_sent_for_review is forced off for every call
   # that releases a build. Left at its default, a commit Play refuses to send
   # for review is retried with changesNotSentForReview=true and reported as a
-  # success: eight betas in a row waited unseen in the Console's Publishing
-  # overview that way while open testers stayed on an older build (#2887). Off,
-  # the refusal fails the run and the hint above says what to send. A draft
-  # keeps the rescue: it is never sent for review, and the stable release that
-  # uploads one is finished by hand in the Console anyway.
+  # success, so the release would wait unseen in the Console's Publishing
+  # overview for a manual Send while the log read like a release that went
+  # out. Off, the refusal fails the run and the hint above says what to send.
+  # A draft keeps the rescue: it is never sent for review, and the stable
+  # release that uploads one is finished by hand in the Console anyway.
   def upload_to_play_with_hint(params)
     unless params[:release_status] == "draft"
       params = params.merge(rescue_changes_not_sent_for_review: false)

@@ -3,7 +3,8 @@ name: Promote Beta
 # Phase 5 of the release-channels spec: promotes an already-published beta
 # to the stable channel everywhere, without rebuilding anything. GitHub gets
 # the copied artifacts + a stable appcast entry (signature was computed at
-# beta build time); Play promotes the identical AAB from the beta track;
+# beta build time); Play promotes the identical AAB from open testing, or
+# from internal testing when the build has not been copied there yet (#2887);
 # the App Store gets the existing TestFlight build submitted for review;
 # and the marketing-version bump PR opens immediately so the next merge
 # starts the next beta train (App Store trains close on release).

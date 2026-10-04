@@ -691,8 +691,8 @@ jobs:
         # can clear (#2597): the unregistered-key error that failed five betas
         # in a row without naming the key, and the version-code reuse that
         # makes a re-run of a rejected build fail too. Also guards that no lane
-        # lets supply park a release as "not sent for review" and report
-        # success, which left open testers on an old build (#2887).
+        # lets supply park a release as "not sent for review" while reporting
+        # success, and the internal-then-open-testing lane wiring (#2887).
         run: ruby scripts/release/fastlane_play_error_hint_test.rb
 
       - name: Run fastlane submit guard test

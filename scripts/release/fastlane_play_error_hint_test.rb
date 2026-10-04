@@ -15,10 +15,9 @@
 # bundle with that code had reached it in the meantime. Neither message says
 # what to do, so the lane has to.
 #
-# And issue #2887: eight betas in a row reported "AAB released to the 'beta'
-# track!" while open testers stayed on the last build before them. Once the Play
-# Console holds a change that must be sent for review by hand, Play refuses to
-# send an API edit for review automatically, and supply's default
+# And a silent path found while diagnosing #2887: once the Play Console holds a
+# change that must be sent for review by hand, Play refuses to send an API edit
+# for review automatically, and supply's default
 # (rescue_changes_not_sent_for_review: true) quietly re-commits the edit with
 # changesNotSentForReview=true. The release then waits in the Console's
 # Publishing overview for someone to press Send, and the log reads exactly like
@@ -217,7 +216,7 @@ raised = call_wrapper(nil)
 check(raised.nil?, "a successful upload raised #{raised.inspect}")
 check($ui_errors.empty?, 'a successful upload printed a hint')
 
-# --- No release is parked silently (#2887) ----------------------------------
+# --- No release is parked silently -------------------------------------------
 # With supply's rescue on, a refused review is committed as "not sent for
 # review" and reported as a success. The wrapper turns the rescue off for every
 # call, a lane cannot turn it back on, and the refusal then fails the run with
