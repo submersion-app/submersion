@@ -17,6 +17,7 @@ import 'package:submersion/features/media/presentation/providers/lightroom_provi
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
+import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
@@ -764,6 +765,106 @@ void main() {
     });
   });
 
+  group('TripDetailPage Plan row (#2880)', () {
+    final now = DateTime.now();
+    final futureTrip = Trip(
+      id: 'future-trip',
+      name: 'Bonaire',
+      startDate: DateTime(now.year, now.month, now.day + 12),
+      endDate: DateTime(now.year, now.month, now.day + 19),
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+
+    /// Pumps the trip before departure, so its Overview is the Prepare page,
+    /// taps Plan, and returns where the router ends up.
+    Future<String> pump(WidgetTester tester, {required bool embedded}) async {
+      _setMobileTestSurfaceSize(tester);
+      final story = buildTripStory(
+        trip: futureTrip,
+        dives: const [],
+        itineraryDays: const [],
+        mediaByDiveId: const {},
+        sightingsByDiveId: const {},
+        checklistItems: const [],
+        today: now,
+      );
+      final router = GoRouter(
+        initialLocation: embedded
+            ? '/trips?selected=${futureTrip.id}'
+            : '/trips/${futureTrip.id}',
+        routes: [
+          GoRoute(
+            path: '/trips',
+            builder: (context, state) => Scaffold(
+              body: TripDetailPage(tripId: futureTrip.id, embedded: true),
+            ),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) =>
+                    TripDetailPage(tripId: state.pathParameters['id']!),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    builder: (context, state) =>
+                        const Scaffold(body: Text('EDIT_PAGE')),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripWithStatsProvider(futureTrip.id).overrideWith(
+              (ref) async => TripWithStats(trip: futureTrip, diveCount: 0),
+            ),
+            diveIdsForTripProvider(
+              futureTrip.id,
+            ).overrideWith((ref) async => <String>[]),
+            tripStoryProvider(futureTrip.id).overrideWith((ref) async => story),
+            itineraryDaysProvider(
+              futureTrip.id,
+            ).overrideWith((ref) async => const []),
+            tripListNotifierProvider.overrideWith(
+              (ref) => _MockTripListNotifier([]),
+            ),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            ..._tabOverrides(futureTrip.id),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Plan'));
+      await tester.pumpAndSettle();
+      return router.state.uri.toString();
+    }
+
+    testWidgets('in the pane, edits in the pane at Planning', (tester) async {
+      final location = await pump(tester, embedded: true);
+      expect(
+        location,
+        '/trips?selected=${futureTrip.id}&mode=edit&section=planning',
+      );
+      expect(find.text('EDIT_PAGE'), findsNothing);
+    });
+
+    testWidgets('as a page, opens the edit page at Planning', (tester) async {
+      final location = await pump(tester, embedded: false);
+      expect(location, '/trips/${futureTrip.id}/edit?section=planning');
+      expect(find.text('EDIT_PAGE'), findsOneWidget);
+    });
+  });
+
   group('TripDetailPage embedded layouts', () {
     final embeddedTrip = Trip(
       id: 'embedded-trip',
@@ -961,10 +1062,7 @@ void main() {
       await tester.tap(find.byIcon(Icons.edit_outlined));
       await tester.pumpAndSettle();
       // Router location should now contain selected=...&mode=edit.
-      expect(
-        router.routerDelegate.currentConfiguration.uri.toString(),
-        contains('mode=edit'),
-      );
+      expect(router.state.uri.toString(), contains('mode=edit'));
     });
 
     testWidgets('delete action on embedded trip calls onDeleted callback', (
