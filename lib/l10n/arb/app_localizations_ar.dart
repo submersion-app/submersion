@@ -24946,6 +24946,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'أدخل عددًا صحيحًا من الغوصات، أو اتركه فارغًا.';
 
   @override
+  String trips_itinerary_plannedDives_tooMany(int max) {
+    return 'يمكنك التخطيط لـ $max غوصة كحد أقصى في اليوم.';
+  }
+
+  @override
   String get trips_itinerary_location_label => 'الموقع';
 
   @override

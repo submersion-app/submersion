@@ -379,6 +379,50 @@ void main() {
     expect(repo.updated, isEmpty);
   });
 
+  testWidgets('planned dives above the board cap are refused in place', (
+    tester,
+  ) async {
+    final repo = _RecordingItineraryRepo();
+    await _pumpTab(
+      tester,
+      trip: _resortTrip(),
+      days: staleRows,
+      extra: [itineraryDayRepositoryProvider.overrideWithValue(repo)],
+    );
+    await tester.tap(find.text('Day 2'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('itinerary-planned-dives')),
+      '${kMaxPlannedDivesPerDay + 1}',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Plan at most $kMaxPlannedDivesPerDay dives a day.'),
+      findsOneWidget,
+    );
+    expect(repo.updated, isEmpty);
+  });
+
+  testWidgets('planned dives at the board cap save', (tester) async {
+    final repo = _RecordingItineraryRepo();
+    await _pumpTab(
+      tester,
+      trip: _resortTrip(),
+      days: staleRows,
+      extra: [itineraryDayRepositoryProvider.overrideWithValue(repo)],
+    );
+    await tester.tap(find.text('Day 2'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('itinerary-planned-dives')),
+      '$kMaxPlannedDivesPerDay',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(repo.updated.single.plannedDives, kMaxPlannedDivesPerDay);
+  });
+
   testWidgets('a Rest day switched to Dive day goes back to the estimate', (
     tester,
   ) async {

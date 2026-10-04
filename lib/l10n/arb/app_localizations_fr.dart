@@ -25332,6 +25332,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Saisissez un nombre entier de plongées, ou laissez vide.';
 
   @override
+  String trips_itinerary_plannedDives_tooMany(int max) {
+    return 'Prévoyez au maximum $max plongées par jour.';
+  }
+
+  @override
   String get trips_itinerary_location_label => 'Lieu';
 
   @override

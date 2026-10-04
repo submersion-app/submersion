@@ -25066,6 +25066,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'Voer een heel aantal duiken in, of laat het leeg.';
 
   @override
+  String trips_itinerary_plannedDives_tooMany(int max) {
+    return 'Plan maximaal $max duiken per dag.';
+  }
+
+  @override
   String get trips_itinerary_location_label => 'Locatie';
 
   @override

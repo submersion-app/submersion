@@ -7269,6 +7269,7 @@
   },
   "trips_itinerary_plannedDives_label": "الغوصات المخططة",
   "trips_itinerary_plannedDives_invalid": "أدخل عددًا صحيحًا من الغوصات، أو اتركه فارغًا.",
+  "trips_itinerary_plannedDives_tooMany": "يمكنك التخطيط لـ {max} غوصة كحد أقصى في اليوم.",
   "trips_itinerary_location_label": "الموقع",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",

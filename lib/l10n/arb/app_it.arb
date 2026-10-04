@@ -7164,6 +7164,7 @@
   },
   "trips_itinerary_plannedDives_label": "Immersioni pianificate",
   "trips_itinerary_plannedDives_invalid": "Inserisci un numero intero di immersioni o lascia vuoto.",
+  "trips_itinerary_plannedDives_tooMany": "Pianifica al massimo {max} immersioni al giorno.",
   "trips_itinerary_location_label": "Luogo",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",

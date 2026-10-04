@@ -25163,6 +25163,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Adj meg egy egész számot, vagy hagyd üresen.';
 
   @override
+  String trips_itinerary_plannedDives_tooMany(int max) {
+    return 'Naponta legfeljebb $max merülést tervezz.';
+  }
+
+  @override
   String get trips_itinerary_location_label => 'Helyszín';
 
   @override

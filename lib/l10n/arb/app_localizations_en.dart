@@ -24851,6 +24851,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter a whole number of dives, or leave it blank.';
 
   @override
+  String trips_itinerary_plannedDives_tooMany(int max) {
+    return 'Plan at most $max dives a day.';
+  }
+
+  @override
   String get trips_itinerary_location_label => 'Location';
 
   @override

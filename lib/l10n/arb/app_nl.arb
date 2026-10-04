@@ -7269,6 +7269,7 @@
   },
   "trips_itinerary_plannedDives_label": "Geplande duiken",
   "trips_itinerary_plannedDives_invalid": "Voer een heel aantal duiken in, of laat het leeg.",
+  "trips_itinerary_plannedDives_tooMany": "Plan maximaal {max} duiken per dag.",
   "trips_itinerary_location_label": "Locatie",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",

@@ -15403,6 +15403,8 @@
   },
   "trips_itinerary_plannedDives_label": "Planned dives",
   "trips_itinerary_plannedDives_invalid": "Enter a whole number of dives, or leave it blank.",
+  "trips_itinerary_plannedDives_tooMany": "Plan at most {max} dives a day.",
+  "@trips_itinerary_plannedDives_tooMany": {"placeholders": {"max": {"type": "int"}}},
   "trips_itinerary_location_label": "Location",
   "trips_vesselType_catamaran": "Catamaran",
   "trips_vesselType_motorYacht": "Motor Yacht",

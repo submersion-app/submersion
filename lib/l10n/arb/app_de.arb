@@ -7372,6 +7372,7 @@
   },
   "trips_itinerary_plannedDives_label": "Geplante Tauchgänge",
   "trips_itinerary_plannedDives_invalid": "Gib eine ganze Zahl an Tauchgängen ein oder lass das Feld leer.",
+  "trips_itinerary_plannedDives_tooMany": "Plane höchstens {max} Tauchgänge pro Tag.",
   "trips_itinerary_location_label": "Ort",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",

@@ -25262,6 +25262,11 @@ class AppLocalizationsPt extends AppLocalizations {
       'Introduza um número inteiro de mergulhos ou deixe em branco.';
 
   @override
+  String trips_itinerary_plannedDives_tooMany(int max) {
+    return 'Planeie no máximo $max mergulhos por dia.';
+  }
+
+  @override
   String get trips_itinerary_location_label => 'Local';
 
   @override

@@ -7269,6 +7269,7 @@
   },
   "trips_itinerary_plannedDives_label": "Mergulhos planeados",
   "trips_itinerary_plannedDives_invalid": "Introduza um número inteiro de mergulhos ou deixe em branco.",
+  "trips_itinerary_plannedDives_tooMany": "Planeie no máximo {max} mergulhos por dia.",
   "trips_itinerary_location_label": "Local",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",

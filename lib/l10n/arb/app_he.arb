@@ -7269,6 +7269,7 @@
   },
   "trips_itinerary_plannedDives_label": "צלילות מתוכננות",
   "trips_itinerary_plannedDives_invalid": "הזינו מספר שלם של צלילות, או השאירו ריק.",
+  "trips_itinerary_plannedDives_tooMany": "תכננו עד {max} צלילות ביום.",
   "trips_itinerary_location_label": "מיקום",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",

@@ -39937,6 +39937,12 @@ abstract class AppLocalizations {
   /// **'Enter a whole number of dives, or leave it blank.'**
   String get trips_itinerary_plannedDives_invalid;
 
+  /// No description provided for @trips_itinerary_plannedDives_tooMany.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan at most {max} dives a day.'**
+  String trips_itinerary_plannedDives_tooMany(int max);
+
   /// No description provided for @trips_itinerary_location_label.
   ///
   /// In en, this message translates to:

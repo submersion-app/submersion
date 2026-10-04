@@ -24649,6 +24649,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'הזינו מספר שלם של צלילות, או השאירו ריק.';
 
   @override
+  String trips_itinerary_plannedDives_tooMany(int max) {
+    return 'תכננו עד $max צלילות ביום.';
+  }
+
+  @override
   String get trips_itinerary_location_label => 'מיקום';
 
   @override

@@ -3,14 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/services/fill_forecast.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 const _log = LoggerService('tripFillForecastStrip');
-
-/// The most dives the day editor offers (ruling R7).
-const int _maxPlannedDives = 12;
 
 /// The remaining trip days with their planned dives, for the board.
 /// Tapping a day edits its plan; the forecast refreshes through the
@@ -127,7 +125,7 @@ Future<({int? plannedDives})?> showTripDayPlanDialog(
   required FillForecastDay day,
   required String dateLabel,
 }) {
-  var count = day.plannedDives.clamp(0, _maxPlannedDives);
+  var count = day.plannedDives.clamp(0, kMaxPlannedDivesPerDay);
   return showDialog<({int? plannedDives})>(
     context: context,
     builder: (dialogContext) {
@@ -163,7 +161,7 @@ Future<({int? plannedDives})?> showTripDayPlanDialog(
                 key: const Key('plan-more'),
                 tooltip: l10n.trips_cylinders_forecast_more,
                 icon: const Icon(Icons.add_circle_outline),
-                onPressed: count < _maxPlannedDives
+                onPressed: count < kMaxPlannedDivesPerDay
                     ? () => setState(() => count++)
                     : null,
               ),

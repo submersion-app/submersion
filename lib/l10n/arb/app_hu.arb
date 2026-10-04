@@ -7168,6 +7168,7 @@
   },
   "trips_itinerary_plannedDives_label": "Tervezett merülések",
   "trips_itinerary_plannedDives_invalid": "Adj meg egy egész számot, vagy hagyd üresen.",
+  "trips_itinerary_plannedDives_tooMany": "Naponta legfeljebb {max} merülést tervezz.",
   "trips_itinerary_location_label": "Helyszín",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",

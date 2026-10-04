@@ -23948,6 +23948,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_itinerary_plannedDives_invalid => '请输入整数的潜水次数，或留空。';
 
   @override
+  String trips_itinerary_plannedDives_tooMany(int max) {
+    return '每天最多计划 $max 次潜水。';
+  }
+
+  @override
   String get trips_itinerary_location_label => '地点';
 
   @override

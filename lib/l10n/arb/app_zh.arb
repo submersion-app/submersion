@@ -7433,6 +7433,7 @@
   },
   "trips_itinerary_plannedDives_label": "计划潜水次数",
   "trips_itinerary_plannedDives_invalid": "请输入整数的潜水次数，或留空。",
+  "trips_itinerary_plannedDives_tooMany": "每天最多计划 {max} 次潜水。",
   "trips_itinerary_location_label": "地点",
   "trips_itinerary_notes_label": "备注",
   "trips_itinerary_portName_label": "港口/锚地",

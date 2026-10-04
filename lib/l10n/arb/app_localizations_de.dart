@@ -25210,6 +25210,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Gib eine ganze Zahl an Tauchgängen ein oder lass das Feld leer.';
 
   @override
+  String trips_itinerary_plannedDives_tooMany(int max) {
+    return 'Plane höchstens $max Tauchgänge pro Tag.';
+  }
+
+  @override
   String get trips_itinerary_location_label => 'Ort';
 
   @override
