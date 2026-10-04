@@ -576,6 +576,9 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
   /// native descriptor catalog; when it cannot be read, newest-first is
   /// assumed, which at worst re-offers these dives next time.
   Future<void> _importPartial(DiscoveredDevice? device) async {
+    // The dives to keep are the ones on screen now. Retry stays enabled
+    // during the lookup below, and a retry replaces this state.
+    final snapshot = ref.read(downloadNotifierProvider);
     var descriptors = const <pigeon.DeviceDescriptor>[];
     try {
       descriptors = await ref.read(deviceDescriptorsProvider.future);
@@ -588,8 +591,16 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       );
     }
     if (!mounted) return;
+    // A retry started while the catalog was read: that attempt now owns the
+    // step, and capturing here would also block its own completion. A retry
+    // always starts a new phase and a fresh dive list.
+    final current = ref.read(downloadNotifierProvider);
+    if (current.phase != snapshot.phase ||
+        !identical(current.downloadedDives, snapshot.downloadedDives)) {
+      return;
+    }
     _captureAndAdvance(
-      ref.read(downloadNotifierProvider),
+      snapshot,
       interrupted: true,
       deliversOldestFirst: modelDeliversOldestFirst(
         descriptors,

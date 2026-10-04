@@ -1129,6 +1129,59 @@ void main() {
         expect(adapter.lastDeliversOldestFirst, isTrue);
       });
 
+      testWidgets(
+        'a retry during the catalog lookup drops the partial import',
+        (tester) async {
+          // The catalog answers only after the user has already tapped Retry.
+          final catalog = Completer<List<pigeon.DeviceDescriptor>>();
+          final adapter = _RecordingAdapter();
+          await tester.pumpWidget(
+            _buildDownloadStep(
+              adapter: adapter,
+              discoveryState: DiscoveryState(selectedDevice: halcyon),
+              extraOverrides: [
+                deviceDescriptorsProvider.overrideWith((ref) => catalog.future),
+              ],
+            ),
+          );
+          await tester.pump();
+          await tester.pump();
+
+          final container = ProviderScope.containerOf(
+            tester.element(find.byType(DcAdapterDownloadStep)),
+          );
+          final notifier = container.read(downloadNotifierProvider.notifier);
+          notifier.state = DownloadState(
+            phase: DownloadPhase.error,
+            errorMessage: 'Failed to download the dive.',
+            downloadedDives: [_downloadedDive()],
+          );
+          await tester.pumpAndSettle();
+
+          await tester.tap(find.text('Import 1 downloaded dive'));
+          await tester.pump();
+
+          // Retry restarted the download before the lookup finished.
+          notifier.state = const DownloadState(
+            phase: DownloadPhase.downloading,
+          );
+          catalog.complete(descriptors);
+          await tester.pump();
+          await tester.pump();
+
+          expect(adapter.lastInterrupted, isNull);
+          expect(container.read(dcAdapterDownloadCanAdvanceProvider), isFalse);
+
+          // The retried download still completes into the wizard.
+          notifier.state = DownloadState(
+            phase: DownloadPhase.complete,
+            downloadedDives: [_downloadedDive()],
+          );
+          await tester.pumpAndSettle();
+          expect(adapter.lastInterrupted, isFalse);
+        },
+      );
+
       testWidgets('a complete download is not marked interrupted', (
         tester,
       ) async {
