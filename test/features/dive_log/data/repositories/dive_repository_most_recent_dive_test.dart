@@ -132,6 +132,32 @@ void main() {
     expect(mostRecent?.id, 'actual');
   });
 
+  test('orders by effective time, not raw entry_time: a newer dive with no '
+      'entryTime still outranks an older one that has one', () async {
+    await diver('alice');
+    await repository.createDive(
+      domain.Dive(
+        id: 'older-with-entry-time',
+        diverId: 'alice',
+        dateTime: DateTime.utc(2026, 5, 1, 9),
+        entryTime: DateTime.utc(2026, 5, 1, 9, 2),
+      ),
+    );
+    await repository.createDive(
+      domain.Dive(
+        id: 'newer-no-entry-time',
+        diverId: 'alice',
+        dateTime: DateTime.utc(2026, 5, 10, 9),
+      ),
+    );
+
+    final mostRecent = await repository.getMostRecentDiveTimes(
+      diverId: 'alice',
+      notAfter: DateTime.utc(2026, 5, 11),
+    );
+    expect(mostRecent?.id, 'newer-no-entry-time');
+  });
+
   test('never crosses diver boundaries', () async {
     await diver('alice');
     await diver('bob');

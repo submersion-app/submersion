@@ -5457,7 +5457,7 @@ class DiveRepository {
       final rows = await _db
           .customSelect(
             '$_diveTimesSelect WHERE ${clauses.join(' AND ')} '
-            'ORDER BY d.entry_time DESC, d.dive_date_time DESC LIMIT 1',
+            'ORDER BY COALESCE(d.entry_time, d.dive_date_time) DESC LIMIT 1',
             variables: args,
             readsFrom: {_db.dives, _db.diveProfileSeries},
           )

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/safety/domain/entities/cns_otu_snapshot.dart';
+import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/pages/cns_otu_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -32,7 +33,7 @@ void main() {
   testWidgets('shows no active load once CNS and OTU have both cleared', (
     tester,
   ) async {
-    final lastDiveEnd = DateTime.now().toUtc().subtract(
+    final lastDiveEnd = NoFlyService.wallClockNowUtc().subtract(
       const Duration(hours: 30),
     );
     await pumpCard(
@@ -48,7 +49,7 @@ void main() {
   });
 
   testWidgets('shows the live CNS/OTU card for a recent dive', (tester) async {
-    final lastDiveEnd = DateTime.now().toUtc().subtract(
+    final lastDiveEnd = NoFlyService.wallClockNowUtc().subtract(
       const Duration(minutes: 30),
     );
     await pumpCard(
@@ -77,7 +78,7 @@ void main() {
   ) async {
     // The last dive itself added no CNS/OTU, but a 7-day rolling total from
     // earlier dives is still above the daily/weekly limits worth tracking.
-    final lastDiveEnd = DateTime.now().toUtc().subtract(
+    final lastDiveEnd = NoFlyService.wallClockNowUtc().subtract(
       const Duration(hours: 10),
     );
     await pumpCard(

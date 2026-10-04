@@ -8,6 +8,8 @@ import 'package:submersion/core/deco/entities/o2_exposure.dart';
 /// that only changes when the dive table is written to (see
 /// `cnsOtuSnapshotProvider`).
 class CnsOtuSnapshot {
+  /// Not read by the current UI; carried so a future "view that dive" link
+  /// from the readout card does not need a second lookup.
   final String lastDiveId;
 
   /// End of the most recent dive, wall-clock-as-UTC (the dive-time frame;
@@ -29,4 +31,18 @@ class CnsOtuSnapshot {
   });
 
   double get cnsAtDiveEnd => exposure.cnsEnd;
+
+  CnsOtuSnapshot copyWith({
+    String? lastDiveId,
+    DateTime? lastDiveEnd,
+    O2Exposure? exposure,
+    double? weeklyOtu,
+  }) {
+    return CnsOtuSnapshot(
+      lastDiveId: lastDiveId ?? this.lastDiveId,
+      lastDiveEnd: lastDiveEnd ?? this.lastDiveEnd,
+      exposure: exposure ?? this.exposure,
+      weeklyOtu: weeklyOtu ?? this.weeklyOtu,
+    );
+  }
 }

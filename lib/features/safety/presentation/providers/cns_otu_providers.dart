@@ -31,20 +31,17 @@ final cnsOtuSnapshotProvider = FutureProvider<CnsOtuSnapshot?>((ref) async {
   );
   if (lastDive == null) return null;
 
-  final lastDiveEnd =
-      lastDive.exitTime ??
-      (lastDive.entryTime ?? lastDive.dateTime).add(
-        lastDive.effectiveRuntime ?? Duration.zero,
-      );
-
-  final analysis = await ref.watch(profileAnalysisProvider(lastDive.id).future);
+  // Independent lookups (full profile analysis vs. a plain DB range query),
+  // run concurrently rather than one after the other.
+  final (analysis, weeklyOtu) = await (
+    ref.watch(profileAnalysisProvider(lastDive.id).future),
+    ref.watch(weeklyOtuProvider(lastDive.id).future),
+  ).wait;
   if (analysis == null) return null;
-
-  final weeklyOtu = await ref.watch(weeklyOtuProvider(lastDive.id).future);
 
   return CnsOtuSnapshot(
     lastDiveId: lastDive.id,
-    lastDiveEnd: lastDiveEnd,
+    lastDiveEnd: lastDive.effectiveExitTime,
     exposure: analysis.o2Exposure,
     weeklyOtu: weeklyOtu,
   );
