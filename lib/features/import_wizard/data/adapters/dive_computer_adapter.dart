@@ -4,7 +4,6 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_computer/domain/services/reported_model_relabel.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
@@ -38,6 +37,7 @@ import 'package:submersion/features/import_wizard/domain/models/unified_import_r
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_steps.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/downloaded_dive_summary.dart';
 
 // ---------------------------------------------------------------------------
 // Bridge providers
@@ -972,22 +972,16 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
   EntityItem _diveToEntityItem(DownloadedDive dive) {
     final settings = _ref?.read(settingsProvider) ?? const AppSettings();
-    final units = UnitFormatter(settings);
-
-    final dateStr = units.formatDate(dive.startTime);
-    final timeStr = units.formatTime(dive.startTime);
-    final title = '$dateStr \u2014 $timeStr';
-    final durationMin = dive.duration.inMinutes;
-    final tempStr = dive.minTemperature != null
-        ? ' \u00b7 ${units.formatTemperature(dive.minTemperature!, decimals: 1)}'
-        : '';
-    final subtitle =
-        '${units.formatDepth(dive.maxDepth)} max \u00b7 $durationMin min$tempStr';
+    final summary = formatDownloadedDiveSummary(dive, settings);
 
     final comp = computer;
     final diveData = IncomingDiveData.fromDownloadedDive(dive, computer: comp);
 
-    return EntityItem(title: title, subtitle: subtitle, diveData: diveData);
+    return EntityItem(
+      title: summary.title,
+      subtitle: summary.subtitle,
+      diveData: diveData,
+    );
   }
 
   /// Consolidate a downloaded dive as a secondary computer reading on an

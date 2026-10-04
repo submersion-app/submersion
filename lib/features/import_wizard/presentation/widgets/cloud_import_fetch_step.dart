@@ -4,7 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/import_wizard/domain/cloud_import_paging.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/cloud_import_dive_list.dart';
-import 'package:submersion/features/import_wizard/presentation/widgets/cloud_import_dive_summary.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/downloaded_dive_summary.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -541,7 +541,7 @@ class _CloudImportFetchStepState<TSummary, TParsed>
             child: CloudImportDiveList(
               itemCount: _parsedDives.length,
               selectedIndices: _selectedIndices,
-              summaryOf: (index) => formatCloudDiveSummary(
+              summaryOf: (index) => formatDownloadedDiveSummary(
                 widget.diveOf(_parsedDives[index]),
                 settings,
               ),
