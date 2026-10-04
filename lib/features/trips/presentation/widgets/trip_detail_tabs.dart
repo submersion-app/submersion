@@ -19,7 +19,14 @@ enum TripDetailTab { overview, itinerary, gear, checklist, dives, photos }
 class TripDetailTabs extends StatelessWidget {
   final TripWithStats tripWithStats;
 
-  const TripDetailTabs({super.key, required this.tripWithStats});
+  /// Where the Overview's Plan row goes; null pushes the edit page.
+  final VoidCallback? onEditPlan;
+
+  const TripDetailTabs({
+    super.key,
+    required this.tripWithStats,
+    this.onEditPlan,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +57,10 @@ class TripDetailTabs extends StatelessWidget {
           Expanded(
             child: TabBarView(
               children: [
-                TripOverviewTab(tripWithStats: tripWithStats),
+                TripOverviewTab(
+                  tripWithStats: tripWithStats,
+                  onEditPlan: onEditPlan,
+                ),
                 TripItineraryTab(tripId: trip.id),
                 TripGearTab(trip: trip),
                 _ChecklistTab(trip: trip),

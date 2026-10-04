@@ -11,6 +11,7 @@ import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.
 import 'package:submersion/features/maps/presentation/widgets/world_camera_fit.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/day_map_pin_groups.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One story day's map: its itinerary location and one pin per dive, fitted
@@ -18,6 +19,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// through [onDiveTap] (null when the highlighted pin is tapped again); a
 /// tap on the map itself reports through [onMapTap]; an [onExpand] handler
 /// adds the fullscreen button.
+///
+/// Dive pins that would overlap on screen, at one site or at sites a few
+/// metres apart, share one badge: the earliest dive's number with the
+/// group's size on its corner. Tapping it lists the group's dives to choose
+/// from (issue #2883). The groups follow the zoom, so in the fullscreen map
+/// they come apart as the diver zooms in.
 class TripDayMap extends ConsumerStatefulWidget {
   final TripStoryDay day;
   final List<TripStoryMapPoint> points;
@@ -48,10 +55,10 @@ class TripDayMap extends ConsumerStatefulWidget {
   /// A lone site gets a close view rather than a dot in an ocean.
   static const double singlePointZoom = 13.0;
 
-  /// Pixels between pins that share a spot. Each pin's hit box is 48 wide,
-  /// so the step must put every dot's centre outside its neighbour's box
-  /// (more than 24): a 28 pixel dot and a gap.
-  static const double stackOffset = 32.0;
+  /// Dive pins whose centres sit closer than this many pixels share a
+  /// badge. A pin's dot is 28 wide inside a 48 pixel hit box, so nearer than
+  /// this a tap aimed at one dot can land in its neighbour's box.
+  static const double groupRadius = 32.0;
 
   @override
   ConsumerState<TripDayMap> createState() => _TripDayMapState();
@@ -83,18 +90,52 @@ class _TripDayMapState extends ConsumerState<TripDayMap> {
     super.dispose();
   }
 
-  /// Horizontal offsets for pins on the same spot: 0, +32, -32, +64, ...
-  Map<int, double> _stackOffsets() {
-    final seen = <String, int>{};
-    final offsets = <int, double>{};
-    for (final (i, p) in widget.points.indexed) {
-      final key = '${p.latitude},${p.longitude}';
-      final n = seen.update(key, (v) => v + 1, ifAbsent: () => 0);
-      final step = (n + 1) ~/ 2 * TripDayMap.stackOffset;
-      offsets[i] = n == 0 ? 0 : (n.isOdd ? step : -step);
-    }
-    return offsets;
+  /// The day's markers at [camera]'s zoom: a flag per itinerary location,
+  /// then a pin per dive, or one badge for dives whose pins would overlap.
+  /// Matching exact coordinates is not enough: two sites a few metres apart
+  /// land on the same pixels at the day's fitted zoom (issue #2883).
+  List<Marker> _markers(MapCamera camera) {
+    final points = widget.points;
+    final dives = [
+      for (final p in points)
+        if (p.isDive) p,
+    ];
+    final groups = groupNearbyPins(
+      [for (final p in dives) camera.projectAtZoom(_latLng(p))],
+      radius: TripDayMap.groupRadius,
+      worldWidth: camera.getWorldWidthAtZoom(),
+    );
+    return [
+      for (final (i, point) in points.indexed)
+        if (!point.isDive) _marker(point, _PlacePin(point: point, index: i)),
+      for (final group in groups)
+        if (group.length == 1)
+          _marker(
+            dives[group.single],
+            _DivePin(
+              point: dives[group.single],
+              highlighted:
+                  dives[group.single].diveId == widget.highlightedDiveId,
+              onTap: () => _tapDive(dives[group.single]),
+            ),
+          )
+        else
+          _marker(
+            dives[group.first],
+            _DiveGroupPin(
+              points: [for (final i in group) dives[i]],
+              highlightedDiveId: widget.highlightedDiveId,
+              onChoose: _tapDive,
+            ),
+          ),
+    ];
   }
+
+  static LatLng _latLng(TripStoryMapPoint p) => LatLng(p.latitude, p.longitude);
+
+  // 48x48 meets the touch-target guideline; the dot stays 28x28 inside it.
+  static Marker _marker(TripStoryMapPoint point, Widget child) =>
+      Marker(point: _latLng(point), width: 48, height: 48, child: child);
 
   void _tapDive(TripStoryMapPoint point) {
     final onDiveTap = widget.onDiveTap;
@@ -120,7 +161,6 @@ class _TripDayMapState extends ConsumerState<TripDayMap> {
     final colorScheme = Theme.of(context).colorScheme;
     final maxZoom = ref.watch(mapTileMaxZoomProvider);
     final urlTemplate = ref.watch(mapTileUrlProvider);
-    final offsets = _stackOffsets();
 
     return Semantics(
       label: l10n.trips_story_dayMap_semantics(widget.day.dayNumber),
@@ -157,28 +197,11 @@ class _TripDayMapState extends ConsumerState<TripDayMap> {
                     urlTemplate: urlTemplate,
                   ),
                 ),
-                MarkerLayer(
-                  markers: [
-                    for (final (i, point) in widget.points.indexed)
-                      Marker(
-                        point: LatLng(point.latitude, point.longitude),
-                        // 48x48 meets the touch-target guideline; the dot
-                        // stays 28x28 inside it.
-                        width: 48,
-                        height: 48,
-                        child: Transform.translate(
-                          offset: Offset(offsets[i]!, 0),
-                          child: point.isDive
-                              ? _DivePin(
-                                  point: point,
-                                  highlighted:
-                                      point.diveId == widget.highlightedDiveId,
-                                  onTap: () => _tapDive(point),
-                                )
-                              : _PlacePin(point: point, index: i),
-                        ),
-                      ),
-                  ],
+                // Its own builder, so a pan or zoom regroups the pins
+                // without rebuilding the tiles.
+                Builder(
+                  builder: (context) =>
+                      MarkerLayer(markers: _markers(MapCamera.of(context))),
                 ),
                 const MapAttribution(),
               ],
@@ -220,10 +243,6 @@ class _DivePin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final fill = highlighted ? colorScheme.tertiary : colorScheme.primary;
-    final ink = highlighted ? colorScheme.onTertiary : colorScheme.onPrimary;
     // Its own node, activated by its own tap: without a container it merges
     // into the map's node, and excludeSemantics drops the detector's action,
     // so a screen reader could neither find nor press one pin of several.
@@ -239,23 +258,149 @@ class _DivePin extends StatelessWidget {
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
         child: Center(
-          child: Container(
-            width: 28,
-            height: 28,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: fill,
-              shape: BoxShape.circle,
-              border: Border.all(color: ink, width: 2),
-            ),
+          child: _PinDot(number: point.diveNumber, highlighted: highlighted),
+        ),
+      ),
+    );
+  }
+}
+
+/// Dives whose pins would overlap, as one badge: the earliest dive's dot
+/// with the group's size on its corner, in the tertiary colour while any of
+/// them is highlighted. Tapping it opens a menu of the dives; choosing one
+/// acts as tapping its own pin would (issue #2883).
+class _DiveGroupPin extends StatelessWidget {
+  final List<TripStoryMapPoint> points;
+  final String? highlightedDiveId;
+  final ValueChanged<TripStoryMapPoint> onChoose;
+
+  const _DiveGroupPin({
+    required this.points,
+    required this.highlightedDiveId,
+    required this.onChoose,
+  });
+
+  Future<void> _openMenu(BuildContext context) async {
+    final l10n = context.l10n;
+    final badge = context.findRenderObject()! as RenderBox;
+    final overlay =
+        Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox;
+    final chosen = await showMenu<TripStoryMapPoint>(
+      context: context,
+      position: RelativeRect.fromRect(
+        Rect.fromPoints(
+          badge.localToGlobal(Offset.zero, ancestor: overlay),
+          badge.localToGlobal(
+            badge.size.bottomRight(Offset.zero),
+            ancestor: overlay,
+          ),
+        ),
+        Offset.zero & overlay.size,
+      ),
+      items: [
+        for (final point in points)
+          CheckedPopupMenuItem(
+            key: Key('day-map-group-item-${point.diveId}'),
+            value: point,
+            checked: point.diveId == highlightedDiveId,
             child: Text(
-              '${point.diveNumber ?? ''}',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: ink,
-                fontWeight: FontWeight.bold,
-              ),
+              '${l10n.trips_story_dayMap_divePin(point.diveNumber ?? 0)}'
+              ' · ${point.label}',
             ),
           ),
+      ],
+    );
+    if (chosen != null && context.mounted) onChoose(chosen);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final highlighted = points.any((p) => p.diveId == highlightedDiveId);
+    void open() => _openMenu(context);
+    // A node of its own, as a single pin's is, so a screen reader finds it.
+    return Semantics(
+      container: true,
+      button: true,
+      selected: highlighted,
+      label: context.l10n.trips_story_dayMap_diveGroup(points.length),
+      onTap: open,
+      excludeSemantics: true,
+      child: GestureDetector(
+        key: Key('day-map-group-${points.first.diveId}'),
+        onTap: open,
+        behavior: HitTestBehavior.opaque,
+        child: Center(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              _PinDot(
+                number: points.first.diveNumber,
+                highlighted: highlighted,
+              ),
+              Positioned(
+                top: -7,
+                right: -7,
+                child: Container(
+                  constraints: const BoxConstraints(minWidth: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: colorScheme.onSecondaryContainer,
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    '${points.length}',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: colorScheme.onSecondaryContainer,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The 28 pixel numbered dot a dive pin and a group badge share.
+class _PinDot extends StatelessWidget {
+  final int? number;
+  final bool highlighted;
+
+  const _PinDot({required this.number, required this.highlighted});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final fill = highlighted ? colorScheme.tertiary : colorScheme.primary;
+    final ink = highlighted ? colorScheme.onTertiary : colorScheme.onPrimary;
+    return Container(
+      width: 28,
+      height: 28,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: fill,
+        shape: BoxShape.circle,
+        border: Border.all(color: ink, width: 2),
+      ),
+      child: Text(
+        '${number ?? ''}',
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: ink,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );

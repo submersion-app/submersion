@@ -65,12 +65,14 @@ TripStoryDay _pastDay(List<String> diveIds) => TripStoryDay(
   ],
 );
 
+/// A dive pin at its own site, kilometres from the others, so each dive
+/// keeps its own pin rather than sharing a badge.
 TripStoryMapPoint _pin(String diveId, int number) => TripStoryMapPoint(
   latitude: 12.1,
-  longitude: -68.2,
+  longitude: -68.2 + number * 0.05,
   dayIndex: 1,
-  label: 'Blue Corner',
-  siteId: 'site-a',
+  label: 'Site $number',
+  siteId: 'site-$number',
   diveId: diveId,
   diveNumber: number,
 );

@@ -614,7 +614,47 @@ void main() {
     expect(h.packs.packed.single.$2, ['bcd', 'fins']);
     expect(h.slots.created.single.single.equipmentId, 'tk');
     expect(h.slots.appendedTo, ['t1']);
-    expect(find.text('Packed 2 items from Reef kit'), findsOneWidget);
+    // The slotted cylinder counts alongside the packed items (#2877).
+    expect(find.text('Packed 3 items from Reef kit'), findsOneWidget);
+  });
+
+  testWidgets('a set of only cylinders counts the slots it adds (#2877)', (
+    tester,
+  ) async {
+    await _pumpTab(
+      tester,
+      sets: [
+        kit(const [tank]),
+      ],
+    );
+    await _openAdd(tester);
+    await tester.tap(find.text('An equipment set'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Reef kit'));
+    await tester.pumpAndSettle();
+    expect(find.text('Packed 1 item from Reef kit'), findsOneWidget);
+  });
+
+  testWidgets('a set whose cylinder is already a slot adds nothing', (
+    tester,
+  ) async {
+    final h = await _pumpTab(
+      tester,
+      states: [slot('c1', equipmentId: 'tk')],
+      sets: [
+        kit(const [tank]),
+      ],
+    );
+    await _openAdd(tester);
+    await tester.tap(find.text('An equipment set'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Reef kit'));
+    await tester.pumpAndSettle();
+    expect(h.slots.created, isEmpty);
+    expect(
+      find.text('Everything in Reef kit is already packed'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Rental cylinders opens the rental form alone', (tester) async {
@@ -644,6 +684,33 @@ void main() {
       hasLength(2),
     );
     expect(h.pushed, isEmpty);
+  });
+
+  testWidgets('the alert sheet names its item once, not on every row (#2882)', (
+    tester,
+  ) async {
+    await _pumpTab(
+      tester,
+      gear: const [reg],
+      alerts: [dueClock('reg'), dueClock('reg', overdue: true)],
+    );
+    await tester.tap(find.byKey(const Key('trip-gear-alert-reg')));
+    await tester.pumpAndSettle();
+    final sheet = find.byType(BottomSheet);
+    expect(
+      find.descendant(of: sheet, matching: find.text('Regulator')),
+      findsOneWidget,
+    );
+    // dueClock names each alert's item by its id; no row may repeat it.
+    expect(
+      find.descendant(of: sheet, matching: find.text('reg')),
+      findsNothing,
+    );
+    final rows = find.descendant(of: sheet, matching: find.byType(ListTile));
+    expect(rows, findsNWidgets(2));
+    for (final row in tester.widgetList<ListTile>(rows)) {
+      expect(row.subtitle, isNull);
+    }
   });
 
   testWidgets('tapping a scrubber line opens the breakdown', (tester) async {

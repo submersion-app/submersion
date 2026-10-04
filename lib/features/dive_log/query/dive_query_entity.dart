@@ -5,6 +5,7 @@ import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
+import 'package:submersion/features/dive_types/query/dive_type_text_search.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 
 /// Every field and relation a dive query can name (#2365). This file is
@@ -187,6 +188,11 @@ final QueryEntity diveQueryEntity = QueryEntity(
     'EXISTS (SELECT 1 FROM dive_custom_fields tcf WHERE tcf.dive_id = {r}.id '
         "AND (tcf.field_key LIKE ? ESCAPE '\\' "
         "OR tcf.field_value LIKE ? ESCAPE '\\'))",
+    // The stored name: a custom type's own, a built-in's English one. The
+    // translations are kDiveTypeTranslatedTextSearch (issue #2884).
+    'EXISTS (SELECT 1 FROM dive_dive_types tddt JOIN dive_types tdty '
+        'ON tdty.id = tddt.dive_type_id WHERE tddt.dive_id = {r}.id '
+        "AND tdty.name LIKE ? ESCAPE '\\')",
   ],
   textSearchTables: const [
     'dive_sites',
@@ -196,7 +202,10 @@ final QueryEntity diveQueryEntity = QueryEntity(
     'dive_tags',
     'tags',
     'dive_custom_fields',
+    'dive_dive_types',
+    'dive_types',
   ],
+  textSearchExpansions: const [kDiveTypeTranslatedTextSearch],
   fields: [
     QueryField(
       key: 'id',

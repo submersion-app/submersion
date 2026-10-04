@@ -67,7 +67,14 @@ data class DeviceDescriptor (
   val vendor: String,
   val product: String,
   val model: Long,
-  val transports: List<TransportType>
+  val transports: List<TransportType>,
+  /**
+   * Whether this backend hands dives over oldest-first. libdivecomputer is
+   * newest-first except where the fork reversed a driver (Shearwater
+   * Petrel, issue #480). Only for such a backend is an interrupted
+   * download's newest dive a safe resume point (issue #2902).
+   */
+  val deliversOldestFirst: Boolean
 )
  {
   companion object {
@@ -76,7 +83,8 @@ data class DeviceDescriptor (
       val product = pigeonVar_list[1] as String
       val model = pigeonVar_list[2] as Long
       val transports = pigeonVar_list[3] as List<TransportType>
-      return DeviceDescriptor(vendor, product, model, transports)
+      val deliversOldestFirst = pigeonVar_list[4] as Boolean
+      return DeviceDescriptor(vendor, product, model, transports, deliversOldestFirst)
     }
   }
   fun toList(): List<Any?> {
@@ -85,6 +93,7 @@ data class DeviceDescriptor (
       product,
       model,
       transports,
+      deliversOldestFirst,
     )
   }
 }

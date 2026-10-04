@@ -20,10 +20,14 @@ class TripOverviewTab extends ConsumerWidget {
   /// DefaultTabController.
   final ValueChanged<TripDetailTab>? onOpenTab;
 
+  /// Where the Prepare overview's Plan row goes; null pushes the edit page.
+  final VoidCallback? onEditPlan;
+
   const TripOverviewTab({
     super.key,
     required this.tripWithStats,
     this.onOpenTab,
+    this.onEditPlan,
   });
 
   @override
@@ -51,7 +55,11 @@ class TripOverviewTab extends ConsumerWidget {
     // Before the first day there is nothing to tell: the page prepares.
     // From the first day on, in progress or past, it tells the story.
     if (trip.startsAfter(clock.now())) {
-      return TripPrepareOverview(story: story, onOpenTab: onOpenTab);
+      return TripPrepareOverview(
+        story: story,
+        onOpenTab: onOpenTab,
+        onEditPlan: onEditPlan,
+      );
     }
     return TripStoryView(
       story: story,

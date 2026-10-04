@@ -1495,6 +1495,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String trips_story_dayMap_diveGroup(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives here',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'Dive Mode & Rebreather';
 
   @override
@@ -23538,8 +23548,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_detail_dives_unknownSite => 'Unknown Site';
 
   @override
-  String trips_detail_durationDays(Object days) {
-    return '$days days';
+  String trips_detail_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23577,8 +23593,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t scan for photos. Try again.';
 
   @override
-  String trips_detail_scan_linkedPhotos(Object count) {
-    return 'Linked $count photos';
+  String trips_detail_scan_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Linked $count photos',
+      one: 'Linked 1 photo',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23616,12 +23638,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String trips_diveScan_addButton(int count) {
-    return 'Add $count Dives';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Add $count Dives',
+      one: 'Add 1 Dive',
+    );
+    return '$_temp0';
   }
 
   @override
   String trips_diveScan_added(int count) {
-    return 'Added $count dives to trip';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Added $count dives to trip',
+      one: 'Added 1 dive to trip',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23657,7 +23691,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String trips_diveScan_subtitle(int count) {
-    return '$count dives found in date range';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives found in date range',
+      one: '1 dive found in date range',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23826,8 +23866,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_gallery_error_loading => 'Couldn\'t load the photos.';
 
   @override
-  String trips_gallery_linkedPhotos(Object count) {
-    return 'Linked $count photos';
+  String trips_gallery_linkedPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Linked $count photos',
+      one: 'Linked 1 photo',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23890,8 +23936,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_list_sort_title => 'Sort Trips';
 
   @override
-  String trips_list_tile_diveCount(Object count) {
-    return '$count dives';
+  String trips_list_tile_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -23916,8 +23968,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_photos_error_loading => 'Error loading photos';
 
   @override
-  String trips_photos_moreIndicator_semanticLabel(Object count) {
-    return '$count more photos';
+  String trips_photos_moreIndicator_semanticLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count more photos',
+      one: '1 more photo',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24088,7 +24146,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_edit_hint_divesPerDay =>
-      'For the fill forecast. Blank means estimate.';
+      'For the fill forecast. Leave blank to use expected dives or each day\'s plan.';
 
   @override
   String get trips_edit_label_expectedDives => 'Expected dives';
@@ -24292,7 +24350,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get trips_cylinders_forecast_useEstimate => 'Use the estimate';
+  String get trips_cylinders_forecast_clearPlan => 'Clear the plan';
 
   @override
   String get trips_cylinders_forecast_fewer => 'Fewer dives';
@@ -24749,7 +24807,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String trips_overview_plan_divesPerDay(int count) {
-    return '$count dives/day';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives/day',
+      one: '1 dive/day',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24855,6 +24919,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get trips_itinerary_plannedDives_invalid =>
       'Enter a whole number of dives, or leave it blank.';
+
+  @override
+  String trips_itinerary_plannedDives_tooMany(int max) {
+    return 'Plan at most $max dives a day.';
+  }
 
   @override
   String get trips_itinerary_location_label => 'Location';

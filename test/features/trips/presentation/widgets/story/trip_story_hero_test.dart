@@ -77,6 +77,7 @@ Future<void> pumpHero(
   VoidCallback? onScan,
   List<Override> extra = const [],
   bool showEmptyState = true,
+  bool showChecklist = true,
 }) async {
   final overrides = await getBaseOverrides();
   await tester.pumpWidget(
@@ -92,6 +93,7 @@ Future<void> pumpHero(
               story: story,
               onScanForDives: onScan,
               showEmptyState: showEmptyState,
+              showChecklist: showChecklist,
             ),
           ),
         ),
@@ -131,6 +133,21 @@ void main() {
 
     expect(find.textContaining('until departure'), findsOneWidget);
     expect(find.text('1 of 2 done'), findsOneWidget);
+  });
+
+  testWidgets('showChecklist false keeps the countdown and drops the '
+      'checklist card (#2881)', (tester) async {
+    final today = _dayOnly(DateTime.now());
+    final trip = _trip(start: _daysFrom(today, 40), end: _daysFrom(today, 47));
+    final story = _story(
+      trip,
+      checklist: [_check('a', done: true), _check('Service regulator')],
+    );
+    await pumpHero(tester, story, showChecklist: false);
+
+    expect(find.textContaining('until departure'), findsOneWidget);
+    expect(find.text('1 of 2 done'), findsNothing);
+    expect(find.text('Service regulator'), findsNothing);
   });
 
   testWidgets('the hero never offers itinerary generation', (tester) async {

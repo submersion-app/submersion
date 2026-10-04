@@ -526,7 +526,9 @@ void main() {
     expect(days.single.plannedDives, 3);
   });
 
-  testWidgets('using the estimate clears a planned day', (tester) async {
+  testWidgets('clearing the plan returns a planned day to blank', (
+    tester,
+  ) async {
     final a = await slot('Truck 1', 0);
     await fill(a.id);
     await ItineraryDayRepository().setPlannedDives(
@@ -546,7 +548,7 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('forecast-day-0')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('plan-use-estimate')));
+    await tester.tap(find.byKey(const Key('plan-clear')));
     await tester.pumpAndSettle();
 
     final day = (await ItineraryDayRepository().getByTripId(tripId)).single;

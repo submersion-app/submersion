@@ -71,6 +71,7 @@ Future<void> _pumpTab(
   Future<List<ItineraryDay>>? reload,
   Trip? tripAfter,
   Object? loadError,
+  List<Dive> dives = const [],
   List<Object> extra = const [],
 }) async {
   var loads = 0;
@@ -91,9 +92,7 @@ Future<void> _pumpTab(
           if (loadError != null) throw loadError;
           return loads++ == 0 || reload == null ? days : reload;
         }),
-        divesForTripProvider(
-          'trip-1',
-        ).overrideWith((ref) async => const <Dive>[]),
+        divesForTripProvider('trip-1').overrideWith((ref) async => dives),
         ...extra,
       ].cast(),
       child: const MaterialApp(
@@ -379,6 +378,50 @@ void main() {
     expect(repo.updated, isEmpty);
   });
 
+  testWidgets('planned dives above the board cap are refused in place', (
+    tester,
+  ) async {
+    final repo = _RecordingItineraryRepo();
+    await _pumpTab(
+      tester,
+      trip: _resortTrip(),
+      days: staleRows,
+      extra: [itineraryDayRepositoryProvider.overrideWithValue(repo)],
+    );
+    await tester.tap(find.text('Day 2'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('itinerary-planned-dives')),
+      '${kMaxPlannedDivesPerDay + 1}',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Plan at most $kMaxPlannedDivesPerDay dives a day.'),
+      findsOneWidget,
+    );
+    expect(repo.updated, isEmpty);
+  });
+
+  testWidgets('planned dives at the board cap save', (tester) async {
+    final repo = _RecordingItineraryRepo();
+    await _pumpTab(
+      tester,
+      trip: _resortTrip(),
+      days: staleRows,
+      extra: [itineraryDayRepositoryProvider.overrideWithValue(repo)],
+    );
+    await tester.tap(find.text('Day 2'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('itinerary-planned-dives')),
+      '$kMaxPlannedDivesPerDay',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(repo.updated.single.plannedDives, kMaxPlannedDivesPerDay);
+  });
+
   testWidgets('a Rest day switched to Dive day goes back to the estimate', (
     tester,
   ) async {
@@ -445,5 +488,56 @@ void main() {
     );
     expect(field.enabled, isFalse);
     expect(field.controller!.text, '0');
+  });
+
+  // #2875: a dive logged on a day typed Rest makes it a dive day after all,
+  // the way the trip story reads a day planned at none.
+  group('a Rest day with a logged dive', () {
+    final rest = _row(
+      'r',
+      DateTime(2026, 3, 8),
+      3,
+    ).copyWith(dayType: DayType.rest, plannedDives: 0);
+
+    testWidgets('reads as a Dive Day beside its dives', (tester) async {
+      await withClock(Clock.fixed(DateTime(2026, 3, 10, 10)), () async {
+        await _pumpTab(
+          tester,
+          trip: _resortTrip(),
+          days: [rest],
+          dives: [Dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9))],
+        );
+      });
+      expect(find.text('Dive Day'), findsOneWidget);
+      expect(find.text('Rest'), findsNothing);
+      expect(find.byIcon(Icons.scuba_diving), findsOneWidget);
+      expect(find.text('1 dive'), findsOneWidget);
+    });
+
+    testWidgets('keeps its stored type in the edit sheet', (tester) async {
+      await withClock(Clock.fixed(DateTime(2026, 3, 10, 10)), () async {
+        await _pumpTab(
+          tester,
+          trip: _resortTrip(),
+          days: [rest],
+          dives: [Dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9))],
+        );
+      });
+      await tester.tap(find.text('Day 3'));
+      await tester.pumpAndSettle();
+      final dropdown = tester.widget<DropdownButtonFormField<DayType>>(
+        find.byType(DropdownButtonFormField<DayType>),
+      );
+      expect(dropdown.initialValue, DayType.rest);
+    });
+
+    testWidgets('without a dive still reads Rest', (tester) async {
+      await withClock(Clock.fixed(DateTime(2026, 3, 10, 10)), () async {
+        await _pumpTab(tester, trip: _resortTrip(), days: [rest]);
+      });
+      expect(find.text('Rest'), findsOneWidget);
+      expect(find.text('Dive Day'), findsNothing);
+      expect(find.byIcon(Icons.beach_access), findsOneWidget);
+    });
   });
 }

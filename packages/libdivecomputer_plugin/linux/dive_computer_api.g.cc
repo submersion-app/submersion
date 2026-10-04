@@ -10,6 +10,7 @@ struct _LibdivecomputerPluginDeviceDescriptor {
   gchar* product;
   int64_t model;
   FlValue* transports;
+  gboolean delivers_oldest_first;
 };
 
 G_DEFINE_TYPE(LibdivecomputerPluginDeviceDescriptor, libdivecomputer_plugin_device_descriptor, G_TYPE_OBJECT)
@@ -29,12 +30,13 @@ static void libdivecomputer_plugin_device_descriptor_class_init(LibdivecomputerP
   G_OBJECT_CLASS(klass)->dispose = libdivecomputer_plugin_device_descriptor_dispose;
 }
 
-LibdivecomputerPluginDeviceDescriptor* libdivecomputer_plugin_device_descriptor_new(const gchar* vendor, const gchar* product, int64_t model, FlValue* transports) {
+LibdivecomputerPluginDeviceDescriptor* libdivecomputer_plugin_device_descriptor_new(const gchar* vendor, const gchar* product, int64_t model, FlValue* transports, gboolean delivers_oldest_first) {
   LibdivecomputerPluginDeviceDescriptor* self = LIBDIVECOMPUTER_PLUGIN_DEVICE_DESCRIPTOR(g_object_new(libdivecomputer_plugin_device_descriptor_get_type(), nullptr));
   self->vendor = g_strdup(vendor);
   self->product = g_strdup(product);
   self->model = model;
   self->transports = fl_value_ref(transports);
+  self->delivers_oldest_first = delivers_oldest_first;
   return self;
 }
 
@@ -58,12 +60,18 @@ FlValue* libdivecomputer_plugin_device_descriptor_get_transports(Libdivecomputer
   return self->transports;
 }
 
+gboolean libdivecomputer_plugin_device_descriptor_get_delivers_oldest_first(LibdivecomputerPluginDeviceDescriptor* self) {
+  g_return_val_if_fail(LIBDIVECOMPUTER_PLUGIN_IS_DEVICE_DESCRIPTOR(self), FALSE);
+  return self->delivers_oldest_first;
+}
+
 static FlValue* libdivecomputer_plugin_device_descriptor_to_list(LibdivecomputerPluginDeviceDescriptor* self) {
   FlValue* values = fl_value_new_list();
   fl_value_append_take(values, fl_value_new_string(self->vendor));
   fl_value_append_take(values, fl_value_new_string(self->product));
   fl_value_append_take(values, fl_value_new_int(self->model));
   fl_value_append_take(values, fl_value_ref(self->transports));
+  fl_value_append_take(values, fl_value_new_bool(self->delivers_oldest_first));
   return values;
 }
 
@@ -76,7 +84,9 @@ static LibdivecomputerPluginDeviceDescriptor* libdivecomputer_plugin_device_desc
   int64_t model = fl_value_get_int(value2);
   FlValue* value3 = fl_value_get_list_value(values, 3);
   FlValue* transports = value3;
-  return libdivecomputer_plugin_device_descriptor_new(vendor, product, model, transports);
+  FlValue* value4 = fl_value_get_list_value(values, 4);
+  gboolean delivers_oldest_first = fl_value_get_bool(value4);
+  return libdivecomputer_plugin_device_descriptor_new(vendor, product, model, transports, delivers_oldest_first);
 }
 
 struct _LibdivecomputerPluginDiscoveredDevice {

@@ -76,6 +76,17 @@ static bool set_descriptor_info(JNIEnv *env, jobject infoObj,
         return false;
     }
 
+    jfieldID oldestFirstField =
+        env->GetFieldID(cls, "deliversOldestFirst", "Z");
+    if (oldestFirstField == nullptr) {
+        clear_jni_exception(env, "resolving DescriptorInfo.deliversOldestFirst");
+        return false;
+    }
+    if (clear_jni_exception(env,
+                            "resolving DescriptorInfo.deliversOldestFirst")) {
+        return false;
+    }
+
     jstring vendor = env->NewStringUTF(info.vendor ? info.vendor : "");
     if (vendor == nullptr) {
         clear_jni_exception(env, "creating vendor string");
@@ -119,6 +130,14 @@ static bool set_descriptor_info(JNIEnv *env, jobject infoObj,
 
     env->SetIntField(infoObj, transportsField, static_cast<jint>(info.transports));
     if (clear_jni_exception(env, "writing DescriptorInfo.transports")) {
+        env->DeleteLocalRef(vendor);
+        env->DeleteLocalRef(product);
+        return false;
+    }
+
+    env->SetBooleanField(infoObj, oldestFirstField,
+                         info.delivers_oldest_first ? JNI_TRUE : JNI_FALSE);
+    if (clear_jni_exception(env, "writing DescriptorInfo.deliversOldestFirst")) {
         env->DeleteLocalRef(vendor);
         env->DeleteLocalRef(product);
         return false;

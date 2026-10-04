@@ -375,6 +375,7 @@
       }
     }
   },
+  "trips_story_dayMap_diveGroup": "{count, plural, other{{count} צלילות כאן}}",
   "diveLog_bulkEdit_groupRebreather": "מצב צלילה וריבריא'תר",
   "diveLog_bulkEdit_fieldSetpointLow": "ערך יעד נמוך",
   "diveLog_bulkEdit_fieldSetpointHigh": "ערך יעד גבוה",
@@ -6652,7 +6653,7 @@
   "trips_detail_dives_errorLoading": "לא ניתן לטעון צלילות",
   "trips_detail_error_loading": "לא ניתן לטעון את הטיול.",
   "trips_detail_dives_unknownSite": "אתר לא ידוע",
-  "trips_detail_durationDays": "{days} ימים",
+  "trips_detail_durationDays": "{days, plural, =1{יום אחד} other{{days} ימים}}",
   "trips_detail_export_csv_comingSoon": "ייצוא CSV בקרוב",
   "trips_detail_export_csv_subtitle": "כל הצלילות בטיול זה",
   "trips_detail_export_csv_title": "ייצוא ל-CSV",
@@ -6669,7 +6670,7 @@
   "trips_detail_scan_addDivesFirst": "הוסף צלילות תחילה כדי לקשר תמונות",
   "trips_detail_scan_errorLinking": "לא ניתן לקשר את התמונות. נסו שוב.",
   "trips_detail_scan_errorScanning": "לא ניתן לסרוק תמונות. נסו שוב.",
-  "trips_detail_scan_linkedPhotos": "קושרו {count} תמונות",
+  "trips_detail_scan_linkedPhotos": "{count, plural, =1{קושרה תמונה אחת} other{קושרו {count} תמונות}}",
   "trips_detail_scan_linkingPhotos": "מקשר תמונות...",
   "trips_detail_sectionTitle_notes": "הערות",
   "trips_detail_sectionTitle_vessel": "Vessel",
@@ -6750,7 +6751,7 @@
   },
   "trips_overview_itinerary_none": "עדיין לא תוכנן",
   "trips_overview_plan": "תוכנית",
-  "trips_overview_plan_divesPerDay": "{count} צלילות ליום",
+  "trips_overview_plan_divesPerDay": "{count, plural, =1{צלילה אחת ליום} other{{count} צלילות ליום}}",
   "@trips_overview_plan_divesPerDay": {
     "placeholders": {
       "count": {
@@ -6802,7 +6803,7 @@
   "trips_edit_label_diversSharing": "צוללים החולקים מכלים",
   "trips_edit_hint_diversSharing": "כולל אותך. ריק פירושו 1.",
   "trips_edit_label_divesPerDay": "צלילות ליום",
-  "trips_edit_hint_divesPerDay": "לתחזית המילוי. ריק פירושו הערכה.",
+  "trips_edit_hint_divesPerDay": "לתחזית המילוי. השאר ריק כדי להשתמש בצלילות הצפויות או בתוכנית של כל יום.",
   "trips_edit_label_expectedDives": "צלילות צפויות",
   "trips_edit_hint_expectedDives": "השאר ריק כדי להעריך מהטיולים האחרונים שלך",
   "trips_edit_label_expectedRuntime": "זמן ריצה צפוי לכל צלילה (דקות)",
@@ -6971,7 +6972,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_useEstimate": "להשתמש בהערכה",
+  "trips_cylinders_forecast_clearPlan": "לנקות את התוכנית",
   "trips_cylinders_forecast_fewer": "פחות צלילות",
   "trips_cylinders_forecast_more": "יותר צלילות",
   "trips_cylinders_forecast_saveError": "לא ניתן לשמור את התוכנית. נסו שוב.",
@@ -7249,7 +7250,7 @@
   "trips_gallery_errorLinking": "לא ניתן לקשר את התמונות. נסו שוב.",
   "trips_gallery_errorScanning": "לא ניתן לסרוק תמונות. נסו שוב.",
   "trips_gallery_error_loading": "לא ניתן לטעון את התמונות.",
-  "trips_gallery_linkedPhotos": "קושרו {count} תמונות",
+  "trips_gallery_linkedPhotos": "{count, plural, =1{קושרה תמונה אחת} other{קושרו {count} תמונות}}",
   "trips_gallery_linkingPhotos": "מקשר תמונות...",
   "trips_gallery_tooltip_scan": "סרוק גלריית מכשיר",
   "trips_gallery_tripNotFound": "הטיול לא נמצא",
@@ -7271,6 +7272,7 @@
   },
   "trips_itinerary_plannedDives_label": "צלילות מתוכננות",
   "trips_itinerary_plannedDives_invalid": "הזינו מספר שלם של צלילות, או השאירו ריק.",
+  "trips_itinerary_plannedDives_tooMany": "תכננו עד {max} צלילות ביום.",
   "trips_itinerary_location_label": "מיקום",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",
@@ -7287,7 +7289,7 @@
   "trips_list_inProgress": "בעיצומו",
   "trips_list_pastSection": "טיולים קודמים",
   "trips_list_sort_title": "מיון טיולים",
-  "trips_list_tile_diveCount": "{count} צלילות",
+  "trips_list_tile_diveCount": "{count, plural, =1{צלילה אחת} other{{count} צלילות}}",
   "trips_list_tooltip_addTrip": "הוסף טיול",
   "trips_list_tooltip_search": "חיפוש טיולים",
   "trips_list_tooltip_sort": "מיון",
@@ -7295,7 +7297,7 @@
   "trips_photos_empty_scanButton": "סרוק גלריית מכשיר",
   "trips_photos_empty_title": "עדיין אין תמונות",
   "trips_photos_error_loading": "שגיאה בטעינת תמונות",
-  "trips_photos_moreIndicator_semanticLabel": "עוד {count} תמונות",
+  "trips_photos_moreIndicator_semanticLabel": "{count, plural, =1{עוד תמונה אחת} other{עוד {count} תמונות}}",
   "trips_photos_sectionTitle": "תמונות",
   "trips_photos_tooltip_scan": "סרוק גלריית מכשיר",
   "trips_photos_viewAll": "הצג הכל",
@@ -7534,7 +7536,7 @@
       }
     }
   },
-  "trips_diveScan_addButton": "הוסף {count} צלילות",
+  "trips_diveScan_addButton": "{count, plural, =1{הוסף צלילה אחת} other{הוסף {count} צלילות}}",
   "@trips_diveScan_addButton": {
     "placeholders": {
       "count": {
@@ -7542,7 +7544,7 @@
       }
     }
   },
-  "trips_diveScan_added": "נוספו {count} צלילות לטיול",
+  "trips_diveScan_added": "{count, plural, =1{נוספה צלילה אחת לטיול} other{נוספו {count} צלילות לטיול}}",
   "@trips_diveScan_added": {
     "placeholders": {
       "count": {
@@ -7579,7 +7581,7 @@
   },
   "trips_diveScan_noMatches": "לא נמצאו צלילות תואמות",
   "trips_diveScan_noDiver": "בחר צולל פעיל כדי לסרוק אחר צלילות",
-  "trips_diveScan_subtitle": "נמצאו {count} צלילות בטווח התאריכים",
+  "trips_diveScan_subtitle": "{count, plural, =1{נמצאה צלילה אחת בטווח התאריכים} other{נמצאו {count} צלילות בטווח התאריכים}}",
   "@trips_diveScan_subtitle": {
     "placeholders": {
       "count": {

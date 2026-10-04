@@ -14,6 +14,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.dart';
@@ -114,7 +115,18 @@ class _TripDetailContent extends ConsumerWidget {
           ownerId: trip.diverId,
           isShared: trip.isShared,
         ),
-        Expanded(child: TripDetailTabs(tripWithStats: tripWithStats)),
+        Expanded(
+          child: TripDetailTabs(
+            tripWithStats: tripWithStats,
+            // In the master-detail pane the edit stays in the pane (#2880).
+            onEditPlan: () => openTripEdit(
+              context,
+              trip.id,
+              embedded: embedded,
+              section: TripEditSection.planning,
+            ),
+          ),
+        ),
       ],
     );
 
@@ -156,7 +168,7 @@ class _TripDetailContent extends ConsumerWidget {
       IconButton(
         icon: const Icon(Icons.edit),
         tooltip: context.l10n.trips_detail_tooltip_edit,
-        onPressed: () => context.push('/trips/${trip.id}/edit'),
+        onPressed: () => openTripEdit(context, trip.id, embedded: false),
       ),
       _buildMoreMenu(context, ref, trip),
     ];
@@ -221,11 +233,7 @@ class _TripDetailContent extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.edit_outlined, size: 20),
             visualDensity: VisualDensity.compact,
-            onPressed: () {
-              final state = GoRouterState.of(context);
-              final currentPath = state.uri.path;
-              context.go('$currentPath?selected=${trip.id}&mode=edit');
-            },
+            onPressed: () => openTripEdit(context, trip.id, embedded: true),
             tooltip: context.l10n.trips_detail_tooltip_editShort,
           ),
           _buildMoreMenu(context, ref, trip),

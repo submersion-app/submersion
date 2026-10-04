@@ -23,10 +23,18 @@ bool tripServiceAlertsAnyOverdue(List<DueClock> alerts) =>
 
 /// The pre-trip gear nag's detail: one row per blocking clock, naming the
 /// item and when it falls due. Tapping a row opens the item.
+///
+/// Inside a sheet that already names its one item (#2882), pass
+/// [showItemName] false: each row then reads only its clock.
 class TripServiceAlertList extends ConsumerWidget {
   final List<DueClock> alerts;
+  final bool showItemName;
 
-  const TripServiceAlertList({super.key, required this.alerts});
+  const TripServiceAlertList({
+    super.key,
+    required this.alerts,
+    this.showItemName = true,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,25 +43,30 @@ class TripServiceAlertList extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         for (final alert in alerts)
-          Semantics(
-            button: true,
-            label: alert.item.name,
-            child: ListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(
-                Icons.circle,
-                size: 12,
-                color: serviceSeverityDotColor(context, alert.status.severity),
-              ),
-              title: Text(alert.item.name),
-              subtitle: Text(
-                tripServiceAlertSubtitle(context, units, alert.status),
-              ),
-              onTap: () => context.push('/equipment/${alert.item.id}'),
-            ),
+          _row(
+            context,
+            alert,
+            tripServiceAlertSubtitle(context, units, alert.status),
           ),
       ],
+    );
+  }
+
+  // No Semantics wrapper: a tappable ListTile is already one button node
+  // that reads its title and subtitle, and a wrapper adds a second,
+  // actionless node announcing the same row.
+  Widget _row(BuildContext context, DueClock alert, String clockLine) {
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(
+        Icons.circle,
+        size: 12,
+        color: serviceSeverityDotColor(context, alert.status.severity),
+      ),
+      title: Text(showItemName ? alert.item.name : clockLine),
+      subtitle: showItemName ? Text(clockLine) : null,
+      onTap: () => context.push('/equipment/${alert.item.id}'),
     );
   }
 }
