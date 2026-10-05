@@ -1,7 +1,12 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/conflict_field_catalogue.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field.dart';
+import 'package:submersion/features/settings/presentation/conflicts/conflict_field_format.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
@@ -20,5 +25,61 @@ void main() {
     expect(isConflictFieldCovered('dives', 'hlc'), isTrue);
     expect(isConflictFieldCovered('dives', 'siteId'), isTrue);
     expect(isConflictFieldCovered('dives', 'someFutureColumn'), isFalse);
+  });
+
+  test('dive fields reuse the dive field labels and units', () {
+    const imperial = UnitFormatter(
+      AppSettings(
+        depthUnit: DepthUnit.feet,
+        temperatureUnit: TemperatureUnit.fahrenheit,
+      ),
+    );
+    final temp = conflictFieldFor('dives', 'waterTemp');
+    expect(temp.label(l10n), DiveField.waterTemp.localizedDisplayName(l10n));
+    expect(
+      formatConflictValue(
+        l10n: l10n,
+        units: imperial,
+        field: temp,
+        value: 26.0,
+      ),
+      imperial.formatTemperature(26.0),
+    );
+    expect(conflictFieldFor('dives', 'maxDepth').kind, FieldKind.depth);
+    expect(
+      conflictFieldFor('dives', 'visibilityMeters').kind,
+      FieldKind.distance,
+    );
+    expect(conflictFieldFor('dives', 'notes').kind, FieldKind.longText);
+    expect(conflictFieldFor('dives', 'diveDateTime').kind, FieldKind.wallClock);
+    expect(conflictFieldFor('dives', 'entryTime').kind, FieldKind.wallClock);
+  });
+
+  test('dive enum columns render localized values', () {
+    final entry = conflictFieldFor('dives', 'entryMethod');
+    expect(
+      formatConflictValue(
+        l10n: l10n,
+        units: const UnitFormatter(AppSettings()),
+        field: entry,
+        value: 'boat',
+      ),
+      l10n.enum_entryMethod_boat,
+    );
+  });
+
+  test('a severity reads with the enum of its own entity', () {
+    String severity(String entity, String stored) => formatConflictValue(
+      l10n: l10n,
+      units: const UnitFormatter(AppSettings()),
+      field: conflictFieldFor(entity, 'severity'),
+      value: stored,
+    );
+    expect(severity('qualityFindings', 'critical'), 'Critical');
+    expect(severity('diveSafetyFindings', 'caution'), 'Caution');
+    expect(
+      severity('incidents', 'serious'),
+      l10n.incidentEdit_severity_serious,
+    );
   });
 }

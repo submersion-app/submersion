@@ -11556,6 +11556,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_eventSeverity_alert => 'התראה';
 
   @override
+  String get enum_eventSeverity_info => 'Info';
+
+  @override
   String get enum_eventSeverity_warning => 'אזהרה';
 
   @override
@@ -19221,6 +19224,421 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_fieldHeader => 'Field';
 
   @override
+  String get settings_conflict_field_amountKg => 'Weight';
+
+  @override
+  String get settings_conflict_field_assumedVo2 => 'Assumed oxygen consumption';
+
+  @override
+  String get settings_conflict_field_boatCaptain => 'Boat captain';
+
+  @override
+  String get settings_conflict_field_boatName => 'Boat name';
+
+  @override
+  String get settings_conflict_field_byteCount => 'File size in bytes';
+
+  @override
+  String get settings_conflict_field_bytes => 'File contents';
+
+  @override
+  String get settings_conflict_field_city => 'City';
+
+  @override
+  String get settings_conflict_field_cns => 'CNS';
+
+  @override
+  String get settings_conflict_field_codecVersion => 'Format version';
+
+  @override
+  String get settings_conflict_field_computerModel => 'Dive computer model';
+
+  @override
+  String get settings_conflict_field_computerSerial =>
+      'Dive computer serial number';
+
+  @override
+  String get settings_conflict_field_computerTissueJson =>
+      'Dive computer tissue data';
+
+  @override
+  String get settings_conflict_field_contributingFactors =>
+      'Contributing factors';
+
+  @override
+  String get settings_conflict_field_count => 'Count';
+
+  @override
+  String get settings_conflict_field_country => 'Country';
+
+  @override
+  String get settings_conflict_field_depth => 'Depth';
+
+  @override
+  String get settings_conflict_field_description => 'Description';
+
+  @override
+  String get settings_conflict_field_descriptorModel =>
+      'Dive computer model number';
+
+  @override
+  String get settings_conflict_field_descriptorProduct =>
+      'Dive computer product';
+
+  @override
+  String get settings_conflict_field_descriptorVendor => 'Dive computer maker';
+
+  @override
+  String get settings_conflict_field_detectorId => 'Check';
+
+  @override
+  String get settings_conflict_field_detectorVersion => 'Check version';
+
+  @override
+  String get settings_conflict_field_diluentHe => 'Diluent helium';
+
+  @override
+  String get settings_conflict_field_diluentO2 => 'Diluent oxygen';
+
+  @override
+  String get settings_conflict_field_dismissedAt => 'Dismissed';
+
+  @override
+  String get settings_conflict_field_diveComputerFirmware =>
+      'Dive computer firmware';
+
+  @override
+  String get settings_conflict_field_diveComputerSerial =>
+      'Dive computer serial number';
+
+  @override
+  String get settings_conflict_field_diveOperator => 'Dive operator';
+
+  @override
+  String get settings_conflict_field_diveProfileEvents_severity => 'Severity';
+
+  @override
+  String get settings_conflict_field_diveProfileEvents_source => 'Source';
+
+  @override
+  String get settings_conflict_field_diveSafetyFindings_severity => 'Severity';
+
+  @override
+  String get settings_conflict_field_duration => 'Duration';
+
+  @override
+  String get settings_conflict_field_endTimestamp => 'Ends at (time into dive)';
+
+  @override
+  String get settings_conflict_field_engineVersion => 'Analysis version';
+
+  @override
+  String get settings_conflict_field_entryLatitude => 'Entry latitude';
+
+  @override
+  String get settings_conflict_field_entryLongitude => 'Entry longitude';
+
+  @override
+  String get settings_conflict_field_entryTime => 'Entry time';
+
+  @override
+  String get settings_conflict_field_eventType => 'Event';
+
+  @override
+  String get settings_conflict_field_excludedFromGasStats =>
+      'Left out of gas statistics';
+
+  @override
+  String get settings_conflict_field_excludedFromStats =>
+      'Left out of statistics';
+
+  @override
+  String get settings_conflict_field_exitLatitude => 'Exit latitude';
+
+  @override
+  String get settings_conflict_field_exitLongitude => 'Exit longitude';
+
+  @override
+  String get settings_conflict_field_exitTime => 'Exit time';
+
+  @override
+  String get settings_conflict_field_fieldKey => 'Custom field';
+
+  @override
+  String get settings_conflict_field_fieldValue => 'Custom field value';
+
+  @override
+  String get settings_conflict_field_fileName => 'File name';
+
+  @override
+  String get settings_conflict_field_firstDepth => 'First sample depth';
+
+  @override
+  String get settings_conflict_field_hasDecoStop => 'Has a deco stop';
+
+  @override
+  String get settings_conflict_field_hasDecoType => 'Has deco data';
+
+  @override
+  String get settings_conflict_field_hasPositiveCeiling => 'Has a ceiling';
+
+  @override
+  String get settings_conflict_field_hePercent => 'Helium';
+
+  @override
+  String get settings_conflict_field_importId => 'Import ID';
+
+  @override
+  String get settings_conflict_field_importVersion => 'Import version';
+
+  @override
+  String get settings_conflict_field_importedAt => 'Imported';
+
+  @override
+  String get settings_conflict_field_incidents_category => 'Category';
+
+  @override
+  String get settings_conflict_field_incidents_severity => 'Severity';
+
+  @override
+  String get settings_conflict_field_inputsHash => 'Settings used';
+
+  @override
+  String get settings_conflict_field_isBuiltIn => 'Built in';
+
+  @override
+  String get settings_conflict_field_isPlanned => 'Planned dive';
+
+  @override
+  String get settings_conflict_field_isPrimary => 'Primary';
+
+  @override
+  String get settings_conflict_field_lastDepth => 'Last sample depth';
+
+  @override
+  String get settings_conflict_field_lastParsedAt => 'Last read';
+
+  @override
+  String get settings_conflict_field_latitude => 'Latitude';
+
+  @override
+  String get settings_conflict_field_lessonsLearned => 'Lessons learned';
+
+  @override
+  String get settings_conflict_field_libdivecomputerVersion =>
+      'libdivecomputer version';
+
+  @override
+  String get settings_conflict_field_longitude => 'Longitude';
+
+  @override
+  String get settings_conflict_field_loopO2Avg => 'Loop ppO2 average';
+
+  @override
+  String get settings_conflict_field_loopO2Max => 'Loop ppO2 maximum';
+
+  @override
+  String get settings_conflict_field_loopO2Min => 'Loop ppO2 minimum';
+
+  @override
+  String get settings_conflict_field_loopVolume => 'Loop volume';
+
+  @override
+  String get settings_conflict_field_maxAscentRate => 'Maximum ascent rate';
+
+  @override
+  String get settings_conflict_field_maxDescentRate => 'Maximum descent rate';
+
+  @override
+  String get settings_conflict_field_mergeSourceSlot =>
+      'Position among merged sources';
+
+  @override
+  String get settings_conflict_field_name => 'Name';
+
+  @override
+  String get settings_conflict_field_narrative => 'What happened';
+
+  @override
+  String get settings_conflict_field_o2Percent => 'Oxygen';
+
+  @override
+  String get settings_conflict_field_occurredAt => 'Occurred';
+
+  @override
+  String get settings_conflict_field_outingId => 'Outing';
+
+  @override
+  String get settings_conflict_field_params => 'Details';
+
+  @override
+  String get settings_conflict_field_phone => 'Phone';
+
+  @override
+  String get settings_conflict_field_presetName => 'Tank preset';
+
+  @override
+  String get settings_conflict_field_qualityFindings_category => 'Category';
+
+  @override
+  String get settings_conflict_field_qualityFindings_severity => 'Severity';
+
+  @override
+  String get settings_conflict_field_qualityFindings_status => 'Status';
+
+  @override
+  String get settings_conflict_field_rawData => 'Raw dive computer data';
+
+  @override
+  String get settings_conflict_field_rawFingerprint =>
+      'Dive computer fingerprint';
+
+  @override
+  String get settings_conflict_field_reviewedAt => 'Reviewed';
+
+  @override
+  String get settings_conflict_field_roleSource => 'Role set by';
+
+  @override
+  String get settings_conflict_field_ruleId => 'Rule';
+
+  @override
+  String get settings_conflict_field_sampleCount => 'Number of samples';
+
+  @override
+  String get settings_conflict_field_samples => 'Profile samples';
+
+  @override
+  String get settings_conflict_field_scrAdditionRatio => 'SCR addition ratio';
+
+  @override
+  String get settings_conflict_field_scrInjectionRate => 'SCR injection rate';
+
+  @override
+  String get settings_conflict_field_scrOrificeSize => 'SCR orifice size';
+
+  @override
+  String get settings_conflict_field_scrType => 'SCR type';
+
+  @override
+  String get settings_conflict_field_scrubberDurationMinutes =>
+      'Scrubber duration';
+
+  @override
+  String get settings_conflict_field_scrubberRemainingMinutes =>
+      'Scrubber time remaining';
+
+  @override
+  String get settings_conflict_field_scrubberType => 'Scrubber type';
+
+  @override
+  String get settings_conflict_field_sharedComputerIds =>
+      'Shared with computers';
+
+  @override
+  String get settings_conflict_field_shortName => 'Short name';
+
+  @override
+  String get settings_conflict_field_showInDetailHeader =>
+      'Shown in the dive header';
+
+  @override
+  String get settings_conflict_field_showInListView => 'Shown in the dive list';
+
+  @override
+  String get settings_conflict_field_siteSuggestionDismissedAt =>
+      'Site suggestion dismissed';
+
+  @override
+  String get settings_conflict_field_sortOrder => 'Sort order';
+
+  @override
+  String get settings_conflict_field_sourceDiverKey =>
+      'Diver in the source log';
+
+  @override
+  String get settings_conflict_field_sourceFileFormat => 'Source file format';
+
+  @override
+  String get settings_conflict_field_sourceFileName => 'Source file name';
+
+  @override
+  String get settings_conflict_field_sourceFormat => 'Source format';
+
+  @override
+  String get settings_conflict_field_sourceTankIndex =>
+      'Tank number in the source log';
+
+  @override
+  String get settings_conflict_field_sourceUuid => 'Source ID';
+
+  @override
+  String get settings_conflict_field_startTimestamp =>
+      'Starts at (time into dive)';
+
+  @override
+  String get settings_conflict_field_surfaceConditions => 'Surface conditions';
+
+  @override
+  String get settings_conflict_field_tankMaterial => 'Tank material';
+
+  @override
+  String get settings_conflict_field_tankName => 'Tank name';
+
+  @override
+  String get settings_conflict_field_tankOrder => 'Tank order';
+
+  @override
+  String get settings_conflict_field_tankRole => 'Tank role';
+
+  @override
+  String get settings_conflict_field_timeOffsetSeconds => 'Time offset';
+
+  @override
+  String get settings_conflict_field_timestamp => 'Time into dive';
+
+  @override
+  String get settings_conflict_field_transmitterSerial =>
+      'Transmitter serial number';
+
+  @override
+  String get settings_conflict_field_usageDuration => 'Time breathed';
+
+  @override
+  String get settings_conflict_field_value => 'Value';
+
+  @override
+  String get settings_conflict_field_volume => 'Volume';
+
+  @override
+  String get settings_conflict_field_weatherCode => 'Weather code';
+
+  @override
+  String get settings_conflict_field_weatherFetchedAt => 'Weather fetched';
+
+  @override
+  String get settings_conflict_field_weatherSource => 'Weather source';
+
+  @override
+  String get settings_conflict_field_weightAmount => 'Weight';
+
+  @override
+  String get settings_conflict_field_weightType => 'Weight type';
+
+  @override
+  String get settings_conflict_field_weightingFeedback => 'Weighting';
+
+  @override
+  String get settings_conflict_field_weightingFeedbackKg =>
+      'Weighting difference';
+
+  @override
+  String get settings_conflict_field_windDirection => 'Wind direction';
+
+  @override
+  String get settings_conflict_field_workingPressure => 'Working pressure';
+
+  @override
   String get settings_conflict_keepBoth => 'שמור את שניהם';
 
   @override
@@ -19275,6 +19693,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_previous_tooltip => 'ההתנגשות הקודמת';
 
   @override
+  String get settings_conflict_ref_appliedSet => 'Applied from set';
+
+  @override
+  String get settings_conflict_ref_attachedThrough => 'Attached through';
+
+  @override
   String get settings_conflict_ref_buddy => 'שותף';
 
   @override
@@ -19309,6 +19733,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_divePlan => 'תוכנית צלילה';
+
+  @override
+  String get settings_conflict_ref_diveRole => 'Dive role';
 
   @override
   String get settings_conflict_ref_diveSite => 'אתר צלילה';
@@ -19362,6 +19789,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_preDiveSession => 'רשימת בדיקות לפני צלילה';
 
   @override
+  String get settings_conflict_ref_regulator => 'Regulator';
+
+  @override
   String get settings_conflict_ref_relatedDive => 'צלילה קשורה';
 
   @override
@@ -19393,6 +19823,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_tripCylinder => 'בלון הטיול';
+
+  @override
+  String get settings_conflict_ref_yourRole => 'Your role';
 
   @override
   String settings_conflict_remoteDeleted(String device) {
@@ -19440,6 +19873,75 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_title => 'פתרון התנגשויות';
+
+  @override
+  String get enum_weatherSource_manual => 'Manual';
+
+  @override
+  String get enum_weatherSource_openMeteo => 'Open-Meteo';
+
+  @override
+  String get enum_tankRoleSource_transmitterName => 'Transmitter name';
+
+  @override
+  String get enum_safetySeverity_caution => 'Caution';
+
+  @override
+  String get enum_safetySeverity_info => 'Info';
+
+  @override
+  String get enum_safetySeverity_significant => 'Significant';
+
+  @override
+  String get enum_qualityStatus_dismissed => 'Dismissed';
+
+  @override
+  String get enum_qualityStatus_open => 'Open';
+
+  @override
+  String get enum_qualityStatus_resolved => 'Resolved';
+
+  @override
+  String get enum_qualitySeverity_critical => 'Critical';
+
+  @override
+  String get enum_qualitySeverity_info => 'Info';
+
+  @override
+  String get enum_qualitySeverity_warning => 'Warning';
+
+  @override
+  String get enum_qualityCategory_duplicate => 'Duplicate';
+
+  @override
+  String get enum_qualityCategory_gas => 'Gas';
+
+  @override
+  String get enum_qualityCategory_pressure => 'Pressure';
+
+  @override
+  String get enum_qualityCategory_profile => 'Profile';
+
+  @override
+  String get enum_qualityCategory_source => 'Source';
+
+  @override
+  String get enum_qualityCategory_tank => 'Tank';
+
+  @override
+  String get enum_qualityCategory_temperature => 'Temperature';
+
+  @override
+  String get enum_qualityCategory_time => 'Time';
+
+  @override
+  String get enum_eventSource_computed => 'Calculated';
+
+  @override
+  String get enum_eventSource_imported => 'Imported';
+
+  @override
+  String get enum_eventSource_user => 'Added by you';
 
   @override
   String settings_conflict_whatDiffers(int count) {

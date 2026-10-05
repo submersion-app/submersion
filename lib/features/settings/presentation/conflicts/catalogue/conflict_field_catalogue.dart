@@ -1,4 +1,5 @@
 import 'package:submersion/core/services/sync/conflict_reference.dart';
+import 'package:submersion/features/settings/presentation/conflicts/catalogue/dive_log_fields.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_reference_labels.dart';
 
@@ -16,11 +17,15 @@ const conflictBookkeepingColumns = <String>{
 /// One entry per column name, for names that mean the same thing on every
 /// entity. The domain maps are merged here; a name in two of them is a
 /// mistake the merge asserts on.
-final Map<String, ConflictField> conflictFieldCatalogue = _merge([]);
+final Map<String, ConflictField> conflictFieldCatalogue = _merge([
+  diveLogFields,
+]);
 
 /// Entity-specific meanings, keyed `'<entityType>.<column>'`. Checked before
 /// [conflictFieldCatalogue].
-final Map<String, ConflictField> conflictFieldOverrides = _merge([]);
+final Map<String, ConflictField> conflictFieldOverrides = _merge([
+  diveLogOverrides,
+]);
 
 Map<String, ConflictField> _merge(List<Map<String, ConflictField>> maps) {
   final out = <String, ConflictField>{};

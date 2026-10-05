@@ -13,6 +13,9 @@ enum FieldKind {
   /// Metres that may run to kilometres (track totals), auto-scaled.
   geoDistance,
   pressure,
+
+  /// Atmospheric pressure in bar, shown the way the dive screen shows it.
+  surfacePressure,
   temperature,
   weight,
   volume,

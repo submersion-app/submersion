@@ -42,6 +42,7 @@ void main() {
       'diveSites': 'Dive site',
       'tags': 'Tag',
       'diveTypes': 'Dive type',
+      'diveRoles': 'Dive role',
       'siteTypes': 'Site type',
       'divers': 'Diver',
       'buddies': 'Buddy',
@@ -120,6 +121,18 @@ void main() {
         ),
         'Signed by',
       );
+      for (final (field, target, label) in [
+        ('diverRole', 'diveRoles', 'Your role'),
+        ('regulatorEquipmentId', 'equipment', 'Regulator'),
+        ('viaEquipmentId', 'equipment', 'Attached through'),
+        ('viaSetId', 'equipmentSets', 'Applied from set'),
+      ]) {
+        expect(
+          conflictReferenceLabel(l10n, ref(field: field, targetType: target)),
+          label,
+          reason: field,
+        );
+      }
     });
 
     test('falls back to a readable entity name for an unknown target', () {

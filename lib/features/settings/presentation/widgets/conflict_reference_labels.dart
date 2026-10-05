@@ -25,6 +25,14 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_instructor;
     case 'signerId':
       return l10n.settings_conflict_ref_signer;
+    case 'diverRole':
+      return l10n.settings_conflict_ref_yourRole;
+    case 'regulatorEquipmentId':
+      return l10n.settings_conflict_ref_regulator;
+    case 'viaEquipmentId':
+      return l10n.settings_conflict_ref_attachedThrough;
+    case 'viaSetId':
+      return l10n.settings_conflict_ref_appliedSet;
   }
   switch (reference.targetType) {
     case 'dives':
@@ -35,6 +43,8 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_tag;
     case 'diveTypes':
       return l10n.settings_conflict_ref_diveType;
+    case 'diveRoles':
+      return l10n.settings_conflict_ref_diveRole;
     case 'siteTypes':
       return l10n.settings_conflict_ref_siteType;
     case 'divers':

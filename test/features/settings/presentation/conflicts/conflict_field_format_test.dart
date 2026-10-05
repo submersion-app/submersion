@@ -128,6 +128,13 @@ void main() {
     );
   });
 
+  test('a barometric pressure renders the way the dive screen shows it', () {
+    expect(
+      fmt(metric, FieldKind.surfacePressure, 1.013),
+      metric.formatSurfacePressure(1.013),
+    );
+  });
+
   test('ratios, coordinates and partial pressure', () {
     expect(fmt(metric, FieldKind.percent, 32.0), '32%');
     expect(fmt(metric, FieldKind.percent, 32.5), '32.5%');

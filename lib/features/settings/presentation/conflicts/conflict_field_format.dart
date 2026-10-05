@@ -54,6 +54,7 @@ String formatConflictValue({
     FieldKind.distance => units.formatDistance(number),
     FieldKind.geoDistance => units.formatGeoDistance(number),
     FieldKind.pressure => units.formatPressure(number),
+    FieldKind.surfacePressure => units.formatSurfacePressure(number),
     FieldKind.temperature => units.formatTemperature(number),
     FieldKind.weight => units.formatWeight(number),
     FieldKind.volume => units.formatVolume(number),

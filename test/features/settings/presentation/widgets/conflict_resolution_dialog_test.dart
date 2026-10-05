@@ -251,7 +251,7 @@ void main() {
     expect(find.text('30.5m'), findsOneWidget);
     expect(find.text('31.0m'), findsOneWidget);
     expect(find.text('30.48'), findsNothing);
-  }, skip: true); // TASK-9-UNSKIP: maxDepth is catalogued in Task 9.
+  });
 
   testWidgets('lists the differing column and keeps a duration readable', (
     tester,
@@ -287,7 +287,7 @@ void main() {
     expect(find.text('45min'), findsOneWidget);
     expect(find.textContaining('1786556582600'), findsNothing);
     expect(find.textContaining('2700'), findsNothing);
-  }, skip: true); // TASK-9-UNSKIP: bottomTime is catalogued in Task 9.
+  });
 
   testWidgets('a local deletion is named and shows the remote record', (
     tester,
