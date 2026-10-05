@@ -76,8 +76,8 @@ void main() {
   testWidgets('keeps the range extent on the drawn series by itself', (
     tester,
   ) async {
-    // Opened from the dashboard there is no detail page underneath to set
-    // the extent, so the page has to do it or the handles span nothing.
+    // Nothing else is mounted here to set the extent: the page must not
+    // depend on the screen that opened it having done so.
     final container = _container();
     await _pumpPage(tester, container);
 

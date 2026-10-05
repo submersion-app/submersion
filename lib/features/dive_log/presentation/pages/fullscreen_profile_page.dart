@@ -319,8 +319,8 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     // detail page and the dive-list panel (#543).
     final chartProfile = resolvedActive?.points ?? dive.profile;
 
-    // The dashboard opens this page with no detail page underneath, so it
-    // keeps the range and playback extents on its own drawn series.
+    // Keep the range and playback extents on this page's own drawn series
+    // rather than rely on the screen that opened it having set them.
     keepProfileExtentsOnDrawnSeries(
       context,
       ref,

@@ -8,11 +8,12 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_rang
 /// Keep the playback and range extents on the series the chart draws.
 ///
 /// Called from the build of every surface that draws a dive's profile with
-/// playback or range handles: the detail page's chart host and the
-/// fullscreen page. The fullscreen page needs it too because the dashboard
-/// opens it with no detail page underneath, and the range handles would
-/// otherwise span a zero-length dive (#1577). When both surfaces are mounted
-/// they draw the same series, so whichever runs second finds nothing to do.
+/// playback or range handles: the chart host (detail page and dashboard
+/// preview) and the fullscreen page (#1577). Today every route into
+/// fullscreen leaves a host mounted underneath, but the page keeps its own
+/// extents rather than depend on whichever screen opened it. All of these
+/// surfaces read the dive through diveProvider and draw the same series, so
+/// whichever runs second finds nothing to do.
 ///
 /// Deliberately not a one-shot "initialize if still zero": the data sources
 /// load asynchronously, so the first build falls back to dive.profile and a
