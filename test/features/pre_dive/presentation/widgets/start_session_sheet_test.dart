@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.da
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/start_session_sheet.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
 /// Serves canned template items so selecting a template in the sheet can
@@ -83,13 +85,17 @@ class _FakeSessionRepo implements PreDiveSessionRepository {
 void main() {
   final now = DateTime.fromMillisecondsSinceEpoch(1700000000000);
 
-  PreDiveChecklistTemplate template(String id, String name) =>
-      PreDiveChecklistTemplate(
-        id: id,
-        name: name,
-        createdAt: now,
-        updatedAt: now,
-      );
+  PreDiveChecklistTemplate template(
+    String id,
+    String name, {
+    bool builtIn = false,
+  }) => PreDiveChecklistTemplate(
+    id: id,
+    name: name,
+    isBuiltIn: builtIn,
+    createdAt: now,
+    updatedAt: now,
+  );
 
   PreDiveChecklistTemplateItem tItem(String templateId, PreDiveItemType type) =>
       PreDiveChecklistTemplateItem(
@@ -121,7 +127,10 @@ void main() {
     type: EquipmentType.values.first,
   );
 
-  Future<void> pumpSheet(WidgetTester tester) async {
+  Future<void> pumpSheet(
+    WidgetTester tester, {
+    MockSettingsNotifier? settings,
+  }) async {
     final fakeRepo = _FakeTemplateRepo({
       'plain': [tItem('plain', PreDiveItemType.check)],
       'packing': [tItem('packing', PreDiveItemType.equipmentSet)],
@@ -141,10 +150,13 @@ void main() {
       testApp(
         locale: const Locale('en'),
         overrides: [
+          settingsProvider.overrideWith(
+            (ref) => settings ?? MockSettingsNotifier(),
+          ),
           preDiveTemplateRepositoryProvider.overrideWithValue(fakeRepo),
           preDiveTemplatesProvider.overrideWith(
             (ref) async => [
-              template('plain', 'BWRAF'),
+              template('plain', 'BWRAF', builtIn: true),
               template('packing', 'Gear Packing'),
               template('computer', 'Computer Check'),
             ],
@@ -374,4 +386,25 @@ void main() {
       expect(find.text('SESSION newsession'), findsOneWidget);
     },
   );
+
+  testWidgets('hidden built-in templates are not offered (issue #401)', (
+    tester,
+  ) async {
+    await pumpSheet(
+      tester,
+      settings: MockSettingsNotifier(
+        const AppSettings(
+          hiddenBuiltInIds: {
+            'preDiveTemplates': {'plain'},
+          },
+        ),
+      ),
+    );
+    await tester.tap(
+      find.byType(DropdownButtonFormField<PreDiveChecklistTemplate>),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('BWRAF'), findsNothing);
+    expect(find.text('Gear Packing'), findsWidgets);
+  });
 }

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/shared/widgets/built_in_show_column.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
@@ -33,12 +37,22 @@ class PreDiveTemplatesPage extends ConsumerWidget {
             )
           : templates.isEmpty
           ? Center(child: Text(context.l10n.preDive_templates_empty))
-          : ListView.separated(
-              padding: kFabListPadding,
-              itemCount: templates.length,
-              separatorBuilder: (_, _) => const Divider(height: 1),
-              itemBuilder: (context, index) =>
-                  _TemplateTile(template: templates[index]),
+          : Column(
+              children: [
+                // Built-in and custom templates share one list, so the
+                // header carries only the "Show" label (issue #401). Each
+                // row's menu button sits after the switch.
+                const BuiltInShowColumnHeader(trailingInset: 48, top: 8),
+                Expanded(
+                  child: ListView.separated(
+                    padding: kFabListPadding,
+                    itemCount: templates.length,
+                    separatorBuilder: (_, _) => const Divider(height: 1),
+                    itemBuilder: (context, index) =>
+                        _TemplateTile(template: templates[index]),
+                  ),
+                ),
+              ],
             ),
     );
   }
@@ -101,10 +115,20 @@ class _TemplateTile extends ConsumerWidget {
         ? (template.description.isEmpty ? null : template.description)
         : subtitleParts.join(' - ');
 
+    final isHidden =
+        template.isBuiltIn &&
+        ref
+            .watch(hiddenBuiltInIdsProvider(BuiltInCatalog.preDiveTemplates))
+            .contains(template.id);
+    final disabled = Theme.of(context).disabledColor;
+
     // The built-in badge sits in the subtitle rather than in trailing: a
     // ListTile measures its trailing widget against the full tile width, so a
     // translated badge label there starves the title column (issue #935).
     return ListTile(
+      // A hidden built-in stays listed so it can be shown again (issue #401).
+      textColor: isHidden ? disabled : null,
+      iconColor: isHidden ? disabled : null,
       leading: Icon(template.isBuiltIn ? Icons.lock_outline : Icons.fact_check),
       title: Text(template.name, maxLines: 2, overflow: TextOverflow.ellipsis),
       isThreeLine: template.isBuiltIn && subtitleText != null,
@@ -123,32 +147,52 @@ class _TemplateTile extends ConsumerWidget {
                   ),
               ],
             ),
-      trailing: PopupMenuButton<String>(
-        onSelected: (value) {
-          switch (value) {
-            case 'open':
-              context.push('/pre-dive-checklists/${template.id}/edit');
-            case 'clone':
-              _clone(context, ref);
-            case 'delete':
-              _confirmDelete(context, ref);
-          }
-        },
-        itemBuilder: (context) => [
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
           if (template.isBuiltIn)
-            PopupMenuItem(
-              value: 'open',
-              child: Text(l10n.preDive_templates_view),
+            BuiltInShowSwitch(
+              switchKey: builtInShowSwitchKey(
+                BuiltInCatalog.preDiveTemplates,
+                template.id,
+              ),
+              shown: !isHidden,
+              onChanged: (shown) => ref
+                  .read(settingsProvider.notifier)
+                  .setBuiltInHidden(
+                    BuiltInCatalog.preDiveTemplates,
+                    template.id,
+                    !shown,
+                  ),
             ),
-          PopupMenuItem(
-            value: 'clone',
-            child: Text(l10n.preDive_templates_clone),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              switch (value) {
+                case 'open':
+                  context.push('/pre-dive-checklists/${template.id}/edit');
+                case 'clone':
+                  _clone(context, ref);
+                case 'delete':
+                  _confirmDelete(context, ref);
+              }
+            },
+            itemBuilder: (context) => [
+              if (template.isBuiltIn)
+                PopupMenuItem(
+                  value: 'open',
+                  child: Text(l10n.preDive_templates_view),
+                ),
+              PopupMenuItem(
+                value: 'clone',
+                child: Text(l10n.preDive_templates_clone),
+              ),
+              if (!template.isBuiltIn)
+                PopupMenuItem(
+                  value: 'delete',
+                  child: Text(l10n.preDive_templates_delete),
+                ),
+            ],
           ),
-          if (!template.isBuiltIn)
-            PopupMenuItem(
-              value: 'delete',
-              child: Text(l10n.preDive_templates_delete),
-            ),
         ],
       ),
       // Built-ins open too. The destination renders read-only for them

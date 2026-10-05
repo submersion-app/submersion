@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
+import 'package:submersion/core/built_ins/visible_built_ins.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -147,7 +150,15 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final templatesAsync = ref.watch(preDiveTemplatesProvider);
-    final templates = templatesAsync.value ?? const [];
+    // Hidden built-ins are not offered (issue #401), except the one already
+    // chosen: the dropdown asserts its value is among its items.
+    final templates = visibleBuiltIns(
+      templatesAsync.value ?? const <PreDiveChecklistTemplate>[],
+      ref.watch(hiddenBuiltInIdsProvider(BuiltInCatalog.preDiveTemplates)),
+      isBuiltIn: (t) => t.isBuiltIn,
+      idOf: (t) => t.id,
+      keep: [_template?.id],
+    );
     final setsAsync = ref.watch(equipmentSetsProvider);
     final sets = setsAsync.value ?? const [];
     final equipmentAsync = ref.watch(allEquipmentProvider);
