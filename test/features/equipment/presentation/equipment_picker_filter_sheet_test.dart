@@ -195,4 +195,31 @@ void main() {
 
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('orders the type chips by their label (#2937)', (tester) async {
+    // Handed over in enum order; the sheet sorts whatever it is given.
+    await openSheet(
+      tester,
+      types: const [
+        EquipmentType.regulator,
+        EquipmentType.bcd,
+        EquipmentType.wetsuit,
+        EquipmentType.dpv,
+      ],
+    );
+
+    final keys = [
+      for (final chip in tester.widgetList<ChoiceChip>(find.byType(ChoiceChip)))
+        if (chip.key case ValueKey<String>(
+          :final value,
+        ) when value.startsWith('picker_filter_type_'))
+          value,
+    ];
+    expect(keys, [
+      'picker_filter_type_bcd',
+      'picker_filter_type_dpv',
+      'picker_filter_type_regulator',
+      'picker_filter_type_wetsuit',
+    ]);
+  });
 }

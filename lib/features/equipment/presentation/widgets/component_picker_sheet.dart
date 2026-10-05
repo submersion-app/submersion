@@ -251,12 +251,12 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
               for (final item in candidates) {
                 grouped.putIfAbsent(item.type, () => []).add(item);
               }
-              // Groups follow the enum's declared order, the same order the
-              // type dropdown and filter chips use, not the order the rows
+              // Groups follow the localized label, the same order the type
+              // dropdown and filter chips use (#2937), not the order the rows
               // happened to arrive in.
               final groups = [
-                for (final type in EquipmentType.values)
-                  if (grouped[type] case final items?) (type, items),
+                for (final type in grouped.keys.sortedByLocalizedName(l10n))
+                  (type, grouped[type]!),
               ];
               return ListView(
                 controller: widget.scrollController,

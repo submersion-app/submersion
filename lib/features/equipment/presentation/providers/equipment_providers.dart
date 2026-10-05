@@ -152,6 +152,9 @@ final effectiveEquipmentFilterProvider = Provider<EquipmentFilterState>((ref) {
 
 /// The gear categories the diver actually owns, in [EquipmentType] order.
 ///
+/// That order is not the display order: the surfaces that show these sort
+/// them by localized label (#2937).
+///
 /// Drives the filter panel's category chips so it never offers a type with no
 /// gear behind it. Derived from every item -- including retired -- because the
 /// status axis can put retired gear back on screen.

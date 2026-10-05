@@ -212,3 +212,33 @@ int equipmentTypeRank(EquipmentType type, List<EquipmentType> table) {
   final index = table.indexOf(type);
   return index == -1 ? table.length : index;
 }
+
+/// Orders types alphabetically by the label the reader sees (#2937).
+///
+/// [label] resolves a type to its on-screen string; pass the localized name
+/// so the order follows the active locale. Comparison is case-insensitive,
+/// and two types sharing a label fall back to the enum name so the order is
+/// total and stable. Each label is resolved and lowercased once per
+/// comparator, not once per comparison.
+Comparator<EquipmentType> equipmentTypeLabelComparator(
+  String Function(EquipmentType) label,
+) {
+  final lowerLabels = <EquipmentType, String>{};
+  String lowerLabel(EquipmentType type) =>
+      lowerLabels[type] ??= label(type).toLowerCase();
+  return (a, b) {
+    if (a == b) return 0;
+    final byLabel = lowerLabel(a).compareTo(lowerLabel(b));
+    return byLabel != 0 ? byLabel : a.name.compareTo(b.name);
+  };
+}
+
+/// [types] as a new list in [equipmentTypeLabelComparator] order.
+///
+/// Every list a diver picks a type from goes through this, rather than
+/// iterating [EquipmentType.values], whose declaration order is an artifact
+/// of when each type was added.
+List<EquipmentType> sortEquipmentTypesByLabel(
+  Iterable<EquipmentType> types,
+  String Function(EquipmentType) label,
+) => List.of(types)..sort(equipmentTypeLabelComparator(label));

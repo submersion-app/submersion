@@ -281,7 +281,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
     final owned = ref.watch(ownedEquipmentTypesProvider);
     final types = EquipmentType.values
         .where((t) => owned.contains(t) || t == _type)
-        .toList();
+        .sortedByLocalizedName(context.l10n);
 
     if (types.isEmpty) return const SizedBox.shrink();
 

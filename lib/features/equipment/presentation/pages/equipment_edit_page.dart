@@ -347,12 +347,14 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               labelText: context.l10n.equipment_edit_typeLabel,
               prefixIcon: const Icon(Icons.category),
             ),
-            items: EquipmentType.values.map((type) {
-              return DropdownMenuItem(
-                value: type,
-                child: Text(type.localizedName(context.l10n)),
-              );
-            }).toList(),
+            items: EquipmentType.values.sortedByLocalizedName(context.l10n).map(
+              (type) {
+                return DropdownMenuItem(
+                  value: type,
+                  child: Text(type.localizedName(context.l10n)),
+                );
+              },
+            ).toList(),
             onChanged: (value) {
               if (value != null) {
                 setState(() {
