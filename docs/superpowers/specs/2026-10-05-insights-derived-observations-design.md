@@ -173,7 +173,7 @@ the diver's dismissals and mutes persist.
   `undismiss` (for Undo), `watchDismissedKeys(diverId)`; marks rows pending
   for sync.
 
-### 5.3 Storage (schema 261)
+### 5.3 Storage (schema 262)
 
 One rung, following the split layout (tables in
 `lib/core/database/tables/`, the rung in `migrations/`):
@@ -243,7 +243,7 @@ read and preserved on write.
   by rule id.
 - Loader test against an in-memory database: the snapshot matches seeded
   dives and ignores the view filter and excluded dives.
-- Migration test for rung 261; sync round-trip for dismissals and the mute
+- Migration test for rung 262 (renumbered from 261 when #2985 took it); sync round-trip for dismissals and the mute
   column; diver delete removes dismissals.
 - Widget tests: strip on phone and desktop, empty strip takes no space,
   dismiss with Undo, mute and unmute, filter note, page empty state, error

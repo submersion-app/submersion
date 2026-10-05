@@ -542,10 +542,12 @@ class SubsurfaceXmlParser implements ImportParser {
     }
   }
 
-  /// Turns a dive's `<suit>` into gear the dive wore when the text says
-  /// which suit it is (issue #1824), so it can reach the Suit Thickness
-  /// statistic. An unclear suit adds nothing and stays in the notes only,
-  /// as before; the notes line is kept either way (see [_parseDive]).
+  /// Turns a dive's `<suit>` into gear the dive wore, one item per name, so
+  /// the import loses no suit (issue #633). Text that says which suit it is
+  /// is typed from it ([classifySuitGear], issue #1824) and can reach the
+  /// Suit Thickness statistic. Unclear text becomes Other, which claims no
+  /// suit kind, for the diver to retype. The notes line is kept either way
+  /// (see [_parseDive]).
   void _collectSuit(
     XmlElement diveElement,
     Map<String, dynamic> diveData,
@@ -553,8 +555,8 @@ class SubsurfaceXmlParser implements ImportParser {
   ) {
     final name = diveElement.findElements('suit').firstOrNull?.innerText.trim();
     if (name == null || name.isEmpty) return;
-    final suit = classifySuit(name);
-    if (suit == null) return;
+    final suit =
+        classifySuitGear(name) ?? (type: EquipmentType.other, thickness: null);
     allSuits.putIfAbsent(
       name,
       () => {

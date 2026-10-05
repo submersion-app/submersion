@@ -208,10 +208,9 @@ class DiverSettings extends Table {
   // every settings row is written from. Sync fills a key missing from an
   // older peer's payload with this column default and writes it over the
   // local row, so a 0 here would move existing libraries to computer.
-  // Applies to the GTR and deco stop sources below too.
+  // Applies to the GTR and deco stop sources below too. The ceiling line has
+  // no source (#755); its column was dropped in v261 (#767).
   IntColumn get defaultNdlSource => integer().withDefault(const Constant(1))();
-  IntColumn get defaultCeilingSource =>
-      integer().withDefault(const Constant(1))();
   IntColumn get defaultTtsSource => integer().withDefault(const Constant(1))();
   IntColumn get defaultCnsSource => integer().withDefault(const Constant(1))();
   // Gas time remaining on the profile chart (v177). Source is a
@@ -257,7 +256,7 @@ class DiverSettings extends Table {
   /// #2305), JSON list of preset slugs. Null or absent = none hidden.
   TextColumn get hiddenTankPresetIds => text().nullable()();
 
-  /// v261: muted Insights observation rules (#2381), JSON list of
+  /// v262: muted Insights observation rules (#2381), JSON list of
   /// ObservationRuleId.dbValue. Null or absent = none muted.
   TextColumn get insightsMutedObservationRules => text().nullable()();
   // Appearance settings

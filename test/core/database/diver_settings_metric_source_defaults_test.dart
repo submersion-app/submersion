@@ -8,11 +8,11 @@ import 'package:submersion/features/settings/data/repositories/diver_settings_re
 
 import '../../helpers/test_database.dart';
 
-/// The six per-metric data-source columns on diver_settings. A
-/// MetricDataSource index: 0 = computer, 1 = calculated.
+/// The five per-metric data-source columns on diver_settings. A
+/// MetricDataSource index: 0 = computer, 1 = calculated. The sixth,
+/// default_ceiling_source, was dropped in v261 (#767).
 const _sourceColumns = [
   'default_ndl_source',
-  'default_ceiling_source',
   'default_deco_stop_source',
   'default_tts_source',
   'default_cns_source',

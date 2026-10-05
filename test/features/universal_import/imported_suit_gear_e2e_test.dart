@@ -177,15 +177,19 @@ void main() {
     expect(drysuit.type, EquipmentType.drysuit);
     _expectNoThickness(drysuit);
 
-    // "Full suit" does not say which suit it is: no gear, as before.
-    expect(gearByDive[2], isEmpty);
+    // "Full suit" does not say which suit it is: it still becomes gear on
+    // its dive (#633), typed Other so it claims no suit kind.
+    final unclear = gearByDive[2].single;
+    expect(unclear.name, 'Full suit');
+    expect(unclear.type, EquipmentType.other);
+    _expectNoThickness(unclear);
 
     final unrated = gearByDive[3].single;
     expect(unrated.type, EquipmentType.wetsuit);
     _expectNoThickness(unrated);
 
     // One dive in each of the chart's three kinds of bucket; the "Full suit"
-    // dive reaches none.
+    // dive reaches none, because Other gear is not a wetsuit or a drysuit.
     await _expectSuitStats(
       byThickness: [(mm: 3.0, count: 1)],
       unknownThickness: 1,

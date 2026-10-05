@@ -2,8 +2,8 @@ part of '../app_database_migrations.dart';
 
 /// Insights observations (issue #2381).
 extension InsightMigrations on AppDatabase {
-  /// Idempotent v261 schema: the muted-rules column on diver_settings and
-  /// the insight_observation_dismissals table. Called from the v261 rung
+  /// Idempotent v262 schema: the muted-rules column on diver_settings and
+  /// the insight_observation_dismissals table. Called from the v262 rung
   /// and the beforeOpen backstop. The table is skipped on a partial
   /// migration-test fixture that lacks the divers table its key points at.
   Future<void> _assertInsightObservationsSchema() async {
