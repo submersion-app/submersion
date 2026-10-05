@@ -12,7 +12,11 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 /// Lost row into Retired; this badge keeps Lost whether the row is active
 /// or not, because the gear is gone either way and "Lost" is the more
 /// useful prompt to swap it.
+///
+/// Wanted gear (#2025) is inactive but has not left the kit; it never
+/// joined it, so it gets no departed badge.
 EquipmentStatus? departedStatusOf(EquipmentItem item) {
+  if (item.status == EquipmentStatus.wanted) return null;
   if (item.status == EquipmentStatus.sold) return EquipmentStatus.sold;
   if (item.status == EquipmentStatus.lost) return EquipmentStatus.lost;
   if (item.status == EquipmentStatus.retired || !item.isActive) {

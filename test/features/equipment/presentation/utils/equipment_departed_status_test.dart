@@ -52,4 +52,11 @@ void main() {
     expect(departedStatusOf(item(EquipmentStatus.active)), isNull);
     expect(departedStatusOf(item(EquipmentStatus.needsService)), isNull);
   });
+
+  test('wanted gear has not departed: it never joined the kit (#2025)', () {
+    expect(
+      departedStatusOf(item(EquipmentStatus.wanted, isActive: false)),
+      isNull,
+    );
+  });
 }
