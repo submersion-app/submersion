@@ -217,8 +217,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertLateGasSwitchSettingColumn();
     }
     if (from < 264) await reportProgress();
+    // v265: Insights observation dismissals (synced) and the muted-rules
+    // column on diver_settings (#2381). Additive; re-asserted in beforeOpen.
+    if (from < 265) await _assertInsightObservationsSchema();
+    if (from < 265) await reportProgress();
     // v268: equipment locations and their move log (issue #3037).
-    // Re-asserted in beforeOpen. 265 to 267 are held by open branches.
+    // Re-asserted in beforeOpen. 266 and 267 are held by open branches.
     if (from < 268) {
       await _assertEquipmentLocationSchema();
     }

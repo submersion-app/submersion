@@ -52,6 +52,7 @@ void main() {
     'cylinder_fills': 'cylinderFills',
     'connection_maps': 'connectionMaps',
     'saved_queries': 'savedQueries',
+    'insight_observation_dismissals': 'insightObservationDismissals',
     'dive_computers': 'diveComputers',
     'species': 'species',
     'tags': 'tags',

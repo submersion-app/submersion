@@ -14,12 +14,23 @@ import 'package:submersion/features/insights/domain/career_totals.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/widgets/observations_strip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class InsightsOverviewPage extends ConsumerWidget {
   final bool embedded;
-  const InsightsOverviewPage({super.key, this.embedded = false});
+
+  /// Leads with the observations strip (#2381). On for the desktop summary
+  /// pane only: the Overview category detail is the same page and would
+  /// otherwise repeat it.
+  final bool showObservations;
+
+  const InsightsOverviewPage({
+    super.key,
+    this.embedded = false,
+    this.showObservations = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,7 +41,8 @@ class InsightsOverviewPage extends ConsumerWidget {
       error: (e, _) => _ErrorCard(
         onRetry: () => ref.invalidate(filteredDiveStatisticsProvider),
       ),
-      data: (stats) => _OverviewBody(stats: stats),
+      data: (stats) =>
+          _OverviewBody(stats: stats, showObservations: showObservations),
     );
 
     if (embedded) return body;
@@ -45,7 +57,8 @@ class InsightsOverviewPage extends ConsumerWidget {
 
 class _OverviewBody extends ConsumerWidget {
   final DiveStatistics stats;
-  const _OverviewBody({required this.stats});
+  final bool showObservations;
+  const _OverviewBody({required this.stats, required this.showObservations});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -89,6 +102,8 @@ class _OverviewBody extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (showObservations)
+            const ObservationsStrip(padding: EdgeInsets.only(bottom: 16)),
           _AggregateGrid(stats: stats, fmt: fmt, career: career),
           if (career.divingSinceResolved != null) ...[
             const SizedBox(height: 8),
