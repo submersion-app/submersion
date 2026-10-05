@@ -3222,6 +3222,112 @@ class AppLocalizationsEn extends AppLocalizations {
       'Unknown certification';
 
   @override
+  String get certificationAgencies_addCustomAgency => 'Add custom agency...';
+
+  @override
+  String get certificationAgencies_addCustomCertification =>
+      'Add custom certification...';
+
+  @override
+  String get certificationAgencies_dialog_newAgencyTitle => 'New agency';
+
+  @override
+  String get certificationAgencies_dialog_editAgencyTitle => 'Edit agency';
+
+  @override
+  String get certificationAgencies_dialog_newCertificationTitle =>
+      'New certification';
+
+  @override
+  String get certificationAgencies_dialog_editCertificationTitle =>
+      'Edit certification';
+
+  @override
+  String get certificationAgencies_dialog_nameLabel => 'Name';
+
+  @override
+  String get certificationAgencies_dialog_colorLabel => 'Card color';
+
+  @override
+  String get certificationAgencies_dialog_specialty => 'Specialty';
+
+  @override
+  String get certificationAgencies_error_nameRequired => 'Enter a name';
+
+  @override
+  String get certificationAgencies_error_nameTaken =>
+      'That name is already in use';
+
+  @override
+  String get settings_manage_certificationAgencies => 'Certification Agencies';
+
+  @override
+  String get settings_manage_certificationAgencies_subtitle =>
+      'Manage custom agencies and certifications';
+
+  @override
+  String get certificationAgencies_section_yours => 'Your agencies';
+
+  @override
+  String get certificationAgencies_section_builtIn => 'Built-in agencies';
+
+  @override
+  String get certificationAgencies_addAgency => 'Add agency';
+
+  @override
+  String certificationAgencies_sharedBy(String name) {
+    return 'Shared by $name';
+  }
+
+  @override
+  String get certificationAgencies_editor_addCertification =>
+      'Add certification';
+
+  @override
+  String get certificationAgencies_editor_builtInHint =>
+      'Built-in certifications cannot be changed. You can add your own.';
+
+  @override
+  String certificationAgencies_delete_confirmTitle(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String get certificationAgencies_delete_refusedTitle => 'Still in use';
+
+  @override
+  String certificationAgencies_delete_refusedBody(String usage) {
+    return 'Used by $usage. Change those first.';
+  }
+
+  @override
+  String certificationAgencies_usage_certifications(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count certifications',
+      one: '1 certification',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_courses(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count courses',
+      one: '1 course',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_and(String first, String second) {
+    return '$first and $second';
+  }
+
+  @override
   String get certifications_edit_addRecognition => 'Add another recognition';
 
   @override

@@ -23,6 +23,8 @@ import 'package:submersion/features/certification_agencies/domain/certification_
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/certification_agencies/presentation/widgets/certification_agency_dropdown.dart';
+import 'package:submersion/features/certification_agencies/presentation/widgets/certification_level_dialog.dart';
 
 class CertificationEditPage extends ConsumerStatefulWidget {
   final String? certificationId;
@@ -410,6 +412,11 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
   /// Built-in and custom agencies and levels (issue #690).
   CertificationCatalog get _catalog => context.certificationCatalog;
 
+  /// Bumped to remount a level field after the add action, so the action
+  /// row is never left showing as the selection when the dialog is
+  /// cancelled.
+  int _levelRevision = 0;
+
   String _agencyAt(int i) => i == 0 ? _agency : _extraCredentials[i - 1].agency;
   String? _levelAt(int i) => i == 0 ? _level : _extraCredentials[i - 1].level;
 
@@ -430,6 +437,26 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
       }
       _hasChanges = true;
     });
+  }
+
+  /// The add action opens the certification dialog for [agency] and selects
+  /// what it creates; any other option is an ordinary selection.
+  Future<void> _onLevelChanged(
+    int i,
+    String agency,
+    CertificationOption? option,
+  ) async {
+    if (option == null || !option.isAddCustom) {
+      _setLevelAt(i, option?.level);
+      return;
+    }
+    final created = await showCertificationLevelDialog(
+      context,
+      agencyId: agency,
+    );
+    if (!mounted) return;
+    setState(() => _levelRevision++);
+    if (created != null) _setLevelAt(i, created.id);
   }
 
   void _setLevelAt(int i, String? level) {
@@ -470,40 +497,18 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DropdownButtonFormField<String>(
+              CertificationAgencyDropdown(
                 key: ValueKey('cred-agency-$i'),
-                initialValue: agency,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  labelText: context.l10n.certifications_edit_label_agency,
-                  prefixIcon: const Icon(Icons.business),
-                  isDense: true,
-                ),
-                items: [
-                  for (final a in _catalog.agencies)
-                    DropdownMenuItem(
-                      value: a.id,
-                      child: Text(a.localizedName(context.l10n)),
-                    ),
-                  // A stored agency the pickers do not offer (unknown, or
-                  // another diver's private one) still has to render.
-                  if (!_catalog.agencies.any((a) => a.id == agency))
-                    DropdownMenuItem(
-                      value: agency,
-                      child: Text(
-                        _catalog.agency(agency).localizedName(context.l10n),
-                      ),
-                    ),
-                ],
-                onChanged: (value) {
-                  if (value != null) _setAgencyAt(i, value);
-                },
+                value: agency,
+                labelText: context.l10n.certifications_edit_label_agency,
+                isDense: true,
+                onChanged: (value) => _setAgencyAt(i, value),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<CertificationOption>(
                 // The key forces a remount when the agency changes or the
                 // level is reset externally, so initialValue is re-read.
-                key: ValueKey('cred-level-$i-$agency-$level'),
+                key: ValueKey('cred-level-$i-$agency-$level-$_levelRevision'),
                 initialValue: CertificationOption.value(level),
                 isExpanded: true,
                 decoration: InputDecoration(
@@ -513,7 +518,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   isDense: true,
                 ),
                 items: _certificationItems(context, agency, level),
-                onChanged: (option) => _setLevelAt(i, option?.level),
+                onChanged: (option) => _onLevelChanged(i, agency, option),
               ),
             ],
           ),
@@ -584,6 +589,13 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
       header('specialties', context.l10n.certifications_edit_group_specialties),
       ...specialties.map(item),
       if (extra != null) item(extra),
+      DropdownMenuItem<CertificationOption>(
+        value: const CertificationOption.addCustom(),
+        child: Text(
+          context.l10n.certificationAgencies_addCustomCertification,
+          style: TextStyle(color: theme.colorScheme.primary),
+        ),
+      ),
       item(_catalog.level(CertificationLevel.other.name)),
     ];
   }

@@ -39,7 +39,12 @@ void main() {
     final dropdown = tester.widget<DropdownButton<String>>(
       find.byType(DropdownButton<String>).first,
     );
-    return [for (final item in dropdown.items!) item.value!];
+    // The trailing "Add custom agency..." row is an action, not an agency
+    // (issue #690).
+    return [
+      for (final item in dropdown.items!)
+        if (!item.value!.startsWith('__')) item.value!,
+    ];
   }
 
   testWidgets('course editor offers every agency, including FFESSM', (

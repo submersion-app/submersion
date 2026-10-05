@@ -22,6 +22,14 @@ class CertificationOption {
   /// two headers are never equal to each other.
   const CertificationOption.header(String this.headerKey) : level = null;
 
+  /// The "Add custom certification..." action row (issue #690). Selectable,
+  /// with a key no header uses, so it stays unique too.
+  const CertificationOption.addCustom() : level = null, headerKey = _addKey;
+
+  static const _addKey = '__addCustom__';
+
+  bool get isAddCustom => headerKey == _addKey;
+
   final String? level;
   final String? headerKey;
 

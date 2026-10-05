@@ -15,10 +15,8 @@ import 'package:submersion/features/certifications/presentation/widgets/certific
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
-import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
-import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/certification_agencies/presentation/widgets/certification_agency_dropdown.dart';
 
 class CourseEditPage extends ConsumerStatefulWidget {
   final String? courseId;
@@ -146,34 +144,10 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           const SizedBox(height: 16),
 
           // Agency
-          DropdownButtonFormField<String>(
-            initialValue: _agency,
-            decoration: InputDecoration(
-              labelText: context.l10n.courses_label_agency,
-              prefixIcon: const Icon(Icons.business),
-            ),
-            items: [
-              for (final agency in CertificationAgency.values)
-                DropdownMenuItem(
-                  value: agency.name,
-                  child: Text(agency.localizedName(context.l10n)),
-                ),
-              // A stored id outside the built-ins still has to render.
-              if (CertificationAgency.fromId(_agency) == null)
-                DropdownMenuItem(
-                  value: _agency,
-                  child: Text(
-                    context.certificationCatalog
-                        .agency(_agency)
-                        .localizedName(context.l10n),
-                  ),
-                ),
-            ],
-            onChanged: (value) {
-              if (value != null) {
-                setState(() => _agency = value);
-              }
-            },
+          CertificationAgencyDropdown(
+            value: _agency,
+            labelText: context.l10n.courses_label_agency,
+            onChanged: (value) => setState(() => _agency = value),
           ),
           const SizedBox(height: 16),
 
