@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -199,6 +197,7 @@ class TableModeLayout extends ConsumerWidget {
           selectionAppBar: isSelectionMode ? selectionAppBar : null,
           isSelectionMode: isSelectionMode,
           selectedId: selectedId,
+          paneSelectedId: mdsSelectedId,
           onItemSelected: onItemSelected,
         );
       },
@@ -387,10 +386,15 @@ class TableModeLayout extends ConsumerWidget {
 /// MasterDetailScaffold already provides the outer Scaffold.
 ///
 /// Bridges provider-driven [selectedId] changes to MasterDetailScaffold's
-/// URL-based selection via [onItemSelected] using a debounced timer. The
-/// delay (500ms) is longer than [kDoubleTapTimeout] (~300ms) so that a
-/// double-tap's [context.push] fires before the bridge can call
-/// [router.go], preventing the pushed page from being clobbered.
+/// URL-based selection via [onItemSelected], at the end of the frame that
+/// rebuilt the table with the new highlight (issue #2982).
+///
+/// The sync used to wait 500ms so a double-tap's [context.push] would land
+/// first, but the table stays mounted under the pushed page, so the late
+/// [router.go] clobbered the push, and every click lagged the detail pane.
+/// Syncing post-frame orders it the other way: the first tap's pointer-down
+/// sets the highlight and the route follows within that frame, well before
+/// the second tap can complete, so the push lands on top of it.
 class _TableModeMaster extends StatefulWidget {
   final String appBarTitle;
   final SubtitleText? appBarSubtitle;
@@ -401,6 +405,9 @@ class _TableModeMaster extends StatefulWidget {
   final PreferredSizeWidget? selectionAppBar;
   final bool isSelectionMode;
   final String? selectedId;
+
+  /// The id the detail pane shows now, from MasterDetailScaffold's route.
+  final String? paneSelectedId;
   final void Function(String?)? onItemSelected;
 
   const _TableModeMaster({
@@ -413,6 +420,7 @@ class _TableModeMaster extends StatefulWidget {
     this.selectionAppBar,
     this.isSelectionMode = false,
     this.selectedId,
+    this.paneSelectedId,
     this.onItemSelected,
   });
 
@@ -421,27 +429,28 @@ class _TableModeMaster extends StatefulWidget {
 }
 
 class _TableModeMasterState extends State<_TableModeMaster> {
-  Timer? _syncTimer;
+  bool _syncScheduled = false;
 
   @override
   void didUpdateWidget(_TableModeMaster oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.selectedId != oldWidget.selectedId) {
-      // Debounce: wait longer than kDoubleTapTimeout so that a double-tap's
-      // context.push fires first. If the widget is disposed (e.g. by the
-      // push navigation), the timer is cancelled in dispose().
-      _syncTimer?.cancel();
-      _syncTimer = Timer(const Duration(milliseconds: 500), () {
-        if (!mounted) return;
-        widget.onItemSelected?.call(widget.selectedId);
-      });
-    }
+    if (widget.selectedId != oldWidget.selectedId) _scheduleSync();
   }
 
-  @override
-  void dispose() {
-    _syncTimer?.cancel();
-    super.dispose();
+  /// Routes the detail pane to [selectedId] once the current frame ends.
+  /// Navigating during build is not allowed, and several highlight changes
+  /// in one frame collapse into a single navigation to the last of them.
+  void _scheduleSync() {
+    if (_syncScheduled) return;
+    _syncScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncScheduled = false;
+      if (!mounted) return;
+      // The embedded detail page steps to a neighbour by setting the
+      // highlight and going to the route itself; nothing is left to do.
+      if (widget.selectedId == widget.paneSelectedId) return;
+      widget.onItemSelected?.call(widget.selectedId);
+    });
   }
 
   @override
