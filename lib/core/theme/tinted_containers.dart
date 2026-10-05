@@ -22,9 +22,10 @@ const double _darkTint = 0.28;
 /// its foreground is the scheme's onSurface.
 ///
 /// [secondaryAccent] replaces the secondary (and tertiary) accent as the tint
-/// source, for a theme whose secondary sits too close to its surface to tint
-/// into a visible fill. Material draws selection indicators (navigation
-/// indicators, selected segments and chips) in secondaryContainer.
+/// source. Material draws selection indicators (navigation indicators,
+/// selected segments and chips) in secondaryContainer, so a theme passes this
+/// to give them a different accent; Console dark tints them from its teal
+/// primary rather than its slate secondary.
 ColorScheme withTintedContainers(ColorScheme scheme, {Color? secondaryAccent}) {
   final tint = scheme.brightness == Brightness.dark ? _darkTint : _lightTint;
   Color container(Color accent) =>

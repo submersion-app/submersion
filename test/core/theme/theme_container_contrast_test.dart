@@ -66,10 +66,13 @@ void main() {
   // touching it builds the GoogleFonts-backed theme finals, which must happen
   // inside setUpAll's guarded zone.
   group('theme container roles', () {
+    /// Checks every container on every preset against the colour [against]
+    /// picks, which must reach [minimum] contrast with it.
     void expectContainers(
       String description,
-      Color Function(ColorScheme scheme, Color onContainer) foreground,
-    ) {
+      Color Function(ColorScheme scheme, Color onContainer) against, {
+      double minimum = _aaText,
+    }) {
       for (final preset in AppThemeRegistry.presets) {
         for (final brightness in Brightness.values) {
           final scheme = AppThemeRegistry.resolveTheme(
@@ -79,8 +82,8 @@ void main() {
           for (final MapEntry(key: role, value: (container, onContainer))
               in _containers(scheme).entries) {
             expect(
-              _contrast(foreground(scheme, onContainer), container),
-              greaterThanOrEqualTo(_aaText),
+              _contrast(against(scheme, onContainer), container),
+              greaterThanOrEqualTo(minimum),
               reason: '${preset.id} ${brightness.name} $role: $description',
             );
           }
@@ -99,23 +102,11 @@ void main() {
     // A container tinted from an accent that sits close to the surface (a
     // dark red error, Console dark's app-bar navy secondary) vanishes into it.
     test('every container stands apart from the surface', () {
-      for (final preset in AppThemeRegistry.presets) {
-        for (final brightness in Brightness.values) {
-          final scheme = AppThemeRegistry.resolveTheme(
-            preset,
-            brightness,
-          ).colorScheme;
-          for (final MapEntry(key: role, value: (container, _)) in _containers(
-            scheme,
-          ).entries) {
-            expect(
-              _contrast(container, scheme.surface),
-              greaterThanOrEqualTo(_fillSeparation),
-              reason: '${preset.id} ${brightness.name} $role vs surface',
-            );
-          }
-        }
-      }
+      expectContainers(
+        'separation from surface',
+        (scheme, _) => scheme.surface,
+        minimum: _fillSeparation,
+      );
     });
   });
 
