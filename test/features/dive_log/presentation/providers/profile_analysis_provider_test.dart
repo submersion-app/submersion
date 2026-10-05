@@ -1458,5 +1458,35 @@ void main() {
         ]);
       });
     }
+
+    // An untagged (back gas) cylinder is read the way the CCR switch
+    // classifier reads it: pure O2 is the O2 supply, anything else the
+    // diluent.
+    final untaggedDive = makeDive(
+      diveMode: DiveMode.ccr,
+      tanks: const [
+        DiveTank(id: 'dil', gasMix: GasMix(o2: 32)),
+        DiveTank(id: 'o2', gasMix: GasMix(o2: 100)),
+        DiveTank(
+          id: 'bail',
+          gasMix: GasMix(o2: 21, he: 35),
+          role: TankRole.bailout,
+        ),
+      ],
+    );
+    for (final gasSet in AscentGasSet.values) {
+      test('reads untagged cylinders as the CCR roles (${gasSet.name})', () {
+        final gases = buildAvailableGases(
+          untaggedDive,
+          maxPpO2: 1.6,
+          gasSet: gasSet,
+          forCcrBailout: true,
+        );
+        expect(gases.map((g) => g.fO2), [
+          closeTo(1.0, 1e-9),
+          closeTo(0.21, 1e-9),
+        ]);
+      });
+    }
   });
 }

@@ -374,15 +374,18 @@ List<AvailableGas> buildAvailableGases(
   bool forCcrBailout = false,
 }) {
   bool keep(DiveTank t) {
+    // A CCR bailout reads cylinder roles the way its switches are read, so
+    // an untagged diluent is left out here exactly as a tagged one is.
+    final role = forCcrBailout ? ccrCylinderRole(t) : t.role;
     if (forCcrBailout) {
-      if (t.role == TankRole.diluent) return false;
-      if (t.role == TankRole.oxygenSupply) return true;
+      if (role == TankRole.diluent) return false;
+      if (role == TankRole.oxygenSupply) return true;
     }
     if (gasSet == AscentGasSet.allCarried) return true;
-    return t.role == TankRole.backGas ||
-        t.role == TankRole.deco ||
-        t.role == TankRole.stage ||
-        t.role == TankRole.bailout;
+    return role == TankRole.backGas ||
+        role == TankRole.deco ||
+        role == TankRole.stage ||
+        role == TankRole.bailout;
   }
 
   final gases = <AvailableGas>[];

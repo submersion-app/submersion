@@ -57,7 +57,7 @@ List<CcrGasChange> classifyCcrGasChanges(
   List<GasSwitchWithTank> switches,
   List<DiveTank> tanks,
 ) {
-  final roles = {for (final tank in tanks) tank.id: _ccrRoleOf(tank)};
+  final roles = {for (final tank in tanks) tank.id: ccrCylinderRole(tank)};
   final ordered =
       switches.where((s) => roles.containsKey(s.gasSwitch.tankId)).toList()
         ..sort((a, b) {
@@ -89,9 +89,11 @@ List<CcrGasChange> classifyCcrGasChanges(
   return changes;
 }
 
-/// The role a CCR dive's cylinder plays in [classifyCcrGasChanges]: an
-/// untagged (back gas) cylinder is loop gas, see there.
-TankRole _ccrRoleOf(DiveTank tank) {
+/// The role a CCR dive's cylinder plays in [classifyCcrGasChanges] and in
+/// its bailout ascent gases: an untagged (back gas) cylinder is loop gas, the
+/// O2 supply when it holds pure O2 and otherwise a diluent (see
+/// [classifyCcrGasChanges]).
+TankRole ccrCylinderRole(DiveTank tank) {
   if (tank.role != TankRole.backGas) return tank.role;
   return tank.gasMix.o2 >= 99.0 ? TankRole.oxygenSupply : TankRole.diluent;
 }
