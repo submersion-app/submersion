@@ -28,4 +28,12 @@ enum QuerySubject {
 
   /// A dive's safety review findings (#2195), a relation target of dives.
   findings,
+
+  /// Custom certification agencies (issue #690): name-only, for resolving
+  /// typed and spoken agency values. No registry entity; never a query root
+  /// or a relation target.
+  certificationAgencies,
+
+  /// Custom certification levels (issue #690): name-only, as above.
+  certificationLevels,
 }
