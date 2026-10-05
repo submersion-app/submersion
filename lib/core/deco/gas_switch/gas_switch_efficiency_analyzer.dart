@@ -29,17 +29,21 @@ class GasSwitchEfficiencyAnalyzer {
   final List<TissueCompartment>? startCompartments;
 
   /// Null when not applicable (fewer than two gases, no samples, or a
-  /// ceiling curve that does not match the profile).
+  /// ceiling or TTS curve that does not match the profile). [ttsCurve] is the
+  /// analysis' own TTS per sample: the as-dived side of every comparison, so
+  /// the dive is not replayed again for it.
   GasSwitchEfficiency? analyze({
     required List<double> depths,
     required List<int> timestamps,
     required List<ProfileGasSegment> gasSegments,
     required List<double> ceilingCurve,
+    required List<int> ttsCurve,
   }) {
     if (gases.length < 2 ||
         depths.length < 2 ||
         gasSegments.isEmpty ||
-        ceilingCurve.length != depths.length) {
+        ceilingCurve.length != depths.length ||
+        ttsCurve.length != depths.length) {
       return null;
     }
     if (!ceilingCurve.any((c) => c > 0)) {
@@ -79,7 +83,7 @@ class GasSwitchEfficiencyAnalyzer {
           depths,
           timestamps,
           replay.peakTtsGap(
-            actual: gasSegments,
+            actualTts: ttsCurve,
             counterfactual: withSwitchesOnTime(gasSegments, [w], timestamps),
             fromIndex: w.startIndex,
             mustEvaluateIndex: w.endIndex,
@@ -89,7 +93,7 @@ class GasSwitchEfficiencyAnalyzer {
     final total = flagged.length == 1
         ? windows.single.extraDecoSeconds
         : replay.peakTtsGap(
-            actual: gasSegments,
+            actualTts: ttsCurve,
             counterfactual: withSwitchesOnTime(
               gasSegments,
               flagged,

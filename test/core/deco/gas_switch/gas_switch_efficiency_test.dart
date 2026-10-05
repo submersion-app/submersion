@@ -46,6 +46,20 @@ void main() {
     expect(efficiency.copyWith(evaluated: false).evaluated, isFalse);
   });
 
+  test('at a boundary two windows share, the starting one is current', () {
+    final next = late.copyWith(
+      fO2: 1.0,
+      idealTimestamp: 1910,
+      endTimestamp: 2200,
+    );
+    final efficiency = GasSwitchEfficiency(
+      evaluated: true,
+      windows: [late, next],
+    );
+    expect(efficiency.windowAt(1910), next);
+    expect(efficiency.windowAt(1909), late);
+  });
+
   test('OptimalOcAscentGas exposes its gases', () {
     const air = AvailableGas(fN2: 0.79, fHe: 0, maxPpO2Mod: 66);
     const ean50 = AvailableGas(fN2: 0.5, fHe: 0, maxPpO2Mod: 22);

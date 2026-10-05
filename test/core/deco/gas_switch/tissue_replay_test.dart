@@ -61,6 +61,44 @@ void main() {
     expectSameTissues(replayed, statuses.last.compartments);
   });
 
+  test('the analysis TTS curve stands in for replaying the dive as dived', () {
+    final recorded = [seg(0, 0.21), seg(1910, 0.5)];
+    final start = indexAt(dive, 1630);
+    final end = indexAt(dive, 1910);
+    final counterfactual = withSwitchesOnTime(recorded, [
+      DetectedSwitchWindow(
+        gas: gases[1],
+        startIndex: start,
+        endIndex: end,
+        switchIndex: end,
+      ),
+    ], dive.timestamps);
+    final ttsCurve = newEngine()
+        .processProfileWithGasSegments(
+          depths: dive.depths,
+          timestamps: dive.timestamps,
+          gasSegments: recorded,
+          ascentGasPlan: plan,
+        )
+        .map((s) => s.ttsSeconds)
+        .toList();
+
+    final replayed = replay().peakTtsGap(
+      actual: recorded,
+      counterfactual: counterfactual,
+      fromIndex: start,
+      mustEvaluateIndex: end,
+    );
+    final fromCurve = replay().peakTtsGap(
+      actualTts: ttsCurve,
+      counterfactual: counterfactual,
+      fromIndex: start,
+      mustEvaluateIndex: end,
+    );
+    expect(replayed, greaterThan(0));
+    expect(fromCurve, replayed);
+  });
+
   test('identical schedules have no gap', () {
     final segments = [seg(0, 0.21), seg(1690, 0.5)];
     expect(

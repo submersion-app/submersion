@@ -21,15 +21,12 @@ void main() {
     final profile = sampleProfile(waypoints);
     final available = gases ?? [air, ean50, o2];
     final plan = OptimalOcAscentGas(gases: available, maxPpO2: 1.6);
-    final ceilings = newEngine()
-        .processProfileWithGasSegments(
-          depths: profile.depths,
-          timestamps: profile.timestamps,
-          gasSegments: segments,
-          ascentGasPlan: plan,
-        )
-        .map((s) => s.ceilingMeters)
-        .toList();
+    final statuses = newEngine().processProfileWithGasSegments(
+      depths: profile.depths,
+      timestamps: profile.timestamps,
+      gasSegments: segments,
+      ascentGasPlan: plan,
+    );
     return GasSwitchEfficiencyAnalyzer(
       newEngine: newEngine,
       gases: available,
@@ -38,7 +35,8 @@ void main() {
       depths: profile.depths,
       timestamps: profile.timestamps,
       gasSegments: segments,
-      ceilingCurve: ceilings,
+      ceilingCurve: [for (final s in statuses) s.ceilingMeters],
+      ttsCurve: [for (final s in statuses) s.ttsSeconds],
     );
   }
 

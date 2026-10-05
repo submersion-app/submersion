@@ -43,19 +43,30 @@ class TissueReplay {
   /// Largest `TTS(actual) - TTS(counterfactual)` from [fromIndex] to the end
   /// of the dive, evaluated every [evaluationStrideSeconds] and at
   /// [mustEvaluateIndex]; floored at zero.
+  ///
+  /// The as-dived side comes either from [actualTts], the TTS the analysis
+  /// already computed for every sample (the cheap path, used by the analyzer,
+  /// and the very curve the diver sees), or by replaying [actual]. Pass
+  /// exactly one.
   int peakTtsGap({
-    required List<ProfileGasSegment> actual,
+    List<ProfileGasSegment>? actual,
+    List<int>? actualTts,
     required List<ProfileGasSegment> counterfactual,
     required int fromIndex,
     int? mustEvaluateIndex,
   }) {
-    final a = _seeded();
+    assert(
+      (actual == null) != (actualTts == null),
+      'pass exactly one of actual and actualTts',
+    );
+    assert(actualTts == null || actualTts.length == depths.length);
+    final a = actual == null ? null : _seeded();
     final c = _seeded();
     var peak = 0;
     int? lastEvaluated;
     for (var i = 0; i < depths.length; i++) {
       if (i > 0) {
-        _loadInterval(a, i, actual);
+        if (a != null) _loadInterval(a, i, actual!);
         _loadInterval(c, i, counterfactual);
       }
       if (i < fromIndex) continue;
@@ -65,7 +76,8 @@ class TissueReplay {
           i == mustEvaluateIndex;
       if (!due) continue;
       lastEvaluated = timestamps[i];
-      final gap = _tts(a, i, actual) - _tts(c, i, counterfactual);
+      final asDived = a == null ? actualTts![i] : _tts(a, i, actual!);
+      final gap = asDived - _tts(c, i, counterfactual);
       if (gap > peak) peak = gap;
     }
     return peak;

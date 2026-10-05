@@ -123,6 +123,16 @@ void main() {
     expect(result.windows, isEmpty);
   });
 
+  test('a switch to a richer gas ends the open window there', () {
+    // Back gas until O2 at the 9 m stop (t = 2400), never EAN50. The EAN50
+    // window ends at the O2 switch, not at O2's 6 m MOD further up.
+    final result = detect([seg(0, 0.21), seg(2400, 1.0)]);
+    final ean = result.windows.firstWhere((w) => identical(w.gas, ean50));
+    expect(ean.switchIndex, isNull);
+    expect(dive.timestamps[ean.endIndex], 2400);
+    expect(result.windows.where((w) => identical(w.gas, o2)), isEmpty);
+  });
+
   test('air breaks after an on-time O2 switch open no window', () {
     final result = detect([
       seg(0, 0.21),

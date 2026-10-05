@@ -1063,6 +1063,7 @@ class ProfileAnalysisService {
             timestamps: timestamps,
             gasSegments: gasSegments,
             ceilingCurve: ceilingCurve,
+            ttsCurve: ttsCurve,
           )
         : null;
 

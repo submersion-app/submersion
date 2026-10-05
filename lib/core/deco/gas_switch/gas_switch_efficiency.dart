@@ -122,8 +122,11 @@ class GasSwitchEfficiency extends Equatable {
   /// Extra deco with every flagged window fixed at once (not a sum).
   final int totalExtraDecoSeconds;
 
+  /// The window under [timestamp]. Where one window ends on the sample the
+  /// next starts on, the starting one is current: windows are time-ordered,
+  /// so the last match wins.
   GasSwitchWindow? windowAt(int timestamp) {
-    for (final window in windows) {
+    for (final window in windows.reversed) {
       if (window.contains(timestamp)) return window;
     }
     return null;
