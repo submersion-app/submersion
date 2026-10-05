@@ -10,7 +10,6 @@ import 'package:video_player/video_player.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -40,8 +39,9 @@ import 'package:submersion/features/media/presentation/widgets/mini_dive_profile
 import 'package:submersion/features/media/presentation/widgets/media_info_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_chips_row.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
+import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
-import 'package:submersion/features/media_store/presentation/widgets/media_reupload_button.dart';
+import 'package:submersion/features/media_store/presentation/widgets/media_reupload_menu.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/media/presentation/match_confidence_display.dart';
@@ -227,6 +227,8 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
     );
     super.dispose();
   }
+
+  void _enterFullscreen() {}
 
   /// Steps [delta] pages from the last page *requested*, not the last one
   /// settled on.
@@ -481,11 +483,17 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
                 // Overlay controls (app bar and metadata)
                 if (_showOverlay) ...[
                   // Top app bar
-                  _TopOverlay(
+                  MediaViewerToolbar(
                     item: currentItem,
                     currentIndex: currentIndex,
                     totalCount: mediaList.length,
                     onClose: () => Navigator.of(context).pop(),
+                    onEnterFullscreen: _enterFullscreen,
+                    onShowInfo: () => showMediaInfoSheet(context, currentItem),
+                    onReupload: mediaReuploadAvailable(ref)
+                        ? (anchor) =>
+                              showMediaReuploadMenu(anchor, ref, currentItem)
+                        : null,
                     onShare: (anchor) =>
                         _shareCurrentPhoto(currentItem, anchor),
                     onWriteMetadata: () => _writeMetadataToPhoto(currentItem),
@@ -592,7 +600,8 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
                     baseElapsedSeconds: enrichment!.elapsedSeconds!,
                     settings: settings,
                     topReserve:
-                        MediaQuery.paddingOf(context).top + _topChromeHeight,
+                        MediaQuery.paddingOf(context).top +
+                        kMediaViewerToolbarHeight,
                     playback: currentItem.isVideo
                         ? _videoControllers[currentItem.id]
                         : null,
@@ -1325,163 +1334,6 @@ class _VideoControlsOverlayState extends State<_VideoControlsOverlay> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Height of [_TopOverlay]'s content below the status bar: its 8 px vertical
-/// padding either side of a default 48 px [IconButton]. The Perdix overlay
-/// reserves this band so the face can never sit on top of the toolbar's
-/// buttons -- keep the two in step if the toolbar's padding changes.
-const double _topChromeHeight = 64;
-
-/// Top overlay with close button, page indicator, share, and write metadata.
-class _TopOverlay extends StatelessWidget {
-  final MediaItem item;
-  final int currentIndex;
-  final int totalCount;
-  final VoidCallback onClose;
-  final void Function(Rect? anchor) onShare;
-  final VoidCallback onWriteMetadata;
-  final VoidCallback onTagSpecies;
-
-  /// Whether the write-dive-data action is offered. Needs enrichment depth to
-  /// have anything to write, and a photo to write it to: videos cannot be
-  /// edited in place, and replacing one would destroy the original
-  /// (issue #1472).
-  final bool canWriteMetadata;
-
-  /// Whether the Perdix overlay toggle is shown (media synced to a profile).
-  final bool showPerdixToggle;
-
-  /// Whether the Perdix overlay is currently enabled (tints the icon).
-  final bool perdixEnabled;
-
-  final VoidCallback onTogglePerdix;
-
-  /// Non-null only for Lightroom-linked items on the connected device.
-  final VoidCallback? onOpenInLightroom;
-
-  /// Non-null when the viewer is cross-dive and the item has a dive link.
-  final VoidCallback? onGoToDive;
-
-  const _TopOverlay({
-    required this.item,
-    required this.currentIndex,
-    required this.totalCount,
-    required this.onClose,
-    required this.onShare,
-    required this.onWriteMetadata,
-    required this.onTagSpecies,
-    required this.canWriteMetadata,
-    required this.showPerdixToggle,
-    required this.perdixEnabled,
-    required this.onTogglePerdix,
-    this.onOpenInLightroom,
-    this.onGoToDive,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.black.withValues(alpha: 0.7), Colors.transparent],
-          ),
-        ),
-        child: SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  tooltip: context.l10n.media_photoViewer_closeTooltip,
-                  onPressed: onClose,
-                ),
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      context.l10n.media_photoViewer_pageIndicator(
-                        currentIndex + 1,
-                        totalCount,
-                      ),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
-                // Jump to the owning dive (cross-dive viewers only)
-                if (onGoToDive != null)
-                  IconButton(
-                    icon: const Icon(Icons.scuba_diving, color: Colors.white),
-                    tooltip: context.l10n.media_viewer_goToDive,
-                    onPressed: onGoToDive,
-                  ),
-                // Write metadata button (only shown if photo has dive data)
-                if (canWriteMetadata)
-                  IconButton(
-                    icon: const Icon(Icons.edit_note, color: Colors.white),
-                    tooltip:
-                        context.l10n.media_photoViewer_writeDiveDataTooltip,
-                    onPressed: onWriteMetadata,
-                  ),
-                // Perdix dive computer overlay toggle (only when the media
-                // can be synced to the dive profile)
-                if (showPerdixToggle)
-                  IconButton(
-                    icon: Icon(
-                      Icons.watch,
-                      color: perdixEnabled
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.white,
-                    ),
-                    tooltip: context.l10n.media_perdixOverlay_toggleTooltip,
-                    onPressed: onTogglePerdix,
-                  ),
-                if (onOpenInLightroom != null)
-                  IconButton(
-                    icon: const Icon(Icons.open_in_new, color: Colors.white),
-                    tooltip: context.l10n.media_lightroom_openInLightroom,
-                    onPressed: onOpenInLightroom,
-                  ),
-                IconButton(
-                  key: const ValueKey('viewer_species'),
-                  icon: const Icon(Icons.sell_outlined, color: Colors.white),
-                  tooltip: context.l10n.media_species_actionTooltip,
-                  onPressed: onTagSpecies,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.info_outline, color: Colors.white),
-                  tooltip: context.l10n.media_info_title,
-                  onPressed: () => showMediaInfoSheet(context, item),
-                ),
-                // Builder so the iPad share popover anchors to this
-                // button: findRenderObject from a Builder's context descends
-                // to the IconButton rather than yielding the whole overlay.
-                Builder(
-                  builder: (buttonContext) => IconButton(
-                    icon: const Icon(Icons.share, color: Colors.white),
-                    tooltip: context.l10n.media_photoViewer_shareTooltip,
-                    onPressed: () => onShare(shareAnchorFrom(buttonContext)),
-                  ),
-                ),
-                MediaReuploadButton(item: item, color: Colors.white),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
