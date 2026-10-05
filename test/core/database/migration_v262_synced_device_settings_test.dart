@@ -38,12 +38,17 @@ void main() {
     'pscr_ratio',
   ];
 
-  test('v262 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 262);
-    expect(AppDatabase.migrationVersions, contains(262));
-    expect(AppDatabase.migrationStepCount(261), 1);
+  test('v262 is in the ladder, between v261 and v263', () {
+    // Relaxed once v263 (distance unit, #3004) landed on top; the newest
+    // rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(262));
+    const ladder = AppDatabase.migrationVersions;
+    expect(ladder, contains(262));
+    expect(ladder.indexOf(262), ladder.indexOf(261) + 1);
+    expect(
+      AppDatabase.migrationStepCount(261),
+      AppDatabase.migrationStepCount(262) + 1,
+    );
   });
 
   test('the columns are additive, so the sync floor does not move', () {
@@ -75,7 +80,7 @@ void main() {
   });
 
   test(
-    'a database already at v262 without them regains them via beforeOpen',
+    'a database already current without them regains them via beforeOpen',
     () async {
       final db = AppDatabase(strandedAt(AppDatabase.currentSchemaVersion));
       addTearDown(db.close);

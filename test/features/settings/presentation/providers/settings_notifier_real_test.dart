@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/presentation/startup_brightness.dart';
 import 'package:submersion/core/presentation/startup_theme.dart';
@@ -246,6 +247,37 @@ void main() {
 
       // The derived provider the equipment pages read tracks the change.
       expect(container.read(defaultCurrencyProvider), 'EUR');
+    });
+
+    test('setDistanceUnit sets the distance unit (issue #2030)', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(
+        container.read(settingsProvider).distanceUnit,
+        DistanceUnit.kilometers,
+      );
+      await container
+          .read(settingsProvider.notifier)
+          .setDistanceUnit(DistanceUnit.miles);
+      expect(container.read(settingsProvider).distanceUnit, DistanceUnit.miles);
+    });
+
+    test('setImperial and setMetric carry the distance unit', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+      final notifier = container.read(settingsProvider.notifier);
+
+      await notifier.setImperial();
+      expect(container.read(settingsProvider).distanceUnit, DistanceUnit.miles);
+      expect(container.read(settingsProvider).unitPreset, UnitPreset.imperial);
+
+      await notifier.setMetric();
+      expect(
+        container.read(settingsProvider).distanceUnit,
+        DistanceUnit.kilometers,
+      );
+      expect(container.read(settingsProvider).unitPreset, UnitPreset.metric);
     });
 
     test('setDefaultCurrency accepts a code outside the presets', () async {

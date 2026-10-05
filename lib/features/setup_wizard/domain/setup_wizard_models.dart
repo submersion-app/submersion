@@ -79,7 +79,7 @@ class SetupWizardDraft {
     );
   }
 
-  /// Returns a copy with the six core units set to [preset].
+  /// Returns a copy with the seven core units set to [preset].
   /// [UnitPreset.custom] returns this draft unchanged.
   SetupWizardDraft applyingUnitPreset(UnitPreset preset) {
     switch (preset) {
@@ -92,6 +92,7 @@ class SetupWizardDraft {
             volumeUnit: VolumeUnit.liters,
             weightUnit: WeightUnit.kilograms,
             altitudeUnit: AltitudeUnit.meters,
+            distanceUnit: DistanceUnit.kilometers,
           ),
         );
       case UnitPreset.imperial:
@@ -103,6 +104,7 @@ class SetupWizardDraft {
             volumeUnit: VolumeUnit.cubicFeet,
             weightUnit: WeightUnit.pounds,
             altitudeUnit: AltitudeUnit.feet,
+            distanceUnit: DistanceUnit.miles,
           ),
         );
       case UnitPreset.custom:

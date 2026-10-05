@@ -212,5 +212,11 @@ extension RungsFromV231 on AppDatabase {
       await _assertSyncedDeviceSettingsColumns();
     }
     if (from < 262) await reportProgress();
+    // v263: diver_settings.distance_unit (issue #2030), backfilled from each
+    // diver's depth unit as the column is added. Re-asserted in beforeOpen.
+    if (from < 263) {
+      await _assertDistanceUnitColumn();
+    }
+    if (from < 263) await reportProgress();
   }
 }

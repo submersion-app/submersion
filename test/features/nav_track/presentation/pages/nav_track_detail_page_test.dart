@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -530,7 +531,10 @@ void main() {
         await tester.tap(find.text('New Dive Site'));
         await tester.pumpAndSettle();
 
-        expect(seededLocation, const GeoPoint(47.3, 8.5));
+        expect(
+          seededLocation,
+          const NewSiteSeed(location: GeoPoint(47.3, 8.5)),
+        );
         await tester.tap(find.text('save new site'));
         await tester.pumpAndSettle();
 

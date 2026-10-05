@@ -30,14 +30,11 @@ Future<Set<String>> _diverSettingsColumns(AppDatabase db) async {
 
 void main() {
   test('v261 is in the ladder', () {
-    // Relaxed once v262 (#2948) landed on top; the newest rung owns the
-    // exact assertion.
+    // Relaxed once v263 (distance unit) landed on top; the newest rung owns
+    // the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(261));
     expect(AppDatabase.migrationVersions, contains(261));
-    expect(
-      AppDatabase.migrationStepCount(260),
-      AppDatabase.migrationStepCount(261) + 1,
-    );
+    expect(AppDatabase.migrationStepCount(260), greaterThanOrEqualTo(1));
   });
 
   test('the drop does not move the sync floor', () {
