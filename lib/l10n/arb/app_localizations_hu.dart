@@ -47915,4 +47915,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get query_saveNeedsDiver =>
       'Hozzon létre merülő profilt a lekérdezések mentéséhez';
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'Távolság mértékegysége';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Késői gázváltások';
 }

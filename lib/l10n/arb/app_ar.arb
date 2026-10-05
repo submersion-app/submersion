@@ -14404,5 +14404,7 @@
   "settings_manage_savedQueries": "الاستعلامات المحفوظة",
   "settings_manage_savedQueries_subtitle": "إعادة تسمية الاستعلامات المحفوظة وإعادة ترتيبها وحذفها",
   "query_editor_needsText": "أدخل كلمة واحدة على الأقل",
-  "query_saveNeedsDiver": "أنشئ ملف غواص لحفظ الاستعلامات"
+  "query_saveNeedsDiver": "أنشئ ملف غواص لحفظ الاستعلامات",
+  "settings_conflict_field_distanceUnit": "وحدة المسافة",
+  "settings_conflict_field_defaultShowLateGasSwitches": "تبديلات الغاز المتأخرة"
 }

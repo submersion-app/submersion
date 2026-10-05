@@ -127,6 +127,7 @@ void main() {
 
   test('settings enums read the way the settings screens show them', () {
     expect(depthUnitLabeler(l10n, 'feet'), 'ft');
+    expect(distanceUnitLabeler(l10n, 'miles'), 'mi');
     expect(pressureUnitLabeler(l10n, 'psi'), 'psi');
     expect(listViewModeLabeler(l10n, 'dense'), l10n.enum_listViewMode_dense);
     expect(timeFormatLabeler(l10n, 'twelveHour'), isNot('twelveHour'));

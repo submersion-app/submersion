@@ -48046,4 +48046,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get query_saveNeedsDiver =>
       'Legen Sie ein Taucherprofil an, um Abfragen zu speichern';
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'Entfernungseinheit';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Späte Gaswechsel';
 }
