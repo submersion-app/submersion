@@ -116,8 +116,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   TankPresetEntity? _selectedPreset;
 
   /// Counts the diver's spec choices: a preset, a cylinder or a scan. A
-  /// cylinder fills the tank only once its fills load, and only if no newer
-  /// choice came in meanwhile, which it would otherwise overwrite.
+  /// cylinder or a scan fills the tank only once its database work is done,
+  /// and only if no newer choice came in meanwhile, which it would otherwise
+  /// overwrite.
   int _specChoice = 0;
 
   /// The regulator breathed from this cylinder (v202). Null until the diver
@@ -1180,19 +1181,23 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     final l10n = context.l10n;
     final text = await ref.read(passportScanLauncherProvider)(context);
     if (text == null || !mounted) return;
-    // A scan is the newer choice over a cylinder still loading.
-    _specChoice++;
+    final choice = ++_specChoice;
     // From here the scan is database work the host may need to wait for:
     // Save must not run before the scanned cylinder reaches the dive.
-    final scan = _fillFromTag(text, messenger, l10n);
+    final scan = _fillFromTag(text, choice, messenger, l10n);
     widget.onScanPending?.call(scan);
     await scan;
   }
 
-  /// Resolves a scanned [text] and fills the tank from it. Never throws: a
-  /// failure is logged and reported with a snack bar.
+  /// Resolves a scanned [text] and fills the tank from it, unless a newer
+  /// spec choice than [choice] came in while it resolved: then the tag
+  /// neither fills the tank nor adds its cylinder to the gear. A fill the
+  /// tag carries is still recorded, since it is the cylinder's history, not
+  /// a choice about this tank. Never throws: a failure is logged and
+  /// reported with a snack bar.
   Future<void> _fillFromTag(
     String text,
+    int choice,
     ScaffoldMessengerState messenger,
     AppLocalizations l10n,
   ) async {
@@ -1216,7 +1221,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 passportId: tag.passportId,
                 equipmentId: equipmentId,
               );
-          if (!mounted) return;
+          if (!mounted || choice != _specChoice) return;
           // The passport lookup found it, but the row is gone (deleted on
           // another device): say so rather than do nothing.
           if (item == null) {
@@ -1224,6 +1229,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           }
           await _useOwnCylinder(item, fills, messenger, l10n);
         case ForeignCylinder(:final tag):
+          if (choice != _specChoice) return;
           final filled = _applyScannedSpec(
             volumeL: tag.volumeL,
             workingPressureBar: tag.workingPressureBar?.toDouble(),
