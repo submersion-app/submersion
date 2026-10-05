@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/connections/presentation/connection_labels.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/connections/data/repositories/connections_repository.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
@@ -22,11 +23,15 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/saved_connection_maps_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/year_play_provider.dart';
+import 'package:submersion/features/connections/presentation/share/connections_share_action.dart';
+import 'package:submersion/features/connections/presentation/share/connections_share_caption.dart';
+import 'package:submersion/features/connections/presentation/share/connections_share_renderer.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_empty_state.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_legend.dart';
 import 'package:submersion/features/connections/presentation/widgets/hidden_nodes_chip.dart';
 import 'package:submersion/features/connections/presentation/widgets/insight_strip.dart';
 import 'package:submersion/features/connections/presentation/widgets/year_play_pill.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -207,6 +212,35 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     if (mounted) {
       setState(() => _budgetOverride = ConnectionsPage.maxBudget);
     }
+  }
+
+  /// Shares the map in view as an image: the layout as it stands, in the
+  /// current highlight mode, captioned with the map's name and range.
+  Future<void> _share(ConnectionGraph graph, ConnectionsViewState view) {
+    final caption = ConnectionsShareCaption.of(
+      l10n: context.l10n,
+      units: UnitFormatter(ref.read(settingsProvider)),
+      view: view,
+      graph: graph,
+      filter: ref.read(connectionsFilterProvider),
+      span: ref.read(connectionsYearSpanProvider).value,
+      savedMapNames: {
+        for (final m in ref.read(savedConnectionMapsProvider).value ?? const [])
+          m.id: m.name,
+      },
+    );
+    final frame = _layout.frame;
+    final groups = _groups;
+    return shareConnectionsImage(
+      context,
+      render: () => ConnectionsShareRenderer.renderWithAssets(
+        graph: graph,
+        frame: frame,
+        highlight: view.highlight,
+        groups: groups,
+        caption: caption,
+      ),
+    );
   }
 
   /// The canvas's accessible summary: counts, then the selection by name.
@@ -503,6 +537,12 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
       appBar: AppBar(
         title: Text(l10n.connections_title),
         actions: [
+          IconButton(
+            key: const ValueKey('connections-share'),
+            icon: const Icon(Icons.ios_share),
+            tooltip: l10n.connections_share_tooltip,
+            onPressed: showCanvas ? () => _share(graph, view) : null,
+          ),
           if (focus != null)
             IconButton(
               icon: const Icon(Icons.zoom_out_map),

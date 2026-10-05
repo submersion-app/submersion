@@ -672,4 +672,20 @@ void main() {
     );
     c.read(yearPlayProvider.notifier).pause();
   });
+  testWidgets('the share button opens the share sheet', (tester) async {
+    await _pump(tester);
+    final button = find.byKey(const ValueKey('connections-share'));
+    expect(tester.widget<IconButton>(button).onPressed, isNotNull);
+    await tester.tap(button);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Share map image'), findsOneWidget);
+    expect(find.text('Save to File'), findsOneWidget);
+  });
+
+  testWidgets('no map, no share', (tester) async {
+    await _pump(tester, graph: (ref, budget) => ConnectionGraph.empty);
+    final button = find.byKey(const ValueKey('connections-share'));
+    expect(tester.widget<IconButton>(button).onPressed, isNull);
+  });
 }
