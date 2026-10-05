@@ -15,6 +15,7 @@ import 'package:submersion/features/certifications/presentation/services/certifi
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Bottom sheet for sharing a certification as an image.
 ///
@@ -46,6 +47,9 @@ class _CertificationShareSheetState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // The subtitle titles a custom level through the catalog, which can
+    // arrive after the first frame (issue #690).
+    ref.watch(certificationCatalogSyncProvider);
 
     return SafeArea(
       child: Padding(

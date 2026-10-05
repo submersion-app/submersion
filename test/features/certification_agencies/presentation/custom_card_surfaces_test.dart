@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +11,7 @@ import 'package:submersion/features/certifications/domain/constants/certificatio
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_ecard_front.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_ecard_grid.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_share_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Issue #690: the generated card front, the wallet grid and the table's
@@ -83,6 +86,33 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('Unknown'), findsNothing);
     expect(find.textContaining('Club Diver'), findsWidgets);
+  });
+
+  testWidgets('the share sheet subtitle updates when the catalog loads', (
+    tester,
+  ) async {
+    final pending = Completer<CertificationCatalog>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          certificationCatalogProvider.overrideWith((ref) => pending.future),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: CertificationShareSheet(
+              certification: cert,
+              diverName: 'Ana',
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    pending.complete(catalog);
+    await tester.pumpAndSettle();
+    expect(find.text('Club Diver'), findsOneWidget);
   });
 
   test('the Name column titles the custom level', () {

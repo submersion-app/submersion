@@ -1,9 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_agency.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_level.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_wallet_page.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -251,6 +257,66 @@ void main() {
 
       expect(find.text('Failed to load certifications'), findsOneWidget);
       expect(find.text('Retry'), findsOneWidget);
+    });
+
+    // Issue #690: the catalog loads after the page's first frame, and the
+    // action-row title must pick up a custom level's name once it does.
+    testWidgets('the action-row title updates when the catalog loads', (
+      tester,
+    ) async {
+      final catalog = Completer<CertificationCatalog>();
+      final t = DateTime(2026);
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: [
+            ...baseOverrides(
+              certifications: [
+                Certification(
+                  id: 'c1',
+                  name: '',
+                  agency: 'club-id',
+                  level: 'club-diver-id',
+                  createdAt: t,
+                  updatedAt: t,
+                ),
+              ],
+            ),
+            certificationCatalogProvider.overrideWith((ref) => catalog.future),
+          ],
+        ),
+      );
+      await tester.pump();
+      catalog.complete(
+        CertificationCatalog(
+          agencies: [
+            CustomCertificationAgency(
+              id: 'club-id',
+              diverId: 'diver-1',
+              name: 'Lakeshore Dive Club',
+              colorArgb: 0xFF0EA5E9,
+              createdAt: t,
+              updatedAt: t,
+            ),
+          ],
+          levels: [
+            CustomCertificationLevel(
+              id: 'club-diver-id',
+              diverId: 'diver-1',
+              agencyId: 'club-id',
+              name: 'Club Diver',
+              isProgression: true,
+              createdAt: t,
+              updatedAt: t,
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final title = tester.widget<Text>(
+        find.byKey(const ValueKey('actionRowTitle')),
+      );
+      expect(title.data, 'Club Diver');
     });
   });
 }
