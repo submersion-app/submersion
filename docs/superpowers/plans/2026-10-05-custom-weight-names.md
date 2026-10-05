@@ -4,7 +4,7 @@
 
 **Goal:** Let each weight row on a dive and in a weight preset carry an optional free-text name ("Top pocket", "Light canister") beside its placement type (issue #956).
 
-**Architecture:** A new `label TEXT NOT NULL DEFAULT ''` column on `dive_weights` and `weight_preset_entries` (schema v261), carried by the domain entities, every writer and copier, the Subsurface and UDDF importers, and the UDDF exporter. Sync is table-driven and needs no per-field code. The dive editor's weight row moves out of the 6,000-line page into its own widget that gains a second-line Name field; read-only views show `Name · Type` with the type muted.
+**Architecture:** A new `label TEXT NOT NULL DEFAULT ''` column on `dive_weights` and `weight_preset_entries` (schema v262), carried by the domain entities, every writer and copier, the Subsurface and UDDF importers, and the UDDF exporter. Sync is table-driven and needs no per-field code. The dive editor's weight row moves out of the 6,000-line page into its own widget that gains a second-line Name field; read-only views show `Name · Type` with the type muted.
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, flutter_test, ARB localization.
 
@@ -16,7 +16,7 @@
 - Maximum length: 256 characters (grapheme clusters, the unit `TextField.maxLength` counts). Writers store `label.trim()` capped at 256.
 - The placement type (`WeightType`) is unchanged and still required; a name never replaces it.
 - No data rewrite: existing rows get `''`; existing `notes` values are left alone.
-- Schema rung: v261 (main is at 260; renumber at merge if another rung lands first). The rung is idempotent (column-existence check) and re-asserted in `beforeOpen`. `minimumCompatibleSchemaVersion` stays 240.
+- Schema rung: v262. Written as v261 while main was at 260, renumbered when #767 shipped v261 (drop diver_settings.default_ceiling_source) first; renumber again at merge if another rung lands first. The rung is idempotent (column-existence check) and re-asserted in `beforeOpen`. `minimumCompatibleSchemaVersion` stays 240.
 - Subsurface: `<weightsystem description>` goes to `label`, never `notes`, except Subsurface's stock placement names (`integrated`, `belt`, `ankle`, `backplate`, `backplate weight`, `clip-on`; trimmed, case-insensitive), which set the type alone.
 - Read-only display: `Top pocket · Trim Weights`, the `· Trim Weights` part in `colorScheme.onSurfaceVariant`; an unnamed row renders exactly as before.
 - Editor: an optional Name field on a second line under each `Type | amount | delete` row, hint "e.g. Top pocket", counter visible only in the last 20 characters before the limit.
@@ -41,8 +41,8 @@
 | `lib/core/database/tables/dive_tables.dart` (modify) | `DiveWeights.label` column |
 | `lib/core/database/tables/weight_tables.dart` (modify) | `WeightPresetEntries.label` column |
 | `lib/core/database/migrations/helpers/weight_migrations.dart` (modify) | `_assertWeightLabelColumns` idempotent DDL |
-| `lib/core/database/migrations/ladder/rungs_v231_onward.dart` (modify) | v261 rung |
-| `lib/core/database/migrations/before_open.dart` (modify) | v261 backstop |
+| `lib/core/database/migrations/ladder/rungs_v231_onward.dart` (modify) | v262 rung |
+| `lib/core/database/migrations/before_open.dart` (modify) | v262 backstop |
 | `lib/core/database/database.dart` (modify) | `currentSchemaVersion`, `migrationVersions` |
 | `lib/features/dive_log/domain/entities/weight_label.dart` (create) | `weightLabelMaxLength`, `normalizeWeightLabel` |
 | `lib/features/dive_log/domain/entities/dive_weight.dart` (modify) | `label` field |
@@ -70,24 +70,24 @@
 
 ---
 
-### Task 1: Schema v261, the `label` columns
+### Task 1: Schema v262, the `label` columns
 
 **Files:**
 - Modify: `lib/core/database/tables/dive_tables.dart` (class `DiveWeights`, after `notes`)
 - Modify: `lib/core/database/tables/weight_tables.dart` (class `WeightPresetEntries`, after `notes`)
 - Modify: `lib/core/database/migrations/helpers/weight_migrations.dart`
-- Modify: `lib/core/database/migrations/ladder/rungs_v231_onward.dart` (append after the v260 block)
-- Modify: `lib/core/database/migrations/before_open.dart` (after the v259 backstop)
+- Modify: `lib/core/database/migrations/ladder/rungs_v231_onward.dart` (append after the v261 block)
+- Modify: `lib/core/database/migrations/before_open.dart` (after the v259 usage_duration backstop; as shipped, the call lives in `before_open_child_columns.dart`, see Task 11)
 - Modify: `lib/core/database/database.dart:235` and the end of `migrationVersions` (~line 1084)
-- Modify: `test/core/database/migration_v260_tank_shared_computers_test.dart` (relax the exact assertion)
-- Test: `test/core/database/migration_v261_weight_labels_test.dart` (create)
+- Modify: `test/core/database/migration_v261_drop_ceiling_source_test.dart` (relax the exact assertion)
+- Test: `test/core/database/migration_v262_weight_labels_test.dart` (create)
 
 **Interfaces:**
 - Produces: Drift columns `DiveWeights.label` and `WeightPresetEntries.label` (`TextColumn`, default `''`); generated row classes `DiveWeight.label` / `WeightPresetEntryRow.label` (`String`) and companion fields `label: Value<String>`.
 
 - [ ] **Step 1: Write the failing migration test**
 
-Create `test/core/database/migration_v261_weight_labels_test.dart`:
+Create `test/core/database/migration_v262_weight_labels_test.dart`:
 
 ```dart
 import 'package:drift/native.dart';
@@ -95,11 +95,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v261: dive_weights.label and weight_preset_entries.label, a diver's
+/// Schema v262: dive_weights.label and weight_preset_entries.label, a diver's
 /// own name for a weight such as "Top pocket" (issue #956).
 void main() {
-  /// A v260 database whose weight tables lack the column, each with one row.
-  NativeDatabase setupDb({int version = 260}) => NativeDatabase.memory(
+  /// A v261 database whose weight tables lack the column, each with one row.
+  NativeDatabase setupDb({int version = 261}) => NativeDatabase.memory(
     setup: (rawDb) {
       rawDb.execute('PRAGMA user_version = $version');
       rawDb.execute(
@@ -127,19 +127,19 @@ void main() {
     },
   );
 
-  test('v261 is the current schema version and is in the ladder', () {
+  test('v262 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 261);
-    expect(AppDatabase.migrationVersions, contains(261));
-    expect(AppDatabase.migrationStepCount(260), 1);
+    expect(AppDatabase.currentSchemaVersion, 262);
+    expect(AppDatabase.migrationVersions, contains(262));
+    expect(AppDatabase.migrationStepCount(261), 1);
   });
 
   test('the columns are defaulted, so the sync floor does not move', () {
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 
-  test('upgrading from v260 names nothing and keeps notes', () async {
+  test('upgrading from v261 names nothing and keeps notes', () async {
     final db = AppDatabase(setupDb());
     addTearDown(db.close);
     final weight = await db
@@ -154,11 +154,11 @@ void main() {
   });
 
   test(
-    'a database already stamped 261 without the columns gains them on open',
+    'a database already stamped 262 without the columns gains them on open',
     () async {
       // A renumbered rung, or a restore of a file whose tables predate it:
       // the beforeOpen backstop adds what the ladder did not.
-      final db = AppDatabase(setupDb(version: 261));
+      final db = AppDatabase(setupDb(version: 262));
       addTearDown(db.close);
       final weight = await db
           .customSelect('SELECT label FROM dive_weights')
@@ -175,8 +175,8 @@ void main() {
 
 - [ ] **Step 2: Run it to verify it fails**
 
-Run: `flutter test test/core/database/migration_v261_weight_labels_test.dart`
-Expected: FAIL (`currentSchemaVersion` is 260; `no such column: label`).
+Run: `flutter test test/core/database/migration_v262_weight_labels_test.dart`
+Expected: FAIL (`currentSchemaVersion` is 261; `no such column: label`).
 
 - [ ] **Step 3: Declare the columns**
 
@@ -201,8 +201,8 @@ In `lib/core/database/tables/weight_tables.dart`, class `WeightPresetEntries`, d
 Append inside `extension WeightMigrations on AppDatabase` in `lib/core/database/migrations/helpers/weight_migrations.dart`:
 
 ```dart
-  /// Idempotent DDL for the v261 weight name columns (issue #956) on
-  /// dive_weights and weight_preset_entries. Called from the v261 rung and
+  /// Idempotent DDL for the v262 weight name columns (issue #956) on
+  /// dive_weights and weight_preset_entries. Called from the v262 rung and
   /// re-asserted in beforeOpen, so a database that arrives by restore or
   /// sync-adopt, or one a renumbered rung skipped, still gains them.
   Future<void> _assertWeightLabelColumns() async {
@@ -220,50 +220,50 @@ Append inside `extension WeightMigrations on AppDatabase` in `lib/core/database/
 
 - [ ] **Step 5: Add the rung, the backstop and the version**
 
-Append after the v260 block in `lib/core/database/migrations/ladder/rungs_v231_onward.dart`:
+Append after the v261 block in `lib/core/database/migrations/ladder/rungs_v231_onward.dart`:
 
 ```dart
-    // v261: dive_weights.label and weight_preset_entries.label, a diver's
+    // v262: dive_weights.label and weight_preset_entries.label, a diver's
     // own name for a weight (issue #956). Defaulted columns, no backfill:
     // existing rows read '' (unnamed). Re-asserted in beforeOpen.
-    if (from < 261) {
+    if (from < 262) {
       await _assertWeightLabelColumns();
     }
-    if (from < 261) await reportProgress();
+    if (from < 262) await reportProgress();
 ```
 
-In `lib/core/database/migrations/before_open.dart`, directly after the `await _assertTankUsageDurationColumn();` backstop:
+In `lib/core/database/migrations/before_open.dart`, directly after the `await _assertTankUsageDurationColumn();` backstop (as shipped, both calls moved to `before_open_child_columns.dart` to keep `before_open.dart` under the 800-line guard):
 
 ```dart
 
-    // v261 backstop: re-assert the weight name columns (issue #956).
+    // v262 backstop: re-assert the weight name columns (issue #956).
     // Defaulted columns only, no backfill.
     await _assertWeightLabelColumns();
 ```
 
-In `lib/core/database/database.dart` set `static const int currentSchemaVersion = 261;` and append to `migrationVersions` after `260,`:
+In `lib/core/database/database.dart` set `static const int currentSchemaVersion = 262;` and append to `migrationVersions` after `261,`:
 
 ```dart
-    // v261: dive_weights.label and weight_preset_entries.label, a diver's own
+    // v262: dive_weights.label and weight_preset_entries.label, a diver's own
     // name for a weight (issue #956). Additive defaulted columns, so the
     // floor stays: an older peer's payload omits the key and the row keeps
     // its local value or the '' default.
-    261,
+    262,
 ```
 
-- [ ] **Step 6: Relax the v260 test**
+- [ ] **Step 6: Relax the v261 test**
 
-In `test/core/database/migration_v260_tank_shared_computers_test.dart`, replace the first test body with:
+In `test/core/database/migration_v261_drop_ceiling_source_test.dart`, replace the first test body with:
 
 ```dart
-  test('v260 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v261 (weight names, #956) landed on top; the newest rung
+  test('v261 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v262 (weight names, #956) landed on top; the newest rung
     // owns the exact assertions.
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(260));
-    expect(AppDatabase.migrationVersions, contains(260));
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(261));
+    expect(AppDatabase.migrationVersions, contains(261));
     expect(
-      AppDatabase.migrationStepCount(259),
-      AppDatabase.migrationStepCount(260) + 1,
+      AppDatabase.migrationStepCount(260),
+      AppDatabase.migrationStepCount(261) + 1,
     );
   });
 ```
@@ -275,15 +275,15 @@ Expected: completes; `database.g.dart` now has `label` on `DiveWeight` and `Weig
 
 - [ ] **Step 8: Run the migration tests to verify they pass**
 
-Run: `flutter test test/core/database/migration_v261_weight_labels_test.dart test/core/database/migration_v260_tank_shared_computers_test.dart test/core/database/migration_v259_tank_usage_duration_test.dart`
+Run: `flutter test test/core/database/migration_v262_weight_labels_test.dart test/core/database/migration_v261_drop_ceiling_source_test.dart test/core/database/migration_v260_tank_shared_computers_test.dart`
 Expected: PASS.
 
 - [ ] **Step 9: Commit**
 
 ```bash
 dart format .
-git add lib/core/database test/core/database/migration_v261_weight_labels_test.dart test/core/database/migration_v260_tank_shared_computers_test.dart
-git commit -m "feat(dive-log): add weight label columns (schema v261)"
+git add lib/core/database test/core/database/migration_v262_weight_labels_test.dart test/core/database/migration_v261_drop_ceiling_source_test.dart
+git commit -m "feat(dive-log): add weight label columns (schema v262)"
 ```
 
 (Generated `*.g.dart` files are committed if the repo tracks them: check `git status` and add any changed `lib/core/database/*.g.dart`.)

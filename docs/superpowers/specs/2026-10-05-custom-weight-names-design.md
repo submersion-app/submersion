@@ -59,8 +59,7 @@ both names on the dive detail page and on any other device.
   `notes` behaves today. It also keeps `copyWith` able to clear the name by
   passing `''`.
 - **Migration.** One new schema rung: the next free version when the PR merges
-  (v261 at the time of writing; several in-flight branches also target 261, so
-  expect to renumber). The rung adds the column to both tables with
+  (shipped as v262: written as v261, renumbered when #767 took 261 first). The rung adds the column to both tables with
   `ALTER TABLE ... ADD COLUMN`, guarded by a column-existence check so the rung
   is idempotent and safe to renumber or to re-run from a `beforeOpen`
   backstop. Existing rows get `''`; nothing is rewritten. Per the database
