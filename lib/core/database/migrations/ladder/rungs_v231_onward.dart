@@ -197,5 +197,9 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankSharedComputerIds();
     }
     if (from < 260) await reportProgress();
+    // v261: Insights observation dismissals (synced) and the muted-rules
+    // column on diver_settings (#2381). Additive; re-asserted in beforeOpen.
+    if (from < 261) await _assertInsightObservationsSchema();
+    if (from < 261) await reportProgress();
   }
 }
