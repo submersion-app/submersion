@@ -31354,6 +31354,12 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get settings_conflict_cancel;
 
+  /// No description provided for @settings_conflict_changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed'**
+  String get settings_conflict_changed;
+
   /// No description provided for @settings_conflict_chooseResolution.
   ///
   /// In en, this message translates to:
@@ -31437,6 +31443,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No data available'**
   String get settings_conflict_noDataAvailable;
+
+  /// No description provided for @settings_conflict_notSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get settings_conflict_notSet;
 
   /// No description provided for @settings_conflict_previous_tooltip.
   ///
@@ -31689,6 +31701,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resolved {count, plural, =1{1 conflict} other{{count} conflicts}}'**
   String settings_conflict_resolved(int count);
+
+  /// No description provided for @settings_conflict_same.
+  ///
+  /// In en, this message translates to:
+  /// **'Same'**
+  String get settings_conflict_same;
 
   /// No description provided for @settings_conflict_title.
   ///

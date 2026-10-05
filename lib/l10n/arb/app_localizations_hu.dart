@@ -19553,6 +19553,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_cancel => 'Mégse';
 
   @override
+  String get settings_conflict_changed => 'Changed';
+
+  @override
   String get settings_conflict_chooseResolution => 'Feloldás választása';
 
   @override
@@ -19600,6 +19603,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_noDataAvailable => 'Nincs elérhető adat';
+
+  @override
+  String get settings_conflict_notSet => 'Not set';
 
   @override
   String get settings_conflict_previous_tooltip => 'Előző ütközés';
@@ -19739,6 +19745,9 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0 feloldva';
   }
+
+  @override
+  String get settings_conflict_same => 'Same';
 
   @override
   String get settings_conflict_title => 'Ütközések feloldása';

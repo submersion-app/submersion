@@ -19613,6 +19613,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_cancel => 'Annulla';
 
   @override
+  String get settings_conflict_changed => 'Changed';
+
+  @override
   String get settings_conflict_chooseResolution => 'Scegli risoluzione';
 
   @override
@@ -19660,6 +19663,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_conflict_noDataAvailable => 'Nessun dato disponibile';
+
+  @override
+  String get settings_conflict_notSet => 'Not set';
 
   @override
   String get settings_conflict_previous_tooltip => 'Conflitto precedente';
@@ -19798,6 +19804,9 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get settings_conflict_same => 'Same';
 
   @override
   String get settings_conflict_title => 'Risolvi conflitti';

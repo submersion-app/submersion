@@ -19157,6 +19157,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_cancel => 'ביטול';
 
   @override
+  String get settings_conflict_changed => 'Changed';
+
+  @override
   String get settings_conflict_chooseResolution => 'בחר פתרון';
 
   @override
@@ -19204,6 +19207,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_noDataAvailable => 'אין נתונים זמינים';
+
+  @override
+  String get settings_conflict_notSet => 'Not set';
 
   @override
   String get settings_conflict_previous_tooltip => 'ההתנגשות הקודמת';
@@ -19341,6 +19347,9 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return 'נפתרו $_temp0';
   }
+
+  @override
+  String get settings_conflict_same => 'Same';
 
   @override
   String get settings_conflict_title => 'פתרון התנגשויות';

@@ -19845,6 +19845,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_cancel => 'إلغاء';
 
   @override
+  String get settings_conflict_changed => 'Changed';
+
+  @override
   String get settings_conflict_chooseResolution => 'اختر الحل';
 
   @override
@@ -19892,6 +19895,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_noDataAvailable => 'لا توجد بيانات متاحة';
+
+  @override
+  String get settings_conflict_notSet => 'Not set';
 
   @override
   String get settings_conflict_previous_tooltip => 'التعارض السابق';
@@ -20032,6 +20038,9 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return 'تم حل $_temp0';
   }
+
+  @override
+  String get settings_conflict_same => 'Same';
 
   @override
   String get settings_conflict_title => 'حل التعارضات';

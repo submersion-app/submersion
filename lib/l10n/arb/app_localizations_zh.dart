@@ -18642,6 +18642,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_cancel => '取消';
 
   @override
+  String get settings_conflict_changed => 'Changed';
+
+  @override
   String get settings_conflict_chooseResolution => '选择解决方案';
 
   @override
@@ -18688,6 +18691,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_noDataAvailable => '无可用数据';
+
+  @override
+  String get settings_conflict_notSet => 'Not set';
 
   @override
   String get settings_conflict_previous_tooltip => '上一个冲突';
@@ -18824,6 +18830,9 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '已解决 $_temp0';
   }
+
+  @override
+  String get settings_conflict_same => 'Same';
 
   @override
   String get settings_conflict_title => '解决冲突';
