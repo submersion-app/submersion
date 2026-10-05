@@ -14303,223 +14303,224 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_filter_section_category => 'Categoría';
 
   @override
-  String get equipment_location_kind_storage => 'Storage';
+  String get equipment_location_kind_storage => 'Almacenamiento';
 
   @override
-  String get equipment_location_kind_serviceShop => 'Service shop';
+  String get equipment_location_kind_serviceShop => 'Taller de mantenimiento';
 
   @override
-  String get equipment_location_kind_person => 'Person';
+  String get equipment_location_kind_person => 'Persona';
 
   @override
-  String get equipment_location_kind_other => 'Other';
+  String get equipment_location_kind_other => 'Otro';
 
   @override
-  String get equipment_location_noLocation => 'No location';
+  String get equipment_location_noLocation => 'Sin ubicación';
 
   @override
-  String get equipment_location_picker_title => 'Choose a place';
+  String get equipment_location_picker_title => 'Elige un lugar';
 
   @override
-  String get equipment_location_picker_search => 'Search places';
+  String get equipment_location_picker_search => 'Buscar lugares';
 
   @override
-  String get equipment_location_picker_newPlace => 'New place';
+  String get equipment_location_picker_newPlace => 'Nuevo lugar';
 
   @override
   String equipment_location_move_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Move $count items',
-      one: 'Move $count item',
+      other: 'Mover $count elementos',
+      one: 'Mover $count elemento',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_move_to => 'To';
+  String get equipment_location_move_to => 'A';
 
   @override
-  String get equipment_location_move_choose => 'Choose a place';
+  String get equipment_location_move_choose => 'Elige un lugar';
 
   @override
-  String get equipment_location_move_date => 'Date';
+  String get equipment_location_move_date => 'Fecha';
 
   @override
-  String get equipment_location_move_note => 'Note';
+  String get equipment_location_move_note => 'Nota';
 
   @override
   String get equipment_location_move_noteHint =>
-      'e.g. annual regulator service';
+      'p. ej., revisión anual del regulador';
 
   @override
-  String get equipment_location_move_confirm => 'Move';
+  String get equipment_location_move_confirm => 'Mover';
 
   @override
-  String get equipment_location_parts_title => 'Move parts too?';
+  String get equipment_location_parts_title => '¿Mover también las piezas?';
 
   @override
   String equipment_location_parts_body(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Also move its $count parts to the same place?',
-      one: 'Also move its $count part to the same place?',
+      other: '¿Mover también sus $count piezas al mismo lugar?',
+      one: '¿Mover también su $count pieza al mismo lugar?',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_parts_yes => 'Move parts';
+  String get equipment_location_parts_yes => 'Mover piezas';
 
   @override
-  String get equipment_location_parts_no => 'Just this';
+  String get equipment_location_parts_no => 'Solo este';
 
   @override
-  String get equipment_location_status_title => 'Update status?';
+  String get equipment_location_status_title => '¿Actualizar el estado?';
 
   @override
   String equipment_location_status_body(int count, String status) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Also mark $count items as $status?',
-      one: 'Also mark $count item as $status?',
+      other: '¿Marcar también $count elementos como $status?',
+      one: '¿Marcar también $count elemento como $status?',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_status_yes => 'Update';
+  String get equipment_location_status_yes => 'Actualizar';
 
   @override
-  String get equipment_location_status_no => 'Keep status';
+  String get equipment_location_status_no => 'Mantener estado';
 
   @override
   String equipment_location_moved(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Moved $count items',
-      one: 'Moved $count item',
+      other: '$count elementos movidos',
+      one: '$count elemento movido',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_card_title => 'Location';
+  String get equipment_location_card_title => 'Ubicación';
 
   @override
-  String get equipment_location_none => 'No location set';
+  String get equipment_location_none => 'Sin ubicación definida';
 
   @override
   String equipment_location_since(String date) {
-    return 'Since $date';
+    return 'Desde el $date';
   }
 
   @override
-  String get equipment_location_moveButton => 'Move';
+  String get equipment_location_moveButton => 'Mover';
 
   @override
-  String get equipment_location_showAll => 'Show all';
+  String get equipment_location_showAll => 'Mostrar todo';
 
   @override
-  String get equipment_location_history_cleared => 'Location cleared';
+  String get equipment_location_history_cleared => 'Ubicación borrada';
 
   @override
-  String get equipment_location_editMove_title => 'Edit move';
+  String get equipment_location_editMove_title => 'Editar movimiento';
 
   @override
-  String get equipment_location_editMove_delete => 'Delete move';
+  String get equipment_location_editMove_delete => 'Eliminar movimiento';
 
   @override
-  String get equipment_location_bulkAction => 'Move to location';
+  String get equipment_location_bulkAction => 'Mover a una ubicación';
 
   @override
   String equipment_location_groupCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '$count item',
+      other: '$count elementos',
+      one: '$count elemento',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_activeFilter => 'Location';
+  String get equipment_location_activeFilter => 'Ubicación';
 
   @override
-  String get equipment_filter_section_location => 'Location';
+  String get equipment_filter_section_location => 'Ubicación';
 
   @override
-  String get equipment_arrange_groupByLocation => 'Group by location';
+  String get equipment_arrange_groupByLocation => 'Agrupar por ubicación';
 
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
-      'One heading per place, on this page only';
+      'Un encabezado por lugar, solo en esta página';
 
   @override
-  String get equipment_edit_locationLabel => 'Location';
+  String get equipment_edit_locationLabel => 'Ubicación';
 
   @override
-  String get equipment_edit_locationNone => 'Not set';
+  String get equipment_edit_locationNone => 'Sin definir';
 
   @override
-  String get equipment_locations_title => 'Locations';
+  String get equipment_locations_title => 'Ubicaciones';
 
   @override
   String get equipment_locations_empty =>
-      'No places yet. Add one to start tracking where your gear is.';
+      'Aún no hay lugares. Añade uno para saber dónde está tu equipo.';
 
   @override
-  String get equipment_locations_add => 'Add place';
+  String get equipment_locations_add => 'Añadir lugar';
 
   @override
   String equipment_locations_archivedSection(int count) {
-    return 'Archived ($count)';
+    return 'Archivados ($count)';
   }
 
   @override
-  String get equipment_locations_archive => 'Archive';
+  String get equipment_locations_archive => 'Archivar';
 
   @override
-  String get equipment_locations_restore => 'Restore';
+  String get equipment_locations_restore => 'Restaurar';
 
   @override
-  String get equipment_locations_delete => 'Delete';
+  String get equipment_locations_delete => 'Eliminar';
 
   @override
-  String get equipment_locations_itemsHere => 'Items here';
+  String get equipment_locations_itemsHere => 'Elementos aquí';
 
   @override
-  String get equipment_locations_noItemsHere => 'Nothing is here right now.';
+  String get equipment_locations_noItemsHere => 'No hay nada aquí ahora mismo.';
 
   @override
-  String get equipment_locations_newTitle => 'New place';
+  String get equipment_locations_newTitle => 'Nuevo lugar';
 
   @override
-  String get equipment_locations_editTitle => 'Edit place';
+  String get equipment_locations_editTitle => 'Editar lugar';
 
   @override
-  String get equipment_locations_nameLabel => 'Name';
+  String get equipment_locations_nameLabel => 'Nombre';
 
   @override
-  String get equipment_locations_nameRequired => 'Enter a name';
+  String get equipment_locations_nameRequired => 'Introduce un nombre';
 
   @override
   String get equipment_locations_duplicateWarning =>
-      'You already have a place with this name';
+      'Ya tienes un lugar con este nombre';
 
   @override
-  String get equipment_locations_kindLabel => 'Kind';
+  String get equipment_locations_kindLabel => 'Tipo';
 
   @override
-  String get equipment_locations_notesLabel => 'Notes';
+  String get equipment_locations_notesLabel => 'Notas';
 
   @override
-  String get equipment_locations_notesHint => 'Address, phone, locker number';
+  String get equipment_locations_notesHint =>
+      'Dirección, teléfono, número de taquilla';
 
   @override
   String get equipment_list_retryButton => 'Reintentar';
@@ -19961,7 +19962,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_ref_equipment => 'Equipo';
 
   @override
-  String get settings_conflict_ref_equipmentLocation => 'Equipment location';
+  String get settings_conflict_ref_equipmentLocation => 'Ubicación del equipo';
 
   @override
   String get settings_conflict_ref_equipmentSet => 'Conjunto de equipo';
@@ -20672,11 +20673,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mantenimiento que necesita tu equipo y con qué frecuencia';
 
   @override
-  String get settings_manage_locations => 'Locations';
+  String get settings_manage_locations => 'Ubicaciones';
 
   @override
   String get settings_manage_locations_subtitle =>
-      'Where your gear is kept, serviced or lent';
+      'Dónde guardas, revisas o prestas tu equipo';
 
   @override
   String get settings_migrationProgress_doNotClose =>

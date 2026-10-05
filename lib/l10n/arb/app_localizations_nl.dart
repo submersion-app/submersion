@@ -14209,138 +14209,138 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_filter_section_category => 'Categorie';
 
   @override
-  String get equipment_location_kind_storage => 'Storage';
+  String get equipment_location_kind_storage => 'Opslag';
 
   @override
-  String get equipment_location_kind_serviceShop => 'Service shop';
+  String get equipment_location_kind_serviceShop => 'Servicewerkplaats';
 
   @override
-  String get equipment_location_kind_person => 'Person';
+  String get equipment_location_kind_person => 'Persoon';
 
   @override
-  String get equipment_location_kind_other => 'Other';
+  String get equipment_location_kind_other => 'Overig';
 
   @override
-  String get equipment_location_noLocation => 'No location';
+  String get equipment_location_noLocation => 'Geen locatie';
 
   @override
-  String get equipment_location_picker_title => 'Choose a place';
+  String get equipment_location_picker_title => 'Kies een plek';
 
   @override
-  String get equipment_location_picker_search => 'Search places';
+  String get equipment_location_picker_search => 'Plekken zoeken';
 
   @override
-  String get equipment_location_picker_newPlace => 'New place';
+  String get equipment_location_picker_newPlace => 'Nieuwe plek';
 
   @override
   String equipment_location_move_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Move $count items',
-      one: 'Move $count item',
+      other: '$count items verplaatsen',
+      one: '$count item verplaatsen',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_move_to => 'To';
+  String get equipment_location_move_to => 'Naar';
 
   @override
-  String get equipment_location_move_choose => 'Choose a place';
+  String get equipment_location_move_choose => 'Kies een plek';
 
   @override
-  String get equipment_location_move_date => 'Date';
+  String get equipment_location_move_date => 'Datum';
 
   @override
-  String get equipment_location_move_note => 'Note';
+  String get equipment_location_move_note => 'Notitie';
 
   @override
   String get equipment_location_move_noteHint =>
-      'e.g. annual regulator service';
+      'bv. jaarlijkse ademautomaatservice';
 
   @override
-  String get equipment_location_move_confirm => 'Move';
+  String get equipment_location_move_confirm => 'Verplaatsen';
 
   @override
-  String get equipment_location_parts_title => 'Move parts too?';
+  String get equipment_location_parts_title => 'Onderdelen ook verplaatsen?';
 
   @override
   String equipment_location_parts_body(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Also move its $count parts to the same place?',
-      one: 'Also move its $count part to the same place?',
+      other: 'Ook de $count onderdelen naar dezelfde plek verplaatsen?',
+      one: 'Ook het $count onderdeel naar dezelfde plek verplaatsen?',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_parts_yes => 'Move parts';
+  String get equipment_location_parts_yes => 'Onderdelen verplaatsen';
 
   @override
-  String get equipment_location_parts_no => 'Just this';
+  String get equipment_location_parts_no => 'Alleen dit';
 
   @override
-  String get equipment_location_status_title => 'Update status?';
+  String get equipment_location_status_title => 'Status bijwerken?';
 
   @override
   String equipment_location_status_body(int count, String status) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Also mark $count items as $status?',
-      one: 'Also mark $count item as $status?',
+      other: 'Ook $count items markeren als $status?',
+      one: 'Ook $count item markeren als $status?',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_status_yes => 'Update';
+  String get equipment_location_status_yes => 'Bijwerken';
 
   @override
-  String get equipment_location_status_no => 'Keep status';
+  String get equipment_location_status_no => 'Status behouden';
 
   @override
   String equipment_location_moved(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Moved $count items',
-      one: 'Moved $count item',
+      other: '$count items verplaatst',
+      one: '$count item verplaatst',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_card_title => 'Location';
+  String get equipment_location_card_title => 'Locatie';
 
   @override
-  String get equipment_location_none => 'No location set';
+  String get equipment_location_none => 'Geen locatie ingesteld';
 
   @override
   String equipment_location_since(String date) {
-    return 'Since $date';
+    return 'Sinds $date';
   }
 
   @override
-  String get equipment_location_moveButton => 'Move';
+  String get equipment_location_moveButton => 'Verplaatsen';
 
   @override
-  String get equipment_location_showAll => 'Show all';
+  String get equipment_location_showAll => 'Alles tonen';
 
   @override
-  String get equipment_location_history_cleared => 'Location cleared';
+  String get equipment_location_history_cleared => 'Locatie gewist';
 
   @override
-  String get equipment_location_editMove_title => 'Edit move';
+  String get equipment_location_editMove_title => 'Verplaatsing bewerken';
 
   @override
-  String get equipment_location_editMove_delete => 'Delete move';
+  String get equipment_location_editMove_delete => 'Verplaatsing verwijderen';
 
   @override
-  String get equipment_location_bulkAction => 'Move to location';
+  String get equipment_location_bulkAction => 'Naar locatie verplaatsen';
 
   @override
   String equipment_location_groupCount(int count) {
@@ -14354,78 +14354,78 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get equipment_location_activeFilter => 'Location';
+  String get equipment_location_activeFilter => 'Locatie';
 
   @override
-  String get equipment_filter_section_location => 'Location';
+  String get equipment_filter_section_location => 'Locatie';
 
   @override
-  String get equipment_arrange_groupByLocation => 'Group by location';
+  String get equipment_arrange_groupByLocation => 'Groeperen op locatie';
 
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
-      'One heading per place, on this page only';
+      'Eén kop per plek, alleen op deze pagina';
 
   @override
-  String get equipment_edit_locationLabel => 'Location';
+  String get equipment_edit_locationLabel => 'Locatie';
 
   @override
-  String get equipment_edit_locationNone => 'Not set';
+  String get equipment_edit_locationNone => 'Niet ingesteld';
 
   @override
-  String get equipment_locations_title => 'Locations';
+  String get equipment_locations_title => 'Locaties';
 
   @override
   String get equipment_locations_empty =>
-      'No places yet. Add one to start tracking where your gear is.';
+      'Nog geen plekken. Voeg er een toe om bij te houden waar je uitrusting is.';
 
   @override
-  String get equipment_locations_add => 'Add place';
+  String get equipment_locations_add => 'Plek toevoegen';
 
   @override
   String equipment_locations_archivedSection(int count) {
-    return 'Archived ($count)';
+    return 'Gearchiveerd ($count)';
   }
 
   @override
-  String get equipment_locations_archive => 'Archive';
+  String get equipment_locations_archive => 'Archiveren';
 
   @override
-  String get equipment_locations_restore => 'Restore';
+  String get equipment_locations_restore => 'Herstellen';
 
   @override
-  String get equipment_locations_delete => 'Delete';
+  String get equipment_locations_delete => 'Verwijderen';
 
   @override
-  String get equipment_locations_itemsHere => 'Items here';
+  String get equipment_locations_itemsHere => 'Items hier';
 
   @override
-  String get equipment_locations_noItemsHere => 'Nothing is here right now.';
+  String get equipment_locations_noItemsHere => 'Er is hier nu niets.';
 
   @override
-  String get equipment_locations_newTitle => 'New place';
+  String get equipment_locations_newTitle => 'Nieuwe plek';
 
   @override
-  String get equipment_locations_editTitle => 'Edit place';
+  String get equipment_locations_editTitle => 'Plek bewerken';
 
   @override
-  String get equipment_locations_nameLabel => 'Name';
+  String get equipment_locations_nameLabel => 'Naam';
 
   @override
-  String get equipment_locations_nameRequired => 'Enter a name';
+  String get equipment_locations_nameRequired => 'Voer een naam in';
 
   @override
   String get equipment_locations_duplicateWarning =>
-      'You already have a place with this name';
+      'Je hebt al een plek met deze naam';
 
   @override
-  String get equipment_locations_kindLabel => 'Kind';
+  String get equipment_locations_kindLabel => 'Soort';
 
   @override
-  String get equipment_locations_notesLabel => 'Notes';
+  String get equipment_locations_notesLabel => 'Notities';
 
   @override
-  String get equipment_locations_notesHint => 'Address, phone, locker number';
+  String get equipment_locations_notesHint => 'Adres, telefoon, kluisjesnummer';
 
   @override
   String get equipment_list_retryButton => 'Opnieuw proberen';
@@ -19820,7 +19820,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_ref_equipment => 'Uitrusting';
 
   @override
-  String get settings_conflict_ref_equipmentLocation => 'Equipment location';
+  String get settings_conflict_ref_equipmentLocation => 'Uitrustingslocatie';
 
   @override
   String get settings_conflict_ref_equipmentSet => 'Uitrustingsset';
@@ -20520,11 +20520,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'Welk onderhoud je uitrusting nodig heeft, en hoe vaak';
 
   @override
-  String get settings_manage_locations => 'Locations';
+  String get settings_manage_locations => 'Locaties';
 
   @override
   String get settings_manage_locations_subtitle =>
-      'Where your gear is kept, serviced or lent';
+      'Waar je uitrusting ligt, in onderhoud is of is uitgeleend';
 
   @override
   String get settings_migrationProgress_doNotClose => 'Sluit de app niet';

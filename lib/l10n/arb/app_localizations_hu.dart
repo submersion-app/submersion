@@ -14263,223 +14263,224 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_filter_section_category => 'Kategória';
 
   @override
-  String get equipment_location_kind_storage => 'Storage';
+  String get equipment_location_kind_storage => 'Tároló';
 
   @override
-  String get equipment_location_kind_serviceShop => 'Service shop';
+  String get equipment_location_kind_serviceShop => 'Szerviz';
 
   @override
-  String get equipment_location_kind_person => 'Person';
+  String get equipment_location_kind_person => 'Személy';
 
   @override
-  String get equipment_location_kind_other => 'Other';
+  String get equipment_location_kind_other => 'Egyéb';
 
   @override
-  String get equipment_location_noLocation => 'No location';
+  String get equipment_location_noLocation => 'Nincs hely';
 
   @override
-  String get equipment_location_picker_title => 'Choose a place';
+  String get equipment_location_picker_title => 'Hely kiválasztása';
 
   @override
-  String get equipment_location_picker_search => 'Search places';
+  String get equipment_location_picker_search => 'Helyek keresése';
 
   @override
-  String get equipment_location_picker_newPlace => 'New place';
+  String get equipment_location_picker_newPlace => 'Új hely';
 
   @override
   String equipment_location_move_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Move $count items',
-      one: 'Move $count item',
+      other: '$count elem áthelyezése',
+      one: '$count elem áthelyezése',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_move_to => 'To';
+  String get equipment_location_move_to => 'Ide';
 
   @override
-  String get equipment_location_move_choose => 'Choose a place';
+  String get equipment_location_move_choose => 'Hely kiválasztása';
 
   @override
-  String get equipment_location_move_date => 'Date';
+  String get equipment_location_move_date => 'Dátum';
 
   @override
-  String get equipment_location_move_note => 'Note';
+  String get equipment_location_move_note => 'Megjegyzés';
 
   @override
   String get equipment_location_move_noteHint =>
-      'e.g. annual regulator service';
+      'pl. éves légzőautomata-szerviz';
 
   @override
-  String get equipment_location_move_confirm => 'Move';
+  String get equipment_location_move_confirm => 'Áthelyezés';
 
   @override
-  String get equipment_location_parts_title => 'Move parts too?';
+  String get equipment_location_parts_title =>
+      'Az alkatrészek is kerüljenek át?';
 
   @override
   String equipment_location_parts_body(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Also move its $count parts to the same place?',
-      one: 'Also move its $count part to the same place?',
+      other: 'Ugyanoda kerüljön a hozzá tartozó $count alkatrész is?',
+      one: 'Ugyanoda kerüljön a hozzá tartozó $count alkatrész is?',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_parts_yes => 'Move parts';
+  String get equipment_location_parts_yes => 'Alkatrészek áthelyezése';
 
   @override
-  String get equipment_location_parts_no => 'Just this';
+  String get equipment_location_parts_no => 'Csak ez';
 
   @override
-  String get equipment_location_status_title => 'Update status?';
+  String get equipment_location_status_title => 'Frissíted az állapotot?';
 
   @override
   String equipment_location_status_body(int count, String status) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Also mark $count items as $status?',
-      one: 'Also mark $count item as $status?',
+      other: '$count elem állapota is legyen $status?',
+      one: '$count elem állapota is legyen $status?',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_status_yes => 'Update';
+  String get equipment_location_status_yes => 'Frissítés';
 
   @override
-  String get equipment_location_status_no => 'Keep status';
+  String get equipment_location_status_no => 'Állapot megtartása';
 
   @override
   String equipment_location_moved(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Moved $count items',
-      one: 'Moved $count item',
+      other: '$count elem áthelyezve',
+      one: '$count elem áthelyezve',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_card_title => 'Location';
+  String get equipment_location_card_title => 'Hely';
 
   @override
-  String get equipment_location_none => 'No location set';
+  String get equipment_location_none => 'Nincs megadva hely';
 
   @override
   String equipment_location_since(String date) {
-    return 'Since $date';
+    return '$date óta';
   }
 
   @override
-  String get equipment_location_moveButton => 'Move';
+  String get equipment_location_moveButton => 'Áthelyezés';
 
   @override
-  String get equipment_location_showAll => 'Show all';
+  String get equipment_location_showAll => 'Összes mutatása';
 
   @override
-  String get equipment_location_history_cleared => 'Location cleared';
+  String get equipment_location_history_cleared => 'Hely törölve';
 
   @override
-  String get equipment_location_editMove_title => 'Edit move';
+  String get equipment_location_editMove_title => 'Áthelyezés szerkesztése';
 
   @override
-  String get equipment_location_editMove_delete => 'Delete move';
+  String get equipment_location_editMove_delete => 'Áthelyezés törlése';
 
   @override
-  String get equipment_location_bulkAction => 'Move to location';
+  String get equipment_location_bulkAction => 'Áthelyezés helyre';
 
   @override
   String equipment_location_groupCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '$count item',
+      other: '$count elem',
+      one: '$count elem',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_activeFilter => 'Location';
+  String get equipment_location_activeFilter => 'Hely';
 
   @override
-  String get equipment_filter_section_location => 'Location';
+  String get equipment_filter_section_location => 'Hely';
 
   @override
-  String get equipment_arrange_groupByLocation => 'Group by location';
+  String get equipment_arrange_groupByLocation => 'Csoportosítás hely szerint';
 
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
-      'One heading per place, on this page only';
+      'Helyenként egy fejléc, csak ezen az oldalon';
 
   @override
-  String get equipment_edit_locationLabel => 'Location';
+  String get equipment_edit_locationLabel => 'Hely';
 
   @override
-  String get equipment_edit_locationNone => 'Not set';
+  String get equipment_edit_locationNone => 'Nincs megadva';
 
   @override
-  String get equipment_locations_title => 'Locations';
+  String get equipment_locations_title => 'Helyek';
 
   @override
   String get equipment_locations_empty =>
-      'No places yet. Add one to start tracking where your gear is.';
+      'Még nincsenek helyek. Adj hozzá egyet, hogy nyomon kövesd, hol van a felszerelésed.';
 
   @override
-  String get equipment_locations_add => 'Add place';
+  String get equipment_locations_add => 'Hely hozzáadása';
 
   @override
   String equipment_locations_archivedSection(int count) {
-    return 'Archived ($count)';
+    return 'Archivált ($count)';
   }
 
   @override
-  String get equipment_locations_archive => 'Archive';
+  String get equipment_locations_archive => 'Archiválás';
 
   @override
-  String get equipment_locations_restore => 'Restore';
+  String get equipment_locations_restore => 'Visszaállítás';
 
   @override
-  String get equipment_locations_delete => 'Delete';
+  String get equipment_locations_delete => 'Törlés';
 
   @override
-  String get equipment_locations_itemsHere => 'Items here';
+  String get equipment_locations_itemsHere => 'Itt lévő elemek';
 
   @override
-  String get equipment_locations_noItemsHere => 'Nothing is here right now.';
+  String get equipment_locations_noItemsHere => 'Jelenleg nincs itt semmi.';
 
   @override
-  String get equipment_locations_newTitle => 'New place';
+  String get equipment_locations_newTitle => 'Új hely';
 
   @override
-  String get equipment_locations_editTitle => 'Edit place';
+  String get equipment_locations_editTitle => 'Hely szerkesztése';
 
   @override
-  String get equipment_locations_nameLabel => 'Name';
+  String get equipment_locations_nameLabel => 'Név';
 
   @override
-  String get equipment_locations_nameRequired => 'Enter a name';
+  String get equipment_locations_nameRequired => 'Adj meg egy nevet';
 
   @override
   String get equipment_locations_duplicateWarning =>
-      'You already have a place with this name';
+      'Már van ilyen nevű helyed';
 
   @override
-  String get equipment_locations_kindLabel => 'Kind';
+  String get equipment_locations_kindLabel => 'Típus';
 
   @override
-  String get equipment_locations_notesLabel => 'Notes';
+  String get equipment_locations_notesLabel => 'Megjegyzések';
 
   @override
-  String get equipment_locations_notesHint => 'Address, phone, locker number';
+  String get equipment_locations_notesHint => 'Cím, telefon, szekrényszám';
 
   @override
   String get equipment_list_retryButton => 'Újra';
@@ -19896,7 +19897,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_ref_equipment => 'Felszerelés';
 
   @override
-  String get settings_conflict_ref_equipmentLocation => 'Equipment location';
+  String get settings_conflict_ref_equipmentLocation => 'Felszerelés helye';
 
   @override
   String get settings_conflict_ref_equipmentSet => 'Felszereléskészlet';
@@ -20605,11 +20606,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Milyen karbantartást igényel a felszerelésed, és milyen gyakran';
 
   @override
-  String get settings_manage_locations => 'Locations';
+  String get settings_manage_locations => 'Helyek';
 
   @override
   String get settings_manage_locations_subtitle =>
-      'Where your gear is kept, serviced or lent';
+      'Hol tárolod, szervizelteted vagy adtad kölcsön a felszerelésed';
 
   @override
   String get settings_migrationProgress_doNotClose =>

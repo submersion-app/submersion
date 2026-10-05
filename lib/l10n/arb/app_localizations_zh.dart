@@ -13661,223 +13661,214 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_filter_section_category => '类别';
 
   @override
-  String get equipment_location_kind_storage => 'Storage';
+  String get equipment_location_kind_storage => '存放处';
 
   @override
-  String get equipment_location_kind_serviceShop => 'Service shop';
+  String get equipment_location_kind_serviceShop => '维修店';
 
   @override
-  String get equipment_location_kind_person => 'Person';
+  String get equipment_location_kind_person => '个人';
 
   @override
-  String get equipment_location_kind_other => 'Other';
+  String get equipment_location_kind_other => '其他';
 
   @override
-  String get equipment_location_noLocation => 'No location';
+  String get equipment_location_noLocation => '无位置';
 
   @override
-  String get equipment_location_picker_title => 'Choose a place';
+  String get equipment_location_picker_title => '选择地点';
 
   @override
-  String get equipment_location_picker_search => 'Search places';
+  String get equipment_location_picker_search => '搜索地点';
 
   @override
-  String get equipment_location_picker_newPlace => 'New place';
+  String get equipment_location_picker_newPlace => '新地点';
 
   @override
   String equipment_location_move_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Move $count items',
-      one: 'Move $count item',
+      other: '移动 $count 件装备',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_move_to => 'To';
+  String get equipment_location_move_to => '移至';
 
   @override
-  String get equipment_location_move_choose => 'Choose a place';
+  String get equipment_location_move_choose => '选择地点';
 
   @override
-  String get equipment_location_move_date => 'Date';
+  String get equipment_location_move_date => '日期';
 
   @override
-  String get equipment_location_move_note => 'Note';
+  String get equipment_location_move_note => '备注';
 
   @override
-  String get equipment_location_move_noteHint =>
-      'e.g. annual regulator service';
+  String get equipment_location_move_noteHint => '例如：调节器年度保养';
 
   @override
-  String get equipment_location_move_confirm => 'Move';
+  String get equipment_location_move_confirm => '移动';
 
   @override
-  String get equipment_location_parts_title => 'Move parts too?';
+  String get equipment_location_parts_title => '同时移动部件？';
 
   @override
   String equipment_location_parts_body(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Also move its $count parts to the same place?',
-      one: 'Also move its $count part to the same place?',
+      other: '将其 $count 个部件也移至同一地点？',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_parts_yes => 'Move parts';
+  String get equipment_location_parts_yes => '移动部件';
 
   @override
-  String get equipment_location_parts_no => 'Just this';
+  String get equipment_location_parts_no => '仅此项';
 
   @override
-  String get equipment_location_status_title => 'Update status?';
+  String get equipment_location_status_title => '更新状态？';
 
   @override
   String equipment_location_status_body(int count, String status) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Also mark $count items as $status?',
-      one: 'Also mark $count item as $status?',
+      other: '同时将 $count 件装备标记为$status？',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_status_yes => 'Update';
+  String get equipment_location_status_yes => '更新';
 
   @override
-  String get equipment_location_status_no => 'Keep status';
+  String get equipment_location_status_no => '保持状态';
 
   @override
   String equipment_location_moved(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Moved $count items',
-      one: 'Moved $count item',
+      other: '已移动 $count 件装备',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_card_title => 'Location';
+  String get equipment_location_card_title => '位置';
 
   @override
-  String get equipment_location_none => 'No location set';
+  String get equipment_location_none => '未设置位置';
 
   @override
   String equipment_location_since(String date) {
-    return 'Since $date';
+    return '自 $date 起';
   }
 
   @override
-  String get equipment_location_moveButton => 'Move';
+  String get equipment_location_moveButton => '移动';
 
   @override
-  String get equipment_location_showAll => 'Show all';
+  String get equipment_location_showAll => '显示全部';
 
   @override
-  String get equipment_location_history_cleared => 'Location cleared';
+  String get equipment_location_history_cleared => '已清除位置';
 
   @override
-  String get equipment_location_editMove_title => 'Edit move';
+  String get equipment_location_editMove_title => '编辑移动记录';
 
   @override
-  String get equipment_location_editMove_delete => 'Delete move';
+  String get equipment_location_editMove_delete => '删除移动记录';
 
   @override
-  String get equipment_location_bulkAction => 'Move to location';
+  String get equipment_location_bulkAction => '移至位置';
 
   @override
   String equipment_location_groupCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '$count item',
+      other: '$count 件',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_location_activeFilter => 'Location';
+  String get equipment_location_activeFilter => '位置';
 
   @override
-  String get equipment_filter_section_location => 'Location';
+  String get equipment_filter_section_location => '位置';
 
   @override
-  String get equipment_arrange_groupByLocation => 'Group by location';
+  String get equipment_arrange_groupByLocation => '按位置分组';
 
   @override
-  String get equipment_arrange_groupByLocationSubtitle =>
-      'One heading per place, on this page only';
+  String get equipment_arrange_groupByLocationSubtitle => '每个地点一个标题，仅限此页';
 
   @override
-  String get equipment_edit_locationLabel => 'Location';
+  String get equipment_edit_locationLabel => '位置';
 
   @override
-  String get equipment_edit_locationNone => 'Not set';
+  String get equipment_edit_locationNone => '未设置';
 
   @override
-  String get equipment_locations_title => 'Locations';
+  String get equipment_locations_title => '位置';
 
   @override
-  String get equipment_locations_empty =>
-      'No places yet. Add one to start tracking where your gear is.';
+  String get equipment_locations_empty => '还没有地点。添加一个，开始记录你的装备在哪里。';
 
   @override
-  String get equipment_locations_add => 'Add place';
+  String get equipment_locations_add => '添加地点';
 
   @override
   String equipment_locations_archivedSection(int count) {
-    return 'Archived ($count)';
+    return '已归档（$count）';
   }
 
   @override
-  String get equipment_locations_archive => 'Archive';
+  String get equipment_locations_archive => '归档';
 
   @override
-  String get equipment_locations_restore => 'Restore';
+  String get equipment_locations_restore => '恢复';
 
   @override
-  String get equipment_locations_delete => 'Delete';
+  String get equipment_locations_delete => '删除';
 
   @override
-  String get equipment_locations_itemsHere => 'Items here';
+  String get equipment_locations_itemsHere => '此处物品';
 
   @override
-  String get equipment_locations_noItemsHere => 'Nothing is here right now.';
+  String get equipment_locations_noItemsHere => '目前这里没有物品。';
 
   @override
-  String get equipment_locations_newTitle => 'New place';
+  String get equipment_locations_newTitle => '新地点';
 
   @override
-  String get equipment_locations_editTitle => 'Edit place';
+  String get equipment_locations_editTitle => '编辑地点';
 
   @override
-  String get equipment_locations_nameLabel => 'Name';
+  String get equipment_locations_nameLabel => '名称';
 
   @override
-  String get equipment_locations_nameRequired => 'Enter a name';
+  String get equipment_locations_nameRequired => '请输入名称';
 
   @override
-  String get equipment_locations_duplicateWarning =>
-      'You already have a place with this name';
+  String get equipment_locations_duplicateWarning => '你已有同名地点';
 
   @override
-  String get equipment_locations_kindLabel => 'Kind';
+  String get equipment_locations_kindLabel => '类型';
 
   @override
-  String get equipment_locations_notesLabel => 'Notes';
+  String get equipment_locations_notesLabel => '备注';
 
   @override
-  String get equipment_locations_notesHint => 'Address, phone, locker number';
+  String get equipment_locations_notesHint => '地址、电话、储物柜编号';
 
   @override
   String get equipment_list_retryButton => '重试';
@@ -18984,7 +18975,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_equipment => '装备';
 
   @override
-  String get settings_conflict_ref_equipmentLocation => 'Equipment location';
+  String get settings_conflict_ref_equipmentLocation => '装备位置';
 
   @override
   String get settings_conflict_ref_equipmentSet => '装备套装';
@@ -19649,11 +19640,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_manage_serviceTypes_subtitle => '装备需要的保养项目及其频率';
 
   @override
-  String get settings_manage_locations => 'Locations';
+  String get settings_manage_locations => '位置';
 
   @override
-  String get settings_manage_locations_subtitle =>
-      'Where your gear is kept, serviced or lent';
+  String get settings_manage_locations_subtitle => '装备存放、保养或借出的地方';
 
   @override
   String get settings_migrationProgress_doNotClose => '请不要关闭应用';
