@@ -278,9 +278,13 @@ GasMix resolveCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) {
   }
   final diluentGas = dive.diluentGas;
   if (diluentGas != null) return diluentGas;
+  // Roles read as the CCR switch classifier reads them: an untagged cylinder
+  // that is not pure O2 is the diluent, ahead of any cylinder tagged for open
+  // circuit, and an untagged pure-O2 cylinder is the O2 supply, never it.
   for (final tank in candidates) {
-    // Roles read as the CCR switch classifier reads them, so an untagged
-    // pure-O2 cylinder is the O2 supply, never the diluent.
+    if (ccrCylinderRole(tank) == TankRole.diluent) return tank.gasMix;
+  }
+  for (final tank in candidates) {
     final role = ccrCylinderRole(tank);
     if (role == TankRole.oxygenSupply || role == TankRole.bailout) continue;
     return tank.gasMix;

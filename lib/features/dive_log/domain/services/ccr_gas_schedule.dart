@@ -222,12 +222,15 @@ List<double> breathedPpO2Curve({
   required List<int> timestamps,
   required List<ProfileGasSegment> segments,
 }) {
+  // Both lists are time-ordered, so one index walks the segments once.
+  var active = 0;
   return List<double>.generate(timestamps.length, (i) {
-    var active = segments.first;
-    for (final segment in segments) {
-      if (segment.startTimestamp > timestamps[i]) break;
-      active = segment;
+    while (active + 1 < segments.length &&
+        segments[active + 1].startTimestamp <= timestamps[i]) {
+      active++;
     }
-    return active.setpoint == null ? analysedCurve[i] : loopCurve[i];
+    final openCircuit =
+        segments.isNotEmpty && segments[active].setpoint == null;
+    return openCircuit ? analysedCurve[i] : loopCurve[i];
   });
 }

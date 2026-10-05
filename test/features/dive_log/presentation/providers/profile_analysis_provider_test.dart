@@ -174,6 +174,18 @@ void main() {
       expect(resolveCcrDiluentMix(dive, tanks: [dive.tanks[1]]).he, 35);
     });
 
+    test('prefers an untagged diluent over a tagged open-circuit cylinder', () {
+      // The switch classifier reads Deco/Stage as open circuit and an
+      // untagged cylinder as the diluent; the seed must agree with it.
+      final dive = makeDive(
+        tanks: [
+          tank(const GasMix(o2: 50), TankRole.deco),
+          const DiveTank(id: 'dil', gasMix: GasMix(o2: 21, he: 35)),
+        ],
+      );
+      expect(resolveCcrDiluentMix(dive).he, 35);
+    });
+
     test('defaults to air with no usable tanks', () {
       final dive = makeDive(tanks: []);
       expect(resolveCcrDiluentMix(dive).isAir, isTrue);

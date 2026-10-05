@@ -11,6 +11,7 @@ import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
+import 'package:submersion/features/dive_log/domain/services/ccr_gas_schedule.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_time_remaining.dart';
 import 'package:submersion/core/deco/entities/gradient_factor_source.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
@@ -828,8 +829,7 @@ class ProfileAnalysisService {
           loopPpO2 = List<double>.filled(depths.length, 0.0);
         }
         // Only a bailout (a segment with no setpoint) changes the curve.
-        ppO2Curve =
-            gasSegments == null || gasSegments.every((s) => s.setpoint != null)
+        ppO2Curve = gasSegments == null || !hasOpenCircuitBailout(gasSegments)
             ? loopPpO2
             : _withOpenCircuitPpO2(
                 depths: depths,
