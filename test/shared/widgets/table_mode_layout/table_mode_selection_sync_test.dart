@@ -13,6 +13,12 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   _MockSettingsNotifier() : super(const AppSettings());
 
   @override
+  Future<void> setShowDetailsPaneForSection(
+    String sectionKey,
+    bool value,
+  ) async {}
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -29,8 +35,10 @@ void main() {
   Future<void> pumpLayout(
     WidgetTester tester, {
     String initialLocation = '/test',
+    String? initialHighlight,
+    bool detailsPane = true,
   }) async {
-    highlighted = ValueNotifier<String?>(null);
+    highlighted = ValueNotifier<String?>(initialHighlight);
     addTearDown(highlighted.dispose);
 
     router = GoRouter(
@@ -82,7 +90,7 @@ void main() {
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
-          tableDetailsPaneProvider('dives').overrideWith((_) => true),
+          tableDetailsPaneProvider('dives').overrideWith((_) => detailsPane),
         ],
         child: MaterialApp.router(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -205,5 +213,65 @@ void main() {
 
     expect(notifications, 0);
     expect(location(), '/test?selected=a');
+  });
+
+  group('turning the details pane on', () {
+    testWidgets('shows the highlighted row', (tester) async {
+      await pumpLayout(tester, detailsPane: false);
+      highlighted.value = 'a';
+      await tester.pumpAndSettle();
+      expect(location(), '/test');
+
+      await tester.tap(find.byKey(const ValueKey('details_toggle')));
+      await tester.pumpAndSettle();
+
+      expect(location(), '/test?selected=a');
+      expect(find.text('Detail a'), findsOneWidget);
+    });
+
+    testWidgets('keeps other query parameters', (tester) async {
+      await pumpLayout(
+        tester,
+        initialLocation: '/test?view=map',
+        detailsPane: false,
+      );
+      highlighted.value = 'a';
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('details_toggle')));
+      await tester.pumpAndSettle();
+
+      expect(router.state.uri.queryParameters, {
+        'view': 'map',
+        'selected': 'a',
+      });
+    });
+
+    testWidgets('shows the summary when no row is highlighted', (tester) async {
+      await pumpLayout(tester, detailsPane: false);
+
+      await tester.tap(find.byKey(const ValueKey('details_toggle')));
+      await tester.pumpAndSettle();
+
+      expect(location(), '/test');
+      expect(find.text('Summary'), findsOneWidget);
+    });
+  });
+
+  testWidgets('a page opened on a selection keeps it over a stale highlight', (
+    tester,
+  ) async {
+    // Other pages link straight to '/<section>?selected=<id>' without
+    // touching the highlight, which outlives the list it was set in.
+    await pumpLayout(
+      tester,
+      initialLocation: '/test?selected=x',
+      initialHighlight: 'y',
+    );
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+
+    expect(location(), '/test?selected=x');
+    expect(find.text('Detail x'), findsOneWidget);
   });
 }

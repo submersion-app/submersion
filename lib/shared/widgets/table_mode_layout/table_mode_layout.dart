@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -273,6 +274,25 @@ class TableModeLayout extends ConsumerWidget {
     return tableContent;
   }
 
+  /// Points the detail pane being turned on at the highlighted row, so it
+  /// opens on the row the table shows lit instead of the summary.
+  ///
+  /// Only here, not whenever the pane is built: other pages link straight to
+  /// `?selected=<id>` without touching the highlight, which outlives the list
+  /// it was set in, so a pane opening with its page keeps the URL's choice.
+  void _openHighlightedInPane(BuildContext context) {
+    final id = selectedId;
+    final router = GoRouter.maybeOf(context);
+    if (id == null || router == null) return;
+    final uri = router.state.uri;
+    if (uri.queryParameters['selected'] == id) return;
+    router.go(
+      uri
+          .replace(queryParameters: {...uri.queryParameters, 'selected': id})
+          .toString(),
+    );
+  }
+
   /// Build the list of toggle action buttons for the app bar.
   List<Widget> _buildToggleActions(
     BuildContext context,
@@ -323,6 +343,7 @@ class TableModeLayout extends ConsumerWidget {
             ref
                 .read(settingsProvider.notifier)
                 .setShowDetailsPaneForSection(sectionKey, newValue);
+            if (newValue) _openHighlightedInPane(context);
           },
         ),
       );
