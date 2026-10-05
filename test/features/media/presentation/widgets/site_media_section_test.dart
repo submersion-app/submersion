@@ -46,13 +46,17 @@ class _RecordingSiteMediaNotifier extends SiteMediaListNotifier {
 
   final List<(List<String>, SiteAttachmentCategory?)> categoryCalls = [];
 
+  /// Rows the fake reports as updated; null means every id passed.
+  int? updatedCount;
+
   @override
-  Future<void> setSiteCategory(
+  Future<int> setSiteCategory(
     List<String> ids,
     SiteAttachmentCategory? category,
   ) async {
     categoryCalls.add((List<String>.of(ids), category));
     if (failWith != null) throw failWith!;
+    return updatedCount ?? ids.length;
   }
 
   @override
@@ -594,7 +598,11 @@ void main() {
 
     late _RecordingSiteMediaNotifier notifier;
 
-    Future<void> selectBoth(WidgetTester tester, {Object? failWith}) async {
+    Future<void> selectBoth(
+      WidgetTester tester, {
+      Object? failWith,
+      int? updatedCount,
+    }) async {
       await tester.pumpWidget(
         await host(
           attachments: [photoA, photoB],
@@ -604,7 +612,7 @@ void main() {
                 ref,
                 deleteCalls: [],
                 failWith: failWith,
-              ),
+              )..updatedCount = updatedCount,
             ),
           ],
         ),
@@ -633,6 +641,20 @@ void main() {
       );
       expect(find.text('Updated 2 items'), findsOneWidget);
       expect(find.byKey(const ValueKey('selection_exit')), findsNothing);
+    });
+
+    testWidgets('Set category reports only the rows actually updated', (
+      tester,
+    ) async {
+      // One of the two was unlinked on another device meanwhile.
+      await selectBoth(tester, updatedCount: 1);
+      await tester.tap(
+        find.byKey(const ValueKey('selection_action_setCategory')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Underwater'));
+      await tester.pumpAndSettle();
+      expect(find.text('Updated 1 item'), findsOneWidget);
     });
 
     testWidgets('a failing Set category reports it and keeps the selection', (

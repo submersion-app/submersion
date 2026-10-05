@@ -134,14 +134,16 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
     final choice = await showSiteCategoryPicker(context);
     if (choice == null || !context.mounted) return BulkActionOutcome.cancelled;
     try {
-      await ref
+      // The count of rows actually changed: an id unlinked while the
+      // picker was open is skipped and must not be reported as updated.
+      final updated = await ref
           .read(siteMediaListNotifierProvider(widget.siteId).notifier)
           .setSiteCategory(ids, choice.category);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              context.l10n.media_siteAttachment_setCategorySuccess(ids.length),
+              context.l10n.media_siteAttachment_setCategorySuccess(updated),
             ),
           ),
         );

@@ -181,7 +181,7 @@ void main() {
 
     test('a missing id is skipped, not queued', () async {
       final a = await media.createMedia(item());
-      await repository.setSiteCategory([
+      final updated = await repository.setSiteCategory([
         a.id,
         'gone',
       ], SiteAttachmentCategory.general);
@@ -189,13 +189,16 @@ void main() {
         (await media.getMediaById(a.id))!.siteCategory,
         SiteAttachmentCategory.general,
       );
-      expect(await statuses('gone'), isEmpty);
+      expect(updated, 1, reason: 'only rows that still exist count');
     });
 
     test('an empty id list is a no-op', () async {
-      await repository.setSiteCategory(
-        const [],
-        SiteAttachmentCategory.general,
+      expect(
+        await repository.setSiteCategory(
+          const [],
+          SiteAttachmentCategory.general,
+        ),
+        0,
       );
     });
   });

@@ -147,14 +147,16 @@ class SiteMediaListNotifier extends StateNotifier<AsyncValue<List<MediaItem>>> {
   }
 
   /// Puts every attachment in [ids] into [category]; null uncategorizes.
-  Future<void> setSiteCategory(
+  /// Returns how many were updated (ids unlinked meanwhile are skipped).
+  Future<int> setSiteCategory(
     List<String> ids,
     SiteAttachmentCategory? category,
   ) async {
-    await _ref
+    final updated = await _ref
         .read(siteAttachmentRepositoryProvider)
         .setSiteCategory(ids, category);
     await refresh();
+    return updated;
   }
 
   /// Delete media items. Routed through the deletion coordinator so

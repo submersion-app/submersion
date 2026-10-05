@@ -30,10 +30,13 @@ class _RecordingSiteAttachmentRepository extends SiteAttachmentRepository {
   ) async => details.add((id, edit));
 
   @override
-  Future<void> setSiteCategory(
+  Future<int> setSiteCategory(
     List<String> ids,
     SiteAttachmentCategory? category,
-  ) async => categories.add((ids, category));
+  ) async {
+    categories.add((ids, category));
+    return ids.length - 1;
+  }
 }
 
 /// Issue #1039: the site media notifier is how the UI saves attachment
@@ -74,7 +77,7 @@ void main() {
       siteMediaListNotifierProvider('s1').notifier,
     );
     final loadsBefore = media.loads;
-    await notifier.setSiteCategory(['a', 'b'], null);
+    expect(await notifier.setSiteCategory(['a', 'b'], null), 1);
     expect(attachments.categories.single.$1, ['a', 'b']);
     expect(attachments.categories.single.$2, isNull);
     expect(media.loads, greaterThan(loadsBefore));

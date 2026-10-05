@@ -72,14 +72,17 @@ class SiteAttachmentRepository {
   /// each row's size override and name alone. One transaction, so a bulk
   /// assignment never lands half-done. Site selections are one site's
   /// attachments, far under SQLite's bound-variable ceiling.
-  Future<void> setSiteCategory(
+  ///
+  /// Returns how many rows were actually updated: ids unlinked since the
+  /// selection was made are skipped and not counted.
+  Future<int> setSiteCategory(
     List<String> ids,
     SiteAttachmentCategory? category,
   ) async {
-    if (ids.isEmpty) return;
+    if (ids.isEmpty) return 0;
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      await _db.transaction(() async {
+      final updated = await _db.transaction(() async {
         // Only rows that still exist get a sync record: an id unlinked by
         // another device since the selection was made is skipped.
         final existing =
@@ -88,7 +91,7 @@ class SiteAttachmentRepository {
                   ..where(_db.media.id.isIn(ids)))
                 .map((row) => row.read(_db.media.id)!)
                 .get();
-        if (existing.isEmpty) return;
+        if (existing.isEmpty) return 0;
         await (_db.update(_db.media)..where((t) => t.id.isIn(existing))).write(
           MediaCompanion(
             siteCategory: Value(category?.storageKey),
@@ -102,9 +105,11 @@ class SiteAttachmentRepository {
             localUpdatedAt: now,
           );
         }
+        return existing.length;
       });
       SyncEventBus.notifyLocalChange();
-      _log.info('Set site category ${category?.storageKey} on ${ids.length}');
+      _log.info('Set site category ${category?.storageKey} on $updated');
+      return updated;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to set site category on ${ids.length} media',

@@ -19,9 +19,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class DocumentViewerPage extends ConsumerStatefulWidget {
   final MediaItem item;
 
-  /// The site this document is attached to, when it may be renamed here
-  /// (issue #1039). Null for dive and equipment documents, which hides
-  /// Edit details.
+  /// The site this document is attached to, when its category and display
+  /// size may be edited here (issue #1039). Null for dive and equipment
+  /// documents, which hides Edit details. The filename is never editable.
   final String? editableSiteId;
 
   const DocumentViewerPage({
