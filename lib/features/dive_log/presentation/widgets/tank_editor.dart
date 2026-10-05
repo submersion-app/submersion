@@ -115,10 +115,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   late TankMaterial? _material;
   TankPresetEntity? _selectedPreset;
 
-  /// Counts the diver's spec choices: a preset, a cylinder or a scan. A
-  /// cylinder or a scan fills the tank only once its database work is done,
-  /// and only if no newer choice came in meanwhile, which it would otherwise
-  /// overwrite.
+  /// Counts the diver's spec choices: a preset, a cylinder, a scan or a trip
+  /// cylinder slot. A cylinder or a scan fills the tank only once its
+  /// database work is done, and only if no newer choice came in meanwhile,
+  /// which it would otherwise overwrite.
   int _specChoice = 0;
 
   /// The regulator breathed from this cylinder (v202). Null until the diver
@@ -709,6 +709,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     // refilling from the slot would overwrite the fields behind the
     // diver's back (on an existing dive, from a state that includes it).
     if (id == widget.tank.tripCylinderId) return;
+    // A slot fills the spec too: a newer choice than a cylinder or scan
+    // still resolving.
+    _specChoice++;
     final current = _currentTank();
     final slot = states.where((s) => s.cylinder.id == id).firstOrNull;
     widget.onChanged(
