@@ -144,6 +144,16 @@ class SettingsSummaryWidget extends ConsumerWidget {
                     context.l10n.settings_summary_weight,
                     settings.weightUnit.symbol,
                   ),
+                  _buildUnitRow(
+                    context,
+                    context.l10n.settings_summary_altitude,
+                    settings.altitudeUnit.symbol,
+                  ),
+                  _buildUnitRow(
+                    context,
+                    context.l10n.settings_summary_distance,
+                    settings.distanceUnit.symbol,
+                  ),
                 ],
               ),
             ),
