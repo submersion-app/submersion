@@ -8077,6 +8077,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get setup_units_altitude => 'Magasság';
 
   @override
+  String get setup_units_distance => 'Távolság';
+
+  @override
   String get setup_units_dateFormat => 'Dátumformátum';
 
   @override
@@ -9011,6 +9014,17 @@ class AppLocalizationsHu extends AppLocalizations {
       one: 'merülés',
     );
     return '$count $_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total merülés',
+      one: '$total merülés',
+    );
+    return 'Szűrve: $shown / $_temp0 összesítve';
   }
 
   @override
@@ -20929,6 +20943,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_summary_weight => 'Súly';
 
   @override
+  String get settings_summary_altitude => 'Magasság';
+
+  @override
+  String get settings_summary_distance => 'Távolság';
+
+  @override
   String get settings_units_custom => 'Egyedi';
 
   @override
@@ -21080,6 +21100,30 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'Font (lbs)';
+
+  @override
+  String get settings_units_altitude => 'Magasság';
+
+  @override
+  String get settings_units_altitude_feet => 'Láb (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'Méter (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'Magasság egység';
+
+  @override
+  String get settings_units_distance => 'Távolság';
+
+  @override
+  String get settings_units_distance_kilometers => 'Kilométer (km)';
+
+  @override
+  String get settings_units_distance_miles => 'Mérföld (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'Távolság egység';
 
   @override
   String get settings_updates_automaticUpdates => 'Automatikus frissítések';

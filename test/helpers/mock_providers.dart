@@ -107,6 +107,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setAltitudeUnit(AltitudeUnit unit) async =>
       state = state.copyWith(altitudeUnit: unit);
   @override
+  Future<void> setDistanceUnit(DistanceUnit unit) async =>
+      state = state.copyWith(distanceUnit: unit);
+  @override
   Future<void> setSeascapeAppearance(SeascapeAppearance appearance) async =>
       state = state.copyWith(seascapeAppearance: appearance);
   @override
@@ -427,6 +430,8 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
     pressureUnit: PressureUnit.bar,
     volumeUnit: VolumeUnit.liters,
     weightUnit: WeightUnit.kilograms,
+    altitudeUnit: AltitudeUnit.meters,
+    distanceUnit: DistanceUnit.kilometers,
   );
   @override
   Future<void> setImperial() async => state = state.copyWith(
@@ -435,6 +440,8 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
     pressureUnit: PressureUnit.psi,
     volumeUnit: VolumeUnit.cubicFeet,
     weightUnit: WeightUnit.pounds,
+    altitudeUnit: AltitudeUnit.feet,
+    distanceUnit: DistanceUnit.miles,
   );
   @override
   Future<void> setNotificationsEnabled(bool value) async =>

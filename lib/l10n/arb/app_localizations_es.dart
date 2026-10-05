@@ -8094,6 +8094,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get setup_units_altitude => 'Altitud';
 
   @override
+  String get setup_units_distance => 'Distancia';
+
+  @override
   String get setup_units_dateFormat => 'Formato de fecha';
 
   @override
@@ -9027,6 +9030,17 @@ class AppLocalizationsEs extends AppLocalizations {
       one: 'inmersión',
     );
     return '$count $_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total inmersiones',
+      one: '$total inmersión',
+    );
+    return 'Filtrado: resumen de $shown de $_temp0';
   }
 
   @override
@@ -21002,6 +21016,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_summary_weight => 'Peso';
 
   @override
+  String get settings_summary_altitude => 'Altitud';
+
+  @override
+  String get settings_summary_distance => 'Distancia';
+
+  @override
   String get settings_units_custom => 'Personalizado';
 
   @override
@@ -21153,6 +21173,30 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'Libras (lbs)';
+
+  @override
+  String get settings_units_altitude => 'Altitud';
+
+  @override
+  String get settings_units_altitude_feet => 'Pies (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'Metros (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'Unidad de altitud';
+
+  @override
+  String get settings_units_distance => 'Distancia';
+
+  @override
+  String get settings_units_distance_kilometers => 'Kilómetros (km)';
+
+  @override
+  String get settings_units_distance_miles => 'Millas (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'Unidad de distancia';
 
   @override
   String get settings_updates_automaticUpdates => 'Actualizaciones automáticas';

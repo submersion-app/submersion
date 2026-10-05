@@ -4150,7 +4150,10 @@ class SyncDataSerializer {
     );
     data = _withSchemaDefaults(
       entityType,
-      (await _withLocalForOmitted(entityType, [data])).single,
+      _withDerivedDistanceUnit(
+        entityType,
+        (await _withLocalForOmitted(entityType, [data])).single,
+      ),
     );
     switch (entityType) {
       case 'divers':
@@ -4998,7 +5001,11 @@ class SyncDataSerializer {
         ),
     ]);
     records = [
-      for (final record in records) _withSchemaDefaults(entityType, record),
+      for (final record in records)
+        _withSchemaDefaults(
+          entityType,
+          _withDerivedDistanceUnit(entityType, record),
+        ),
     ];
     switch (entityType) {
       case 'divers':
@@ -9095,6 +9102,24 @@ class SyncDataSerializer {
     return patched ?? data;
   }
 
+  /// Issue #2030. A diver_settings row from a peer older than v263 carries
+  /// no `distanceUnit`. [_withLocalForOmitted] already kept this device's
+  /// value for a row it holds; for a row new here, derive the unit from the
+  /// payload's own depth unit before [_withSchemaDefaults] fills the column
+  /// default, so a feet diver's settings do not arrive in kilometres.
+  static Map<String, dynamic> _withDerivedDistanceUnit(
+    String entityType,
+    Map<String, dynamic> data,
+  ) {
+    if (entityType != 'diverSettings' || data['distanceUnit'] != null) {
+      return data;
+    }
+    return {
+      ...data,
+      'distanceUnit': data['depthUnit'] == 'feet' ? 'miles' : 'kilometers',
+    };
+  }
+
   Map<String, dynamic> _withSchemaDefaults(
     String entityType,
     Map<String, dynamic> data,
@@ -9265,7 +9290,7 @@ class SyncDataSerializer {
       'defaultShowGtr': false,
       'defaultGtrSource': 1,
       'gtrReservePressure': 50.0,
-      // v262: seed it so payloads predating the column hydrate instead of
+      // v264: seed it so payloads predating the column hydrate instead of
       // throwing in DiverSetting.fromJson (issue #2939).
       'defaultShowLateGasSwitches': true,
       // v166: seed it so payloads predating the column hydrate instead of

@@ -331,7 +331,10 @@ void main() {
       tester,
       sites: const [_farSite],
       diveLocation: const GeoPoint(10.0, 10.0),
-      settings: const AppSettings(depthUnit: DepthUnit.feet),
+      settings: const AppSettings(
+        depthUnit: DepthUnit.feet,
+        distanceUnit: DistanceUnit.miles,
+      ),
     );
     expect(find.textContaining('mi'), findsWidgets);
     expect(find.textContaining('km'), findsNothing);

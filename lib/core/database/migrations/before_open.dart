@@ -30,8 +30,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // consolidated dive that arrived since with nothing recorded.
     await _assertTankSharedComputerIds();
 
-    // v237 and v229 backstops: the dive and per-set diver figure switches.
-    await _assertShowDiveFigureColumn();
+    // v263 and v237 backstops: the distance unit and the dive figure switch.
+    await _assertDiverSettingsDisplayColumns();
+
+    // v229 backstop: the per-set diver figure switch.
     await _assertEquipmentSetShowFigureColumn();
 
     // v227 backstop: the hidden built-in tank presets.
@@ -46,7 +48,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // v217 and v219 backstop: the tag scope flags.
     await _assertTagScopeColumns();
 
-    // v211 and v262 backstops: diver_settings.auto_tag_imports and
+    // v211 and v264 backstops: diver_settings.auto_tag_imports and
     // default_show_late_gas_switches.
     await _assertAutoTagImportsColumn();
     await _assertLateGasSwitchSettingColumn();

@@ -30,7 +30,8 @@
 /// property of the dive and must apply unconditionally. Merging the two would
 /// either make the exclusion evaporate for every diver who never opens the
 /// filter sheet, or silently scope the deliberately-unfiltered surfaces
-/// (dashboard quick stats, dive-log summary, species detail page).
+/// (dashboard quick stats, the dive-log summary while the list is unfiltered,
+/// species detail page).
 ///
 /// **Operational counts deliberately ignore this scope.** Equipment service
 /// intervals, course-requirement progress, and the logbook list header all

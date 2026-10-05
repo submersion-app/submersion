@@ -84,6 +84,11 @@ class DiverSettings extends Table {
       text().withDefault(const Constant('kilograms'))();
   TextColumn get altitudeUnit => text().withDefault(const Constant('meters'))();
 
+  /// v263: geographic distance unit, a DistanceUnit name (issue #2030).
+  /// Backfilled from depth_unit as the column is added.
+  TextColumn get distanceUnit =>
+      text().withDefault(const Constant('kilometers'))();
+
   /// v170: renamed from sacUnit. Holds a GasConsumptionDisplay name (sac,
   /// rmv, both). The Drift getter name is also the sync wire key, so this
   /// rename raises minimumCompatibleSchemaVersion; see
@@ -356,7 +361,7 @@ class DiverSettings extends Table {
   BoolColumn get defaultShowGasSwitchMarkers =>
       boolean().withDefault(const Constant(true))();
 
-  /// v262: shade late and missed deco gas switches on the profile (#2939).
+  /// v264: shade late and missed deco gas switches on the profile (#2939).
   BoolColumn get defaultShowLateGasSwitches =>
       boolean().withDefault(const Constant(true))();
   BoolColumn get defaultShowGasTimeline =>

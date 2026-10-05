@@ -7689,6 +7689,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setup_units_altitude => '海拔';
 
   @override
+  String get setup_units_distance => '距离';
+
+  @override
   String get setup_units_dateFormat => '日期格式';
 
   @override
@@ -8593,6 +8596,17 @@ class AppLocalizationsZh extends AppLocalizations {
       one: '次潜水',
     );
     return '$count $_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total 次潜水',
+      one: '$total 次潜水',
+    );
+    return '已筛选：汇总 $shown / $_temp0';
   }
 
   @override
@@ -19941,6 +19955,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_summary_weight => '重量';
 
   @override
+  String get settings_summary_altitude => '海拔';
+
+  @override
+  String get settings_summary_distance => '距离';
+
+  @override
   String get settings_units_custom => '自定义';
 
   @override
@@ -20090,6 +20110,30 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => '磅 (lbs)';
+
+  @override
+  String get settings_units_altitude => '海拔';
+
+  @override
+  String get settings_units_altitude_feet => '英尺 (ft)';
+
+  @override
+  String get settings_units_altitude_meters => '米 (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => '海拔单位';
+
+  @override
+  String get settings_units_distance => '距离';
+
+  @override
+  String get settings_units_distance_kilometers => '千米 (km)';
+
+  @override
+  String get settings_units_distance_miles => '英里 (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => '距离单位';
 
   @override
   String get settings_updates_automaticUpdates => '自动更新';

@@ -204,11 +204,18 @@ extension RungsFromV231 on AppDatabase {
       await _dropDefaultCeilingSourceColumn();
     }
     if (from < 261) await reportProgress();
-    // v262: diver_settings.default_show_late_gas_switches (issue #2939).
+    // v263: diver_settings.distance_unit (issue #2030), backfilled from each
+    // diver's depth unit as the column is added. Re-asserted in beforeOpen.
+    // 262 is held by an open branch (#2991).
+    if (from < 263) {
+      await _assertDistanceUnitColumn();
+    }
+    if (from < 263) await reportProgress();
+    // v264: diver_settings.default_show_late_gas_switches (issue #2939).
     // Column only, defaulting on. Re-asserted in beforeOpen.
-    if (from < 262) {
+    if (from < 264) {
       await _assertLateGasSwitchSettingColumn();
     }
-    if (from < 262) await reportProgress();
+    if (from < 264) await reportProgress();
   }
 }

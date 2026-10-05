@@ -232,7 +232,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 262;
+  static const int currentSchemaVersion = 264;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1089,9 +1089,10 @@ class AppDatabase extends _$AppDatabase {
     // column default, so nothing it applies is lost or misread and the floor
     // stays. Inbound, the generated fromJson ignores the legacy key.
     261,
-    // v262: diver_settings.default_show_late_gas_switches (issue #2939).
+    263,
+    // v264: diver_settings.default_show_late_gas_switches (issue #2939).
     // Additive column with a default, so the floor stays.
-    262,
+    264,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
