@@ -127,7 +127,7 @@ in `database.dart`.
 | Column | Type | Notes |
 | --- | --- | --- |
 | `id` | text PK | UUID |
-| `diver_id` | text, FK divers, cascade | Owner |
+| `diver_id` | text, FK divers (no ON DELETE action) | Owner |
 | `name` | text | Trimmed, non-empty |
 | `color_argb` | integer | Primary card colour; the secondary is derived |
 | `is_shared` | bool, default false | Visible to every profile when true |
@@ -139,7 +139,7 @@ in `database.dart`.
 | Column | Type | Notes |
 | --- | --- | --- |
 | `id` | text PK | UUID |
-| `diver_id` | text, FK divers, cascade | Owner |
+| `diver_id` | text, FK divers (no ON DELETE action) | Owner |
 | `agency_id` | text | A built-in enum name or a custom agency UUID. No FK, because built-ins have no row |
 | `name` | text | Trimmed, non-empty |
 | `is_progression` | bool | Progression rung or specialty |
@@ -360,8 +360,11 @@ enum:
   discovers `is_built_in` tables and is unaffected.
 - A level that arrives before its agency resolves under a fallback agency until
   the agency arrives. No ordering constraint is enforced.
-- Diver deletion cascades both tables. The diver delete path writes tombstones
-  for these rows explicitly, as it does for certifications.
+- Diver deletion clears both tables row by row through the `_ownedTables`
+  registry (`diver_owned_rows.dart`), levels before agencies, tombstoning each
+  row, as it does for `dive_roles`. A schema cascade would delete without
+  tombstones. A deleted diver's shared entries go with them, as their shared
+  sites do; another profile's references then render through the fallback.
 
 ## Import and export
 
