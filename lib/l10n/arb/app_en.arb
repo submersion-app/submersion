@@ -13127,6 +13127,44 @@
   "insights_gas_sacTrend_error": "Failed to load consumption trend",
   "insights_gas_sacTrend_subtitle": "Every dive in range",
   "insights_gas_sacTrend_title": "Gas consumption trend",
+  "insights_focus_title": "Dive focus",
+  "insights_focus_error": "Failed to load dive focus",
+  "insights_focus_empty": "No dives have this value yet",
+  "insights_focus_summary": "{count} of {total} dives, group average {group} vs {overall} overall",
+  "@insights_focus_summary": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "total": { "type": "int" },
+      "group": { "type": "String" },
+      "overall": { "type": "String" }
+    }
+  },
+  "insights_focus_summary_allShown": "Only {total} dives have this value, so all of them are shown",
+  "@insights_focus_summary_allShown": {
+    "placeholders": { "total": { "type": "int" } }
+  },
+  "insights_focus_noMatch_above": "No dives above {value}. Your dives range from {min} to {max}.",
+  "@insights_focus_noMatch_above": {
+    "placeholders": {
+      "value": { "type": "String" },
+      "min": { "type": "String" },
+      "max": { "type": "String" }
+    }
+  },
+  "insights_focus_noMatch_below": "No dives below {value}. Your dives range from {min} to {max}.",
+  "@insights_focus_noMatch_below": {
+    "placeholders": {
+      "value": { "type": "String" },
+      "min": { "type": "String" },
+      "max": { "type": "String" }
+    }
+  },
+  "insights_focus_enterValue": "Enter a value to see the dives above or below it",
+  "insights_focus_chart_title": "The group over time",
+  "insights_focus_chart_group": "In group",
+  "insights_focus_chart_others": "Other dives",
+  "insights_focus_list_title": "Dives in the group",
+  "insights_focus_list_unknownSite": "No site",
   "insights_focus_unit_minutes": "min",
   "insights_focus_metric_label": "Metric",
   "insights_focus_metric_rmv": "RMV",

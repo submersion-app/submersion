@@ -34893,6 +34893,89 @@ abstract class AppLocalizations {
   /// **'Gas consumption trend'**
   String get insights_gas_sacTrend_title;
 
+  /// No description provided for @insights_focus_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive focus'**
+  String get insights_focus_title;
+
+  /// No description provided for @insights_focus_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load dive focus'**
+  String get insights_focus_error;
+
+  /// No description provided for @insights_focus_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives have this value yet'**
+  String get insights_focus_empty;
+
+  /// No description provided for @insights_focus_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {total} dives, group average {group} vs {overall} overall'**
+  String insights_focus_summary(
+    int count,
+    int total,
+    String group,
+    String overall,
+  );
+
+  /// No description provided for @insights_focus_summary_allShown.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {total} dives have this value, so all of them are shown'**
+  String insights_focus_summary_allShown(int total);
+
+  /// No description provided for @insights_focus_noMatch_above.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives above {value}. Your dives range from {min} to {max}.'**
+  String insights_focus_noMatch_above(String value, String min, String max);
+
+  /// No description provided for @insights_focus_noMatch_below.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives below {value}. Your dives range from {min} to {max}.'**
+  String insights_focus_noMatch_below(String value, String min, String max);
+
+  /// No description provided for @insights_focus_enterValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a value to see the dives above or below it'**
+  String get insights_focus_enterValue;
+
+  /// No description provided for @insights_focus_chart_title.
+  ///
+  /// In en, this message translates to:
+  /// **'The group over time'**
+  String get insights_focus_chart_title;
+
+  /// No description provided for @insights_focus_chart_group.
+  ///
+  /// In en, this message translates to:
+  /// **'In group'**
+  String get insights_focus_chart_group;
+
+  /// No description provided for @insights_focus_chart_others.
+  ///
+  /// In en, this message translates to:
+  /// **'Other dives'**
+  String get insights_focus_chart_others;
+
+  /// No description provided for @insights_focus_list_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives in the group'**
+  String get insights_focus_list_title;
+
+  /// No description provided for @insights_focus_list_unknownSite.
+  ///
+  /// In en, this message translates to:
+  /// **'No site'**
+  String get insights_focus_list_unknownSite;
+
   /// No description provided for @insights_focus_unit_minutes.
   ///
   /// In en, this message translates to:

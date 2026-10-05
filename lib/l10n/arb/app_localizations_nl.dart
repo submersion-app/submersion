@@ -21518,6 +21518,59 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_gas_sacTrend_title => 'Gasverbruikstrend';
 
   @override
+  String get insights_focus_title => 'Dive focus';
+
+  @override
+  String get insights_focus_error => 'Failed to load dive focus';
+
+  @override
+  String get insights_focus_empty => 'No dives have this value yet';
+
+  @override
+  String insights_focus_summary(
+    int count,
+    int total,
+    String group,
+    String overall,
+  ) {
+    return '$count of $total dives, group average $group vs $overall overall';
+  }
+
+  @override
+  String insights_focus_summary_allShown(int total) {
+    return 'Only $total dives have this value, so all of them are shown';
+  }
+
+  @override
+  String insights_focus_noMatch_above(String value, String min, String max) {
+    return 'No dives above $value. Your dives range from $min to $max.';
+  }
+
+  @override
+  String insights_focus_noMatch_below(String value, String min, String max) {
+    return 'No dives below $value. Your dives range from $min to $max.';
+  }
+
+  @override
+  String get insights_focus_enterValue =>
+      'Enter a value to see the dives above or below it';
+
+  @override
+  String get insights_focus_chart_title => 'The group over time';
+
+  @override
+  String get insights_focus_chart_group => 'In group';
+
+  @override
+  String get insights_focus_chart_others => 'Other dives';
+
+  @override
+  String get insights_focus_list_title => 'Dives in the group';
+
+  @override
+  String get insights_focus_list_unknownSite => 'No site';
+
+  @override
   String get insights_focus_unit_minutes => 'min';
 
   @override
