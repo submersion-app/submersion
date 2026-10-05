@@ -20636,6 +20636,98 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_focus_threshold_negativeError => 'Enter zero or more';
 
   @override
+  String get insights_focus_factors_title => 'Common factors';
+
+  @override
+  String get insights_focus_factors_subtitle =>
+      'This group compared with every dive that has the value';
+
+  @override
+  String get insights_focus_factors_tooFew =>
+      'Choose at least 3 dives to compare common factors';
+
+  @override
+  String get insights_focus_factors_standsOut => 'Stands out';
+
+  @override
+  String insights_focus_factors_standoutsSummary(String factors) {
+    return 'Stands out: $factors';
+  }
+
+  @override
+  String insights_focus_factors_versus(String group, String baseline) {
+    return '$group vs $baseline';
+  }
+
+  @override
+  String insights_focus_factors_coverage(int covered, int total) {
+    return '$covered of $total dives';
+  }
+
+  @override
+  String get insights_focus_factorGroup_diveShape => 'Dive shape';
+
+  @override
+  String get insights_focus_factorGroup_conditions => 'Conditions';
+
+  @override
+  String get insights_focus_factorGroup_whenWhere => 'When and where';
+
+  @override
+  String get insights_focus_factorGroup_kitGas => 'Kit and gas';
+
+  @override
+  String get insights_focus_factor_avgDepth => 'Average depth';
+
+  @override
+  String get insights_focus_factor_duration => 'Duration';
+
+  @override
+  String get insights_focus_factor_visibility => 'Visibility';
+
+  @override
+  String get insights_focus_factor_current => 'Current';
+
+  @override
+  String get insights_focus_factor_waterType => 'Water type';
+
+  @override
+  String get insights_focus_factor_entryMethod => 'Entry';
+
+  @override
+  String get insights_focus_factor_month => 'Month';
+
+  @override
+  String get insights_focus_factor_timeOfDay => 'Time of day';
+
+  @override
+  String get insights_focus_factor_site => 'Site';
+
+  @override
+  String get insights_focus_factor_diveType => 'Dive type';
+
+  @override
+  String get insights_focus_factor_gas => 'Gas';
+
+  @override
+  String get insights_focus_factor_tankVolume => 'Tank size';
+
+  @override
+  String get insights_focus_factor_suit => 'Suit';
+
+  @override
+  String get insights_focus_factor_buddy => 'Solo or buddy';
+
+  @override
+  String get insights_focus_gas_air => 'Air';
+
+  @override
+  String get insights_focus_gas_nitrox => 'Nitrox';
+
+  @override
+  String get insights_focus_gas_trimix => 'Trimix';
+
+  @override
   String get insights_gas_tankRole_backGas => '主气';
 
   @override

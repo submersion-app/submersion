@@ -35007,6 +35007,174 @@ abstract class AppLocalizations {
   /// **'Enter zero or more'**
   String get insights_focus_threshold_negativeError;
 
+  /// No description provided for @insights_focus_factors_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Common factors'**
+  String get insights_focus_factors_title;
+
+  /// No description provided for @insights_focus_factors_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This group compared with every dive that has the value'**
+  String get insights_focus_factors_subtitle;
+
+  /// No description provided for @insights_focus_factors_tooFew.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose at least 3 dives to compare common factors'**
+  String get insights_focus_factors_tooFew;
+
+  /// No description provided for @insights_focus_factors_standsOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Stands out'**
+  String get insights_focus_factors_standsOut;
+
+  /// No description provided for @insights_focus_factors_standoutsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Stands out: {factors}'**
+  String insights_focus_factors_standoutsSummary(String factors);
+
+  /// No description provided for @insights_focus_factors_versus.
+  ///
+  /// In en, this message translates to:
+  /// **'{group} vs {baseline}'**
+  String insights_focus_factors_versus(String group, String baseline);
+
+  /// No description provided for @insights_focus_factors_coverage.
+  ///
+  /// In en, this message translates to:
+  /// **'{covered} of {total} dives'**
+  String insights_focus_factors_coverage(int covered, int total);
+
+  /// No description provided for @insights_focus_factorGroup_diveShape.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive shape'**
+  String get insights_focus_factorGroup_diveShape;
+
+  /// No description provided for @insights_focus_factorGroup_conditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Conditions'**
+  String get insights_focus_factorGroup_conditions;
+
+  /// No description provided for @insights_focus_factorGroup_whenWhere.
+  ///
+  /// In en, this message translates to:
+  /// **'When and where'**
+  String get insights_focus_factorGroup_whenWhere;
+
+  /// No description provided for @insights_focus_factorGroup_kitGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Kit and gas'**
+  String get insights_focus_factorGroup_kitGas;
+
+  /// No description provided for @insights_focus_factor_avgDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Average depth'**
+  String get insights_focus_factor_avgDepth;
+
+  /// No description provided for @insights_focus_factor_duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get insights_focus_factor_duration;
+
+  /// No description provided for @insights_focus_factor_visibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Visibility'**
+  String get insights_focus_factor_visibility;
+
+  /// No description provided for @insights_focus_factor_current.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get insights_focus_factor_current;
+
+  /// No description provided for @insights_focus_factor_waterType.
+  ///
+  /// In en, this message translates to:
+  /// **'Water type'**
+  String get insights_focus_factor_waterType;
+
+  /// No description provided for @insights_focus_factor_entryMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry'**
+  String get insights_focus_factor_entryMethod;
+
+  /// No description provided for @insights_focus_factor_month.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get insights_focus_factor_month;
+
+  /// No description provided for @insights_focus_factor_timeOfDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Time of day'**
+  String get insights_focus_factor_timeOfDay;
+
+  /// No description provided for @insights_focus_factor_site.
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get insights_focus_factor_site;
+
+  /// No description provided for @insights_focus_factor_diveType.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive type'**
+  String get insights_focus_factor_diveType;
+
+  /// No description provided for @insights_focus_factor_gas.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas'**
+  String get insights_focus_factor_gas;
+
+  /// No description provided for @insights_focus_factor_tankVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank size'**
+  String get insights_focus_factor_tankVolume;
+
+  /// No description provided for @insights_focus_factor_suit.
+  ///
+  /// In en, this message translates to:
+  /// **'Suit'**
+  String get insights_focus_factor_suit;
+
+  /// No description provided for @insights_focus_factor_buddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Solo or buddy'**
+  String get insights_focus_factor_buddy;
+
+  /// No description provided for @insights_focus_gas_air.
+  ///
+  /// In en, this message translates to:
+  /// **'Air'**
+  String get insights_focus_gas_air;
+
+  /// No description provided for @insights_focus_gas_nitrox.
+  ///
+  /// In en, this message translates to:
+  /// **'Nitrox'**
+  String get insights_focus_gas_nitrox;
+
+  /// No description provided for @insights_focus_gas_trimix.
+  ///
+  /// In en, this message translates to:
+  /// **'Trimix'**
+  String get insights_focus_gas_trimix;
+
   /// No description provided for @insights_gas_tankRole_backGas.
   ///
   /// In en, this message translates to:
