@@ -48,6 +48,9 @@ abstract final class DivelogsReferenceMappers {
     if (name == null) return EquipmentType.other;
     final lower = name.trim().toLowerCase();
     if (lower.isEmpty) return EquipmentType.other;
+    // A rebreather counterlung (#2952): a part with no type of its own,
+    // which the bag row would otherwise file as luggage.
+    if (lower.contains('breathing bag')) return EquipmentType.other;
     for (final (keywords, type) in _geartypeKeywords) {
       if (keywords.any(lower.contains)) return type;
     }

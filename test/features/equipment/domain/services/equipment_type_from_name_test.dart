@@ -81,6 +81,7 @@ void main() {
     test('proposes nothing when the name does not say what it is', () {
       expect(typeFromName('Hydros Pro'), isNull);
       expect(typeFromName('Spare parts'), isNull);
+      expect(typeFromName('Breathing bag'), isNull);
     });
 
     test('proposes nothing for a blank name', () {

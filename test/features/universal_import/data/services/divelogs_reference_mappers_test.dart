@@ -56,6 +56,8 @@ void main() {
         'Lifting bag': EquipmentType.smb,
         'Salvage bag': EquipmentType.smb,
         'Hebesack': EquipmentType.smb,
+        // A counterlung, not luggage.
+        'Breathing bag': EquipmentType.other,
       };
       cases.forEach((input, expected) {
         expect(

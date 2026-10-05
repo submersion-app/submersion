@@ -302,6 +302,23 @@ void main() {
       });
     });
 
+    test('a breathing bag is a counterlung, not luggage (#2952)', () {
+      // A rebreather part with no type of its own: it stays Other rather
+      // than being filed as a Bag or as the whole rebreather.
+      for (final input in [
+        'Breathing bag',
+        'Breathing bags',
+        'CCR breathing bag',
+        'Breathing bag (left)',
+      ]) {
+        expect(
+          MacDiveValueMapper.equipmentType(input),
+          EquipmentType.other,
+          reason: input,
+        );
+      }
+    });
+
     test('a bare bag word does not steal a whole item (#2952)', () {
       // A lift bag is a lift device, so it files with the SMB rather than
       // with luggage, and a bag listed beside an item stays that item.

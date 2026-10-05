@@ -90,6 +90,9 @@ class MacDiveValueMapper {
   /// Spelled as one word ("Liftbag") or hyphenated as often as not.
   static final _liftBag = RegExp(r'\b(?:lift|lifting|salvage)[\s-]*bags?\b');
 
+  /// A rebreather counterlung, for [equipmentType] (#2952).
+  static final _breathingBag = RegExp(r'\bbreathing[\s-]*bags?\b');
+
   /// Maps MacDive's free-text equipment type onto [EquipmentType].
   ///
   /// MacDive lets the diver type anything into the field, so real libraries
@@ -104,9 +107,12 @@ class MacDiveValueMapper {
 
     // Bags (#2952) come first, because the item words that name what a bag
     // holds ("Reg bag", "Drysuit bag", "Fin bag") would otherwise claim it.
-    // A lift bag is a lift device and files with the SMB. A bare "bag"
-    // anywhere else in a name is weaker and waits at the very bottom.
+    // A lift bag is a lift device and files with the SMB. A breathing bag
+    // is a rebreather's counterlung, a part with no type of its own, so it
+    // stays Other rather than reading as luggage or as the whole unit. A
+    // bare "bag" anywhere else in a name is weaker and waits at the bottom.
     if (_liftBag.hasMatch(s)) return EquipmentType.smb;
+    if (_breathingBag.hasMatch(s)) return EquipmentType.other;
     final head = s.replaceFirst(_trailingNote, '');
     if (_bagHeadNoun.hasMatch(head) && !_accessoryJoin.hasMatch(head)) {
       return EquipmentType.bag;
