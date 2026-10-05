@@ -237,9 +237,12 @@ persisted, so `analysisEngineVersion` does not change.
   least one flagged window. It is OR-ed into `hasSecondaryToggles`.
 - The chart options dialog gets a row in its Markers section, next to the gas
   switch markers row, and `active_legend_entries.dart` gets a legend chip.
-- Bands: the chart already receives `analysis`, so it derives the ranges from
-  `widget.analysis?.gasSwitchEfficiency` itself; no host or fullscreen page
-  needs a new parameter. They are drawn in `_buildHighlightRangeAnnotations`,
+- Bands: `DiveProfileChart` gains a `gasSwitchEfficiency` parameter, passed as
+  `analysis?.gasSwitchEfficiency` at its three call sites
+  (`dive_profile_chart_host.dart`, `dive_profile_panel.dart`,
+  `fullscreen_profile_page.dart`), right beside the `ttsCurve` each already
+  passes from the same analysis. They are drawn in
+  `_buildHighlightRangeAnnotations`,
   before the cell-divergence and selection bands, gated by the new toggle, not
   by `_showO2Cells`. Each band is tinted with `GasColors.forMixFraction` of the
   gas that should have been breathed, at alpha 0.12, and clamped with

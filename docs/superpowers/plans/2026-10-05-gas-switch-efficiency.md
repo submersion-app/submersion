@@ -2353,6 +2353,7 @@ git commit -m "feat(settings): persist the late gas switch overlay default"
 - Modify: `lib/features/dive_log/presentation/widgets/chart_options_dialog.dart` (markers section)
 - Modify: `lib/features/dive_log/presentation/widgets/active_legend_entries.dart`
 - Modify: `lib/features/dive_log/presentation/widgets/dive_profile_chart.dart`
+- Modify: `lib/features/dive_log/presentation/widgets/dive_profile_chart_host.dart`, `dive_profile_panel.dart`, `lib/features/dive_log/presentation/pages/fullscreen_profile_page.dart` (pass `gasSwitchEfficiency: analysis?.gasSwitchEfficiency,` beside each `ttsCurve: analysis?.ttsCurve,`)
 - Test: `test/features/dive_log/presentation/providers/profile_legend_provider_late_switch_test.dart`, `test/features/dive_log/presentation/widgets/dive_profile_chart_late_switch_test.dart`, `test/features/dive_log/presentation/utils/gas_switch_format_test.dart`
 
 **Interfaces:**
@@ -2585,7 +2586,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -2641,11 +2641,9 @@ Widget _harness(
           height: 300,
           child: DiveProfileChart(
             profile: _profile(),
-            analysis: ProfileAnalysis.empty().copyWith(
-              gasSwitchEfficiency: GasSwitchEfficiency(
-                evaluated: true,
-                windows: [window],
-              ),
+            gasSwitchEfficiency: GasSwitchEfficiency(
+              evaluated: true,
+              windows: [window],
             ),
             tooltipPresentation: TooltipPresentation.external,
             onTooltipData: onTooltipData,
@@ -2712,8 +2710,9 @@ If the centre touch does not land inside 150..450 s (the plot area is inset by a
 - [ ] **Step 7: Implement the chart**
 
 In `dive_profile_chart.dart`:
+- constructor parameter `this.gasSwitchEfficiency,` (after `this.ttsCurve,`) and field `/// Late and missed gas switches to shade (#2939); null hides the overlay.` `final GasSwitchEfficiency? gasSwitchEfficiency;`
 - state field next to `_showGtr`: `bool _showLateGasSwitches = true;`, synced next to `_showGasSwitchMarkers = legendState.showGasSwitchMarkers;` with `_showLateGasSwitches = legendState.showLateGasSwitches;`.
-- legend config (~:2851): `hasLateGasSwitches: widget.analysis?.gasSwitchEfficiency?.windows.isNotEmpty ?? false,`
+- legend config (~:2851): `hasLateGasSwitches: widget.gasSwitchEfficiency?.windows.isNotEmpty ?? false,`
 - in `_buildHighlightRangeAnnotations`, first statement after `final annotations = <VerticalRangeAnnotation>[];`:
 
 ```dart
@@ -2722,7 +2721,7 @@ In `dive_profile_chart.dart`:
     // band paints over them.
     if (_showLateGasSwitches) {
       for (final window
-          in widget.analysis?.gasSwitchEfficiency?.windows ??
+          in widget.gasSwitchEfficiency?.windows ??
               const <GasSwitchWindow>[]) {
         final visible = visibleHighlightSpan(
           ProfileHighlightRange(
@@ -2753,7 +2752,7 @@ In `dive_profile_chart.dart`:
 ```dart
     // Late or missed gas switch under the cursor (#2939).
     if (_showLateGasSwitches) {
-      final window = widget.analysis?.gasSwitchEfficiency?.windowAt(
+      final window = widget.gasSwitchEfficiency?.windowAt(
         point.timestamp,
       );
       if (window != null) {
