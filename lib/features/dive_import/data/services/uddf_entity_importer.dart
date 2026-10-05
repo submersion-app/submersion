@@ -12,6 +12,7 @@ import 'package:submersion/features/cylinder_passports/data/services/csv_fill_im
 import 'package:submersion/features/dive_import/data/repositories/imported_file_repository.dart';
 import 'package:submersion/features/dive_import/data/services/additional_computer_writer.dart';
 import 'package:submersion/features/dive_import/data/services/import_map_readers.dart';
+import 'package:submersion/features/dive_import/data/services/import_weight_mapper.dart';
 import 'package:submersion/features/dive_import/data/services/imported_profile_readers.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
 import 'package:submersion/features/dive_import/data/services/restored_source_attribution.dart';
@@ -2531,13 +2532,7 @@ class UddfEntityImporter {
       final weights =
           weightsData
               ?.map(
-                (w) => DiveWeight(
-                  id: _uuid.v4(),
-                  diveId: diveId,
-                  weightType: w['type'] as WeightType? ?? WeightType.integrated,
-                  amountKg: w['amount'] as double? ?? 0.0,
-                  notes: w['notes'] as String? ?? '',
-                ),
+                (w) => weightFromImportData(w, id: _uuid.v4(), diveId: diveId),
               )
               .toList() ??
           [];
