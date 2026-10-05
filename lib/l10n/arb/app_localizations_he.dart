@@ -20835,7 +20835,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_category_focus_subtitle =>
-      'Best, worst and threshold groups';
+      'קבוצות הטובות, הגרועות ולפי סף';
 
   @override
   String get insights_category_progression_title => 'התקדמות';
@@ -21152,7 +21152,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_sacRecords_title => 'שיאי צריכת גז';
 
   @override
-  String get insights_gas_sacRecords_seeTop => 'See top 10';
+  String get insights_gas_sacRecords_seeTop => 'הצג את 10 המובילות';
 
   @override
   String get insights_gas_sacTrend_error => 'שגיאה בטעינת מגמת הצריכה';
@@ -21164,13 +21164,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_sacTrend_title => 'מגמת צריכת גז';
 
   @override
-  String get insights_focus_title => 'Dive focus';
+  String get insights_focus_title => 'מיקוד צלילות';
 
   @override
-  String get insights_focus_error => 'Failed to load dive focus';
+  String get insights_focus_error => 'טעינת מיקוד הצלילות נכשלה';
 
   @override
-  String get insights_focus_empty => 'No dives have this value yet';
+  String get insights_focus_empty => 'עדיין אין צלילות עם ערך זה';
 
   @override
   String insights_focus_summary(
@@ -21179,48 +21179,42 @@ class AppLocalizationsHe extends AppLocalizations {
     String group,
     String overall,
   ) {
-    return '$count of $total dives, group average $group vs $overall overall';
+    return '$count מתוך $total צלילות, ממוצע הקבוצה $group לעומת $overall בסך הכול';
   }
 
   @override
   String insights_focus_summary_allShown(int total) {
-    return 'Only $total dives have this value, so all of them are shown';
+    return 'רק ל־$total צלילות יש ערך זה, ולכן כולן מוצגות';
   }
 
   @override
   String insights_focus_noMatch_above(String value, String min, String max) {
-    return 'No dives above $value. Your dives range from $min to $max.';
+    return 'אין צלילות מעל $value. הצלילות שלך נעות בין $min ל־$max.';
   }
 
   @override
   String insights_focus_noMatch_below(String value, String min, String max) {
-    return 'No dives below $value. Your dives range from $min to $max.';
+    return 'אין צלילות מתחת ל־$value. הצלילות שלך נעות בין $min ל־$max.';
   }
 
   @override
   String get insights_focus_enterValue =>
-      'Enter a value to see the dives above or below it';
+      'הזן ערך כדי לראות את הצלילות שמעליו או מתחתיו';
 
   @override
-  String get insights_focus_chart_title => 'The group over time';
+  String get insights_focus_chart_title => 'הקבוצה לאורך זמן';
 
   @override
-  String get insights_focus_chart_group => 'In group';
+  String get insights_focus_chart_group => 'בקבוצה';
 
   @override
-  String get insights_focus_chart_others => 'Other dives';
+  String get insights_focus_list_title => 'צלילות בקבוצה';
 
   @override
-  String get insights_focus_list_title => 'Dives in the group';
+  String get insights_focus_list_unknownSite => 'אין אתר';
 
   @override
-  String get insights_focus_list_unknownSite => 'No site';
-
-  @override
-  String get insights_focus_unit_minutes => 'min';
-
-  @override
-  String get insights_focus_metric_label => 'Metric';
+  String get insights_focus_unit_minutes => 'דק׳';
 
   @override
   String get insights_focus_metric_rmv => 'RMV';
@@ -21229,141 +21223,141 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_focus_metric_sac => 'SAC';
 
   @override
-  String get insights_focus_metric_maxDepth => 'Max depth';
+  String get insights_focus_metric_maxDepth => 'עומק מרבי';
 
   @override
-  String get insights_focus_metric_bottomTime => 'Bottom time';
+  String get insights_focus_metric_bottomTime => 'זמן תחתית';
 
   @override
-  String get insights_focus_metric_weight => 'Weight';
+  String get insights_focus_metric_weight => 'משקולות';
 
   @override
-  String get insights_focus_metric_waterTemp => 'Water temp';
+  String get insights_focus_metric_waterTemp => 'טמפרטורת מים';
 
   @override
-  String get insights_focus_mode_best => 'Best';
+  String get insights_focus_mode_best => 'הטובות ביותר';
 
   @override
-  String get insights_focus_mode_worst => 'Worst';
+  String get insights_focus_mode_worst => 'הגרועות ביותר';
 
   @override
-  String get insights_focus_mode_lowest => 'Lowest';
+  String get insights_focus_mode_lowest => 'הנמוכות ביותר';
 
   @override
-  String get insights_focus_mode_highest => 'Highest';
+  String get insights_focus_mode_highest => 'הגבוהות ביותר';
 
   @override
-  String get insights_focus_mode_above => 'Above';
+  String get insights_focus_mode_above => 'מעל';
 
   @override
-  String get insights_focus_mode_below => 'Below';
+  String get insights_focus_mode_below => 'מתחת';
 
   @override
-  String get insights_focus_count_label => 'Dives';
+  String get insights_focus_count_label => 'צלילות';
 
   @override
-  String get insights_focus_count_error => 'Enter a whole number from 1 to 999';
+  String get insights_focus_count_error => 'הזן מספר שלם בין 1 ל־999';
 
   @override
-  String get insights_focus_threshold_label => 'Value';
+  String get insights_focus_threshold_label => 'ערך';
 
   @override
-  String get insights_focus_threshold_error => 'Enter a number';
+  String get insights_focus_threshold_error => 'הזן מספר';
 
   @override
-  String get insights_focus_threshold_negativeError => 'Enter zero or more';
+  String get insights_focus_threshold_negativeError => 'הזן אפס או יותר';
 
   @override
-  String get insights_focus_factors_title => 'Common factors';
+  String get insights_focus_factors_title => 'גורמים משותפים';
 
   @override
   String get insights_focus_factors_subtitle =>
-      'This group compared with every dive that has the value';
+      'קבוצה זו בהשוואה לכל הצלילות שיש להן את הערך';
 
   @override
   String get insights_focus_factors_tooFew =>
-      'Choose at least 3 dives to compare common factors';
+      'בחר לפחות 3 צלילות כדי להשוות גורמים משותפים';
 
   @override
-  String get insights_focus_factors_standsOut => 'Stands out';
+  String get insights_focus_factors_standsOut => 'בולט';
 
   @override
   String insights_focus_factors_standoutsSummary(String factors) {
-    return 'Stands out: $factors';
+    return 'בולט: $factors';
   }
 
   @override
   String insights_focus_factors_versus(String group, String baseline) {
-    return '$group vs $baseline';
+    return '$group לעומת $baseline';
   }
 
   @override
   String insights_focus_factors_coverage(int covered, int total) {
-    return '$covered of $total dives';
+    return '$covered מתוך $total צלילות';
   }
 
   @override
-  String get insights_focus_factorGroup_diveShape => 'Dive shape';
+  String get insights_focus_factorGroup_diveShape => 'פרופיל הצלילה';
 
   @override
-  String get insights_focus_factorGroup_conditions => 'Conditions';
+  String get insights_focus_factorGroup_conditions => 'תנאים';
 
   @override
-  String get insights_focus_factorGroup_whenWhere => 'When and where';
+  String get insights_focus_factorGroup_whenWhere => 'מתי ואיפה';
 
   @override
-  String get insights_focus_factorGroup_kitGas => 'Kit and gas';
+  String get insights_focus_factorGroup_kitGas => 'ציוד וגז';
 
   @override
-  String get insights_focus_factor_avgDepth => 'Average depth';
+  String get insights_focus_factor_avgDepth => 'עומק ממוצע';
 
   @override
-  String get insights_focus_factor_duration => 'Duration';
+  String get insights_focus_factor_duration => 'משך';
 
   @override
-  String get insights_focus_factor_visibility => 'Visibility';
+  String get insights_focus_factor_visibility => 'ראות';
 
   @override
-  String get insights_focus_factor_current => 'Current';
+  String get insights_focus_factor_current => 'זרם';
 
   @override
-  String get insights_focus_factor_waterType => 'Water type';
+  String get insights_focus_factor_waterType => 'סוג מים';
 
   @override
-  String get insights_focus_factor_entryMethod => 'Entry';
+  String get insights_focus_factor_entryMethod => 'כניסה';
 
   @override
-  String get insights_focus_factor_month => 'Month';
+  String get insights_focus_factor_month => 'חודש';
 
   @override
-  String get insights_focus_factor_timeOfDay => 'Time of day';
+  String get insights_focus_factor_timeOfDay => 'שעה ביום';
 
   @override
-  String get insights_focus_factor_site => 'Site';
+  String get insights_focus_factor_site => 'אתר';
 
   @override
-  String get insights_focus_factor_diveType => 'Dive type';
+  String get insights_focus_factor_diveType => 'סוג צלילה';
 
   @override
-  String get insights_focus_factor_gas => 'Gas';
+  String get insights_focus_factor_gas => 'גז';
 
   @override
-  String get insights_focus_factor_tankVolume => 'Tank size';
+  String get insights_focus_factor_tankVolume => 'גודל מיכל';
 
   @override
-  String get insights_focus_factor_suit => 'Suit';
+  String get insights_focus_factor_suit => 'חליפה';
 
   @override
-  String get insights_focus_factor_buddy => 'Solo or buddy';
+  String get insights_focus_factor_buddy => 'סולו או עם בן זוג';
 
   @override
-  String get insights_focus_gas_air => 'Air';
+  String get insights_focus_gas_air => 'אוויר';
 
   @override
-  String get insights_focus_gas_nitrox => 'Nitrox';
+  String get insights_focus_gas_nitrox => 'נייטרוקס';
 
   @override
-  String get insights_focus_gas_trimix => 'Trimix';
+  String get insights_focus_gas_trimix => 'טרימיקס';
 
   @override
   String get insights_gas_tankRole_backGas => 'גז ראשי';
@@ -42016,34 +42010,34 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_trend_overview_semanticLabel =>
-      'Chart overview. Drag the highlighted window to scroll through time.';
+      'סקירת התרשים. גרור את החלון המודגש כדי לגלול לאורך הזמן.';
 
   @override
-  String get insights_trend_range_tooltip => 'Visible range';
+  String get insights_trend_range_tooltip => 'טווח גלוי';
 
   @override
-  String get insights_trend_range_all => 'All';
+  String get insights_trend_range_all => 'הכול';
 
   @override
-  String get insights_trend_range_years5 => 'Last 5 years';
+  String get insights_trend_range_years5 => '5 השנים האחרונות';
 
   @override
-  String get insights_trend_range_years2 => 'Last 2 years';
+  String get insights_trend_range_years2 => 'השנתיים האחרונות';
 
   @override
-  String get insights_trend_range_year1 => 'Last year';
+  String get insights_trend_range_year1 => 'השנה האחרונה';
 
   @override
-  String get insights_trend_range_months6 => 'Last 6 months';
+  String get insights_trend_range_months6 => '6 החודשים האחרונים';
 
   @override
-  String get insights_trend_range_months3 => 'Last 3 months';
+  String get insights_trend_range_months3 => '3 החודשים האחרונים';
 
   @override
-  String get insights_trend_range_custom => 'Custom';
+  String get insights_trend_range_custom => 'מותאם אישית';
 
   @override
-  String get insights_trend_range_customPick => 'Custom range...';
+  String get insights_trend_range_customPick => 'טווח מותאם אישית...';
 
   @override
   String get diveLog_edit_excludeFromStats => 'החרג מהסטטיסטיקות';

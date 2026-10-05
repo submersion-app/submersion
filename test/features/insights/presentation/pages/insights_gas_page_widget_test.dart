@@ -166,9 +166,7 @@ void main() {
     );
   });
 
-  testWidgets('no See top 10 link without consumption records', (
-    tester,
-  ) async {
+  testWidgets('no See top 10 link without consumption records', (tester) async {
     await pumpPage(tester, const AppSettings());
     await tester.pump(const Duration(seconds: 1));
     expect(find.byKey(const ValueKey('gas-records-see-top')), findsNothing);

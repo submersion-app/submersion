@@ -20265,8 +20265,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_category_progression_subtitle => '深度与时间趋势';
 
   @override
-  String get insights_category_focus_subtitle =>
-      'Best, worst and threshold groups';
+  String get insights_category_focus_subtitle => '最佳、最差和阈值分组';
 
   @override
   String get insights_category_progression_title => '进展';
@@ -20574,7 +20573,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_gas_sacRecords_title => '气体消耗记录';
 
   @override
-  String get insights_gas_sacRecords_seeTop => 'See top 10';
+  String get insights_gas_sacRecords_seeTop => '查看前 10';
 
   @override
   String get insights_gas_sacTrend_error => '加载消耗趋势失败';
@@ -20586,13 +20585,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_gas_sacTrend_title => '气体消耗趋势';
 
   @override
-  String get insights_focus_title => 'Dive focus';
+  String get insights_focus_title => '潜水聚焦';
 
   @override
-  String get insights_focus_error => 'Failed to load dive focus';
+  String get insights_focus_error => '无法加载潜水聚焦';
 
   @override
-  String get insights_focus_empty => 'No dives have this value yet';
+  String get insights_focus_empty => '还没有包含此数值的潜水';
 
   @override
   String insights_focus_summary(
@@ -20601,48 +20600,41 @@ class AppLocalizationsZh extends AppLocalizations {
     String group,
     String overall,
   ) {
-    return '$count of $total dives, group average $group vs $overall overall';
+    return '$total 次潜水中的 $count 次，组内平均 $group，总体 $overall';
   }
 
   @override
   String insights_focus_summary_allShown(int total) {
-    return 'Only $total dives have this value, so all of them are shown';
+    return '只有 $total 次潜水有此数值，因此全部显示';
   }
 
   @override
   String insights_focus_noMatch_above(String value, String min, String max) {
-    return 'No dives above $value. Your dives range from $min to $max.';
+    return '没有高于 $value 的潜水。你的潜水范围为 $min 到 $max。';
   }
 
   @override
   String insights_focus_noMatch_below(String value, String min, String max) {
-    return 'No dives below $value. Your dives range from $min to $max.';
+    return '没有低于 $value 的潜水。你的潜水范围为 $min 到 $max。';
   }
 
   @override
-  String get insights_focus_enterValue =>
-      'Enter a value to see the dives above or below it';
+  String get insights_focus_enterValue => '输入一个数值以查看高于或低于它的潜水';
 
   @override
-  String get insights_focus_chart_title => 'The group over time';
+  String get insights_focus_chart_title => '该组随时间变化';
 
   @override
-  String get insights_focus_chart_group => 'In group';
+  String get insights_focus_chart_group => '组内';
 
   @override
-  String get insights_focus_chart_others => 'Other dives';
+  String get insights_focus_list_title => '组内潜水';
 
   @override
-  String get insights_focus_list_title => 'Dives in the group';
+  String get insights_focus_list_unknownSite => '无潜点';
 
   @override
-  String get insights_focus_list_unknownSite => 'No site';
-
-  @override
-  String get insights_focus_unit_minutes => 'min';
-
-  @override
-  String get insights_focus_metric_label => 'Metric';
+  String get insights_focus_unit_minutes => '分钟';
 
   @override
   String get insights_focus_metric_rmv => 'RMV';
@@ -20651,141 +20643,139 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_focus_metric_sac => 'SAC';
 
   @override
-  String get insights_focus_metric_maxDepth => 'Max depth';
+  String get insights_focus_metric_maxDepth => '最大深度';
 
   @override
-  String get insights_focus_metric_bottomTime => 'Bottom time';
+  String get insights_focus_metric_bottomTime => '水底时间';
 
   @override
-  String get insights_focus_metric_weight => 'Weight';
+  String get insights_focus_metric_weight => '配重';
 
   @override
-  String get insights_focus_metric_waterTemp => 'Water temp';
+  String get insights_focus_metric_waterTemp => '水温';
 
   @override
-  String get insights_focus_mode_best => 'Best';
+  String get insights_focus_mode_best => '最佳';
 
   @override
-  String get insights_focus_mode_worst => 'Worst';
+  String get insights_focus_mode_worst => '最差';
 
   @override
-  String get insights_focus_mode_lowest => 'Lowest';
+  String get insights_focus_mode_lowest => '最低';
 
   @override
-  String get insights_focus_mode_highest => 'Highest';
+  String get insights_focus_mode_highest => '最高';
 
   @override
-  String get insights_focus_mode_above => 'Above';
+  String get insights_focus_mode_above => '高于';
 
   @override
-  String get insights_focus_mode_below => 'Below';
+  String get insights_focus_mode_below => '低于';
 
   @override
-  String get insights_focus_count_label => 'Dives';
+  String get insights_focus_count_label => '潜水次数';
 
   @override
-  String get insights_focus_count_error => 'Enter a whole number from 1 to 999';
+  String get insights_focus_count_error => '请输入 1 到 999 之间的整数';
 
   @override
-  String get insights_focus_threshold_label => 'Value';
+  String get insights_focus_threshold_label => '数值';
 
   @override
-  String get insights_focus_threshold_error => 'Enter a number';
+  String get insights_focus_threshold_error => '请输入数字';
 
   @override
-  String get insights_focus_threshold_negativeError => 'Enter zero or more';
+  String get insights_focus_threshold_negativeError => '请输入零或更大的数';
 
   @override
-  String get insights_focus_factors_title => 'Common factors';
+  String get insights_focus_factors_title => '共同因素';
 
   @override
-  String get insights_focus_factors_subtitle =>
-      'This group compared with every dive that has the value';
+  String get insights_focus_factors_subtitle => '此组与所有具有该数值的潜水对比';
 
   @override
-  String get insights_focus_factors_tooFew =>
-      'Choose at least 3 dives to compare common factors';
+  String get insights_focus_factors_tooFew => '至少选择 3 次潜水才能比较共同因素';
 
   @override
-  String get insights_focus_factors_standsOut => 'Stands out';
+  String get insights_focus_factors_standsOut => '突出';
 
   @override
   String insights_focus_factors_standoutsSummary(String factors) {
-    return 'Stands out: $factors';
+    return '突出：$factors';
   }
 
   @override
   String insights_focus_factors_versus(String group, String baseline) {
-    return '$group vs $baseline';
+    return '$group 对比 $baseline';
   }
 
   @override
   String insights_focus_factors_coverage(int covered, int total) {
-    return '$covered of $total dives';
+    return '$total 次中的 $covered 次';
   }
 
   @override
-  String get insights_focus_factorGroup_diveShape => 'Dive shape';
+  String get insights_focus_factorGroup_diveShape => '潜水形态';
 
   @override
-  String get insights_focus_factorGroup_conditions => 'Conditions';
+  String get insights_focus_factorGroup_conditions => '环境条件';
 
   @override
-  String get insights_focus_factorGroup_whenWhere => 'When and where';
+  String get insights_focus_factorGroup_whenWhere => '时间与地点';
 
   @override
-  String get insights_focus_factorGroup_kitGas => 'Kit and gas';
+  String get insights_focus_factorGroup_kitGas => '装备与气体';
 
   @override
-  String get insights_focus_factor_avgDepth => 'Average depth';
+  String get insights_focus_factor_avgDepth => '平均深度';
 
   @override
-  String get insights_focus_factor_duration => 'Duration';
+  String get insights_focus_factor_duration => '时长';
 
   @override
-  String get insights_focus_factor_visibility => 'Visibility';
+  String get insights_focus_factor_visibility => '能见度';
 
   @override
-  String get insights_focus_factor_current => 'Current';
+  String get insights_focus_factor_current => '水流';
 
   @override
-  String get insights_focus_factor_waterType => 'Water type';
+  String get insights_focus_factor_waterType => '水质类型';
 
   @override
-  String get insights_focus_factor_entryMethod => 'Entry';
+  String get insights_focus_factor_entryMethod => '入水方式';
 
   @override
-  String get insights_focus_factor_month => 'Month';
+  String get insights_focus_factor_month => '月份';
 
   @override
-  String get insights_focus_factor_timeOfDay => 'Time of day';
+  String get insights_focus_factor_timeOfDay => '时段';
 
   @override
-  String get insights_focus_factor_site => 'Site';
+  String get insights_focus_factor_site => '潜点';
 
   @override
-  String get insights_focus_factor_diveType => 'Dive type';
+  String get insights_focus_factor_diveType => '潜水类型';
 
   @override
-  String get insights_focus_factor_gas => 'Gas';
+  String get insights_focus_factor_gas => '气体';
 
   @override
-  String get insights_focus_factor_tankVolume => 'Tank size';
+  String get insights_focus_factor_tankVolume => '气瓶大小';
 
   @override
-  String get insights_focus_factor_suit => 'Suit';
+  String get insights_focus_factor_suit => '潜水服';
 
   @override
-  String get insights_focus_factor_buddy => 'Solo or buddy';
+  String get insights_focus_factor_buddy => '单人或有潜伴';
 
   @override
-  String get insights_focus_gas_air => 'Air';
+  String get insights_focus_gas_air => '空气';
 
   @override
-  String get insights_focus_gas_nitrox => 'Nitrox';
+  String get insights_focus_gas_nitrox => '高氧';
 
   @override
-  String get insights_focus_gas_trimix => 'Trimix';
+  String get insights_focus_gas_trimix => '三混气';
 
   @override
   String get insights_gas_tankRole_backGas => '主气';
@@ -40328,35 +40318,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_trend_tooltip_highest => '最高';
 
   @override
-  String get insights_trend_overview_semanticLabel =>
-      'Chart overview. Drag the highlighted window to scroll through time.';
+  String get insights_trend_overview_semanticLabel => '图表概览。拖动高亮窗口可沿时间滚动。';
 
   @override
-  String get insights_trend_range_tooltip => 'Visible range';
+  String get insights_trend_range_tooltip => '可见范围';
 
   @override
-  String get insights_trend_range_all => 'All';
+  String get insights_trend_range_all => '全部';
 
   @override
-  String get insights_trend_range_years5 => 'Last 5 years';
+  String get insights_trend_range_years5 => '最近 5 年';
 
   @override
-  String get insights_trend_range_years2 => 'Last 2 years';
+  String get insights_trend_range_years2 => '最近 2 年';
 
   @override
-  String get insights_trend_range_year1 => 'Last year';
+  String get insights_trend_range_year1 => '最近 1 年';
 
   @override
-  String get insights_trend_range_months6 => 'Last 6 months';
+  String get insights_trend_range_months6 => '最近 6 个月';
 
   @override
-  String get insights_trend_range_months3 => 'Last 3 months';
+  String get insights_trend_range_months3 => '最近 3 个月';
 
   @override
-  String get insights_trend_range_custom => 'Custom';
+  String get insights_trend_range_custom => '自定义';
 
   @override
-  String get insights_trend_range_customPick => 'Custom range...';
+  String get insights_trend_range_customPick => '自定义范围...';
 
   @override
   String get diveLog_edit_excludeFromStats => '从统计中排除';

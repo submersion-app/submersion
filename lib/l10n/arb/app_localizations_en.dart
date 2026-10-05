@@ -21386,9 +21386,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_focus_chart_group => 'In group';
 
   @override
-  String get insights_focus_chart_others => 'Other dives';
-
-  @override
   String get insights_focus_list_title => 'Dives in the group';
 
   @override
@@ -21396,9 +21393,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insights_focus_unit_minutes => 'min';
-
-  @override
-  String get insights_focus_metric_label => 'Metric';
 
   @override
   String get insights_focus_metric_rmv => 'RMV';

@@ -34970,12 +34970,6 @@ abstract class AppLocalizations {
   /// **'In group'**
   String get insights_focus_chart_group;
 
-  /// No description provided for @insights_focus_chart_others.
-  ///
-  /// In en, this message translates to:
-  /// **'Other dives'**
-  String get insights_focus_chart_others;
-
   /// No description provided for @insights_focus_list_title.
   ///
   /// In en, this message translates to:
@@ -34993,12 +34987,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'min'**
   String get insights_focus_unit_minutes;
-
-  /// No description provided for @insights_focus_metric_label.
-  ///
-  /// In en, this message translates to:
-  /// **'Metric'**
-  String get insights_focus_metric_label;
 
   /// No description provided for @insights_focus_metric_rmv.
   ///

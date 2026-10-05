@@ -21306,7 +21306,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insights_category_focus_subtitle =>
-      'Best, worst and threshold groups';
+      'Beste, schlechteste und Schwellenwert-Gruppen';
 
   @override
   String get insights_category_progression_title => 'Entwicklung';
@@ -21643,7 +21643,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_gas_sacRecords_title => 'Gasverbrauchsrekorde';
 
   @override
-  String get insights_gas_sacRecords_seeTop => 'See top 10';
+  String get insights_gas_sacRecords_seeTop => 'Top 10 ansehen';
 
   @override
   String get insights_gas_sacTrend_error =>
@@ -21656,13 +21656,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_gas_sacTrend_title => 'Gasverbrauchstrend';
 
   @override
-  String get insights_focus_title => 'Dive focus';
+  String get insights_focus_title => 'Tauchgangsfokus';
 
   @override
-  String get insights_focus_error => 'Failed to load dive focus';
+  String get insights_focus_error =>
+      'Tauchgangsfokus konnte nicht geladen werden';
 
   @override
-  String get insights_focus_empty => 'No dives have this value yet';
+  String get insights_focus_empty => 'Noch keine Tauchgänge mit diesem Wert';
 
   @override
   String insights_focus_summary(
@@ -21671,185 +21672,180 @@ class AppLocalizationsDe extends AppLocalizations {
     String group,
     String overall,
   ) {
-    return '$count of $total dives, group average $group vs $overall overall';
+    return '$count von $total Tauchgängen, Gruppendurchschnitt $group gegenüber $overall insgesamt';
   }
 
   @override
   String insights_focus_summary_allShown(int total) {
-    return 'Only $total dives have this value, so all of them are shown';
+    return 'Nur $total Tauchgänge haben diesen Wert, daher werden alle angezeigt';
   }
 
   @override
   String insights_focus_noMatch_above(String value, String min, String max) {
-    return 'No dives above $value. Your dives range from $min to $max.';
+    return 'Keine Tauchgänge über $value. Deine Tauchgänge reichen von $min bis $max.';
   }
 
   @override
   String insights_focus_noMatch_below(String value, String min, String max) {
-    return 'No dives below $value. Your dives range from $min to $max.';
+    return 'Keine Tauchgänge unter $value. Deine Tauchgänge reichen von $min bis $max.';
   }
 
   @override
   String get insights_focus_enterValue =>
-      'Enter a value to see the dives above or below it';
+      'Gib einen Wert ein, um die Tauchgänge darüber oder darunter zu sehen';
 
   @override
-  String get insights_focus_chart_title => 'The group over time';
+  String get insights_focus_chart_title => 'Die Gruppe im Zeitverlauf';
 
   @override
-  String get insights_focus_chart_group => 'In group';
+  String get insights_focus_chart_group => 'In der Gruppe';
 
   @override
-  String get insights_focus_chart_others => 'Other dives';
+  String get insights_focus_list_title => 'Tauchgänge in der Gruppe';
 
   @override
-  String get insights_focus_list_title => 'Dives in the group';
+  String get insights_focus_list_unknownSite => 'Kein Tauchplatz';
 
   @override
-  String get insights_focus_list_unknownSite => 'No site';
+  String get insights_focus_unit_minutes => 'Min.';
 
   @override
-  String get insights_focus_unit_minutes => 'min';
+  String get insights_focus_metric_rmv => 'AMV';
 
   @override
-  String get insights_focus_metric_label => 'Metric';
+  String get insights_focus_metric_sac => 'Druckverbrauch';
 
   @override
-  String get insights_focus_metric_rmv => 'RMV';
+  String get insights_focus_metric_maxDepth => 'Maximaltiefe';
 
   @override
-  String get insights_focus_metric_sac => 'SAC';
+  String get insights_focus_metric_bottomTime => 'Grundzeit';
 
   @override
-  String get insights_focus_metric_maxDepth => 'Max depth';
+  String get insights_focus_metric_weight => 'Blei';
 
   @override
-  String get insights_focus_metric_bottomTime => 'Bottom time';
+  String get insights_focus_metric_waterTemp => 'Wassertemperatur';
 
   @override
-  String get insights_focus_metric_weight => 'Weight';
+  String get insights_focus_mode_best => 'Beste';
 
   @override
-  String get insights_focus_metric_waterTemp => 'Water temp';
+  String get insights_focus_mode_worst => 'Schlechteste';
 
   @override
-  String get insights_focus_mode_best => 'Best';
+  String get insights_focus_mode_lowest => 'Niedrigste';
 
   @override
-  String get insights_focus_mode_worst => 'Worst';
+  String get insights_focus_mode_highest => 'Höchste';
 
   @override
-  String get insights_focus_mode_lowest => 'Lowest';
+  String get insights_focus_mode_above => 'Über';
 
   @override
-  String get insights_focus_mode_highest => 'Highest';
+  String get insights_focus_mode_below => 'Unter';
 
   @override
-  String get insights_focus_mode_above => 'Above';
+  String get insights_focus_count_label => 'Tauchgänge';
 
   @override
-  String get insights_focus_mode_below => 'Below';
+  String get insights_focus_count_error =>
+      'Gib eine ganze Zahl von 1 bis 999 ein';
 
   @override
-  String get insights_focus_count_label => 'Dives';
+  String get insights_focus_threshold_label => 'Wert';
 
   @override
-  String get insights_focus_count_error => 'Enter a whole number from 1 to 999';
+  String get insights_focus_threshold_error => 'Gib eine Zahl ein';
 
   @override
-  String get insights_focus_threshold_label => 'Value';
+  String get insights_focus_threshold_negativeError => 'Gib null oder mehr ein';
 
   @override
-  String get insights_focus_threshold_error => 'Enter a number';
-
-  @override
-  String get insights_focus_threshold_negativeError => 'Enter zero or more';
-
-  @override
-  String get insights_focus_factors_title => 'Common factors';
+  String get insights_focus_factors_title => 'Gemeinsame Faktoren';
 
   @override
   String get insights_focus_factors_subtitle =>
-      'This group compared with every dive that has the value';
+      'Diese Gruppe im Vergleich zu allen Tauchgängen mit diesem Wert';
 
   @override
   String get insights_focus_factors_tooFew =>
-      'Choose at least 3 dives to compare common factors';
+      'Wähle mindestens 3 Tauchgänge, um gemeinsame Faktoren zu vergleichen';
 
   @override
-  String get insights_focus_factors_standsOut => 'Stands out';
+  String get insights_focus_factors_standsOut => 'Fällt auf';
 
   @override
   String insights_focus_factors_standoutsSummary(String factors) {
-    return 'Stands out: $factors';
+    return 'Fällt auf: $factors';
   }
 
   @override
   String insights_focus_factors_versus(String group, String baseline) {
-    return '$group vs $baseline';
+    return '$group gegenüber $baseline';
   }
 
   @override
   String insights_focus_factors_coverage(int covered, int total) {
-    return '$covered of $total dives';
+    return '$covered von $total Tauchgängen';
   }
 
   @override
-  String get insights_focus_factorGroup_diveShape => 'Dive shape';
+  String get insights_focus_factorGroup_diveShape => 'Tauchgangsprofil';
 
   @override
-  String get insights_focus_factorGroup_conditions => 'Conditions';
+  String get insights_focus_factorGroup_conditions => 'Bedingungen';
 
   @override
-  String get insights_focus_factorGroup_whenWhere => 'When and where';
+  String get insights_focus_factorGroup_whenWhere => 'Wann und wo';
 
   @override
-  String get insights_focus_factorGroup_kitGas => 'Kit and gas';
+  String get insights_focus_factorGroup_kitGas => 'Ausrüstung und Gas';
 
   @override
-  String get insights_focus_factor_avgDepth => 'Average depth';
+  String get insights_focus_factor_avgDepth => 'Durchschnittstiefe';
 
   @override
-  String get insights_focus_factor_duration => 'Duration';
+  String get insights_focus_factor_duration => 'Dauer';
 
   @override
-  String get insights_focus_factor_visibility => 'Visibility';
+  String get insights_focus_factor_visibility => 'Sicht';
 
   @override
-  String get insights_focus_factor_current => 'Current';
+  String get insights_focus_factor_current => 'Strömung';
 
   @override
-  String get insights_focus_factor_waterType => 'Water type';
+  String get insights_focus_factor_waterType => 'Wasserart';
 
   @override
-  String get insights_focus_factor_entryMethod => 'Entry';
+  String get insights_focus_factor_entryMethod => 'Einstieg';
 
   @override
-  String get insights_focus_factor_month => 'Month';
+  String get insights_focus_factor_month => 'Monat';
 
   @override
-  String get insights_focus_factor_timeOfDay => 'Time of day';
+  String get insights_focus_factor_timeOfDay => 'Tageszeit';
 
   @override
-  String get insights_focus_factor_site => 'Site';
+  String get insights_focus_factor_site => 'Tauchplatz';
 
   @override
-  String get insights_focus_factor_diveType => 'Dive type';
+  String get insights_focus_factor_diveType => 'Tauchgangsart';
 
   @override
   String get insights_focus_factor_gas => 'Gas';
 
   @override
-  String get insights_focus_factor_tankVolume => 'Tank size';
+  String get insights_focus_factor_tankVolume => 'Flaschengröße';
 
   @override
-  String get insights_focus_factor_suit => 'Suit';
+  String get insights_focus_factor_suit => 'Anzug';
 
   @override
-  String get insights_focus_factor_buddy => 'Solo or buddy';
+  String get insights_focus_factor_buddy => 'Solo oder mit Buddy';
 
   @override
-  String get insights_focus_gas_air => 'Air';
+  String get insights_focus_gas_air => 'Luft';
 
   @override
   String get insights_focus_gas_nitrox => 'Nitrox';
@@ -42782,34 +42778,34 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insights_trend_overview_semanticLabel =>
-      'Chart overview. Drag the highlighted window to scroll through time.';
+      'Diagrammübersicht. Ziehe das hervorgehobene Fenster, um durch die Zeit zu blättern.';
 
   @override
-  String get insights_trend_range_tooltip => 'Visible range';
+  String get insights_trend_range_tooltip => 'Sichtbarer Zeitraum';
 
   @override
-  String get insights_trend_range_all => 'All';
+  String get insights_trend_range_all => 'Alle';
 
   @override
-  String get insights_trend_range_years5 => 'Last 5 years';
+  String get insights_trend_range_years5 => 'Letzte 5 Jahre';
 
   @override
-  String get insights_trend_range_years2 => 'Last 2 years';
+  String get insights_trend_range_years2 => 'Letzte 2 Jahre';
 
   @override
-  String get insights_trend_range_year1 => 'Last year';
+  String get insights_trend_range_year1 => 'Letztes Jahr';
 
   @override
-  String get insights_trend_range_months6 => 'Last 6 months';
+  String get insights_trend_range_months6 => 'Letzte 6 Monate';
 
   @override
-  String get insights_trend_range_months3 => 'Last 3 months';
+  String get insights_trend_range_months3 => 'Letzte 3 Monate';
 
   @override
-  String get insights_trend_range_custom => 'Custom';
+  String get insights_trend_range_custom => 'Benutzerdefiniert';
 
   @override
-  String get insights_trend_range_customPick => 'Custom range...';
+  String get insights_trend_range_customPick => 'Eigener Zeitraum...';
 
   @override
   String get diveLog_edit_excludeFromStats => 'Von Statistiken ausschließen';
