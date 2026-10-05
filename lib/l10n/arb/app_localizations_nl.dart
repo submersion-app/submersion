@@ -20360,6 +20360,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_depthUnit => 'Eenheid voor diepte';
 
   @override
+  String get settings_conflict_field_insightsMutedObservationRules =>
+      'Verborgen soorten waarnemingen';
+
+  @override
+  String get settings_conflict_field_fingerprint =>
+      'Vingerafdruk van de waarneming';
+
+  @override
   String get settings_conflict_field_descentRate => 'Afdaalsnelheid';
 
   @override

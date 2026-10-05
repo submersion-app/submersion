@@ -20568,6 +20568,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_depthUnit => 'Unité de profondeur';
 
   @override
+  String get settings_conflict_field_insightsMutedObservationRules =>
+      'Types d\'observation masqués';
+
+  @override
+  String get settings_conflict_field_fingerprint =>
+      'Empreinte de l\'observation';
+
+  @override
   String get settings_conflict_field_descentRate => 'Vitesse de descente';
 
   @override

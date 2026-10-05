@@ -5805,6 +5805,8 @@
   "settings_conflict_field_depthM": "עומק",
   "settings_conflict_field_depthMeters": "עומק",
   "settings_conflict_field_depthUnit": "יחידת עומק",
+  "settings_conflict_field_insightsMutedObservationRules": "סוגי תצפיות מוסתרים",
+  "settings_conflict_field_fingerprint": "טביעת אצבע של התצפית",
   "settings_conflict_field_descentRate": "קצב ירידה",
   "settings_conflict_field_description": "תיאור",
   "settings_conflict_field_descriptorModel": "מספר דגם של מחשב הצלילה",

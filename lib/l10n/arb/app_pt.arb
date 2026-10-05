@@ -5801,6 +5801,8 @@
   "settings_conflict_field_depthM": "Profundidade",
   "settings_conflict_field_depthMeters": "Profundidade",
   "settings_conflict_field_depthUnit": "Unidade de profundidade",
+  "settings_conflict_field_insightsMutedObservationRules": "Tipos de observação ocultos",
+  "settings_conflict_field_fingerprint": "Impressão da observação",
   "settings_conflict_field_descentRate": "Velocidade de descida",
   "settings_conflict_field_description": "Descrição",
   "settings_conflict_field_descriptorModel": "Número do modelo do computador de mergulho",

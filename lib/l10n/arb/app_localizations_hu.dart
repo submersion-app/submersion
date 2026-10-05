@@ -20440,6 +20440,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_depthUnit => 'Mélység mértékegysége';
 
   @override
+  String get settings_conflict_field_insightsMutedObservationRules =>
+      'Elrejtett megfigyelésfajták';
+
+  @override
+  String get settings_conflict_field_fingerprint => 'Megfigyelés ujjlenyomata';
+
+  @override
   String get settings_conflict_field_descentRate => 'Lemerülés sebessége';
 
   @override

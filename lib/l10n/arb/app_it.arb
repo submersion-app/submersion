@@ -5699,6 +5699,8 @@
   "settings_conflict_field_depthM": "Profondità",
   "settings_conflict_field_depthMeters": "Profondità",
   "settings_conflict_field_depthUnit": "Unità di profondità",
+  "settings_conflict_field_insightsMutedObservationRules": "Tipi di osservazione nascosti",
+  "settings_conflict_field_fingerprint": "Impronta dell'osservazione",
   "settings_conflict_field_descentRate": "Velocità di discesa",
   "settings_conflict_field_description": "Descrizione",
   "settings_conflict_field_descriptorModel": "Numero di modello del computer subacqueo",

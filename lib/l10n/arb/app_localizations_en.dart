@@ -20176,6 +20176,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_depthUnit => 'Depth unit';
 
   @override
+  String get settings_conflict_field_insightsMutedObservationRules =>
+      'Hidden observation kinds';
+
+  @override
+  String get settings_conflict_field_fingerprint => 'Observation fingerprint';
+
+  @override
   String get settings_conflict_field_descentRate => 'Descent rate';
 
   @override

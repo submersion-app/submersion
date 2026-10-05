@@ -154,6 +154,11 @@ final Map<String, ConflictField> diveLogFields = {
     (l) => l.settings_conflict_field_dismissedAt,
     FieldKind.dateTime,
   ),
+  // Insights observation dismissals (#2381): the facts a dismissal matches.
+  'fingerprint': ConflictField(
+    (l) => l.settings_conflict_field_fingerprint,
+    FieldKind.opaque,
+  ),
   'diveComputerFirmware': ConflictField(
     (l) => l.settings_conflict_field_diveComputerFirmware,
     FieldKind.shortText,

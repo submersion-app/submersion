@@ -20506,6 +20506,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_depthUnit => 'Unidade de profundidade';
 
   @override
+  String get settings_conflict_field_insightsMutedObservationRules =>
+      'Tipos de observação ocultos';
+
+  @override
+  String get settings_conflict_field_fingerprint => 'Impressão da observação';
+
+  @override
   String get settings_conflict_field_descentRate => 'Velocidade de descida';
 
   @override

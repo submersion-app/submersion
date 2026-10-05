@@ -20713,6 +20713,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_depthUnit => 'وحدة العمق';
 
   @override
+  String get settings_conflict_field_insightsMutedObservationRules =>
+      'أنواع الملاحظات المخفية';
+
+  @override
+  String get settings_conflict_field_fingerprint => 'بصمة الملاحظة';
+
+  @override
   String get settings_conflict_field_descentRate => 'سرعة النزول';
 
   @override

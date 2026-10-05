@@ -12342,6 +12342,8 @@
   "settings_conflict_field_depthM": "Depth",
   "settings_conflict_field_depthMeters": "Depth",
   "settings_conflict_field_depthUnit": "Depth unit",
+  "settings_conflict_field_insightsMutedObservationRules": "Hidden observation kinds",
+  "settings_conflict_field_fingerprint": "Observation fingerprint",
   "settings_conflict_field_descentRate": "Descent rate",
   "settings_conflict_field_description": "Description",
   "settings_conflict_field_descriptorModel": "Dive computer model number",

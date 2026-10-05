@@ -19446,6 +19446,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_depthUnit => '深度单位';
 
   @override
+  String get settings_conflict_field_insightsMutedObservationRules =>
+      '已隐藏的观察类型';
+
+  @override
+  String get settings_conflict_field_fingerprint => '观察指纹';
+
+  @override
   String get settings_conflict_field_descentRate => '下潜速度';
 
   @override

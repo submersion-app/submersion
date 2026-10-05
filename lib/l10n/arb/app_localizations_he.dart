@@ -20013,6 +20013,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_depthUnit => 'יחידת עומק';
 
   @override
+  String get settings_conflict_field_insightsMutedObservationRules =>
+      'סוגי תצפיות מוסתרים';
+
+  @override
+  String get settings_conflict_field_fingerprint => 'טביעת אצבע של התצפית';
+
+  @override
   String get settings_conflict_field_descentRate => 'קצב ירידה';
 
   @override

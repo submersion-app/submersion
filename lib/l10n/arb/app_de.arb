@@ -5918,6 +5918,8 @@
   "settings_conflict_field_depthM": "Tiefe",
   "settings_conflict_field_depthMeters": "Tiefe",
   "settings_conflict_field_depthUnit": "Tiefeneinheit",
+  "settings_conflict_field_insightsMutedObservationRules": "Ausgeblendete Beobachtungsarten",
+  "settings_conflict_field_fingerprint": "Fingerabdruck der Beobachtung",
   "settings_conflict_field_descentRate": "Abstiegsgeschwindigkeit",
   "settings_conflict_field_description": "Beschreibung",
   "settings_conflict_field_descriptorModel": "Modellnummer des Tauchcomputers",

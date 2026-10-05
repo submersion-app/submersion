@@ -32810,6 +32810,18 @@ abstract class AppLocalizations {
   /// **'Depth unit'**
   String get settings_conflict_field_depthUnit;
 
+  /// No description provided for @settings_conflict_field_insightsMutedObservationRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden observation kinds'**
+  String get settings_conflict_field_insightsMutedObservationRules;
+
+  /// No description provided for @settings_conflict_field_fingerprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Observation fingerprint'**
+  String get settings_conflict_field_fingerprint;
+
   /// No description provided for @settings_conflict_field_descentRate.
   ///
   /// In en, this message translates to:

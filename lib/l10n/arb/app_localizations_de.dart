@@ -20471,6 +20471,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_depthUnit => 'Tiefeneinheit';
 
   @override
+  String get settings_conflict_field_insightsMutedObservationRules =>
+      'Ausgeblendete Beobachtungsarten';
+
+  @override
+  String get settings_conflict_field_fingerprint =>
+      'Fingerabdruck der Beobachtung';
+
+  @override
   String get settings_conflict_field_descentRate => 'Abstiegsgeschwindigkeit';
 
   @override
