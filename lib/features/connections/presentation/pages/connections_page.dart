@@ -226,7 +226,8 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
           m.id: m.name,
       },
     );
-    final frame = _layout.frame;
+    // The image is the map at rest, never nodes caught mid-move.
+    final frame = _layout.settleNow();
     final groups = _groups;
     final fontFamily = Theme.of(context).textTheme.bodyMedium?.fontFamily;
     final direction = Directionality.of(context);

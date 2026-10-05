@@ -116,6 +116,29 @@ class ConnectionsLayoutController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Brings the layout to rest at once: a refocus morph jumps to its target
+  /// and a running force layout iterates until it settles. The share image
+  /// paints this, so it never catches nodes mid-move or half grown in.
+  LayoutFrame settleNow() {
+    if (settled) return _frame;
+    final target = _morphTo;
+    if (target != null) {
+      _frame = target;
+      _morphTo = null;
+      _morphFrom = null;
+    } else {
+      final web = _web!;
+      // The force layout caps its own iterations, so this always ends.
+      while (!web.settled) {
+        web.advance(iterationsPerTick);
+      }
+      _frame = web.frame;
+    }
+    _stopTicker();
+    notifyListeners();
+    return _frame;
+  }
+
   /// One tick's worth of work without a ticker, for tests: [iterations] of
   /// the force layout, or [elapsed] of the refocus morph.
   void stepForTest([int? iterations, Duration elapsed = Duration.zero]) {

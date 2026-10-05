@@ -805,4 +805,34 @@ void main() {
     final target = tester.renderObject(canvas);
     expect(hit.path.any((e) => e.target == target), isTrue);
   });
+  testWidgets('sharing brings a moving layout to rest first', (tester) async {
+    final chain = ConnectionGraph(
+      nodes: [
+        for (var i = 0; i < 12; i++)
+          ConnectionNode(ref: _b('n$i'), label: 'N$i', diveCount: 12 - i),
+      ],
+      edges: [
+        for (var i = 0; i < 11; i++)
+          ConnectionEdge(
+            source: _b('n$i'),
+            target: _b('n${i + 1}'),
+            weight: 2,
+            firstDiveAt: DateTime.utc(2020),
+            lastDiveAt: DateTime.utc(2024),
+          ),
+      ],
+    );
+    await _pump(tester, graph: (ref, budget) => chain);
+    ConnectionsPainter painter() =>
+        tester
+                .widget<CustomPaint>(
+                  find.byKey(const ValueKey('connections-canvas-paint')),
+                )
+                .painter!
+            as ConnectionsPainter;
+    expect(painter().frame.settled, isFalse, reason: 'still laying out');
+    await tester.tap(find.byKey(const ValueKey('connections-share')));
+    await tester.pump();
+    expect(painter().frame.settled, isTrue);
+  });
 }
