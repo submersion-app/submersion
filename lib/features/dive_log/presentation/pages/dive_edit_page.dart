@@ -1329,7 +1329,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   final Map<String, List<String>> _existingBuddyRoleIds = {};
 
   /// The diver's own role set every selected dive shares, or null when the
-  /// dives disagree ([_diverRolesMixed]); shown as the My role placeholder.
+  /// dives disagree ([_diverRolesMixed]). A shared set seeds [_diverRoleIds],
+  /// so it is the My role row's value; only Mixed or Not set is shown as a
+  /// placeholder.
   List<String>? _existingDiverRoleIds;
   bool _diverRolesMixed = false;
   List<BulkMembershipItem> _buddyMembers = [];
