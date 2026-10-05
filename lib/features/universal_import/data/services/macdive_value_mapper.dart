@@ -82,9 +82,13 @@ class MacDiveValueMapper {
   static final _rebreatherAbbreviation = RegExp(r'\b[a-z]?(ccr|scr)s?\b');
 
   /// Camera part words (#1997) that are only safe as whole words: "port"
-  /// sits inside "transport" and "sport", "arm" inside "alarm" and "warm",
-  /// "float" inside "floating", and "tray" inside "stray".
-  static final _floatWord = RegExp(r'\bfloats?\b');
+  /// sits inside "transport" and "support", "arm" inside "alarm" and "warm",
+  /// and "tray" inside "stray". A float is a camera part only beside an arm
+  /// or a collar: on its own, "float" in a dive log is a surface or flag
+  /// float.
+  static final _cameraFloat = RegExp(
+    r'\bfloat\s*(?:arms?|collars?)\b|\barm\s*floats?\b',
+  );
   static final _armWord = RegExp(r'\barms?\b');
   static final _trayWord = RegExp(r'\btrays?\b');
   static final _portWord = RegExp(r'\bports?\b');
@@ -281,7 +285,7 @@ class MacDiveValueMapper {
     // contain: a "video light" is not a dive light and a "camera tray" is
     // not a camera. A float arm is checked before the arms it is one of, and
     // an arm before the strobe it carries.
-    if (_floatWord.hasMatch(s) || s.contains('buoyancy arm')) {
+    if (_cameraFloat.hasMatch(s) || s.contains('buoyancy arm')) {
       return EquipmentType.floatArm;
     }
     if (_armWord.hasMatch(s) || s.contains('clamp')) {

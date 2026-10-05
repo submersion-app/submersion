@@ -246,7 +246,8 @@ void main() {
       'Video light': EquipmentType.videoLight,
       'Video lights': EquipmentType.videoLight,
       'Float arm': EquipmentType.floatArm,
-      'Float': EquipmentType.floatArm,
+      'Float collar': EquipmentType.floatArm,
+      'Arm floats': EquipmentType.floatArm,
       'Buoyancy arm': EquipmentType.floatArm,
       // #2952 bags.
       'Gear bag': EquipmentType.bag,
@@ -298,6 +299,9 @@ void main() {
         'Support strap': EquipmentType.other,
         'Alarm tool': EquipmentType.tool,
         'Floating reel': EquipmentType.reel,
+        // A float on its own is a surface float, not a camera part.
+        'Surface float': EquipmentType.other,
+        'Dive flag float': EquipmentType.other,
         // A mask's lens is still the mask, which is checked first.
         'Prescription lens mask': EquipmentType.mask,
         // A plain dive light is not a video light.

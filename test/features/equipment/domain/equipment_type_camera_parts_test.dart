@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/figure/domain/figure_zone.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
+import 'package:submersion/features/equipment/presentation/widgets/children_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// The photo rig's parts (issue #1997), completing the camera family that
@@ -154,6 +155,12 @@ void main() {
 
   test('a video light counts battery cycles like a dive light', () {
     expect(kBatteryPoweredTypes, contains(EquipmentType.videoLight));
+  });
+
+  test('a video light shows the battery installed in it', () {
+    // The edit page offers a battery these hosts, and the detail page shows
+    // the Children card for the same set, so the battery is never hidden.
+    expect(childHostTypes, contains(EquipmentType.videoLight));
   });
 
   test('check-in tags: a video light is a light, a port can flood', () {
