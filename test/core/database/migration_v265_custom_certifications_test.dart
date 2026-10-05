@@ -3,13 +3,13 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v261: custom certification agencies and levels (issue #690).
+/// Schema v265: custom certification agencies and levels (issue #690).
 /// Table-and-index rung with no data migration: stored agency and level text
 /// are built-in enum names, which stay valid ids.
 void main() {
   /// A database at [userVersion] without the custom tables. Minimal parents,
   /// as the v234 fixture: the beforeOpen backstops heal every older rung.
-  NativeDatabase setupDb({int userVersion = 260, bool withDivers = true}) {
+  NativeDatabase setupDb({int userVersion = 261, bool withDivers = true}) {
     return NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = $userVersion');
@@ -73,15 +73,15 @@ void main() {
     'hlc',
   };
 
-  test('v261 is the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 261);
-    expect(AppDatabase.migrationVersions, contains(261));
-    expect(AppDatabase.migrationStepCount(260), 1);
+  test('v265 is the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, 265);
+    expect(AppDatabase.migrationVersions, contains(265));
+    expect(AppDatabase.migrationStepCount(261), 1);
     // Additive rung: new synced tables never raise the floor.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(261));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(265));
   });
 
-  test('a v260 database gains both tables and the index', () async {
+  test('a v261 database gains both tables and the index', () async {
     final db = AppDatabase(setupDb());
     addTearDown(db.close);
     expect(await columnsOf(db, 'custom_certification_agencies'), agencyColumns);
@@ -117,8 +117,8 @@ void main() {
     }
   });
 
-  test('the beforeOpen backstop heals a database already at 261', () async {
-    final db = AppDatabase(setupDb(userVersion: 261));
+  test('the beforeOpen backstop heals a database already at 265', () async {
+    final db = AppDatabase(setupDb(userVersion: 265));
     addTearDown(db.close);
     expect(await columnsOf(db, 'custom_certification_agencies'), agencyColumns);
     expect(await columnsOf(db, 'custom_certification_levels'), levelColumns);

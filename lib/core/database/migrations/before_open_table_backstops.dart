@@ -28,7 +28,7 @@ extension TableBackstopsFromV217 on AppDatabase {
     // idempotent).
     await _assertEquipmentSharingSchema();
 
-    // v261 backstop: the custom certification tables (parallel-branch
+    // v265 backstop: the custom certification tables (parallel-branch
     // version-collision self-heal; idempotent).
     await _assertCustomCertificationSchema();
 

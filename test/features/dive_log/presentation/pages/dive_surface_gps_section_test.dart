@@ -14,13 +14,21 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
-Dive _gpsDive({GeoPoint? entry, GeoPoint? exit}) => Dive(
+Dive _gpsDive({GeoPoint? entry, GeoPoint? exit, DiveSite? site}) => Dive(
   id: 'sgps',
   diveNumber: 1,
   dateTime: DateTime(2026, 5, 22, 9, 14),
   maxDepth: 30.0,
   entryLocation: entry,
   exitLocation: exit,
+  site: site,
+);
+
+/// The location card, found by its title rather than by text alone: the
+/// page can show the same word elsewhere (a Details row, say).
+Finder _sectionTitled(String title) => find.ancestor(
+  of: find.text(title),
+  matching: find.byType(CollapsibleCardSection),
 );
 
 Future<void> _pump(
@@ -170,5 +178,43 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(tester.widget<AnimatedRotation>(rotation).turns, 0.0);
+  });
+
+  testWidgets('a dive whose site has coordinates but no GPS fix shows the '
+      'Location map card', (tester) async {
+    await _pump(
+      tester,
+      _gpsDive(
+        site: const DiveSite(
+          id: 'site-1',
+          name: 'Blue Hole',
+          location: GeoPoint(12.34000, 98.76000),
+        ),
+      ),
+      expanded: true,
+    );
+
+    final section = _sectionTitled('Location');
+    expect(section, findsOneWidget);
+    expect(
+      find.descendant(of: section, matching: find.byType(FlutterMap)),
+      findsOneWidget,
+    );
+    expect(find.text('12.340000° N, 98.760000° E'), findsOneWidget);
+    expect(find.text('Surface GPS'), findsNothing);
+  });
+
+  testWidgets('no location card when the site has no coordinates', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _gpsDive(
+        site: const DiveSite(id: 'site-1', name: 'Blue Hole'),
+      ),
+    );
+
+    expect(_sectionTitled('Location'), findsNothing);
+    expect(find.text('Surface GPS'), findsNothing);
   });
 }

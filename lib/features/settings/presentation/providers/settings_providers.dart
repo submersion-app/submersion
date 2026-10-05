@@ -305,9 +305,6 @@ class AppSettings {
   /// Default data source for NDL metric (computer or calculated)
   final MetricDataSource defaultNdlSource;
 
-  /// Default data source for ceiling metric (computer or calculated)
-  final MetricDataSource defaultCeilingSource;
-
   /// Default data source for deco stop band (computer or calculated)
   final MetricDataSource defaultDecoStopSource;
 
@@ -625,7 +622,6 @@ class AppSettings {
     this.o2Narcotic = true,
     this.endLimit = 30.0,
     this.defaultNdlSource = MetricDataSource.computer,
-    this.defaultCeilingSource = MetricDataSource.computer,
     this.defaultDecoStopSource = MetricDataSource.computer,
     this.defaultTtsSource = MetricDataSource.computer,
     this.defaultCnsSource = MetricDataSource.computer,
@@ -809,7 +805,6 @@ class AppSettings {
     bool? o2Narcotic,
     double? endLimit,
     MetricDataSource? defaultNdlSource,
-    MetricDataSource? defaultCeilingSource,
     MetricDataSource? defaultDecoStopSource,
     MetricDataSource? defaultTtsSource,
     MetricDataSource? defaultCnsSource,
@@ -971,7 +966,6 @@ class AppSettings {
       o2Narcotic: o2Narcotic ?? this.o2Narcotic,
       endLimit: endLimit ?? this.endLimit,
       defaultNdlSource: defaultNdlSource ?? this.defaultNdlSource,
-      defaultCeilingSource: defaultCeilingSource ?? this.defaultCeilingSource,
       defaultDecoStopSource:
           defaultDecoStopSource ?? this.defaultDecoStopSource,
       defaultTtsSource: defaultTtsSource ?? this.defaultTtsSource,
@@ -2111,11 +2105,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setDefaultNdlSource(MetricDataSource value) async {
     state = state.copyWith(defaultNdlSource: value);
-    await _saveSettings();
-  }
-
-  Future<void> setDefaultCeilingSource(MetricDataSource value) async {
-    state = state.copyWith(defaultCeilingSource: value);
     await _saveSettings();
   }
 

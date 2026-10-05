@@ -11765,6 +11765,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_entryMethod_boat => 'Bootseinstieg';
 
   @override
+  String get enum_entryMethod_frontRoll => 'Vorwärtsrolle';
+
+  @override
   String get enum_entryMethod_giantStride => 'Großschritt';
 
   @override
@@ -11853,6 +11856,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_gearPocket => 'Ausrüstungstasche';
+
+  @override
+  String get enum_equipmentType_bag => 'Tasche';
 
   @override
   String get enum_equipmentType_hose => 'Schlauch';
@@ -18656,14 +18662,17 @@ class AppLocalizationsDe extends AppLocalizations {
       'Satellitengestützte Wasserbedingungen am Tauchdatum';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Oberflächen-GPS';
+  String get diveDetailSection_surfaceGps_name => 'Standort';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS-Ein-/Ausstiegspunkte und Oberflächendrift';
+      'Karte des Tauchplatzes, der GPS-Ein-/Ausstiegspunkte und der Oberflächendrift';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'Oberflächen-GPS';
+
+  @override
+  String get diveLog_detail_section_location => 'Standort';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'Einstieg';
@@ -28847,7 +28856,7 @@ class AppLocalizationsDe extends AppLocalizations {
       other: '$count doppelten Profilen',
       one: 'einem doppelten Profil',
     );
-    return 'Alle Tauchgänge, Zertifizierungen, Ausrüstung und andere Daten aus $_temp0 werden auf \"$name\" verschoben. Dies kann nicht automatisch rückgängig gemacht werden.';
+    return 'Alle Tauchgänge, Zertifizierungen, Ausrüstung und andere Daten aus $_temp0 werden auf \"$name\" verschoben. Dies kann direkt nach dem Zusammenführen rückgängig gemacht werden.';
   }
 
   @override
@@ -30096,6 +30105,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Befestigung';
 
   @override
+  String get attrLabel_bag_style => 'Bauart';
+
+  @override
+  String get attrLabel_capacity_l => 'Fassungsvermögen';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminium';
 
   @override
@@ -30249,6 +30264,27 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Oberschenkel';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'Reisetasche';
+
+  @override
+  String get attrChoice_bag_style_roller => 'Trolley';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'Rucksack';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'Netztasche';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'Wasserdichter Packsack';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'Atemreglertasche';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'Sammelbeutel';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

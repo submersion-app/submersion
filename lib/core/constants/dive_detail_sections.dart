@@ -61,7 +61,7 @@ enum DiveDetailSectionId {
       altitude => 'Altitude',
       tide => 'Tide',
       reefHealth => 'Water Conditions',
-      surfaceGps => 'Surface GPS',
+      surfaceGps => 'Location',
       navTrack => 'Underwater Track',
       weights => 'Weights',
       buoyancy => 'Buoyancy',
@@ -92,7 +92,8 @@ enum DiveDetailSectionId {
       altitude => 'Altitude value, category, deco requirement',
       tide => 'Tide cycle graph and timing',
       reefHealth => 'Satellite water conditions on the dive date',
-      surfaceGps => 'GPS entry/exit points and surface drift',
+      surfaceGps =>
+        'Map of the dive site, GPS entry/exit points and surface drift',
       navTrack => 'Measured underwater track from a navigation console',
       weights => 'Weight breakdown, total weight',
       buoyancy => 'Buoyancy through the dive, swing, ditchable weight',

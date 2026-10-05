@@ -197,12 +197,20 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankSharedComputerIds();
     }
     if (from < 260) await reportProgress();
-    // v261: custom certification agencies and levels (issue #690). Table
-    // and index only, no backfill: stored agency/level text are built-in
-    // enum names, which stay valid ids. Re-asserted in beforeOpen.
+    // v261: drop diver_settings.default_ceiling_source (issue #767), unread
+    // since the ceiling line lost its source toggle (#755). Re-asserted in
+    // beforeOpen.
     if (from < 261) {
-      await _assertCustomCertificationSchema();
+      await _dropDefaultCeilingSourceColumn();
     }
     if (from < 261) await reportProgress();
+    // v265: custom certification agencies and levels (issue #690). Table
+    // and index only, no backfill: stored agency/level text are built-in
+    // enum names, which stay valid ids. Re-asserted in beforeOpen. 262 to
+    // 264 are held by open branches.
+    if (from < 265) {
+      await _assertCustomCertificationSchema();
+    }
+    if (from < 265) await reportProgress();
   }
 }
