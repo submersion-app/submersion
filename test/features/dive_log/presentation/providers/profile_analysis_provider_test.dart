@@ -186,6 +186,18 @@ void main() {
       expect(resolveCcrDiluentMix(dive).he, 35);
     });
 
+    test('falls back to a tagged open-circuit cylinder when no diluent is '
+        'known, skipping the O2 supply and bailouts', () {
+      final dive = makeDive(
+        tanks: [
+          tank(const GasMix(o2: 100), TankRole.oxygenSupply),
+          tank(const GasMix(o2: 21, he: 35), TankRole.bailout),
+          tank(const GasMix(o2: 50), TankRole.deco),
+        ],
+      );
+      expect(resolveCcrDiluentMix(dive).o2, 50);
+    });
+
     test('defaults to air with no usable tanks', () {
       final dive = makeDive(tanks: []);
       expect(resolveCcrDiluentMix(dive).isAir, isTrue);
