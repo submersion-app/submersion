@@ -2874,6 +2874,7 @@
   "diveLog_summary_action_importComputer": "从电脑导入",
   "diveLog_summary_action_viewInsights": "查看洞察",
   "diveLog_summary_diveCount": "{count} {count, plural, =1{次潜水} other{次潜水}}",
+  "diveLog_summary_filteredBanner": "已筛选：汇总 {shown} / {total, plural, =1{{total} 次潜水} other{{total} 次潜水}}",
   "diveLog_summary_overview": "概览",
   "diveLog_summary_record_coldest": "最冷潜水",
   "diveLog_summary_record_deepest": "最深潜水",

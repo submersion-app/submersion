@@ -8927,6 +8927,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total duiken',
+      one: '$total duik',
+    );
+    return 'Gefilterd: overzicht van $shown van $_temp0';
+  }
+
+  @override
   String get diveLog_summary_overview => 'Overzicht';
 
   @override

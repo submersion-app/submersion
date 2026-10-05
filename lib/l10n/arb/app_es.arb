@@ -2759,6 +2759,7 @@
   "diveLog_summary_action_importComputer": "Importar desde computadora",
   "diveLog_summary_action_viewInsights": "Ver análisis",
   "diveLog_summary_diveCount": "{count} {count, plural, =1{inmersión} other{inmersiones}}",
+  "diveLog_summary_filteredBanner": "Filtrado: resumen de {shown} de {total, plural, =1{{total} inmersión} other{{total} inmersiones}}",
   "diveLog_summary_overview": "Resumen",
   "diveLog_summary_record_coldest": "Inmersión más fría",
   "diveLog_summary_record_deepest": "Inmersión más profunda",

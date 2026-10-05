@@ -2770,6 +2770,7 @@
   "diveLog_summary_action_importComputer": "Vom Computer importieren",
   "diveLog_summary_action_viewInsights": "Einblicke anzeigen",
   "diveLog_summary_diveCount": "{count} {count, plural, =1{Tauchgang} other{Tauchgänge}}",
+  "diveLog_summary_filteredBanner": "Gefiltert: fasst {shown} von {total, plural, =1{{total} Tauchgang} other{{total} Tauchgängen}} zusammen",
   "diveLog_summary_overview": "Übersicht",
   "diveLog_summary_record_coldest": "Kältester Tauchgang",
   "diveLog_summary_record_deepest": "Tiefster Tauchgang",

@@ -2759,6 +2759,7 @@
   "diveLog_summary_action_importComputer": "استيراد من الكمبيوتر",
   "diveLog_summary_action_viewInsights": "عرض الرؤى",
   "diveLog_summary_diveCount": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
+  "diveLog_summary_filteredBanner": "مُصفّى: ملخص {shown} من {total, plural, =1{غوصة واحدة} two{غوصتين} few{{total} غوصات} many{{total} غوصة} other{{total} غوصة}}",
   "diveLog_summary_overview": "نظرة عامة",
   "diveLog_summary_record_coldest": "أبرد غوصة",
   "diveLog_summary_record_deepest": "أعمق غوصة",

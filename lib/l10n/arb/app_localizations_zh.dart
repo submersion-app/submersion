@@ -8558,6 +8558,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total 次潜水',
+      one: '$total 次潜水',
+    );
+    return '已筛选：汇总 $shown / $_temp0';
+  }
+
+  @override
   String get diveLog_summary_overview => '概览';
 
   @override

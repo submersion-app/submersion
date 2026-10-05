@@ -2658,6 +2658,7 @@
   "diveLog_summary_action_importComputer": "Importálás számítógéprőL",
   "diveLog_summary_action_viewInsights": "Elemzések megtekintése",
   "diveLog_summary_diveCount": "{count} {count, plural, =1{merülés} other{merülés}}",
+  "diveLog_summary_filteredBanner": "Szűrve: {shown} / {total, plural, =1{{total} merülés} other{{total} merülés}} összesítve",
   "diveLog_summary_overview": "Áttekintés",
   "diveLog_summary_record_coldest": "Leghidegebb merülés",
   "diveLog_summary_record_deepest": "Legmélyebb merülés",

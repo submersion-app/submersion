@@ -2759,6 +2759,7 @@
   "diveLog_summary_action_importComputer": "Importeren van computer",
   "diveLog_summary_action_viewInsights": "Inzichten bekijken",
   "diveLog_summary_diveCount": "{count} {count, plural, =1{duik} other{duiken}}",
+  "diveLog_summary_filteredBanner": "Gefilterd: overzicht van {shown} van {total, plural, =1{{total} duik} other{{total} duiken}}",
   "diveLog_summary_overview": "Overzicht",
   "diveLog_summary_record_coldest": "Koudste duik",
   "diveLog_summary_record_deepest": "Diepste duik",

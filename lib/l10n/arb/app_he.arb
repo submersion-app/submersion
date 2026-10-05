@@ -2658,6 +2658,7 @@
   "diveLog_summary_action_importComputer": "ייבא ממחשב",
   "diveLog_summary_action_viewInsights": "הצג תובנות",
   "diveLog_summary_diveCount": "{count} {count, plural, =1{צלילה} other{צלילות}}",
+  "diveLog_summary_filteredBanner": "מסונן: סיכום של {shown} מתוך {total, plural, =1{צלילה אחת} other{{total} צלילות}}",
   "diveLog_summary_overview": "סקירה כללית",
   "diveLog_summary_record_coldest": "הצלילה הקרה ביותר",
   "diveLog_summary_record_deepest": "הצלילה העמוקה ביותר",

@@ -4953,6 +4953,7 @@
   "diveLog_summary_action_importComputer": "Import from Computer",
   "diveLog_summary_action_viewInsights": "View Insights",
   "diveLog_summary_diveCount": "{count} {count, plural, =1{dive} other{dives}}",
+  "diveLog_summary_filteredBanner": "Filtered: summarizing {shown} of {total, plural, =1{{total} dive} other{{total} dives}}",
   "diveLog_summary_overview": "Overview",
   "diveLog_summary_record_coldest": "Coldest Dive",
   "diveLog_summary_record_deepest": "Deepest Dive",
@@ -5584,6 +5585,17 @@
   "@diveLog_summary_diveCount": {
     "placeholders": {
       "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@diveLog_summary_filteredBanner": {
+    "description": "Line under the Dive Log Summary title while the dive list is filtered: the summary covers {shown} of the diver's {total} logged dives.",
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
         "type": "int"
       }
     }

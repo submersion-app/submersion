@@ -8976,6 +8976,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total merülés',
+      one: '$total merülés',
+    );
+    return 'Szűrve: $shown / $_temp0 összesítve';
+  }
+
+  @override
   String get diveLog_summary_overview => 'Áttekintés';
 
   @override

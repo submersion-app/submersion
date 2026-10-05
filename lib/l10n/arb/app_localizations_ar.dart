@@ -9102,6 +9102,20 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total غوصة',
+      many: '$total غوصة',
+      few: '$total غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    return 'مُصفّى: ملخص $shown من $_temp0';
+  }
+
+  @override
   String get diveLog_summary_overview => 'نظرة عامة';
 
   @override

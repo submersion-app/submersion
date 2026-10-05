@@ -14395,6 +14395,12 @@ abstract class AppLocalizations {
   /// **'{count} {count, plural, =1{dive} other{dives}}'**
   String diveLog_summary_diveCount(int count);
 
+  /// Line under the Dive Log Summary title while the dive list is filtered: the summary covers {shown} of the diver's {total} logged dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Filtered: summarizing {shown} of {total, plural, =1{{total} dive} other{{total} dives}}'**
+  String diveLog_summary_filteredBanner(int shown, int total);
+
   /// No description provided for @diveLog_summary_overview.
   ///
   /// In en, this message translates to:
