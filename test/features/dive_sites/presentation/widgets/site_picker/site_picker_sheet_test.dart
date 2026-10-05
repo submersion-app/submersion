@@ -507,4 +507,16 @@ void main() {
     await tester.tap(find.text('All sites'));
     expect(cleared, 1);
   });
+
+  testWidgets('filter mode keeps All sites when a search finds nothing', (
+    tester,
+  ) async {
+    var cleared = 0;
+    await _pump(tester, sites: const [_farSite], onClear: () => cleared++);
+    await tester.enterText(find.byType(TextField), 'zzzzz');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('zzzzz'), findsWidgets);
+    await tester.tap(find.text('All sites'));
+    expect(cleared, 1);
+  });
 }

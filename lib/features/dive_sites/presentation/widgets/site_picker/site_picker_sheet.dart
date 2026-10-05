@@ -290,14 +290,9 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
   void _toggleCountry(String key, {required bool searching}) {
     setState(() {
       if (searching) {
-        _searchCollapsed = _searchCollapsed.contains(key)
-            ? (_searchCollapsed.toSet()..remove(key))
-            : {..._searchCollapsed, key};
+        _searchCollapsed = toggleCountryKey(_searchCollapsed, key);
       } else {
-        final current = _manualExpanded ?? const <String>{};
-        _manualExpanded = current.contains(key)
-            ? (current.toSet()..remove(key))
-            : {...current, key};
+        _manualExpanded = toggleCountryKey(_manualExpanded ?? const {}, key);
       }
     });
   }
@@ -311,13 +306,18 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
     final sites = sitesAsync.value ?? const <DiveSite>[];
     final index = _searchIndexFor(sites);
     bool matches(DiveSite site) => query.matches(index[site.id]!);
+    // One filter pass and one distance per site per build, shared by the
+    // caption, the hint and the list.
+    final visible = query.isEmpty ? sites : sites.where(matches).toList();
+    final nearby = [
+      for (final site in visible)
+        if (_distanceToSite(site) case final distance?
+            when distance < _nearbyRadiusMeters)
+          (site: site, distance: distance),
+    ]..sort((a, b) => a.distance.compareTo(b.distance));
     // Only the Nearby section is ordered by distance, so the caption that
     // says so shows only when that section has sites in it after the search.
-    final hasNearby = sites.any(
-      (site) =>
-          (query.isEmpty || matches(site)) &&
-          (_distanceToSite(site) ?? double.infinity) < _nearbyRadiusMeters,
-    );
+    final hasNearby = nearby.isNotEmpty;
 
     return Column(
       children: [
@@ -375,7 +375,15 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
                       Expanded(child: _buildEmptyState(context, colorScheme)),
                     ],
                   )
-                : _buildList(context, sites, query, units, colorScheme),
+                : _buildList(
+                    context,
+                    sites: sites,
+                    visible: visible,
+                    nearby: nearby,
+                    searching: !query.isEmpty,
+                    units: units,
+                    colorScheme: colorScheme,
+                  ),
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, _) => Center(
               child: Text(
@@ -510,24 +518,31 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
   }
 
   Widget _buildList(
-    BuildContext context,
-    List<DiveSite> sites,
-    SiteQuery query,
-    UnitFormatter units,
-    ColorScheme colorScheme,
-  ) {
-    final index = _searchIndexFor(sites);
-    final searching = !query.isEmpty;
-    final visible = searching
-        ? sites.where((site) => query.matches(index[site.id]!)).toList()
-        : sites;
+    BuildContext context, {
+    required List<DiveSite> sites,
+    required List<DiveSite> visible,
+    required List<({DiveSite site, double distance})> nearby,
+    required bool searching,
+    required UnitFormatter units,
+    required ColorScheme colorScheme,
+  }) {
     if (visible.isEmpty) {
-      return Center(
-        child: Text(
-          context.l10n.diveSites_list_search_noResults(_searchQuery.trim()),
-          style: Theme.of(context).textTheme.titleMedium,
-          textAlign: TextAlign.center,
-        ),
+      return Column(
+        children: [
+          // A filter stays clearable while a search matches nothing.
+          if (widget.onClear != null) _buildClearRow(context, colorScheme),
+          Expanded(
+            child: Center(
+              child: Text(
+                context.l10n.diveSites_list_search_noResults(
+                  _searchQuery.trim(),
+                ),
+                style: Theme.of(context).textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ],
       );
     }
 
@@ -541,13 +556,6 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
     final expanded = searching
         ? allCountryKeys(groups).difference(_searchCollapsed)
         : manual;
-
-    final nearby = [
-      for (final site in visible)
-        if (_distanceToSite(site) case final distance?
-            when distance < _nearbyRadiusMeters)
-          (site: site, distance: distance),
-    ]..sort((a, b) => a.distance.compareTo(b.distance));
 
     final rows = <Widget Function()>[
       if (widget.onClear != null) () => _buildClearRow(context, colorScheme),

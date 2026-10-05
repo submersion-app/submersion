@@ -129,6 +129,22 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   /// filter changes, since a new filter opens every match again.
   Set<String> _filterCollapsed = const {};
 
+  /// The grouping of the last site list seen, reused while that list is the
+  /// same instance, so a rebuild that changes only checks or expansion (each
+  /// selection tap) does not re-fold every site's country and region.
+  List<SiteWithDiveCount>? _groupedSites;
+  List<SiteCountryGroup<SiteWithDiveCount>> _groups = const [];
+
+  List<SiteCountryGroup<SiteWithDiveCount>> _groupsFor(
+    List<SiteWithDiveCount> sites,
+  ) {
+    if (!identical(sites, _groupedSites)) {
+      _groupedSites = sites;
+      _groups = groupSitesByLocation(sites, (s) => s.site);
+    }
+    return _groups;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -166,6 +182,27 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
 
     final sitesAsync = ref.read(sortedSitesWithCountsProvider);
     sitesAsync.whenData((sites) {
+      // A site selected from outside the list (map, a new site, a deep link)
+      // can sit in a country the diver collapsed. Open it first, after this
+      // frame since a provider cannot change mid-build, then scroll once the
+      // list has rebuilt with it open.
+      final hiddenCountry = _collapsedCountryOfSelected(sites);
+      if (hiddenCountry != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          final stored = ref.read(siteListExpandedCountriesProvider);
+          if (stored != null) {
+            ref.read(siteListExpandedCountriesProvider.notifier).state = {
+              ...stored,
+              hiddenCountry,
+            };
+          }
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _scrollToSelectedItem();
+          });
+        });
+        return;
+      }
       // Grouped, the selected site's offset is its row among the visible
       // headers and sites, not its position in the flat list.
       final rows = _groupedView(sites, listen: false)?.rows;
@@ -618,7 +655,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         ? ref.watch(siteGroupByProvider)
         : ref.read(siteGroupByProvider);
     if (groupBy != SiteGroupBy.location) return null;
-    final groups = groupSitesByLocation(sites, (s) => s.site);
+    final groups = _groupsFor(sites);
     final expanded = _groupedExpansion(groups, sites, listen: listen);
     return (
       groups: groups,
@@ -650,10 +687,25 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     return initialExpandedCountries(groups, selected: selected?.site);
   }
 
+  /// The country key of the selected site when the grouped list keeps it
+  /// collapsed in the diver's stored expansion, else null. Before the first
+  /// toggle there is no stored set and the initial expansion already opens
+  /// the selected site's country; a filter opens every country by itself.
+  String? _collapsedCountryOfSelected(List<SiteWithDiveCount> sites) {
+    if (ref.read(siteGroupByProvider) != SiteGroupBy.location) return null;
+    if (ref.read(siteFilterProvider).hasActiveFilters) return null;
+    final stored = ref.read(siteListExpandedCountriesProvider);
+    if (stored == null) return null;
+    final selected = sites
+        .where((s) => s.site.id == widget.selectedId)
+        .firstOrNull;
+    if (selected == null) return null;
+    final key = siteCountryKey(selected.site);
+    return stored.contains(key) ? null : key;
+  }
+
   void _toggleCountry(String key, Set<String> current) {
-    final next = current.contains(key)
-        ? (current.toSet()..remove(key))
-        : {...current, key};
+    final next = toggleCountryKey(current, key);
     if (ref.read(siteFilterProvider).hasActiveFilters) {
       final keys = current.union(_filterCollapsed);
       setState(() => _filterCollapsed = keys.difference(next));

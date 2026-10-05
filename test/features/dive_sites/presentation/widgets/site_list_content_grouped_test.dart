@@ -58,6 +58,7 @@ Future<void> _pumpGrouped(
   String? selectedId,
   String? highlightedId,
   List<SiteWithDiveCount>? sites,
+  Set<String>? storedExpansion,
   bool showAppBar = true,
 }) async {
   tester.view.devicePixelRatio = 1.0;
@@ -81,6 +82,10 @@ Future<void> _pumpGrouped(
         siteListViewModeProvider.overrideWith((ref) => viewMode),
         highlightedSiteIdProvider.overrideWith((ref) => highlightedId),
         siteGroupByProvider.overrideWith((ref) => groupBy),
+        if (storedExpansion != null)
+          siteListExpandedCountriesProvider.overrideWith(
+            (ref) => storedExpansion,
+          ),
       ],
       child: SiteListContent(showAppBar: showAppBar, selectedId: selectedId),
     ),
@@ -228,5 +233,22 @@ void main() {
 
     // Belize stays collapsed, so its two sites are not part of the range.
     expect(find.text('2 selected'), findsOneWidget);
+  });
+
+  // A site selected from outside the list (map, a new site, a deep link)
+  // must not stay hidden in a country the diver collapsed earlier.
+  testWidgets('an outside selection opens its collapsed country', (
+    tester,
+  ) async {
+    await _pumpGrouped(tester, selectedId: 'eg1', storedExpansion: const {});
+    expect(find.byType(SiteListTile), findsOneWidget);
+    expect(find.text('Blue Hole'), findsWidgets);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SiteListContent)),
+    );
+    expect(
+      container.read(siteListExpandedCountriesProvider),
+      contains(_key('Egypt')),
+    );
   });
 }

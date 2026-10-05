@@ -151,4 +151,13 @@ void main() {
     final groups = _group([_s('a', country: 'Fiji'), _s('b')]);
     expect(allCountryKeys(groups), {_key('Fiji'), noCountryGroupKey});
   });
+
+  group('toggleCountryKey', () {
+    test('adds a missing key and removes a present one, copying', () {
+      const keys = {'a'};
+      expect(toggleCountryKey(keys, 'b'), {'a', 'b'});
+      expect(toggleCountryKey(keys, 'a'), isEmpty);
+      expect(keys, {'a'});
+    });
+  });
 }

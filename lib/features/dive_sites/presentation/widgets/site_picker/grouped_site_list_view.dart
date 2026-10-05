@@ -7,12 +7,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The location a site row shows under its name inside a country group: the
 /// parts the country and region headers above it do not already state.
-/// Locality prefers the city, falling back to the island.
 String? siteGroupedSubtitle(DiveSite site) {
-  final city = site.city?.trim() ?? '';
-  final locality = city.isNotEmpty ? city : (site.island?.trim() ?? '');
   final water = site.bodyOfWater?.trim() ?? '';
-  final parts = [locality, water].where((part) => part.isNotEmpty);
+  final parts = [site.locality, water].where((part) => part.isNotEmpty);
   return parts.isEmpty ? null : parts.join(' · ');
 }
 

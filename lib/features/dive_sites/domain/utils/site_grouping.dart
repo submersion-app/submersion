@@ -200,6 +200,11 @@ Set<String> initialExpandedCountries<T>(
   if (selected != null) siteCountryKey(selected),
 };
 
+/// A copy of [keys] with [key] removed if present, else added: one country
+/// header tap.
+Set<String> toggleCountryKey(Set<String> keys, String key) =>
+    keys.contains(key) ? (keys.toSet()..remove(key)) : {...keys, key};
+
 /// Every group key, for "a search or filter is active, open everything".
 Set<String> allCountryKeys<T>(List<SiteCountryGroup<T>> groups) => {
   for (final group in groups) group.key,
