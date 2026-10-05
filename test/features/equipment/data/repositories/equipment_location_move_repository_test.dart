@@ -99,25 +99,33 @@ void main() {
     expect(await moves.getCurrentLocationIds(), {'reg': 'shop'});
   });
 
+  Future<void> rawMove(String id, String placeId, int createdAt) => db
+      .into(db.equipmentLocationMoves)
+      .insert(
+        EquipmentLocationMovesCompanion.insert(
+          id: id,
+          equipmentId: 'reg',
+          locationId: Value(placeId),
+          movedAt: 1000,
+          createdAt: createdAt,
+        ),
+      );
+
+  // Inserted in the order a naive reverse walk of the (equipment_id,
+  // moved_at) index would get wrong, so only the created_at and id keys can
+  // make these pass.
   test('ties on moved_at break by created_at', () async {
-    final at = DateTime(2026, 9, 3);
-    await moves.recordMoves(
-      equipmentIds: ['reg'],
-      locationId: 'shop',
-      movedAt: at,
-    );
-    await Future<void>.delayed(const Duration(milliseconds: 5));
-    await moves.recordMoves(
-      equipmentIds: ['reg'],
-      locationId: 'garage',
-      movedAt: at,
-    );
+    await rawMove('m1', 'garage', 200);
+    await rawMove('m2', 'shop', 100);
     expect(await moves.getCurrentLocationIds(), {'reg': 'garage'});
-    expect(
-      (await moves.getMovesFor('reg')).first.locationId,
-      'garage',
-      reason: 'history and current location must agree',
-    );
+    expect((await moves.getMovesFor('reg')).first.locationId, 'garage');
+  });
+
+  test('ties on moved_at and created_at break by id', () async {
+    await rawMove('b', 'garage', 100);
+    await rawMove('a', 'shop', 100);
+    expect(await moves.getCurrentLocationIds(), {'reg': 'garage'});
+    expect((await moves.getMovesFor('reg')).first.locationId, 'garage');
   });
 
   test('a cleared move reads as no location; deleting it restores the '
