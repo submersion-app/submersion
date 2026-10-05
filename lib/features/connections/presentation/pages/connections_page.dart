@@ -322,8 +322,11 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
       }
       if (!next.isLoading && next.hasValue) _dropStaleSelection(next.value!);
       // Year play steps to the next year only once this one has loaded.
-      if (!next.isLoading) {
-        ref.read(yearPlayProvider.notifier).loadSettled(failed: next.hasError);
+      final play = ref.read(yearPlayProvider.notifier);
+      if (next.isLoading) {
+        play.loadStarted();
+      } else {
+        play.loadSettled(failed: next.hasError);
       }
     });
     ref.listen<GraphSelection?>(connectionsSelectionProvider, _onSelection);

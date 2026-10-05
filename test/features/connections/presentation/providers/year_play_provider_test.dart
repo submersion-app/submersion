@@ -55,10 +55,14 @@ void main() {
       final n = c.read(yearPlayProvider.notifier)..play();
       async.elapse(YearPlayNotifier.beat);
       expect(c.read(yearPlayProvider), 2019, reason: 'load not settled');
-      n.loadSettled(failed: false);
+      n
+        ..loadStarted()
+        ..loadSettled(failed: false);
       expect(c.read(yearPlayProvider), 2020);
 
-      n.loadSettled(failed: false);
+      n
+        ..loadStarted()
+        ..loadSettled(failed: false);
       async.elapse(const Duration(milliseconds: 600));
       expect(c.read(yearPlayProvider), 2020, reason: 'beat not elapsed');
       async.elapse(const Duration(milliseconds: 600));
@@ -73,7 +77,9 @@ void main() {
       async.flushMicrotasks();
       final n = c.read(yearPlayProvider.notifier)..play();
       for (var i = 0; i < 3; i++) {
-        n.loadSettled(failed: false);
+        n
+          ..loadStarted()
+          ..loadSettled(failed: false);
         async.elapse(YearPlayNotifier.beat);
       }
       expect(c.read(yearPlayProvider), isNull);
@@ -93,7 +99,9 @@ void main() {
       final n = c.read(yearPlayProvider.notifier)..play();
       expect(c.read(yearPlayProvider), 2021, reason: 'continues past 2020');
       expect(filter(c).startDate, DateTime(2020, 1, 1));
-      n.loadSettled(failed: false);
+      n
+        ..loadStarted()
+        ..loadSettled(failed: false);
       async.elapse(YearPlayNotifier.beat);
       expect(c.read(yearPlayProvider), isNull);
       expect(filter(c).startDate, DateTime(2020, 1, 1));
@@ -110,7 +118,9 @@ void main() {
       c.read(connectionsFilterProvider.notifier).state = mine;
       async.flushMicrotasks();
       expect(c.read(yearPlayProvider), isNull);
-      n.loadSettled(failed: false);
+      n
+        ..loadStarted()
+        ..loadSettled(failed: false);
       async.elapse(YearPlayNotifier.beat * 3);
       expect(filter(c), mine);
     });
@@ -161,7 +171,9 @@ void main() {
           .update((v) => v.withHighlight(HighlightMode.groups));
       async.flushMicrotasks();
       expect(c.read(yearPlayProvider), 2019);
-      n.loadSettled(failed: false);
+      n
+        ..loadStarted()
+        ..loadSettled(failed: false);
       async.elapse(YearPlayNotifier.beat);
       expect(c.read(yearPlayProvider), 2020);
       n.pause();
@@ -184,6 +196,7 @@ void main() {
       async.flushMicrotasks();
       c.read(yearPlayProvider.notifier)
         ..play()
+        ..loadStarted()
         ..loadSettled(failed: false);
       final written = c.read(connectionsFilterProvider);
       keep.close();
@@ -203,12 +216,31 @@ void main() {
       );
       final n = c.read(yearPlayProvider.notifier)..play();
       for (var i = 0; i < 3; i++) {
-        n.loadSettled(failed: false);
+        n
+          ..loadStarted()
+          ..loadSettled(failed: false);
         async.elapse(YearPlayNotifier.beat);
       }
       expect(c.read(yearPlayProvider), isNull);
       expect(filter(c).startDate, start);
       expect(filter(c).endDate, DateTime(2022, 12, 31));
+    });
+  });
+  test('a load that finished before play wrote its year is not counted', () {
+    fakeAsync((async) {
+      final c = container();
+      async.flushMicrotasks();
+      final n = c.read(yearPlayProvider.notifier)..play();
+      // A load already in flight for the old filter settles before the
+      // graph has started loading the year play just wrote.
+      n.loadSettled(failed: false);
+      async.elapse(YearPlayNotifier.beat);
+      expect(c.read(yearPlayProvider), 2019, reason: 'waits for its own load');
+      n
+        ..loadStarted()
+        ..loadSettled(failed: false);
+      expect(c.read(yearPlayProvider), 2020);
+      n.pause();
     });
   });
 }

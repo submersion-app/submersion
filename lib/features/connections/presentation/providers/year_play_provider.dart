@@ -22,6 +22,10 @@ class YearPlayNotifier extends Notifier<int?> {
   bool _beatDone = false;
   bool _loaded = false;
 
+  /// True once a graph load has started since play last wrote the filter;
+  /// a load that settles before then was for the old filter.
+  bool _started = false;
+
   /// The last filter play wrote, to tell its own writes from the diver's.
   DiveFilterState? _written;
   int _first = 0;
@@ -71,6 +75,11 @@ class YearPlayNotifier extends Notifier<int?> {
     state = null;
   }
 
+  /// The page reports each load of the graph that starts.
+  void loadStarted() {
+    if (state != null) _started = true;
+  }
+
   /// The page reports each settled load of the graph. A failed load stops
   /// play; the page shows the reload error.
   void loadSettled({required bool failed}) {
@@ -79,6 +88,7 @@ class YearPlayNotifier extends Notifier<int?> {
       stop();
       return;
     }
+    if (!_started) return;
     _loaded = true;
     _advance();
   }
@@ -101,6 +111,7 @@ class YearPlayNotifier extends Notifier<int?> {
     if (atEnd) return;
     _beatDone = false;
     _loaded = false;
+    _started = false;
     _timer = Timer(beat, () {
       _beatDone = true;
       _advance();
