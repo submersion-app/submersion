@@ -180,6 +180,9 @@ class ConnectionsRepository {
           TableUpdateQuery.onTable(_db.dives),
           TableUpdateQuery.onTable(_db.diveBuddies),
           TableUpdateQuery.onTable(_db.buddies),
+          // A buddy's role subtitle reads the role sets (#1221).
+          TableUpdateQuery.onTable(_db.diveDiverRoles),
+          TableUpdateQuery.onTable(_db.diveBuddyRoles),
           TableUpdateQuery.onTable(_db.diveEquipment),
           TableUpdateQuery.onTable(_db.equipment),
           TableUpdateQuery.onTable(_db.sightings),

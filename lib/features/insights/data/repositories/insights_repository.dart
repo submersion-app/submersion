@@ -210,6 +210,10 @@ class InsightsRepository {
           TableUpdateQuery.onTable(_db.diveDiveTypes),
           TableUpdateQuery.onTable(_db.diveBuddies),
           TableUpdateQuery.onTable(_db.buddies),
+          // Role sets (#1221); solo detection reads the primary, which a
+          // junction-only write can still accompany through sync.
+          TableUpdateQuery.onTable(_db.diveDiverRoles),
+          TableUpdateQuery.onTable(_db.diveBuddyRoles),
           TableUpdateQuery.onTable(_db.sightings),
           TableUpdateQuery.onTable(_db.species),
           TableUpdateQuery.onTable(_db.diveSites),

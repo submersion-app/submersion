@@ -277,6 +277,10 @@ class DiveRepository {
   List<TableUpdateQuery> get _buddyLinkTables => [
     TableUpdateQuery.onTable(_db.diveBuddies),
     TableUpdateQuery.onTable(_db.buddies),
+    // The role junctions (#1221): a non-primary role change, or a synced
+    // role row, writes only these.
+    TableUpdateQuery.onTable(_db.diveDiverRoles),
+    TableUpdateQuery.onTable(_db.diveBuddyRoles),
   ];
 
   /// Aggregate change-tick for the dive DETAIL page: fires when ANY table that
@@ -334,6 +338,9 @@ class DiveRepository {
           TableUpdateQuery.onTable(_db.courses),
           TableUpdateQuery.onTable(_db.diveBuddies),
           TableUpdateQuery.onTable(_db.buddies),
+          // Role sets (#1221): a non-primary role writes only these.
+          TableUpdateQuery.onTable(_db.diveDiverRoles),
+          TableUpdateQuery.onTable(_db.diveBuddyRoles),
           TableUpdateQuery.onTable(_db.sightings),
           TableUpdateQuery.onTable(_db.species),
           TableUpdateQuery.onTable(_db.media),
