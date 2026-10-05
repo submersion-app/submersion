@@ -164,6 +164,17 @@ final ownedEquipmentTypesProvider = Provider<List<EquipmentType>>((ref) {
   return EquipmentType.values.where(present.contains).toList();
 });
 
+/// The gear categories a diver can filter dives by: [ownedEquipmentTypesProvider]
+/// less any type held only by wishlist gear (#2025), which is never on a dive.
+final diveGearTypesProvider = Provider<List<EquipmentType>>((ref) {
+  final all = ref.watch(allEquipmentProvider).value ?? const <EquipmentItem>[];
+  final present = {
+    for (final e in all)
+      if (!e.isWanted) e.type,
+  };
+  return EquipmentType.values.where(present.contains).toList();
+});
+
 /// The Add Equipment picker's own filter (#1576).
 ///
 /// Separate from [equipmentFilterProvider], which belongs to the Equipment

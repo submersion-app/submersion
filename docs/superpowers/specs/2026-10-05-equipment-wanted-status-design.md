@@ -70,9 +70,10 @@ offer gear the diver does not own:
 - Cylinder-config rebreather dropdown (`cylinder_config_edit_page.dart`).
 - Pre-dive session single-item gear dropdown (`start_session_sheet.dart`).
 - Dive search gear chips (`refine_gas_equipment_group.dart`).
-- `ownedEquipmentTypesProvider` (type chips for the equipment filter sheet and
-  the dive filter gear attributes section): a type held only by Wanted items
-  is not offered.
+- The dive filter's gear type chips (`diveGearTypesProvider`, new): a type held
+  only by Wanted items is not offered. The Equipment filter sheet's type chips
+  (`ownedEquipmentTypesProvider`) keep every status, because its status axis
+  can show Wanted gear.
 - Equipment list bulk actions: Retire and Reactivate are not offered for
   Wanted items.
 - Applying an equipment set to a dive: Wanted members are skipped. The set

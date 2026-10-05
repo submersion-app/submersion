@@ -121,7 +121,10 @@ void main() {
     type: EquipmentType.values.first,
   );
 
-  Future<void> pumpSheet(WidgetTester tester) async {
+  Future<void> pumpSheet(
+    WidgetTester tester, {
+    List<EquipmentItem>? gear,
+  }) async {
     final fakeRepo = _FakeTemplateRepo({
       'plain': [tItem('plain', PreDiveItemType.check)],
       'packing': [tItem('packing', PreDiveItemType.equipmentSet)],
@@ -151,7 +154,7 @@ void main() {
           ),
           equipmentSetsProvider.overrideWith((ref) async => [defaultSet]),
           allEquipmentProvider.overrideWith(
-            (ref) async => [primaryComputer, backupComputer],
+            (ref) async => gear ?? [primaryComputer, backupComputer],
           ),
         ],
         child: Builder(
@@ -167,6 +170,48 @@ void main() {
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
   }
+
+  Future<void> chooseComputerCheck(WidgetTester tester) async {
+    await tester.tap(find.text('Checklist'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Computer Check').last);
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('wishlist gear is not offered for an equipment item (#2025)', (
+    tester,
+  ) async {
+    const wish = EquipmentItem(
+      id: 'g3',
+      name: 'Dream computer',
+      type: EquipmentType.computer,
+      status: EquipmentStatus.wanted,
+      isActive: false,
+    );
+    await pumpSheet(tester, gear: [primaryComputer, backupComputer, wish]);
+    await chooseComputerCheck(tester);
+
+    await tester.tap(find.text('Primary computer'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Backup computer'), findsWidgets);
+    expect(find.text('Dream computer'), findsNothing);
+  });
+
+  testWidgets('a remembered device now on the wishlist is not pre-filled '
+      '(#2025)', (tester) async {
+    // The template remembers g1, which the diver has since set to Wanted.
+    final wishedPrimary = primaryComputer.copyWith(
+      status: EquipmentStatus.wanted,
+      isActive: false,
+    );
+    await pumpSheet(tester, gear: [wishedPrimary, backupComputer]);
+    await chooseComputerCheck(tester);
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Primary computer'), findsNothing);
+    expect(find.text('None'), findsOneWidget);
+  });
 
   testWidgets(
     'equipment picker appears only for equipmentSet-bearing templates',

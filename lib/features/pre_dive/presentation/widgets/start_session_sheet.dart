@@ -151,7 +151,12 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
     final setsAsync = ref.watch(equipmentSetsProvider);
     final sets = setsAsync.value ?? const [];
     final equipmentAsync = ref.watch(allEquipmentProvider);
-    final equipmentList = equipmentAsync.value ?? const [];
+    // Wishlist gear (#2025) is not something to check before a dive, and a
+    // remembered device the diver has since set to Wanted is not pre-filled.
+    final equipmentList = [
+      for (final e in equipmentAsync.value ?? const <EquipmentItem>[])
+        if (!e.isWanted) e,
+    ];
 
     // Pre-select the diver's default equipment set once sets load.
     if (!_setInitialized && sets.isNotEmpty) {
