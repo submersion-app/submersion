@@ -58,7 +58,8 @@ class TankEditor extends ConsumerStatefulWidget {
   /// can add it to the dive's gear. Awaited, so a failed add is reported
   /// like any other failure. The tank itself never records the link:
   /// `DiveTank.equipmentId` belongs to the transmitter registry. Null hides
-  /// the "My cylinders" picker, whose point is that gear add.
+  /// the "My cylinders" picker and the cylinders in the preset dropdown
+  /// (issue #163), whose point is that gear add.
   final Future<void> Function(EquipmentItem item)? onOwnCylinderUsed;
 
   /// Called with a tag scan or cylinder pick that has started resolving,
