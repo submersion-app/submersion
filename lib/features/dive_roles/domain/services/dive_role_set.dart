@@ -6,10 +6,13 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 /// merges the importers and the dive merge use.
 ///
 /// Canonical order needs no database: built-in ids in [DiveRole.builtInIds]
-/// order, then every other id ascending. Every device therefore agrees on a
-/// set's primary role, which is what the scalar columns hold.
+/// order, then every other id ascending, with the generic Buddy role last of
+/// all. Every device therefore agrees on a set's primary role, which is what
+/// the scalar columns hold, and a set that names anything more specific than
+/// Buddy keeps that as the role older app versions display.
 abstract final class DiveRoleSet {
   static int _rank(String id) {
+    if (id == DiveRole.buddyId) return DiveRole.builtInIds.length + 1;
     final index = DiveRole.builtInIds.indexOf(id);
     return index < 0 ? DiveRole.builtInIds.length : index;
   }

@@ -34,6 +34,14 @@ void main() {
     });
   });
 
+  test('generic Buddy ranks after every other role', () {
+    // Buddy is the default, so a set that also names a specific role keeps
+    // that role as the primary older app versions display.
+    expect(DiveRoleSet.normalize([buddy, instructor]), [instructor, buddy]);
+    expect(DiveRoleSet.normalize([buddy, 'zz-custom']), ['zz-custom', buddy]);
+    expect(DiveRoleSet.primary([buddy, dm]), dm);
+  });
+
   test('primary is the first normalized id', () {
     expect(DiveRoleSet.primary([dm, guide]), guide);
     expect(DiveRoleSet.primary(const []), isNull);

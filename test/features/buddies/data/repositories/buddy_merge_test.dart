@@ -142,8 +142,8 @@ void main() {
       expect(diveBuddies.length, 1);
       expect(diveBuddies.first.buddy.id, buddyA.id);
       expect(diveBuddies.first.roleIds, [
-        DiveRole.buddyId,
         DiveRole.instructorId,
+        DiveRole.buddyId,
       ]);
 
       expect(result!.snapshot!.modifiedDiveBuddyEntries.length, 1);
@@ -212,9 +212,9 @@ void main() {
       expect(diveBuddies.length, 1);
       expect(diveBuddies.first.buddy.id, buddyA.id);
       expect(diveBuddies.first.roleIds, [
-        DiveRole.buddyId,
         DiveRole.instructorId,
         DiveRole.diveMasterId,
+        DiveRole.buddyId,
       ]);
     });
 

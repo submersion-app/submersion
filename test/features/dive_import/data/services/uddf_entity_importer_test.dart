@@ -2213,8 +2213,8 @@ void main() {
 
       verify(
         mockBuddyRepo.addBuddyToDiveWithRoles(any, any, const [
-          DiveRole.buddyId,
           DiveRole.instructorId,
+          DiveRole.buddyId,
         ]),
       ).called(1);
     });

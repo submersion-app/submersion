@@ -48,7 +48,8 @@ untouched.
 FIRST role of the set in canonical order, or null / `'buddy'` for an empty
 set. Canonical order needs no database, so every device agrees on the
 primary role: built-in ids in seed order (`DiveRole.builtInIds`), then any
-other id ascending. Older app versions keep showing and
+other id ascending, with the generic Buddy role last of all, so a set that
+names anything more specific keeps that as the primary older versions show. Older app versions keep showing and
 editing a sensible single role.
 
 ### Read rule (self-healing)

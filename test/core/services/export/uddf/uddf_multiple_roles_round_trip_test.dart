@@ -118,7 +118,7 @@ void main() {
         b.buddy.name: b.roleIds,
     };
     expect(roles, {
-      'Ana Reyes': [DiveRole.buddyId, DiveRole.instructorId],
+      'Ana Reyes': [DiveRole.instructorId, DiveRole.buddyId],
       'Ben Ortiz': [DiveRole.diveGuideId, DiveRole.diveMasterId],
     });
     expect(
