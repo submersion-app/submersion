@@ -7,6 +7,7 @@ import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_hero_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/otu_limit_progress_row.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_tool_pane.dart';
@@ -15,7 +16,6 @@ import 'package:submersion/features/safety/domain/services/cns_otu_live_service.
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/formatters/cns_otu_format.dart';
 import 'package:submersion/features/safety/presentation/providers/cns_otu_providers.dart';
-import 'package:submersion/features/safety/presentation/widgets/last_dive_hero_header.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -286,7 +286,7 @@ class _OtuTotalsCard extends StatelessWidget {
 }
 
 /// Loads the dive this readout is projected from and hands it to
-/// [LastDiveHeroHeader]. Renders nothing while loading or on a miss rather
+/// [DiveHeroHeader]. Renders nothing while loading or on a miss rather
 /// than a placeholder -- the CNS/OTU content above it already identifies
 /// this as a safety readout; a loading flicker here isn't worth it.
 class _LastDiveHeader extends ConsumerWidget {
@@ -301,7 +301,7 @@ class _LastDiveHeader extends ConsumerWidget {
     if (dive == null) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
-      child: LastDiveHeroHeader(dive: dive, units: units),
+      child: DiveHeroHeader(dive: dive, units: units),
     );
   }
 }

@@ -9,7 +9,6 @@ import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart'
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:intl/intl.dart' show DateFormat;
-import 'package:latlong2/latlong.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/presentation/utils/dive_service_status.dart';
@@ -65,10 +64,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_compute
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_hero_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_sighting_row.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
-import 'package:submersion/shared/utils/ink_centered_text_style.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -91,8 +88,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/collapsible_se
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_safety_summary_section.dart';
 import 'package:submersion/features/safety/domain/services/altitude_flag.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/header_map_backdrop.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/logged_with_tiles.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/mirror_dive_dialog.dart';
@@ -1741,291 +1736,52 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     UnitFormatter units, {
     DiveDataSource? activeSource,
   }) {
-    final entryLoc = dive.entryLocation;
-    final exitLoc = dive.exitLocation;
-    final siteLoc = dive.site?.location;
-    final hasGps = entryLoc != null || exitLoc != null;
-    final hasLocation = siteLoc != null || hasGps;
-    final colorScheme = Theme.of(context).colorScheme;
-    final cardColor = Theme.of(context).cardColor;
-    final diveTypesById = {
-      for (final t
-          in ref.watch(diveTypesProvider).value ?? const <DiveTypeEntity>[])
-        t.id: t,
-    };
-    // A type absent from diveTypesById (not yet loaded, or deleted out from
-    // under a still-referencing dive) stays shown -- unknown is not the same
-    // as explicitly hidden.
-    final visibleHeaderTypeIds = dive.diveTypeIds
-        .where((id) => diveTypesById[id]?.showInDetailHeader ?? true)
-        .toList();
-
-    final content = Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          LayoutBuilder(
-            builder: (context, headerConstraints) {
-              // Scales with the header's own width instead of a flat cap, so
-              // a wide detail pane can spell out more type badges before
-              // collapsing to "+N" while a narrow one still reserves enough
-              // room for the site name/dates column on the left.
-              final badgeMaxWidth = (headerConstraints.maxWidth * 0.35).clamp(
-                120.0,
-                280.0,
-              );
-              return Row(
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: colorScheme.primaryContainer,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          '#${dive.diveNumber ?? '-'}',
-                          maxLines: 1,
-                          style: TextStyle(
-                            color: colorScheme.onPrimaryContainer,
-                            fontWeight: FontWeight.bold,
-                            // Pin the pre-scale size (CircleAvatar's implicit
-                            // titleMedium default) so FittedBox scales from a
-                            // theme-independent baseline.
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          dive.effectiveName ??
-                              dive.site?.name ??
-                              context.l10n.diveLog_listPage_unknownSite,
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        Consumer(
-                          builder: (context, ref, _) {
-                            final count =
-                                ref
-                                    .watch(
-                                      diveOpenFindingsCountProvider(dive.id),
-                                    )
-                                    .value ??
-                                0;
-                            if (count == 0) return const SizedBox.shrink();
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: ActionChip(
-                                avatar: Icon(
-                                  Icons.rule,
-                                  size: 16,
-                                  color: colorScheme.tertiary,
-                                ),
-                                label: Text(
-                                  context.l10n.dataQuality_detail_chipCount(
-                                    count,
-                                  ),
-                                ),
-                                onPressed: () => context.push(
-                                  '/dives/quality?dive=${dive.id}',
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        if (dive.effectiveName != null && dive.site != null)
-                          Text(
-                            dive.site!.name,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                        if (dive.site?.locationString.isNotEmpty == true)
-                          Text(
-                            dive.site!.locationString,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                        Text(
-                          '${context.l10n.diveLog_detail_label_entry} ${units.formatDateTimeBullet(dive.effectiveEntryTime)}',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: colorScheme.onSurfaceVariant),
-                        ),
-                        if (dive.exitTime != null)
-                          Text(
-                            '${context.l10n.diveLog_detail_label_exit} ${units.formatDateTimeBullet(dive.exitTime!)}',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          if (dive.rating != null) ...[
-                            ExcludeSemantics(
-                              child: Icon(
-                                Icons.star,
-                                color: Colors.amber.shade600,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${dive.rating}',
-                              // Same ink-centering fix as DiveModeBadge: without
-                              // it this number's default line leading isn't
-                              // split evenly around its own glyph, so it
-                              // doesn't sit on the same visual line as the star
-                              // icon next to it.
-                              style: Theme.of(
-                                context,
-                              ).textTheme.titleMedium?.inkCentered,
-                              textHeightBehavior: inkCenteredTextHeightBehavior,
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                          DiveModeBadge(mode: dive.diveMode),
-                        ],
-                      ),
-                      if (visibleHeaderTypeIds.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        // Capped rather than left unbounded: Row hands a
-                        // non-flex child unbounded width, which would let a
-                        // long run of type badges grow without limit instead of
-                        // wrapping under the rating/mode row. The cap itself
-                        // scales with the header's width (see badgeMaxWidth)
-                        // rather than a flat constant.
-                        ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: badgeMaxWidth),
-                          child: DiveTypeBadgeRow(
-                            labels: [
-                              for (final typeId in visibleHeaderTypeIds)
-                                diveTypeShortLabel(
-                                  context.l10n,
-                                  typeId,
-                                  typesById: diveTypesById,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildStatItem(
-                context,
-                Icons.arrow_downward,
-                units.formatDepth(activeSource?.maxDepth ?? dive.maxDepth),
-                context.l10n.diveLog_detail_stat_maxDepth,
-              ),
-              _buildStatItem(
-                context,
-                Icons.timelapse,
-                _formatRuntimeForSource(dive, activeSource),
-                context.l10n.diveLog_detail_stat_runtime,
-              ),
-              _buildStatItem(
-                context,
-                Icons.timer,
-                _formatBottomTimeForSource(ref, dive, activeSource),
-                context.l10n.diveLog_detail_stat_bottomTime,
-              ),
-              _buildStatItem(
-                context,
-                Icons.thermostat,
-                units.formatTemperature(
-                  activeSource?.waterTemp ?? dive.waterTemp,
-                ),
-                context.l10n.diveLog_detail_stat_waterTemp,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-
-    if (!hasLocation) {
-      return Card(clipBehavior: Clip.antiAlias, child: content);
-    }
-
     final site = dive.site;
-    final LatLng mapCenter = entryLoc != null
-        ? LatLng(entryLoc.latitude, entryLoc.longitude)
-        : exitLoc != null
-        ? LatLng(exitLoc.latitude, exitLoc.longitude)
-        : LatLng(siteLoc!.latitude, siteLoc.longitude);
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Semantics(
-        button: site != null,
-        label: site != null
-            ? '${context.l10n.diveLog_detail_viewSite} ${site.name}'
-            : '',
-        child: InkWell(
-          onTap: site != null
-              ? () {
-                  if (widget.embedded &&
-                      ResponsiveBreakpoints.isMasterDetail(context)) {
-                    final router = GoRouter.of(context);
-                    final state = GoRouterState.of(context);
-                    final currentPath = state.uri.path;
-                    final params = Map<String, String>.from(
-                      state.uri.queryParameters,
-                    );
-                    params['site'] = site.id;
-                    router.go(
-                      Uri(
-                        path: currentPath,
-                        queryParameters: params,
-                      ).toString(),
-                    );
-                  } else {
-                    context.push('/sites/${site.id}');
-                  }
-                }
-              : null,
-          child: Stack(
-            children: [
-              // Map background (decorative, non-interactive), faded into the
-              // card toward the bottom.
-              Positioned.fill(
-                child: HeaderMapBackdrop(
-                  fadeColor: cardColor,
-                  child: DiveLocationsMap(
-                    entry: entryLoc,
-                    exit: exitLoc,
-                    site: hasGps ? null : siteLoc,
-                    interactive: false,
-                    initialCenter: mapCenter,
-                    initialZoom: 12.0,
-                  ),
-                ),
+    return DiveHeroHeader(
+      dive: dive,
+      units: units,
+      maxDepth: activeSource?.maxDepth,
+      waterTemp: activeSource?.waterTemp,
+      runtimeText: _formatRuntimeForSource(dive, activeSource),
+      bottomTimeText: _formatBottomTimeForSource(ref, dive, activeSource),
+      belowTitle: Consumer(
+        builder: (context, ref, _) {
+          final count =
+              ref.watch(diveOpenFindingsCountProvider(dive.id)).value ?? 0;
+          if (count == 0) return const SizedBox.shrink();
+          return Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: ActionChip(
+              avatar: Icon(
+                Icons.rule,
+                size: 16,
+                color: Theme.of(context).colorScheme.tertiary,
               ),
-              // Content
-              content,
-            ],
-          ),
-        ),
+              label: Text(context.l10n.dataQuality_detail_chipCount(count)),
+              onPressed: () => context.push('/dives/quality?dive=${dive.id}'),
+            ),
+          );
+        },
       ),
+      onSiteTap: site == null
+          ? null
+          : () {
+              if (widget.embedded &&
+                  ResponsiveBreakpoints.isMasterDetail(context)) {
+                final router = GoRouter.of(context);
+                final state = GoRouterState.of(context);
+                final currentPath = state.uri.path;
+                final params = Map<String, String>.from(
+                  state.uri.queryParameters,
+                );
+                params['site'] = site.id;
+                router.go(
+                  Uri(path: currentPath, queryParameters: params).toString(),
+                );
+              } else {
+                context.push('/sites/${site.id}');
+              }
+            },
     );
   }
 
@@ -2054,7 +1810,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       }
     }
     seconds ??= dive.bottomTime?.inSeconds;
-    return seconds != null ? '${seconds ~/ 60} min' : '--';
+    return DiveHeroHeader.formatBottomTimeSeconds(seconds);
   }
 
   String _formatRuntimeForSource(Dive dive, DiveDataSource? activeSource) {
@@ -2062,43 +1818,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       final span = activeSource!.exitTime!.difference(activeSource.entryTime!);
       return '${span.inMinutes} min';
     }
-    return _formatRuntime(dive);
-  }
-
-  /// Format runtime: use stored value, or calculate from entry/exit times
-  String _formatRuntime(Dive dive) {
-    if (dive.runtime != null) {
-      return '${dive.runtime!.inMinutes} min';
-    }
-    // Calculate from entry/exit times if available
-    if (dive.entryTime != null && dive.exitTime != null) {
-      final calculated = dive.exitTime!.difference(dive.entryTime!);
-      return '${calculated.inMinutes} min';
-    }
-    return '--';
-  }
-
-  Widget _buildStatItem(
-    BuildContext context,
-    IconData icon,
-    String value,
-    String label,
-  ) {
-    return Column(
-      children: [
-        ExcludeSemantics(
-          child: Icon(icon, color: Theme.of(context).colorScheme.primary),
-        ),
-        const SizedBox(height: 4),
-        Text(value, style: Theme.of(context).textTheme.titleMedium),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
-    );
+    return DiveHeroHeader.formatRuntime(dive);
   }
 
   /// Localized fallback labels for [resolveSourceName], the shared
