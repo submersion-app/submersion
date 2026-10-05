@@ -18798,6 +18798,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Land, Region, Gewässer, GPS-Koordinaten';
 
   @override
+  String get siteDetailSection_seascape_description =>
+      '3D-Ansicht des Unterwassergeländes rund um den Tauchplatz';
+
+  @override
   String get siteDetailSection_depth_description =>
       'Angegebener Tiefenbereich und bei Tauchgängen erreichte Tiefen';
 

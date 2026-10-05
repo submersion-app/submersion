@@ -25,6 +25,7 @@ import 'package:submersion/features/site_scape/presentation/site_feature_marker_
 import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
 import 'package:submersion/features/site_scape/presentation/site_features_section.dart';
 import 'package:submersion/features/site_scape/presentation/site_scape_view.dart';
+import 'package:submersion/features/site_scape/presentation/site_seascape_section.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -303,6 +304,17 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
           (context) => _buildDescriptionSection(context, site),
       SiteDetailSectionId.location: () =>
           watching((context, ref) => _buildLocationSection(context, ref, site)),
+      // The terrain needs coordinates to look up. A site whose bathymetry
+      // comes back empty keeps the card and shows the pane's no-data state,
+      // so the cards below never jump once the lookup finishes.
+      SiteDetailSectionId.seascape: () => site.hasCoordinates
+          ? (_) => SiteSeascapeSection(
+              siteId: site.id,
+              padding: _cardPadding,
+              onOpenFullscreen: () =>
+                  _showFullscreenMap(context, ref, site, initialScape3d: true),
+            )
+          : null,
       SiteDetailSectionId.depth: () =>
           watching((context, ref) => _buildDepthSection(context, ref, site)),
       SiteDetailSectionId.altitude: () => site.altitude != null
@@ -660,9 +672,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       site.location!.longitude,
     );
 
-    // Flat 2D preview: the seascape lives behind the header's terrain
-    // button and the fullscreen map, both of which open a pane big enough
-    // to read. A 200px strip is not, so it carries no mode toggle.
+    // Flat 2D preview: the seascape has its own card further down, and the
+    // header's terrain button and the fullscreen map open it big. A 200px
+    // strip is too short to orbit, so it carries no mode toggle.
     return Card(
       clipBehavior: Clip.antiAlias,
       child: SizedBox(

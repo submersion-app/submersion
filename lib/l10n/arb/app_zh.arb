@@ -1910,6 +1910,7 @@
   "siteDetailSection_diveStatistics_description": "潜水次数、到达深度、最长和最近的潜水",
   "siteDetailSection_description_description": "潜水点描述",
   "siteDetailSection_location_description": "国家、地区、水域、GPS 坐标",
+  "siteDetailSection_seascape_description": "潜点周围水下地形的 3D 视图",
   "siteDetailSection_depth_description": "标注深度范围及潜水实际到达深度",
   "siteDetailSection_altitude_description": "海拔及高海拔潜水类别",
   "siteDetailSection_features_description": "在潜水点地图上标记的特征",

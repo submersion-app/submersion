@@ -1829,6 +1829,7 @@
   "siteDetailSection_diveStatistics_description": "Número de inmersiones, profundidades alcanzadas, inmersiones más largas y más recientes",
   "siteDetailSection_description_description": "Descripción del sitio",
   "siteDetailSection_location_description": "País, región, masa de agua, coordenadas GPS",
+  "siteDetailSection_seascape_description": "Vista 3D del relieve submarino alrededor del sitio",
   "siteDetailSection_depth_description": "Rango de profundidad indicado y profundidades alcanzadas en las inmersiones",
   "siteDetailSection_altitude_description": "Altitud y categoría de inmersión en altitud",
   "siteDetailSection_features_description": "Características marcadas en el mapa del sitio",

@@ -18690,6 +18690,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Land, regio, wateroppervlak, GPS-coördinaten';
 
   @override
+  String get siteDetailSection_seascape_description =>
+      '3D-weergave van het onderwaterterrein rond de duikstek';
+
+  @override
   String get siteDetailSection_depth_description =>
       'Opgegeven dieptebereik en bij duiken bereikte diepten';
 

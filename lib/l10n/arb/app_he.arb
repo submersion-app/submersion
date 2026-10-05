@@ -5216,6 +5216,7 @@
   "siteDetailSection_diveStatistics_description": "מספר צלילות, עומקים שהושגו, הצלילות הארוכות והאחרונות",
   "siteDetailSection_description_description": "תיאור האתר",
   "siteDetailSection_location_description": "מדינה, אזור, מקווה מים, קואורדינטות GPS",
+  "siteDetailSection_seascape_description": "תצוגת תלת־ממד של פני השטח התת־ימיים סביב האתר",
   "siteDetailSection_depth_description": "טווח עומק מדורג ועומקים שהושגו בצלילות",
   "siteDetailSection_altitude_description": "גובה וקטגוריית צלילת גובה",
   "siteDetailSection_features_description": "מאפיינים שסומנו במפת האתר",

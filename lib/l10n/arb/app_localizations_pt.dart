@@ -18824,6 +18824,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'País, região, corpo de água, coordenadas GPS';
 
   @override
+  String get siteDetailSection_seascape_description =>
+      'Vista 3D do relevo subaquático em torno do local';
+
+  @override
   String get siteDetailSection_depth_description =>
       'Faixa de profundidade indicada e profundidades alcançadas nos mergulhos';
 

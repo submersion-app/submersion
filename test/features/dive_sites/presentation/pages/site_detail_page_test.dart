@@ -40,6 +40,15 @@ void _setMobileTestSurfaceSize(WidgetTester tester) {
   });
 }
 
+/// The map preview's own fullscreen button. The Site Seascape card has one
+/// too, so the icon alone does not say which.
+final _previewFullscreen = find.descendant(
+  of: find.byWidgetPredicate(
+    (w) => w is Semantics && w.properties.label == 'View fullscreen map',
+  ),
+  matching: find.byIcon(Icons.fullscreen),
+);
+
 void main() {
   group('SiteDetailPage desktop redirect', () {
     const site = DiveSite(id: 'site-1', name: 'Blue Hole');
@@ -1091,7 +1100,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
       expect(find.byType(FlutterMap), findsWidgets);
-      await tester.tap(find.byIcon(Icons.fullscreen));
+      await tester.tap(_previewFullscreen);
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
       // The fullscreen route also renders a FlutterMap.
@@ -1123,7 +1132,7 @@ void main() {
       expect(find.byType(SiteScapeView), findsNothing);
       expect(find.byKey(const ValueKey('siteScape2dButton')), findsNothing);
       expect(find.byKey(const ValueKey('siteScape3dButton')), findsNothing);
-      expect(find.byIcon(Icons.fullscreen), findsOneWidget);
+      expect(_previewFullscreen, findsOneWidget);
     });
   });
 

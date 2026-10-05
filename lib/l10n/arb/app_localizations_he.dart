@@ -18394,6 +18394,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'מדינה, אזור, מקווה מים, קואורדינטות GPS';
 
   @override
+  String get siteDetailSection_seascape_description =>
+      'תצוגת תלת־ממד של פני השטח התת־ימיים סביב האתר';
+
+  @override
   String get siteDetailSection_depth_description =>
       'טווח עומק מדורג ועומקים שהושגו בצלילות';
 

@@ -1840,6 +1840,7 @@
   "siteDetailSection_diveStatistics_description": "Anzahl der Tauchgänge, erreichte Tiefen, längster und letzter Tauchgang",
   "siteDetailSection_description_description": "Beschreibung des Tauchplatzes",
   "siteDetailSection_location_description": "Land, Region, Gewässer, GPS-Koordinaten",
+  "siteDetailSection_seascape_description": "3D-Ansicht des Unterwassergeländes rund um den Tauchplatz",
   "siteDetailSection_depth_description": "Angegebener Tiefenbereich und bei Tauchgängen erreichte Tiefen",
   "siteDetailSection_altitude_description": "Höhenlage und Kategorie des Höhentauchgangs",
   "siteDetailSection_features_description": "Auf der Tauchplatzkarte markierte Merkmale",

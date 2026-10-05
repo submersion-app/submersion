@@ -7569,6 +7569,7 @@
   "siteDetailSection_diveStatistics_description": "Numero di immersioni, profondità raggiunte, immersioni più lunghe e più recenti",
   "siteDetailSection_description_description": "Descrizione del sito",
   "siteDetailSection_location_description": "Paese, regione, specchio d'acqua, coordinate GPS",
+  "siteDetailSection_seascape_description": "Vista 3D del fondale intorno al sito",
   "siteDetailSection_depth_description": "Intervallo di profondità indicato e profondità raggiunte nelle immersioni",
   "siteDetailSection_altitude_description": "Altitudine e categoria di immersione in quota",
   "siteDetailSection_features_description": "Elementi segnati sulla mappa del sito",

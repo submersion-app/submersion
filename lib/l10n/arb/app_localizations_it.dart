@@ -18817,6 +18817,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Paese, regione, specchio d\'acqua, coordinate GPS';
 
   @override
+  String get siteDetailSection_seascape_description =>
+      'Vista 3D del fondale intorno al sito';
+
+  @override
   String get siteDetailSection_depth_description =>
       'Intervallo di profondità indicato e profondità raggiunte nelle immersioni';
 

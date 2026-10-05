@@ -7535,6 +7535,7 @@
   "siteDetailSection_diveStatistics_description": "Merülések száma, elért mélységek, leghosszabb és legutóbbi merülések",
   "siteDetailSection_description_description": "A merülőhely leírása",
   "siteDetailSection_location_description": "Ország, régió, víztest, GPS-koordináták",
+  "siteDetailSection_seascape_description": "A merülőhely körüli víz alatti domborzat 3D nézete",
   "siteDetailSection_depth_description": "Megadott mélységtartomány és a merüléseken elért mélységek",
   "siteDetailSection_altitude_description": "Tengerszint feletti magasság és magashegyi merülési kategória",
   "siteDetailSection_features_description": "A merülőhely térképén jelölt jellemzők",

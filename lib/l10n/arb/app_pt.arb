@@ -1829,6 +1829,7 @@
   "siteDetailSection_diveStatistics_description": "Número de mergulhos, profundidades alcançadas, mergulhos mais longos e mais recentes",
   "siteDetailSection_description_description": "Descrição do ponto",
   "siteDetailSection_location_description": "País, região, corpo de água, coordenadas GPS",
+  "siteDetailSection_seascape_description": "Vista 3D do relevo subaquático em torno do local",
   "siteDetailSection_depth_description": "Faixa de profundidade indicada e profundidades alcançadas nos mergulhos",
   "siteDetailSection_altitude_description": "Altitude e categoria de mergulho em altitude",
   "siteDetailSection_features_description": "Elementos marcados no mapa do ponto",

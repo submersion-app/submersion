@@ -18533,6 +18533,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Country, region, body of water, GPS coordinates';
 
   @override
+  String get siteDetailSection_seascape_description =>
+      '3D view of the underwater terrain around the site';
+
+  @override
   String get siteDetailSection_depth_description =>
       'Rated depth range and depths reached on dives';
 

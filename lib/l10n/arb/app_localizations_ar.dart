@@ -19042,6 +19042,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'الدولة، المنطقة، المسطح المائي، إحداثيات GPS';
 
   @override
+  String get siteDetailSection_seascape_description =>
+      'عرض ثلاثي الأبعاد للتضاريس تحت الماء حول الموقع';
+
+  @override
   String get siteDetailSection_depth_description =>
       'نطاق العمق المصنف والأعماق التي تم بلوغها في الغوصات';
 

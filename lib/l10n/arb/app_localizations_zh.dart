@@ -17909,6 +17909,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get siteDetailSection_location_description => '国家、地区、水域、GPS 坐标';
 
   @override
+  String get siteDetailSection_seascape_description => '潜点周围水下地形的 3D 视图';
+
+  @override
   String get siteDetailSection_depth_description => '标注深度范围及潜水实际到达深度';
 
   @override

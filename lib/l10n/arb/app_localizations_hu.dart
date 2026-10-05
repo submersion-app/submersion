@@ -18760,6 +18760,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ország, régió, víztest, GPS-koordináták';
 
   @override
+  String get siteDetailSection_seascape_description =>
+      'A merülőhely körüli víz alatti domborzat 3D nézete';
+
+  @override
   String get siteDetailSection_depth_description =>
       'Megadott mélységtartomány és a merüléseken elért mélységek';
 

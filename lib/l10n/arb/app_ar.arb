@@ -1745,6 +1745,7 @@
   "siteDetailSection_diveStatistics_description": "عدد الغوصات، الأعماق التي تم بلوغها، أطول الغوصات وأحدثها",
   "siteDetailSection_description_description": "وصف الموقع",
   "siteDetailSection_location_description": "الدولة، المنطقة، المسطح المائي، إحداثيات GPS",
+  "siteDetailSection_seascape_description": "عرض ثلاثي الأبعاد للتضاريس تحت الماء حول الموقع",
   "siteDetailSection_depth_description": "نطاق العمق المصنف والأعماق التي تم بلوغها في الغوصات",
   "siteDetailSection_altitude_description": "الارتفاع وفئة الغوص على ارتفاع",
   "siteDetailSection_features_description": "المعالم المحددة على خريطة الموقع",

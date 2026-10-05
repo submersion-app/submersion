@@ -18821,6 +18821,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'País, región, masa de agua, coordenadas GPS';
 
   @override
+  String get siteDetailSection_seascape_description =>
+      'Vista 3D del relieve submarino alrededor del sitio';
+
+  @override
   String get siteDetailSection_depth_description =>
       'Rango de profundidad indicado y profundidades alcanzadas en las inmersiones';
 

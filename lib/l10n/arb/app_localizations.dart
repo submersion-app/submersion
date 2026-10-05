@@ -30187,6 +30187,12 @@ abstract class AppLocalizations {
   /// **'Country, region, body of water, GPS coordinates'**
   String get siteDetailSection_location_description;
 
+  /// No description provided for @siteDetailSection_seascape_description.
+  ///
+  /// In en, this message translates to:
+  /// **'3D view of the underwater terrain around the site'**
+  String get siteDetailSection_seascape_description;
+
   /// No description provided for @siteDetailSection_depth_description.
   ///
   /// In en, this message translates to:
