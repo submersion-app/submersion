@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// BUILD, then lets normal auto-disposal resume.
 ///
 /// The timer starts when the provider builds, not when its last watcher
-/// leaves -- `KeepAliveLink` has no notion of the latter. So the value
+/// leaves, because `KeepAliveLink` has no notion of the latter. So the value
 /// survives an unwatched gap only within [window] of being computed, and a
 /// provider still watched when the timer fires disposes as soon as its last
 /// watcher goes. That is the behaviour wanted here: a bounded lifetime for a

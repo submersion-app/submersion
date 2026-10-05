@@ -66,6 +66,10 @@ class SiteTerrainPane extends ConsumerStatefulWidget {
   ConsumerState<SiteTerrainPane> createState() => _SiteTerrainPaneState();
 }
 
+/// Narrowest the top-left overlay column may get beside the docked card
+/// before it moves below the card instead.
+const double _minOverlayColumnWidth = 160;
+
 class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
     with SingleTickerProviderStateMixin {
   // Parked at 0 for the plain site view (no timeline there); driven by
@@ -75,10 +79,13 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
   // play back, so the site-only path pays nothing for it.
   final ValueNotifier<double> _scrub = ValueNotifier(0);
 
-  /// Width of the docked control card at the top right, which depends on
-  /// the host's [SiteTerrainPane.leadingActions]; the scene's top-left
-  /// overlays stop short of it.
-  final ValueNotifier<double> _dockWidth = ValueNotifier(0);
+  /// The docked control card's laid-out size, and whether it held the
+  /// pane's own actions then (it gains them when the scene is ready). Its
+  /// width depends on the host's [SiteTerrainPane.leadingActions]; the
+  /// scene's top-left overlays lay out around it, and stay hidden until it
+  /// has been measured in its ready form.
+  final ValueNotifier<({Size size, bool withOwnActions})?> _dock =
+      ValueNotifier(null);
   final ValueNotifier<ScenePick?> _hoverPick = ValueNotifier(null);
 
   /// Which grid the CURRENT [_hoverPick] value's row/col indices refer to
@@ -181,7 +188,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
   void dispose() {
     _player?.dispose();
     _scrub.dispose();
-    _dockWidth.dispose();
+    _dock.dispose();
     _hoverPick.dispose();
     _hoverPickGrid.dispose();
     super.dispose();
@@ -198,17 +205,18 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
     // inject the way back to 2D through leadingActions, and a site whose
     // seascape comes back empty would otherwise be a dead end. The pane's
     // own actions still need a scene, so they appear only when ready.
+    final ownActions = stateAsync.valueOrNull is SiteSeascapeReady;
     return Stack(
       fit: StackFit.expand,
       children: [
         _paneBody(stateAsync, appearance, depthUnit),
-        if (widget.leadingActions.isNotEmpty ||
-            stateAsync.valueOrNull is SiteSeascapeReady)
+        if (widget.leadingActions.isNotEmpty || ownActions)
           Positioned(
             top: 8,
             right: 8,
             child: SizeReporter(
-              onChange: (size) => _dockWidth.value = size.width,
+              onChange: (size) =>
+                  _dock.value = (size: size, withOwnActions: ownActions),
               child: Card(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -219,7 +227,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       ...widget.leadingActions,
-                      if (stateAsync.valueOrNull is SiteSeascapeReady) ...[
+                      if (ownActions) ...[
                         IconButton(
                           key: const ValueKey('seascapeAppearanceButton'),
                           icon: const Icon(Icons.tune, size: 20),
@@ -451,15 +459,35 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                           ),
                         // One column, so a caption that wraps on a narrow
                         // pane pushes the others down rather than running
-                        // into them, inset on the right by the docked card
-                        // (see build() above), which paints over this Stack.
-                        ValueListenableBuilder<double>(
-                          valueListenable: _dockWidth,
-                          builder: (context, dockWidth, column) => Positioned(
+                        // into them. It sits beside the docked card (see
+                        // build() above, which paints over this Stack), or
+                        // below it on a pane too narrow for both, and is
+                        // hidden until the card is measured with the pane's
+                        // own actions, so no frame draws it underneath.
+                        ValueListenableBuilder(
+                          valueListenable: _dock,
+                          builder: (context, dock, column) => Positioned(
                             top: 8,
                             left: 8,
-                            right: 16 + dockWidth,
-                            child: column!,
+                            right: 8,
+                            child: dock == null || !dock.withOwnActions
+                                ? const SizedBox.shrink()
+                                : LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      final dockWidth = dock.size.width + 8;
+                                      final beside =
+                                          constraints.maxWidth - dockWidth >=
+                                          _minOverlayColumnWidth;
+                                      return Padding(
+                                        padding: beside
+                                            ? EdgeInsets.only(right: dockWidth)
+                                            : EdgeInsets.only(
+                                                top: dock.size.height + 8,
+                                              ),
+                                        child: column,
+                                      );
+                                    },
+                                  ),
                           ),
                           // Lined up on the physical left, as the docked card
                           // and the zoom column are fixed to the physical

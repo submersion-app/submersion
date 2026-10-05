@@ -1,37 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
-import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
-import 'package:submersion/features/dive_3d/domain/spatial/site_active_path_overlay_builder.dart';
-import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
 
 import 'site_terrain_pane_test_support.dart';
-
-SiteActivePathOverlay _overlay() => buildSiteActivePathOverlay(
-  path: const ReckonedPath(
-    points: [
-      ReckonedPoint(east: 0, north: 0, depth: 0, timeSeconds: 0),
-      ReckonedPoint(east: 5, north: 0, depth: 8, timeSeconds: 60),
-    ],
-    provenance: PathProvenance.measured,
-    sourceLabel: 'Seacraft ENC',
-    minEast: 0,
-    maxEast: 5,
-    minNorth: 0,
-    maxNorth: 0,
-    maxDepth: 8,
-    durationSeconds: 60,
-  ),
-  anchor: (east: 0.0, north: 0.0),
-  projection: SpatialProjection(
-    minEast: -50,
-    maxEast: 50,
-    minNorth: -50,
-    maxNorth: 50,
-    maxDepth: 20,
-  ),
-)!;
 
 /// Stands in for a host's 2D/3D toggle: the fullscreen scape seats two
 /// extra buttons in the docked card, which makes it wider.
@@ -86,7 +58,10 @@ void main() {
                   pathId: 'd1',
                   source: PathOverlaySource.dive,
                 )).overrideWith(
-                  (ref) async => (overlay: _overlay(), hasLinkedRoute: false),
+                  (ref) async => (
+                    overlay: testActivePathOverlay(sourceLabel: 'Seacraft ENC'),
+                    hasLinkedRoute: false,
+                  ),
                 ),
               ],
             ),
@@ -140,4 +115,65 @@ void main() {
       }
     }
   }
+
+  Rect dockRect(WidgetTester tester) => tester.getRect(
+    find
+        .ancestor(
+          of: find.byKey(const ValueKey('seascapeAppearanceButton')),
+          matching: find.byType(Card),
+        )
+        .first,
+  );
+
+  // The docked card's width is only known once it has been laid out with
+  // the pane's own actions in it, which happens when the scene is ready; the
+  // caption must not be drawn under it on any frame before then.
+  for (final withToggle in const [false, true]) {
+    testWidgets('the source caption never overlaps the docked card on any '
+        'frame${withToggle ? ', with a host toggle' : ''}', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(360, 520));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(
+        page(readyState(), leadingActions: withToggle ? _hostToggle : const []),
+      );
+      var sawCaption = false;
+      for (var frame = 0; frame < 6; frame++) {
+        await tester.pump();
+        final caption = find.textContaining('Seafloor');
+        if (caption.evaluate().isEmpty) continue;
+        sawCaption = true;
+        final rect = tester.getRect(caption);
+        final dock = dockRect(tester);
+        expect(
+          rect.overlaps(dock),
+          isFalse,
+          reason: 'frame $frame: caption $rect overlaps the docked card $dock',
+        );
+      }
+      expect(sawCaption, isTrue);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 1));
+    });
+  }
+
+  // Beside a wide docked card on a narrow pane the column would be squeezed
+  // to a sliver; there it goes below the card instead.
+  testWidgets('on a pane too narrow for both, the overlays drop below the '
+      'docked card', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(240, 520));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(page(readyState(), leadingActions: _hostToggle));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(tester.takeException(), isNull);
+    final caption = tester.getRect(find.textContaining('Seafloor'));
+    final dock = dockRect(tester);
+    expect(caption.top, greaterThanOrEqualTo(dock.bottom));
+    expect(caption.width, greaterThan(150));
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
 }
