@@ -1600,15 +1600,20 @@ Future<double> _computeResidualCns(
     if (previousDive == null) return 0.0;
 
     // Short-circuit: if the legend's CNS source is set to computer and the
-    // previous dive has computer CNS, use its last CNS sample directly
-    // instead of full analysis. The profile is fetched only when this
-    // branch is taken (times-only lookup otherwise).
+    // previous dive has computer CNS, use its last CNS reading directly
+    // instead of full analysis. The samples are fetched only when this
+    // branch is taken (times-only lookup otherwise), and they are the series
+    // the previous dive's own analysis replays: on a dive with several
+    // computers the merged samples interleave every computer's CNS, so their
+    // last reading may be another computer's (#2545).
     final useComputerCns = inputs.cnsSource == MetricDataSource.computer;
     if (useComputerCns) {
-      final previousProfile = await repository.getMergedProfile(
-        previousDive.id,
+      final previousSeries = await ref.read(
+        diveAnalysisSeriesProvider(previousDive.id).future,
       );
-      final prevComputerCns = extractComputerCns(previousProfile);
+      final prevComputerCns = previousSeries == null
+          ? null
+          : extractComputerCns(previousSeries.points);
       if (prevComputerCns != null) {
         return CnsTable.cnsAfterSurfaceInterval(
           prevComputerCns.cnsEnd,
