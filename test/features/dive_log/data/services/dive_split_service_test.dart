@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/data/services/dive_split_service.da
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 
 import '../../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../../helpers/peer_pull.dart';
@@ -257,6 +258,22 @@ void main() {
     expect(oldSources.single.id, 'src-a');
 
     expect(await fkViolations(), isEmpty);
+  });
+
+  test('the diver\'s roles travel with the split dive (#1221)', () async {
+    await insertDive('dive-1', computerId: 'dc-a');
+    await insertSource('src-a', 'dive-1', 'dc-a', isPrimary: true);
+    await insertSource('src-b', 'dive-1', 'dc-b', isPrimary: false);
+    await insertProfileSeriesRow('dive-1', 'dc-a', isPrimary: true);
+    await insertProfileSeriesRow('dive-1', 'dc-b', isPrimary: false);
+    final roles = DiveRoleLinkRepository();
+    await roles.writeDiverRoles('dive-1', ['diveMaster', 'diveGuide']);
+
+    final newDiveId = await service.split(diveId: 'dive-1', sourceId: 'src-b');
+
+    final sets = await roles.diverRoleIdsForDives(['dive-1', newDiveId]);
+    expect(sets['dive-1'], ['diveGuide', 'diveMaster']);
+    expect(sets[newDiveId], ['diveGuide', 'diveMaster']);
   });
 
   test('splitting the primary promotes the remaining source', () async {

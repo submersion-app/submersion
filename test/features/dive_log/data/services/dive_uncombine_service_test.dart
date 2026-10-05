@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -399,6 +400,21 @@ void main() {
       expect(kept.tripId, 'trip-1');
       expect(kept.notes, 'Two halves of one dive.');
     });
+
+    test(
+      'leaves the diver\'s role set on the surviving dive (#1221)',
+      () async {
+        final mergedId = await mergeTwoImports();
+        final roles = DiveRoleLinkRepository();
+        await roles.writeDiverRoles(mergedId, ['diveMaster', 'diveGuide']);
+
+        final restoredId = (await service.separate(diveId: mergedId)).single;
+
+        final sets = await roles.diverRoleIdsForDives([mergedId, restoredId]);
+        expect(sets[restoredId], isEmpty);
+        expect(sets[mergedId], ['diveGuide', 'diveMaster']);
+      },
+    );
 
     test('gives each dive its own runtime, not the combined total', () async {
       final mergedId = await mergeTwoImports();

@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/domain/entities/profile_series.dart
 import 'package:submersion/features/dive_log/domain/services/source_bottom_time.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 
 /// Splits one data source's computer data out of a dive into a new dive —
 /// the inverse of DiveConsolidationService. The source's profile rows,
@@ -207,6 +208,16 @@ class DiveSplitService {
         entityType: 'dives',
         recordId: newDiveId,
         localUpdatedAt: now,
+      );
+      // The diver's own roles travel with the copied row (issue #1221): the
+      // scalar came across in the copy, the rest of the set lives in the
+      // junction.
+      final roleLinks = DiveRoleLinkRepository();
+      await roleLinks.writeDiverRoles(
+        newDiveId,
+        (await roleLinks.diverRoleIdsForDives([diveRow.id]))[diveRow.id] ??
+            const [],
+        now: now,
       );
 
       // 2. The source row becomes the new dive's primary source.
