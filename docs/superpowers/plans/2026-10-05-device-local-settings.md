@@ -962,7 +962,7 @@ Adjust each row's label and location to what Step 1 found; drop a row whose sett
 
 - [ ] **Step 3: Check for forbidden characters**
 
-Run: `grep -c "—" docs/guide/multi-device-sync.md` and compare to `git show HEAD:docs/guide/multi-device-sync.md | grep -c "—"`
+Run: `perl -CSD -ne '$c++ while /\x{2014}/g; END { print $c+0, "\n" }' docs/guide/multi-device-sync.md` and the same on `git show HEAD:docs/guide/multi-device-sync.md` (pipe it into the perl command)
 Expected: equal counts (no new em-dashes).
 
 - [ ] **Step 4: Commit**
