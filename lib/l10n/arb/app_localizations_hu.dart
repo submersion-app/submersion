@@ -17770,6 +17770,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_viewer_goToDive => 'Ugrás a merüléshez';
 
   @override
+  String get media_viewer_enterFullscreen => 'Teljes képernyő';
+
+  @override
+  String get media_viewer_exitFullscreen => 'Kilépés a teljes képernyőből';
+
+  @override
+  String get media_viewer_moreOptions => 'További lehetőségek';
+
+  @override
   String get nav_home => 'Főoldal';
 
   @override
@@ -18868,6 +18877,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get siteDetailSection_location_description =>
       'Ország, régió, víztest, GPS-koordináták';
+
+  @override
+  String get siteDetailSection_seascape_description =>
+      'A merülőhely körüli víz alatti domborzat 3D nézete';
 
   @override
   String get siteDetailSection_depth_description =>
@@ -22667,6 +22680,27 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fájl',
+      one: '$count fájl',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'forrás: $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {

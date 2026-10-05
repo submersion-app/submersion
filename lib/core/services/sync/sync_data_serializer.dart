@@ -15,6 +15,7 @@ import 'package:submersion/core/database/profile_series_pack.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
+import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/sync_record_overlay.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
@@ -1440,7 +1441,9 @@ class SyncDataSerializer {
               maxRowHlc = clock;
             }
           }
-          await writeData(jsonEncode(row));
+          // Device-local columns never leave this device, in a base as in a
+          // changeset (issue #2947).
+          await writeData(jsonEncode(withoutDeviceLocalColumns(spec.key, row)));
         }
 
         if (spec.table != null) {
@@ -2636,7 +2639,9 @@ class SyncDataSerializer {
         final row = await (_db.select(
           _db.diverSettings,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
-        return row?.toJson();
+        return row == null
+            ? null
+            : withoutDeviceLocalColumns('diverSettings', row.toJson());
       case 'dives':
         final row = await (_db.select(
           _db.dives,
@@ -3009,7 +3014,9 @@ class SyncDataSerializer {
         final row = await (_db.select(
           _db.diveComputers,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
-        return row == null ? null : _withoutDeviceLocalFields(row.toJson());
+        return row == null
+            ? null
+            : withoutDeviceLocalColumns('diveComputers', row.toJson());
       case 'transmitters':
         final row = await (_db.select(
           _db.transmitters,
@@ -3194,7 +3201,10 @@ class SyncDataSerializer {
         final rows = await (_db.select(
           _db.diverSettings,
         )..where((t) => t.id.isIn(idList))).get();
-        return {for (final r in rows) r.id: r.toJson()};
+        return {
+          for (final r in rows)
+            r.id: withoutDeviceLocalColumns('diverSettings', r.toJson()),
+        };
       case 'dives':
         final rows = await (_db.select(
           _db.dives,
@@ -3444,7 +3454,8 @@ class SyncDataSerializer {
           _db.diveComputers,
         )..where((t) => t.id.isIn(idList))).get();
         return {
-          for (final r in rows) r.id: _withoutDeviceLocalFields(r.toJson()),
+          for (final r in rows)
+            r.id: withoutDeviceLocalColumns('diveComputers', r.toJson()),
         };
       case 'transmitters':
         final rows = await (_db.select(
@@ -4146,8 +4157,9 @@ class SyncDataSerializer {
   ) async {
     data = _withRenamedKeys(
       entityType,
-      _withoutDeviceLocalFields(data, entityType: entityType),
+      withoutDeviceLocalColumns(entityType, data),
     );
+    data = (await _withDeviceLocalFromHere(entityType, [data])).single;
     data = _withSchemaDefaults(
       entityType,
       _withDerivedDistanceUnit(
@@ -4664,7 +4676,7 @@ class SyncDataSerializer {
         // (e.g. active_diver_id). Export filters these, but a peer on an older
         // build may still ship them; applying would switch this device's
         // active diver. Symmetric with _exportSettings.
-        if (_deviceLocalSettingsKeys.contains(data['key'])) {
+        if (deviceLocalSettingsKeys.contains(data['key'])) {
           return;
         }
         await _db
@@ -4993,13 +5005,16 @@ class SyncDataSerializer {
     List<Map<String, dynamic>> records,
   ) async {
     if (records.isEmpty) return;
-    records = await _withLocalForOmitted(entityType, [
-      for (final record in records)
-        _withRenamedKeys(
-          entityType,
-          _withoutDeviceLocalFields(record, entityType: entityType),
-        ),
-    ]);
+    records = await _withLocalForOmitted(
+      entityType,
+      await _withDeviceLocalFromHere(entityType, [
+        for (final record in records)
+          _withRenamedKeys(
+            entityType,
+            withoutDeviceLocalColumns(entityType, record),
+          ),
+      ]),
+    );
     records = [
       for (final record in records)
         _withSchemaDefaults(
@@ -5939,7 +5954,7 @@ class SyncDataSerializer {
       case 'settings':
         // Mirror upsertRecord: never overwrite a device-local settings key.
         final settingsRows = records
-            .where((r) => !_deviceLocalSettingsKeys.contains(r['key']))
+            .where((r) => !deviceLocalSettingsKeys.contains(r['key']))
             .map((r) => Setting.fromJson(r).toCompanion(false))
             .toList();
         if (settingsRows.isEmpty) return;
@@ -6474,7 +6489,7 @@ class SyncDataSerializer {
   /// union is equivalent to upsert-then-delete-not-in-cloud but needs no in-RAM
   /// id set to diff against, so adopt memory stays bounded regardless of size.
   ///
-  /// Device-local settings keys ([_deviceLocalSettingsKeys], e.g.
+  /// Device-local settings keys ([deviceLocalSettingsKeys], e.g.
   /// `active_diver_id`) are preserved: they are never part of a synced or
   /// replaced library, so an adopt must not wipe them (they are also excluded
   /// from the base by [_exportSettings], so re-insert would not restore them).
@@ -6483,12 +6498,20 @@ class SyncDataSerializer {
   /// [_exportDiveTypes], [_exportSpecies] and [_exportFieldPresets] all omit
   /// `isBuiltIn` rows, so the refill that follows this clear cannot put them
   /// back. Deleting them would leave the catalog permanently empty.
+  ///
+  /// Device-local columns ([deviceLocalSyncColumns]) of the cleared rows are
+  /// remembered first, so the refill keeps this device's values.
   Future<void> deleteAllRecords(String entityType) async {
+    if (deviceLocalSyncColumns.containsKey(entityType)) {
+      _adoptKeptDeviceLocal[entityType] = Map.of(
+        await _deviceLocalValuesHere(entityType),
+      );
+    }
     switch (entityType) {
       case 'settings':
         await (_db.delete(
           _db.settings,
-        )..where((t) => t.key.isNotIn(_deviceLocalSettingsKeys.toList()))).go();
+        )..where((t) => t.key.isNotIn(deviceLocalSettingsKeys.toList()))).go();
         return;
       case 'diveTypes':
         await (_db.delete(
@@ -7461,7 +7484,9 @@ class SyncDataSerializer {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
-    return rows.map((r) => r.toJson()).toList();
+    return rows
+        .map((r) => withoutDeviceLocalColumns('diverSettings', r.toJson()))
+        .toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportDives(String? hlcSince) async {
@@ -8352,7 +8377,9 @@ class SyncDataSerializer {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
-    return rows.map((r) => _withoutDeviceLocalFields(r.toJson())).toList();
+    return rows
+        .map((r) => withoutDeviceLocalColumns('diveComputers', r.toJson()))
+        .toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportTransmitters(
@@ -8399,20 +8426,6 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  /// Removes fields that describe this host's connection to a device rather
-  /// than the device's synced identity. A remote BLE identifier must never
-  /// overwrite the identifier stored locally on another host.
-  static Map<String, dynamic> _withoutDeviceLocalFields(
-    Map<String, dynamic> data, {
-    String? entityType,
-  }) {
-    if (entityType != null && entityType != 'diveComputers') return data;
-    if (!data.containsKey('bluetoothAddress')) return data;
-    final copy = Map<String, dynamic>.from(data);
-    copy.remove('bluetoothAddress');
-    return copy;
-  }
-
   Future<List<Map<String, dynamic>>> _exportTideRecords(
     String? hlcSince,
   ) async {
@@ -8432,29 +8445,6 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  /// Settings keys that hold per-device state and must never sync.
-  ///
-  /// Including these in the payload causes the receiving device to flag a
-  /// conflict on every cross-device pull (same `key` row, different value
-  /// per device).
-  ///
-  /// Audit (last reviewed for issue #2949): every other key written to the
-  /// `settings` table syncs. Today those are `share_new_records_by_default`,
-  /// `nav_primary_ids`, `nav_rail_ids`, `nav_always_hide_labels`,
-  /// `gas_blender_prefs`, `equipment_arrangement`, `gas_mod_calculator_prefs`,
-  /// `media_upload_quality_photo`, `media_upload_quality_video`,
-  /// `media_library_view_mode`, `media_library_sort` and
-  /// `media_watcher_auto_apply`, plus two keys per connected Lightroom account,
-  /// `lightroom_<account>_album_ids` and `lightroom_<account>_auto_poll`
-  /// (written by `LightroomConnectorState`). `active_diver_id` is FILTERED:
-  /// which diver a device has open is that device's choice.
-  ///
-  /// New keys should be assessed against the rule: "is this answer the same
-  /// across all of one user's devices?" If no, add it here. Either way, update
-  /// the "What Syncs Between Devices" section of
-  /// docs/guide/multi-device-sync.md.
-  static const Set<String> _deviceLocalSettingsKeys = {'active_diver_id'};
-
   Future<List<Map<String, dynamic>>> _exportSettings(String? hlcSince) async {
     final query = _db.select(_db.settings);
     if (hlcSince != null) {
@@ -8462,7 +8452,7 @@ class SyncDataSerializer {
     }
     final rows = await query.get();
     return rows
-        .where((r) => !_deviceLocalSettingsKeys.contains(r.key))
+        .where((r) => !deviceLocalSettingsKeys.contains(r.key))
         .map((r) => r.toJson())
         .toList();
   }
@@ -8989,6 +8979,67 @@ class SyncDataSerializer {
   /// one without a read. Empty for a type with no table here.
   final Map<String, Set<String>> _rowKeys = {};
 
+  /// Device-local columns [deleteAllRecords] read before a replace-adopt
+  /// cleared their table, by entity type and record id. The refill consumes
+  /// an entry when its row comes back, so this device keeps its own values.
+  final Map<String, Map<String, Map<String, dynamic>>> _adoptKeptDeviceLocal =
+      {};
+
+  /// The device-local columns ([deviceLocalSyncColumns]) of [entityType]'s
+  /// rows on this device, by record id; every row when [ids] is null.
+  Future<Map<String, Map<String, dynamic>>> _deviceLocalValuesHere(
+    String entityType, [
+    Iterable<String>? ids,
+  ]) async {
+    final keys = deviceLocalSyncColumns[entityType];
+    if (keys == null) return const {};
+    // Read through the entity's own table, so a new entry in
+    // deviceLocalSyncColumns needs no code here. Every listed table is keyed
+    // by a text id; the test that reads every entry fails on one that is not.
+    final table = _syncTableFor(entityType);
+    final idColumn = table.columnsByName['id']! as GeneratedColumn<String>;
+    final query = _db.select(table);
+    if (ids != null) query.where((_) => idColumn.isIn(ids));
+    final rows = [
+      for (final row in await query.get()) (row as DataClass).toJson(),
+    ];
+    return {
+      for (final row in rows)
+        row['id'] as String: {for (final key in keys) key: row[key]},
+    };
+  }
+
+  /// Forgets what [deleteAllRecords] remembered for a replace-adopt's refill.
+  /// The adopt calls this once the refill is done, so a row that comes back
+  /// in a later sync is new to this device and takes the column defaults.
+  void endAdoptRefill() => _adoptKeptDeviceLocal.clear();
+
+  /// Fills each device-local column of [records] with this device's value:
+  /// the row it holds, else what a replace-adopt cleared, else nothing (a row
+  /// new here takes the column default). Stripping the wire values is not
+  /// enough on its own: [_buildRowKeys] leaves these columns out, so
+  /// [_withLocalForOmitted] would not refill them and the full-row upsert
+  /// would write their defaults over this device's values.
+  Future<List<Map<String, dynamic>>> _withDeviceLocalFromHere(
+    String entityType,
+    List<Map<String, dynamic>> records,
+  ) async {
+    if (!deviceLocalSyncColumns.containsKey(entityType)) return records;
+    final ids = {
+      for (final record in records) ?syncRecordId(entityType, record),
+    };
+    if (ids.isEmpty) return records;
+    final here = await _deviceLocalValuesHere(entityType, ids);
+    final kept = _adoptKeptDeviceLocal[entityType];
+    final filled = <Map<String, dynamic>>[];
+    for (final record in records) {
+      final id = syncRecordId(entityType, record);
+      final values = id == null ? null : (here[id] ?? kept?.remove(id));
+      filled.add(values == null ? record : {...record, ...values});
+    }
+    return filled;
+  }
+
   /// Fills each key [records] omit from the row this device already holds
   /// for the same record (#2553), before [_withSchemaDefaults] would fill
   /// it with the column default. A peer on an older build omits every
@@ -9037,15 +9088,8 @@ class SyncDataSerializer {
       return const {};
     }
     return {for (final column in table.$columns) columnJsonKey(column.name)}
-      ..removeAll(_deviceLocalKeys[entityType] ?? const <String>{});
+      ..removeAll(deviceLocalSyncColumns[entityType] ?? const <String>{});
   }
-
-  /// Columns a synced row never carries because they belong to one device
-  /// ([_withoutDeviceLocalFields]). Their absence does not make a row
-  /// partial.
-  static const Map<String, Set<String>> _deviceLocalKeys = {
-    'diveComputers': {'bluetoothAddress'},
-  };
 
   static const Set<String> _gearJunctions = {
     'diveEquipment',

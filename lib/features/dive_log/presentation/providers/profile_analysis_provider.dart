@@ -510,6 +510,26 @@ const int _ndlInDeco = -1;
 bool _isComputerDecoSample(DiveProfilePoint point) =>
     point.decoType == kDecoTypeDecoStop;
 
+/// The computer's CNS curve, one value per [profile] sample.
+///
+/// Many computers log CNS only every few samples (the OSTC family on every
+/// Nth one), and a sample without a reading is not the computer saying CNS
+/// changed: CNS moves over minutes. So each sample holds the last computer
+/// reading, and only the samples before the first reading take the
+/// [calculated] value. Filling every gap from [calculated] instead would make
+/// the curve step between two models wherever they disagree (#2545).
+List<double> _overlayComputerCns(
+  List<DiveProfilePoint> profile,
+  List<double>? calculated,
+) {
+  double? held;
+  return List<double>.generate(profile.length, (i) {
+    held = profile[i].cns ?? held;
+    return held ??
+        (calculated != null && i < calculated.length ? calculated[i] : 0.0);
+  });
+}
+
 /// Overlays computer-reported decompression data onto a calculated
 /// [ProfileAnalysis].
 ///
@@ -555,7 +575,6 @@ bool _isComputerDecoSample(DiveProfilePoint point) =>
     (p) => p.ceiling != null && p.ceiling! > 0,
   );
   final hasComputerTts = profile.any((p) => p.tts != null && p.tts! > 0);
-  final hasComputerCns = profile.any((p) => p.cns != null);
   // Air-integrated computers log their own GTR (libdc RBT, stored in
   // seconds); a null sample is the computer blanking its display.
   final hasComputerGtr = profile.any((p) => p.rbt != null);
@@ -566,7 +585,8 @@ bool _isComputerDecoSample(DiveProfilePoint point) =>
   final useCeiling =
       ceilingSource == MetricDataSource.computer && hasComputerCeiling;
   final useTts = ttsSource == MetricDataSource.computer && hasComputerTts;
-  final useCns = cnsSource == MetricDataSource.computer && hasComputerCns;
+  final useCns =
+      cnsSource == MetricDataSource.computer && hasComputerCns(profile);
   final useGtr = gtrSource == MetricDataSource.computer && hasComputerGtr;
   // Resolved independently of useCeiling: the deco stop band must not be
   // dragged along when the user picks "computer" for the ceiling line alone.
@@ -661,16 +681,7 @@ bool _isComputerDecoSample(DiveProfilePoint point) =>
             return 0;
           })
         : null,
-    cnsCurve: useCns
-        ? List<double>.generate(
-            profile.length,
-            (i) =>
-                profile[i].cns ??
-                (analysis.cnsCurve != null && i < analysis.cnsCurve!.length
-                    ? analysis.cnsCurve![i]
-                    : 0.0),
-          )
-        : null,
+    cnsCurve: useCns ? _overlayComputerCns(profile, analysis.cnsCurve) : null,
     // The computer's GTR verbatim: a null sample stays blank rather than
     // borrowing the calculated value, because this source exists to show
     // what the diver's display actually read.
@@ -1589,18 +1600,27 @@ Future<double> _computeResidualCns(
     if (previousDive == null) return 0.0;
 
     // Short-circuit: if the legend's CNS source is set to computer and the
-    // previous dive has computer CNS, use its last CNS sample directly
-    // instead of full analysis. The profile is fetched only when this
-    // branch is taken (times-only lookup otherwise).
+    // previous dive has computer CNS, use its last CNS reading directly
+    // instead of full analysis. The samples are fetched only when this
+    // branch is taken (times-only lookup otherwise), and they are the series
+    // the previous dive's own analysis replays: on a dive with several
+    // computers the merged samples interleave every computer's CNS, so their
+    // last reading may be another computer's (#2545).
     final useComputerCns = inputs.cnsSource == MetricDataSource.computer;
     if (useComputerCns) {
-      final previousProfile = await repository.getMergedProfile(
-        previousDive.id,
+      final previousSeries = await ref.read(
+        diveAnalysisSeriesProvider(previousDive.id).future,
       );
-      final prevComputerCns = extractComputerCns(previousProfile);
-      if (prevComputerCns != null) {
+      // No series means overlapping computers with no one recording to
+      // analyse, and no analysis to fall back to below either, so the
+      // residual would drop to zero. Take the highest of the computers' own
+      // last readings instead: the conservative one, never a mix of two.
+      final prevCnsEnd = previousSeries == null
+          ? await _highestSourceCnsEnd(ref, previousDive.id)
+          : extractComputerCns(previousSeries.points)?.cnsEnd;
+      if (prevCnsEnd != null) {
         return CnsTable.cnsAfterSurfaceInterval(
-          prevComputerCns.cnsEnd,
+          prevCnsEnd,
           surfaceInterval.inMinutes,
         );
       }
@@ -1626,6 +1646,20 @@ Future<double> _computeResidualCns(
     );
     return 0.0;
   }
+}
+
+/// The highest last computer CNS reading among [diveId]'s data sources, each
+/// read from that source's own samples; null when none logged a CNS series.
+Future<double?> _highestSourceCnsEnd(Ref ref, String diveId) async {
+  final profiles = await ref.read(sourceProfilesProvider(diveId).future);
+  double? highest;
+  for (final profile in profiles.values) {
+    final cnsEnd = extractComputerCns(profile.points)?.cnsEnd;
+    if (cnsEnd != null && (highest == null || cnsEnd > highest)) {
+      highest = cnsEnd;
+    }
+  }
+  return highest;
 }
 
 /// Computes residual tissue compartment state from previous dives.

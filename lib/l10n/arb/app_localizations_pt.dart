@@ -17833,6 +17833,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_viewer_goToDive => 'Ir para o mergulho';
 
   @override
+  String get media_viewer_enterFullscreen => 'Tela cheia';
+
+  @override
+  String get media_viewer_exitFullscreen => 'Sair da tela cheia';
+
+  @override
+  String get media_viewer_moreOptions => 'Mais opções';
+
+  @override
   String get nav_home => 'Início';
 
   @override
@@ -18933,6 +18942,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get siteDetailSection_location_description =>
       'País, região, corpo de água, coordenadas GPS';
+
+  @override
+  String get siteDetailSection_seascape_description =>
+      'Vista 3D do relevo subaquático em torno do local';
 
   @override
   String get siteDetailSection_depth_description =>
@@ -22749,6 +22762,27 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count arquivos',
+      one: '$count arquivo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'de $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {

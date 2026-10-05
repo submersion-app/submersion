@@ -17706,6 +17706,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_viewer_goToDive => 'Naar duik';
 
   @override
+  String get media_viewer_enterFullscreen => 'Volledig scherm';
+
+  @override
+  String get media_viewer_exitFullscreen => 'Volledig scherm verlaten';
+
+  @override
+  String get media_viewer_moreOptions => 'Meer opties';
+
+  @override
   String get nav_home => 'Home';
 
   @override
@@ -18798,6 +18807,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get siteDetailSection_location_description =>
       'Land, regio, wateroppervlak, GPS-coördinaten';
+
+  @override
+  String get siteDetailSection_seascape_description =>
+      '3D-weergave van het onderwaterterrein rond de duikstek';
 
   @override
   String get siteDetailSection_depth_description =>
@@ -22571,6 +22584,27 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bestanden',
+      one: '$count bestand',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'uit $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {

@@ -18050,6 +18050,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_viewer_goToDive => 'الانتقال إلى الغطسة';
 
   @override
+  String get media_viewer_enterFullscreen => 'ملء الشاشة';
+
+  @override
+  String get media_viewer_exitFullscreen => 'الخروج من ملء الشاشة';
+
+  @override
+  String get media_viewer_moreOptions => 'المزيد من الخيارات';
+
+  @override
   String get nav_home => 'الرئيسية';
 
   @override
@@ -19161,6 +19170,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get siteDetailSection_location_description =>
       'الدولة، المنطقة، المسطح المائي، إحداثيات GPS';
+
+  @override
+  String get siteDetailSection_seascape_description =>
+      'عرض ثلاثي الأبعاد للتضاريس تحت الماء حول الموقع';
 
   @override
   String get siteDetailSection_depth_description =>
@@ -22931,6 +22944,30 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملف',
+      many: '$count ملفًا',
+      few: '$count ملفات',
+      two: 'ملفان',
+      one: 'ملف واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'البرنامج الثابت $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'من $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {
