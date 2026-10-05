@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart' show StringCharacters;
+import 'package:characters/characters.dart';
 
 /// The longest name a weight row stores (issue #956), in characters as a
 /// text field counts them (grapheme clusters).
