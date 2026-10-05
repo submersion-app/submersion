@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/domain/models/equipment_filter_sta
 import 'package:submersion/features/equipment/domain/models/service_due_filter_display.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_choice_attribute_filter.dart';
+import 'package:submersion/features/equipment/query/equipment_filter_query.dart';
 import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_sheet_section.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
@@ -145,6 +146,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                           root: equipmentQueryEntity,
                           value: _query,
                           onChanged: (node) => setState(() => _query = node),
+                          saveNode: _draft().toSavedQuery(),
                         ),
                         const SizedBox(height: 24),
                         _buildStatusSection(),
@@ -380,19 +382,20 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
     });
   }
 
+  /// The filter as the sheet shows it: what Apply writes and Save stores.
+  EquipmentFilterState _draft() => EquipmentFilterState(
+    status: _status,
+    allStatuses: _allStatuses,
+    serviceDue: _serviceDue,
+    type: _type,
+    attrConditions: _attrConditions,
+    tagIds: _tagIds,
+    owner: _owner,
+    query: _query,
+  );
+
   void _applyFilters() {
-    widget.ref
-        .read(equipmentFilterProvider.notifier)
-        .state = EquipmentFilterState(
-      status: _status,
-      allStatuses: _allStatuses,
-      serviceDue: _serviceDue,
-      type: _type,
-      attrConditions: _attrConditions,
-      tagIds: _tagIds,
-      owner: _owner,
-      query: _query,
-    );
+    widget.ref.read(equipmentFilterProvider.notifier).state = _draft();
     Navigator.of(context).pop();
   }
 

@@ -11,8 +11,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The query part of a list's filter sheet (#2365): the Saved row and the
 /// editor rooted at [root]. A typed or built query is ANDed with every
-/// section below it. Saves through its own ref, never the launching page's:
-/// the sheet can outlive the page that opened it.
+/// section below it. Save stores [saveNode], the whole sheet (#2989), so a
+/// filter set only with the sheet's controls saves too. Saves through its
+/// own ref, never the launching page's: the sheet can outlive the page that
+/// opened it.
 class QuerySheetSection extends ConsumerWidget {
   const QuerySheetSection({
     super.key,
@@ -20,6 +22,7 @@ class QuerySheetSection extends ConsumerWidget {
     required this.root,
     required this.value,
     required this.onChanged,
+    required this.saveNode,
   });
 
   final QuerySubject subject;
@@ -27,9 +30,13 @@ class QuerySheetSection extends ConsumerWidget {
   final QueryNode? value;
   final ValueChanged<QueryNode?> onChanged;
 
+  /// What Save stores: the sheet's sections lowered with [value] ANDed in,
+  /// as Apply would filter. Null while the sheet narrows nothing, which
+  /// disables Save.
+  final QueryNode? saveNode;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final query = value;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -45,16 +52,14 @@ class QuerySheetSection extends ConsumerWidget {
         const SizedBox(height: 8),
         EntityQueryEditor(
           root: root,
-          value: query,
+          value: value,
           onChanged: onChanged,
-          onSave: query == null
-              ? null
-              : () => saveQueryFromEditor(
-                  context,
-                  ref,
-                  subject: subject,
-                  node: query,
-                ),
+          canSave: saveNode != null,
+          onSave: () {
+            final node = saveNode;
+            if (node == null) return;
+            saveQueryFromEditor(context, ref, subject: subject, node: node);
+          },
         ),
       ],
     );

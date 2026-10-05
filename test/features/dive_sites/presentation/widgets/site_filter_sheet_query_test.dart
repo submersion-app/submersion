@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/query/domain/query_json.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -196,6 +199,78 @@ void main() {
       tester.getRect(find.byType(SnackBar)).bottom,
       lessThanOrEqualTo(tester.getRect(find.text('Apply Filters')).top),
     );
+  });
+
+  /// Names the query in the save dialog and returns what was stored.
+  Future<QueryNode> saveAs(WidgetTester tester, String name) async {
+    await tester.tap(find.text('Save query'));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pumpAndSettle();
+    // The dialog's field: the sheet has text fields of its own.
+    final dialog = find.byType(AlertDialog);
+    await tester.enterText(
+      find.descendant(of: dialog, matching: find.byType(TextFormField)),
+      name,
+    );
+    await tester.tap(find.descendant(of: dialog, matching: find.text('Save')));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pumpAndSettle();
+    final rows = await tester.runAsync(() => db.select(db.savedQueries).get());
+    return queryNodeFromJson(
+      (jsonDecode(rows!.single.queryJson) as Map).cast<String, Object?>(),
+    );
+  }
+
+  // #2989: the sheet's own controls, with nothing typed, save as a query.
+  testWidgets('Save stores the sheet axes without a typed query', (
+    tester,
+  ) async {
+    final c = await container(filter: const SiteFilterState(minRating: 3));
+    await open(tester, c);
+    expect(
+      await saveAs(tester, 'Rated'),
+      ConditionNode(
+        FieldPath(['rating']),
+        QueryOp.gte,
+        const NumberValue(3, null),
+      ),
+    );
+  });
+
+  testWidgets('Save stores the axes and the typed query together', (
+    tester,
+  ) async {
+    final c = await container(
+      filter: SiteFilterState(minRating: 3, query: difficult),
+    );
+    await open(tester, c);
+    expect(
+      await saveAs(tester, 'Rated and hard'),
+      AndNode([
+        ConditionNode(
+          FieldPath(['rating']),
+          QueryOp.gte,
+          const NumberValue(3, null),
+        ),
+        difficult,
+      ]),
+    );
+  });
+
+  testWidgets('Save is disabled while the sheet sets nothing', (tester) async {
+    final c = await container();
+    await open(tester, c);
+    final save = tester.widget<ButtonStyleButton>(
+      find.ancestor(
+        of: find.text('Save query'),
+        matching: find.bySubtype<ButtonStyleButton>(),
+      ),
+    );
+    expect(save.enabled, isFalse);
   });
 
   testWidgets('a typed query is applied with the other axes', (tester) async {

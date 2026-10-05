@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/searchable_fil
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/utils/location_options.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/query/site_filter_query.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_sheet_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -151,6 +152,7 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
                           root: siteQueryEntity,
                           value: _query,
                           onChanged: (node) => setState(() => _query = node),
+                          saveNode: _draft().toQuery(),
                         ),
                         const SizedBox(height: 24),
                         _buildLocationSection(),
@@ -537,20 +539,23 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
     });
   }
 
+  /// The filter as the sheet shows it: what Apply writes and Save stores.
+  SiteFilterState _draft() => SiteFilterState(
+    country: _country,
+    region: _region,
+    difficulty: _difficulty,
+    minDepth: _minDepth,
+    maxDepth: _maxDepth,
+    minRating: _minRating,
+    hasCoordinates: _hasCoordinates,
+    hasDives: _hasDives,
+    siteTypeIds: _siteTypeIds,
+    tagIds: _tagIds,
+    query: _query,
+  );
+
   void _applyFilters() {
-    widget.ref.read(siteFilterProvider.notifier).state = SiteFilterState(
-      country: _country,
-      region: _region,
-      difficulty: _difficulty,
-      minDepth: _minDepth,
-      maxDepth: _maxDepth,
-      minRating: _minRating,
-      hasCoordinates: _hasCoordinates,
-      hasDives: _hasDives,
-      siteTypeIds: _siteTypeIds,
-      tagIds: _tagIds,
-      query: _query,
-    );
+    widget.ref.read(siteFilterProvider.notifier).state = _draft();
     Navigator.of(context).pop();
   }
 
