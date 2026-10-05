@@ -586,7 +586,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             // the cylinder as dive gear too.
             cylinders: widget.onOwnCylinderUsed == null
                 ? const []
-                : _ownCylinders(),
+                : cylindersWithSpec(_ownCylinders()),
             onPresetChanged: (preset) {
               if (preset != null) {
                 _applyPreset(preset);

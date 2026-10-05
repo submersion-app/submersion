@@ -91,6 +91,7 @@ void main() {
   late EquipmentItem rentalAl80;
   late EquipmentItem faber;
   late EquipmentItem spare;
+  late EquipmentItem nameOnly;
   late EquipmentItem regulator;
 
   setUp(() async {
@@ -118,6 +119,13 @@ void main() {
         volumeL: 24,
         workingPressureBar: 232,
         status: EquipmentStatus.spare,
+      ),
+    );
+    nameOnly = await repo.createEquipment(
+      const EquipmentItem(
+        id: '',
+        name: 'Unlabelled tank',
+        type: EquipmentType.tank,
       ),
     );
     regulator = await repo.createEquipment(
@@ -177,7 +185,7 @@ void main() {
           ),
           tankPresetsProvider.overrideWith((ref) => Future.value(presets)),
           activeEquipmentProvider.overrideWith(
-            (ref) async => [rentalAl80, faber, spare, regulator],
+            (ref) async => [rentalAl80, faber, spare, nameOnly, regulator],
           ),
         ].cast(),
         child: MaterialApp(
@@ -257,6 +265,17 @@ void main() {
     // Spare gear is not offered (#1803), nor is gear that is not a tank.
     expect(find.text(spare.name), findsNothing);
     expect(find.text(regulator.name), findsNothing);
+  });
+
+  // Choosing a cylinder that records no size or material would fill
+  // nothing, yet still add it to the dive's gear. The "My cylinders" button
+  // still offers it, since its picker says that picking adds it to the gear.
+  testWidgets('leaves out a cylinder that records no spec', (tester) async {
+    await pump(tester, onOwnCylinderUsed: (_) async {});
+    await openDropdown(tester);
+
+    expect(find.text(faber.name), findsWidgets);
+    expect(find.text(nameOnly.name), findsNothing);
   });
 
   testWidgets('no cylinders listed when the host does not record gear', (
