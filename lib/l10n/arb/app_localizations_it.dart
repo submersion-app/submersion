@@ -20684,6 +20684,108 @@ class AppLocalizationsIt extends AppLocalizations {
       'La manutenzione che serve alla tua attrezzatura, e ogni quanto';
 
   @override
+  String get settings_manage_currencyRules => 'Validità delle certificazioni';
+
+  @override
+  String get settings_manage_currencyRules_subtitle =>
+      'Regole di aggiornamento e rinnovo';
+
+  @override
+  String get currencyRules_title => 'Validità delle certificazioni';
+
+  @override
+  String get currencyRules_addTooltip => 'Aggiungi regola';
+
+  @override
+  String get currencyRules_editTooltip => 'Modifica regola';
+
+  @override
+  String get currencyRules_deleteTooltip => 'Elimina regola';
+
+  @override
+  String get currencyRules_builtIn => 'Predefinite';
+
+  @override
+  String get currencyRules_custom => 'Le tue regole';
+
+  @override
+  String currencyRules_replaces(String name) {
+    return 'Sostituisce $name';
+  }
+
+  @override
+  String currencyRules_replacedBy(String name) {
+    return 'Sostituita da $name';
+  }
+
+  @override
+  String currencyRules_summary_activity(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'Scade $lapse giorni dopo l\'ultima immersione valida',
+      one: 'Scade $lapse giorno dopo l\'ultima immersione valida',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String currencyRules_summary_date(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'Scade $lapse giorni dopo la data sulla tessera',
+      one: 'Scade $lapse giorno dopo la data sulla tessera',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get currencyRules_deleteDialog_title => 'Eliminare la regola?';
+
+  @override
+  String currencyRules_deleteDialog_content(String name) {
+    return '$name verrà rimossa. Gli aggiornamenti registrati restano nella cronologia di ogni tessera.';
+  }
+
+  @override
+  String get currencyRules_dialog_addTitle => 'Nuova regola';
+
+  @override
+  String get currencyRules_dialog_editTitle => 'Modifica regola';
+
+  @override
+  String get currencyRules_dialog_copyNote =>
+      'Il salvataggio crea una tua copia che sostituisce questa regola predefinita.';
+
+  @override
+  String get currencyRules_dialog_name => 'Nome';
+
+  @override
+  String get currencyRules_dialog_nameRequired => 'Inserisci un nome';
+
+  @override
+  String get currencyRules_dialog_clock => 'Conta da';
+
+  @override
+  String get currencyRules_dialog_clock_activity => 'Ultima immersione valida';
+
+  @override
+  String get currencyRules_dialog_clock_date => 'Una data sulla tessera';
+
+  @override
+  String get currencyRules_dialog_agencies => 'Didattiche';
+
+  @override
+  String get currencyRules_dialog_levels => 'Livelli';
+
+  @override
+  String get currencyRules_dialog_anyHint => 'Senza selezione vale per tutto';
+
+  @override
+  String get currencyRules_dialog_note => 'Nota';
+
+  @override
   String get settings_migrationProgress_doNotClose => 'Non chiudere l\'app';
 
   @override

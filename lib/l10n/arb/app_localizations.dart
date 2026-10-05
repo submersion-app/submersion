@@ -33150,6 +33150,162 @@ abstract class AppLocalizations {
   /// **'Maintenance your gear needs, and how often'**
   String get settings_manage_serviceTypes_subtitle;
 
+  /// Settings > Manage tile: the certification currency rule catalog
+  ///
+  /// In en, this message translates to:
+  /// **'Certification currency'**
+  String get settings_manage_currencyRules;
+
+  /// Subtitle of the certification currency Manage tile
+  ///
+  /// In en, this message translates to:
+  /// **'Refresher and renewal rules'**
+  String get settings_manage_currencyRules_subtitle;
+
+  /// Title of the certification currency rules page
+  ///
+  /// In en, this message translates to:
+  /// **'Certification currency'**
+  String get currencyRules_title;
+
+  /// Button and tooltip: add a custom currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Add rule'**
+  String get currencyRules_addTooltip;
+
+  /// Tooltip: edit a custom currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Edit rule'**
+  String get currencyRules_editTooltip;
+
+  /// Tooltip: delete a custom currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Delete rule'**
+  String get currencyRules_deleteTooltip;
+
+  /// Section header: the built-in currency rules
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
+  String get currencyRules_builtIn;
+
+  /// Section header: the diver's own currency rules
+  ///
+  /// In en, this message translates to:
+  /// **'Your rules'**
+  String get currencyRules_custom;
+
+  /// On a custom rule: the built-in rule it replaces
+  ///
+  /// In en, this message translates to:
+  /// **'Replaces {name}'**
+  String currencyRules_replaces(String name);
+
+  /// On a built-in rule: the custom rule that replaces it
+  ///
+  /// In en, this message translates to:
+  /// **'Replaced by {name}'**
+  String currencyRules_replacedBy(String name);
+
+  /// Summary of an activity currency rule's interval
+  ///
+  /// In en, this message translates to:
+  /// **'{lapse, plural, =1{Lapses {lapse} day after the last qualifying dive} other{Lapses {lapse} days after the last qualifying dive}}'**
+  String currencyRules_summary_activity(int lapse);
+
+  /// Summary of a date currency rule's interval
+  ///
+  /// In en, this message translates to:
+  /// **'{lapse, plural, =1{Lapses {lapse} day after the date on the card} other{Lapses {lapse} days after the date on the card}}'**
+  String currencyRules_summary_date(int lapse);
+
+  /// Title of the dialog confirming a custom rule deletion
+  ///
+  /// In en, this message translates to:
+  /// **'Delete rule?'**
+  String get currencyRules_deleteDialog_title;
+
+  /// Body of the dialog confirming a custom rule deletion
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is removed. Logged refreshers stay in each card\'s history.'**
+  String currencyRules_deleteDialog_content(String name);
+
+  /// Title of the dialog creating a custom currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'New rule'**
+  String get currencyRules_dialog_addTitle;
+
+  /// Title of the dialog editing a currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Edit rule'**
+  String get currencyRules_dialog_editTitle;
+
+  /// Shown when editing a built-in rule: saving makes a custom copy
+  ///
+  /// In en, this message translates to:
+  /// **'Saving creates your own copy that replaces this built-in rule.'**
+  String get currencyRules_dialog_copyNote;
+
+  /// Field label: rule name
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get currencyRules_dialog_name;
+
+  /// Validation: a rule needs a name
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get currencyRules_dialog_nameRequired;
+
+  /// Field label: what the rule's clock counts from
+  ///
+  /// In en, this message translates to:
+  /// **'Counts from'**
+  String get currencyRules_dialog_clock;
+
+  /// Clock option: the last qualifying dive
+  ///
+  /// In en, this message translates to:
+  /// **'Last qualifying dive'**
+  String get currencyRules_dialog_clock_activity;
+
+  /// Clock option: a date on the card
+  ///
+  /// In en, this message translates to:
+  /// **'A date on the card'**
+  String get currencyRules_dialog_clock_date;
+
+  /// Field label: agencies a rule applies to
+  ///
+  /// In en, this message translates to:
+  /// **'Agencies'**
+  String get currencyRules_dialog_agencies;
+
+  /// Field label: certification levels a rule applies to
+  ///
+  /// In en, this message translates to:
+  /// **'Levels'**
+  String get currencyRules_dialog_levels;
+
+  /// Hint: selecting nothing applies the rule to everything
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing selected means any'**
+  String get currencyRules_dialog_anyHint;
+
+  /// Field label: the diver's own note on a custom rule
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get currencyRules_dialog_note;
+
   /// No description provided for @settings_migrationProgress_doNotClose.
   ///
   /// In en, this message translates to:

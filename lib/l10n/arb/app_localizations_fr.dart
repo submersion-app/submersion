@@ -20749,6 +20749,109 @@ class AppLocalizationsFr extends AppLocalizations {
       'L\'entretien dont votre matériel a besoin, et à quelle fréquence';
 
   @override
+  String get settings_manage_currencyRules => 'Validité des certifications';
+
+  @override
+  String get settings_manage_currencyRules_subtitle =>
+      'Règles de remise à niveau et de renouvellement';
+
+  @override
+  String get currencyRules_title => 'Validité des certifications';
+
+  @override
+  String get currencyRules_addTooltip => 'Ajouter une règle';
+
+  @override
+  String get currencyRules_editTooltip => 'Modifier la règle';
+
+  @override
+  String get currencyRules_deleteTooltip => 'Supprimer la règle';
+
+  @override
+  String get currencyRules_builtIn => 'Intégrées';
+
+  @override
+  String get currencyRules_custom => 'Vos règles';
+
+  @override
+  String currencyRules_replaces(String name) {
+    return 'Remplace $name';
+  }
+
+  @override
+  String currencyRules_replacedBy(String name) {
+    return 'Remplacée par $name';
+  }
+
+  @override
+  String currencyRules_summary_activity(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'Expire $lapse jours après la dernière plongée prise en compte',
+      one: 'Expire $lapse jour après la dernière plongée prise en compte',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String currencyRules_summary_date(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'Expire $lapse jours après la date de la carte',
+      one: 'Expire $lapse jour après la date de la carte',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get currencyRules_deleteDialog_title => 'Supprimer la règle ?';
+
+  @override
+  String currencyRules_deleteDialog_content(String name) {
+    return '$name sera supprimée. Les remises à niveau enregistrées restent dans l\'historique de chaque carte.';
+  }
+
+  @override
+  String get currencyRules_dialog_addTitle => 'Nouvelle règle';
+
+  @override
+  String get currencyRules_dialog_editTitle => 'Modifier la règle';
+
+  @override
+  String get currencyRules_dialog_copyNote =>
+      'L\'enregistrement crée votre propre copie, qui remplace cette règle intégrée.';
+
+  @override
+  String get currencyRules_dialog_name => 'Nom';
+
+  @override
+  String get currencyRules_dialog_nameRequired => 'Saisissez un nom';
+
+  @override
+  String get currencyRules_dialog_clock => 'Compte à partir de';
+
+  @override
+  String get currencyRules_dialog_clock_activity =>
+      'Dernière plongée prise en compte';
+
+  @override
+  String get currencyRules_dialog_clock_date => 'Une date de la carte';
+
+  @override
+  String get currencyRules_dialog_agencies => 'Organismes';
+
+  @override
+  String get currencyRules_dialog_levels => 'Niveaux';
+
+  @override
+  String get currencyRules_dialog_anyHint => 'Sans sélection, tout est inclus';
+
+  @override
+  String get currencyRules_dialog_note => 'Note';
+
+  @override
   String get settings_migrationProgress_doNotClose =>
       'Veuillez ne pas fermer l\'application';
 

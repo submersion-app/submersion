@@ -20908,6 +20908,113 @@ class AppLocalizationsAr extends AppLocalizations {
       'الصيانة التي تحتاجها معداتك، وعدد مراتها';
 
   @override
+  String get settings_manage_currencyRules => 'صلاحية الشهادات';
+
+  @override
+  String get settings_manage_currencyRules_subtitle => 'قواعد التنشيط والتجديد';
+
+  @override
+  String get currencyRules_title => 'صلاحية الشهادات';
+
+  @override
+  String get currencyRules_addTooltip => 'إضافة قاعدة';
+
+  @override
+  String get currencyRules_editTooltip => 'تعديل القاعدة';
+
+  @override
+  String get currencyRules_deleteTooltip => 'حذف القاعدة';
+
+  @override
+  String get currencyRules_builtIn => 'مدمجة';
+
+  @override
+  String get currencyRules_custom => 'قواعدك';
+
+  @override
+  String currencyRules_replaces(String name) {
+    return 'تحل محل $name';
+  }
+
+  @override
+  String currencyRules_replacedBy(String name) {
+    return 'استُبدلت بـ $name';
+  }
+
+  @override
+  String currencyRules_summary_activity(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'تنتهي بعد $lapse يوم من آخر غطسة مؤهلة',
+      many: 'تنتهي بعد $lapse يومًا من آخر غطسة مؤهلة',
+      few: 'تنتهي بعد $lapse أيام من آخر غطسة مؤهلة',
+      two: 'تنتهي بعد يومين من آخر غطسة مؤهلة',
+      one: 'تنتهي بعد يوم واحد من آخر غطسة مؤهلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String currencyRules_summary_date(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'تنتهي بعد $lapse يوم من التاريخ على البطاقة',
+      many: 'تنتهي بعد $lapse يومًا من التاريخ على البطاقة',
+      few: 'تنتهي بعد $lapse أيام من التاريخ على البطاقة',
+      two: 'تنتهي بعد يومين من التاريخ على البطاقة',
+      one: 'تنتهي بعد يوم واحد من التاريخ على البطاقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get currencyRules_deleteDialog_title => 'حذف القاعدة؟';
+
+  @override
+  String currencyRules_deleteDialog_content(String name) {
+    return 'ستتم إزالة $name. تبقى الدورات التنشيطية المسجلة في سجل كل بطاقة.';
+  }
+
+  @override
+  String get currencyRules_dialog_addTitle => 'قاعدة جديدة';
+
+  @override
+  String get currencyRules_dialog_editTitle => 'تعديل القاعدة';
+
+  @override
+  String get currencyRules_dialog_copyNote =>
+      'يؤدي الحفظ إلى إنشاء نسختك الخاصة التي تحل محل هذه القاعدة المدمجة.';
+
+  @override
+  String get currencyRules_dialog_name => 'الاسم';
+
+  @override
+  String get currencyRules_dialog_nameRequired => 'أدخل اسمًا';
+
+  @override
+  String get currencyRules_dialog_clock => 'يُحتسب من';
+
+  @override
+  String get currencyRules_dialog_clock_activity => 'آخر غطسة مؤهلة';
+
+  @override
+  String get currencyRules_dialog_clock_date => 'تاريخ على البطاقة';
+
+  @override
+  String get currencyRules_dialog_agencies => 'الوكالات';
+
+  @override
+  String get currencyRules_dialog_levels => 'المستويات';
+
+  @override
+  String get currencyRules_dialog_anyHint => 'عدم تحديد أي شيء يعني الكل';
+
+  @override
+  String get currencyRules_dialog_note => 'ملاحظة';
+
+  @override
   String get settings_migrationProgress_doNotClose => 'يرجى عدم إغلاق التطبيق';
 
   @override

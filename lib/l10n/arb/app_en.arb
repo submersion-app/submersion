@@ -12639,6 +12639,135 @@
   },
   "settings_manage_serviceTypes": "Service types",
   "settings_manage_serviceTypes_subtitle": "Maintenance your gear needs, and how often",
+  "settings_manage_currencyRules": "Certification currency",
+  "@settings_manage_currencyRules": {
+    "description": "Settings > Manage tile: the certification currency rule catalog"
+  },
+  "settings_manage_currencyRules_subtitle": "Refresher and renewal rules",
+  "@settings_manage_currencyRules_subtitle": {
+    "description": "Subtitle of the certification currency Manage tile"
+  },
+  "currencyRules_title": "Certification currency",
+  "@currencyRules_title": {
+    "description": "Title of the certification currency rules page"
+  },
+  "currencyRules_addTooltip": "Add rule",
+  "@currencyRules_addTooltip": {
+    "description": "Button and tooltip: add a custom currency rule"
+  },
+  "currencyRules_editTooltip": "Edit rule",
+  "@currencyRules_editTooltip": {
+    "description": "Tooltip: edit a custom currency rule"
+  },
+  "currencyRules_deleteTooltip": "Delete rule",
+  "@currencyRules_deleteTooltip": {
+    "description": "Tooltip: delete a custom currency rule"
+  },
+  "currencyRules_builtIn": "Built-in",
+  "@currencyRules_builtIn": {
+    "description": "Section header: the built-in currency rules"
+  },
+  "currencyRules_custom": "Your rules",
+  "@currencyRules_custom": {
+    "description": "Section header: the diver's own currency rules"
+  },
+  "currencyRules_replaces": "Replaces {name}",
+  "@currencyRules_replaces": {
+    "description": "On a custom rule: the built-in rule it replaces",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyRules_replacedBy": "Replaced by {name}",
+  "@currencyRules_replacedBy": {
+    "description": "On a built-in rule: the custom rule that replaces it",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyRules_summary_activity": "{lapse, plural, =1{Lapses {lapse} day after the last qualifying dive} other{Lapses {lapse} days after the last qualifying dive}}",
+  "@currencyRules_summary_activity": {
+    "description": "Summary of an activity currency rule's interval",
+    "placeholders": {
+      "lapse": {
+        "type": "int"
+      }
+    }
+  },
+  "currencyRules_summary_date": "{lapse, plural, =1{Lapses {lapse} day after the date on the card} other{Lapses {lapse} days after the date on the card}}",
+  "@currencyRules_summary_date": {
+    "description": "Summary of a date currency rule's interval",
+    "placeholders": {
+      "lapse": {
+        "type": "int"
+      }
+    }
+  },
+  "currencyRules_deleteDialog_title": "Delete rule?",
+  "@currencyRules_deleteDialog_title": {
+    "description": "Title of the dialog confirming a custom rule deletion"
+  },
+  "currencyRules_deleteDialog_content": "{name} is removed. Logged refreshers stay in each card's history.",
+  "@currencyRules_deleteDialog_content": {
+    "description": "Body of the dialog confirming a custom rule deletion",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyRules_dialog_addTitle": "New rule",
+  "@currencyRules_dialog_addTitle": {
+    "description": "Title of the dialog creating a custom currency rule"
+  },
+  "currencyRules_dialog_editTitle": "Edit rule",
+  "@currencyRules_dialog_editTitle": {
+    "description": "Title of the dialog editing a currency rule"
+  },
+  "currencyRules_dialog_copyNote": "Saving creates your own copy that replaces this built-in rule.",
+  "@currencyRules_dialog_copyNote": {
+    "description": "Shown when editing a built-in rule: saving makes a custom copy"
+  },
+  "currencyRules_dialog_name": "Name",
+  "@currencyRules_dialog_name": {
+    "description": "Field label: rule name"
+  },
+  "currencyRules_dialog_nameRequired": "Enter a name",
+  "@currencyRules_dialog_nameRequired": {
+    "description": "Validation: a rule needs a name"
+  },
+  "currencyRules_dialog_clock": "Counts from",
+  "@currencyRules_dialog_clock": {
+    "description": "Field label: what the rule's clock counts from"
+  },
+  "currencyRules_dialog_clock_activity": "Last qualifying dive",
+  "@currencyRules_dialog_clock_activity": {
+    "description": "Clock option: the last qualifying dive"
+  },
+  "currencyRules_dialog_clock_date": "A date on the card",
+  "@currencyRules_dialog_clock_date": {
+    "description": "Clock option: a date on the card"
+  },
+  "currencyRules_dialog_agencies": "Agencies",
+  "@currencyRules_dialog_agencies": {
+    "description": "Field label: agencies a rule applies to"
+  },
+  "currencyRules_dialog_levels": "Levels",
+  "@currencyRules_dialog_levels": {
+    "description": "Field label: certification levels a rule applies to"
+  },
+  "currencyRules_dialog_anyHint": "Nothing selected means any",
+  "@currencyRules_dialog_anyHint": {
+    "description": "Hint: selecting nothing applies the rule to everything"
+  },
+  "currencyRules_dialog_note": "Note",
+  "@currencyRules_dialog_note": {
+    "description": "Field label: the diver's own note on a custom rule"
+  },
   "settings_migrationProgress_doNotClose": "Please do not close the app",
   "settings_migration_backupInfo": "A backup will be created before the move. Your data will not be lost.",
   "settings_migration_cancel": "Cancel",

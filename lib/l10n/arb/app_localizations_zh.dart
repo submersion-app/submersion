@@ -19644,6 +19644,106 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_manage_serviceTypes_subtitle => '装备需要的保养项目及其频率';
 
   @override
+  String get settings_manage_currencyRules => '证书有效性';
+
+  @override
+  String get settings_manage_currencyRules_subtitle => '复习与续证规则';
+
+  @override
+  String get currencyRules_title => '证书有效性';
+
+  @override
+  String get currencyRules_addTooltip => '添加规则';
+
+  @override
+  String get currencyRules_editTooltip => '编辑规则';
+
+  @override
+  String get currencyRules_deleteTooltip => '删除规则';
+
+  @override
+  String get currencyRules_builtIn => '内置';
+
+  @override
+  String get currencyRules_custom => '你的规则';
+
+  @override
+  String currencyRules_replaces(String name) {
+    return '替代 $name';
+  }
+
+  @override
+  String currencyRules_replacedBy(String name) {
+    return '已被 $name 替代';
+  }
+
+  @override
+  String currencyRules_summary_activity(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: '上次符合条件的潜水后 $lapse 天到期',
+      one: '上次符合条件的潜水后 $lapse 天到期',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String currencyRules_summary_date(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: '证卡日期后 $lapse 天到期',
+      one: '证卡日期后 $lapse 天到期',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get currencyRules_deleteDialog_title => '删除规则？';
+
+  @override
+  String currencyRules_deleteDialog_content(String name) {
+    return '将删除 $name。已记录的复习仍保留在各证卡的记录中。';
+  }
+
+  @override
+  String get currencyRules_dialog_addTitle => '新规则';
+
+  @override
+  String get currencyRules_dialog_editTitle => '编辑规则';
+
+  @override
+  String get currencyRules_dialog_copyNote => '保存后会创建你自己的副本，替代此内置规则。';
+
+  @override
+  String get currencyRules_dialog_name => '名称';
+
+  @override
+  String get currencyRules_dialog_nameRequired => '请输入名称';
+
+  @override
+  String get currencyRules_dialog_clock => '计算起点';
+
+  @override
+  String get currencyRules_dialog_clock_activity => '上次符合条件的潜水';
+
+  @override
+  String get currencyRules_dialog_clock_date => '证卡上的日期';
+
+  @override
+  String get currencyRules_dialog_agencies => '机构';
+
+  @override
+  String get currencyRules_dialog_levels => '级别';
+
+  @override
+  String get currencyRules_dialog_anyHint => '不选择则适用于全部';
+
+  @override
+  String get currencyRules_dialog_note => '备注';
+
+  @override
   String get settings_migrationProgress_doNotClose => '请不要关闭应用';
 
   @override

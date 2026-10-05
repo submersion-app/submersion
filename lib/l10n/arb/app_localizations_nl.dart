@@ -20538,6 +20538,108 @@ class AppLocalizationsNl extends AppLocalizations {
       'Welk onderhoud je uitrusting nodig heeft, en hoe vaak';
 
   @override
+  String get settings_manage_currencyRules => 'Geldigheid certificeringen';
+
+  @override
+  String get settings_manage_currencyRules_subtitle =>
+      'Regels voor opfrissing en verlenging';
+
+  @override
+  String get currencyRules_title => 'Geldigheid certificeringen';
+
+  @override
+  String get currencyRules_addTooltip => 'Regel toevoegen';
+
+  @override
+  String get currencyRules_editTooltip => 'Regel bewerken';
+
+  @override
+  String get currencyRules_deleteTooltip => 'Regel verwijderen';
+
+  @override
+  String get currencyRules_builtIn => 'Ingebouwd';
+
+  @override
+  String get currencyRules_custom => 'Jouw regels';
+
+  @override
+  String currencyRules_replaces(String name) {
+    return 'Vervangt $name';
+  }
+
+  @override
+  String currencyRules_replacedBy(String name) {
+    return 'Vervangen door $name';
+  }
+
+  @override
+  String currencyRules_summary_activity(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'Verloopt $lapse dagen na de laatste meetellende duik',
+      one: 'Verloopt $lapse dag na de laatste meetellende duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String currencyRules_summary_date(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'Verloopt $lapse dagen na de datum op de kaart',
+      one: 'Verloopt $lapse dag na de datum op de kaart',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get currencyRules_deleteDialog_title => 'Regel verwijderen?';
+
+  @override
+  String currencyRules_deleteDialog_content(String name) {
+    return '$name wordt verwijderd. Vastgelegde opfrissingen blijven in de geschiedenis van elke kaart.';
+  }
+
+  @override
+  String get currencyRules_dialog_addTitle => 'Nieuwe regel';
+
+  @override
+  String get currencyRules_dialog_editTitle => 'Regel bewerken';
+
+  @override
+  String get currencyRules_dialog_copyNote =>
+      'Opslaan maakt een eigen kopie die deze ingebouwde regel vervangt.';
+
+  @override
+  String get currencyRules_dialog_name => 'Naam';
+
+  @override
+  String get currencyRules_dialog_nameRequired => 'Voer een naam in';
+
+  @override
+  String get currencyRules_dialog_clock => 'Telt vanaf';
+
+  @override
+  String get currencyRules_dialog_clock_activity => 'Laatste meetellende duik';
+
+  @override
+  String get currencyRules_dialog_clock_date => 'Een datum op de kaart';
+
+  @override
+  String get currencyRules_dialog_agencies => 'Organisaties';
+
+  @override
+  String get currencyRules_dialog_levels => 'Niveaus';
+
+  @override
+  String get currencyRules_dialog_anyHint => 'Zonder selectie geldt alles';
+
+  @override
+  String get currencyRules_dialog_note => 'Notitie';
+
+  @override
   String get settings_migrationProgress_doNotClose => 'Sluit de app niet';
 
   @override

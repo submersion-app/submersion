@@ -20624,6 +20624,109 @@ class AppLocalizationsHu extends AppLocalizations {
       'Milyen karbantartást igényel a felszerelésed, és milyen gyakran';
 
   @override
+  String get settings_manage_currencyRules => 'Képesítések érvényessége';
+
+  @override
+  String get settings_manage_currencyRules_subtitle =>
+      'Felfrissítési és megújítási szabályok';
+
+  @override
+  String get currencyRules_title => 'Képesítések érvényessége';
+
+  @override
+  String get currencyRules_addTooltip => 'Szabály hozzáadása';
+
+  @override
+  String get currencyRules_editTooltip => 'Szabály szerkesztése';
+
+  @override
+  String get currencyRules_deleteTooltip => 'Szabály törlése';
+
+  @override
+  String get currencyRules_builtIn => 'Beépített';
+
+  @override
+  String get currencyRules_custom => 'Saját szabályok';
+
+  @override
+  String currencyRules_replaces(String name) {
+    return 'Helyettesíti: $name';
+  }
+
+  @override
+  String currencyRules_replacedBy(String name) {
+    return 'Helyettesítve: $name';
+  }
+
+  @override
+  String currencyRules_summary_activity(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'Az utolsó beszámító merülés után $lapse nappal jár le',
+      one: 'Az utolsó beszámító merülés után $lapse nappal jár le',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String currencyRules_summary_date(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'A kártyán szereplő dátum után $lapse nappal jár le',
+      one: 'A kártyán szereplő dátum után $lapse nappal jár le',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get currencyRules_deleteDialog_title => 'Törli a szabályt?';
+
+  @override
+  String currencyRules_deleteDialog_content(String name) {
+    return 'A(z) $name törlődik. A rögzített felfrissítések megmaradnak az egyes kártyák előzményeiben.';
+  }
+
+  @override
+  String get currencyRules_dialog_addTitle => 'Új szabály';
+
+  @override
+  String get currencyRules_dialog_editTitle => 'Szabály szerkesztése';
+
+  @override
+  String get currencyRules_dialog_copyNote =>
+      'A mentés saját másolatot hoz létre, amely felváltja ezt a beépített szabályt.';
+
+  @override
+  String get currencyRules_dialog_name => 'Név';
+
+  @override
+  String get currencyRules_dialog_nameRequired => 'Adjon meg egy nevet';
+
+  @override
+  String get currencyRules_dialog_clock => 'Kezdőpont';
+
+  @override
+  String get currencyRules_dialog_clock_activity => 'Utolsó beszámító merülés';
+
+  @override
+  String get currencyRules_dialog_clock_date => 'Egy dátum a kártyán';
+
+  @override
+  String get currencyRules_dialog_agencies => 'Szervezetek';
+
+  @override
+  String get currencyRules_dialog_levels => 'Szintek';
+
+  @override
+  String get currencyRules_dialog_anyHint =>
+      'Ha semmi nincs kiválasztva, mindenre vonatkozik';
+
+  @override
+  String get currencyRules_dialog_note => 'Megjegyzés';
+
+  @override
   String get settings_migrationProgress_doNotClose =>
       'Kérem, ne zárja be az alkalmazást';
 

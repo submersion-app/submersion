@@ -20359,6 +20359,108 @@ class AppLocalizationsEn extends AppLocalizations {
       'Maintenance your gear needs, and how often';
 
   @override
+  String get settings_manage_currencyRules => 'Certification currency';
+
+  @override
+  String get settings_manage_currencyRules_subtitle =>
+      'Refresher and renewal rules';
+
+  @override
+  String get currencyRules_title => 'Certification currency';
+
+  @override
+  String get currencyRules_addTooltip => 'Add rule';
+
+  @override
+  String get currencyRules_editTooltip => 'Edit rule';
+
+  @override
+  String get currencyRules_deleteTooltip => 'Delete rule';
+
+  @override
+  String get currencyRules_builtIn => 'Built-in';
+
+  @override
+  String get currencyRules_custom => 'Your rules';
+
+  @override
+  String currencyRules_replaces(String name) {
+    return 'Replaces $name';
+  }
+
+  @override
+  String currencyRules_replacedBy(String name) {
+    return 'Replaced by $name';
+  }
+
+  @override
+  String currencyRules_summary_activity(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'Lapses $lapse days after the last qualifying dive',
+      one: 'Lapses $lapse day after the last qualifying dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String currencyRules_summary_date(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'Lapses $lapse days after the date on the card',
+      one: 'Lapses $lapse day after the date on the card',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get currencyRules_deleteDialog_title => 'Delete rule?';
+
+  @override
+  String currencyRules_deleteDialog_content(String name) {
+    return '$name is removed. Logged refreshers stay in each card\'s history.';
+  }
+
+  @override
+  String get currencyRules_dialog_addTitle => 'New rule';
+
+  @override
+  String get currencyRules_dialog_editTitle => 'Edit rule';
+
+  @override
+  String get currencyRules_dialog_copyNote =>
+      'Saving creates your own copy that replaces this built-in rule.';
+
+  @override
+  String get currencyRules_dialog_name => 'Name';
+
+  @override
+  String get currencyRules_dialog_nameRequired => 'Enter a name';
+
+  @override
+  String get currencyRules_dialog_clock => 'Counts from';
+
+  @override
+  String get currencyRules_dialog_clock_activity => 'Last qualifying dive';
+
+  @override
+  String get currencyRules_dialog_clock_date => 'A date on the card';
+
+  @override
+  String get currencyRules_dialog_agencies => 'Agencies';
+
+  @override
+  String get currencyRules_dialog_levels => 'Levels';
+
+  @override
+  String get currencyRules_dialog_anyHint => 'Nothing selected means any';
+
+  @override
+  String get currencyRules_dialog_note => 'Note';
+
+  @override
   String get settings_migrationProgress_doNotClose =>
       'Please do not close the app';
 

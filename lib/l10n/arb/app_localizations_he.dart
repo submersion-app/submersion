@@ -20203,6 +20203,107 @@ class AppLocalizationsHe extends AppLocalizations {
       'הטיפולים שהציוד שלך צריך, ובאיזו תדירות';
 
   @override
+  String get settings_manage_currencyRules => 'תוקף הסמכות';
+
+  @override
+  String get settings_manage_currencyRules_subtitle => 'כללי ריענון וחידוש';
+
+  @override
+  String get currencyRules_title => 'תוקף הסמכות';
+
+  @override
+  String get currencyRules_addTooltip => 'הוספת כלל';
+
+  @override
+  String get currencyRules_editTooltip => 'עריכת כלל';
+
+  @override
+  String get currencyRules_deleteTooltip => 'מחיקת כלל';
+
+  @override
+  String get currencyRules_builtIn => 'מובנים';
+
+  @override
+  String get currencyRules_custom => 'הכללים שלך';
+
+  @override
+  String currencyRules_replaces(String name) {
+    return 'מחליף את $name';
+  }
+
+  @override
+  String currencyRules_replacedBy(String name) {
+    return 'הוחלף ב-$name';
+  }
+
+  @override
+  String currencyRules_summary_activity(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'פג $lapse ימים אחרי הצלילה המזכה האחרונה',
+      one: 'פג יום אחד אחרי הצלילה המזכה האחרונה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String currencyRules_summary_date(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'פג $lapse ימים אחרי התאריך שעל הכרטיס',
+      one: 'פג יום אחד אחרי התאריך שעל הכרטיס',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get currencyRules_deleteDialog_title => 'למחוק את הכלל?';
+
+  @override
+  String currencyRules_deleteDialog_content(String name) {
+    return '$name יוסר. ריענונים שנרשמו נשארים בהיסטוריה של כל כרטיס.';
+  }
+
+  @override
+  String get currencyRules_dialog_addTitle => 'כלל חדש';
+
+  @override
+  String get currencyRules_dialog_editTitle => 'עריכת כלל';
+
+  @override
+  String get currencyRules_dialog_copyNote =>
+      'השמירה יוצרת עותק משלך שמחליף את הכלל המובנה הזה.';
+
+  @override
+  String get currencyRules_dialog_name => 'שם';
+
+  @override
+  String get currencyRules_dialog_nameRequired => 'יש להזין שם';
+
+  @override
+  String get currencyRules_dialog_clock => 'נספר מ';
+
+  @override
+  String get currencyRules_dialog_clock_activity => 'צלילה מזכה אחרונה';
+
+  @override
+  String get currencyRules_dialog_clock_date => 'תאריך על הכרטיס';
+
+  @override
+  String get currencyRules_dialog_agencies => 'ארגונים';
+
+  @override
+  String get currencyRules_dialog_levels => 'רמות';
+
+  @override
+  String get currencyRules_dialog_anyHint => 'ללא בחירה חל על הכל';
+
+  @override
+  String get currencyRules_dialog_note => 'הערה';
+
+  @override
   String get settings_migrationProgress_doNotClose =>
       'נא לא לסגור את האפליקציה';
 
