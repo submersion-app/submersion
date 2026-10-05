@@ -36,6 +36,7 @@ Future<void> _pumpPanel(
     UncontrolledProviderScope(
       container: container,
       child: MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(

@@ -62,6 +62,7 @@ Future<void> _pumpPage(
     UncontrolledProviderScope(
       container: container,
       child: const MaterialApp(
+        locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: FullscreenProfilePage(diveId: 'd1'),
