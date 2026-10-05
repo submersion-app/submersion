@@ -23,6 +23,7 @@ class AppSettingsRepository {
   static const _navAlwaysHideLabelsKey = 'nav_always_hide_labels';
   static const _blenderPrefsKey = 'gas_blender_prefs';
   static const _equipmentArrangementKey = 'equipment_arrangement';
+  static const _equipmentGroupByLocationKey = 'equipment_group_by_location';
 
   /// Emits whenever the `settings` table changes so providers holding a
   /// setting refresh after a sync applies a remote change.
@@ -77,6 +78,18 @@ class AppSettingsRepository {
   /// visible, matching [setNavPrimaryIds].
   Future<void> setNavAlwaysHideLabels(bool value) =>
       setRawSetting(_navAlwaysHideLabelsKey, value ? 'true' : 'false');
+
+  /// Whether the Equipment page groups its list under one heading per
+  /// location (v267). The Equipment page's own switch: the shared gear
+  /// arrangement, which the dive surfaces also read, is untouched. False
+  /// when unset or on a read error.
+  Future<bool> getEquipmentGroupByLocation() async =>
+      await getRawSetting(_equipmentGroupByLocationKey) == 'true';
+
+  /// Persists the group-by-location switch. Rethrows so a failed save is
+  /// visible.
+  Future<void> setEquipmentGroupByLocation(bool value) =>
+      setRawSetting(_equipmentGroupByLocationKey, value ? 'true' : 'false');
 
   /// Reads a JSON-encoded list of strings, returning `null` when unset, when
   /// the stored value is not a JSON list, or on read error.
