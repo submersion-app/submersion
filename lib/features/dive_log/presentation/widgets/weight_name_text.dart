@@ -5,11 +5,17 @@ import 'package:submersion/features/weight_planner/presentation/widgets/weight_e
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// A weight row's display parts (issue #956): the diver's trimmed name, ''
+/// when unnamed, and its localized placement.
+({String name, String type}) weightNameParts(
+  DiveWeight weight,
+  AppLocalizations l10n,
+) => (name: weight.label.trim(), type: weight.weightType.localizedName(l10n));
+
 /// A weight row's title as plain text: `Top pocket · Trim Weights` when the
-/// diver named it (issue #956), otherwise its placement alone.
+/// diver named it, otherwise its placement alone.
 String weightDisplayName(DiveWeight weight, AppLocalizations l10n) {
-  final type = weight.weightType.localizedName(l10n);
-  final name = weight.label.trim();
+  final (:name, :type) = weightNameParts(weight, l10n);
   return name.isEmpty ? type : '$name · $type';
 }
 
@@ -22,8 +28,7 @@ class WeightNameText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final type = weight.weightType.localizedName(context.l10n);
-    final name = weight.label.trim();
+    final (:name, :type) = weightNameParts(weight, context.l10n);
     if (name.isEmpty) return Text(type);
     return Text.rich(
       TextSpan(
