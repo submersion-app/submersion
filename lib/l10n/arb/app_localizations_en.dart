@@ -2965,6 +2965,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get certifications_list_filter_needsAttention => 'Needs attention';
+
+  @override
+  String get certifications_list_filter_clear => 'Clear';
+
+  @override
+  String get certifications_list_needsAttention_empty =>
+      'No certifications need attention';
+
+  @override
+  String get certifications_list_needsAttention_emptySubtitle =>
+      'Every certification is current or muted.';
+
+  @override
   String get certifications_detail_action_delete => 'Delete';
 
   @override

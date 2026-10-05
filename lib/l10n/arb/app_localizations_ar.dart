@@ -3086,6 +3086,20 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get certifications_list_filter_needsAttention => 'يحتاج إلى انتباه';
+
+  @override
+  String get certifications_list_filter_clear => 'مسح';
+
+  @override
+  String get certifications_list_needsAttention_empty =>
+      'لا توجد شهادات تحتاج إلى انتباه';
+
+  @override
+  String get certifications_list_needsAttention_emptySubtitle =>
+      'جميع الشهادات سارية أو مكتومة.';
+
+  @override
   String get certifications_detail_action_delete => 'حذف';
 
   @override

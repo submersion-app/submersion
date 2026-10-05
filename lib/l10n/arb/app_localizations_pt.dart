@@ -3007,6 +3007,20 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get certifications_list_filter_needsAttention => 'Requer atenção';
+
+  @override
+  String get certifications_list_filter_clear => 'Limpar';
+
+  @override
+  String get certifications_list_needsAttention_empty =>
+      'Nenhuma certificação requer atenção';
+
+  @override
+  String get certifications_list_needsAttention_emptySubtitle =>
+      'Todas as certificações estão em dia ou silenciadas.';
+
+  @override
   String get certifications_detail_action_delete => 'Excluir';
 
   @override

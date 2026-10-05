@@ -2988,6 +2988,20 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get certifications_list_filter_needsAttention => 'Vraagt aandacht';
+
+  @override
+  String get certifications_list_filter_clear => 'Wissen';
+
+  @override
+  String get certifications_list_needsAttention_empty =>
+      'Geen certificeringen vragen aandacht';
+
+  @override
+  String get certifications_list_needsAttention_emptySubtitle =>
+      'Alle certificeringen zijn actueel of gedempt.';
+
+  @override
   String get certifications_detail_action_delete => 'Verwijderen';
 
   @override

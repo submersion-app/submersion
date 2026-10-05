@@ -2857,6 +2857,18 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get certifications_list_filter_needsAttention => '需要关注';
+
+  @override
+  String get certifications_list_filter_clear => '清除';
+
+  @override
+  String get certifications_list_needsAttention_empty => '没有需要关注的证书';
+
+  @override
+  String get certifications_list_needsAttention_emptySubtitle => '所有证书均有效或已静音。';
+
+  @override
   String get certifications_detail_action_delete => '删除';
 
   @override

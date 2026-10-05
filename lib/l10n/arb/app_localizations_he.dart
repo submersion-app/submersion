@@ -2957,6 +2957,20 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get certifications_list_filter_needsAttention => 'דורש תשומת לב';
+
+  @override
+  String get certifications_list_filter_clear => 'ניקוי';
+
+  @override
+  String get certifications_list_needsAttention_empty =>
+      'אין הסמכות שדורשות תשומת לב';
+
+  @override
+  String get certifications_list_needsAttention_emptySubtitle =>
+      'כל ההסמכות בתוקף או מושתקות.';
+
+  @override
   String get certifications_detail_action_delete => 'מחק';
 
   @override

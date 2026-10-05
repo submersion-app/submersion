@@ -1962,6 +1962,22 @@
       }
     }
   },
+  "certifications_list_filter_needsAttention": "Needs attention",
+  "@certifications_list_filter_needsAttention": {
+    "description": "Label of the certification list filter chip that limits the list to certifications needing a refresher or renewal"
+  },
+  "certifications_list_filter_clear": "Clear",
+  "@certifications_list_filter_clear": {
+    "description": "Button that removes the needs-attention filter from the certification list"
+  },
+  "certifications_list_needsAttention_empty": "No certifications need attention",
+  "@certifications_list_needsAttention_empty": {
+    "description": "Empty state title when the needs-attention filter matches no certification"
+  },
+  "certifications_list_needsAttention_emptySubtitle": "Every certification is current or muted.",
+  "@certifications_list_needsAttention_emptySubtitle": {
+    "description": "Empty state subtitle when the needs-attention filter matches no certification"
+  },
   "certifications_detail_action_delete": "Delete",
   "certifications_detail_appBar_title": "Certification",
   "certifications_detail_courseCompleted": "Completed",

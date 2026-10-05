@@ -3001,6 +3001,20 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get certifications_list_filter_needsAttention => 'Figyelmet igényel';
+
+  @override
+  String get certifications_list_filter_clear => 'Törlés';
+
+  @override
+  String get certifications_list_needsAttention_empty =>
+      'Egyik képesítés sem igényel figyelmet';
+
+  @override
+  String get certifications_list_needsAttention_emptySubtitle =>
+      'Minden képesítés érvényes vagy némítva van.';
+
+  @override
   String get certifications_detail_action_delete => 'Törlés';
 
   @override

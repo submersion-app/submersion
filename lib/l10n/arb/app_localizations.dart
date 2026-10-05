@@ -4619,6 +4619,30 @@ abstract class AppLocalizations {
   /// **'{shown} of {total, plural, =1{{total} certification} other{{total} certifications}}'**
   String certifications_list_countFiltered(int shown, int total);
 
+  /// Label of the certification list filter chip that limits the list to certifications needing a refresher or renewal
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get certifications_list_filter_needsAttention;
+
+  /// Button that removes the needs-attention filter from the certification list
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get certifications_list_filter_clear;
+
+  /// Empty state title when the needs-attention filter matches no certification
+  ///
+  /// In en, this message translates to:
+  /// **'No certifications need attention'**
+  String get certifications_list_needsAttention_empty;
+
+  /// Empty state subtitle when the needs-attention filter matches no certification
+  ///
+  /// In en, this message translates to:
+  /// **'Every certification is current or muted.'**
+  String get certifications_list_needsAttention_emptySubtitle;
+
   /// No description provided for @certifications_detail_action_delete.
   ///
   /// In en, this message translates to:

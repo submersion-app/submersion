@@ -3010,6 +3010,21 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get certifications_list_filter_needsAttention =>
+      'Erfordert Aufmerksamkeit';
+
+  @override
+  String get certifications_list_filter_clear => 'Zurücksetzen';
+
+  @override
+  String get certifications_list_needsAttention_empty =>
+      'Keine Zertifizierungen erfordern Aufmerksamkeit';
+
+  @override
+  String get certifications_list_needsAttention_emptySubtitle =>
+      'Alle Zertifizierungen sind aktuell oder stummgeschaltet.';
+
+  @override
   String get certifications_detail_action_delete => 'Löschen';
 
   @override
