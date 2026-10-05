@@ -19163,10 +19163,44 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_chooseResolution => 'בחר פתרון';
 
   @override
+  String get settings_conflict_chooseVersion => 'Choose which version to keep.';
+
+  @override
   String get settings_conflict_close => 'סגירה';
 
   @override
   String get settings_conflict_close_tooltip => 'סגור חלון התנגשות';
+
+  @override
+  String get settings_conflict_consequence_deleteHere =>
+      'Deletes the record on this device too.';
+
+  @override
+  String settings_conflict_consequence_keep(
+    String kept,
+    String discarded,
+    String fields,
+  ) {
+    return 'Keeps $kept\'s version. $discarded\'s values for $fields are discarded.';
+  }
+
+  @override
+  String settings_conflict_consequence_keepBoth(String local, String remote) {
+    return 'Keeps $local\'s version and adds $remote\'s version as a separate copy.';
+  }
+
+  @override
+  String settings_conflict_consequence_keepRecord(String device) {
+    return 'Keeps the record, with $device\'s values.';
+  }
+
+  @override
+  String get settings_conflict_consequence_nothingLost =>
+      'Both versions match, so nothing is lost.';
+
+  @override
+  String get settings_conflict_consequence_staysDeleted =>
+      'The record stays deleted on this device.';
 
   @override
   String settings_conflict_counterLabel(Object current, Object total) {
@@ -19188,6 +19222,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_keepBoth => 'שמור את שניהם';
+
+  @override
+  String settings_conflict_keepDevice(String device) {
+    return 'Keep $device';
+  }
 
   @override
   String get settings_conflict_keepLocal => 'שמור מקומי';

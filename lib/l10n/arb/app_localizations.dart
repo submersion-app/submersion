@@ -31366,6 +31366,12 @@ abstract class AppLocalizations {
   /// **'Choose Resolution'**
   String get settings_conflict_chooseResolution;
 
+  /// No description provided for @settings_conflict_chooseVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which version to keep.'**
+  String get settings_conflict_chooseVersion;
+
   /// No description provided for @settings_conflict_close.
   ///
   /// In en, this message translates to:
@@ -31377,6 +31383,46 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close conflict dialog'**
   String get settings_conflict_close_tooltip;
+
+  /// No description provided for @settings_conflict_consequence_deleteHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletes the record on this device too.'**
+  String get settings_conflict_consequence_deleteHere;
+
+  /// No description provided for @settings_conflict_consequence_keep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps {kept}\'s version. {discarded}\'s values for {fields} are discarded.'**
+  String settings_conflict_consequence_keep(
+    String kept,
+    String discarded,
+    String fields,
+  );
+
+  /// No description provided for @settings_conflict_consequence_keepBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps {local}\'s version and adds {remote}\'s version as a separate copy.'**
+  String settings_conflict_consequence_keepBoth(String local, String remote);
+
+  /// No description provided for @settings_conflict_consequence_keepRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps the record, with {device}\'s values.'**
+  String settings_conflict_consequence_keepRecord(String device);
+
+  /// No description provided for @settings_conflict_consequence_nothingLost.
+  ///
+  /// In en, this message translates to:
+  /// **'Both versions match, so nothing is lost.'**
+  String get settings_conflict_consequence_nothingLost;
+
+  /// No description provided for @settings_conflict_consequence_staysDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'The record stays deleted on this device.'**
+  String get settings_conflict_consequence_staysDeleted;
 
   /// No description provided for @settings_conflict_counterLabel.
   ///
@@ -31407,6 +31453,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keep Both'**
   String get settings_conflict_keepBoth;
+
+  /// No description provided for @settings_conflict_keepDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep {device}'**
+  String settings_conflict_keepDevice(String device);
 
   /// No description provided for @settings_conflict_keepLocal.
   ///
