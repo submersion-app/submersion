@@ -57,12 +57,20 @@ holding the `NavTrackPoint` list and the origin.
   conversion and clock correction as the dive start, as epoch seconds. This
   keeps the route on the same time base as the dive profile for both the
   cloud and the file source.
-- Axis mapping: X to east, Y to north, Z to depth (positive down, a small
-  negative clamped to 0). **Provisional** until verified against a real
-  export: the heading derived from the first non-zero horizontal movement
-  must agree with the compass heading channel, and Z must track `Depth`
-  (the reporter measured a 0.62 m median difference). The verified
-  convention is pinned by fixture tests.
+- Axis mapping, checked against three real Nautic S exports from the
+  reporter (#1445; trimmed fixture `test/fixtures/suunto/nautic_s_dive_route.json`):
+  the route is east/north/up, so X is east and Y is north. The frame is
+  inferred from Z being up-positive (negative underwater); the GPS fixes
+  are too noisy against the route's 30 m+ drift to fit heading directly,
+  and the export carries no compass channel.
+- Depth comes from the export's own `Depth` channel, linearly interpolated
+  to each route sample's time (holding the nearest reading outside its
+  span). Z reads about 1.024 x depth + 0.35 m, as if computed for fresh
+  water, so it is used only as a fallback (`-Z`, clamped at 0) for an
+  export with no Depth channel.
+- The route has no samples while the diver is at the surface (start and
+  mid-dive surface intervals) and resumes at the same X/Y: Suunto does not
+  use the surface GPS fixes to correct it.
 - A point with a missing or non-finite coordinate is dropped.
 - Fewer than 2 points: no route; the dive imports exactly as today.
 - More than `kMaxNavTrackPointCount`: no route (the dive still imports),
@@ -169,9 +177,9 @@ TDD throughout.
 
 ## Rollout gate
 
-The axis convention must be verified against a real export before the PR is
-opened. The fixture request is on #1445. Everything else can be built and
-tested with synthetic samples meanwhile.
+The axis convention had to be verified against a real export before the PR
+left draft. Done with the reporter's three Nautic S exports (#1445): see
+"Parsing DiveRoute" above.
 
 ## Out of scope
 

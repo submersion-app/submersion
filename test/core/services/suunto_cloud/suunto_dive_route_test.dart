@@ -30,46 +30,66 @@ SuuntoDiveRoute? _parse(
 void main() {
   final t0 = DateTime.utc(2026, 4, 19, 10).millisecondsSinceEpoch ~/ 1000;
 
-  test('maps X to east, Y to north and Z to depth, one point per sample', () {
+  Map<String, dynamic> depthSample(int second, num depth) => {
+    'TimeISO8601': '2026-04-19T10:00:${second.toString().padLeft(2, '0')}.000Z',
+    'Depth': depth,
+  };
+
+  test('maps X to east and Y to north, one point per route sample', () {
     final route = _parse(
       [
-        _routeSample(0, 0, 0, 0.5),
-        _routeSample(1, 1.5, 2.5, 3.0),
-        {'TimeISO8601': '2026-04-19T10:00:02.000Z', 'Depth': 3.1},
-        _routeSample(3, 3.0, 5.0, 4.0),
+        depthSample(0, 2.0),
+        _routeSample(1, 1.5, 2.5, -9),
+        _routeSample(2, 3.0, 5.0, -9),
+        depthSample(4, 6.0),
       ],
       lat: 47.2,
       lon: -2.9,
     )!;
 
-    expect(route.points, hasLength(3));
-    expect(route.points[1].east, 1.5);
-    expect(route.points[1].north, 2.5);
-    expect(route.points[1].depth, 3.0);
-    expect(route.points.map((p) => p.timestamp), [t0, t0 + 1, t0 + 3]);
+    expect(route.points, hasLength(2));
+    expect(route.points[0].east, 1.5);
+    expect(route.points[0].north, 2.5);
+    expect(route.points.map((p) => p.timestamp), [t0 + 1, t0 + 2]);
     expect(route.originLatitude, 47.2);
     expect(route.originLongitude, -2.9);
   });
 
-  test('negates an up-positive Z so depth is positive down', () {
+  // Suunto's Z is up-positive and reads about 1.024 x depth + 0.35 m below
+  // the surface (measured on real Nautic S exports, #1445), so the vertical
+  // comes from the dive's own Depth channel, interpolated to each route
+  // sample, rather than from Z.
+  test('takes depth from the Depth channel, interpolated in time', () {
     final route = _parse([
-      _routeSample(0, 0, 0, -0.2),
-      _routeSample(1, 1, 1, -5.0),
-      _routeSample(2, 2, 2, -6.0),
-      _routeSample(3, 3, 3, 0.1),
+      depthSample(0, 2.0),
+      _routeSample(1, 0, 0, -50),
+      _routeSample(2, 1, 1, -50),
+      _routeSample(3, 2, 2, -50),
+      depthSample(4, 6.0),
     ])!;
 
-    expect(route.points.map((p) => p.depth), [0.2, 5.0, 6.0, 0.0]);
+    expect(route.points.map((p) => p.depth), [3.0, 4.0, 5.0]);
   });
 
-  test('clamps a small negative depth to zero on a down-positive Z', () {
+  test('holds the nearest depth outside the Depth channel span', () {
     final route = _parse([
-      _routeSample(0, 0, 0, -0.1),
-      _routeSample(1, 1, 1, 5.0),
-      _routeSample(2, 2, 2, 6.0),
+      _routeSample(0, 0, 0, -50),
+      depthSample(1, 4.0),
+      depthSample(2, 8.0),
+      _routeSample(3, 1, 1, -50),
     ])!;
 
-    expect(route.points.first.depth, 0.0);
+    expect(route.points.map((p) => p.depth), [4.0, 8.0]);
+  });
+
+  test('falls back to -Z when the export has no Depth channel', () {
+    final route = _parse([
+      _routeSample(0, 0, 0, 0.3),
+      _routeSample(1, 1, 1, -5.0),
+      _routeSample(2, 2, 2, -6.0),
+    ])!;
+
+    expect(route.points.map((p) => p.depth), [0.0, 5.0, 6.0]);
   });
 
   test('applies the clock correction to every timestamp', () {

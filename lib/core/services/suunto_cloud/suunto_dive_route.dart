@@ -25,10 +25,13 @@ class SuuntoDiveRoute {
 
 /// Reads `DiveRoute` samples into a [SuuntoDiveRoute].
 ///
-/// Axis convention: X is east and Y is north. Z is depth, with its sign
-/// calibrated from the recording itself: when most samples are negative
-/// the device wrote Z up-positive and every value is negated, so depth is
-/// always positive down whichever way the export writes it.
+/// Axis convention, checked against three real Nautic S exports (#1445):
+/// the route is east/north/up, so X is east and Y is north. Z is up
+/// (negative underwater) but is not the dive's depth: it reads about
+/// 1.024 x depth + 0.35 m, as if computed for fresh water. Each point's
+/// depth therefore comes from the export's own `Depth` channel,
+/// interpolated to the route sample's time, so the route sits exactly on
+/// the dive's profile; -Z is only the fallback for an export without one.
 class SuuntoDiveRouteParser {
   const SuuntoDiveRouteParser._();
 
@@ -45,9 +48,15 @@ class SuuntoDiveRouteParser {
     double? originLatitude,
     double? originLongitude,
   }) {
-    final raw = <({int timestamp, double x, double y, double z})>[];
+    final depths = <({int ms, double depth})>[];
+    final raw = <({int ms, int timestamp, double x, double y, double z})>[];
     int? lastTimestamp;
     for (final sample in samples) {
+      final depth = _finite(sample['Depth']);
+      if (depth != null) {
+        final ms = timestampMs(sample);
+        if (ms != null) depths.add((ms: ms, depth: depth));
+      }
       final route = sample['DiveRoute'];
       if (route is! Map) continue;
       final x = _finite(route['X']);
@@ -61,13 +70,12 @@ class SuuntoDiveRouteParser {
       // the route's timeline; drop it rather than reorder the recording.
       if (lastTimestamp != null && timestamp < lastTimestamp) continue;
       lastTimestamp = timestamp;
-      raw.add((timestamp: timestamp, x: x, y: y, z: z));
+      raw.add((ms: ms, timestamp: timestamp, x: x, y: y, z: z));
     }
 
     if (raw.length < 2 || raw.length > kMaxNavTrackPointCount) return null;
 
-    final negatives = raw.where((r) => r.z < 0).length;
-    final sign = negatives * 2 > raw.length ? -1.0 : 1.0;
+    depths.sort((a, b) => a.ms.compareTo(b.ms));
 
     return SuuntoDiveRoute(
       points: List.unmodifiable([
@@ -76,12 +84,34 @@ class SuuntoDiveRouteParser {
             timestamp: r.timestamp,
             north: r.y,
             east: r.x,
-            depth: _depth(sign * r.z),
+            depth: _depth(depths.isEmpty ? -r.z : _depthAt(depths, r.ms)),
           ),
       ]),
       originLatitude: originLatitude,
       originLongitude: originLongitude,
     );
+  }
+
+  /// The Depth channel linearly interpolated at [ms], holding the nearest
+  /// reading outside the channel's span. The two share one sample clock, so
+  /// no clock correction is needed between them.
+  static double _depthAt(List<({int ms, double depth})> depths, int ms) {
+    if (ms <= depths.first.ms) return depths.first.depth;
+    if (ms >= depths.last.ms) return depths.last.depth;
+    var lo = 0;
+    var hi = depths.length - 1;
+    while (hi - lo > 1) {
+      final mid = (lo + hi) >> 1;
+      if (depths[mid].ms <= ms) {
+        lo = mid;
+      } else {
+        hi = mid;
+      }
+    }
+    final a = depths[lo];
+    final b = depths[hi];
+    if (b.ms == a.ms) return a.depth;
+    return a.depth + (b.depth - a.depth) * (ms - a.ms) / (b.ms - a.ms);
   }
 
   /// Positive down; a small reading above the surface is clamped to zero.
