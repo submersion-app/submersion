@@ -1500,6 +1500,16 @@ class SyncService {
           (type: 'diveTypes', records: data.diveTypes, hasUpdatedAt: true),
           (type: 'siteTypes', records: data.siteTypes, hasUpdatedAt: true),
           (type: 'diveRoles', records: data.diveRoles, hasUpdatedAt: true),
+          (
+            type: 'customCertificationAgencies',
+            records: data.customCertificationAgencies,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'customCertificationLevels',
+            records: data.customCertificationLevels,
+            hasUpdatedAt: true,
+          ),
           (type: 'tankPresets', records: data.tankPresets, hasUpdatedAt: true),
           (
             type: 'weightPresets',
@@ -2558,6 +2568,8 @@ class SyncService {
     'diveTypes': true,
     'siteTypes': true,
     'diveRoles': true,
+    'customCertificationAgencies': true,
+    'customCertificationLevels': true,
     'tankPresets': true,
     'weightPresets': true,
     'weightPresetEntries': false,

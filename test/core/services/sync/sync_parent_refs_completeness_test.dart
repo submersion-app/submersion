@@ -45,6 +45,8 @@ void main() {
     'cylinder_config_items': 'cylinderConfigItems',
     'quality_findings': 'qualityFindings',
     'dive_types': 'diveTypes',
+    'custom_certification_agencies': 'customCertificationAgencies',
+    'custom_certification_levels': 'customCertificationLevels',
     'tank_presets': 'tankPresets',
     'weight_presets': 'weightPresets',
     'weight_preset_entries': 'weightPresetEntries',
