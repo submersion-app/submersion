@@ -265,4 +265,85 @@ void main() {
     expect(changed!.single.buddy.id, 'b1');
     expect(changed!.single.primaryRole.name, 'Hekkensluiter');
   });
+
+  DiveRole builtIn(String id) => DiveRole(
+    id: id,
+    name: id,
+    isBuiltIn: true,
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  );
+
+  testWidgets('a buddy chip shows every role, joined (#1221)', (tester) async {
+    _useTallScreen(tester);
+    await tester.pumpWidget(
+      _buildPicker(
+        selectedBuddies: [
+          BuddyWithRole(
+            buddy: _alice,
+            roles: [
+              builtIn(DiveRole.diveGuideId),
+              builtIn(DiveRole.diveMasterId),
+            ],
+          ),
+        ],
+        onChanged: (_) {},
+        diverIdNotifier: diverIdNotifier,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dive Guide, Divemaster'), findsOneWidget);
+  });
+
+  testWidgets('a buddy chip returns the whole picked set (#1221)', (
+    tester,
+  ) async {
+    _useTallScreen(tester);
+    List<BuddyWithRole>? changed;
+    await tester.pumpWidget(
+      _buildPicker(
+        selectedBuddies: [aliceAs(builtIn(DiveRole.diveMasterId))],
+        onChanged: (v) => changed = v,
+        diverIdNotifier: diverIdNotifier,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Alice'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'Dive Guide'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    expect(changed!.single.roleIds, [
+      DiveRole.diveGuideId,
+      DiveRole.diveMasterId,
+    ]);
+  });
+
+  testWidgets('unticking every role of a buddy leaves Buddy (#1221)', (
+    tester,
+  ) async {
+    _useTallScreen(tester);
+    List<BuddyWithRole>? changed;
+    await tester.pumpWidget(
+      _buildPicker(
+        selectedBuddies: [aliceAs(builtIn(DiveRole.diveMasterId))],
+        onChanged: (v) => changed = v,
+        diverIdNotifier: diverIdNotifier,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Alice'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'Divemaster'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    expect(changed!.single.roleIds, [DiveRole.buddyId]);
+  });
 }

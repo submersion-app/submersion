@@ -28,6 +28,7 @@ import 'package:submersion/features/dive_log/presentation/formatters/visibility_
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
+import 'package:submersion/features/dive_roles/presentation/dive_role_list_display.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/widgets/dive_role_selector_sheet.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -332,7 +333,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// and stays inert instead of claiming the dive has none.
   bool _routeLinksFailed = false;
   Set<String> _originalBuddyIds = {};
-  String? _diverRoleId;
+
+  /// The active diver's own roles on the dive (#547, several since #1221).
+  List<String> _diverRoleIds = const [];
 
   EquipmentSet? _geofenceSuggestion;
   final Set<String> _dismissedSuggestionSetIds = {};
@@ -874,7 +877,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _existingDive = dive;
           _isPlanned = dive.isPlanned;
           _hasPrimarySource = hasPrimarySource;
-          _diverRoleId = dive.diverRoleIds.firstOrNull;
+          _diverRoleIds = dive.diverRoleIds;
           _diveNumberController.text = dive.diveNumber != null
               ? _seedInt(dive.diveNumber!)
               : '';
@@ -1460,7 +1463,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       diveCenterId: _selectedDiveCenter?.id,
       tripId: _selectedTrip?.id,
       courseId: _selectedCourse?.id,
-      diverRoleId: _diverRoleId,
+      diverRoleId: _diverRoleIds.firstOrNull,
       rating: _rating > 0 ? _rating : null,
       isFavorite: _bulkFavorite,
       excludedFromStats: _bulkExcludedFromStats,
@@ -1542,11 +1545,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     // is staged and relabels itself once the role list resolves.
     final rolesById =
         ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
-    final id = _diverRoleId;
-    if (id == null) return null;
-    return (rolesById[id] ?? DiveRole.synthetic(id)).localizedName(
-      context.l10n,
-    );
+    if (_diverRoleIds.isEmpty) return null;
+    return rolesForIds(
+      _diverRoleIds,
+      rolesById,
+    ).joinedLocalizedNames(context.l10n);
   }
 
   Future<void> _showBulkDiverRolePicker() async {
@@ -1559,12 +1562,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       title: context.l10n.buddies_picker_selectMyRole,
       roles: roles,
       allowEmpty: true,
-      selectedRoleIds: [?_diverRoleId],
+      selectedRoleIds: _diverRoleIds,
     );
     if (selection == null || !mounted) return;
     setState(() {
       _markDirty();
-      _diverRoleId = selection.firstOrNull?.id;
+      _diverRoleIds = [for (final r in selection) r.id];
     });
   }
 
@@ -1744,11 +1747,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             value: _bulkDiverRoleLabel(),
             placeholder: l10n.diveLog_edit_row_notSet,
             onTap: _showBulkDiverRolePicker,
-            onClear: _diverRoleId == null
+            onClear: _diverRoleIds.isEmpty
                 ? null
                 : () => setState(() {
                     _markDirty();
-                    _diverRoleId = null;
+                    _diverRoleIds = const [];
                   }),
           ),
         ),
@@ -5405,16 +5408,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       expanded: _isExpanded('buddies', defaultValue: false),
       onToggle: () => _toggleSection('buddies', defaultValue: false),
       summary: _buddiesSummary(),
-      isEmpty: _selectedBuddies.isEmpty && _diverRoleId == null,
+      isEmpty: _selectedBuddies.isEmpty && _diverRoleIds.isEmpty,
       buddyPicker: Padding(
         padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
         child: BuddyPicker(
           diveId: widget.diveId,
           selectedBuddies: _selectedBuddies,
-          diverRoleId: _diverRoleId,
-          onDiverRoleChanged: (roleId) {
+          diverRoleIds: _diverRoleIds,
+          onDiverRoleChanged: (roleIds) {
             _markDirty();
-            setState(() => _diverRoleId = roleId);
+            setState(() => _diverRoleIds = roleIds);
           },
           onChanged: (buddies) {
             _markDirty();
@@ -5927,7 +5930,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         weatherCode: _existingDive?.weatherCode,
         importId: _existingDive?.importId,
         surfaceInterval: _existingDive?.surfaceInterval,
-        diverRoleIds: [?_diverRoleId],
+        diverRoleIds: _diverRoleIds,
         // CCR/SCR rebreather settings
         diveMode: _diveMode,
         setpointLow: _diveMode == DiveMode.ccr ? _setpointLow : null,
