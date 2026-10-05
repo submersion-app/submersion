@@ -51,16 +51,17 @@ final filteredDiveStatisticsProvider = FutureProvider<DiveStatistics>((
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
-  // ONE debounced tick over `dives` plus every table the filter joins
-  // (#2365), so an attribute-only or junction-only write refreshes the
+  // ONE debounced tick over every table the query reads (`dives` and the
+  // `dive_sites` name join) plus every table the filter joins (#2365), so a
+  // site rename, an attribute-only or a junction-only write refreshes the
   // totals once, never twice.
   final touched = diveFilterTablesTouched(filter);
   await awaitServiceStatusIfRead(ref, touched);
-  final extra = touched.difference({'dives'});
   ref.invalidateSelfWhen(
-    extra.isEmpty
-        ? repository.watchDivesChanges()
-        : repository.watchTables({'dives', ...extra}),
+    repository.watchTables({
+      ...DiveRepository.statisticsTickTables,
+      ...touched,
+    }),
   );
   // "Dives This Year" reads the clock once per build (#2600), so a date
   // change has to rebuild it too.
@@ -84,16 +85,17 @@ final filteredDiveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
-  // ONE debounced tick over `dives` plus every table the filter joins
-  // (#2365), so an attribute-only or junction-only write refreshes the
+  // ONE debounced tick over every table the query reads (`dives` and the
+  // `dive_sites` name join) plus every table the filter joins (#2365), so a
+  // site rename, an attribute-only or a junction-only write refreshes the
   // records once, never twice.
   final touched = diveFilterTablesTouched(filter);
   await awaitServiceStatusIfRead(ref, touched);
-  final extra = touched.difference({'dives'});
   ref.invalidateSelfWhen(
-    extra.isEmpty
-        ? repository.watchDivesChanges()
-        : repository.watchTables({'dives', ...extra}),
+    repository.watchTables({
+      ...DiveRepository.statisticsTickTables,
+      ...touched,
+    }),
   );
   return repository.getRecords(diverId: currentDiverId, filter: filter);
 });

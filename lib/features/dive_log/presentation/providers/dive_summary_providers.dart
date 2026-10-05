@@ -38,10 +38,11 @@ final diveListScopedRecordsProvider = FutureProvider<DiveRecords>((ref) async {
   return repository.getRecords(diverId: currentDiverId, filter: filter);
 });
 
-/// ONE debounced tick over `dives` plus every table [filter] joins (#2365),
-/// so an attribute-only or junction-only write (a buddy link under a buddy
-/// filter, a gear attribute under an attribute condition) refreshes the
-/// summary once, never twice, and never leaves it stale.
+/// ONE debounced tick over every table the query reads (`dives` and the
+/// `dive_sites` name join) plus every table [filter] joins (#2365), so a site
+/// rename, or an attribute-only or junction-only write (a buddy link under a
+/// buddy filter, a gear attribute under an attribute condition), refreshes
+/// the summary once, never twice, and never leaves it stale.
 Future<void> _refreshOnFilterTables(
   Ref ref,
   DiveRepository repository,
@@ -49,10 +50,10 @@ Future<void> _refreshOnFilterTables(
 ) async {
   final touched = diveFilterTablesTouched(filter);
   await awaitServiceStatusIfRead(ref, touched);
-  final extra = touched.difference({'dives'});
   ref.invalidateSelfWhen(
-    extra.isEmpty
-        ? repository.watchDivesChanges()
-        : repository.watchTables({'dives', ...extra}),
+    repository.watchTables({
+      ...DiveRepository.statisticsTickTables,
+      ...touched,
+    }),
   );
 }
