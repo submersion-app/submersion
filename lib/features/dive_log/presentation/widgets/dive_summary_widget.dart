@@ -14,15 +14,17 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Summary widget shown in the detail pane when no dive is selected.
 ///
-/// Displays aggregate statistics about the user's dive history,
-/// including total dives, hours logged, records, and recent activity.
+/// Displays aggregate statistics: total dives, dive time, depth and site
+/// totals, most visited sites, and personal records.
 ///
-/// Dive count and dive time are career totals (logged + prior dives), matching
-/// the Insights overview and the home hero header (issue #808).
+/// With no dive list filter it covers the whole log, and dive count and dive
+/// time are career totals (logged + prior dives), matching the Insights
+/// overview and the home hero header (issue #808).
 ///
-/// While the dive list is filtered, the summary describes the dives the list
-/// shows instead (issue #1078): totals, most visited sites and records come
-/// from the filtered dives, and a banner says how many of the log it covers.
+/// While the dive list is filtered, it describes the dives the list shows
+/// instead (issue #1078): totals, most visited sites and records come from
+/// the filtered dives, prior dives are left out (no filter can match them),
+/// and a banner says how many dives it covers.
 class DiveSummaryWidget extends ConsumerWidget {
   const DiveSummaryWidget({super.key});
 
