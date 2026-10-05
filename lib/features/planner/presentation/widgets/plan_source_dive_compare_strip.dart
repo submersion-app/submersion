@@ -21,13 +21,9 @@ class PlanSourceDiveCompareStrip extends ConsumerWidget {
     if (dive == null) return const SizedBox.shrink();
 
     final outcome = ref.watch(activePlanOutcomeProvider);
-    final actualTtsSeconds = ref
-        .watch(sourceDiveTtsSecondsProvider)
-        .valueOrNull;
-    final actualDecoSeconds = ref
-        .watch(sourceDiveDecoSecondsProvider)
-        .valueOrNull;
-    // .value keeps the last reading through a reload of the source dive.
+    // .value keeps the last readings through a reload of the source dive.
+    final actualTtsSeconds = ref.watch(sourceDiveTtsSecondsProvider).value;
+    final actualDecoSeconds = ref.watch(sourceDiveDecoSecondsProvider).value;
     final actualCnsEnd = ref.watch(sourceDiveCnsEndProvider).value;
     final units = UnitFormatter(ref.watch(settingsProvider));
     final theme = Theme.of(context);

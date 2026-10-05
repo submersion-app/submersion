@@ -575,7 +575,6 @@ List<double> _overlayComputerCns(
     (p) => p.ceiling != null && p.ceiling! > 0,
   );
   final hasComputerTts = profile.any((p) => p.tts != null && p.tts! > 0);
-  final computerCns = hasComputerCns(profile);
   // Air-integrated computers log their own GTR (libdc RBT, stored in
   // seconds); a null sample is the computer blanking its display.
   final hasComputerGtr = profile.any((p) => p.rbt != null);
@@ -586,7 +585,8 @@ List<double> _overlayComputerCns(
   final useCeiling =
       ceilingSource == MetricDataSource.computer && hasComputerCeiling;
   final useTts = ttsSource == MetricDataSource.computer && hasComputerTts;
-  final useCns = cnsSource == MetricDataSource.computer && computerCns;
+  final useCns =
+      cnsSource == MetricDataSource.computer && hasComputerCns(profile);
   final useGtr = gtrSource == MetricDataSource.computer && hasComputerGtr;
   // Resolved independently of useCeiling: the deco stop band must not be
   // dragged along when the user picks "computer" for the ceiling line alone.
@@ -1611,12 +1611,16 @@ Future<double> _computeResidualCns(
       final previousSeries = await ref.read(
         diveAnalysisSeriesProvider(previousDive.id).future,
       );
-      final prevComputerCns = previousSeries == null
-          ? null
-          : extractComputerCns(previousSeries.points);
-      if (prevComputerCns != null) {
+      // No series means overlapping computers with no one recording to
+      // analyse, and no analysis to fall back to below either, so the
+      // residual would drop to zero. Take the highest of the computers' own
+      // last readings instead: the conservative one, never a mix of two.
+      final prevCnsEnd = previousSeries == null
+          ? await _highestSourceCnsEnd(ref, previousDive.id)
+          : extractComputerCns(previousSeries.points)?.cnsEnd;
+      if (prevCnsEnd != null) {
         return CnsTable.cnsAfterSurfaceInterval(
-          prevComputerCns.cnsEnd,
+          prevCnsEnd,
           surfaceInterval.inMinutes,
         );
       }
@@ -1642,6 +1646,20 @@ Future<double> _computeResidualCns(
     );
     return 0.0;
   }
+}
+
+/// The highest last computer CNS reading among [diveId]'s data sources, each
+/// read from that source's own samples; null when none logged a CNS series.
+Future<double?> _highestSourceCnsEnd(Ref ref, String diveId) async {
+  final profiles = await ref.read(sourceProfilesProvider(diveId).future);
+  double? highest;
+  for (final profile in profiles.values) {
+    final cnsEnd = extractComputerCns(profile.points)?.cnsEnd;
+    if (cnsEnd != null && (highest == null || cnsEnd > highest)) {
+      highest = cnsEnd;
+    }
+  }
+  return highest;
 }
 
 /// Computes residual tissue compartment state from previous dives.
