@@ -604,11 +604,15 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     );
   }
 
-  /// The connection a stored computer was last saved with. Stored as text
-  /// that does not tell Bluetooth LE from Classic, so both read as Bluetooth.
+  /// The connection a stored computer was last saved with, read the way the
+  /// device detail page reads it. This app saves 'bluetooth' for both Bluetooth
+  /// LE and Classic, so that reads as plain Bluetooth; older rows may say
+  /// 'ble' or 'bluetoothClassic', in any case.
   static DeviceConnectionType? _storedConnection(String? stored) =>
-      switch (stored) {
-        'bluetooth' => DeviceConnectionType.bluetoothClassic,
+      switch (stored?.toLowerCase()) {
+        'ble' => DeviceConnectionType.ble,
+        'bluetooth' ||
+        'bluetoothclassic' => DeviceConnectionType.bluetoothClassic,
         'usb' => DeviceConnectionType.usb,
         'infrared' => DeviceConnectionType.infrared,
         _ => null,

@@ -302,6 +302,28 @@ void main() {
         expect(details.title, 'Backup computer');
       });
 
+      for (final (stored, expected) in [
+        ('BLE', DeviceConnectionType.ble),
+        ('bluetoothClassic', DeviceConnectionType.bluetoothClassic),
+        ('Bluetooth', DeviceConnectionType.bluetoothClassic),
+        ('wifi', null),
+      ]) {
+        test('a stored "$stored" connection reads as $expected', () async {
+          final storedAdapter = DiveComputerAdapter(
+            importService: mockImportService,
+            computerRepository: mockComputerRepo,
+            diveRepository: mockDiveRepo,
+            consolidationService: mockConsolidationService,
+            diverId: diverId,
+            knownComputer: makeComputer().copyWith(connectionType: stored),
+          )..setDownloadedDives([]);
+
+          final details = (await storedAdapter.buildBundle()).source.details;
+
+          expect(details.connection, expected);
+        });
+      }
+
       test('a stored USB connection is reported when nothing newer', () async {
         final usbAdapter = DiveComputerAdapter(
           importService: mockImportService,
