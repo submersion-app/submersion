@@ -39,6 +39,8 @@ void main() {
     return ProviderScope(
       overrides: [settingsProvider.overrideWith((ref) => notifier)],
       child: const MaterialApp(
+        // Pinned: the finders match English strings.
+        locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: SettingsSectionDetailPage(sectionId: 'units'),

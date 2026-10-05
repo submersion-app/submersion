@@ -4,7 +4,7 @@
 
 **Goal:** Give divers a Distance unit (km / mi) in Manage > Units, independent of the depth unit, plus the missing Altitude tile (issue #2030).
 
-**Architecture:** A new `DistanceUnit` enum and `AppSettings.distanceUnit` field, persisted in a new `diver_settings.distance_unit` column (schema v262, backfilled from the depth unit as the column is added), synced with a depth-derived default for rows from older peers, and read by the single geographic distance formatter `UnitFormatter.formatGeoDistance`. UI adds Altitude and Distance tiles and pickers to Manage > Units, rows to the settings summary pane, and a Distance row to the setup wizard.
+**Architecture:** A new `DistanceUnit` enum and `AppSettings.distanceUnit` field, persisted in a new `diver_settings.distance_unit` column (schema v263, backfilled from the depth unit as the column is added), synced with a depth-derived default for rows from older peers, and read by the single geographic distance formatter `UnitFormatter.formatGeoDistance`. UI adds Altitude and Distance tiles and pickers to Manage > Units, rows to the settings summary pane, and a Distance row to the setup wizard.
 
 **Tech Stack:** Flutter, Riverpod (StateNotifier), Drift (SQLite), flutter_localizations ARB files.
 
@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Schema version 262 (`currentSchemaVersion = 262`); 261 is held by open PR #2985 and is not added to the ladder here.
+- Schema version 263 (`currentSchemaVersion = 263`). Main shipped 261 (#2985); 262 is held by open PR #2991 and is not in this branch's ladder, so the ladder runs 260, 261, 263. (Written against v262 and renumbered when main was merged in; see the note under Task 2.)
 - `minimumCompatibleSchemaVersion` stays 240: the column is additive.
 - Column: `distance_unit TEXT NOT NULL DEFAULT 'kilometers'`; values are `DistanceUnit` names (`kilometers`, `miles`).
 - Backfill: `miles` where `depth_unit = 'feet'`, only on the open that adds the column.
@@ -30,7 +30,7 @@
 
 1. A diver who already chose feet for depth upgrades: their site distances must still read in miles (backfill), and the Units page must still say "Imperial" if everything else is imperial. Pinned in Task 2 (migration test) and Task 1 (preset test).
 2. A diver who switched distance to km after the upgrade must keep km on every later open, including through the beforeOpen backstop. Pinned in Task 2 (reopen test).
-3. A settings row arriving by sync from a pre-v262 peer, for a diver this device has never seen, with depth in feet: it must hydrate to miles, not the column default. Pinned in Task 3, for both `upsertRecord` and `upsertRecords`.
+3. A settings row arriving by sync from a pre-v263 peer, for a diver this device has never seen, with depth in feet: it must hydrate to miles, not the column default. Pinned in Task 3, for both `upsertRecord` and `upsertRecords`.
 4. Mixed units: depth in metres with distance in miles (and the reverse) must format geo distances by the distance unit only. Pinned in Task 4.
 5. A comma-decimal locale must still render "2,5 km" and "1,2 mi". Pinned in Task 4.
 
@@ -252,7 +252,9 @@ git commit -m "feat(settings): add a distance unit to the diver settings"
 
 ---
 
-### Task 2: Persistence: column, v262 rung with backfill, repository, wizard apply
+### Task 2: Persistence: column, v263 rung with backfill, repository, wizard apply
+
+> Renumbered: this task was written and first built as v262 while main was at v260 and #2985 held 261. When main was merged in, #2985 had shipped 261 and PR #2991 had claimed 262, so the rung, the test file and every pin moved to 263. From main's v261 the upgrade is still one step.
 
 **Files:**
 - Modify: `lib/core/database/tables/diver_tables.dart:85`
@@ -262,8 +264,8 @@ git commit -m "feat(settings): add a distance unit to the diver settings"
 - Modify: `lib/core/database/migrations/before_open.dart:29-30`
 - Modify: `lib/features/settings/data/repositories/diver_settings_repository.dart:97, 353, 553, ~752`
 - Modify: `lib/features/setup_wizard/data/setup_apply_service.dart:67`
-- Modify: `test/core/database/migration_v260_tank_shared_computers_test.dart:8-12` (relax the exact version pin)
-- Create: `test/core/database/migration_v262_distance_unit_test.dart`
+- Modify: `test/core/database/migration_v261_drop_ceiling_source_test.dart` (relax the exact version pin)
+- Create: `test/core/database/migration_v263_distance_unit_test.dart`
 - Create: `test/features/settings/data/repositories/diver_settings_repository_distance_unit_test.dart`
 - Modify: `test/features/setup_wizard/data/setup_apply_service_test.dart`
 
@@ -274,7 +276,7 @@ git commit -m "feat(settings): add a distance unit to the diver settings"
 
 - [ ] **Step 1: Write the failing migration test**
 
-Create `test/core/database/migration_v262_distance_unit_test.dart`:
+Create `test/core/database/migration_v263_distance_unit_test.dart`:
 
 ```dart
 import 'dart:io';
@@ -285,16 +287,16 @@ import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/database/database.dart';
 
-/// v262: diver_settings.distance_unit (issue #2030). Backfilled from each
+/// v263: diver_settings.distance_unit (issue #2030). Backfilled from each
 /// diver's depth unit as the column is added, so nobody's site distances
 /// change unit on upgrade; never rewritten afterwards.
 void main() {
   late Directory dir;
 
-  setUp(() => dir = Directory.systemTemp.createTempSync('v262_'));
+  setUp(() => dir = Directory.systemTemp.createTempSync('v263_'));
   tearDown(() => dir.deleteSync(recursive: true));
 
-  File dbFile() => File(p.join(dir.path, 'v262.db'));
+  File dbFile() => File(p.join(dir.path, 'v263.db'));
 
   /// A diver_settings table as it stood at v261: no distance_unit.
   NativeDatabase fixtureAt(int userVersion) => NativeDatabase(
@@ -325,10 +327,10 @@ void main() {
     };
   }
 
-  test('v262 is the current schema version and is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 262);
-    expect(AppDatabase.migrationVersions, contains(262));
-    expect(AppDatabase.migrationVersions.last, 262);
+  test('v263 is the current schema version and is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, 263);
+    expect(AppDatabase.migrationVersions, contains(263));
+    expect(AppDatabase.migrationVersions.last, 263);
   });
 
   test('the column is additive and did not move the sync floor', () {
@@ -357,9 +359,9 @@ void main() {
     });
   });
 
-  test('a database already at v262 without the column regains it, backfilled, '
+  test('a database already at v263 without the column regains it, backfilled, '
       'via beforeOpen', () async {
-    final db = AppDatabase(fixtureAt(262));
+    final db = AppDatabase(fixtureAt(263));
     addTearDown(db.close);
     expect(await distanceUnits(db), {
       'metric': 'kilometers',
@@ -383,11 +385,11 @@ void main() {
 }
 ```
 
-Relax `test/core/database/migration_v260_tank_shared_computers_test.dart` lines 8-12 (the newest rung owns the exact pin):
+Relax the previous newest rung's exact pins, `test/core/database/migration_v261_drop_ceiling_source_test.dart` (the newest rung owns the exact pin; shown here with the v260 test's wording, the same edit applies):
 
 ```dart
   test('v260 is in the ladder', () {
-    // Relaxed once v262 (distance unit) landed on top; the newest rung owns
+    // Relaxed once v263 (distance unit) landed on top; the newest rung owns
     // the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(260));
     expect(AppDatabase.migrationVersions, contains(260));
@@ -397,7 +399,7 @@ Relax `test/core/database/migration_v260_tank_shared_computers_test.dart` lines 
 
 - [ ] **Step 2: Run it to verify it fails**
 
-Run: `flutter test test/core/database/migration_v262_distance_unit_test.dart`
+Run: `flutter test test/core/database/migration_v263_distance_unit_test.dart`
 Expected: FAIL (`currentSchemaVersion` is 260; no `distance_unit` column).
 
 - [ ] **Step 3: Implement the column, helper, rung and backstop**
@@ -406,7 +408,7 @@ Expected: FAIL (`currentSchemaVersion` is 260; no `distance_unit` column).
 
 ```dart
 
-  /// v262: geographic distance unit, a DistanceUnit name (issue #2030).
+  /// v263: geographic distance unit, a DistanceUnit name (issue #2030).
   /// Backfilled from depth_unit as the column is added.
   TextColumn get distanceUnit =>
       text().withDefault(const Constant('kilometers'))();
@@ -415,7 +417,7 @@ Expected: FAIL (`currentSchemaVersion` is 260; no `distance_unit` column).
 `diver_migrations.dart`, at the top of `extension DiverMigrations on AppDatabase {`:
 
 ```dart
-  /// v262: diver_settings.distance_unit (issue #2030). Not null, default
+  /// v263: diver_settings.distance_unit (issue #2030). Not null, default
   /// 'kilometers'. As the column is added, a diver who logs depth in feet
   /// gets miles, so nobody's site distances change unit on upgrade. The
   /// backfill runs only on the open that adds the column, so a choice made
@@ -439,7 +441,7 @@ Expected: FAIL (`currentSchemaVersion` is 260; no `distance_unit` column).
     );
   }
 
-  /// The beforeOpen backstop for diver_settings display columns: v262's
+  /// The beforeOpen backstop for diver_settings display columns: v263's
   /// distance unit and v237's dive figure switch. Grouped so the backstop
   /// list in before_open.dart does not grow past its size cap.
   Future<void> _assertDiverSettingsDisplayColumns() async {
@@ -458,23 +460,23 @@ Expected: FAIL (`currentSchemaVersion` is 260; no `distance_unit` column).
 with:
 
 ```dart
-    // v262 and v237 backstops: the distance unit and the dive figure switch.
+    // v263 and v237 backstops: the distance unit and the dive figure switch.
     await _assertDiverSettingsDisplayColumns();
 ```
 
 `rungs_v231_onward.dart`, after `if (from < 260) await reportProgress();`:
 
 ```dart
-    // v262: diver_settings.distance_unit (issue #2030), backfilled from each
+    // v263: diver_settings.distance_unit (issue #2030), backfilled from each
     // diver's depth unit as the column is added. Re-asserted in beforeOpen.
-    // 261 is held by an open branch (#2985).
-    if (from < 262) {
+    // 262 is held by an open branch (#2991).
+    if (from < 263) {
       await _assertDistanceUnitColumn();
     }
-    if (from < 262) await reportProgress();
+    if (from < 263) await reportProgress();
 ```
 
-`database.dart`: `static const int currentSchemaVersion = 262;`, and in `migrationVersions` add `262,` after `260,`.
+`database.dart`: `static const int currentSchemaVersion = 263;`, and in `migrationVersions` add `263,` after `261,`.
 
 Regenerate Drift code:
 
@@ -483,7 +485,7 @@ Expected: `Succeeded`.
 
 - [ ] **Step 4: Run the migration tests to verify they pass**
 
-Run: `flutter test test/core/database/migration_v262_distance_unit_test.dart test/core/database/migration_v260_tank_shared_computers_test.dart test/core/database/migration_v237_show_dive_figure_test.dart`
+Run: `flutter test test/core/database/migration_v263_distance_unit_test.dart test/core/database/migration_v260_tank_shared_computers_test.dart test/core/database/migration_v237_show_dive_figure_test.dart`
 Expected: PASS.
 
 - [ ] **Step 5: Write the failing repository and wizard-apply tests**
@@ -602,8 +604,8 @@ Expected: PASS.
 
 ```bash
 dart format .
-git add lib/core/database/ lib/features/settings/data/repositories/diver_settings_repository.dart lib/features/setup_wizard/data/setup_apply_service.dart test/core/database/migration_v262_distance_unit_test.dart test/core/database/migration_v260_tank_shared_computers_test.dart test/features/settings/data/repositories/diver_settings_repository_distance_unit_test.dart test/features/setup_wizard/data/setup_apply_service_test.dart
-git commit -m "feat(settings): persist the distance unit, backfilled from depth (v262)"
+git add lib/core/database/ lib/features/settings/data/repositories/diver_settings_repository.dart lib/features/setup_wizard/data/setup_apply_service.dart test/core/database/migration_v263_distance_unit_test.dart test/core/database/migration_v260_tank_shared_computers_test.dart test/features/settings/data/repositories/diver_settings_repository_distance_unit_test.dart test/features/setup_wizard/data/setup_apply_service_test.dart
+git commit -m "feat(settings): persist the distance unit, backfilled from depth (v263)"
 ```
 
 (`git add lib/core/database/` picks up the regenerated `database.g.dart`; check `git show --stat HEAD` lists it.)
@@ -632,7 +634,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 
 import '../../../helpers/test_database.dart';
 
-/// Issue #2030. A diver_settings row from a peer older than v262 carries no
+/// Issue #2030. A diver_settings row from a peer older than v263 carries no
 /// distanceUnit. For a row new to this device the column default would make
 /// a feet diver's distances kilometres; the unit is derived from the
 /// payload's own depth unit instead.
@@ -650,7 +652,7 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  /// A wire payload for settings row [id] as a pre-v262 peer sends it.
+  /// A wire payload for settings row [id] as a pre-v263 peer sends it.
   Future<Map<String, dynamic>> legacyPayload(
     String id, {
     required String depthUnit,
@@ -744,7 +746,7 @@ Expected: the two feet cases FAIL with `'kilometers'` (schema default); the othe
 In `sync_data_serializer.dart`, directly above `Map<String, dynamic> _withSchemaDefaults(`:
 
 ```dart
-  /// Issue #2030. A diver_settings row from a peer older than v262 carries
+  /// Issue #2030. A diver_settings row from a peer older than v263 carries
   /// no `distanceUnit`. [_withLocalForOmitted] already kept this device's
   /// value for a row it holds; for a row new here, derive the unit from the
   /// payload's own depth unit before [_withSchemaDefaults] fills the column

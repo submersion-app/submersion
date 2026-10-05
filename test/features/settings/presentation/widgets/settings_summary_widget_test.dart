@@ -28,6 +28,8 @@ void main() {
           currentDiverProvider.overrideWith((ref) async => null),
         ],
         child: const MaterialApp(
+          // Pinned: the finders match English strings.
+          locale: Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(body: SettingsSummaryWidget()),

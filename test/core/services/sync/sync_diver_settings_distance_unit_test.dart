@@ -104,4 +104,24 @@ void main() {
     await serializer.upsertRecord('diverSettings', payload);
     expect(await storedDistanceUnit('ds1'), 'miles');
   });
+
+  test('the batch path keeps the unit of a row this device holds', () async {
+    final payload = await legacyPayload('ds1', depthUnit: 'meters');
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.diverSettings)
+        .insert(
+          DiverSettingsCompanion.insert(
+            id: 'ds1',
+            diverId: 'diver-ds1',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    await db.customStatement(
+      "UPDATE diver_settings SET distance_unit = 'miles' WHERE id = 'ds1'",
+    );
+    await serializer.upsertRecords('diverSettings', [payload]);
+    expect(await storedDistanceUnit('ds1'), 'miles');
+  });
 }
