@@ -129,7 +129,16 @@ class _FocusSelectorState extends ConsumerState<FocusSelector> {
             for (final mode in FocusMode.values)
               ButtonSegment(
                 value: mode,
-                label: Text(focusModeLabel(mode, selection.metric, l10n)),
+                // One line, shrunk to fit: a long word such as German
+                // "Schlechteste" would otherwise break mid-word on a phone.
+                label: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    focusModeLabel(mode, selection.metric, l10n),
+                    maxLines: 1,
+                    softWrap: false,
+                  ),
+                ),
               ),
           ],
           selected: {selection.mode},
@@ -149,7 +158,8 @@ class _FocusSelectorState extends ConsumerState<FocusSelector> {
               },
             ),
           SizedBox(
-            width: 96,
+            // Room for the label in long locales ("Tauchgänge", "Inmersiones").
+            width: 128,
             child: TextField(
               key: const ValueKey('focus-count-field'),
               controller: _count,

@@ -20,18 +20,23 @@ void main() {
   Future<ProviderContainer> pump(
     WidgetTester tester, {
     AppSettings settings = const AppSettings(),
+    Locale locale = const Locale('en'),
+    double width = 800,
   }) async {
+    tester.view.physicalSize = Size(width, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final overrides = await getBaseOverrides(
       settingsNotifier: MockSettingsNotifier(settings),
     );
     await tester.pumpWidget(
       ProviderScope(
         overrides: overrides,
-        child: const MaterialApp(
-          locale: Locale('en'),
+        child: MaterialApp(
+          locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: FocusSelector()),
+          home: const Scaffold(body: FocusSelector()),
         ),
       ),
     );
@@ -151,5 +156,13 @@ void main() {
     final s = c.read(focusSelectionProvider);
     expect(s.metric, FocusMetric.maxDepth);
     expect(s.threshold, isNull);
+  });
+
+  testWidgets('a long mode label stays on one line on a phone', (tester) async {
+    await pump(tester, locale: const Locale('de'), width: 390);
+    final label = find.text('Schlechteste');
+    expect(label, findsOneWidget);
+    // One line of 14 px text; a mid-word wrap would make it two.
+    expect(tester.getSize(label).height, lessThan(24));
   });
 }

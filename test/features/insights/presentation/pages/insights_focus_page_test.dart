@@ -151,4 +151,18 @@ void main() {
     // diver set survives.
     expect(tester.state(find.byType(DiveTrendChart)), same(chart));
   });
+
+  testWidgets('the chart draws the group in the accent and the rest muted', (
+    tester,
+  ) async {
+    await pump(tester);
+    final chart = tester.widget<DiveTrendChart>(find.byType(DiveTrendChart));
+    final scheme = Theme.of(
+      tester.element(find.byType(DiveTrendChart)),
+    ).colorScheme;
+    expect(chart.pointColor, scheme.outlineVariant);
+    expect(chart.secondarySeries.single.color, scheme.primary);
+    expect(chart.points, hasLength(2));
+    expect(chart.secondarySeries.single.points, hasLength(10));
+  });
 }
