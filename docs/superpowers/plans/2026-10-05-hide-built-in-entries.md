@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-05-hide-built-in-entries-design.md`
 
+**Renumbered after this plan was executed:** main took schema v261 for an unrelated change (#767) while this branch was open, so the column landed as **v262** (`from < 262`, test `migration_v262_hidden_built_ins_test.dart`). Read every v261 below as v262.
+
 ## Global Constraints
 
 - Issue: #401. Release: v1.8.2.
