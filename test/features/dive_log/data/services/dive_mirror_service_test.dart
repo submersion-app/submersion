@@ -62,6 +62,7 @@ void main() {
   Future<Dive> sourceDive({
     DiveSite? site,
     String? diverRoleId,
+    List<String>? diverRoleIds,
     List<BuddyWithRole>? members,
   }) async {
     final dive = await dives.createDive(
@@ -75,7 +76,7 @@ void main() {
         waterTemp: 18,
         notes: 'private',
         rating: 5,
-        diverRoleIds: [?diverRoleId],
+        diverRoleIds: diverRoleIds ?? [?diverRoleId],
         diveNumber: 12,
       ),
     );
@@ -160,6 +161,37 @@ void main() {
     );
     final sibling = await dives.getDiveById(outcome.createdDiveIds.single);
     expect(sibling?.diverRoleIds.firstOrNull, DiveRole.instructorId);
+  });
+
+  test('the sibling carries every role on both sides (#1221)', () async {
+    final dive = await sourceDive(
+      diverRoleIds: const [DiveRole.diveMasterId, DiveRole.diveGuideId],
+      members: [
+        BuddyWithRole(
+          buddy: chrisBuddy,
+          roles: [
+            DiveRole.synthetic(DiveRole.instructorId),
+            DiveRole.synthetic(DiveRole.safetyDiverId),
+          ],
+        ),
+      ],
+    );
+    final outcome = await service.mirror(
+      sourceDiveId: dive.id,
+      targetDiverIds: [chris],
+    );
+    final siblingId = outcome.createdDiveIds.single;
+    final sibling = await dives.getDiveById(siblingId);
+    expect(sibling?.diverRoleIds, [
+      DiveRole.instructorId,
+      DiveRole.safetyDiverId,
+    ]);
+    final siblingBuddies = await buddies.getBuddiesForDive(siblingId);
+    expect(siblingBuddies.single.buddy.linkedDiverId, eric);
+    expect(siblingBuddies.single.roleIds, [
+      DiveRole.diveGuideId,
+      DiveRole.diveMasterId,
+    ]);
   });
 
   test(

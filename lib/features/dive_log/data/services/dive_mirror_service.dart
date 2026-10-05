@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_mirror_fields.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -200,13 +201,17 @@ class DiveMirrorService {
     required String outingId,
   }) async {
     final sourceOwner = source.diverId;
-    final sourceRoleId = source.diverRoleIds.firstOrNull ?? DiveRole.buddyId;
+    // The source owner's roles, which become their roles as the target's
+    // reciprocal buddy; an owner with none is a plain buddy (issue #1221).
+    final sourceRoleIds = source.diverRoleIds.isEmpty
+        ? const [DiveRole.buddyId]
+        : source.diverRoleIds;
 
-    // The target's own role: what its buddy held on the source.
-    String? targetRoleId;
+    // The target's own roles: what its buddy held on the source.
+    var targetRoleIds = const <String>[];
     for (final bwr in sourceBuddies) {
       if (bwr.buddy.linkedDiverId == targetDiverId) {
-        targetRoleId = bwr.primaryRole.id;
+        targetRoleIds = bwr.roleIds;
       }
     }
 
@@ -222,9 +227,10 @@ class DiveMirrorService {
       includeDiveCenter: await _centerIsVisible(source.diveCenter?.id),
       diveTypeIds: await _resolveTypeIds(source.diveTypeIds, targetDiverId),
       tags: await _resolveTags(source.tags, targetDiverId),
-      diverRoleIds: targetRoleId == null
-          ? const []
-          : [(await _roleFor(targetRoleId, targetDiverId)).id],
+      diverRoleIds: [
+        for (final role in await _rolesFor(targetRoleIds, targetDiverId))
+          role.id,
+      ],
     );
     final created = await _dives.createDive(dive);
 
@@ -237,7 +243,7 @@ class DiveMirrorService {
       members.add(
         BuddyWithRole(
           buddy: me,
-          roles: [await _roleFor(sourceRoleId, targetDiverId)],
+          roles: await _rolesFor(sourceRoleIds, targetDiverId),
         ),
       );
     }
@@ -247,7 +253,7 @@ class DiveMirrorService {
       members.add(
         BuddyWithRole(
           buddy: buddy,
-          roles: [await _roleFor(bwr.primaryRole.id, targetDiverId)],
+          roles: await _rolesFor(bwr.roleIds, targetDiverId),
         ),
       );
     }
@@ -322,6 +328,20 @@ class DiveMirrorService {
     final visible = await _tags.getAllTags(diverId: targetDiverId);
     final byName = {for (final t in visible) _fold(t.name): t};
     return [for (final tag in sourceTags) ?byName[_fold(tag.name)]];
+  }
+
+  /// [roleIds] mapped one by one through [_roleFor], deduped (two custom
+  /// roles can both fall back to Buddy) and in DiveRoleSet order (#1221).
+  Future<List<DiveRole>> _rolesFor(
+    List<String> roleIds,
+    String targetDiverId,
+  ) async {
+    final byId = <String, DiveRole>{};
+    for (final id in roleIds) {
+      final role = await _roleFor(id, targetDiverId);
+      byId[role.id] = role;
+    }
+    return [for (final id in DiveRoleSet.normalize(byId.keys)) byId[id]!];
   }
 
   /// Built-in roles are shared by id; a custom role is matched by name in
