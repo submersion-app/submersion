@@ -91,4 +91,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(Switch), findsNothing);
   });
+
+  testWidgets('the Show label gives way in selection mode too', (tester) async {
+    await pump(tester);
+    expect(find.text('Show'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pumpAndSettle();
+    expect(find.text('Show'), findsNothing);
+    expect(find.text('Built-in'), findsOneWidget);
+  });
 }

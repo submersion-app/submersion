@@ -16,6 +16,7 @@ import 'package:submersion/features/site_types/domain/entities/site_type_entity.
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
 /// The Type & Tags section on the real site edit page (issue #1765).
@@ -129,4 +130,33 @@ void main() {
     );
     expect(types!.map((t) => t.id), ['wall', 'lake']);
   });
+
+  testWidgets(
+    'a hidden type the site has stays offered, even once unticked (#401)',
+    (tester) async {
+      await pumpEdit(
+        tester,
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => MockSettingsNotifier(
+              const AppSettings(
+                hiddenBuiltInIds: {
+                  'siteTypes': {'wall', 'lake'},
+                },
+              ),
+            ),
+          ),
+        ],
+      );
+
+      final wall = find.widgetWithText(FilterChip, 'Wall');
+      expect(wall, findsOneWidget);
+      expect(find.widgetWithText(FilterChip, 'Lake'), findsNothing);
+
+      await tester.tap(wall);
+      await tester.pumpAndSettle();
+      expect(wall, findsOneWidget);
+      expect(tester.widget<FilterChip>(wall).selected, isFalse);
+    },
+  );
 }

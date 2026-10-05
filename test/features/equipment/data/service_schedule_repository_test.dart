@@ -1,13 +1,13 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -297,4 +297,39 @@ void main() {
     expect(stored.anchorDate, isNull);
     expect(stored.anchorSetAt, isNull);
   });
+
+  test(
+    'hiding a kind leaves the clocks already attached (issue #401)',
+    () async {
+      await diverHiding('d1', const {});
+      final tank = await equipmentRepo.createEquipment(
+        const EquipmentItem(
+          id: '',
+          name: 'AL80',
+          type: EquipmentType.tank,
+          diverId: 'd1',
+        ),
+      );
+      final settingsRepo = DiverSettingsRepository();
+      final before = (await settingsRepo.getSettingsForDiver('d1'))!;
+      await settingsRepo.updateSettingsForDiver(
+        'd1',
+        before.copyWith(
+          hiddenBuiltInIds: {
+            'serviceKinds': {'vip'},
+          },
+        ),
+        previous: before,
+      );
+      await repo.autoAttachForEquipment(
+        equipmentId: tank.id,
+        type: EquipmentType.tank,
+        diverId: 'd1',
+      );
+      final kindIds = (await repo.getSchedulesForEquipment(
+        tank.id,
+      )).map((s) => s.serviceKindId).toSet();
+      expect(kindIds, containsAll(['hydro', 'vip']));
+    },
+  );
 }
