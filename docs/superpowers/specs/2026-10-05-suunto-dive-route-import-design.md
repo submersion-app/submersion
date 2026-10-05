@@ -128,9 +128,9 @@ site/entry fallback. Existing callers are unchanged.
 | Dive action | Route behaviour |
 | --- | --- |
 | New dive | Insert, linked to the dive. It becomes primary through `_shouldBePrimary` (a new dive has none). |
-| Skip | Nothing. |
+| Skip | The dive is untouched. When the matched dive has no Suunto route yet, the route is linked to it (`attachIfMissing`), so dives imported before routes were read gain them without Replace source rewriting the dive. |
 | Replace source | Find a `suunto_route` linked to that dive with the same `sourceRef`. If found, insert the new route and call `NavTrackRepository.replace(old, withRouteId: new)`, which hands over the primary role. Otherwise insert. |
-| Consolidate | Attach to the surviving dive (or the kept-standalone one). A route from another source (e.g. Seacraft) keeps primary; the Suunto route is secondary. |
+| Consolidate | Attach to the surviving dive (or the kept-standalone one). A route from another source (e.g. Seacraft) keeps primary; the Suunto route is secondary. A consolidation skipped because the dive is already this computer's reading backfills like Skip. |
 
 A route that fails to parse or write is logged and never fails the dive
 import, the same contract as `_fillNotes`.

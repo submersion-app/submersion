@@ -204,12 +204,14 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
     final indicesToImport = <int>{};
     final indicesToConsolidate = <int>{};
     final indicesToReplaceSource = <int>{};
+    final indicesToSkip = <int>{};
     var skipped = 0;
 
     for (final index in baseSelections) {
       final action = diveActions[index];
       if (action == DuplicateAction.skip) {
         skipped++;
+        indicesToSkip.add(index);
       } else if (action == DuplicateAction.consolidate) {
         indicesToConsolidate.add(index);
       } else if (action == DuplicateAction.replaceSource) {
@@ -231,6 +233,7 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
       } else if (entry.value == DuplicateAction.skip &&
           !baseSelections.contains(entry.key)) {
         skipped++;
+        indicesToSkip.add(entry.key);
       }
     }
 
@@ -296,6 +299,10 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
               importedCountByComputerId[comp.id] =
                   (importedCountByComputerId[comp.id] ?? 0) + 1;
             case _ConsolidateOutcome.skippedSameComputer:
+              skipped++;
+              // The same computer's reading is already that dive; only a
+              // route it never had is worth bringing over.
+              await _routeWriter.attachIfMissing(matchResult.diveId, parsed);
             case _ConsolidateOutcome.failed:
               skipped++;
           }
@@ -343,6 +350,17 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
       }
 
       onProgress?.call(ImportPhase.dives, i + 1, total);
+    }
+
+    // Skip leaves the matched dive untouched, but a dive imported before
+    // routes were read gains its route here rather than only through
+    // Replace source, which would rewrite the dive (issue #1445).
+    final matchResults = bundle.groups[ImportEntityType.dives]?.matchResults;
+    for (final index in indicesToSkip) {
+      if (cancelToken?.isCancelled ?? false) break;
+      final match = matchResults?[index];
+      if (match == null || index >= _parsedDives.length) continue;
+      await _routeWriter.attachIfMissing(match.diveId, _parsedDives[index]);
     }
 
     for (final entry in importedCountByComputerId.entries) {

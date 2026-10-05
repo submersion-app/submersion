@@ -66,4 +66,30 @@ class SuuntoRouteWriter {
       return null;
     }
   }
+
+  /// Links [parsed]'s route to [diveId] only when that dive has no Suunto
+  /// route yet: the backfill for a duplicate the diver chose to skip, so a
+  /// dive imported before routes were read still gains its route without
+  /// its own data being touched. Returns the new route id, or null when
+  /// nothing was linked.
+  Future<String?> attachIfMissing(
+    String diveId,
+    SuuntoParsedDive parsed,
+  ) async {
+    if (parsed.route == null) return null;
+    try {
+      final existing = await _repository.getForDive(diveId);
+      if (existing.any((r) => r.source == NavTrackSource.suuntoRoute)) {
+        return null;
+      }
+    } catch (e, st) {
+      _log.error(
+        'Could not check dive $diveId for a Suunto route',
+        error: e,
+        stackTrace: st,
+      );
+      return null;
+    }
+    return attach(diveId, parsed);
+  }
 }

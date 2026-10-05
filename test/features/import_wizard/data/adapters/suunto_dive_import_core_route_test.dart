@@ -10,6 +10,7 @@ import 'package:submersion/features/import_wizard/data/adapters/suunto_cloud_ada
 import 'package:submersion/features/import_wizard/data/adapters/suunto_route_writer.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 
 import 'suunto_cloud_adapter_test.mocks.dart';
@@ -21,10 +22,20 @@ class _RecordingRouteWriter implements SuuntoRouteWriter {
 
   final String? result;
   final attached = <(String, SuuntoParsedDive)>[];
+  final backfilled = <(String, SuuntoParsedDive)>[];
 
   @override
   Future<String?> attach(String diveId, SuuntoParsedDive parsed) async {
     attached.add((diveId, parsed));
+    return result;
+  }
+
+  @override
+  Future<String?> attachIfMissing(
+    String diveId,
+    SuuntoParsedDive parsed,
+  ) async {
+    backfilled.add((diveId, parsed));
     return result;
   }
 }
@@ -155,10 +166,44 @@ void main() {
     expect(recorder.attached, [('new-dive-id', parsed)]);
   });
 
-  test('a skipped duplicate gets no route', () async {
-    await importWith(await bundleWithMatch(), DuplicateAction.skip);
+  test(
+    'a skipped duplicate backfills a missing route on the matched dive',
+    () async {
+      await importWith(await bundleWithMatch(), DuplicateAction.skip);
 
-    expect(recorder.attached, isEmpty);
+      expect(recorder.attached, isEmpty);
+      expect(recorder.backfilled, [('existing-dive', parsed)]);
+    },
+  );
+
+  test('a skip chosen for an unselected duplicate backfills too', () async {
+    final bundle = await bundleWithMatch();
+    await adapter.performImport(
+      bundle,
+      {ImportEntityType.dives: <int>{}},
+      {
+        ImportEntityType.dives: {0: DuplicateAction.skip},
+      },
+    );
+
+    expect(recorder.backfilled, [('existing-dive', parsed)]);
+  });
+
+  test('a cancelled import backfills nothing', () async {
+    final bundle = await bundleWithMatch();
+    final token = ImportCancellationToken()..cancel();
+    await adapter.performImport(
+      bundle,
+      {
+        ImportEntityType.dives: {0},
+      },
+      {
+        ImportEntityType.dives: {0: DuplicateAction.skip},
+      },
+      cancelToken: token,
+    );
+
+    expect(recorder.backfilled, isEmpty);
   });
 
   test('replace source attaches the route to the matched dive', () async {
@@ -193,7 +238,7 @@ void main() {
     expect(recorder.attached, [('new-dive-id', parsed)]);
   });
 
-  test('a same-computer consolidation is skipped with no route', () async {
+  test('a same-computer consolidation backfills a missing route', () async {
     when(
       mockDiveRepo.getComputerIdForDive('existing-dive'),
     ).thenAnswer((_) async => 'computer-SN-1');
@@ -201,6 +246,7 @@ void main() {
     await importWith(await bundleWithMatch(), DuplicateAction.consolidate);
 
     expect(recorder.attached, isEmpty);
+    expect(recorder.backfilled, [('existing-dive', parsed)]);
   });
 
   test('a route that could not be written leaves the counts alone', () async {

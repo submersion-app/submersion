@@ -140,4 +140,59 @@ void main() {
     // No dive row: the foreign key rejects the insert.
     expect(await writer.attach('missing', _parsed(route: _route())), isNull);
   });
+
+  // A dive imported before routes existed gets its route when the diver
+  // re-imports it and picks Skip (#1445): the dive is left alone, but a
+  // missing route is filled in.
+  group('attachIfMissing', () {
+    test('links the route when the dive has no Suunto route', () async {
+      await _insertDive(db, 'd1');
+      final id = await writer.attachIfMissing('d1', _parsed(route: _route()));
+
+      expect(id, isNotNull);
+      expect((await repo.getForDive('d1')).single.id, id);
+    });
+
+    test('leaves a dive that already has a Suunto route alone', () async {
+      await _insertDive(db, 'd1');
+      final first = await writer.attach(
+        'd1',
+        _parsed(route: _route(), serial: 'OTHER'),
+      );
+
+      expect(
+        await writer.attachIfMissing('d1', _parsed(route: _route())),
+        isNull,
+      );
+      expect((await repo.getForDive('d1')).map((r) => r.id), [first]);
+    });
+
+    test('is not blocked by a route from another source', () async {
+      await _insertDive(db, 'd1');
+      await repo.insertImportedRoute(
+        points: _route().points,
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: '008.DAT.csv',
+        diveId: 'd1',
+      );
+
+      expect(
+        await writer.attachIfMissing('d1', _parsed(route: _route())),
+        isNotNull,
+      );
+      expect(await repo.getForDive('d1'), hasLength(2));
+    });
+
+    test('does nothing for a dive without a route', () async {
+      await _insertDive(db, 'd1');
+      expect(await writer.attachIfMissing('d1', _parsed()), isNull);
+    });
+
+    test('a failed lookup is logged and returns null', () async {
+      expect(
+        await writer.attachIfMissing('missing', _parsed(route: _route())),
+        isNull,
+      );
+    });
+  });
 }

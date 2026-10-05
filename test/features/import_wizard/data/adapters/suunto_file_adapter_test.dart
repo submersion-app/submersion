@@ -17,6 +17,12 @@ class _RecordingRouteWriter implements SuuntoRouteWriter {
     attached.add(diveId);
     return null;
   }
+
+  @override
+  Future<String?> attachIfMissing(
+    String diveId,
+    SuuntoParsedDive parsed,
+  ) async => null;
 }
 
 void main() {
