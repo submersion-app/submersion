@@ -8640,7 +8640,7 @@
   "attrLabel_port_type": "Tipo di oblò",
   "attrLabel_tray_style": "Stile",
   "attrLabel_arm_length_m": "Lunghezza del braccio",
-  "attrLabel_guide_number": "Numero guida",
+  "attrLabel_guide_number_m": "Numero guida",
   "attrLabel_bag_style": "Stile",
   "attrLabel_capacity_l": "Capacità",
   "attrChoice_plate_material_aluminum": "Alluminio",

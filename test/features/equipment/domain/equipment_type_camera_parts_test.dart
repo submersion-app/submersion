@@ -100,7 +100,10 @@ void main() {
         'depth_rating_m',
       ]);
       expect(keysFor(EquipmentType.floatArm), ['lift_capacity_kg']);
-      expect(keysFor(EquipmentType.strobe), ['depth_rating_m', 'guide_number']);
+      expect(keysFor(EquipmentType.strobe), [
+        'depth_rating_m',
+        'guide_number_m',
+      ]);
     });
 
     test('choices and dimensions', () {
@@ -121,8 +124,10 @@ void main() {
         'pistol_grip',
       ]);
       expect(def('arm_length_m').dimension, AttributeDimension.shortLengthM);
-      expect(def('guide_number').kind, AttributeKind.number);
-      expect(def('guide_number').dimension, AttributeDimension.none);
+      // A guide number is a distance, quoted in metres or feet, so it
+      // follows the diver's length unit.
+      expect(def('guide_number_m').kind, AttributeKind.number);
+      expect(def('guide_number_m').dimension, AttributeDimension.lengthM);
     });
 
     test('the video light shares the dive light\'s definitions', () {

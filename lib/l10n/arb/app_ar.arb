@@ -8640,7 +8640,7 @@
   "attrLabel_port_type": "نوع المنفذ",
   "attrLabel_tray_style": "النمط",
   "attrLabel_arm_length_m": "طول الذراع",
-  "attrLabel_guide_number": "الرقم الدليلي",
+  "attrLabel_guide_number_m": "الرقم الدليلي",
   "attrLabel_bag_style": "النمط",
   "attrLabel_capacity_l": "السعة",
   "attrChoice_plate_material_aluminum": "ألومنيوم",

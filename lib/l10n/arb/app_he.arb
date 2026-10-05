@@ -8640,7 +8640,7 @@
   "attrLabel_port_type": "סוג פורט",
   "attrLabel_tray_style": "סגנון",
   "attrLabel_arm_length_m": "אורך זרוע",
-  "attrLabel_guide_number": "מספר מנחה",
+  "attrLabel_guide_number_m": "מספר מנחה",
   "attrLabel_bag_style": "סגנון",
   "attrLabel_capacity_l": "קיבולת",
   "attrChoice_plate_material_aluminum": "אלומיניום",

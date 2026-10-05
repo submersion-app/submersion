@@ -8640,7 +8640,7 @@
   "attrLabel_port_type": "Poorttype",
   "attrLabel_tray_style": "Stijl",
   "attrLabel_arm_length_m": "Armlengte",
-  "attrLabel_guide_number": "Richtgetal",
+  "attrLabel_guide_number_m": "Richtgetal",
   "attrLabel_bag_style": "Stijl",
   "attrLabel_capacity_l": "Capaciteit",
   "attrChoice_plate_material_aluminum": "Aluminium",

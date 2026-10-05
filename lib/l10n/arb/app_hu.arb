@@ -8640,7 +8640,7 @@
   "attrLabel_port_type": "Port típusa",
   "attrLabel_tray_style": "Fazon",
   "attrLabel_arm_length_m": "Kar hossza",
-  "attrLabel_guide_number": "Kulcsszám",
+  "attrLabel_guide_number_m": "Kulcsszám",
   "attrLabel_bag_style": "Fazon",
   "attrLabel_capacity_l": "Kapacitás",
   "attrChoice_plate_material_aluminum": "Alumínium",

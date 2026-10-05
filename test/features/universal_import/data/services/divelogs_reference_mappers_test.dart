@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/universal_import/data/services/divelogs_reference_mappers.dart';
+import 'package:submersion/features/universal_import/data/services/macdive_value_mapper.dart';
 
 void main() {
   group('equipmentTypeForGeartypeName', () {
@@ -106,6 +107,27 @@ void main() {
           reason: input,
         );
       });
+    });
+
+    test('reads camera parts with the MacDive mapper\'s words (#1997)', () {
+      // One vocabulary for both readers: every English camera word reaches
+      // divelogs through MacDiveValueMapper.cameraPartType, guards included.
+      const names = [
+        'Video lamp',
+        'Float collar',
+        'Arm slate',
+        'Surface float',
+        'Transport case',
+        'Ball clamp',
+        'Flat ports',
+      ];
+      for (final name in names) {
+        expect(
+          DivelogsReferenceMappers.equipmentTypeForGeartypeName(name),
+          MacDiveValueMapper.equipmentType(name),
+          reason: name,
+        );
+      }
     });
 
     test('unknown or null names map to other', () {

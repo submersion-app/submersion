@@ -76,10 +76,11 @@ class MacDiveValueMapper {
   /// "Shear" or "shears" as a whole word, for [equipmentType].
   static final _shearWord = RegExp(r'\bshears?\b');
 
-  /// "CCR" or "SCR" as a whole word, allowing the one-letter prefixes
-  /// divers write (eCCR, mCCR, pSCR). As a bare substring "scr" sits inside
-  /// "prescription", so every prescription mask read as a rebreather.
-  static final _rebreatherAbbreviation = RegExp(r'\b[a-z]?(ccr|scr)s?\b');
+  /// "SCR" as a whole word, allowing the one-letter prefix divers write
+  /// (pSCR). As a bare substring "scr" sits inside "prescription", so every
+  /// prescription mask read as a rebreather. "CCR" needs no such guard and
+  /// stays a substring, so a one-word "JJCCR" still matches.
+  static final _scrWord = RegExp(r'\b[a-z]?scrs?\b');
 
   /// Camera part words (#1997) that are only safe as whole words: "port"
   /// sits inside "transport" and "support", "arm" inside "alarm" and "warm",
@@ -87,8 +88,9 @@ class MacDiveValueMapper {
   /// or a collar: on its own, "float" in a dive log is a surface or flag
   /// float.
   static final _cameraFloat = RegExp(
-    r'\bfloat\s*(?:arms?|collars?)\b|\barm\s*floats?\b',
+    r'\bfloat\s*(?:arms?|collars?)\b|\b(?:arm|buoyancy)\s*(?:floats?|arms?)\b',
   );
+  static final _videoLight = RegExp(r'\bvideo\s*(?:lights?|lamps?)\b');
 
   /// An arm, but not the forearm kit a diver straps on: an "arm slate" is a
   /// writing slate and "arm warmers" are thermal wear.
@@ -207,7 +209,10 @@ class MacDiveValueMapper {
     if (s.contains('wetsuit') || s.contains('wet suit')) {
       return EquipmentType.wetsuit;
     }
-    if (s.contains('rebreather') || _rebreatherAbbreviation.hasMatch(s)) {
+    if (s.contains('rebreather') ||
+        s.contains('ccr') ||
+        _scrWord.hasMatch(s) ||
+        s.contains('scrubber')) {
       return EquipmentType.rebreather;
     }
     // Before the light/camera family: a scooter is often logged by brand and
@@ -286,22 +291,9 @@ class MacDiveValueMapper {
     }
     // The camera's parts (#1997), above the light and camera words they
     // contain: a "video light" is not a dive light and a "camera tray" is
-    // not a camera. A float arm is checked before the arms it is one of, and
-    // an arm before the strobe it carries.
-    if (_cameraFloat.hasMatch(s) || s.contains('buoyancy arm')) {
-      return EquipmentType.floatArm;
-    }
-    if (_armWord.hasMatch(s) || s.contains('clamp')) {
-      return EquipmentType.armClamp;
-    }
-    if (_trayWord.hasMatch(s) || s.contains('pistol grip')) {
-      return EquipmentType.trayHandle;
-    }
-    if (s.contains('video light')) return EquipmentType.videoLight;
-    if (_portWord.hasMatch(s)) return EquipmentType.port;
-    if (_lensWord.hasMatch(s) || s.contains('diopter')) {
-      return EquipmentType.lens;
-    }
+    // not a camera.
+    final cameraPart = cameraPartType(s);
+    if (cameraPart != null) return cameraPart;
     if (s.contains('light') || s.contains('torch')) return EquipmentType.light;
     // Photo rig parts (issue #1487) before the camera family.
     if (s.contains('housing')) return EquipmentType.housing;
@@ -342,5 +334,28 @@ class MacDiveValueMapper {
       return EquipmentType.bag;
     }
     return EquipmentType.other;
+  }
+
+  /// The camera part (#1997) a lower-cased, trimmed name [s] names, or null.
+  ///
+  /// Shared with the divelogs.de geartype table, as [liftBag] is, so the two
+  /// readers agree on every camera word. Callers run it after their mask,
+  /// suit and weight checks and before the light and camera words. A float
+  /// arm is checked before the arms it is one of, and an arm before the
+  /// strobe it carries.
+  static EquipmentType? cameraPartType(String s) {
+    if (_cameraFloat.hasMatch(s)) return EquipmentType.floatArm;
+    if (_armWord.hasMatch(s) || s.contains('clamp')) {
+      return EquipmentType.armClamp;
+    }
+    if (_trayWord.hasMatch(s) || s.contains('pistol grip')) {
+      return EquipmentType.trayHandle;
+    }
+    if (_videoLight.hasMatch(s)) return EquipmentType.videoLight;
+    if (_portWord.hasMatch(s)) return EquipmentType.port;
+    if (_lensWord.hasMatch(s) || s.contains('diopter')) {
+      return EquipmentType.lens;
+    }
+    return null;
   }
 }

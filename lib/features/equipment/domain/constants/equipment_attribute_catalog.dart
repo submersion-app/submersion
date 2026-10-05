@@ -633,9 +633,14 @@ abstract final class EquipmentAttributeCatalog {
     ],
     EquipmentType.strobe: [
       _depthRating,
-      // The power figure every strobe is compared by. Makers quote it at
-      // ISO 100 in metres, so it is kept as quoted rather than converted.
-      EquipmentAttributeDef(key: 'guide_number', kind: AttributeKind.number),
+      // The power figure every strobe is compared by: a distance at ISO 100,
+      // quoted in metres (GN 20) or feet (GN 66) for the same strobe, so it
+      // is stored in metres and shown in the diver's length unit.
+      EquipmentAttributeDef(
+        key: 'guide_number_m',
+        kind: AttributeKind.number,
+        dimension: AttributeDimension.lengthM,
+      ),
     ],
     EquipmentType.videoLight: [_lumens, _beamType, _depthRating],
     // What the float lifts. It trims the rig, not the diver, so the buoyancy

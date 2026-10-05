@@ -47286,11 +47286,11 @@ abstract class AppLocalizations {
   /// **'Arm length'**
   String get attrLabel_arm_length_m;
 
-  /// No description provided for @attrLabel_guide_number.
+  /// No description provided for @attrLabel_guide_number_m.
   ///
   /// In en, this message translates to:
   /// **'Guide number'**
-  String get attrLabel_guide_number;
+  String get attrLabel_guide_number_m;
 
   /// No description provided for @attrLabel_bag_style.
   ///

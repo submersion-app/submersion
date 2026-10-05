@@ -30054,7 +30054,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrLabel_arm_length_m => 'Lunghezza del braccio';
 
   @override
-  String get attrLabel_guide_number => 'Numero guida';
+  String get attrLabel_guide_number_m => 'Numero guida';
 
   @override
   String get attrLabel_bag_style => 'Stile';

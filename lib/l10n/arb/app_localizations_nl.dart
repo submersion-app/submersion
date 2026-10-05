@@ -29854,7 +29854,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_arm_length_m => 'Armlengte';
 
   @override
-  String get attrLabel_guide_number => 'Richtgetal';
+  String get attrLabel_guide_number_m => 'Richtgetal';
 
   @override
   String get attrLabel_bag_style => 'Stijl';

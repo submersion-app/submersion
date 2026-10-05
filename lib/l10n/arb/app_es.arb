@@ -8640,7 +8640,7 @@
   "attrLabel_port_type": "Tipo de puerto",
   "attrLabel_tray_style": "Estilo",
   "attrLabel_arm_length_m": "Longitud del brazo",
-  "attrLabel_guide_number": "Número guía",
+  "attrLabel_guide_number_m": "Número guía",
   "attrLabel_bag_style": "Estilo",
   "attrLabel_capacity_l": "Capacidad",
   "attrChoice_plate_material_aluminum": "Aluminio",

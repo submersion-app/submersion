@@ -8640,7 +8640,7 @@
   "attrLabel_port_type": "Type de hublot",
   "attrLabel_tray_style": "Style",
   "attrLabel_arm_length_m": "Longueur du bras",
-  "attrLabel_guide_number": "Nombre guide",
+  "attrLabel_guide_number_m": "Nombre guide",
   "attrLabel_bag_style": "Style",
   "attrLabel_capacity_l": "Capacité",
   "attrChoice_plate_material_aluminum": "Aluminium",

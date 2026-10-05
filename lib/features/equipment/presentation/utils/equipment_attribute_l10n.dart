@@ -82,7 +82,7 @@ String attributeLabel(AppLocalizations l10n, String key) => switch (key) {
   'port_type' => l10n.attrLabel_port_type,
   'tray_style' => l10n.attrLabel_tray_style,
   'arm_length_m' => l10n.attrLabel_arm_length_m,
-  'guide_number' => l10n.attrLabel_guide_number,
+  'guide_number_m' => l10n.attrLabel_guide_number_m,
   'bag_style' => l10n.attrLabel_bag_style,
   'capacity_l' => l10n.attrLabel_capacity_l,
   // Purchase record (issue #1517), present on every type.

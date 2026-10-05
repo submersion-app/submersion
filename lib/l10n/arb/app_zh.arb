@@ -8640,7 +8640,7 @@
   "attrLabel_port_type": "镜头罩类型",
   "attrLabel_tray_style": "款式",
   "attrLabel_arm_length_m": "臂长",
-  "attrLabel_guide_number": "闪光指数",
+  "attrLabel_guide_number_m": "闪光指数",
   "attrLabel_bag_style": "款式",
   "attrLabel_capacity_l": "容量",
   "attrChoice_plate_material_aluminum": "铝",

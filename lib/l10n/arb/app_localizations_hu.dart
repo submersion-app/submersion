@@ -29932,7 +29932,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_arm_length_m => 'Kar hossza';
 
   @override
-  String get attrLabel_guide_number => 'Kulcsszám';
+  String get attrLabel_guide_number_m => 'Kulcsszám';
 
   @override
   String get attrLabel_bag_style => 'Fazon';

@@ -29349,7 +29349,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_arm_length_m => 'אורך זרוע';
 
   @override
-  String get attrLabel_guide_number => 'מספר מנחה';
+  String get attrLabel_guide_number_m => 'מספר מנחה';
 
   @override
   String get attrLabel_bag_style => 'סגנון';

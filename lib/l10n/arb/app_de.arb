@@ -8752,7 +8752,7 @@
   "attrLabel_port_type": "Port-Typ",
   "attrLabel_tray_style": "Bauart",
   "attrLabel_arm_length_m": "Armlänge",
-  "attrLabel_guide_number": "Leitzahl",
+  "attrLabel_guide_number_m": "Leitzahl",
   "attrLabel_bag_style": "Bauart",
   "attrLabel_capacity_l": "Fassungsvermögen",
   "attrChoice_plate_material_aluminum": "Aluminium",

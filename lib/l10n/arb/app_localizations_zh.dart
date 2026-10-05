@@ -28451,7 +28451,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_arm_length_m => '臂长';
 
   @override
-  String get attrLabel_guide_number => '闪光指数';
+  String get attrLabel_guide_number_m => '闪光指数';
 
   @override
   String get attrLabel_bag_style => '款式';

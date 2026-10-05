@@ -29590,7 +29590,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_arm_length_m => 'Arm length';
 
   @override
-  String get attrLabel_guide_number => 'Guide number';
+  String get attrLabel_guide_number_m => 'Guide number';
 
   @override
   String get attrLabel_bag_style => 'Style';

@@ -30540,7 +30540,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_arm_length_m => 'طول الذراع';
 
   @override
-  String get attrLabel_guide_number => 'الرقم الدليلي';
+  String get attrLabel_guide_number_m => 'الرقم الدليلي';
 
   @override
   String get attrLabel_bag_style => 'النمط';

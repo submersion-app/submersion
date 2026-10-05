@@ -157,6 +157,8 @@ void main() {
       'mCCR': EquipmentType.rebreather,
       'eCCR': EquipmentType.rebreather,
       'pSCR': EquipmentType.rebreather,
+      'JJCCR': EquipmentType.rebreather,
+      'Scrubber canister': EquipmentType.rebreather,
       // "scr" sits inside "prescription", which once made every prescription
       // mask a rebreather.
       'Prescription mask': EquipmentType.mask,
@@ -245,6 +247,7 @@ void main() {
       'Arm clamp': EquipmentType.armClamp,
       'Video light': EquipmentType.videoLight,
       'Video lights': EquipmentType.videoLight,
+      'Video lamp': EquipmentType.videoLight,
       'Float arm': EquipmentType.floatArm,
       'Float collar': EquipmentType.floatArm,
       'Arm floats': EquipmentType.floatArm,
