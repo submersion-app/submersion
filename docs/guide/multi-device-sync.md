@@ -137,8 +137,10 @@ Switching to another diver switches to that diver's settings, and another device
 shows your settings when it has the same diver profile open.
 
 A device that was set up with its own diver profile before it joined sync keeps
-that profile, even when it has the same name as yours. After the first sync,
-**Settings &rarr; Cloud Sync** shows a **Duplicate diver profiles** banner. Tap
+that profile, even when it has the same name as yours. When two profiles have
+the same name (capitals and extra spaces are ignored), **Settings &rarr; Cloud
+Sync** shows a **Duplicate diver profiles** banner after the sync. If you named
+them differently, rename one to match the other and the banner appears. Tap
 **Merge** to combine them: dives and data move onto one profile, and that
 profile's settings are the ones every device uses from then on. Submersion keeps
 your default diver, or the oldest profile if none is the default. You can undo
