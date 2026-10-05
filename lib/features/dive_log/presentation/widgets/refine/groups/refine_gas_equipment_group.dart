@@ -195,38 +195,48 @@ class _RefineGasEquipmentGroupState
             .when(
               loading: () => const LinearProgressIndicator(),
               error: (_, _) => Text(l10n.diveLog_search_errorLoadingEquipment),
-              data: (items) => items.isEmpty
-                  ? Text(
-                      l10n.diveLog_equipmentPicker_noEquipment,
-                      style: const TextStyle(fontStyle: FontStyle.italic),
-                    )
-                  : Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        for (final item in items)
-                          FilterChip(
-                            avatar: Icon(
-                              equipmentTypeIcon(item.type),
-                              size: 18,
-                            ),
-                            label: Text(item.name),
-                            selected: d.equipmentIds.contains(item.id),
-                            onSelected: (selected) => widget.onChanged(
-                              d.copyWith(
-                                equipmentIds: selected
-                                    ? [...d.equipmentIds, item.id]
-                                    // Every copy goes: an imported filter
-                                    // can carry an id twice.
-                                    : [
-                                        for (final id in d.equipmentIds)
-                                          if (id != item.id) id,
-                                      ],
+              data: (all) {
+                // Wishlist gear (#2025) is never on a dive, so it gets no
+                // chip, unless the filter already holds it: then it stays
+                // visible so the diver can clear it.
+                final items = [
+                  for (final item in all)
+                    if (!item.isWanted || d.equipmentIds.contains(item.id))
+                      item,
+                ];
+                return items.isEmpty
+                    ? Text(
+                        l10n.diveLog_equipmentPicker_noEquipment,
+                        style: const TextStyle(fontStyle: FontStyle.italic),
+                      )
+                    : Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final item in items)
+                            FilterChip(
+                              avatar: Icon(
+                                equipmentTypeIcon(item.type),
+                                size: 18,
+                              ),
+                              label: Text(item.name),
+                              selected: d.equipmentIds.contains(item.id),
+                              onSelected: (selected) => widget.onChanged(
+                                d.copyWith(
+                                  equipmentIds: selected
+                                      ? [...d.equipmentIds, item.id]
+                                      // Every copy goes: an imported filter
+                                      // can carry an id twice.
+                                      : [
+                                          for (final id in d.equipmentIds)
+                                            if (id != item.id) id,
+                                        ],
+                                ),
                               ),
                             ),
-                          ),
-                      ],
-                    ),
+                        ],
+                      );
+              },
             ),
         RefineSubLabel(l10n.diveLog_filter_sectionSuitThickness),
         Row(

@@ -12,6 +12,7 @@ import 'package:submersion/features/equipment/presentation/widgets/service_statu
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/domain/services/session_item_composer.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Bottom sheet that starts a pre-dive checklist session: pick a template,
@@ -33,6 +34,14 @@ Future<void> showStartSessionSheet(
     ),
   );
 }
+
+/// The members of [set] a pre-dive session checks: every member in [all]
+/// except one on the wishlist (#2025), which is not in the diver's kit.
+List<EquipmentItem> sessionSetGear(List<EquipmentItem> all, EquipmentSet set) =>
+    [
+      for (final g in all)
+        if (set.equipmentIds.contains(g.id) && !g.isWanted) g,
+    ];
 
 class _StartSessionSheet extends ConsumerStatefulWidget {
   final String? diveId;
@@ -90,7 +99,7 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
         final all = await EquipmentRepository().getAllEquipment(
           diverId: diverId,
         );
-        gear = all.where((g) => chosenSet.equipmentIds.contains(g.id)).toList();
+        gear = sessionSetGear(all, chosenSet);
       }
       // Union of set-expanded gear and single-item links, deduplicated by id
       // so a device chosen both ways is not passed twice to the composer.
@@ -126,9 +135,18 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
       // items are shared across every diver.
       if (!template.isBuiltIn) {
         final templateRepo = ref.read(preDiveTemplateRepositoryProvider);
+        // A remembered device on the wishlist (#2025) was hidden from the
+        // picker, not unchosen: keep it remembered for when it is bought.
+        final wantedIds = {
+          for (final e in ref.read(allEquipmentProvider).value ?? const [])
+            if (e.isWanted) e.id,
+        };
         for (final item in _equipmentItems) {
           final chosen = _equipmentByItemId[item.id];
           final chosenId = chosen?.id;
+          if (chosenId == null && wantedIds.contains(item.equipmentId)) {
+            continue;
+          }
           if (chosenId != item.equipmentId) {
             await templateRepo.updateItemEquipment(item.id, chosenId);
           }
@@ -143,6 +161,48 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
     }
   }
 
+  /// One single-equipment item's device picker. [options] leaves out
+  /// wishlist gear (#2025), but a device already chosen stays listed even if
+  /// it turns Wanted while the sheet is open: a dropdown value missing from
+  /// its items fails Flutter's assertion and would drop the choice.
+  Widget _equipmentDropdown(
+    PreDiveChecklistTemplateItem item,
+    List<EquipmentItem> options,
+    AppLocalizations l10n,
+  ) {
+    final chosen = _equipmentByItemId[item.id];
+    final listed = [
+      ...options,
+      if (chosen != null && !options.any((e) => e.id == chosen.id)) chosen,
+    ];
+    return DropdownButtonFormField<EquipmentItem?>(
+      initialValue: chosen,
+      decoration: InputDecoration(labelText: item.title),
+      items: [
+        DropdownMenuItem<EquipmentItem?>(
+          value: null,
+          child: Text(l10n.preDive_start_noEquipment),
+        ),
+        for (final e in listed)
+          DropdownMenuItem<EquipmentItem?>(
+            value: e.id == chosen?.id ? chosen : e,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ServiceStatusIndicatorFor(
+                  equipmentId: e.id,
+                  density: ServiceIndicatorDensity.dot,
+                ),
+                const SizedBox(width: 6),
+                Flexible(child: Text(e.name, overflow: TextOverflow.ellipsis)),
+              ],
+            ),
+          ),
+      ],
+      onChanged: (e) => setState(() => _equipmentByItemId[item.id] = e),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -151,7 +211,12 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
     final setsAsync = ref.watch(equipmentSetsProvider);
     final sets = setsAsync.value ?? const [];
     final equipmentAsync = ref.watch(allEquipmentProvider);
-    final equipmentList = equipmentAsync.value ?? const [];
+    // Wishlist gear (#2025) is not something to check before a dive, and a
+    // remembered device the diver has since set to Wanted is not pre-filled.
+    final equipmentList = [
+      for (final e in equipmentAsync.value ?? const <EquipmentItem>[])
+        if (!e.isWanted) e,
+    ];
 
     // Pre-select the diver's default equipment set once sets load.
     if (!_setInitialized && sets.isNotEmpty) {
@@ -219,38 +284,7 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
             ],
             for (final item in _equipmentItems) ...[
               const SizedBox(height: 8),
-              DropdownButtonFormField<EquipmentItem?>(
-                initialValue: _equipmentByItemId[item.id],
-                decoration: InputDecoration(labelText: item.title),
-                items: [
-                  DropdownMenuItem<EquipmentItem?>(
-                    value: null,
-                    child: Text(l10n.preDive_start_noEquipment),
-                  ),
-                  for (final e in equipmentList)
-                    DropdownMenuItem<EquipmentItem?>(
-                      value: e,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ServiceStatusIndicatorFor(
-                            equipmentId: e.id,
-                            density: ServiceIndicatorDensity.dot,
-                          ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              e.name,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-                onChanged: (e) =>
-                    setState(() => _equipmentByItemId[item.id] = e),
-              ),
+              _equipmentDropdown(item, equipmentList, l10n),
             ],
             const SizedBox(height: 16),
             FilledButton(

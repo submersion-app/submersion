@@ -32,7 +32,7 @@ class DiveFilterGearAttributesSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final owned = ref.watch(ownedEquipmentTypesProvider);
+    final owned = ref.watch(diveGearTypesProvider);
     final categories = [
       for (final type in EquipmentType.values)
         if ((owned.contains(type) || type == category) &&

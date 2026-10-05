@@ -336,6 +336,27 @@ void main() {
         ('trip_hides', 'tripHides', 'hide-of-a'),
       ];
     },
+    'Insights observation dismissals': () async {
+      await db
+          .into(db.insightObservationDismissals)
+          .insert(
+            InsightObservationDismissalsCompanion.insert(
+              id: 'dis-a',
+              diverId: 'diver-a',
+              ruleId: 'rmvTrend',
+              fingerprint: 'down:1',
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [
+        (
+          'insight_observation_dismissals',
+          'insightObservationDismissals',
+          'dis-a',
+        ),
+      ];
+    },
     'gear with its service, component, check-in and finding rows': () async {
       await insertEquipment('reg-a');
       await insertEquipment('hose-a');

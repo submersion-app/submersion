@@ -450,7 +450,13 @@ enum EquipmentStatus {
   retired('Retired'),
   sold('Sold'),
   loaned('Loaned Out'),
-  lost('Lost');
+  lost('Lost'),
+
+  /// Gear the diver wants to buy (#2025). Not owned yet, so it is stored
+  /// with isActive=false like Sold and kept out of every owned-gear surface:
+  /// the active list, pickers, sets, service clocks, statistics and totals.
+  /// "Mark as purchased" turns it into active gear.
+  wanted('Wanted');
 
   final String displayName;
   const EquipmentStatus(this.displayName);

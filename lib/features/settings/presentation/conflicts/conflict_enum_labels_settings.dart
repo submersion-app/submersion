@@ -34,6 +34,10 @@ final ConflictEnumLabeler depthUnitLabeler = enumLabeler(
   DepthUnit.values,
   (l, v) => v.symbol,
 );
+final ConflictEnumLabeler distanceUnitLabeler = enumLabeler(
+  DistanceUnit.values,
+  (l, v) => v.symbol,
+);
 final ConflictEnumLabeler pressureUnitLabeler = enumLabeler(
   PressureUnit.values,
   (l, v) => v.symbol,
@@ -52,10 +56,6 @@ final ConflictEnumLabeler weightUnitLabeler = enumLabeler(
 );
 final ConflictEnumLabeler altitudeUnitLabeler = enumLabeler(
   AltitudeUnit.values,
-  (l, v) => v.symbol,
-);
-final ConflictEnumLabeler distanceUnitLabeler = enumLabeler(
-  DistanceUnit.values,
   (l, v) => v.symbol,
 );
 
