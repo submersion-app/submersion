@@ -11,8 +11,9 @@ const sitePickerFieldKey = Key('site-picker-field');
 /// A dive filter's site field: shows the selected site (or "All sites") and
 /// opens the shared site picker sheet on tap (#1080).
 ///
-/// The value is always a site id or null; an id whose site has been deleted
-/// shows "All sites", like the filter it stands for.
+/// The value is always a site id or null. An id whose site has been deleted
+/// shows "All sites", but keeps the clear button, since the filter still
+/// applies until it is cleared.
 class SitePickerField extends ConsumerWidget {
   const SitePickerField({
     super.key,
@@ -57,7 +58,7 @@ class SitePickerField extends ConsumerWidget {
         decoration: InputDecoration(
           labelText: l10n.diveLog_search_label_diveSite,
           prefixIcon: const Icon(Icons.location_on),
-          suffixIcon: site == null
+          suffixIcon: value == null
               ? const Icon(Icons.arrow_drop_down)
               : IconButton(
                   icon: const Icon(Icons.clear),

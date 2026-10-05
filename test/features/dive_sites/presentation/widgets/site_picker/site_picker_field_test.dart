@@ -54,10 +54,14 @@ void main() {
     expect(find.text('Dahab · Egypt'), findsOneWidget);
   });
 
-  testWidgets('a deleted site id falls back to All sites', (tester) async {
-    await _pump(tester, 'gone');
+  testWidgets('a deleted site id shows All sites but stays clearable', (
+    tester,
+  ) async {
+    final changes = await _pump(tester, 'gone');
     expect(find.text('All sites'), findsOneWidget);
-    expect(find.byTooltip('Clear site filter'), findsNothing);
+    await tester.tap(find.byTooltip('Clear site filter'));
+    await tester.pumpAndSettle();
+    expect(changes, [null]);
   });
 
   testWidgets('tapping opens the sheet, searching and picking sets the id', (

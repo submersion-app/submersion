@@ -490,4 +490,21 @@ void main() {
     expect(find.text('Nearby'), findsNothing);
     expect(find.text('Sorted by distance from this dive'), findsNothing);
   });
+
+  // A filter whose site was deleted, with no sites left, must still be
+  // clearable from the sheet.
+  testWidgets('filter mode offers All sites even with no sites', (
+    tester,
+  ) async {
+    var cleared = 0;
+    await _pump(
+      tester,
+      sites: const [],
+      selectedSiteId: 'deleted',
+      onClear: () => cleared++,
+    );
+    expect(find.text('No dive sites yet'), findsOneWidget);
+    await tester.tap(find.text('All sites'));
+    expect(cleared, 1);
+  });
 }

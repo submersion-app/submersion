@@ -366,7 +366,15 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
         Expanded(
           child: sitesAsync.when(
             data: (sites) => sites.isEmpty
-                ? _buildEmptyState(context, colorScheme)
+                ? Column(
+                    children: [
+                      // A filter on a since-deleted site must stay
+                      // clearable even when no sites are left.
+                      if (widget.onClear != null)
+                        _buildClearRow(context, colorScheme),
+                      Expanded(child: _buildEmptyState(context, colorScheme)),
+                    ],
+                  )
                 : _buildList(context, sites, query, units, colorScheme),
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, _) => Center(
@@ -461,6 +469,18 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
     );
   }
 
+  /// The filter's leading "All sites" row, which clears the selection.
+  Widget _buildClearRow(BuildContext context, ColorScheme colorScheme) {
+    return ListTile(
+      leading: const CircleAvatar(child: Icon(Icons.public)),
+      title: Text(context.l10n.diveLog_filter_allSites),
+      trailing: widget.selectedSiteId == null
+          ? Icon(Icons.check_circle, color: colorScheme.primary)
+          : null,
+      onTap: widget.onClear,
+    );
+  }
+
   Widget _buildEmptyState(BuildContext context, ColorScheme colorScheme) {
     return Center(
       child: Column(
@@ -530,15 +550,7 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
     ]..sort((a, b) => a.distance.compareTo(b.distance));
 
     final rows = <Widget Function()>[
-      if (widget.onClear != null)
-        () => ListTile(
-          leading: const CircleAvatar(child: Icon(Icons.public)),
-          title: Text(context.l10n.diveLog_filter_allSites),
-          trailing: widget.selectedSiteId == null
-              ? Icon(Icons.check_circle, color: colorScheme.primary)
-              : null,
-          onTap: widget.onClear,
-        ),
+      if (widget.onClear != null) () => _buildClearRow(context, colorScheme),
       if (nearby.isNotEmpty) ...[
         () => SiteSectionLabel(context.l10n.diveSites_picker_nearby),
         for (final entry in nearby)
