@@ -118,7 +118,7 @@ void main() {
     });
 
     // The upload-quality keys are library-wide, not device-local: if a future
-    // change adds them to _deviceLocalSettingsKeys, every device silently goes
+    // change adds them to deviceLocalSettingsKeys, every device silently goes
     // back to deciding archival fidelity on its own and the library becomes
     // inconsistent again. This is the tripwire for that.
     test(

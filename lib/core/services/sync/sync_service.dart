@@ -13,6 +13,7 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
+import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/media_resolution_hints.dart';
@@ -3125,7 +3126,7 @@ class SyncService {
         // or resurrect an orphan. A NOT NULL (cascade) child is skipped; a
         // nullable (set-null) reference is cleared so the row survives detached
         // (e.g. a photo whose dive was deleted keeps the photo, sans dive link).
-        var recordToApply = _withoutDeviceLocalFields(entityType, record);
+        var recordToApply = withoutDeviceLocalColumns(entityType, record);
         var droppedByParent = false;
         for (final ref in entityParentRefs) {
           final parentId = record[ref.field];
@@ -3500,20 +3501,6 @@ class SyncService {
     );
   }
 
-  /// BLE identifiers are host-specific and must never cross the sync boundary.
-  static Map<String, dynamic> _withoutDeviceLocalFields(
-    String entityType,
-    Map<String, dynamic> data,
-  ) {
-    if (entityType != 'diveComputers' ||
-        !data.containsKey('bluetoothAddress')) {
-      return data;
-    }
-    final copy = Map<String, dynamic>.from(data);
-    copy.remove('bluetoothAddress');
-    return copy;
-  }
-
   Future<Map<String, Set<String>>> _pendingRecordMap() async {
     final records = await _syncRepository.getPendingRecords();
     final map = <String, Set<String>>{};
@@ -3733,7 +3720,7 @@ class SyncService {
       return;
     }
 
-    final remoteData = _withoutDeviceLocalFields(
+    final remoteData = withoutDeviceLocalColumns(
       entityType,
       _parseConflictData(match.conflictData!),
     );
