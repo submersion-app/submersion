@@ -16,43 +16,40 @@ final focusSelectionProvider = StateProvider<FocusSelection>(
   (ref) => const FocusSelection(),
 );
 
-/// Per-dive values of [metric], from the same repository series the trend
-/// charts draw, with the same filter and exclusion scope.
+/// Per-dive values of [metric]: the trend charts' own providers where one
+/// exists for the metric, so a dive's value here is its value on that chart
+/// and both pages share one cached query.
+///
+/// RMV and SAC read the repository directly: the gas page's
+/// `sacTrendProvider` follows the page's lane toggle, while Dive focus names
+/// its lane in the metric.
 final focusMetricSeriesProvider =
     FutureProvider.family<List<TrendDataPoint>, FocusMetric>((
       ref,
       metric,
     ) async {
-      final repository = ref.watch(insightsRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchInsightsChanges());
-      final diverId = ref.watch(currentDiverIdProvider);
-      final filter = ref.watch(insightsFilterProvider);
-      return switch (metric) {
-        FocusMetric.rmv => repository.getSacVolumePerDive(
-          diverId: diverId,
-          filter: filter,
-        ),
-        FocusMetric.sac => repository.getSacPressurePerDive(
-          diverId: diverId,
-          filter: filter,
-        ),
-        FocusMetric.maxDepth => repository.getDepthPerDive(
-          diverId: diverId,
-          filter: filter,
-        ),
-        FocusMetric.bottomTime => repository.getBottomTimePerDive(
-          diverId: diverId,
-          filter: filter,
-        ),
-        FocusMetric.weight => repository.getWeightPerDive(
-          diverId: diverId,
-          filter: filter,
-        ),
-        FocusMetric.waterTemp => repository.getWaterTempPerDive(
-          diverId: diverId,
-          filter: filter,
-        ),
-      };
+      switch (metric) {
+        case FocusMetric.maxDepth:
+          return ref.watch(depthProgressionTrendProvider.future);
+        case FocusMetric.bottomTime:
+          return ref.watch(bottomTimeTrendProvider.future);
+        case FocusMetric.weight:
+          return ref.watch(weightTrendProvider.future);
+        case FocusMetric.waterTemp:
+          return ref.watch(waterTempTrendProvider.future);
+        case FocusMetric.rmv:
+        case FocusMetric.sac:
+          final repository = ref.watch(insightsRepositoryProvider);
+          ref.invalidateSelfWhen(repository.watchInsightsChanges());
+          final diverId = ref.watch(currentDiverIdProvider);
+          final filter = ref.watch(insightsFilterProvider);
+          return metric == FocusMetric.rmv
+              ? repository.getSacVolumePerDive(diverId: diverId, filter: filter)
+              : repository.getSacPressurePerDive(
+                  diverId: diverId,
+                  filter: filter,
+                );
+      }
     });
 
 /// The dives the current selection picks.

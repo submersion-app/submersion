@@ -153,6 +153,9 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   /// The strip's points, rebuilt with the chart only while it is showing.
   List<Offset> _overviewPoints = const [];
 
+  /// What [_overviewPoints] was last built from; lists compare by identity.
+  Object? _overviewKey;
+
   final TrendWindowSeater _seater = TrendWindowSeater();
 
   /// Hands the settled window to [DiveTrendChart.onRangeChanged].
@@ -303,7 +306,18 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       if (fit != null) ...[fit.valueAt(firstDate), fit.valueAt(lastDate)],
     ]);
 
-    if (_viewport.isZoomed || _stripActive) {
+    // Only rebuilt when what it is drawn from changes: pan and zoom rebuild
+    // the chart on every pointer move, and the data does not move with them.
+    final overviewKey = (
+      points,
+      widget.secondarySeries,
+      fullMin,
+      fullSpan,
+      yAxis.min,
+      yAxis.max,
+    );
+    if ((_viewport.isZoomed || _stripActive) && overviewKey != _overviewKey) {
+      _overviewKey = overviewKey;
       final ySpan = yAxis.max - yAxis.min;
       _overviewPoints = [
         for (final p in [

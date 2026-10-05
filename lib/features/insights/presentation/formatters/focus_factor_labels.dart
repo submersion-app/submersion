@@ -1,6 +1,4 @@
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/constants/units.dart';
-import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
@@ -54,10 +52,6 @@ String focusNumericValue(
   _ => value.toStringAsFixed(1),
 };
 
-const _monthKeys = [
-  '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', //
-];
-
 /// A signed difference between two numeric factor values, in display units.
 ///
 /// A temperature difference is a delta: 2 C warmer is 3.6 F warmer, so it
@@ -71,28 +65,10 @@ String focusNumericDifference(
   final sign = difference >= 0 ? '+' : '-';
   final magnitude = difference.abs();
   if (id == FocusFactorId.waterTemp) {
-    final scaled = units.settings.temperatureUnit == TemperatureUnit.fahrenheit
-        ? magnitude * 9 / 5
-        : magnitude;
-    return '$sign${formatFixedForDisplay(scaled, 1)}${units.temperatureSymbol}';
+    return '$sign${units.formatTemperatureDelta(magnitude)}';
   }
   return '$sign${focusNumericValue(id, magnitude, units, l10n)}';
 }
-
-String _month(int month, AppLocalizations l10n) => [
-  l10n.insights_timePatterns_month_jan,
-  l10n.insights_timePatterns_month_feb,
-  l10n.insights_timePatterns_month_mar,
-  l10n.insights_timePatterns_month_apr,
-  l10n.insights_timePatterns_month_may,
-  l10n.insights_timePatterns_month_jun,
-  l10n.insights_timePatterns_month_jul,
-  l10n.insights_timePatterns_month_aug,
-  l10n.insights_timePatterns_month_sep,
-  l10n.insights_timePatterns_month_oct,
-  l10n.insights_timePatterns_month_nov,
-  l10n.insights_timePatterns_month_dec,
-][month - 1];
 
 /// Display text for one category value, from the stable key the repository
 /// and the analyzer emit.
@@ -117,9 +93,12 @@ String focusCategoryLabel(
     case FocusFactorId.entryMethod:
       return entryMethodDistributionLabel(key, l10n);
     case FocusFactorId.month:
-      // Keys are "1".."12"; looked up rather than parsed.
-      final index = _monthKeys.indexOf(key);
-      return index < 0 ? key : _month(index + 1, l10n);
+      // Keys are "1".."12", as the analyzer emits them.
+      final labels = insightsMonthLabels(l10n);
+      for (var month = 1; month <= labels.length; month++) {
+        if (key == '$month') return labels[month - 1];
+      }
+      return key;
     case FocusFactorId.timeOfDay:
       return timeOfDayDistributionLabel(key, l10n);
     case FocusFactorId.site:

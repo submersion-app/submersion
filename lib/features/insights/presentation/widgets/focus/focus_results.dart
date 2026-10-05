@@ -142,7 +142,7 @@ class FocusResults extends ConsumerWidget {
           ? l10n.insights_focus_noMatch_above(value, min, max)
           : l10n.insights_focus_noMatch_below(value, min, max);
     }
-    if (selection.mode.isRanked && selection.count >= group.population.length) {
+    if (selection.mode.isRanked && selection.count > group.population.length) {
       return l10n.insights_focus_summary_allShown(group.population.length);
     }
     return l10n.insights_focus_summary(

@@ -174,7 +174,9 @@ class TrendChartSection extends ConsumerWidget {
       initialDateRange: initial,
       dateFormat: ref.read(dateFormatProvider),
     );
-    if (picked == null) return;
+    // The section can be disposed while the dialog is open (the Insights
+    // detail pane switched category); its ref is unusable then.
+    if (picked == null || !context.mounted) return;
     final latest = ref.read(trendChartSettingsProvider(chartId));
     _update(
       ref,

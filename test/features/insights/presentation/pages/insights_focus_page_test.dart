@@ -165,4 +165,12 @@ void main() {
     expect(chart.points, hasLength(2));
     expect(chart.secondarySeries.single.points, hasLength(10));
   });
+
+  testWidgets('asking for exactly every dive shows the normal summary', (
+    tester,
+  ) async {
+    await pump(tester, selection: const FocusSelection(count: 12));
+    expect(find.textContaining('12 of 12 dives'), findsOneWidget);
+    expect(find.textContaining('so all of them are shown'), findsNothing);
+  });
 }
