@@ -45,7 +45,17 @@ void main() {
               builder: (context, id, _) => TableModeLayout(
                 sectionKey: 'dives',
                 appBarTitle: 'Dives',
-                tableContent: const Text('Table Content'),
+                // A row wired like DiveTableView's: pointer-down lights it,
+                // a double-tap opens the full page.
+                tableContent: Listener(
+                  onPointerDown: (_) => highlighted.value = 'a',
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {},
+                    onDoubleTap: () => router.push('/test/a'),
+                    child: const Text('Row a'),
+                  ),
+                ),
                 detailBuilder: (_, id) => Text('Detail $id'),
                 summaryBuilder: (_) => const Text('Summary'),
                 selectedId: id,
@@ -119,12 +129,14 @@ void main() {
   ) async {
     await pumpLayout(tester);
 
-    // First tap's pointer-down highlights the row; the second tap of the
-    // double-tap pushes the full page well inside kDoubleTapTimeout.
-    highlighted.value = 'a';
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 150));
-    router.push('/test/a');
+    // The first tap's pointer-down lights the row, and the pane follows
+    // before the second tap arrives, so the route changes mid-gesture.
+    await tester.tap(find.text('Row a'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(location(), '/test?selected=a');
+
+    // The second tap still completes the double-tap and pushes the page.
+    await tester.tap(find.text('Row a'));
     await tester.pumpAndSettle();
 
     // Long after any former debounce would have fired.
