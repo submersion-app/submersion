@@ -510,6 +510,26 @@ const int _ndlInDeco = -1;
 bool _isComputerDecoSample(DiveProfilePoint point) =>
     point.decoType == kDecoTypeDecoStop;
 
+/// The computer's CNS curve, one value per [profile] sample.
+///
+/// Many computers log CNS only every few samples (the OSTC family on every
+/// Nth one), and a sample without a reading is not the computer saying CNS
+/// changed: CNS moves over minutes. So each sample holds the last computer
+/// reading, and only the samples before the first reading take the
+/// [calculated] value. Filling every gap from [calculated] instead would make
+/// the curve step between two models wherever they disagree (#2545).
+List<double> _overlayComputerCns(
+  List<DiveProfilePoint> profile,
+  List<double>? calculated,
+) {
+  double? held;
+  return List<double>.generate(profile.length, (i) {
+    held = profile[i].cns ?? held;
+    return held ??
+        (calculated != null && i < calculated.length ? calculated[i] : 0.0);
+  });
+}
+
 /// Overlays computer-reported decompression data onto a calculated
 /// [ProfileAnalysis].
 ///
@@ -555,7 +575,7 @@ bool _isComputerDecoSample(DiveProfilePoint point) =>
     (p) => p.ceiling != null && p.ceiling! > 0,
   );
   final hasComputerTts = profile.any((p) => p.tts != null && p.tts! > 0);
-  final hasComputerCns = profile.any((p) => p.cns != null);
+  final computerCns = hasComputerCns(profile);
   // Air-integrated computers log their own GTR (libdc RBT, stored in
   // seconds); a null sample is the computer blanking its display.
   final hasComputerGtr = profile.any((p) => p.rbt != null);
@@ -566,7 +586,7 @@ bool _isComputerDecoSample(DiveProfilePoint point) =>
   final useCeiling =
       ceilingSource == MetricDataSource.computer && hasComputerCeiling;
   final useTts = ttsSource == MetricDataSource.computer && hasComputerTts;
-  final useCns = cnsSource == MetricDataSource.computer && hasComputerCns;
+  final useCns = cnsSource == MetricDataSource.computer && computerCns;
   final useGtr = gtrSource == MetricDataSource.computer && hasComputerGtr;
   // Resolved independently of useCeiling: the deco stop band must not be
   // dragged along when the user picks "computer" for the ceiling line alone.
@@ -661,16 +681,7 @@ bool _isComputerDecoSample(DiveProfilePoint point) =>
             return 0;
           })
         : null,
-    cnsCurve: useCns
-        ? List<double>.generate(
-            profile.length,
-            (i) =>
-                profile[i].cns ??
-                (analysis.cnsCurve != null && i < analysis.cnsCurve!.length
-                    ? analysis.cnsCurve![i]
-                    : 0.0),
-          )
-        : null,
+    cnsCurve: useCns ? _overlayComputerCns(profile, analysis.cnsCurve) : null,
     // The computer's GTR verbatim: a null sample stays blank rather than
     // borrowing the calculated value, because this source exists to show
     // what the diver's display actually read.

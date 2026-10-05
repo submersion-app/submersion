@@ -110,4 +110,41 @@ void main() {
     expect(find.text('4′'), findsOneWidget); // planned: the 240 s stop
     expect(find.text('22′'), findsOneWidget); // actual, from the profile
   });
+
+  // Issue #2545: computers such as the OSTC log CNS only every few samples,
+  // so the last sample of the dive usually carries none. The actual CNS is
+  // the last reading the computer logged.
+  testWidgets('shows the last computer CNS reading when the final sample '
+      'has none', (tester) async {
+    final dive = Dive(
+      id: 'd1',
+      dateTime: DateTime(2026, 1, 1),
+      maxDepth: 28,
+      profile: const [
+        DiveProfilePoint(timestamp: 0, depth: 0, cns: 3.0),
+        DiveProfilePoint(timestamp: 60, depth: 20),
+        DiveProfilePoint(timestamp: 120, depth: 20, cns: 21.6),
+        DiveProfilePoint(timestamp: 180, depth: 0),
+      ],
+    );
+
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          sourceDiveForPlanProvider.overrideWith((ref) async => dive),
+          sourceDiveTtsSecondsProvider.overrideWith((ref) async => null),
+          sourceDiveDecoSecondsProvider.overrideWith((ref) async => null),
+          activePlanOutcomeProvider.overrideWithValue(_outcome()),
+        ],
+        child: const PlanSourceDiveCompareStrip(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('CNS'), findsOneWidget);
+    expect(find.text('15%'), findsOneWidget); // planned
+    expect(find.text('22%'), findsOneWidget); // actual: the last reading
+  });
 }

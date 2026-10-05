@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/services/computer_cns_extractor.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/source_dive_deco_provider.dart';
@@ -69,11 +70,13 @@ class PlanSourceDiveCompareStrip extends ConsumerWidget {
             planned: _plannedGasFor(outcome, tank.id, units),
             actual: units.formatVolume(tank.pressureUsed! * tank.volume!),
           ),
-      if (dive.profile.isNotEmpty && dive.profile.last.cns != null)
+      // The last reading the computer logged, not the last sample's: many
+      // computers log CNS only every few samples (#2545).
+      if (extractComputerCns(dive.profile) case final computerCns?)
         _CompareRow(
           label: context.l10n.plannerCanvas_compare_cns,
           planned: '${outcome.cnsEnd.round()}%',
-          actual: '${dive.profile.last.cns!.round()}%',
+          actual: '${computerCns.cnsEnd.round()}%',
         ),
     ];
 
