@@ -124,4 +124,17 @@ void main() {
     await tester.pump();
     expect(find.text('240/256'), findsOneWidget);
   });
+
+  testWidgets('a name sits clearly closer to its own row than to the next', (
+    tester,
+  ) async {
+    await pumpRows(tester, [w('a', 1), w('b', 2)]);
+    final ownGap =
+        tester.getTopLeft(nameField(0)).dy -
+        tester.getBottomLeft(amountField('1')).dy;
+    final nextGap =
+        tester.getTopLeft(amountField('2')).dy -
+        tester.getBottomLeft(nameField(0)).dy;
+    expect(nextGap, greaterThanOrEqualTo(ownGap * 2));
+  });
 }

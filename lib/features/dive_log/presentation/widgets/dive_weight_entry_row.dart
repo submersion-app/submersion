@@ -59,7 +59,8 @@ class _DiveWeightEntryRowState extends State<DiveWeightEntryRow> {
     // zeros dropped, so a stored 0.65 kg is not snapped to 0.7 (#1609).
     final displayAmount = units.convertWeight(_current.amountKg);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      // A row's name sits closer to its own row than to the next.
+      padding: const EdgeInsets.only(bottom: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

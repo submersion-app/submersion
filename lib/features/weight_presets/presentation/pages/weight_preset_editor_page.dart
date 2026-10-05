@@ -263,7 +263,8 @@ class _WeightPresetEditorPageState
     // state to the next row.
     return Padding(
       key: ObjectKey(row),
-      padding: const EdgeInsets.only(bottom: 12),
+      // A row's name sits closer to its own row than to the next.
+      padding: const EdgeInsets.only(bottom: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
