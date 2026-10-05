@@ -33,6 +33,7 @@ class ConnectionsCanvas extends StatefulWidget {
     this.semanticsLabel,
     this.animate = false,
     this.bottomInset = 0,
+    this.topInset = 0,
     this.highlight = HighlightMode.byKind,
     this.groupOf = const {},
   });
@@ -51,6 +52,10 @@ class ConnectionsCanvas extends StatefulWidget {
   /// Screen pixels at the bottom covered by something else (the phone's
   /// panel sheet); the fit keeps the graph above them.
   final double bottomInset;
+
+  /// Screen pixels at the top covered by something else (the insight
+  /// strip); the fit keeps the graph below them.
+  final double topInset;
 
   /// How the painter colours the map.
   final HighlightMode highlight;
@@ -122,7 +127,8 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
       old.controller.removeListener(_onFrame);
       widget.controller.addListener(_onFrame);
     }
-    if (old.bottomInset != widget.bottomInset &&
+    if ((old.bottomInset != widget.bottomInset ||
+            old.topInset != widget.topInset) &&
         !_userMoved &&
         _size != Size.zero &&
         widget.controller.frame.positions.isNotEmpty) {
@@ -205,7 +211,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
       widget.controller.frame.bounds,
       size,
       left: math.max(r, 70),
-      top: r,
+      top: r + widget.topInset,
       right: math.max(r, 70),
       bottom: r + 2 + labelHeight + widget.bottomInset,
     );

@@ -391,6 +391,8 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
               semanticsLabel: _semanticsLabel(graph, selection),
               animate: animate,
               bottomInset: bottomInset,
+              // The strip sits 8 px down; 0 when it has no tiles.
+              topInset: _insights.isEmpty ? 0 : InsightStrip.height + 8,
               highlight: view.highlight,
               groupOf: _groups.groupOf,
               onSelect: (s) =>

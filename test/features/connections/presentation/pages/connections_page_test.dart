@@ -24,6 +24,7 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/saved_connection_maps_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/year_play_provider.dart';
+import 'package:submersion/features/connections/presentation/widgets/insight_strip.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -687,5 +688,50 @@ void main() {
     await _pump(tester, graph: (ref, budget) => ConnectionGraph.empty);
     final button = find.byKey(const ValueKey('connections-share'));
     expect(tester.widget<IconButton>(button).onPressed, isNull);
+  });
+  testWidgets('the camera keeps every node below the insight strip', (
+    tester,
+  ) async {
+    // A tall chain fills the canvas height; a fit that ignores the strip
+    // tucks the top node under it.
+    final chain = ConnectionGraph(
+      nodes: [
+        for (var i = 0; i < 8; i++)
+          ConnectionNode(ref: _b('n$i'), label: 'N$i', diveCount: 8 - i),
+      ],
+      edges: [
+        for (var i = 0; i < 7; i++)
+          ConnectionEdge(
+            source: _b('n$i'),
+            target: _b('n${i + 1}'),
+            weight: 3,
+            firstDiveAt: DateTime.utc(2020),
+            lastDiveAt: DateTime.utc(2024),
+          ),
+      ],
+    );
+    await _pump(tester, size: const Size(1280, 500), graph: (ref, b) => chain);
+    for (var i = 0; i < 300; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    final painter =
+        tester
+                .widget<CustomPaint>(
+                  find.byKey(const ValueKey('connections-canvas-paint')),
+                )
+                .painter!
+            as ConnectionsPainter;
+    final stripBottom = tester
+        .getBottomLeft(find.byKey(const ValueKey('connections-insights')))
+        .dy;
+    final canvasTop = tester
+        .getTopLeft(find.byKey(const ValueKey('connections-canvas-paint')))
+        .dy;
+    expect(stripBottom - canvasTop, InsightStrip.height + 8);
+    for (final n in chain.nodes) {
+      final p = painter.frame.positions[n.ref]!;
+      final top = painter.viewport.toScreen(p).dy - painter.radiusOf(n);
+      expect(top, greaterThanOrEqualTo(stripBottom - canvasTop), reason: n.label);
+    }
   });
 }
