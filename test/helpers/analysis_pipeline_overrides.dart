@@ -37,8 +37,9 @@ class _DefaultDiverSettingsRepository extends DiverSettingsRepository {
   @override
   Future<void> updateSettingsForDiver(
     String diverId,
-    AppSettings settings,
-  ) async {}
+    AppSettings settings, {
+    AppSettings? previous,
+  }) async {}
 }
 
 class _DefaultSettingsNotifier extends SettingsNotifier {

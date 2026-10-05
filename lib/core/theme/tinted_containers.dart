@@ -21,11 +21,11 @@ const double _darkTint = 0.28;
 /// it keeps the theme's hue and stays close to the surface in lightness, and
 /// its foreground is the scheme's onSurface.
 ///
-/// [secondaryAccent] replaces the secondary (and tertiary) accent as the tint
-/// source. Material draws selection indicators (navigation indicators,
-/// selected segments and chips) in secondaryContainer, so a theme passes this
-/// to give them a different accent; Console dark tints them from its teal
-/// primary rather than its slate secondary.
+/// [secondaryAccent] replaces the secondary accent as the tint source for
+/// secondaryContainer. Material draws selection indicators (navigation
+/// indicators, selected segments and chips) in it, so a theme passes this to
+/// give them a different accent; Console dark tints them from its teal primary
+/// rather than its slate secondary.
 ColorScheme withTintedContainers(ColorScheme scheme, {Color? secondaryAccent}) {
   final tint = scheme.brightness == Brightness.dark ? _darkTint : _lightTint;
   Color container(Color accent) =>
@@ -36,7 +36,7 @@ ColorScheme withTintedContainers(ColorScheme scheme, {Color? secondaryAccent}) {
     onPrimaryContainer: scheme.onSurface,
     secondaryContainer: container(secondaryAccent ?? scheme.secondary),
     onSecondaryContainer: scheme.onSurface,
-    tertiaryContainer: container(secondaryAccent ?? scheme.tertiary),
+    tertiaryContainer: container(scheme.tertiary),
     onTertiaryContainer: scheme.onSurface,
     errorContainer: container(scheme.error),
     onErrorContainer: scheme.onSurface,

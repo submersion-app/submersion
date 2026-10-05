@@ -30,6 +30,14 @@ const _onPrimaryDark = Color(0xFF0A1018);
 const _cardLight = Color(0xFFFFFFFF);
 const _cardDark = Color(0xFF1A2230);
 
+// Dark mode needs its own tertiary. Left unset, ColorScheme falls back to
+// secondary, which was once the app-bar navy, the same colour as _cardDark, so
+// every tertiary label on a card was invisible (issue #2956). Light mode's
+// fallback (_appBarLight on white) already reads, so it stays unset. The mid
+// blue reads as text on cards (4.7:1), and dark onTertiary text reads on it
+// (5.6:1) where white would fall short of 4.5:1 for small badge labels.
+const _tertiaryDark = Color(0xFF4A90D0);
+
 const _cardBorderLight = Color(0xFFD0D8E0);
 const _cardBorderDark = Color(0xFF2A3A4A);
 
@@ -141,6 +149,8 @@ final ThemeData consoleDark = ThemeData(
       onPrimary: _onPrimaryDark,
       secondary: _secondaryDark,
       onSecondary: _onPrimaryDark,
+      tertiary: _tertiaryDark,
+      onTertiary: _onPrimaryDark,
       error: _errorDark,
       onError: _onErrorDark,
       surface: _surfaceDark,

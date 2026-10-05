@@ -606,4 +606,29 @@ void main() {
       expect(find.text('Spare'), findsOneWidget);
     });
   });
+
+  testWidgets('orders the category chips by their label (#2937)', (
+    tester,
+  ) async {
+    // Owned in enum order regulator, bcd, wetsuit; a selected but unowned
+    // DPV joins them. Alphabetically BCD and DPV lead.
+    _useTallSurface(tester);
+    final container = await _container(
+      filter: const EquipmentFilterState(type: EquipmentType.dpv),
+    );
+
+    await _openSheet(tester, container);
+
+    final keys = [
+      for (final chip in tester.widgetList<ChoiceChip>(find.byType(ChoiceChip)))
+        (chip.key! as ValueKey<String>).value,
+    ].where((k) => k.startsWith('equipment_filter_type_')).toList();
+    expect(keys, [
+      'equipment_filter_type_all',
+      'equipment_filter_type_bcd',
+      'equipment_filter_type_dpv',
+      'equipment_filter_type_regulator',
+      'equipment_filter_type_wetsuit',
+    ]);
+  });
 }

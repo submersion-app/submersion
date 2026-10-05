@@ -5,6 +5,8 @@ import 'package:submersion/features/dive_computer/domain/entities/clock_sync.dar
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/pin_code_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -630,22 +632,24 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     final dateStr = units.formatDateTimeBullet(dive.startTime);
     final durationMin = dive.durationSeconds ~/ 60;
 
-    // Build detail chips
+    // Build detail chips, in the diver's depth and temperature units
     final details = <String>[
-      '${dive.maxDepth.toStringAsFixed(1)}m',
+      units.formatDepth(dive.maxDepth),
       '${durationMin}min',
     ];
     if (dive.avgDepth != null) {
-      details.add('avg ${dive.avgDepth!.toStringAsFixed(1)}m');
+      details.add('avg ${units.formatDepth(dive.avgDepth)}');
     }
     if (dive.minTemperature != null) {
-      details.add('${dive.minTemperature!.toStringAsFixed(0)}C');
+      details.add(units.formatTemperature(dive.minTemperature));
     }
 
-    // Gas mix info from tanks
+    // Gas mix info from tanks. GasMix names trimix and oxygen properly (a
+    // CCR's 10/50 diluent is "Tx 10/50", not "EAN10") and treats 20.9% as air.
     final gasMixes = dive.tanks
-        .where((t) => t.o2Percent != 21.0)
-        .map((t) => 'EAN${t.o2Percent.round()}')
+        .map((t) => GasMix(o2: t.o2Percent, he: t.hePercent))
+        .where((mix) => !mix.isAir)
+        .map((mix) => mix.name)
         .toSet();
 
     return Padding(
@@ -674,11 +678,14 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
             children: [
               for (final detail in details)
                 Text(detail, style: theme.textTheme.bodySmall),
+              // Primary, not tertiary: a hand-built preset without its own
+              // tertiary falls back to secondary, which can be the card colour
+              // itself, painting the label invisibly (issue #2956).
               if (gasMixes.isNotEmpty)
                 Text(
                   gasMixes.join(', '),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.tertiary,
+                    color: colorScheme.primary,
                   ),
                 ),
               if (dive.decoAlgorithm != null)

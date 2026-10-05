@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Localized labels for the equipment enums shown on screen.
@@ -54,6 +55,13 @@ extension EquipmentTypeDisplay on EquipmentType {
     EquipmentType.battery => l10n.enum_equipmentType_battery,
     EquipmentType.other => l10n.enum_equipmentType_other,
   };
+}
+
+/// Orders a set of types the way a diver scans for one: alphabetically by
+/// the label on screen, in the active locale (#2937).
+extension EquipmentTypeListDisplay on Iterable<EquipmentType> {
+  List<EquipmentType> sortedByLocalizedName(AppLocalizations l10n) =>
+      sortEquipmentTypesByLabel(this, (type) => type.localizedName(l10n));
 }
 
 extension EquipmentStatusDisplay on EquipmentStatus {

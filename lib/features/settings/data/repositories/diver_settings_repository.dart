@@ -36,6 +36,14 @@ class DiverSettingsRepository {
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(DiverSettingsRepository);
 
+  /// Fires after any write to a diver's settings row, including the rows a
+  /// sync applies from another device.
+  Stream<void> watchSettingsChanges() {
+    final db = DatabaseService.instance.databaseOrNull;
+    if (db == null) return const Stream.empty();
+    return db.tableUpdates(TableUpdateQuery.onTable(db.diverSettings));
+  }
+
   /// Get settings for a specific diver
   Future<AppSettings?> getSettingsForDiver(String diverId) async {
     try {
@@ -264,189 +272,34 @@ class DiverSettingsRepository {
     }
   }
 
-  /// Update settings for a diver
+  /// Update settings for a diver.
+  ///
+  /// The row merges across devices as a whole, last writer wins, so writing
+  /// every column from a copy read before a sync would undo whatever a peer
+  /// changed since (issue #2946). Given [previous], the settings this caller
+  /// last read or stored, only the columns where [settings] differs from it
+  /// are written, and nothing at all (no new clock, nothing queued to sync)
+  /// when none does. Without it every column is written.
   Future<void> updateSettingsForDiver(
     String diverId,
-    AppSettings settings,
-  ) async {
+    AppSettings settings, {
+    AppSettings? previous,
+  }) async {
     try {
+      final columns = _storedColumns(settings).toColumns(false);
+      final changed = previous == null
+          ? columns
+          : _changedColumns(_storedColumns(previous).toColumns(false), columns);
+      if (changed.isEmpty) return;
       final now = DateTime.now().millisecondsSinceEpoch;
 
       await (_db.update(
         _db.diverSettings,
       )..where((t) => t.diverId.equals(diverId))).write(
-        DiverSettingsCompanion(
-          depthUnit: Value(settings.depthUnit.name),
-          temperatureUnit: Value(settings.temperatureUnit.name),
-          pressureUnit: Value(settings.pressureUnit.name),
-          volumeUnit: Value(settings.volumeUnit.name),
-          weightUnit: Value(settings.weightUnit.name),
-          altitudeUnit: Value(settings.altitudeUnit.name),
-          gasConsumptionDisplay: Value(settings.gasConsumptionDisplay.name),
-          gasModel: Value(settings.gasModel.name),
-          defaultPlannerWaterType: Value(settings.defaultPlannerWaterType.name),
-          defaultCurrency: Value(settings.defaultCurrency),
-          visibilityScalePreset: Value(settings.visibilityScalePreset.name),
-          visibilityScaleExcellentM: Value(settings.visibilityScaleExcellentM),
-          visibilityScaleGoodM: Value(settings.visibilityScaleGoodM),
-          visibilityScaleModerateM: Value(settings.visibilityScaleModerateM),
-          coordinateFormat: Value(settings.coordinateFormat.name),
-          seascapeAppearance: Value(settings.seascapeAppearance.encode()),
-          seascapeVerticalExaggerationOverrides: Value(
-            _encodeExaggerationOverrides(
-              settings.seascapeVerticalExaggerationOverrides,
-            ),
-          ),
-          timeFormat: Value(settings.timeFormat.name),
-          dateFormat: Value(settings.dateFormat.name),
-          themeMode: Value(_themeModeToString(settings.themeMode)),
-          themePreset: Value(settings.themePresetId),
-          accentNavIcons: Value(settings.accentNavIcons),
-          accentSectionHeaders: Value(settings.accentSectionHeaders),
-          accentListIcons: Value(settings.accentListIcons),
-          locale: Value(settings.locale),
-          placeNameLanguage: Value(settings.placeNameLanguage),
-          defaultDiveType: Value(settings.defaultDiveType),
-          defaultTankVolume: Value(settings.defaultTankVolume),
-          defaultStartPressure: Value(settings.defaultStartPressure),
-          defaultTankPreset: Value(settings.defaultTankPreset),
-          applyDefaultTankToImports: Value(settings.applyDefaultTankToImports),
-          gfLow: Value(settings.gfLow),
-          gfHigh: Value(settings.gfHigh),
-          ppO2MaxWorking: Value(settings.ppO2MaxWorking),
-          ppO2MaxDeco: Value(settings.ppO2MaxDeco),
-          ccrSetpointLow: Value(settings.ccrSetpointLow),
-          ccrSetpointHigh: Value(settings.ccrSetpointHigh),
-          ccrDiluentModPpO2: Value(settings.ccrDiluentModPpO2),
-          cnsWarningThreshold: Value(settings.cnsWarningThreshold),
-          ascentRateWarning: Value(settings.ascentRateWarning),
-          ascentRateCritical: Value(settings.ascentRateCritical),
-          showCeilingOnProfile: Value(settings.showCeilingOnProfile),
-          showDecoStopsOnProfile: Value(settings.showDecoStopsOnProfile),
-          safetyReviewEnabled: Value(settings.safetyReviewEnabled),
-          safetyReviewDisabledRules: Value(
-            _encodeDisabledRules(settings.safetyReviewDisabledRules),
-          ),
-          noFlyPreset: Value(settings.noFlyPreset.dbValue),
-          coldWaterThresholdC: Value(settings.coldWaterThresholdC),
-          deepDiveThresholdM: Value(settings.deepDiveThresholdM),
-          highO2ThresholdPercent: Value(settings.highO2ThresholdPercent),
-          conditionEngineEnabled: Value(settings.conditionEngineEnabled),
-          conditionDisabledRules: Value(
-            _encodeDisabledRules(settings.conditionDisabledRules),
-          ),
-          hiddenChamberIds: Value(
-            _encodeDisabledRules(settings.hiddenChamberIds),
-          ),
-          emergencyRegion: Value(settings.emergencyRegion),
-          hiddenTankPresetIds: Value(
-            _encodeDisabledRules(settings.hiddenTankPresetIds),
-          ),
-          showAscentRateColors: Value(settings.showAscentRateColors),
-          showNdlOnProfile: Value(settings.showNdlOnProfile),
-          lastStopDepth: Value(settings.lastStopDepth),
-          decoStopIncrement: Value(settings.decoStopIncrement),
-          ascentGasSet: Value(settings.ascentGasSet.index),
-          o2Narcotic: Value(settings.o2Narcotic),
-          endLimit: Value(settings.endLimit),
-          defaultNdlSource: Value(settings.defaultNdlSource.toInt()),
-          defaultCeilingSource: Value(settings.defaultCeilingSource.toInt()),
-          defaultDecoStopSource: Value(settings.defaultDecoStopSource.toInt()),
-          defaultTtsSource: Value(settings.defaultTtsSource.toInt()),
-          defaultCnsSource: Value(settings.defaultCnsSource.toInt()),
-          defaultGtrSource: Value(settings.defaultGtrSource.toInt()),
-          gtrReservePressure: Value(settings.gtrReservePressure),
-          cnsCalculationMethod: Value(settings.cnsCalculationMethod.dbValue),
-          showDepthColoredDiveCards: Value(settings.showDepthColoredDiveCards),
-          cardColorAttribute: Value(settings.cardColorAttribute.name),
-          diveListViewMode: Value(settings.diveListViewMode.name),
-          groupTripsInDiveList: Value(settings.groupTripsInDiveList),
-          autoTagImports: Value(settings.autoTagImports),
-          siteListViewMode: Value(settings.siteListViewMode.name),
-          tripListViewMode: Value(settings.tripListViewMode.name),
-          equipmentListViewMode: Value(settings.equipmentListViewMode.name),
-          buddyListViewMode: Value(settings.buddyListViewMode.name),
-          diveCenterListViewMode: Value(settings.diveCenterListViewMode.name),
-          mapStyle: Value(settings.mapStyle.name),
-          siteMatchSensitivity: Value(settings.siteMatchSensitivity.name),
-          trimTankPressureAtSurfacing: Value(
-            settings.trimTankPressureAtSurfacing,
-          ),
-          cardColorGradientPreset: Value(settings.cardColorGradientPreset),
-          cardColorGradientStart: Value(settings.cardColorGradientStart),
-          cardColorGradientEnd: Value(settings.cardColorGradientEnd),
-          tissueColorScheme: Value(settings.tissueColorScheme.name),
-          tissueVizMode: Value(settings.tissueVizMode.name),
-          showMapBackgroundOnDiveCards: Value(
-            settings.showMapBackgroundOnDiveCards,
-          ),
-          showMapBackgroundOnSiteCards: Value(
-            settings.showMapBackgroundOnSiteCards,
-          ),
-          showMaxDepthMarker: Value(settings.showMaxDepthMarker),
-          showPressureThresholdMarkers: Value(
-            settings.showPressureThresholdMarkers,
-          ),
-          defaultRightAxisMetric: Value(settings.defaultRightAxisMetric.name),
-          defaultShowTemperature: Value(settings.defaultShowTemperature),
-          defaultShowPressure: Value(settings.defaultShowPressure),
-          defaultShowHeartRate: Value(settings.defaultShowHeartRate),
-          defaultShowSac: Value(settings.defaultShowSac),
-          defaultShowEvents: Value(settings.defaultShowEvents),
-          defaultShowPpO2: Value(settings.defaultShowPpO2),
-          defaultShowPpN2: Value(settings.defaultShowPpN2),
-          defaultShowPpHe: Value(settings.defaultShowPpHe),
-          defaultShowGasDensity: Value(settings.defaultShowGasDensity),
-          defaultShowGf: Value(settings.defaultShowGf),
-          defaultShowSurfaceGf: Value(settings.defaultShowSurfaceGf),
-          defaultShowMeanDepth: Value(settings.defaultShowMeanDepth),
-          defaultShowTts: Value(settings.defaultShowTts),
-          defaultShowGtr: Value(settings.defaultShowGtr),
-          defaultShowCns: Value(settings.defaultShowCns),
-          defaultShowOtu: Value(settings.defaultShowOtu),
-          defaultShowGasSwitchMarkers: Value(
-            settings.defaultShowGasSwitchMarkers,
-          ),
-          defaultShowPhotoMarkers: Value(settings.defaultShowPhotoMarkers),
-          defaultShowGasTimeline: Value(settings.defaultShowGasTimeline),
-          defaultShowO2CellMv: Value(settings.defaultShowO2CellMv),
-          defaultShowEstimatedTankPressure: Value(
-            settings.defaultShowEstimatedTankPressure,
-          ),
-          defaultShowAscentRateLine: Value(settings.defaultShowAscentRateLine),
-          notificationsEnabled: Value(settings.notificationsEnabled),
-          serviceReminderDays: Value(
-            _formatReminderDays(settings.serviceReminderDays),
-          ),
-          tripServiceLeadDays: Value(settings.tripServiceLeadDays),
-          reminderTime: Value(_formatReminderTime(settings.reminderTime)),
-          showDataSourceBadges: Value(settings.showDataSourceBadges),
-          showDiveFigure: Value(settings.showDiveFigure),
-          showProfilePanelInTableView: Value(
-            settings.showProfilePanelInTableView,
-          ),
-          showDetailsPaneDives: Value(settings.showDetailsPaneDives),
-          showDetailsPaneSites: Value(settings.showDetailsPaneSites),
-          showDetailsPaneBuddies: Value(settings.showDetailsPaneBuddies),
-          showDetailsPaneTrips: Value(settings.showDetailsPaneTrips),
-          showDetailsPaneEquipment: Value(settings.showDetailsPaneEquipment),
-          showDetailsPaneDiveCenters: Value(
-            settings.showDetailsPaneDiveCenters,
-          ),
-          showDetailsPaneCertifications: Value(
-            settings.showDetailsPaneCertifications,
-          ),
-          showDetailsPaneCourses: Value(settings.showDetailsPaneCourses),
-          diveDetailSections: Value(
-            DiveDetailSectionConfig.sectionsToJson(settings.diveDetailSections),
-          ),
-          diveDetailLayout: Value(settings.diveDetailLayout.name),
-          siteDetailSections: Value(
-            SiteDetailSectionConfig.sectionsToJson(settings.siteDetailSections),
-          ),
-          siteDetailLayout: Value(settings.siteDetailLayout.name),
-          updatedAt: Value(now),
-        ),
+        RawValuesInsertable<DiverSetting>({
+          ...changed,
+          ...DiverSettingsCompanion(updatedAt: Value(now)).toColumns(false),
+        }),
       );
       final row = await (_db.select(
         _db.diverSettings,
@@ -469,6 +322,183 @@ class DiverSettingsRepository {
       rethrow;
     }
   }
+
+  /// Whether [a] and [b] store the same values in a diver's settings row.
+  /// Device-local preferences, which have no column, are not compared.
+  static bool storesSameSettings(AppSettings a, AppSettings b) =>
+      _changedColumns(
+        _storedColumns(a).toColumns(false),
+        _storedColumns(b).toColumns(false),
+      ).isEmpty;
+
+  /// The entries of [after] whose value differs from [before]'s.
+  static Map<String, Expression<Object>> _changedColumns(
+    Map<String, Expression<Object>> before,
+    Map<String, Expression<Object>> after,
+  ) => {
+    for (final entry in after.entries)
+      if (before[entry.key] != entry.value) entry.key: entry.value,
+  };
+
+  /// The columns of a diver's settings row that hold [settings], without the
+  /// row's identity and clocks.
+  static DiverSettingsCompanion _storedColumns(
+    AppSettings settings,
+  ) => DiverSettingsCompanion(
+    depthUnit: Value(settings.depthUnit.name),
+    temperatureUnit: Value(settings.temperatureUnit.name),
+    pressureUnit: Value(settings.pressureUnit.name),
+    volumeUnit: Value(settings.volumeUnit.name),
+    weightUnit: Value(settings.weightUnit.name),
+    altitudeUnit: Value(settings.altitudeUnit.name),
+    gasConsumptionDisplay: Value(settings.gasConsumptionDisplay.name),
+    gasModel: Value(settings.gasModel.name),
+    defaultPlannerWaterType: Value(settings.defaultPlannerWaterType.name),
+    defaultCurrency: Value(settings.defaultCurrency),
+    visibilityScalePreset: Value(settings.visibilityScalePreset.name),
+    visibilityScaleExcellentM: Value(settings.visibilityScaleExcellentM),
+    visibilityScaleGoodM: Value(settings.visibilityScaleGoodM),
+    visibilityScaleModerateM: Value(settings.visibilityScaleModerateM),
+    coordinateFormat: Value(settings.coordinateFormat.name),
+    seascapeAppearance: Value(settings.seascapeAppearance.encode()),
+    seascapeVerticalExaggerationOverrides: Value(
+      _encodeExaggerationOverrides(
+        settings.seascapeVerticalExaggerationOverrides,
+      ),
+    ),
+    timeFormat: Value(settings.timeFormat.name),
+    dateFormat: Value(settings.dateFormat.name),
+    themeMode: Value(_themeModeToString(settings.themeMode)),
+    themePreset: Value(settings.themePresetId),
+    accentNavIcons: Value(settings.accentNavIcons),
+    accentSectionHeaders: Value(settings.accentSectionHeaders),
+    accentListIcons: Value(settings.accentListIcons),
+    locale: Value(settings.locale),
+    placeNameLanguage: Value(settings.placeNameLanguage),
+    defaultDiveType: Value(settings.defaultDiveType),
+    defaultTankVolume: Value(settings.defaultTankVolume),
+    defaultStartPressure: Value(settings.defaultStartPressure),
+    defaultTankPreset: Value(settings.defaultTankPreset),
+    applyDefaultTankToImports: Value(settings.applyDefaultTankToImports),
+    gfLow: Value(settings.gfLow),
+    gfHigh: Value(settings.gfHigh),
+    ppO2MaxWorking: Value(settings.ppO2MaxWorking),
+    ppO2MaxDeco: Value(settings.ppO2MaxDeco),
+    ccrSetpointLow: Value(settings.ccrSetpointLow),
+    ccrSetpointHigh: Value(settings.ccrSetpointHigh),
+    ccrDiluentModPpO2: Value(settings.ccrDiluentModPpO2),
+    cnsWarningThreshold: Value(settings.cnsWarningThreshold),
+    ascentRateWarning: Value(settings.ascentRateWarning),
+    ascentRateCritical: Value(settings.ascentRateCritical),
+    showCeilingOnProfile: Value(settings.showCeilingOnProfile),
+    showDecoStopsOnProfile: Value(settings.showDecoStopsOnProfile),
+    safetyReviewEnabled: Value(settings.safetyReviewEnabled),
+    safetyReviewDisabledRules: Value(
+      _encodeDisabledRules(settings.safetyReviewDisabledRules),
+    ),
+    noFlyPreset: Value(settings.noFlyPreset.dbValue),
+    coldWaterThresholdC: Value(settings.coldWaterThresholdC),
+    deepDiveThresholdM: Value(settings.deepDiveThresholdM),
+    highO2ThresholdPercent: Value(settings.highO2ThresholdPercent),
+    conditionEngineEnabled: Value(settings.conditionEngineEnabled),
+    conditionDisabledRules: Value(
+      _encodeDisabledRules(settings.conditionDisabledRules),
+    ),
+    hiddenChamberIds: Value(_encodeDisabledRules(settings.hiddenChamberIds)),
+    emergencyRegion: Value(settings.emergencyRegion),
+    hiddenTankPresetIds: Value(
+      _encodeDisabledRules(settings.hiddenTankPresetIds),
+    ),
+    showAscentRateColors: Value(settings.showAscentRateColors),
+    showNdlOnProfile: Value(settings.showNdlOnProfile),
+    lastStopDepth: Value(settings.lastStopDepth),
+    decoStopIncrement: Value(settings.decoStopIncrement),
+    ascentGasSet: Value(settings.ascentGasSet.index),
+    o2Narcotic: Value(settings.o2Narcotic),
+    endLimit: Value(settings.endLimit),
+    defaultNdlSource: Value(settings.defaultNdlSource.toInt()),
+    defaultCeilingSource: Value(settings.defaultCeilingSource.toInt()),
+    defaultDecoStopSource: Value(settings.defaultDecoStopSource.toInt()),
+    defaultTtsSource: Value(settings.defaultTtsSource.toInt()),
+    defaultCnsSource: Value(settings.defaultCnsSource.toInt()),
+    defaultGtrSource: Value(settings.defaultGtrSource.toInt()),
+    gtrReservePressure: Value(settings.gtrReservePressure),
+    cnsCalculationMethod: Value(settings.cnsCalculationMethod.dbValue),
+    showDepthColoredDiveCards: Value(settings.showDepthColoredDiveCards),
+    cardColorAttribute: Value(settings.cardColorAttribute.name),
+    diveListViewMode: Value(settings.diveListViewMode.name),
+    groupTripsInDiveList: Value(settings.groupTripsInDiveList),
+    autoTagImports: Value(settings.autoTagImports),
+    siteListViewMode: Value(settings.siteListViewMode.name),
+    tripListViewMode: Value(settings.tripListViewMode.name),
+    equipmentListViewMode: Value(settings.equipmentListViewMode.name),
+    buddyListViewMode: Value(settings.buddyListViewMode.name),
+    diveCenterListViewMode: Value(settings.diveCenterListViewMode.name),
+    mapStyle: Value(settings.mapStyle.name),
+    siteMatchSensitivity: Value(settings.siteMatchSensitivity.name),
+    trimTankPressureAtSurfacing: Value(settings.trimTankPressureAtSurfacing),
+    cardColorGradientPreset: Value(settings.cardColorGradientPreset),
+    cardColorGradientStart: Value(settings.cardColorGradientStart),
+    cardColorGradientEnd: Value(settings.cardColorGradientEnd),
+    tissueColorScheme: Value(settings.tissueColorScheme.name),
+    tissueVizMode: Value(settings.tissueVizMode.name),
+    showMapBackgroundOnDiveCards: Value(settings.showMapBackgroundOnDiveCards),
+    showMapBackgroundOnSiteCards: Value(settings.showMapBackgroundOnSiteCards),
+    showMaxDepthMarker: Value(settings.showMaxDepthMarker),
+    showPressureThresholdMarkers: Value(settings.showPressureThresholdMarkers),
+    defaultRightAxisMetric: Value(settings.defaultRightAxisMetric.name),
+    defaultShowTemperature: Value(settings.defaultShowTemperature),
+    defaultShowPressure: Value(settings.defaultShowPressure),
+    defaultShowHeartRate: Value(settings.defaultShowHeartRate),
+    defaultShowSac: Value(settings.defaultShowSac),
+    defaultShowEvents: Value(settings.defaultShowEvents),
+    defaultShowPpO2: Value(settings.defaultShowPpO2),
+    defaultShowPpN2: Value(settings.defaultShowPpN2),
+    defaultShowPpHe: Value(settings.defaultShowPpHe),
+    defaultShowGasDensity: Value(settings.defaultShowGasDensity),
+    defaultShowGf: Value(settings.defaultShowGf),
+    defaultShowSurfaceGf: Value(settings.defaultShowSurfaceGf),
+    defaultShowMeanDepth: Value(settings.defaultShowMeanDepth),
+    defaultShowTts: Value(settings.defaultShowTts),
+    defaultShowGtr: Value(settings.defaultShowGtr),
+    defaultShowCns: Value(settings.defaultShowCns),
+    defaultShowOtu: Value(settings.defaultShowOtu),
+    defaultShowGasSwitchMarkers: Value(settings.defaultShowGasSwitchMarkers),
+    defaultShowPhotoMarkers: Value(settings.defaultShowPhotoMarkers),
+    defaultShowGasTimeline: Value(settings.defaultShowGasTimeline),
+    defaultShowO2CellMv: Value(settings.defaultShowO2CellMv),
+    defaultShowEstimatedTankPressure: Value(
+      settings.defaultShowEstimatedTankPressure,
+    ),
+    defaultShowAscentRateLine: Value(settings.defaultShowAscentRateLine),
+    notificationsEnabled: Value(settings.notificationsEnabled),
+    serviceReminderDays: Value(
+      _formatReminderDays(settings.serviceReminderDays),
+    ),
+    tripServiceLeadDays: Value(settings.tripServiceLeadDays),
+    reminderTime: Value(_formatReminderTime(settings.reminderTime)),
+    showDataSourceBadges: Value(settings.showDataSourceBadges),
+    showDiveFigure: Value(settings.showDiveFigure),
+    showProfilePanelInTableView: Value(settings.showProfilePanelInTableView),
+    showDetailsPaneDives: Value(settings.showDetailsPaneDives),
+    showDetailsPaneSites: Value(settings.showDetailsPaneSites),
+    showDetailsPaneBuddies: Value(settings.showDetailsPaneBuddies),
+    showDetailsPaneTrips: Value(settings.showDetailsPaneTrips),
+    showDetailsPaneEquipment: Value(settings.showDetailsPaneEquipment),
+    showDetailsPaneDiveCenters: Value(settings.showDetailsPaneDiveCenters),
+    showDetailsPaneCertifications: Value(
+      settings.showDetailsPaneCertifications,
+    ),
+    showDetailsPaneCourses: Value(settings.showDetailsPaneCourses),
+    diveDetailSections: Value(
+      DiveDetailSectionConfig.sectionsToJson(settings.diveDetailSections),
+    ),
+    diveDetailLayout: Value(settings.diveDetailLayout.name),
+    siteDetailSections: Value(
+      SiteDetailSectionConfig.sectionsToJson(settings.siteDetailSections),
+    ),
+    siteDetailLayout: Value(settings.siteDetailLayout.name),
+  );
 
   /// Get or create settings for a diver (ensures settings always exist)
   Future<AppSettings> getOrCreateSettingsForDiver(
@@ -767,7 +797,7 @@ class DiverSettingsRepository {
     }
   }
 
-  String _themeModeToString(ThemeMode mode) {
+  static String _themeModeToString(ThemeMode mode) {
     switch (mode) {
       case ThemeMode.light:
         return 'light';
@@ -780,7 +810,7 @@ class DiverSettingsRepository {
 
   /// Encodes the per-site vertical-exaggeration override map (issue #2141
   /// follow-up) as a plain JSON object of siteId -> factor.
-  String _encodeExaggerationOverrides(Map<String, double> overrides) =>
+  static String _encodeExaggerationOverrides(Map<String, double> overrides) =>
       jsonEncode(overrides);
 
   /// Defensive decode: a missing column, malformed JSON, or a non-numeric
@@ -825,9 +855,9 @@ class DiverSettingsRepository {
     }
   }
 
-  String _formatReminderDays(List<int> days) => '[${days.join(', ')}]';
+  static String _formatReminderDays(List<int> days) => '[${days.join(', ')}]';
 
-  String _formatReminderTime(TimeOfDay time) =>
+  static String _formatReminderTime(TimeOfDay time) =>
       '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
 }
 

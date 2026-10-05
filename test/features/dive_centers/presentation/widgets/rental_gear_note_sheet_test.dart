@@ -9,6 +9,8 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center_gea
 import 'package:submersion/features/dive_centers/presentation/widgets/rental_gear_note_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/core/text/fuzzy_match.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -290,5 +292,23 @@ void main() {
 
     expect(await repo.getForCenter('c1'), hasLength(1));
     expect(find.text('Edit rental note'), findsOneWidget);
+  });
+
+  testWidgets('offers every gear type alphabetically by label (#2937)', (
+    tester,
+  ) async {
+    await pumpAndOpen(tester);
+
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    final dropdown = tester.widget<DropdownButton<EquipmentType>>(
+      find.byType(DropdownButton<EquipmentType>),
+    );
+    final shown = [
+      for (final item in dropdown.items!) item.value!.localizedName(l10n),
+    ];
+    final alphabetical = [...shown]
+      ..sort((a, b) => normalize(a).compareTo(normalize(b)));
+    expect(shown, hasLength(EquipmentType.values.length));
+    expect(shown, alphabetical);
   });
 }

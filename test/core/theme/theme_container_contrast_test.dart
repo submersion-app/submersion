@@ -1,18 +1,11 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 
+import '../../helpers/contrast_ratio.dart';
 import '../../helpers/google_fonts_settle.dart';
-
-/// WCAG 2.1 contrast ratio between two opaque colors.
-double _contrast(Color a, Color b) {
-  final la = a.computeLuminance();
-  final lb = b.computeLuminance();
-  return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
-}
 
 /// WCAG AA minimum for normal-size text.
 const double _aaText = 4.5;
@@ -82,7 +75,7 @@ void main() {
           for (final MapEntry(key: role, value: (container, onContainer))
               in _containers(scheme).entries) {
             expect(
-              _contrast(against(scheme, onContainer), container),
+              contrastRatio(against(scheme, onContainer), container),
               greaterThanOrEqualTo(minimum),
               reason: '${preset.id} ${brightness.name} $role: $description',
             );
@@ -118,15 +111,15 @@ void main() {
       Brightness.dark,
     ).colorScheme;
     expect(
-      _contrast(scheme.secondary, scheme.surface),
+      contrastRatio(scheme.secondary, scheme.surface),
       greaterThanOrEqualTo(_aaText),
     );
     expect(
-      _contrast(scheme.tertiary, scheme.surface),
+      contrastRatio(scheme.tertiary, scheme.surface),
       greaterThanOrEqualTo(_aaText),
     );
     expect(
-      _contrast(scheme.onSecondary, scheme.secondary),
+      contrastRatio(scheme.onSecondary, scheme.secondary),
       greaterThanOrEqualTo(_aaText),
     );
   });
@@ -141,12 +134,12 @@ void main() {
           ).colorScheme;
           final label = '${preset.id} ${brightness.name}';
           expect(
-            _contrast(scheme.error, scheme.surface),
+            contrastRatio(scheme.error, scheme.surface),
             greaterThanOrEqualTo(_aaText),
             reason: '$label: error on surface',
           );
           expect(
-            _contrast(scheme.onError, scheme.error),
+            contrastRatio(scheme.onError, scheme.error),
             greaterThanOrEqualTo(_aaText),
             reason: '$label: onError on error',
           );

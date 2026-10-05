@@ -533,7 +533,8 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
                   spacing: 8,
                   runSpacing: 4,
                   children: [
-                    for (final type in EquipmentType.values)
+                    for (final type
+                        in EquipmentType.values.sortedByLocalizedName(l10n))
                       FilterChip(
                         label: Text(type.localizedName(l10n)),
                         selected: _types.contains(type),

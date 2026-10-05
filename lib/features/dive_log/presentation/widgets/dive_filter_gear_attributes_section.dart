@@ -38,7 +38,7 @@ class DiveFilterGearAttributesSection extends ConsumerWidget {
         if ((owned.contains(type) || type == category) &&
             EquipmentChoiceAttributeFilter.choiceDefsFor(type).isNotEmpty)
           type,
-    ];
+    ].sortedByLocalizedName(context.l10n);
     if (categories.isEmpty) return const SizedBox.shrink();
 
     final selected = category;
