@@ -30,7 +30,7 @@ class ObservationsStrip extends ConsumerWidget {
           icon: Icons.error_outline,
           message: l10n.insights_observations_error,
           action: l10n.insights_records_retry,
-          onAction: () => ref.invalidate(observationsProvider),
+          onAction: () => retryObservations(ref),
         ),
       ),
       data: (observations) {

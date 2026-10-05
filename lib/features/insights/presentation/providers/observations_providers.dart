@@ -86,3 +86,11 @@ final observationsProvider = FutureProvider<List<Observation>>((ref) async {
 final observationStripProvider = Provider<AsyncValue<List<Observation>>>(
   (ref) => ref.watch(observationsProvider).whenData(selectStrip),
 );
+
+/// Retry after a load error. The queries live in the inputs and the
+/// dismissal stream, so those are what reload; invalidating only
+/// [observationsProvider] would re-await the same failed inputs.
+void retryObservations(WidgetRef ref) {
+  ref.invalidate(observationInputsProvider);
+  ref.invalidate(dismissedObservationKeysProvider);
+}

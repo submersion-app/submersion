@@ -118,4 +118,25 @@ void main() {
       expect(find.text('No kinds are muted'), findsOneWidget);
     });
   });
+
+  testWidgets('Retry reloads the inputs', (tester) async {
+    var loads = 0;
+    await pumpObservationApp(
+      tester,
+      child: const InsightsObservationsPage(embedded: true),
+      overrides: [
+        observationInputsProvider.overrideWith((ref) async {
+          loads++;
+          throw StateError('corrupt profile blob');
+        }),
+        dismissedObservationKeysProvider.overrideWith(
+          (ref) => Stream.value(const <String>{}),
+        ),
+      ],
+    );
+    final before = loads;
+    await tester.tap(find.text('Retry'));
+    await tester.pumpAndSettle();
+    expect(loads, greaterThan(before));
+  });
 }

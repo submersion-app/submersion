@@ -42,21 +42,29 @@ class ObservationInputsLoader {
     final rmv = await rmvFuture;
     final seen = await seenFuture;
     final rates = await ratesFuture;
+    // A dive dated after now (usually a mistyped year) would otherwise
+    // become "the last dive" and silence the dive gap, or hold a record and
+    // hide a genuine one. Planned dives are already out of stats scope.
+    bool past(DateTime d) => !d.isAfter(now);
     return ObservationInputs(
       now: now,
-      dives: dives,
+      dives: [
+        for (final d in dives)
+          if (past(d.date)) d,
+      ],
       rmvPerDive: [
         for (final p in rmv)
-          if (p.diveId != null)
+          if (p.diveId != null && past(p.date))
             ObservationValue(diveId: p.diveId!, date: p.date, value: p.value),
       ],
       species: [
         for (final s in seen)
-          ObservationSpecies(
-            id: s.species.id,
-            name: s.species.commonName,
-            firstSeen: s.firstSeen,
-          ),
+          if (past(s.firstSeen))
+            ObservationSpecies(
+              id: s.species.id,
+              name: s.species.commonName,
+              firstSeen: s.firstSeen,
+            ),
       ],
       priorDives: math.max(0, diver?.priorDiveCount ?? 0),
       priorTimeSeconds: math.max(0, diver?.priorDiveTimeSeconds ?? 0),

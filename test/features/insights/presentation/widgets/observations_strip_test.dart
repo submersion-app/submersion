@@ -86,22 +86,41 @@ void main() {
     expect(find.byKey(const Key('observations-filter-note')), findsOneWidget);
   });
 
-  testWidgets('an error offers Retry, which reloads', (tester) async {
-    var builds = 0;
+  testWidgets('an error shows the card with Retry', (tester) async {
     await pumpObservationApp(
       tester,
       child: _strip(),
       overrides: [
         observationsProvider.overrideWith((ref) async {
-          builds++;
           throw StateError('boom');
         }),
       ],
     );
     expect(find.text("Couldn't load observations"), findsOneWidget);
-    final before = builds;
+    expect(find.text('Retry'), findsOneWidget);
+  });
+
+  testWidgets('Retry reloads the inputs, where a real failure lives', (
+    tester,
+  ) async {
+    var loads = 0;
+    await pumpObservationApp(
+      tester,
+      child: _strip(),
+      overrides: [
+        observationInputsProvider.overrideWith((ref) async {
+          loads++;
+          throw StateError('corrupt profile blob');
+        }),
+        dismissedObservationKeysProvider.overrideWith(
+          (ref) => Stream.value(const <String>{}),
+        ),
+      ],
+    );
+    expect(find.text("Couldn't load observations"), findsOneWidget);
+    final before = loads;
     await tester.tap(find.text('Retry'));
     await tester.pumpAndSettle();
-    expect(builds, greaterThan(before));
+    expect(loads, greaterThan(before));
   });
 }

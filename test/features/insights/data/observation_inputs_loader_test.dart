@@ -123,4 +123,42 @@ void main() {
     final noDiver = await ObservationInputsLoader().load(now: now);
     expect(noDiver.priorDives, 0);
   });
+
+  test('a future-dated dive never reaches the rules', () async {
+    // A mistyped year must not become "the last dive" (silencing the dive
+    // gap) or a record holder (hiding a genuine new record).
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion(
+            id: const Value('typo'),
+            diverId: const Value('A'),
+            diveDateTime: Value(
+              DateTime.utc(2027, 6, 1).millisecondsSinceEpoch,
+            ),
+            avgDepth: const Value(20),
+            maxDepth: const Value(60),
+            runtime: const Value(42 * 60),
+            createdAt: const Value(0),
+            updatedAt: const Value(0),
+          ),
+        );
+    await db
+        .into(db.diveTanks)
+        .insert(
+          const DiveTanksCompanion(
+            id: Value('t-typo'),
+            diveId: Value('typo'),
+            startPressure: Value(200),
+            endPressure: Value(50),
+            volume: Value(11.1),
+            o2Percent: Value(21.0),
+            hePercent: Value(0.0),
+            tankOrder: Value(0),
+          ),
+        );
+    final inputs = await ObservationInputsLoader().load(diverId: 'A', now: now);
+    expect(inputs.dives.map((d) => d.id), ['d1']);
+    expect(inputs.rmvPerDive.map((v) => v.diveId), ['d1']);
+  });
 }
