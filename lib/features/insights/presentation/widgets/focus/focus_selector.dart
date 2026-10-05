@@ -85,7 +85,11 @@ class _FocusSelectorState extends ConsumerState<FocusSelector> {
       error = context.l10n.insights_focus_threshold_negativeError;
     }
     setState(() => _thresholdError = error);
-    if (error == null && value != null) {
+    if (read is NumberBlank) {
+      // An emptied field means no threshold, so the page asks for one again
+      // rather than keep showing the group for the value that was deleted.
+      _set(selection.copyWith(clearThreshold: true));
+    } else if (error == null && value != null) {
       _set(selection.copyWith(threshold: units.toStorage(value)));
     }
   }

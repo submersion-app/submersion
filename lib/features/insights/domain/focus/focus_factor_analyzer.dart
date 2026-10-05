@@ -63,6 +63,13 @@ abstract final class FocusFactorAnalyzer {
     _ => null,
   };
 
+  /// The values [r] carries for a categorical factor: one at most, except
+  /// dive type, where a dive can be several types at once.
+  static List<String> _categories(FocusFactorId id, FocusFactorRow r) =>
+      id == FocusFactorId.diveType
+      ? r.diveTypes.toSet().toList(growable: false)
+      : [?_category(id, r)];
+
   static String? _category(FocusFactorId id, FocusFactorRow r) => switch (id) {
     FocusFactorId.visibility => r.visibilityKey,
     FocusFactorId.current => r.currentStrength,
@@ -71,7 +78,6 @@ abstract final class FocusFactorAnalyzer {
     FocusFactorId.month => '${r.dateTime.month}',
     FocusFactorId.timeOfDay => timeOfDayKey(r.entryTime ?? r.dateTime),
     FocusFactorId.site => r.siteId,
-    FocusFactorId.diveType => r.diveType,
     FocusFactorId.gas => r.gasClass,
     FocusFactorId.suit => r.suitKey,
     FocusFactorId.buddy => r.buddyKey,
@@ -108,19 +114,28 @@ abstract final class FocusFactorAnalyzer {
     List<FocusFactorRow> group,
     List<FocusFactorRow> baseline,
   ) {
-    Map<String, int> counts(List<FocusFactorRow> rows) {
+    // Counts dives per value, and the dives that recorded any value. Shares
+    // are of those dives, so a dive with two types counts once under each
+    // and the shares of a multi-valued factor can add up to more than 100%.
+    ({Map<String, int> counts, int covered}) tally(List<FocusFactorRow> rows) {
       final out = <String, int>{};
+      var covered = 0;
       for (final r in rows) {
-        final key = _category(id, r);
-        if (key != null) out[key] = (out[key] ?? 0) + 1;
+        final keys = _categories(id, r);
+        if (keys.isNotEmpty) covered++;
+        for (final key in keys) {
+          out[key] = (out[key] ?? 0) + 1;
+        }
       }
-      return out;
+      return (counts: out, covered: covered);
     }
 
-    final g = counts(group);
-    final b = counts(baseline);
-    final gTotal = g.values.fold<int>(0, (s, c) => s + c);
-    final bTotal = b.values.fold<int>(0, (s, c) => s + c);
+    final gTally = tally(group);
+    final bTally = tally(baseline);
+    final g = gTally.counts;
+    final b = bTally.counts;
+    final gTotal = gTally.covered;
+    final bTotal = bTally.covered;
     final labels = id == FocusFactorId.site
         ? {
             for (final r in [...baseline, ...group])

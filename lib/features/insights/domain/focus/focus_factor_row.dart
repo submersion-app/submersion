@@ -19,7 +19,7 @@ class FocusFactorRow {
     this.entryMethod,
     this.siteId,
     this.siteName,
-    this.diveType,
+    this.diveTypes = const [],
     this.gasClass,
     this.firstTankVolume,
     this.weight,
@@ -56,8 +56,9 @@ class FocusFactorRow {
   final String? siteId;
   final String? siteName;
 
-  /// The dive type id or slug.
-  final String? diveType;
+  /// Every dive type linked to the dive (ids or slugs); a dive can be
+  /// several types at once.
+  final List<String> diveTypes;
 
   /// `air`, `nitrox` or `trimix`; null with no tanks.
   final String? gasClass;

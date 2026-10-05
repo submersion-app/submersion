@@ -186,4 +186,28 @@ void main() {
       'Evening',
     );
   });
+
+  test('a dive with several types counts once under each of them', () {
+    FocusFactorRow typed(String id, List<String> types) => FocusFactorRow(
+      diveId: id,
+      dateTime: DateTime.utc(2025, 3, 1),
+      diveTypes: types,
+    );
+    final group = [
+      typed('a', ['reef', 'night']),
+      typed('b', ['reef']),
+      typed('c', ['reef']),
+    ];
+    final report = FocusFactorAnalyzer.analyze(
+      group: group,
+      baseline: group,
+      metric: FocusMetric.rmv,
+    );
+    final types = factor<CategoricalFactor>(report, FocusFactorId.diveType);
+    expect(types.groupCovered, 3);
+    final byKey = {for (final s in types.top) s.key: s};
+    // Shares are of dives, not of type links: every dive is a reef dive.
+    expect(byKey['reef']!.groupShare, 1.0);
+    expect(byKey['night']!.groupShare, closeTo(1 / 3, 1e-9));
+  });
 }

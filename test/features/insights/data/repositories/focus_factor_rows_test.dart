@@ -282,4 +282,29 @@ void main() {
       expect(byId['timed']!.durationMinutes, 52);
     },
   );
+
+  test('dive types come from every linked type', () async {
+    await dive('multi');
+    await dive('none', day: 2);
+    for (final (id, type) in [('t1', 'reef'), ('t2', 'night')]) {
+      await db
+          .into(db.diveDiveTypes)
+          .insert(
+            DiveDiveTypesCompanion(
+              id: Value(id),
+              diveId: const Value('multi'),
+              diveTypeId: Value(type),
+              createdAt: const Value(0),
+            ),
+          );
+    }
+    final byId = {
+      for (final r in await repository.getFocusFactorRows(
+        visibilityScale: scale,
+      ))
+        r.diveId: r,
+    };
+    expect(byId['multi']!.diveTypes, unorderedEquals(['reef', 'night']));
+    expect(byId['none']!.diveTypes, isEmpty);
+  });
 }

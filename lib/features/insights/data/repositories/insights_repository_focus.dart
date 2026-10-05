@@ -53,7 +53,8 @@ extension InsightsRepositoryFocus on InsightsRepository {
             AS entry_method,
           d.site_id,
           s.name AS site_name,
-          NULLIF(d.dive_type, '') AS dive_type,
+          (SELECT GROUP_CONCAT(ddt.dive_type_id, char(31))
+            FROM dive_dive_types ddt WHERE ddt.dive_id = d.id) AS dive_types,
           (SELECT CASE
               WHEN COUNT(*) = 0 THEN NULL
               WHEN MAX(t.he_percent) > 0 THEN 'trimix'
@@ -115,7 +116,9 @@ extension InsightsRepositoryFocus on InsightsRepository {
             entryMethod: row.read<String?>('entry_method'),
             siteId: row.read<String?>('site_id'),
             siteName: row.read<String?>('site_name'),
-            diveType: row.read<String?>('dive_type'),
+            // Unit separator: a dive type id never contains it.
+            diveTypes:
+                row.read<String?>('dive_types')?.split('\u001f') ?? const [],
             gasClass: row.read<String?>('gas_class'),
             firstTankVolume: row.read<double?>('first_tank_volume'),
             weight: row.read<double?>('weight_amount'),

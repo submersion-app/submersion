@@ -165,4 +165,20 @@ void main() {
     // One line of 14 px text; a mid-word wrap would make it two.
     expect(tester.getSize(label).height, lessThan(24));
   });
+
+  testWidgets('clearing the threshold field clears the stored threshold', (
+    tester,
+  ) async {
+    final c = await pump(tester);
+    await tester.tap(find.text('Above'));
+    await tester.pump();
+    final field = find.byKey(const ValueKey('focus-threshold-field'));
+    await tester.enterText(field, '20');
+    await tester.pump();
+    expect(c.read(focusSelectionProvider).threshold, 20);
+    await tester.enterText(field, '');
+    await tester.pump();
+    expect(c.read(focusSelectionProvider).threshold, isNull);
+    expect(find.text('Enter a number'), findsNothing);
+  });
 }
