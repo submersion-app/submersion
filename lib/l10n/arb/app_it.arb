@@ -8108,7 +8108,7 @@
   "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} profili)",
   "settings_cloudSync_duplicateDivers_mergeButton": "Unisci",
   "settings_cloudSync_duplicateDivers_confirmTitle": "Unire i profili subacquei?",
-  "settings_cloudSync_duplicateDivers_confirmBody": "Tutte le immersioni, le certificazioni, l'attrezzatura e gli altri dati di {count, plural, =1{un profilo duplicato} other{{count} profili duplicati}} verranno spostati su \"{name}\". Questa operazione non può essere annullata automaticamente.",
+  "settings_cloudSync_duplicateDivers_confirmBody": "Tutte le immersioni, le certificazioni, l'attrezzatura e gli altri dati di {count, plural, =1{un profilo duplicato} other{{count} profili duplicati}} verranno spostati su \"{name}\". Questa operazione può essere annullata subito dopo l'unione.",
   "settings_cloudSync_duplicateDivers_confirmCancel": "Annulla",
   "settings_cloudSync_duplicateDivers_confirmAction": "Unisci",
   "settings_cloudSync_duplicateDivers_successSnack": "Unito in {name}",

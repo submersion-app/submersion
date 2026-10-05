@@ -8211,7 +8211,7 @@
   "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} Profile)",
   "settings_cloudSync_duplicateDivers_mergeButton": "Zusammenführen",
   "settings_cloudSync_duplicateDivers_confirmTitle": "Taucherprofile zusammenführen?",
-  "settings_cloudSync_duplicateDivers_confirmBody": "Alle Tauchgänge, Zertifizierungen, Ausrüstung und andere Daten aus {count, plural, =1{einem doppelten Profil} other{{count} doppelten Profilen}} werden auf \"{name}\" verschoben. Dies kann nicht automatisch rückgängig gemacht werden.",
+  "settings_cloudSync_duplicateDivers_confirmBody": "Alle Tauchgänge, Zertifizierungen, Ausrüstung und andere Daten aus {count, plural, =1{einem doppelten Profil} other{{count} doppelten Profilen}} werden auf \"{name}\" verschoben. Dies kann direkt nach dem Zusammenführen rückgängig gemacht werden.",
   "settings_cloudSync_duplicateDivers_confirmCancel": "Abbrechen",
   "settings_cloudSync_duplicateDivers_confirmAction": "Zusammenführen",
   "settings_cloudSync_duplicateDivers_successSnack": "Zusammengeführt in {name}",

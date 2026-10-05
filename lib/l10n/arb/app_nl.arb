@@ -8108,7 +8108,7 @@
   "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} profielen)",
   "settings_cloudSync_duplicateDivers_mergeButton": "Samenvoegen",
   "settings_cloudSync_duplicateDivers_confirmTitle": "Duikersprofielen samenvoegen?",
-  "settings_cloudSync_duplicateDivers_confirmBody": "Alle duiken, certificeringen, uitrusting en andere gegevens van {count, plural, =1{één dubbel profiel} other{{count} dubbele profielen}} worden verplaatst naar \"{name}\". Dit kan niet automatisch ongedaan worden gemaakt.",
+  "settings_cloudSync_duplicateDivers_confirmBody": "Alle duiken, certificeringen, uitrusting en andere gegevens van {count, plural, =1{één dubbel profiel} other{{count} dubbele profielen}} worden verplaatst naar \"{name}\". Dit kan direct na het samenvoegen ongedaan worden gemaakt.",
   "settings_cloudSync_duplicateDivers_confirmCancel": "Annuleren",
   "settings_cloudSync_duplicateDivers_confirmAction": "Samenvoegen",
   "settings_cloudSync_duplicateDivers_successSnack": "Samengevoegd in {name}",

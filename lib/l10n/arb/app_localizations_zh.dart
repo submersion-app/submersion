@@ -27230,7 +27230,7 @@ class AppLocalizationsZh extends AppLocalizations {
       other: '$count 个重复档案',
       one: '1 个重复档案',
     );
-    return '$_temp0中的所有潜水记录、认证、装备及其他数据将被移入「$name」。此操作无法自动撤销。';
+    return '$_temp0中的所有潜水记录、认证、装备及其他数据将被移入「$name」。合并后可立即撤销此操作。';
   }
 
   @override

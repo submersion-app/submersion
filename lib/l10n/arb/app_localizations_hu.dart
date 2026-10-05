@@ -28666,7 +28666,7 @@ class AppLocalizationsHu extends AppLocalizations {
       other: '$count duplikált profilból',
       one: 'egy duplikált profilból',
     );
-    return 'Az összes merülés, tanúsítvány, felszerelés és egyéb adat $_temp0 áthelyezésre kerül ide: \"$name\". Ez nem vonható vissza automatikusan.';
+    return 'Az összes merülés, tanúsítvány, felszerelés és egyéb adat $_temp0 áthelyezésre kerül ide: \"$name\". Ez az összevonás után azonnal visszavonható.';
   }
 
   @override

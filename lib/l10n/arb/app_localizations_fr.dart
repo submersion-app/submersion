@@ -28860,7 +28860,7 @@ class AppLocalizationsFr extends AppLocalizations {
       other: '$count profils en double',
       one: 'un profil en double',
     );
-    return 'Toutes les plongées, certifications, équipements et autres données de $_temp0 seront déplacés vers \"$name\". Cette action ne peut pas être annulée automatiquement.';
+    return 'Toutes les plongées, certifications, équipements et autres données de $_temp0 seront déplacés vers \"$name\". Cette action peut être annulée juste après la fusion.';
   }
 
   @override

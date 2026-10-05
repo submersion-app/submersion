@@ -28765,7 +28765,7 @@ class AppLocalizationsIt extends AppLocalizations {
       other: '$count profili duplicati',
       one: 'un profilo duplicato',
     );
-    return 'Tutte le immersioni, le certificazioni, l\'attrezzatura e gli altri dati di $_temp0 verranno spostati su \"$name\". Questa operazione non può essere annullata automaticamente.';
+    return 'Tutte le immersioni, le certificazioni, l\'attrezzatura e gli altri dati di $_temp0 verranno spostati su \"$name\". Questa operazione può essere annullata subito dopo l\'unione.';
   }
 
   @override
