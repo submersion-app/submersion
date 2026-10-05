@@ -18612,14 +18612,17 @@ class AppLocalizationsFr extends AppLocalizations {
       'Conditions de l\'eau par satellite à la date de la plongée';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'GPS de surface';
+  String get diveDetailSection_surfaceGps_name => 'Emplacement';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'Points GPS de mise à l\'eau/sortie et dérive en surface';
+      'Carte du site, des points GPS de mise à l\'eau/sortie et de la dérive en surface';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'GPS de surface';
+
+  @override
+  String get diveLog_detail_section_location => 'Emplacement';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'Mise à l\'eau';

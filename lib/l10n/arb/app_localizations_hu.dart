@@ -18497,14 +18497,17 @@ class AppLocalizationsHu extends AppLocalizations {
       'Műholdas vízviszonyok a merülés napján';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Felszíni GPS';
+  String get diveDetailSection_surfaceGps_name => 'Helyszín';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS be-/kiszállási pontok és felszíni sodródás';
+      'A merülőhely, a GPS be-/kiszállási pontok és a felszíni sodródás térképe';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'Felszíni GPS';
+
+  @override
+  String get diveLog_detail_section_location => 'Helyszín';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'Beszállás';
