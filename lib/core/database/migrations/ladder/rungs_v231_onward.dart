@@ -197,12 +197,19 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankSharedComputerIds();
     }
     if (from < 260) await reportProgress();
-    // v262: the role junctions (issue #1221), several roles per person on a
-    // dive. Table-only rung, no backfill; re-asserted in beforeOpen. 261 is
-    // held by #2985.
-    if (from < 262) {
+    // v261: drop diver_settings.default_ceiling_source (issue #767), unread
+    // since the ceiling line lost its source toggle (#755). Re-asserted in
+    // beforeOpen.
+    if (from < 261) {
+      await _dropDefaultCeilingSourceColumn();
+    }
+    if (from < 261) await reportProgress();
+    // v264: the role junctions (issue #1221), several roles per person on a
+    // dive. Table-only rung, no backfill; re-asserted in beforeOpen. 262 and
+    // 263 are held by open branches (#2991, #3004).
+    if (from < 264) {
       await _assertDiveRoleLinkSchema();
     }
-    if (from < 262) await reportProgress();
+    if (from < 264) await reportProgress();
   }
 }

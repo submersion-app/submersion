@@ -501,7 +501,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         return [_buildReefHealthSection(context, ref, dive, topGap: topGap)];
       },
       DiveDetailSectionId.surfaceGps: (_) {
-        if (!_hasSurfaceGps(dive)) return [];
+        if (!_hasLocationMap(dive)) return [];
         return [_surfaceGpsCard(dive, computerReadingsAsync, settings)];
       },
       DiveDetailSectionId.navTrack: (_) {
@@ -621,9 +621,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     };
   }
 
-  /// Whether the dive has a surface GPS fix to map.
-  bool _hasSurfaceGps(Dive dive) =>
-      dive.entryLocation != null || dive.exitLocation != null;
+  /// Whether the location card has anything to map: a surface GPS fix, or
+  /// failing that the dive site's coordinates (issue #402).
+  bool _hasLocationMap(Dive dive) =>
+      dive.entryLocation != null ||
+      dive.exitLocation != null ||
+      dive.site?.location != null;
 
   /// The Surface GPS card, including its data-source attribution [Consumer].
   /// Extracted so both the normal section flow and the side-by-side pairing
@@ -999,7 +1002,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         );
 
       case DiveDetailSectionId.surfaceGps:
-        if (!_hasSurfaceGps(dive)) return null;
+        if (!_hasLocationMap(dive)) return null;
         final tide = _tideCard(context, ref, dive);
         if (tide == null) return null;
         return _PairCards(

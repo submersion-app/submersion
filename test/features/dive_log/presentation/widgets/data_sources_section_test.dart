@@ -871,6 +871,62 @@ void main() {
 
       expect(find.byIcon(Icons.more_vert), findsNothing);
     });
+
+    // Issue #2974: the dive detail page always wires both callbacks, but a
+    // lone primary reading has no menu entry to show (it is already primary,
+    // and split needs two sources). An icon over an empty menu opens nothing.
+    testWidgets('no overflow menu for a lone primary source', (tester) async {
+      final source = _makeSource();
+
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [source],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+              onSetPrimary: (_) {},
+              onSplit: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.more_vert), findsNothing);
+    });
+
+    testWidgets('lone non-primary source still offers "Set as primary"', (
+      tester,
+    ) async {
+      String? setPrimaryId;
+      final source = _makeSource(id: 'src-legacy', isPrimary: false);
+
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [source],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+              onSetPrimary: (id) => setPrimaryId = id,
+              onSplit: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Set as primary'));
+      await tester.pumpAndSettle();
+
+      expect(setPrimaryId, 'src-legacy');
+    });
   });
 
   group('Multi-source cards', () {

@@ -75,6 +75,25 @@ void main() {
     });
   });
 
+  group('front roll entry method (#2927)', () {
+    test('French uses the requested "Bascule avant"', () {
+      final fr = lookupAppLocalizations(const Locale('fr'));
+      expect(EntryMethod.frontRoll.localizedName(fr), 'Bascule avant');
+    });
+
+    test('every other locale translates it rather than showing English', () {
+      for (final locale in AppLocalizations.supportedLocales) {
+        if (locale.languageCode == 'en') continue;
+        final l10n = lookupAppLocalizations(locale);
+        expect(
+          EntryMethod.frontRoll.localizedName(l10n),
+          isNot(EntryMethod.frontRoll.displayName),
+          reason: locale.toLanguageTag(),
+        );
+      }
+    });
+  });
+
   group('German locale returns translated values (the #622 fix)', () {
     test('values resolve through the German localization table', () {
       // Compare against the generated getters rather than literal strings, so

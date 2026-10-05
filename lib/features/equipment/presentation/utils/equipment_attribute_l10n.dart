@@ -77,6 +77,8 @@ String attributeLabel(AppLocalizations l10n, String key) => switch (key) {
   'band_style' => l10n.attrLabel_band_style,
   'pocket_capacity_kg' => l10n.attrLabel_pocket_capacity_kg,
   'pocket_mount' => l10n.attrLabel_pocket_mount,
+  'bag_style' => l10n.attrLabel_bag_style,
+  'capacity_l' => l10n.attrLabel_capacity_l,
   // Purchase record (issue #1517), present on every type.
   'sku' => l10n.attrLabel_sku,
   'retailer' => l10n.attrLabel_retailer,
@@ -227,5 +229,12 @@ String attributeChoiceLabel(
   'pocket_mount_harness' => l10n.attrChoice_pocket_mount_harness,
   'pocket_mount_waist_belt' => l10n.attrChoice_pocket_mount_waist_belt,
   'pocket_mount_thigh' => l10n.attrChoice_pocket_mount_thigh,
+  'bag_style_duffel' => l10n.attrChoice_bag_style_duffel,
+  'bag_style_roller' => l10n.attrChoice_bag_style_roller,
+  'bag_style_backpack' => l10n.attrChoice_bag_style_backpack,
+  'bag_style_mesh' => l10n.attrChoice_bag_style_mesh,
+  'bag_style_dry_bag' => l10n.attrChoice_bag_style_dry_bag,
+  'bag_style_regulator_bag' => l10n.attrChoice_bag_style_regulator_bag,
+  'bag_style_catch_bag' => l10n.attrChoice_bag_style_catch_bag,
   _ => option,
 };

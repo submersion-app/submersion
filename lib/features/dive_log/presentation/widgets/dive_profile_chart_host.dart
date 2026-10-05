@@ -16,10 +16,10 @@ import 'package:submersion/features/dive_log/presentation/providers/chart_tank_p
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
+import 'package:submersion/features/dive_log/presentation/utils/profile_extent_sync.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cell_divergence_highlight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -254,7 +254,12 @@ class DiveProfileChartHost extends ConsumerWidget {
         (dataSources.length == 1 ? sourceProfiles[dataSources.first.id] : null);
     final chartProfile = resolvedActive?.points ?? dive.profile;
 
-    _keepExtentsOnDrawnSeries(context, ref, chartProfile, rangeState);
+    keepProfileExtentsOnDrawnSeries(
+      context,
+      ref,
+      diveId: diveId,
+      chartProfile: chartProfile,
+    );
 
     final markers = profileChartMarkers(
       profile: chartProfile,
@@ -453,60 +458,5 @@ class DiveProfileChartHost extends ConsumerWidget {
         },
       ),
     );
-  }
-
-  /// Keep the playback and range extents on the series the chart draws.
-  ///
-  /// Deliberately not a one-shot "initialize if still zero": the data sources
-  /// load asynchronously, so the first build falls back to dive.profile and a
-  /// zero-guard would freeze the merged series' extent in place forever. The
-  /// active source can also change at any time. Both cases leave the range
-  /// slider running past the end of the visible curve (#1167).
-  /// Re-initializing resets playback position and range selection, which is
-  /// the wanted behavior when the series underneath them changed.
-  ///
-  /// The comparison runs in build, so a frame callback is only scheduled on
-  /// the rare build that has work to do.
-  ///
-  /// Playback's extent is read, not watched: watching it would resubscribe
-  /// this host to the 25ms ticker that #2231 removed. Reading is enough,
-  /// because the only thing that can invalidate playback's extent is the
-  /// drawn series changing, and this widget already rebuilds for that. The
-  /// one other caller of [PlaybackNotifier.initialize],
-  /// `ProfileTransportControls.initState`, derives its value from the same
-  /// dive's drawn series, so it can only ever agree.
-  void _keepExtentsOnDrawnSeries(
-    BuildContext context,
-    WidgetRef ref,
-    List<DiveProfilePoint> chartProfile,
-    RangeSelectionState rangeState,
-  ) {
-    if (chartProfile.isEmpty) return;
-    final maxTimestamp = chartProfile.last.timestamp;
-    if (ref.read(playbackProvider(dive.id)).maxTimestamp == maxTimestamp &&
-        rangeState.maxTimestamp == maxTimestamp) {
-      return;
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // riverpod's own liveness check: a ConsumerWidget's ref throws a
-      // StateError, in release as well as debug, once its element is gone.
-      // Scheduled from build, this callback drains at the end of that same
-      // frame and so has never yet outlived the widget (probed against a
-      // LayoutBuilder that drops the chart on resize: still mounted). The
-      // guard is here so that stays a scheduling detail rather than a
-      // precondition, for whoever next moves the call off the build path.
-      if (!context.mounted) return;
-      // Re-read rather than trusting the build-time snapshot: the rest of the
-      // frame may have moved either extent already.
-      if (ref.read(playbackProvider(dive.id)).maxTimestamp != maxTimestamp) {
-        ref.read(playbackProvider(dive.id).notifier).initialize(maxTimestamp);
-      }
-      if (ref.read(rangeSelectionProvider(dive.id)).maxTimestamp !=
-          maxTimestamp) {
-        ref
-            .read(rangeSelectionProvider(dive.id).notifier)
-            .initialize(maxTimestamp);
-      }
-    });
   }
 }

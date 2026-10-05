@@ -247,7 +247,7 @@ class CourseRequirementDives extends Table {
   TextColumn get hlc => text().nullable()();
 }
 
-/// The diver's own roles on a dive (v262, issue #1221). `dives.diver_role`
+/// The diver's own roles on a dive (v264, issue #1221). `dives.diver_role`
 /// stays as the primary role for older app versions (see DiveRoleSet).
 /// Surrogate uuid key, as `dive_dive_types`; `roleId` has no foreign key
 /// because a custom role can arrive by sync after a row naming it.
@@ -267,7 +267,7 @@ class DiveDiverRoles extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// Each buddy's roles on a dive (v262, issue #1221). Keyed on the
+/// Each buddy's roles on a dive (v264, issue #1221). Keyed on the
 /// (dive, buddy) pair rather than on `dive_buddies.id`: older app versions
 /// save a dive's buddies by deleting and re-inserting every `dive_buddies`
 /// row under fresh ids, which would orphan rows hung off the row id.

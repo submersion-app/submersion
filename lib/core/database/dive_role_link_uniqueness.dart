@@ -1,4 +1,4 @@
-/// Role junction identity (v262, issue #1221): one `dive_diver_roles` row per
+/// Role junction identity (v264, issue #1221): one `dive_diver_roles` row per
 /// (dive, role) and one `dive_buddy_roles` row per (dive, buddy, role).
 ///
 /// Both tables carry their unique index from the day they exist, like
@@ -47,7 +47,7 @@ Future<bool> _exists(
 
 /// Asserts both unique indexes, collapsing duplicates first so creating an
 /// index cannot abort. Self-guarding on the tables existing, so partial
-/// migration-test fixtures pass through. Called from `onCreate`, the v262
+/// migration-test fixtures pass through. Called from `onCreate`, the v264
 /// rung and `beforeOpen`.
 Future<void> assertDiveRoleLinkUniqueness(DatabaseConnectionUser db) async {
   for (final spec in _specs) {

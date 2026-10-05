@@ -74,7 +74,7 @@ Future<void> _pump(
   AppSettings settings = const AppSettings(),
   String? selectedSiteId,
   void Function(DiveSite)? onSiteSelected,
-  VoidCallback? onCreateNewSite,
+  void Function(String query)? onCreateNewSite,
   LocationService? locationService,
 }) async {
   tester.view.physicalSize = const Size(900, 2000);
@@ -176,7 +176,7 @@ void main() {
 
   testWidgets('empty state offers creating a site', (tester) async {
     var created = 0;
-    await _pump(tester, sites: const [], onCreateNewSite: () => created++);
+    await _pump(tester, sites: const [], onCreateNewSite: (_) => created++);
     expect(find.text('No dive sites yet'), findsOneWidget);
     await tester.tap(find.text('Add Dive Site'));
     expect(created, 1);
@@ -195,10 +195,43 @@ void main() {
     await _pump(
       tester,
       sites: const [_nearSite],
-      onCreateNewSite: () => created++,
+      onCreateNewSite: (_) => created++,
     );
     await tester.tap(find.text('New Dive Site'));
     expect(created, 1);
+  });
+
+  testWidgets('header create passes the trimmed search text', (tester) async {
+    final queries = <String>[];
+    await _pump(tester, sites: const [_nearSite], onCreateNewSite: queries.add);
+
+    await tester.enterText(find.byType(TextField), '  Blue Corner  ');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('New Dive Site'));
+
+    expect(queries, ['Blue Corner']);
+  });
+
+  testWidgets('header create passes an empty query without a search', (
+    tester,
+  ) async {
+    final queries = <String>[];
+    await _pump(tester, sites: const [_nearSite], onCreateNewSite: queries.add);
+
+    await tester.tap(find.text('New Dive Site'));
+
+    expect(queries, ['']);
+  });
+
+  testWidgets('empty-state create passes the search text too', (tester) async {
+    final queries = <String>[];
+    await _pump(tester, sites: const [], onCreateNewSite: queries.add);
+
+    await tester.enterText(find.byType(TextField), 'Blue Hole');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add Dive Site'));
+
+    expect(queries, ['Blue Hole']);
   });
 
   testWidgets('header hides the create button without a callback', (
