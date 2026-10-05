@@ -123,6 +123,110 @@ Under **Settings &rarr; Cloud Sync** you control when syncs happen:
 
 [More about the Settings page &rarr;](guide/settings.md)
 
+## What Syncs Between Devices
+
+Your dive log always syncs: dives, sites, trips, buddies, gear, and everything
+else you record. Settings are split three ways. Most follow your **diver
+profile** to every device, a few are **shared** by everyone using the library,
+and some stay on **the device** where you set them.
+
+### Settings Belong to a Diver
+
+Most settings are saved with the active diver profile rather than with the app.
+Switching to another diver switches to that diver's settings, and another device
+shows your settings when it has the same diver profile open.
+
+A device that was set up with its own diver profile before it joined sync keeps
+that profile, even when it has the same name as yours. When two profiles have
+the same name (capitals and extra spaces are ignored), **Settings &rarr; Cloud
+Sync** shows a **Duplicate diver profiles** banner after the sync. If you named
+them differently, rename one to match the other and the banner appears. Tap
+**Merge** to combine them: dives and data move onto one profile, and that
+profile's settings are the ones every device uses from then on. Submersion keeps
+your default diver, or the oldest profile if none is the default. You can undo
+the merge right after it finishes.
+
+### Synced With Your Diver Profile
+
+| Area | Settings |
+|------|----------|
+| **Units** | Unit system and every individual unit, gas consumption display, gas calculations, default water type, default currency, visibility scale, coordinate format, time and date format |
+| **Language** | App language, place name language |
+| **Decompression** | Gradient factors, CNS calculation, ppO2 limits, CCR setpoints, data source preferences (NDL, deco stop, TTS, GTR, and CNS sources), narcosis (O2 is narcotic, END limit), ascent planning, GTR reserve pressure, ascent-rate warning levels, last stop depth and stop increment |
+| **Safety** | Post-dive safety review and its rules, flying after diving preset, equipment condition thresholds and rules |
+| **Notifications** | Service reminders on or off, reminder schedule, reminder time, trip service lead time. Each device still asks for its own permission to show notifications. |
+| **Appearance** | Light or dark mode, color theme, map style, color accents |
+| **Appearance, per section** (Dives, Sites, Trips, and so on) | List view, list fields and field presets, card coloring, map backgrounds on cards, Show Details Pane, profile panel in table view, data source badges, diver figure, dive and site detail section order and visibility |
+| **Dive profile chart** | Right Y-axis metric, default visible metrics, max depth, pressure threshold and gas switch markers, gas timeline, ceiling, ascent rate colors, NDL and deco stops on the profile, tissue display |
+| **Dive defaults and imports** | Default dive type, tank, and start pressure, applying the default tank to imports, auto-tagging imports, auto site matching, tank pressure at surfacing, grouping trips in the dive list |
+| **Other** | Items hidden from this profile, hidden built-in tank presets, emergency region and hidden chambers, 3D seascape appearance |
+
+### Synced for Everyone Using the Library
+
+These are not tied to a diver. Every profile on every connected device shares
+them.
+
+- **Navigation layout** and **Always hide labels**. The phone and desktop orders
+  are kept separately, so your phones share one order and your desktops share
+  another.
+- **Share new sites and trips by default**
+- **Trimix Mixer** templates, gas prices, and fill settings (listed under
+  **Settings &rarr; Manage**)
+- **MOD calculator** inputs
+- **Gear arrangement**
+- **Photos & Media:** **Upload quality** for photos and video, the media library
+  view and sort order, and **Automatically re-link exact matches**
+- **Adobe Lightroom:** **Albums to scan** and **Check for new photos
+  automatically**, for each connected Adobe account. Signing in to Adobe still
+  happens on each device.
+
+### Synced as Part of Your Library
+
+- Everything you add under **Settings &rarr; Manage**: dive types, site types,
+  dive roles, tank presets, weight presets, transmitters, service types, trip
+  checklist templates, pre-dive checklists, near-miss log entries, species, tags,
+  and saved queries. The built-in entries come with every installation, so only
+  the ones you create or change travel between devices.
+- Your diver profile details: personal information, medical information,
+  insurance, and emergency contacts.
+- Dive computers you have added. The Bluetooth pairing stays on each device, so
+  each device connects to the computer on its own.
+- CSV import presets.
+
+### Stays on This Device
+
+| Area | Settings |
+|------|----------|
+| **App Security** | App Lock, unlock with biometrics, auto-lock, database encryption |
+| **Cloud Sync** | Which backend you use and its credentials, Auto Sync, Sync on Launch, Sync on Resume |
+| **Backup & Restore** | Automatic backups, frequency, how many backups to keep, backup location, cloud backup |
+| **Database Storage** | Where the database file is kept |
+| **Updates** | Automatic updates, update channel |
+| **Appearance** | Display size, the Home screen layout (status chips and home cards), Keep overlays in view when zooming |
+| **Photos & Media** | Show source badges on thumbnails, Upload photos automatically, uploading on cellular |
+| **Dive computers** | Sync dive computer clocks |
+| **Other** | Which diver is active, Data quality checks, the pSCR ratio in the dive planner, the O2 cell unit in chart options, CSV export units, your sign-ins to other services (Garmin, Suunto, divelogs.de, Adobe Lightroom, and media storage logins), which dive detail sections are expanded, which trips are collapsed in the dive list, Debug mode |
+
+<div class="tip">
+<strong>Upload quality syncs, uploading does not.</strong> Each device decides for
+itself whether to upload photos automatically and whether to use cellular data,
+so you can let a tablet on Wi-Fi do the uploading while your phone waits.
+</div>
+
+### When Changes Show Up
+
+A change you make to your diver's settings appears on your other devices after
+their next sync, without restarting the app. Most shared settings do the same.
+The navigation order, the Trimix Mixer, and the media library preferences can
+need a restart of Submersion, or reopening that screen, before they show a change
+made on another device.
+
+<div class="tip">
+<strong>Change settings on one device at a time.</strong> Let it sync before you
+change settings on another device. If two devices change settings before either
+has synced, the most recent change wins.
+</div>
+
 ## Switching or Removing a Backend
 
 If you switch a device from one backend to another, Submersion confirms first:

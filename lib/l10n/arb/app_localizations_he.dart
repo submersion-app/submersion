@@ -11385,6 +11385,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_entryMethod_boat => 'כניסה מסירה';
 
   @override
+  String get enum_entryMethod_frontRoll => 'גלגול קדימה';
+
+  @override
   String get enum_entryMethod_giantStride => 'צעד ענק';
 
   @override
@@ -11473,6 +11476,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_gearPocket => 'כיס ציוד';
+
+  @override
+  String get enum_equipmentType_bag => 'תיק';
 
   @override
   String get enum_equipmentType_hose => 'צינור';
@@ -18152,14 +18158,17 @@ class AppLocalizationsHe extends AppLocalizations {
       'תנאי מים לווייניים בתאריך הצלילה';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'GPS פני המים';
+  String get diveDetailSection_surfaceGps_name => 'מיקום';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'נקודות כניסה/יציאה ב-GPS וסחף פני המים';
+      'מפת אתר הצלילה, נקודות כניסה/יציאה ב-GPS וסחף פני המים';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'GPS פני המים';
+
+  @override
+  String get diveLog_detail_section_location => 'מיקום';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'כניסה';
@@ -28105,7 +28114,7 @@ class AppLocalizationsHe extends AppLocalizations {
       other: '$count פרופילים כפולים',
       one: 'פרופיל כפול אחד',
     );
-    return 'כל הצלילות, הסמכות, הציוד ושאר הנתונים מ-$_temp0 יועברו אל \"$name\". לא ניתן לבטל פעולה זו באופן אוטומטי.';
+    return 'כל הצלילות, הסמכות, הציוד ושאר הנתונים מ-$_temp0 יועברו אל \"$name\". ניתן לבטל פעולה זו מיד לאחר המיזוג.';
   }
 
   @override
@@ -29343,6 +29352,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_guide_number => 'מספר מנחה';
 
   @override
+  String get attrLabel_bag_style => 'סגנון';
+
+  @override
+  String get attrLabel_capacity_l => 'קיבולת';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'אלומיניום';
 
   @override
@@ -29521,6 +29536,27 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_tray_style_pistol_grip => 'אחיזת אקדח';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'תיק נסיעות';
+
+  @override
+  String get attrChoice_bag_style_roller => 'טרולי';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'תרמיל גב';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'תיק רשת';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'תיק יבש';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'תיק לווסת';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'שקית איסוף';
 
   @override
   String get attrChoice_bcd_style_jacket => 'ז\'קט';

@@ -6,6 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -34,6 +37,23 @@ class _PresetListNotifier
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+/// Answers every passport lookup with "not the diver's", once [gate]
+/// completes, so a scanned tag resolves as a foreign cylinder late.
+class _HeldPassports extends CylinderPassportRepository {
+  _HeldPassports(this.gate);
+
+  final Future<void> gate;
+
+  @override
+  Future<String?> findEquipmentIdByPassportId(
+    String passportId, {
+    String? diverId,
+  }) async {
+    await gate;
+    return null;
+  }
 }
 
 const _apeks = EquipmentItem(
@@ -89,6 +109,7 @@ Future<void> _pumpEditor(
   required List<EquipmentItem> equipment,
   required Widget editor,
   MockSettingsNotifier? settings,
+  List<dynamic> extra = const [],
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -114,6 +135,7 @@ Future<void> _pumpEditor(
           if (ref.watch(_reload) > 0) await Completer<void>().future;
           return equipment;
         }),
+        ...extra,
       ].cast(),
       child: MaterialApp(
         locale: const Locale('en'),
@@ -158,10 +180,12 @@ Future<void> _pumpHost(
   required List<TripCylinderState> slots,
   required void Function(DiveTank) onChanged,
   MockSettingsNotifier? settings,
+  List<dynamic> extra = const [],
 }) => _pumpEditor(
   tester,
   equipment: const [],
   settings: settings,
+  extra: extra,
   editor: ValueListenableBuilder<DiveTank>(
     valueListenable: tank,
     builder: (_, t, _) => TankEditor(
@@ -233,6 +257,46 @@ void main() {
     expect(changed!.tripCylinderId, 'a');
     expect(changed!.gasMix.o2, 32);
     expect(changed!.startPressure, 205);
+  });
+
+  // A scan fills the tank only once its tag resolves. A slot picked in that
+  // window is the newer choice, so the late scan must not overwrite it.
+  testWidgets('a slot picked while a scan resolves is not overwritten', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    final tank = ValueNotifier(const DiveTank(id: 'tank-1'));
+    addTearDown(tank.dispose);
+    await _pumpHost(
+      tester,
+      tank: tank,
+      slots: [filledSlot('a', pressure: 205, o2: 32)],
+      onChanged: (t) => tank.value = t,
+      extra: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        cylinderPassportRepositoryProvider.overrideWithValue(
+          _HeldPassports(gate.future),
+        ),
+        passportScanLauncherProvider.overrideWithValue(
+          (context) async =>
+              'https://submersion.app/c#f=1&p=11111111-2222-4333-8444-'
+              '555555555555&v=10&wp=300&m=st',
+        ),
+      ],
+    );
+    await tester.tap(find.byKey(const Key('tank-scan-tag')));
+    await tester.pumpAndSettle();
+    await _openTripCylinderPicker(tester);
+    await tester.tap(find.textContaining('Truck a').last);
+    await tester.pumpAndSettle();
+
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    expect(tank.value.tripCylinderId, 'a');
+    expect(tank.value.volume, closeTo(11.1, 0.01));
+    expect(tank.value.workingPressure, closeTo(207, 0.5));
+    expect(tank.value.gasMix.o2, 32);
   });
 
   testWidgets('None clears the link and keeps the fields', (tester) async {

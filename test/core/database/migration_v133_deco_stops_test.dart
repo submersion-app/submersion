@@ -72,15 +72,15 @@ void main() {
 
       final row = await db
           .customSelect(
-            'SELECT show_ceiling_on_profile, default_ceiling_source, '
+            'SELECT show_ceiling_on_profile, '
             'show_deco_stops_on_profile, default_deco_stop_source '
             "FROM diver_settings WHERE id = 's1'",
           )
           .getSingle();
 
-      // The diver's existing ceiling preferences survive untouched.
+      // The diver's existing ceiling visibility survives untouched. (The
+      // ceiling source column it sat beside is dropped later, by v261.)
       expect(row.data['show_ceiling_on_profile'], 0);
-      expect(row.data['default_ceiling_source'], 0);
       // The new non-nullable columns take their defaults on the legacy row.
       expect(row.data['show_deco_stops_on_profile'], 1);
       expect(row.data['default_deco_stop_source'], 1);

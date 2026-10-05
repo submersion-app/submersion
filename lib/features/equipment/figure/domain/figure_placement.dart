@@ -73,6 +73,7 @@ abstract final class FigurePlacement {
     EquipmentType.armClamp,
     EquipmentType.floatArm,
     EquipmentType.tool,
+    EquipmentType.bag,
     EquipmentType.o2Cell,
     EquipmentType.battery,
     EquipmentType.other,
@@ -554,6 +555,8 @@ abstract final class FigurePlacement {
       case EquipmentType.trayHandle:
       case EquipmentType.armClamp:
       case EquipmentType.floatArm:
+      // Carried to the dive, never worn on it (#2952).
+      case EquipmentType.bag:
         return const FigurePlacementSpec(
           zones: [],
           defaultColor: FigureColors.black,

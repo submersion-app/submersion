@@ -1,7 +1,7 @@
 import 'package:xml/xml.dart';
 
 import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_inline_site.dart';
-import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_site_folder.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_fold.dart';
 
 /// Works out which dive site each dive belongs to, across both layouts
 /// Subsurface has written.
@@ -22,7 +22,7 @@ class SubsurfaceSiteResolver {
   /// site identifiers of its own, so one is minted per dive that needs it.
   final Map<XmlElement, String> _inlineIds;
 
-  /// Folded-away uuid to surviving uuid, from [foldSubsurfaceSites].
+  /// Folded-away uuid to surviving uuid, from [foldImportSites].
   final Map<String, String> _aliases;
 
   final Set<String> _survivingIds;
@@ -67,7 +67,7 @@ class SubsurfaceSiteResolver {
       raw.add({...inline, 'uddfId': id});
     }
 
-    final folded = foldSubsurfaceSites(raw);
+    final folded = foldImportSites(raw);
     return SubsurfaceSiteResolver._(
       sites: folded.sites,
       inlineIds: inlineIds,

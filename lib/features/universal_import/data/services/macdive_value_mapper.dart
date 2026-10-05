@@ -38,6 +38,9 @@ class MacDiveValueMapper {
     if (s.contains('back') && s.contains('roll')) {
       return EntryMethod.backRoll;
     }
+    if ((s.contains('front') || s.contains('forward')) && s.contains('roll')) {
+      return EntryMethod.frontRoll;
+    }
     if (s.contains('giant') && s.contains('stride')) {
       return EntryMethod.giantStride;
     }
@@ -87,6 +90,28 @@ class MacDiveValueMapper {
   static final _portWord = RegExp(r'\bports?\b');
   static final _lensWord = RegExp(r'\blens(es)?\b');
 
+  /// A name that ends on "bag", the noun the words before it qualify, for
+  /// [equipmentType] (#2952): a "regulator bag" is a bag, not a regulator.
+  static final _bagHeadNoun = RegExp(r'\bbags?$');
+
+  /// A trailing note in parentheses ("Fin bag (large)"), set aside before
+  /// the bag checks so neither its position nor its words move the head
+  /// noun.
+  static final _trailingNote = RegExp(r'\s*\([^)]*\)$');
+
+  /// A joining word that hangs a bag off another item ("BCD w/ bag",
+  /// "camera with bag"), so the item, not the bag, is what the name lists.
+  static final _accessoryJoin = RegExp(r'\b(?:with|and)\b|w/|&|\+');
+
+  /// A bag that lifts rather than carries, for [equipmentType] (#2952).
+  /// Spelled as one word ("Liftbag") or hyphenated as often as not. Shared
+  /// with the divelogs.de geartype table so the two readers agree.
+  static final liftBag = RegExp(r'\b(?:lift|lifting|salvage)[\s-]*bags?\b');
+
+  /// A rebreather counterlung, for [equipmentType] (#2952). Shared with the
+  /// divelogs.de geartype table so the two readers agree.
+  static final breathingBag = RegExp(r'\bbreathing[\s-]*bags?\b');
+
   /// Maps MacDive's free-text equipment type onto [EquipmentType].
   ///
   /// MacDive lets the diver type anything into the field, so real libraries
@@ -98,6 +123,19 @@ class MacDiveValueMapper {
   static EquipmentType? equipmentType(String? raw) {
     final s = raw?.trim().toLowerCase();
     if (s == null || s.isEmpty) return null;
+
+    // Bags (#2952) come first, because the item words that name what a bag
+    // holds ("Reg bag", "Drysuit bag", "Fin bag") would otherwise claim it.
+    // A lift bag is a lift device and files with the SMB. A breathing bag
+    // is a rebreather's counterlung, a part with no type of its own, so it
+    // stays Other rather than reading as luggage or as the whole unit. A
+    // bare "bag" anywhere else in a name is weaker and waits at the bottom.
+    if (liftBag.hasMatch(s)) return EquipmentType.smb;
+    if (breathingBag.hasMatch(s)) return EquipmentType.other;
+    final head = s.replaceFirst(_trailingNote, '');
+    if (_bagHeadNoun.hasMatch(head) && !_accessoryJoin.hasMatch(head)) {
+      return EquipmentType.bag;
+    }
 
     // Ordered longest-idea-first: "drysuit" must beat "suit", and the
     // regulator family must not swallow "octopus", which is its own type in
@@ -289,6 +327,13 @@ class MacDiveValueMapper {
     // specific item word wins over it. "Pocket knife" stays a knife, "soft
     // pocket weights" stay lead and "BCD w/ pockets" stays a BCD.
     if (s.contains('pocket')) return EquipmentType.gearPocket;
+    if (s.contains('bag') ||
+        s.contains('duffel') ||
+        s.contains('duffle') ||
+        s.contains('luggage') ||
+        s.contains('suitcase')) {
+      return EquipmentType.bag;
+    }
     return EquipmentType.other;
   }
 }

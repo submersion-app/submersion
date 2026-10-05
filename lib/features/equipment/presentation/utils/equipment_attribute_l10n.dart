@@ -83,6 +83,8 @@ String attributeLabel(AppLocalizations l10n, String key) => switch (key) {
   'tray_style' => l10n.attrLabel_tray_style,
   'arm_length_m' => l10n.attrLabel_arm_length_m,
   'guide_number' => l10n.attrLabel_guide_number,
+  'bag_style' => l10n.attrLabel_bag_style,
+  'capacity_l' => l10n.attrLabel_capacity_l,
   // Purchase record (issue #1517), present on every type.
   'sku' => l10n.attrLabel_sku,
   'retailer' => l10n.attrLabel_retailer,
@@ -242,5 +244,12 @@ String attributeChoiceLabel(
   'tray_style_single_handle' => l10n.attrChoice_tray_style_single_handle,
   'tray_style_double_handle' => l10n.attrChoice_tray_style_double_handle,
   'tray_style_pistol_grip' => l10n.attrChoice_tray_style_pistol_grip,
+  'bag_style_duffel' => l10n.attrChoice_bag_style_duffel,
+  'bag_style_roller' => l10n.attrChoice_bag_style_roller,
+  'bag_style_backpack' => l10n.attrChoice_bag_style_backpack,
+  'bag_style_mesh' => l10n.attrChoice_bag_style_mesh,
+  'bag_style_dry_bag' => l10n.attrChoice_bag_style_dry_bag,
+  'bag_style_regulator_bag' => l10n.attrChoice_bag_style_regulator_bag,
+  'bag_style_catch_bag' => l10n.attrChoice_bag_style_catch_bag,
   _ => option,
 };

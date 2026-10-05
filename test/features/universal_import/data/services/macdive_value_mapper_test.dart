@@ -52,6 +52,22 @@ void main() {
       expect(MacDiveValueMapper.entryType('Back Roll'), isNotNull);
     });
 
+    test('maps front and forward roll entries to the front roll', () {
+      for (final raw in [
+        'front roll',
+        'frontroll',
+        'Front Roll',
+        'forward roll',
+        'Forward Roll',
+      ]) {
+        expect(
+          MacDiveValueMapper.entryType(raw),
+          EntryMethod.frontRoll,
+          reason: raw,
+        );
+      }
+    });
+
     test('maps giant stride entries', () {
       expect(MacDiveValueMapper.entryType('giant stride'), isNotNull);
       expect(MacDiveValueMapper.entryType('giantstride'), isNotNull);
@@ -232,6 +248,19 @@ void main() {
       'Float arm': EquipmentType.floatArm,
       'Float': EquipmentType.floatArm,
       'Buoyancy arm': EquipmentType.floatArm,
+      // #2952 bags.
+      'Gear bag': EquipmentType.bag,
+      'Dive bag': EquipmentType.bag,
+      'Mesh bag': EquipmentType.bag,
+      'Dry bag': EquipmentType.bag,
+      'Roller bag': EquipmentType.bag,
+      'Catch bag': EquipmentType.bag,
+      'Goodie bag': EquipmentType.bag,
+      'Trash bag': EquipmentType.bag,
+      'Bag': EquipmentType.bag,
+      'Duffel': EquipmentType.bag,
+      'Luggage': EquipmentType.bag,
+      'Suitcase': EquipmentType.bag,
     };
 
     cases.forEach((input, expected) {
@@ -262,11 +291,11 @@ void main() {
     });
 
     test('camera words match whole words only (#1997)', () {
-      // "Port" sits inside "transport" and "sport", "arm" inside "alarm" and
+      // "Port" sits inside "transport" and "support", "arm" inside "alarm" and
       // "warm", and "float" inside "floating": none of those is a camera part.
       const notCameraParts = {
-        'Transport bag': EquipmentType.other,
-        'Sport bag': EquipmentType.other,
+        'Transport case': EquipmentType.other,
+        'Support strap': EquipmentType.other,
         'Alarm tool': EquipmentType.tool,
         'Floating reel': EquipmentType.reel,
         // A mask's lens is still the mask, which is checked first.
@@ -319,6 +348,62 @@ void main() {
           reason: input,
         );
       });
+    });
+
+    test('a bag named for what it holds is a bag (#2952)', () {
+      // The item words inside these names (reg, fin, wetsuit) would
+      // otherwise claim the bag that carries them.
+      const holders = {
+        'Regulator bag': EquipmentType.bag,
+        'Reg bag': EquipmentType.bag,
+        'Fin bag': EquipmentType.bag,
+        'Wetsuit bag': EquipmentType.bag,
+        // A trailing note does not hand the bag back to what it holds.
+        'Regulator bag (Apeks)': EquipmentType.bag,
+        'Fin bag (large)': EquipmentType.bag,
+        // ...even when the note itself names a joining word.
+        'Regulator bag (with strap)': EquipmentType.bag,
+      };
+      holders.forEach((input, expected) {
+        expect(
+          MacDiveValueMapper.equipmentType(input),
+          expected,
+          reason: input,
+        );
+      });
+    });
+
+    test('a breathing bag is a counterlung, not luggage (#2952)', () {
+      // A rebreather part with no type of its own: it stays Other rather
+      // than being filed as a Bag or as the whole rebreather.
+      for (final input in [
+        'Breathing bag',
+        'Breathing bags',
+        'CCR breathing bag',
+        'Breathing bag (left)',
+      ]) {
+        expect(
+          MacDiveValueMapper.equipmentType(input),
+          EquipmentType.other,
+          reason: input,
+        );
+      }
+    });
+
+    test('a bare bag word does not steal a whole item (#2952)', () {
+      // A lift bag is a lift device, so it files with the SMB rather than
+      // with luggage, and a bag listed beside an item stays that item.
+      expect(MacDiveValueMapper.equipmentType('Lift bag'), EquipmentType.smb);
+      expect(MacDiveValueMapper.equipmentType('Liftbag'), EquipmentType.smb);
+      expect(
+        MacDiveValueMapper.equipmentType('Lift-bag 30kg'),
+        EquipmentType.smb,
+      );
+      expect(MacDiveValueMapper.equipmentType('BCD w/ bag'), EquipmentType.bcd);
+      expect(
+        MacDiveValueMapper.equipmentType('Camera with bag'),
+        EquipmentType.camera,
+      );
     });
 
     test('the Shearwater brand is not read as shears (#2299)', () {
@@ -374,11 +459,9 @@ void main() {
 
     test('"trash" does not read as a rash guard', () {
       // "rash" is a substring of "trash", and a mesh trash bag is ordinary
-      // kit on a cleanup dive, so the rule spells the garment out.
-      expect(
-        MacDiveValueMapper.equipmentType('Trash bag'),
-        EquipmentType.other,
-      );
+      // kit on a cleanup dive, so the rule spells the garment out. Since
+      // #2952 that bag files as a bag.
+      expect(MacDiveValueMapper.equipmentType('Trash bag'), EquipmentType.bag);
       expect(
         MacDiveValueMapper.equipmentType('Trash collection hook'),
         EquipmentType.other,
