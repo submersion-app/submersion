@@ -9390,28 +9390,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tooltip_missedSwitch => 'تبديل فائت';
 
   @override
-  String diveLog_tooltip_lateSwitchValue(
-    String gas,
-    String delay,
-    String depth,
-    String extra,
-  ) {
-    return '$gas، تأخير $delay / $depth، +$extra تخفيف ضغط';
-  }
+  String get diveLog_tooltip_switchDelay => 'التأخير';
 
   @override
-  String diveLog_tooltip_missedSwitchValue(String gas, String extra) {
-    return '$gas، +$extra تخفيف ضغط';
-  }
-
-  @override
-  String diveLog_tooltip_lateSwitchTimeValue(
-    String gas,
-    String delay,
-    String extra,
-  ) {
-    return '$gas، تأخير $delay، +$extra تخفيف ضغط';
-  }
+  String get diveLog_tooltip_extraDeco => 'تخفيف ضغط إضافي';
 
   @override
   String get diveLog_tooltip_gtr => 'GTR';

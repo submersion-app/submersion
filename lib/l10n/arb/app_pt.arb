@@ -2885,48 +2885,8 @@
   "diveLog_tooltip_tts": "TTS",
   "diveLog_tooltip_lateSwitch": "Troca tardia",
   "diveLog_tooltip_missedSwitch": "Troca omitida",
-  "diveLog_tooltip_lateSwitchValue": "{gas}, {delay} / {depth} de atraso, +{extra} de deco",
-  "@diveLog_tooltip_lateSwitchValue": {
-    "placeholders": {
-      "gas": {
-        "type": "String"
-      },
-      "delay": {
-        "type": "String"
-      },
-      "depth": {
-        "type": "String"
-      },
-      "extra": {
-        "type": "String"
-      }
-    }
-  },
-  "diveLog_tooltip_missedSwitchValue": "{gas}, +{extra} de deco",
-  "@diveLog_tooltip_missedSwitchValue": {
-    "placeholders": {
-      "gas": {
-        "type": "String"
-      },
-      "extra": {
-        "type": "String"
-      }
-    }
-  },
-  "diveLog_tooltip_lateSwitchTimeValue": "{gas}, {delay} de atraso, +{extra} de deco",
-  "@diveLog_tooltip_lateSwitchTimeValue": {
-    "placeholders": {
-      "gas": {
-        "type": "String"
-      },
-      "delay": {
-        "type": "String"
-      },
-      "extra": {
-        "type": "String"
-      }
-    }
-  },
+  "diveLog_tooltip_switchDelay": "Atraso",
+  "diveLog_tooltip_extraDeco": "Deco extra",
   "diveLog_tooltip_gtr": "GTR",
   "diveLog_sources_row_metric": "Medida",
   "diveLog_sources_row_maxDepth": "Prof. Máxima",

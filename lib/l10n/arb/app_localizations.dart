@@ -14917,32 +14917,17 @@ abstract class AppLocalizations {
   /// **'Missed switch'**
   String get diveLog_tooltip_missedSwitch;
 
-  /// No description provided for @diveLog_tooltip_lateSwitchValue.
+  /// No description provided for @diveLog_tooltip_switchDelay.
   ///
   /// In en, this message translates to:
-  /// **'{gas}, {delay} / {depth} late, +{extra} deco'**
-  String diveLog_tooltip_lateSwitchValue(
-    String gas,
-    String delay,
-    String depth,
-    String extra,
-  );
+  /// **'Delay'**
+  String get diveLog_tooltip_switchDelay;
 
-  /// No description provided for @diveLog_tooltip_missedSwitchValue.
+  /// No description provided for @diveLog_tooltip_extraDeco.
   ///
   /// In en, this message translates to:
-  /// **'{gas}, +{extra} deco'**
-  String diveLog_tooltip_missedSwitchValue(String gas, String extra);
-
-  /// No description provided for @diveLog_tooltip_lateSwitchTimeValue.
-  ///
-  /// In en, this message translates to:
-  /// **'{gas}, {delay} late, +{extra} deco'**
-  String diveLog_tooltip_lateSwitchTimeValue(
-    String gas,
-    String delay,
-    String extra,
-  );
+  /// **'Extra deco'**
+  String get diveLog_tooltip_extraDeco;
 
   /// No description provided for @diveLog_tooltip_gtr.
   ///

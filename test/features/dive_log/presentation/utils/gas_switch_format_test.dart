@@ -34,34 +34,51 @@ void main() {
     expect(gasSwitchGasLabel(0.21, 0.35), 'Tx 21/35');
   });
 
-  test('late tooltip in metric and imperial', () {
+  test('late tooltip rows in metric and imperial', () {
     const metric = UnitFormatter(AppSettings());
     expect(lateSwitchTooltipLabel(late, l10n), 'Late switch');
+    expect(lateSwitchTooltipValue(late), 'EAN50');
     expect(
-      lateSwitchTooltipValue(late, metric, l10n),
-      'EAN50, 3:20 / ${metric.formatDepth(9, decimals: 0)} late, +4:10 deco',
+      lateSwitchDelayValue(late, metric),
+      '3:20 / ${metric.formatDepth(9, decimals: 0)}',
     );
+    expect(lateSwitchExtraDecoValue(late), '+4:10');
     const imperial = UnitFormatter(AppSettings(depthUnit: DepthUnit.feet));
-    expect(lateSwitchTooltipValue(late, imperial, l10n), contains('ft'));
+    expect(lateSwitchDelayValue(late, imperial), contains('ft'));
   });
 
   test('a switch late by time only shows no depth delay', () {
-    final timeOnly = late.copyWith(
-      delaySeconds: 130,
-      depthDelayMeters: 0.2,
-      extraDecoSeconds: 0,
-    );
+    final timeOnly = late.copyWith(delaySeconds: 130, depthDelayMeters: 0.2);
     const metric = UnitFormatter(AppSettings());
-    expect(
-      lateSwitchTooltipValue(timeOnly, metric, l10n),
-      'EAN50, 2:10 late, +0:00 deco',
-    );
+    expect(lateSwitchDelayValue(timeOnly, metric), '2:10');
   });
 
-  test('missed tooltip', () {
+  test('a missed switch has no delay row', () {
     final missed = late.copyWith(kind: GasSwitchWindowKind.missed);
     const metric = UnitFormatter(AppSettings());
     expect(lateSwitchTooltipLabel(missed, l10n), 'Missed switch');
-    expect(lateSwitchTooltipValue(missed, metric, l10n), 'EAN50, +4:10 deco');
+    expect(lateSwitchTooltipValue(missed), 'EAN50');
+    expect(lateSwitchDelayValue(missed, metric), isNull);
+    expect(lateSwitchExtraDecoValue(missed), '+4:10');
+  });
+
+  test('every tooltip value fits the half-width a row value gets', () {
+    // The profile tooltip caps rows at 320 px and splits label and value
+    // evenly; about 18 monospace characters is what a value can show.
+    const imperial = UnitFormatter(AppSettings(depthUnit: DepthUnit.feet));
+    final worst = late.copyWith(
+      fO2: 0.18,
+      fHe: 0.45,
+      delaySeconds: 3599,
+      depthDelayMeters: 30,
+      extraDecoSeconds: 3599,
+    );
+    for (final value in [
+      lateSwitchTooltipValue(worst),
+      lateSwitchDelayValue(worst, imperial)!,
+      lateSwitchExtraDecoValue(worst),
+    ]) {
+      expect(value.length, lessThanOrEqualTo(18), reason: value);
+    }
   });
 }

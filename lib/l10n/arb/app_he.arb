@@ -2784,48 +2784,8 @@
   "diveLog_tooltip_tts": "TTS",
   "diveLog_tooltip_lateSwitch": "החלפה מאוחרת",
   "diveLog_tooltip_missedSwitch": "החלפה שהוחמצה",
-  "diveLog_tooltip_lateSwitchValue": "{gas}, איחור {delay} / {depth}, +{extra} דקו",
-  "@diveLog_tooltip_lateSwitchValue": {
-    "placeholders": {
-      "gas": {
-        "type": "String"
-      },
-      "delay": {
-        "type": "String"
-      },
-      "depth": {
-        "type": "String"
-      },
-      "extra": {
-        "type": "String"
-      }
-    }
-  },
-  "diveLog_tooltip_missedSwitchValue": "{gas}, +{extra} דקו",
-  "@diveLog_tooltip_missedSwitchValue": {
-    "placeholders": {
-      "gas": {
-        "type": "String"
-      },
-      "extra": {
-        "type": "String"
-      }
-    }
-  },
-  "diveLog_tooltip_lateSwitchTimeValue": "{gas}, איחור {delay}, +{extra} דקו",
-  "@diveLog_tooltip_lateSwitchTimeValue": {
-    "placeholders": {
-      "gas": {
-        "type": "String"
-      },
-      "delay": {
-        "type": "String"
-      },
-      "extra": {
-        "type": "String"
-      }
-    }
-  },
+  "diveLog_tooltip_switchDelay": "איחור",
+  "diveLog_tooltip_extraDeco": "דקו נוסף",
   "diveLog_tooltip_gtr": "GTR",
   "diveLog_sources_row_metric": "מדד",
   "diveLog_sources_row_maxDepth": "עומק מקסימלי",

@@ -3000,48 +3000,8 @@
   "diveLog_tooltip_tts": "TTS",
   "diveLog_tooltip_lateSwitch": "延迟换气",
   "diveLog_tooltip_missedSwitch": "漏换气",
-  "diveLog_tooltip_lateSwitchValue": "{gas}，延迟 {delay} / {depth}，减压 +{extra}",
-  "@diveLog_tooltip_lateSwitchValue": {
-    "placeholders": {
-      "gas": {
-        "type": "String"
-      },
-      "delay": {
-        "type": "String"
-      },
-      "depth": {
-        "type": "String"
-      },
-      "extra": {
-        "type": "String"
-      }
-    }
-  },
-  "diveLog_tooltip_missedSwitchValue": "{gas}，减压 +{extra}",
-  "@diveLog_tooltip_missedSwitchValue": {
-    "placeholders": {
-      "gas": {
-        "type": "String"
-      },
-      "extra": {
-        "type": "String"
-      }
-    }
-  },
-  "diveLog_tooltip_lateSwitchTimeValue": "{gas}，延迟 {delay}，减压 +{extra}",
-  "@diveLog_tooltip_lateSwitchTimeValue": {
-    "placeholders": {
-      "gas": {
-        "type": "String"
-      },
-      "delay": {
-        "type": "String"
-      },
-      "extra": {
-        "type": "String"
-      }
-    }
-  },
+  "diveLog_tooltip_switchDelay": "延迟",
+  "diveLog_tooltip_extraDeco": "额外减压",
   "diveLog_tooltip_gtr": "GTR",
   "diveLog_sources_row_metric": "指标",
   "diveLog_sources_row_maxDepth": "最大深度",

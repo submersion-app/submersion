@@ -2885,48 +2885,8 @@
   "diveLog_tooltip_tts": "TTS",
   "diveLog_tooltip_lateSwitch": "تبديل متأخر",
   "diveLog_tooltip_missedSwitch": "تبديل فائت",
-  "diveLog_tooltip_lateSwitchValue": "{gas}، تأخير {delay} / {depth}، +{extra} تخفيف ضغط",
-  "@diveLog_tooltip_lateSwitchValue": {
-    "placeholders": {
-      "gas": {
-        "type": "String"
-      },
-      "delay": {
-        "type": "String"
-      },
-      "depth": {
-        "type": "String"
-      },
-      "extra": {
-        "type": "String"
-      }
-    }
-  },
-  "diveLog_tooltip_missedSwitchValue": "{gas}، +{extra} تخفيف ضغط",
-  "@diveLog_tooltip_missedSwitchValue": {
-    "placeholders": {
-      "gas": {
-        "type": "String"
-      },
-      "extra": {
-        "type": "String"
-      }
-    }
-  },
-  "diveLog_tooltip_lateSwitchTimeValue": "{gas}، تأخير {delay}، +{extra} تخفيف ضغط",
-  "@diveLog_tooltip_lateSwitchTimeValue": {
-    "placeholders": {
-      "gas": {
-        "type": "String"
-      },
-      "delay": {
-        "type": "String"
-      },
-      "extra": {
-        "type": "String"
-      }
-    }
-  },
+  "diveLog_tooltip_switchDelay": "التأخير",
+  "diveLog_tooltip_extraDeco": "تخفيف ضغط إضافي",
   "diveLog_tooltip_gtr": "GTR",
   "diveLog_sources_row_metric": "المقياس",
   "diveLog_sources_row_maxDepth": "أقصى عمق",

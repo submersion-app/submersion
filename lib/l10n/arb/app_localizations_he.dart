@@ -9071,28 +9071,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tooltip_missedSwitch => 'החלפה שהוחמצה';
 
   @override
-  String diveLog_tooltip_lateSwitchValue(
-    String gas,
-    String delay,
-    String depth,
-    String extra,
-  ) {
-    return '$gas, איחור $delay / $depth, +$extra דקו';
-  }
+  String get diveLog_tooltip_switchDelay => 'איחור';
 
   @override
-  String diveLog_tooltip_missedSwitchValue(String gas, String extra) {
-    return '$gas, +$extra דקו';
-  }
-
-  @override
-  String diveLog_tooltip_lateSwitchTimeValue(
-    String gas,
-    String delay,
-    String extra,
-  ) {
-    return '$gas, איחור $delay, +$extra דקו';
-  }
+  String get diveLog_tooltip_extraDeco => 'דקו נוסף';
 
   @override
   String get diveLog_tooltip_gtr => 'GTR';

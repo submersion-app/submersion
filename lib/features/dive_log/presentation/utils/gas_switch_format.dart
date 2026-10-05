@@ -33,27 +33,21 @@ String lateSwitchTooltipLabel(GasSwitchWindow window, AppLocalizations l10n) =>
     ? l10n.diveLog_tooltip_missedSwitch
     : l10n.diveLog_tooltip_lateSwitch;
 
-String lateSwitchTooltipValue(
-  GasSwitchWindow window,
-  UnitFormatter units,
-  AppLocalizations l10n,
-) {
-  final gas = gasSwitchGasLabel(window.fO2, window.fHe);
-  final extra = formatMinSec(window.extraDecoSeconds);
-  if (window.isMissed) {
-    return l10n.diveLog_tooltip_missedSwitchValue(gas, extra);
-  }
-  if (!hasDepthDelay(window)) {
-    return l10n.diveLog_tooltip_lateSwitchTimeValue(
-      gas,
-      formatMinSec(window.delaySeconds),
-      extra,
-    );
-  }
-  return l10n.diveLog_tooltip_lateSwitchValue(
-    gas,
-    formatMinSec(window.delaySeconds),
-    units.formatDepth(window.depthDelayMeters, decimals: 0),
-    extra,
-  );
+/// The switch row's value: the gas that should have been breathed. The
+/// delay and the extra deco get rows of their own, because a row value only
+/// gets half the profile tooltip's capped width.
+String lateSwitchTooltipValue(GasSwitchWindow window) =>
+    gasSwitchGasLabel(window.fO2, window.fHe);
+
+/// The delay row's value (`m:ss`, plus the depth delay when there is one), or
+/// null for a missed switch, which has no switch to be late by.
+String? lateSwitchDelayValue(GasSwitchWindow window, UnitFormatter units) {
+  if (window.isMissed) return null;
+  final delay = formatMinSec(window.delaySeconds);
+  if (!hasDepthDelay(window)) return delay;
+  return '$delay / ${units.formatDepth(window.depthDelayMeters, decimals: 0)}';
 }
+
+/// The extra deco row's value.
+String lateSwitchExtraDecoValue(GasSwitchWindow window) =>
+    '+${formatMinSec(window.extraDecoSeconds)}';

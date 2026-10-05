@@ -9217,28 +9217,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tooltip_missedSwitch => 'Gemiste wissel';
 
   @override
-  String diveLog_tooltip_lateSwitchValue(
-    String gas,
-    String delay,
-    String depth,
-    String extra,
-  ) {
-    return '$gas, $delay / $depth te laat, +$extra deco';
-  }
+  String get diveLog_tooltip_switchDelay => 'Vertraging';
 
   @override
-  String diveLog_tooltip_missedSwitchValue(String gas, String extra) {
-    return '$gas, +$extra deco';
-  }
-
-  @override
-  String diveLog_tooltip_lateSwitchTimeValue(
-    String gas,
-    String delay,
-    String extra,
-  ) {
-    return '$gas, $delay te laat, +$extra deco';
-  }
+  String get diveLog_tooltip_extraDeco => 'Extra deco';
 
   @override
   String get diveLog_tooltip_gtr => 'GTR';

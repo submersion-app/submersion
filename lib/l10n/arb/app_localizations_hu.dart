@@ -9267,28 +9267,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tooltip_missedSwitch => 'Kihagyott váltás';
 
   @override
-  String diveLog_tooltip_lateSwitchValue(
-    String gas,
-    String delay,
-    String depth,
-    String extra,
-  ) {
-    return '$gas, $delay / $depth késés, +$extra dekó';
-  }
+  String get diveLog_tooltip_switchDelay => 'Késés';
 
   @override
-  String diveLog_tooltip_missedSwitchValue(String gas, String extra) {
-    return '$gas, +$extra dekó';
-  }
-
-  @override
-  String diveLog_tooltip_lateSwitchTimeValue(
-    String gas,
-    String delay,
-    String extra,
-  ) {
-    return '$gas, $delay késés, +$extra dekó';
-  }
+  String get diveLog_tooltip_extraDeco => 'Többlet dekó';
 
   @override
   String get diveLog_tooltip_gtr => 'GTR';

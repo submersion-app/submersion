@@ -9278,28 +9278,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_tooltip_missedSwitch => 'Verpasster Wechsel';
 
   @override
-  String diveLog_tooltip_lateSwitchValue(
-    String gas,
-    String delay,
-    String depth,
-    String extra,
-  ) {
-    return '$gas, $delay / $depth zu spät, +$extra Deko';
-  }
+  String get diveLog_tooltip_switchDelay => 'Verzögerung';
 
   @override
-  String diveLog_tooltip_missedSwitchValue(String gas, String extra) {
-    return '$gas, +$extra Deko';
-  }
-
-  @override
-  String diveLog_tooltip_lateSwitchTimeValue(
-    String gas,
-    String delay,
-    String extra,
-  ) {
-    return '$gas, $delay zu spät, +$extra Deko';
-  }
+  String get diveLog_tooltip_extraDeco => 'Zusätzliche Deko';
 
   @override
   String get diveLog_tooltip_gtr => 'GTR';

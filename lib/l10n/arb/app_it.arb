@@ -2784,48 +2784,8 @@
   "diveLog_tooltip_tts": "TTS",
   "diveLog_tooltip_lateSwitch": "Cambio tardivo",
   "diveLog_tooltip_missedSwitch": "Cambio mancato",
-  "diveLog_tooltip_lateSwitchValue": "{gas}, {delay} / {depth} di ritardo, +{extra} di deco",
-  "@diveLog_tooltip_lateSwitchValue": {
-    "placeholders": {
-      "gas": {
-        "type": "String"
-      },
-      "delay": {
-        "type": "String"
-      },
-      "depth": {
-        "type": "String"
-      },
-      "extra": {
-        "type": "String"
-      }
-    }
-  },
-  "diveLog_tooltip_missedSwitchValue": "{gas}, +{extra} di deco",
-  "@diveLog_tooltip_missedSwitchValue": {
-    "placeholders": {
-      "gas": {
-        "type": "String"
-      },
-      "extra": {
-        "type": "String"
-      }
-    }
-  },
-  "diveLog_tooltip_lateSwitchTimeValue": "{gas}, {delay} di ritardo, +{extra} di deco",
-  "@diveLog_tooltip_lateSwitchTimeValue": {
-    "placeholders": {
-      "gas": {
-        "type": "String"
-      },
-      "delay": {
-        "type": "String"
-      },
-      "extra": {
-        "type": "String"
-      }
-    }
-  },
+  "diveLog_tooltip_switchDelay": "Ritardo",
+  "diveLog_tooltip_extraDeco": "Deco aggiuntiva",
   "diveLog_tooltip_gtr": "GTR",
   "diveLog_sources_row_metric": "Misura",
   "diveLog_sources_row_maxDepth": "Profondità max",

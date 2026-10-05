@@ -8841,28 +8841,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tooltip_missedSwitch => '漏换气';
 
   @override
-  String diveLog_tooltip_lateSwitchValue(
-    String gas,
-    String delay,
-    String depth,
-    String extra,
-  ) {
-    return '$gas，延迟 $delay / $depth，减压 +$extra';
-  }
+  String get diveLog_tooltip_switchDelay => '延迟';
 
   @override
-  String diveLog_tooltip_missedSwitchValue(String gas, String extra) {
-    return '$gas，减压 +$extra';
-  }
-
-  @override
-  String diveLog_tooltip_lateSwitchTimeValue(
-    String gas,
-    String delay,
-    String extra,
-  ) {
-    return '$gas，延迟 $delay，减压 +$extra';
-  }
+  String get diveLog_tooltip_extraDeco => '额外减压';
 
   @override
   String get diveLog_tooltip_gtr => 'GTR';

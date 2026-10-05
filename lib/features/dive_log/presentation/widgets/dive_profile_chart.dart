@@ -2519,13 +2519,26 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     if (_showLateGasSwitches) {
       final window = widget.gasSwitchEfficiency?.windowAt(point.timestamp);
       if (window != null) {
-        rows.add(
+        final color = GasColors.forMixFraction(window.fO2, window.fHe);
+        final delay = lateSwitchDelayValue(window, units);
+        rows.addAll([
           TooltipRow(
             label: lateSwitchTooltipLabel(window, l10n),
-            value: lateSwitchTooltipValue(window, units, l10n),
-            bulletColor: GasColors.forMixFraction(window.fO2, window.fHe),
+            value: lateSwitchTooltipValue(window),
+            bulletColor: color,
           ),
-        );
+          if (delay != null)
+            TooltipRow(
+              label: l10n.diveLog_tooltip_switchDelay,
+              value: delay,
+              bulletColor: color,
+            ),
+          TooltipRow(
+            label: l10n.diveLog_tooltip_extraDeco,
+            value: lateSwitchExtraDecoValue(window),
+            bulletColor: color,
+          ),
+        ]);
       }
     }
 

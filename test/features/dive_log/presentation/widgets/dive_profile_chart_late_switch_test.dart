@@ -114,7 +114,11 @@ void main() {
     await gesture.moveBy(const Offset(2, 0));
     await tester.pump();
     expect(rows, isNotNull);
-    expect(rows!.map((r) => r.label), contains('Late switch'));
+    // Two rows, so neither is cut off by the tooltip's width cap.
+    final labels = rows!.map((r) => r.label).toList();
+    expect(labels, containsAll(['Late switch', 'Delay', 'Extra deco']));
+    final extra = rows!.firstWhere((r) => r.label == 'Extra deco');
+    expect(extra.value, '+1:30');
     await gesture.up();
   });
 }

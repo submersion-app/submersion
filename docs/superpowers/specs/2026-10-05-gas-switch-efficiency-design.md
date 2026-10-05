@@ -248,10 +248,13 @@ persisted, so `analysisEngineVersion` does not change.
   gas that should have been breathed, at alpha 0.12, and clamped with
   `visibleHighlightSpan`.
 - Tooltip: when the cursor sample falls inside a flagged window,
-  `_buildTooltipRowsForIndex` adds one row:
-  - late: "Late switch: EAN50, 3:20 / 9 m late, +4 min deco";
-  - missed: "Missed switch: O₂, +6 min deco".
-  Depth and time use the active diver's unit settings, and gas labels reuse the
+  `_buildTooltipRowsForIndex` adds short rows, because a row value gets only
+  half of the tooltip's 320 px width:
+  - "Late switch" (or "Missed switch"): the gas, for example "EAN50";
+  - "Delay": "4:40 / 6 m", or "2:10" for a switch late by time alone; no
+    delay row for a missed switch;
+  - "Extra deco": "+3:00".
+  Depth uses the active diver's unit settings, and gas labels reuse the
   existing mix formatter.
 - The TTS and ceiling curves are not touched.
 
