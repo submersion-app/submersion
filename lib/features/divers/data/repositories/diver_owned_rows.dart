@@ -75,6 +75,14 @@ const List<_OwnedTable> _ownedTables = [
     hasBuiltIns: true,
     children: [],
   ),
+  // Built-in currency rules belong to the device, not the diver, and stay.
+  // Prefs and events hang off certifications and go with them.
+  (
+    table: 'certification_currency_rules',
+    entityType: 'certificationCurrencyRules',
+    hasBuiltIns: true,
+    children: [],
+  ),
   // Mission rows first (they reference only the plan), then segments before
   // tanks: a segment's tank_id has no ON DELETE action. The plan's equipment
   // links cascade, here and on a peer applying the plan's tombstone, as
