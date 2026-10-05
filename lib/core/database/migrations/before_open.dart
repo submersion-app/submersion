@@ -26,6 +26,9 @@ extension BeforeOpenBackstops on AppDatabase {
     // consolidated dive that arrived since with nothing recorded.
     await _assertTankSharedComputerIds();
 
+    // v261 backstop: the synced view mode and device-preference columns.
+    await _assertSyncedDeviceSettingsColumns();
+
     // v237 backstop: the dive figure switch.
     await _assertShowDiveFigureColumn();
 

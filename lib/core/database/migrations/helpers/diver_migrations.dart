@@ -2,6 +2,30 @@ part of '../app_database_migrations.dart';
 
 /// Diver profiles and diver settings.
 extension DiverMigrations on AppDatabase {
+  /// v261: diver_settings columns for settings that now sync (issue #2948).
+  /// The two view modes are not null with a 'detailed' default; the two
+  /// moved preferences are nullable with no default, so null marks a row
+  /// that has never held a value. Idempotent, so it is safe to call from
+  /// both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertSyncedDeviceSettingsColumns() async {
+    await _addColumnIfMissing(
+      'diver_settings',
+      'certification_list_view_mode',
+      "TEXT NOT NULL DEFAULT 'detailed'",
+    );
+    await _addColumnIfMissing(
+      'diver_settings',
+      'course_list_view_mode',
+      "TEXT NOT NULL DEFAULT 'detailed'",
+    );
+    await _addColumnIfMissing(
+      'diver_settings',
+      'profile_metrics_follow_viewport',
+      'INTEGER',
+    );
+    await _addColumnIfMissing('diver_settings', 'pscr_ratio', 'REAL');
+  }
+
   /// v237: diver_settings.show_dive_figure (issue #2326). Additive, not
   /// null, default 0, so the dive figure starts off for every diver, new
   /// and existing. Idempotent, so it is safe to call from both onUpgrade
