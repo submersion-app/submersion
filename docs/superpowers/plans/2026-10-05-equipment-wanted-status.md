@@ -1419,5 +1419,5 @@ git commit -m "feat(equipment): show the wishlist apart from owned gear in the s
 - [ ] **Step 3:** `flutter test test/architecture/` (new file under `lib/`). Expected: PASS.
 - [ ] **Step 4:** Run every test directory touched: `flutter test test/features/equipment test/features/cylinder_configs test/features/pre_dive test/features/dive_log/presentation/widgets/refine test/features/dive_log/presentation/widgets/dive_filter_gear_attributes_section_test.dart test/features/cylinder_passports`. Expected: PASS.
 - [ ] **Step 5:** `grep -rn "EquipmentStatus.sold" lib | grep -v wanted` and review each hit: any remaining place that special-cases Sold as "inactive but not retired" and is not yet handled for Wanted gets the same carve-out (with a test) as a follow-up commit inside this PR.
-- [ ] **Step 6:** Scan the branch diff for em-dashes: `git diff origin/main -- . ':!*.g.dart' | grep -n "—"`. Expected: no output.
+- [ ] **Step 6:** Scan the branch diff for em-dashes: `git diff $(git merge-base origin/main HEAD)..HEAD -- . ':!*.g.dart' | LC_ALL=C grep -n $'\xe2\x80\x94'` (the UTF-8 bytes of U+2014). Expected: no output.
 - [ ] **Step 7:** Commit any formatting-only changes as `style: format`.
