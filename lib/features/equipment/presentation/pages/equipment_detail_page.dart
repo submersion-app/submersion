@@ -749,7 +749,10 @@ class _EquipmentDetailContent extends ConsumerWidget {
             if (equipment.purchasePrice != null)
               _buildDetailRow(
                 context,
-                context.l10n.equipment_detail_purchasePriceLabel,
+                // Wishlist gear (#2025) has a price to pay, not one paid.
+                equipment.isWanted
+                    ? context.l10n.equipment_edit_expectedPriceLabel
+                    : context.l10n.equipment_detail_purchasePriceLabel,
                 formatMoney(
                   equipment.purchasePrice!,
                   equipment.purchaseCurrency,
