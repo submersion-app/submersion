@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/domain/views/highlight_mode.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_layout_controller.dart';
 
 import 'package:submersion/features/connections/presentation/canvas/camera_tween.dart';
@@ -32,6 +33,8 @@ class ConnectionsCanvas extends StatefulWidget {
     this.semanticsLabel,
     this.animate = false,
     this.bottomInset = 0,
+    this.highlight = HighlightMode.byKind,
+    this.groupOf = const {},
   });
 
   final ConnectionGraph graph;
@@ -48,6 +51,12 @@ class ConnectionsCanvas extends StatefulWidget {
   /// Screen pixels at the bottom covered by something else (the phone's
   /// panel sheet); the fit keeps the graph above them.
   final double bottomInset;
+
+  /// How the painter colours the map.
+  final HighlightMode highlight;
+
+  /// Each grouped node's group number, for [HighlightMode.groups].
+  final Map<NodeRef, int> groupOf;
 
   @override
   State<ConnectionsCanvas> createState() => _ConnectionsCanvasState();
@@ -282,6 +291,8 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
           dimLabelCache: _dimLabelCache,
           initialsCache: _initialsCache,
           haloColor: theme.colorScheme.surface,
+          highlight: widget.highlight,
+          groupOf: widget.groupOf,
         );
         final gestures = RawGestureDetector(
           behavior: HitTestBehavior.opaque,
