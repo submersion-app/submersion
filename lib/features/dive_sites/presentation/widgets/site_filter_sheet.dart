@@ -153,6 +153,7 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
                           value: _query,
                           onChanged: (node) => setState(() => _query = node),
                           saveNode: _draft().toQuery(),
+                          onLoad: _loadSaved,
                         ),
                         const SizedBox(height: 24),
                         _buildLocationSection(),
@@ -518,6 +519,14 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
         ),
       ],
     );
+  }
+
+  /// A saved search is the whole search (#2989, spec 5.4): it may carry
+  /// any of the sheet's axes, so the controls clear rather than be ANDed
+  /// with it.
+  void _loadSaved(QueryNode? node) {
+    _clearAll();
+    setState(() => _query = node);
   }
 
   void _clearAll() {

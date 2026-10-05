@@ -305,6 +305,31 @@ void main() {
     expect(c.read(siteFilterProvider).query, difficult);
   });
 
+  // #2989: a saved search is the whole search, its axes included, so the
+  // sheet's own controls clear rather than contradict it.
+  testWidgets('a saved query replaces the sheet controls', (tester) async {
+    await tester.runAsync(
+      () => SavedQueryRepository().create(
+        subject: QuerySubject.sites,
+        name: 'Hard sites',
+        node: difficult,
+        diverId: 'me',
+      ),
+    );
+    final c = await container(
+      filter: const SiteFilterState(
+        country: 'Belize',
+        minRating: 3,
+        minDepth: 10,
+      ),
+    );
+    await open(tester, c);
+    await tester.tap(find.widgetWithText(ActionChip, 'Hard sites'));
+    await tester.pumpAndSettle();
+    await apply(tester);
+    expect(c.read(siteFilterProvider), SiteFilterState(query: difficult));
+  });
+
   testWidgets('Apply keeps the query the sheet opened with', (tester) async {
     final c = await container(filter: SiteFilterState(query: difficult));
     await open(tester, c);

@@ -383,15 +383,18 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
     });
   }
 
-  /// A saved query naming the status is the whole status axis (#2989): the
-  /// sheet shows every status so its conditions decide.
+  /// A saved search is the whole search (#2989, spec 5.4): the controls
+  /// return to the default view rather than be ANDed with it. One naming
+  /// the status shows every status, so its conditions decide. Whose gear to
+  /// show is the diver's view, never saved, so it stays.
   void _loadSaved(QueryNode? node) => setState(() {
+    _status = null;
+    _allStatuses = node != null && constrainsEquipmentStatus(node);
+    _serviceDue = null;
+    _type = null;
+    _attrConditions = const [];
+    _tagIds = const {};
     _query = node;
-    if (node != null && constrainsEquipmentStatus(node)) {
-      _status = null;
-      _serviceDue = null;
-      _allStatuses = true;
-    }
   });
 
   /// The filter as the sheet shows it: what Apply writes and Save stores.

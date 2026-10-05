@@ -279,7 +279,7 @@ void main() {
     expect(state.serviceDue, isNull);
   });
 
-  testWidgets('a saved query without a status keeps the status axis', (
+  testWidgets('a saved query without a status resets the sheet controls', (
     tester,
   ) async {
     await tester.runAsync(
@@ -291,16 +291,23 @@ void main() {
       ),
     );
     final c = await container(
-      filter: const EquipmentFilterState(status: EquipmentStatus.retired),
+      filter: const EquipmentFilterState(
+        status: EquipmentStatus.retired,
+        type: EquipmentType.regulator,
+        tagIds: {'t1'},
+        owner: EquipmentOwnerFilter.mine,
+      ),
     );
     await open(tester, c);
     await tester.tap(find.widgetWithText(ActionChip, 'Wings'));
     await tester.pumpAndSettle();
     await apply(tester);
-    final state = c.read(equipmentFilterProvider);
-    expect(state.query, bcd);
-    expect(state.status, EquipmentStatus.retired);
-    expect(state.allStatuses, isFalse);
+    // The whole saved search on the default status view; whose gear to
+    // show is the diver's view, not part of a saved search, so it stays.
+    expect(
+      c.read(equipmentFilterProvider),
+      EquipmentFilterState(query: bcd, owner: EquipmentOwnerFilter.mine),
+    );
   });
 
   testWidgets('Apply keeps the query the sheet opened with', (tester) async {

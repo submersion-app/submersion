@@ -37,8 +37,8 @@ class QuerySheetSection extends ConsumerWidget {
   final QueryNode? saveNode;
 
   /// Applies a saved query from the Saved row; [onChanged] when null. A
-  /// sheet whose own controls a saved query can contradict adjusts them
-  /// here.
+  /// sheet with controls of its own resets them here: a saved query is the
+  /// whole search.
   final ValueChanged<QueryNode?>? onLoad;
 
   @override
