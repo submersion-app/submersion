@@ -162,4 +162,31 @@ void main() {
       expect(conflicts.single.localData, isNot(contains('themeMode')));
     },
   );
+
+  test('a conflict an older build stored for a nav key is not shown', () async {
+    await db.customStatement(
+      "INSERT INTO settings (key, value, updated_at) "
+      "VALUES ('nav_primary_ids', '[\"dives\"]', 1)",
+    );
+    // Stored before the upgrade, when the nav order still synced.
+    await SyncRepository().markRecordConflict(
+      entityType: 'settings',
+      recordId: 'nav_primary_ids',
+      conflictDataJson: jsonEncode({
+        'key': 'nav_primary_ids',
+        'value': '["sites"]',
+        'updatedAt': 2,
+      }),
+      localUpdatedAt: 1,
+    );
+
+    final conflicts = await SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: FakeCloudStorageProvider(),
+    ).getConflicts();
+
+    expect(conflicts, isEmpty);
+    expect(await SyncRepository().getConflictCount(), 0);
+  });
 }
