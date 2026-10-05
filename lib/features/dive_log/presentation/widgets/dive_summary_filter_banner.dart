@@ -11,8 +11,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// ones: "Filtered: summarizing 34 of 812 dives", plus a Clear Filters button
 /// that clears the list's filter the same way the list's own button does.
 ///
-/// Both counts are logged dives, the same numbers the list's "34 of 812 dives"
-/// subtitle shows.
+/// Both counts come from the statistics queries, so they count exactly the
+/// dives the cards below summarize: logged dives inside the statistics scope
+/// (DiveStatsScope drops dives excluded from statistics and planned dives).
+/// They can therefore read lower than the list's "34 of 812 dives" subtitle,
+/// which counts every dive; do not swap in the list's count, or the banner
+/// would misstate what the summary covers.
 class DiveSummaryFilterBanner extends ConsumerWidget {
   const DiveSummaryFilterBanner({super.key});
 
