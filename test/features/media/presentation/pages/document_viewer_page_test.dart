@@ -91,8 +91,8 @@ Widget _editableHost(MediaItem item, {String? editableSiteId}) => ProviderScope(
 );
 
 void main() {
-  // Issue #1039: a site's PDF can be renamed from its viewer; a dive's or a
-  // piece of gear's cannot, so the action needs a site id to appear.
+  // Issue #1039: a site's PDF can be categorized from its viewer; a dive's
+  // or a piece of gear's cannot, so the action needs a site id to appear.
   testWidgets('Edit details shows only with an editable site id', (
     tester,
   ) async {
@@ -129,23 +129,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Parking'), findsOneWidget);
     expect(find.text('Uncategorized'), findsNothing);
-  });
-
-  testWidgets('a rename from the sheet updates the title', (tester) async {
-    await tester.pumpWidget(
-      _editableHost(
-        _doc(originalFilename: 'reef-map.pdf'),
-        editableSiteId: 'site-1',
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Edit details'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'Reef map');
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-    expect(find.text('Reef map.pdf'), findsOneWidget);
-    expect(find.text('reef-map.pdf'), findsNothing);
   });
 
   testWidgets('unavailable document shows the unavailable state', (

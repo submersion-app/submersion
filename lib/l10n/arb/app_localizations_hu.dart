@@ -16607,16 +16607,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_siteAttachment_moreOptions => 'További lehetőségek';
 
   @override
-  String get media_siteAttachment_nameForbidden =>
-      'A név nem tartalmazhatja a következőket: / \\ : * ? \" < > |';
-
-  @override
-  String get media_siteAttachment_nameLabel => 'Név';
-
-  @override
-  String get media_siteAttachment_nameRequired => 'Adjon meg egy nevet';
-
-  @override
   String media_siteAttachment_pageCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

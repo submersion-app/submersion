@@ -16666,16 +16666,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_siteAttachment_moreOptions => 'Mais opções';
 
   @override
-  String get media_siteAttachment_nameForbidden =>
-      'Um nome não pode conter / \\ : * ? \" < > |';
-
-  @override
-  String get media_siteAttachment_nameLabel => 'Nome';
-
-  @override
-  String get media_siteAttachment_nameRequired => 'Digite um nome';
-
-  @override
   String media_siteAttachment_pageCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

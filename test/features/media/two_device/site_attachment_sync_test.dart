@@ -6,8 +6,8 @@ import 'package:submersion/features/media/domain/value_objects/attachment_detail
 
 import '../../../helpers/two_device_media_harness.dart';
 
-/// Issue #1039: category, size override and a rename travel with the media
-/// row to the other device.
+/// Issue #1039: category and size override travel with the media row to the
+/// other device.
 void main() {
   late TwoDeviceMediaHarness h;
   final bytes = List<int>.generate(512, (i) => (i * 7) % 251);
@@ -25,7 +25,6 @@ void main() {
     await SiteAttachmentRepository().setAttachmentDetails(
       id,
       const AttachmentDetailsEdit(
-        filename: FieldChange('Reef map.jpg'),
         category: FieldChange(SiteAttachmentCategory.siteMap),
         displaySize: FieldChange(AttachmentDisplaySize.tile),
       ),
@@ -34,7 +33,7 @@ void main() {
     await h.b.sync();
 
     final onB = (await h.b.media(id))!;
-    expect(onB.originalFilename, 'Reef map.jpg');
+    expect(onB.originalFilename, 'map.jpg');
     expect(onB.siteCategory, SiteAttachmentCategory.siteMap);
     expect(onB.displaySizeOverride, AttachmentDisplaySize.tile);
   });

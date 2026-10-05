@@ -4,7 +4,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
 import 'package:submersion/features/media/domain/value_objects/attachment_details_edit.dart';
-import 'package:submersion/features/media/domain/value_objects/attachment_filename.dart';
 import 'package:submersion/features/media/presentation/helpers/site_attachment_labels.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -28,7 +27,10 @@ Future<MediaItem?> showAttachmentDetailsSheet(
 /// The three-way size choice; [followCategory] stores a null override.
 enum _SizeChoice { followCategory, large, tile }
 
-/// Name, category and size for one site attachment.
+/// Category and display size for one site attachment.
+///
+/// The name is shown but never editable: the stored filename is how other
+/// devices re-find a photo and how the repair wizard finds a moved file.
 class AttachmentDetailsSheet extends ConsumerStatefulWidget {
   const AttachmentDetailsSheet({
     super.key,
@@ -46,12 +48,6 @@ class AttachmentDetailsSheet extends ConsumerStatefulWidget {
 
 class _AttachmentDetailsSheetState
     extends ConsumerState<AttachmentDetailsSheet> {
-  late final AttachmentFilename _name = AttachmentFilename.split(
-    widget.item.originalFilename,
-  );
-  late final TextEditingController _stem = TextEditingController(
-    text: _name.stem,
-  );
   late SiteAttachmentCategory? _category = widget.item.siteCategory;
   late _SizeChoice _size = switch (widget.item.displaySizeOverride) {
     null => _SizeChoice.followCategory,
@@ -60,32 +56,15 @@ class _AttachmentDetailsSheetState
   };
   bool _saving = false;
 
-  @override
-  void dispose() {
-    _stem.dispose();
-    super.dispose();
-  }
-
   AttachmentDisplaySize? get _override => switch (_size) {
     _SizeChoice.followCategory => null,
     _SizeChoice.large => AttachmentDisplaySize.large,
     _SizeChoice.tile => AttachmentDisplaySize.tile,
   };
 
-  String? _nameError(BuildContext context) => switch (attachmentNameError(
-    widget.item,
-    _stem.text,
-  )) {
-    null => null,
-    AttachmentNameError.blank => context.l10n.media_siteAttachment_nameRequired,
-    AttachmentNameError.forbiddenCharacter =>
-      context.l10n.media_siteAttachment_nameForbidden,
-  };
-
   Future<void> _save() async {
     final edit = diffAttachmentDetails(
       widget.item,
-      stem: _stem.text,
       category: _category,
       displaySize: _override,
     );
@@ -120,7 +99,8 @@ class _AttachmentDetailsSheetState
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final nameError = _nameError(context);
+    final textTheme = Theme.of(context).textTheme;
+    final name = widget.item.originalFilename ?? '';
     final defaultSize =
         _category?.defaultDisplaySize ?? AttachmentDisplaySize.tile;
 
@@ -137,21 +117,18 @@ class _AttachmentDetailsSheetState
         children: [
           Text(
             l10n.media_siteAttachment_detailsTitle,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: textTheme.titleLarge,
           ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _stem,
-            onChanged: (_) => setState(() {}),
-            decoration: InputDecoration(
-              labelText: l10n.media_siteAttachment_nameLabel,
-              suffixText: _name.extension.isEmpty
-                  ? null
-                  : '.${_name.extension}',
-              errorText: nameError,
-              border: const OutlineInputBorder(),
+          // Which attachment this is, read-only.
+          if (name.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodyMedium,
             ),
-          ),
+          ],
           const SizedBox(height: 16),
           DropdownButtonFormField<SiteAttachmentCategory?>(
             initialValue: _category,
@@ -218,7 +195,7 @@ class _AttachmentDetailsSheetState
                 child: Text(l10n.common_action_cancel),
               ),
               FilledButton(
-                onPressed: _saving || nameError != null ? null : _save,
+                onPressed: _saving ? null : _save,
                 child: Text(l10n.common_action_save),
               ),
             ],

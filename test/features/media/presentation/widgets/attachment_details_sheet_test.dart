@@ -38,8 +38,9 @@ class _RecordingNotifier extends SiteMediaListNotifier {
   }
 }
 
-/// Issue #1039: Edit details renames an attachment (extension fixed), sets
-/// its category, and overrides its display size.
+/// Issue #1039: Edit details sets an attachment's category and overrides its
+/// display size. It never renames: the stored filename is how other devices
+/// and the repair wizard find the file.
 class _GatedNotifier extends SiteMediaListNotifier {
   _GatedNotifier(Ref ref, this.gate) : super(_StubMediaRepository(), ref, 's1');
 
@@ -103,33 +104,27 @@ void main() {
     originalFilename: 'scan_0042.pdf',
   );
 
-  testWidgets('shows the stem with the extension as a fixed suffix', (
-    tester,
-  ) async {
-    await open(tester, pdf);
-    expect(find.text('Attachment details'), findsOneWidget);
-    expect(find.widgetWithText(TextField, 'scan_0042'), findsOneWidget);
-    expect(find.text('.pdf'), findsOneWidget);
-  });
-
   testWidgets('saves only what changed and returns the saved item', (
     tester,
   ) async {
     await open(tester, pdf);
-    await tester.enterText(find.byType(TextField), 'North wall');
     await chooseCategory(tester, 'Site map');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
     final (id, edit) = saves.single;
     expect(id, 'm1');
-    expect(edit.filename!.value, 'North wall.pdf');
     expect(edit.category!.value, SiteAttachmentCategory.siteMap);
     expect(edit.displaySize, isNull);
-    expect(result!.originalFilename, 'North wall.pdf');
+    expect(result!.siteCategory, SiteAttachmentCategory.siteMap);
     expect(find.text('Attachment details'), findsNothing);
   });
 
+  testWidgets('offers no way to rename', (tester) async {
+    await open(tester, pdf);
+    expect(find.byType(TextField), findsNothing);
+    expect(find.text('scan_0042.pdf'), findsOneWidget);
+  });
   testWidgets('the default size segment follows the chosen category', (
     tester,
   ) async {
@@ -150,43 +145,11 @@ void main() {
     expect(saves.single.$2.displaySize!.value, AttachmentDisplaySize.large);
   });
 
-  testWidgets('a blank or forbidden name disables Save with a message', (
-    tester,
-  ) async {
-    await open(tester, pdf);
-    await tester.enterText(find.byType(TextField), '  ');
-    await tester.pump();
-    expect(find.text('Enter a name'), findsOneWidget);
-    expect(
-      tester
-          .widget<FilledButton>(find.widgetWithText(FilledButton, 'Save'))
-          .onPressed,
-      isNull,
-    );
-    await tester.enterText(find.byType(TextField), 'a/b');
-    await tester.pump();
-    expect(find.textContaining("can't contain"), findsOneWidget);
-  });
-
-  testWidgets('an item with no name can be categorized with the name blank', (
-    tester,
-  ) async {
-    await open(
-      tester,
-      testMediaItem(id: 'm2', siteId: 's1', originalFilename: null),
-    );
-    await chooseCategory(tester, 'General');
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-    expect(saves.single.$2.filename, isNull);
-    expect(saves.single.$2.category!.value, SiteAttachmentCategory.general);
-  });
-
   testWidgets('a failed save keeps the sheet open and says why', (
     tester,
   ) async {
     await open(tester, pdf, failWith: StateError('gone'));
-    await tester.enterText(find.byType(TextField), 'Renamed');
+    await chooseCategory(tester, 'Parking');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     expect(find.textContaining("Couldn't save"), findsOneWidget);
@@ -249,7 +212,7 @@ void main() {
     );
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'Renamed');
+    await chooseCategory(tester, 'Parking');
     await tester.tap(find.text('Save'));
     await tester.pump();
     // Dismiss by tapping the barrier above the sheet while the save runs.
@@ -263,7 +226,7 @@ void main() {
 
   testWidgets('Cancel writes nothing', (tester) async {
     await open(tester, pdf);
-    await tester.enterText(find.byType(TextField), 'Renamed');
+    await chooseCategory(tester, 'Parking');
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(saves, isEmpty);

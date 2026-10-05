@@ -26896,24 +26896,6 @@ abstract class AppLocalizations {
   /// **'More options'**
   String get media_siteAttachment_moreOptions;
 
-  /// No description provided for @media_siteAttachment_nameForbidden.
-  ///
-  /// In en, this message translates to:
-  /// **'A name can\'t contain / \\ : * ? \" < > |'**
-  String get media_siteAttachment_nameForbidden;
-
-  /// No description provided for @media_siteAttachment_nameLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Name'**
-  String get media_siteAttachment_nameLabel;
-
-  /// No description provided for @media_siteAttachment_nameRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter a name'**
-  String get media_siteAttachment_nameRequired;
-
   /// Page count badge on a large PDF card
   ///
   /// In en, this message translates to:

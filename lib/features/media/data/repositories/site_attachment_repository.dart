@@ -9,7 +9,8 @@ import 'package:submersion/features/media/domain/entities/site_attachment_catego
 import 'package:submersion/features/media/domain/value_objects/attachment_details_edit.dart';
 
 /// Writes a site attachment's user-editable details (issue #1039): its
-/// name, category and size override.
+/// category and size override. Never its name: the stored filename is how
+/// other devices and the repair wizard find the file.
 ///
 /// Narrow writers, like `MediaRepository.setManualElapsedSeconds`: each
 /// writes only its own columns plus updatedAt and takes the row clock, so a
@@ -37,9 +38,6 @@ class SiteAttachmentRepository {
         final written =
             await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
               MediaCompanion(
-                originalFilename: edit.filename == null
-                    ? const Value.absent()
-                    : Value(edit.filename!.value),
                 siteCategory: edit.category == null
                     ? const Value.absent()
                     : Value(edit.category!.value?.storageKey),

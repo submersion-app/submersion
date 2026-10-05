@@ -16280,16 +16280,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_siteAttachment_moreOptions => 'אפשרויות נוספות';
 
   @override
-  String get media_siteAttachment_nameForbidden =>
-      'שם אינו יכול להכיל / \\ : * ? \" < > |';
-
-  @override
-  String get media_siteAttachment_nameLabel => 'שם';
-
-  @override
-  String get media_siteAttachment_nameRequired => 'יש להזין שם';
-
-  @override
   String media_siteAttachment_pageCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

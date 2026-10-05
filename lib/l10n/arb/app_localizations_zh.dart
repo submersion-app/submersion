@@ -15869,15 +15869,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_siteAttachment_moreOptions => '更多选项';
 
   @override
-  String get media_siteAttachment_nameForbidden => '名称不能包含 / \\ : * ? \" < > |';
-
-  @override
-  String get media_siteAttachment_nameLabel => '名称';
-
-  @override
-  String get media_siteAttachment_nameRequired => '请输入名称';
-
-  @override
   String media_siteAttachment_pageCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -92,13 +92,12 @@ void main() {
       await repository.setAttachmentDetails(
         created.id,
         const AttachmentDetailsEdit(
-          filename: FieldChange('North wall.pdf'),
           category: FieldChange(SiteAttachmentCategory.access),
         ),
       );
 
       final fetched = (await media.getMediaById(created.id))!;
-      expect(fetched.originalFilename, 'North wall.pdf');
+      expect(fetched.originalFilename, 'map.pdf');
       expect(fetched.siteCategory, SiteAttachmentCategory.access);
       expect(fetched.displaySizeOverride, isNull);
       expect(fetched.caption, 'keep me');

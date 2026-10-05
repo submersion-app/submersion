@@ -1,4 +1,4 @@
-# Site attachment categories, large view, and rename
+# Site attachment categories and large view
 
 Issue: #1039 (Dive Site: Media / PDF Attachment: Display Large)
 
@@ -8,8 +8,7 @@ Divers attach site reference material to a dive site: hand-drawn or annotated
 site maps (often PDFs with points of interest), parking and access photos,
 anchorage notes. Today every site attachment renders as a small tile in one
 4-column grid, so a map PDF is a thumbnail the size of a fingernail and must be
-opened to be read. Attachments cannot be grouped, and a file attached under the
-wrong name cannot be renamed.
+opened to be read, and attachments cannot be grouped.
 
 ## Goals
 
@@ -17,11 +16,15 @@ wrong name cannot be renamed.
    showing a sharp render of page 1.
 2. Let the user assign each attachment a category from a fixed list, and show
    the site's attachments grouped under category headings.
-3. Let the user rename an attachment.
 
 ## Non-goals
 
-- Categories, sizes, or rename on dive or equipment media (the columns are
+- Renaming an attachment. The issue asks for it, but the stored filename is a
+  resolution key: cross-device gallery matching (filename plus timestamp) and
+  the repair wizard's moved-file search both look files up by it, so editing
+  it can leave a photo unresolvable on other devices. Decided against during
+  review (2026-10-05).
+- Categories or sizes on dive or equipment media (the columns are
   generic so those surfaces can adopt them later).
 - User-defined categories.
 - Manual reordering within a group.
@@ -64,23 +67,6 @@ groups.
 - Parsing is lenient and explicit: an unknown key (for example, a category
   added by a newer app version and synced in) parses as null. There is no
   `default:` arm that maps an unknown value onto a real category.
-
-### Rename
-
-Rename edits `originalFilename`. The file on disk, the bookmark, and the store
-object are never touched.
-
-- The editable part is the stem. The extension (from the last `.`, as
-  `documentExtension` reads it) is fixed and shown as a suffix, so `isPdf` and
-  the share MIME type cannot change. A name with no extension is editable as a
-  whole.
-- A blank stem is rejected, except when the item had no name to begin with
-  (some gallery rows store none): then a blank field leaves the name unset, so
-  such an item can still be categorized.
-- The characters `/ \ : * ? " < > |` and control characters are rejected with
-  an inline error, because `shareFilename` becomes a temp file name on whatever
-  device the row syncs to.
-- Leading and trailing whitespace is trimmed.
 
 ## Site card layout
 
@@ -141,12 +127,12 @@ renderer is an injectable seam so widget and service tests stay hermetic
 A modal bottom sheet at every width, the app's convention for transient
 panels (see `showMediaSpeciesSheet`).
 
-- **Name:** a text field holding the stem, with the fixed extension as a suffix.
-  Validation as in "Rename". Save is disabled while the stem is invalid.
+- The attachment's name, read-only, so the diver knows which file this is.
 - **Category:** a dropdown with Uncategorized and the six categories.
-- **Size:** a three-way segmented control. The first segment reads
-  "Default (Large)" or "Default (Tile)" and follows the chosen category live;
-  the other two are "Large" and "Tile".
+- **Size:** a three-way dropdown. The first entry reads "Default (Large)" or
+  "Default (Tile)" and follows the chosen category live; the other two are
+  "Large" and "Tile". (A segmented control could not hold the longer
+  translations at phone width.)
 - **Save** writes only the fields that changed. On failure it shows an error
   snackbar and keeps the sheet open. **Cancel** discards.
 
@@ -163,8 +149,8 @@ Following the narrow-writer convention (`setManualElapsedSeconds`), in a new
 `SiteAttachmentRepository` (`media_repository.dart` is already far past the
 800-line ceiling):
 
-- `setAttachmentDetails(id, edit)` writes only the fields the
-  `AttachmentDetailsEdit` carries, plus `updatedAt`, in one transaction with
+- `setAttachmentDetails(id, edit)` writes only the category and size fields
+  the `AttachmentDetailsEdit` carries (never the filename), plus `updatedAt`, in one transaction with
   `markRecordPending`, then notifies the sync event bus. A row that no longer
   exists (unlinked while the sheet was open) throws instead of queueing a sync
   record for a missing row.
@@ -177,8 +163,8 @@ from a snapshot cannot drop them, and the row mapper reads them back.
 ## Localization
 
 New English ARB keys for the six category labels, Uncategorized, the group
-heading with count, the sheet (title, field labels, size segments, validation
-messages), Set category, Edit details, and "N pages". All 11 catalogs receive
+heading with count, the sheet (title, field labels, size choices), Set
+category, Edit details, and "N pages". All 11 catalogs receive
 translations so key parity holds.
 
 ## Testing
@@ -186,9 +172,7 @@ translations so key parity holds.
 Written first, per TDD.
 
 - **Domain unit tests:** effective size for every combination of override and
-  category, including uncategorized; unknown keys parse to null; stem and
-  extension split; name validation (blank, forbidden characters, trimming, no
-  extension).
+  category, including uncategorized; unknown keys parse to null.
 - **Row mapper:** both columns round-trip.
 - **Repository:** `setAttachmentDetails` touches only the passed columns and
   marks the row pending; `setSiteCategory` is atomic over many ids and leaves
@@ -202,5 +186,6 @@ Written first, per TDD.
 - **Widgets** (media widget harness): group order and headings; no headings when
   all are uncategorized; large and tile placement, including both override
   directions; each large kind renders and taps through; a selection spanning a
-  large card and a tile; the edit sheet's validation, live default label, and
-  save; bulk Set category; Edit details offered only for a single selection.
+  large card and a tile; the edit sheet's live default label, save, and phone
+  width fit; bulk Set category; Edit details offered only for a single
+  selection.
