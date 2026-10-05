@@ -19744,6 +19744,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_ref_equipment => 'Equipamento';
 
   @override
+  String get settings_conflict_ref_equipmentLocation => 'Equipment location';
+
+  @override
   String get settings_conflict_ref_equipmentSet => 'Conjunto de equipamentos';
 
   @override

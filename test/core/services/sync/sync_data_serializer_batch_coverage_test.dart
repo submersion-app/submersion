@@ -157,6 +157,14 @@ void main() {
             type: 'equipmentOwnershipEvents',
             table: db.equipmentOwnershipEvents.actualTableName,
           ),
+          (
+            type: 'equipmentLocations',
+            table: db.equipmentLocations.actualTableName,
+          ),
+          (
+            type: 'equipmentLocationMoves',
+            table: db.equipmentLocationMoves.actualTableName,
+          ),
           (type: 'tankPresets', table: db.tankPresets.actualTableName),
           (type: 'diveComputers', table: db.diveComputers.actualTableName),
           (type: 'cylinderFills', table: db.cylinderFills.actualTableName),

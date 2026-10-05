@@ -18765,6 +18765,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_equipment => '装备';
 
   @override
+  String get settings_conflict_ref_equipmentLocation => 'Equipment location';
+
+  @override
   String get settings_conflict_ref_equipmentSet => '装备套装';
 
   @override

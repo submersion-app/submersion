@@ -19601,6 +19601,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_ref_equipment => 'Uitrusting';
 
   @override
+  String get settings_conflict_ref_equipmentLocation => 'Equipment location';
+
+  @override
   String get settings_conflict_ref_equipmentSet => 'Uitrustingsset';
 
   @override

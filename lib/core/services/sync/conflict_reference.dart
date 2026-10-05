@@ -107,6 +107,7 @@ class ConflictReferenceResolver {
     'certificationId': 'certifications',
     'requirementId': 'courseRequirements',
     'serviceKindId': 'serviceKinds',
+    'locationId': 'equipmentLocations',
     'speciesId': 'species',
     'sightingId': 'sightings',
     'mediaId': 'media',

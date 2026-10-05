@@ -19713,6 +19713,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_ref_equipment => 'Ausrüstung';
 
   @override
+  String get settings_conflict_ref_equipmentLocation => 'Equipment location';
+
+  @override
   String get settings_conflict_ref_equipmentSet => 'Ausrüstungsset';
 
   @override

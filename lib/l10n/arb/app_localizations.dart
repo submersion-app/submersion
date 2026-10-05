@@ -31570,6 +31570,12 @@ abstract class AppLocalizations {
   /// **'Equipment'**
   String get settings_conflict_ref_equipment;
 
+  /// No description provided for @settings_conflict_ref_equipmentLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment location'**
+  String get settings_conflict_ref_equipmentLocation;
+
   /// No description provided for @settings_conflict_ref_equipmentSet.
   ///
   /// In en, this message translates to:

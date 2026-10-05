@@ -1675,6 +1675,17 @@ class SyncService {
             hasUpdatedAt: false,
           ),
           (
+            type: 'equipmentLocations',
+            records: data.equipmentLocations,
+            hasUpdatedAt: true,
+          ),
+          // After equipment and the places they point at.
+          (
+            type: 'equipmentLocationMoves',
+            records: data.equipmentLocationMoves,
+            hasUpdatedAt: false,
+          ),
+          (
             type: 'mediaSpecies',
             records: data.mediaSpecies,
             hasUpdatedAt: false,
@@ -2602,6 +2613,8 @@ class SyncService {
     'tripHides': false,
     'siteHides': false,
     'equipmentOwnershipEvents': false,
+    'equipmentLocations': true,
+    'equipmentLocationMoves': false,
     'mediaSpecies': false,
     'siteFeatures': true,
     'csvPresets': true,
@@ -2871,6 +2884,12 @@ class SyncService {
     ],
     'equipmentOwnershipEvents': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),
+    ],
+    // v267: an item's location log. The place reference is cleared, not
+    // skipped, when the place is gone: the move then reads "No location".
+    'equipmentLocationMoves': [
+      (field: 'equipmentId', parent: 'equipment', nullable: false),
+      (field: 'locationId', parent: 'equipmentLocations', nullable: true),
     ],
     'mediaSpecies': [
       (field: 'mediaId', parent: 'media', nullable: false),

@@ -354,6 +354,8 @@ class SyncData {
   final List<Map<String, dynamic>> tripHides;
   final List<Map<String, dynamic>> siteHides;
   final List<Map<String, dynamic>> equipmentOwnershipEvents;
+  final List<Map<String, dynamic>> equipmentLocations;
+  final List<Map<String, dynamic>> equipmentLocationMoves;
   final List<Map<String, dynamic>> mediaSpecies;
   final List<Map<String, dynamic>> siteFeatures;
   final List<Map<String, dynamic>> csvPresets;
@@ -459,6 +461,8 @@ class SyncData {
     this.tripHides = const [],
     this.siteHides = const [],
     this.equipmentOwnershipEvents = const [],
+    this.equipmentLocations = const [],
+    this.equipmentLocationMoves = const [],
     this.mediaSpecies = const [],
     this.siteFeatures = const [],
     this.csvPresets = const [],
@@ -563,6 +567,8 @@ class SyncData {
     'tripHides': tripHides,
     'siteHides': siteHides,
     'equipmentOwnershipEvents': equipmentOwnershipEvents,
+    'equipmentLocations': equipmentLocations,
+    'equipmentLocationMoves': equipmentLocationMoves,
     'mediaSpecies': mediaSpecies,
     'siteFeatures': siteFeatures,
     'csvPresets': csvPresets,
@@ -672,6 +678,8 @@ class SyncData {
       tripHides: _parseList(json['tripHides']),
       siteHides: _parseList(json['siteHides']),
       equipmentOwnershipEvents: _parseList(json['equipmentOwnershipEvents']),
+      equipmentLocations: _parseList(json['equipmentLocations']),
+      equipmentLocationMoves: _parseList(json['equipmentLocationMoves']),
       mediaSpecies: _parseList(json['mediaSpecies']),
       siteFeatures: _parseList(json['siteFeatures']),
       csvPresets: _parseList(json['csvPresets']),
@@ -1205,6 +1213,18 @@ class SyncDataSerializer {
       blob: false,
       full: null,
     ),
+    (
+      key: 'equipmentLocations',
+      table: _db.equipmentLocations,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'equipmentLocationMoves',
+      table: _db.equipmentLocationMoves,
+      blob: false,
+      full: null,
+    ),
     (key: 'mediaSpecies', table: _db.mediaSpecies, blob: false, full: null),
     (key: 'siteFeatures', table: _db.siteFeatures, blob: false, full: null),
     (key: 'csvPresets', table: _db.csvPresets, blob: false, full: null),
@@ -1610,6 +1630,7 @@ class SyncDataSerializer {
     'siteHides',
     'equipmentOwnershipEvents',
     'weightPresetEntries',
+    'equipmentLocationMoves',
     'diveCenterGearNotes',
     'tideRecords',
     'sightings',
@@ -1836,6 +1857,7 @@ class SyncDataSerializer {
     'tripHides': 'trip_hides',
     'siteHides': 'site_hides',
     'equipmentOwnershipEvents': 'equipment_ownership_events',
+    'equipmentLocationMoves': 'equipment_location_moves',
     'diveDiveTypes': 'dive_dive_types',
     'weightPresetEntries': 'weight_preset_entries',
     'diveCenterGearNotes': 'dive_center_gear_notes',
@@ -2421,6 +2443,18 @@ class SyncDataSerializer {
           pendingChildren,
         ),
       ),
+      equipmentLocations: await _safeExport(
+        'equipmentLocations',
+        () => _exportEquipmentLocations(hlcSince),
+      ),
+      equipmentLocationMoves: await _safeExport(
+        'equipmentLocationMoves',
+        () async => _withPendingChildren(
+          'equipmentLocationMoves',
+          await _exportEquipmentLocationMoves(hlcSince),
+          pendingChildren,
+        ),
+      ),
       siteTypes: await _safeExport(
         'siteTypes',
         () => _exportSiteTypes(hlcSince),
@@ -2985,6 +3019,16 @@ class SyncDataSerializer {
           _db.equipmentOwnershipEvents,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'equipmentLocations':
+        final row = await (_db.select(
+          _db.equipmentLocations,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'equipmentLocationMoves':
+        final row = await (_db.select(
+          _db.equipmentLocationMoves,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'diveRoles':
         final row = await (_db.select(
           _db.diveRoles,
@@ -3504,6 +3548,11 @@ class SyncDataSerializer {
       case 'csvPresets':
         final rows = await (_db.select(
           _db.csvPresets,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'equipmentLocations':
+        final rows = await (_db.select(
+          _db.equipmentLocations,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'viewConfigs':
@@ -4579,6 +4628,20 @@ class SyncDataSerializer {
         await _db
             .into(_db.equipmentOwnershipEvents)
             .insertOnConflictUpdate(EquipmentOwnershipEventRow.fromJson(data));
+        return;
+      case 'equipmentLocations':
+        await _db
+            .into(_db.equipmentLocations)
+            .insertOnConflictUpdate(
+              EquipmentLocationRow.fromJson(
+                _withTimestampDefaults(data),
+              ).toCompanion(false),
+            );
+        return;
+      case 'equipmentLocationMoves':
+        await _db
+            .into(_db.equipmentLocationMoves)
+            .insertOnConflictUpdate(EquipmentLocationMoveRow.fromJson(data));
         return;
       case 'diveRoles':
         await _db
@@ -5824,6 +5887,28 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'equipmentLocations':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.equipmentLocations,
+            records
+                .map(
+                  (r) => EquipmentLocationRow.fromJson(
+                    _withTimestampDefaults(r),
+                  ).toCompanion(false),
+                )
+                .toList(),
+          ),
+        );
+        return;
+      case 'equipmentLocationMoves':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.equipmentLocationMoves,
+            records.map((r) => EquipmentLocationMoveRow.fromJson(r)).toList(),
+          ),
+        );
+        return;
       case 'diveRoles':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -6360,6 +6445,10 @@ class SyncDataSerializer {
           _db.equipmentOwnershipEvents,
           _db.equipmentOwnershipEvents.id,
         );
+      case 'equipmentLocations':
+        return plain(_db.equipmentLocations, _db.equipmentLocations.id);
+      case 'equipmentLocationMoves':
+        return plain(_db.equipmentLocationMoves, _db.equipmentLocationMoves.id);
       case 'diveRoles':
         return plain(_db.diveRoles, _db.diveRoles.id);
       case 'tankPresets':
@@ -6765,6 +6854,10 @@ class SyncDataSerializer {
         return _db.siteHides;
       case 'equipmentOwnershipEvents':
         return _db.equipmentOwnershipEvents;
+      case 'equipmentLocations':
+        return _db.equipmentLocations;
+      case 'equipmentLocationMoves':
+        return _db.equipmentLocationMoves;
       case 'diveRoles':
         return _db.diveRoles;
       case 'tankPresets':
@@ -7257,6 +7350,16 @@ class SyncDataSerializer {
       case 'equipmentOwnershipEvents':
         await (_db.delete(
           _db.equipmentOwnershipEvents,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'equipmentLocations':
+        await (_db.delete(
+          _db.equipmentLocations,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'equipmentLocationMoves':
+        await (_db.delete(
+          _db.equipmentLocationMoves,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'diveRoles':
@@ -8733,6 +8836,37 @@ class SyncDataSerializer {
       );
     }
     final rows = await _db.select(_db.equipmentOwnershipEvents).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportEquipmentLocations(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.equipmentLocations);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Equipment location moves (v267), gated on the parent item's clock like
+  /// [_exportEquipmentOwnershipEvents]; a move edited on its own rides in
+  /// through the pending children.
+  Future<List<Map<String, dynamic>>> _exportEquipmentLocationMoves(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final itemIds = await _equipmentModifiedSince(hlcSince);
+      if (itemIds.isEmpty) return [];
+      return _childRowsOf(
+        itemIds,
+        (chunk) => (_db.select(
+          _db.equipmentLocationMoves,
+        )..where((t) => t.equipmentId.isIn(chunk))).get(),
+      );
+    }
+    final rows = await _db.select(_db.equipmentLocationMoves).get();
     return rows.map((r) => r.toJson()).toList();
   }
 

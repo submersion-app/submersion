@@ -117,6 +117,8 @@ void main() {
       'equipmentTags',
       'equipmentShares',
       'equipmentOwnershipEvents',
+      'equipmentLocations',
+      'equipmentLocationMoves',
       'tankPresets',
       'diveComputers',
       'tankPressureProfiles',

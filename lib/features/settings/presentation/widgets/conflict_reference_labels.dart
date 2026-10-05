@@ -73,6 +73,8 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_courseRequirement;
     case 'serviceKinds':
       return l10n.settings_conflict_ref_serviceKind;
+    case 'equipmentLocations':
+      return l10n.settings_conflict_ref_equipmentLocation;
     case 'species':
       return l10n.settings_conflict_ref_species;
     case 'sightings':

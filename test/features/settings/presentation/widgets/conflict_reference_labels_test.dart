@@ -60,6 +60,7 @@ void main() {
       'certifications': 'Certification',
       'courseRequirements': 'Course requirement',
       'serviceKinds': 'Service type',
+      'equipmentLocations': 'Equipment location',
       'importedFiles': 'Imported file',
       'species': 'Species',
       'sightings': 'Sighting',

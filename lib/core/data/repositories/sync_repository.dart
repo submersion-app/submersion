@@ -165,6 +165,8 @@ class SyncRepository {
     'tripHides': (table: 'trip_hides', pk: 'id'),
     'siteHides': (table: 'site_hides', pk: 'id'),
     'equipmentOwnershipEvents': (table: 'equipment_ownership_events', pk: 'id'),
+    'equipmentLocations': (table: 'equipment_locations', pk: 'id'),
+    'equipmentLocationMoves': (table: 'equipment_location_moves', pk: 'id'),
     'diveProfileEvents': (table: 'dive_profile_events', pk: 'id'),
     'diveSafetyReviews': (table: 'dive_safety_reviews', pk: 'dive_id'),
     'diveSafetyFindings': (table: 'dive_safety_findings', pk: 'id'),

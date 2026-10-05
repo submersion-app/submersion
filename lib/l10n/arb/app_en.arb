@@ -12043,6 +12043,7 @@
   "settings_conflict_ref_diveType": "Dive type",
   "settings_conflict_ref_diver": "Diver",
   "settings_conflict_ref_equipment": "Equipment",
+  "settings_conflict_ref_equipmentLocation": "Equipment location",
   "settings_conflict_ref_equipmentSet": "Equipment set",
   "settings_conflict_ref_finding": "Finding",
   "settings_conflict_ref_importedFile": "Imported file",
