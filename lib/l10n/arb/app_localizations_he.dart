@@ -3160,6 +3160,135 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_detail_sectionTitle_dates => 'תאריכים';
 
   @override
+  String get certifications_detail_sectionTitle_currency => 'תוקף';
+
+  @override
+  String certifications_currency_dueOn(String date) {
+    return 'מועד: $date';
+  }
+
+  @override
+  String certifications_currency_lapsedSince(String date) {
+    return 'פג תוקף מאז $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastDive(String date) {
+    return 'צלילה אחרונה $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastQualifyingDive(String date) {
+    return 'צלילה מזכה אחרונה $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardExpiry(String date) {
+    return 'תפוגת הכרטיס $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardIssue(String date) {
+    return 'הונפק $date';
+  }
+
+  @override
+  String certifications_currency_anchor_ledgerEvent(String event, String date) {
+    return '$event נרשם ב-$date';
+  }
+
+  @override
+  String certifications_currency_alsoCovers(String names) {
+    return 'חל גם על $names';
+  }
+
+  @override
+  String get certifications_currency_muted => 'מושתק';
+
+  @override
+  String get certifications_currency_action_log => 'רישום ריענון';
+
+  @override
+  String get certifications_currency_action_interval => 'עריכת מרווח';
+
+  @override
+  String get certifications_currency_action_mapping => 'אילו צלילות נספרות';
+
+  @override
+  String get certifications_currency_action_mute => 'השתקה';
+
+  @override
+  String get certifications_currency_action_unmute => 'ביטול השתקה';
+
+  @override
+  String get certifications_currency_history => 'היסטוריה';
+
+  @override
+  String get certifications_currency_deleteEvent_title => 'למחוק את הרשומה?';
+
+  @override
+  String certifications_currency_deleteEvent_content(
+    String event,
+    String date,
+  ) {
+    return 'פעולה זו תסיר את $event שנרשם ב-$date.';
+  }
+
+  @override
+  String get certifications_currency_eventDialog_title =>
+      'רישום ריענון או חידוש';
+
+  @override
+  String get certifications_currency_eventDialog_type => 'סוג';
+
+  @override
+  String get certifications_currency_eventDialog_date => 'תאריך';
+
+  @override
+  String get certifications_currency_eventDialog_provider =>
+      'מרכז, מועדון או מדריך';
+
+  @override
+  String get certifications_currency_eventDialog_notes => 'הערות';
+
+  @override
+  String get certifications_currency_intervalDialog_title => 'מרווח';
+
+  @override
+  String get certifications_currency_intervalDialog_lapse => 'פג לאחר (ימים)';
+
+  @override
+  String get certifications_currency_intervalDialog_lead =>
+      'להזהיר מספר ימים זה מראש';
+
+  @override
+  String certifications_currency_intervalDialog_inheritHint(String days) {
+    return 'ריק משתמש בערך של הכלל ($days)';
+  }
+
+  @override
+  String get certifications_currency_intervalDialog_leadTooLong =>
+      'האזהרה לא יכולה להתחיל לפני המרווח';
+
+  @override
+  String get certifications_currency_mappingDialog_title =>
+      'אילו צלילות נספרות';
+
+  @override
+  String get certifications_currency_mappingDialog_types => 'סוגי צלילה';
+
+  @override
+  String get certifications_currency_mappingDialog_modes => 'מצבי צלילה';
+
+  @override
+  String get certifications_currency_mappingDialog_anyHint =>
+      'ללא בחירה כל צלילה נספרת';
+
+  @override
+  String get certifications_currency_mappingDialog_reset =>
+      'שימוש בברירת המחדל של הכלל';
+
+  @override
   String get certifications_detail_sectionTitle_details => 'פרטי הסמכה';
 
   @override

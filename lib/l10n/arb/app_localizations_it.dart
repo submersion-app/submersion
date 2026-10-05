@@ -3214,6 +3214,139 @@ class AppLocalizationsIt extends AppLocalizations {
   String get certifications_detail_sectionTitle_dates => 'Date';
 
   @override
+  String get certifications_detail_sectionTitle_currency => 'Validità';
+
+  @override
+  String certifications_currency_dueOn(String date) {
+    return 'Scade il $date';
+  }
+
+  @override
+  String certifications_currency_lapsedSince(String date) {
+    return 'Scaduto dal $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastDive(String date) {
+    return 'Ultima immersione $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastQualifyingDive(String date) {
+    return 'Ultima immersione valida $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardExpiry(String date) {
+    return 'Scadenza tessera $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardIssue(String date) {
+    return 'Rilasciata il $date';
+  }
+
+  @override
+  String certifications_currency_anchor_ledgerEvent(String event, String date) {
+    return '$event registrato il $date';
+  }
+
+  @override
+  String certifications_currency_alsoCovers(String names) {
+    return 'Vale anche per $names';
+  }
+
+  @override
+  String get certifications_currency_muted => 'Silenziato';
+
+  @override
+  String get certifications_currency_action_log => 'Registra aggiornamento';
+
+  @override
+  String get certifications_currency_action_interval => 'Modifica intervallo';
+
+  @override
+  String get certifications_currency_action_mapping =>
+      'Quali immersioni contano';
+
+  @override
+  String get certifications_currency_action_mute => 'Silenzia';
+
+  @override
+  String get certifications_currency_action_unmute => 'Riattiva';
+
+  @override
+  String get certifications_currency_history => 'Cronologia';
+
+  @override
+  String get certifications_currency_deleteEvent_title => 'Eliminare la voce?';
+
+  @override
+  String certifications_currency_deleteEvent_content(
+    String event,
+    String date,
+  ) {
+    return 'Verrà rimosso $event registrato il $date.';
+  }
+
+  @override
+  String get certifications_currency_eventDialog_title =>
+      'Registra aggiornamento o rinnovo';
+
+  @override
+  String get certifications_currency_eventDialog_type => 'Tipo';
+
+  @override
+  String get certifications_currency_eventDialog_date => 'Data';
+
+  @override
+  String get certifications_currency_eventDialog_provider =>
+      'Centro, club o istruttore';
+
+  @override
+  String get certifications_currency_eventDialog_notes => 'Note';
+
+  @override
+  String get certifications_currency_intervalDialog_title => 'Intervallo';
+
+  @override
+  String get certifications_currency_intervalDialog_lapse =>
+      'Scade dopo (giorni)';
+
+  @override
+  String get certifications_currency_intervalDialog_lead =>
+      'Avvisa con questi giorni di anticipo';
+
+  @override
+  String certifications_currency_intervalDialog_inheritHint(String days) {
+    return 'Vuoto usa il valore della regola ($days)';
+  }
+
+  @override
+  String get certifications_currency_intervalDialog_leadTooLong =>
+      'L\'avviso non può iniziare prima dell\'intervallo';
+
+  @override
+  String get certifications_currency_mappingDialog_title =>
+      'Quali immersioni contano';
+
+  @override
+  String get certifications_currency_mappingDialog_types =>
+      'Tipi di immersione';
+
+  @override
+  String get certifications_currency_mappingDialog_modes =>
+      'Modalità di immersione';
+
+  @override
+  String get certifications_currency_mappingDialog_anyHint =>
+      'Senza selezione conta qualsiasi immersione';
+
+  @override
+  String get certifications_currency_mappingDialog_reset =>
+      'Usa il valore della regola';
+
+  @override
   String get certifications_detail_sectionTitle_details =>
       'Dettagli certificazione';
 

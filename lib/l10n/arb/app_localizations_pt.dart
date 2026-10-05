@@ -3215,6 +3215,136 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_detail_sectionTitle_dates => 'Datas';
 
   @override
+  String get certifications_detail_sectionTitle_currency => 'Validade';
+
+  @override
+  String certifications_currency_dueOn(String date) {
+    return 'Vence a $date';
+  }
+
+  @override
+  String certifications_currency_lapsedSince(String date) {
+    return 'Caducado desde $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastDive(String date) {
+    return 'Último mergulho $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastQualifyingDive(String date) {
+    return 'Último mergulho válido $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardExpiry(String date) {
+    return 'Validade do cartão $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardIssue(String date) {
+    return 'Emitida a $date';
+  }
+
+  @override
+  String certifications_currency_anchor_ledgerEvent(String event, String date) {
+    return '$event registado a $date';
+  }
+
+  @override
+  String certifications_currency_alsoCovers(String names) {
+    return 'Também abrange $names';
+  }
+
+  @override
+  String get certifications_currency_muted => 'Silenciado';
+
+  @override
+  String get certifications_currency_action_log => 'Registar reciclagem';
+
+  @override
+  String get certifications_currency_action_interval => 'Editar intervalo';
+
+  @override
+  String get certifications_currency_action_mapping => 'Que mergulhos contam';
+
+  @override
+  String get certifications_currency_action_mute => 'Silenciar';
+
+  @override
+  String get certifications_currency_action_unmute => 'Reativar';
+
+  @override
+  String get certifications_currency_history => 'Histórico';
+
+  @override
+  String get certifications_currency_deleteEvent_title => 'Eliminar entrada?';
+
+  @override
+  String certifications_currency_deleteEvent_content(
+    String event,
+    String date,
+  ) {
+    return 'Isto remove $event registado a $date.';
+  }
+
+  @override
+  String get certifications_currency_eventDialog_title =>
+      'Registar reciclagem ou renovação';
+
+  @override
+  String get certifications_currency_eventDialog_type => 'Tipo';
+
+  @override
+  String get certifications_currency_eventDialog_date => 'Data';
+
+  @override
+  String get certifications_currency_eventDialog_provider =>
+      'Centro, clube ou instrutor';
+
+  @override
+  String get certifications_currency_eventDialog_notes => 'Notas';
+
+  @override
+  String get certifications_currency_intervalDialog_title => 'Intervalo';
+
+  @override
+  String get certifications_currency_intervalDialog_lapse =>
+      'Caduca após (dias)';
+
+  @override
+  String get certifications_currency_intervalDialog_lead =>
+      'Avisar com estes dias de antecedência';
+
+  @override
+  String certifications_currency_intervalDialog_inheritHint(String days) {
+    return 'Em branco usa o valor da regra ($days)';
+  }
+
+  @override
+  String get certifications_currency_intervalDialog_leadTooLong =>
+      'O aviso não pode começar antes do intervalo';
+
+  @override
+  String get certifications_currency_mappingDialog_title =>
+      'Que mergulhos contam';
+
+  @override
+  String get certifications_currency_mappingDialog_types => 'Tipos de mergulho';
+
+  @override
+  String get certifications_currency_mappingDialog_modes => 'Modos de mergulho';
+
+  @override
+  String get certifications_currency_mappingDialog_anyHint =>
+      'Sem seleção, conta qualquer mergulho';
+
+  @override
+  String get certifications_currency_mappingDialog_reset =>
+      'Usar a predefinição da regra';
+
+  @override
   String get certifications_detail_sectionTitle_details =>
       'Detalhes da Certificação';
 

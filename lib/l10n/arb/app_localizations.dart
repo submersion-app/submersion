@@ -4979,6 +4979,204 @@ abstract class AppLocalizations {
   /// **'Dates'**
   String get certifications_detail_sectionTitle_dates;
 
+  /// Certification detail section title for refresher and renewal currency
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get certifications_detail_sectionTitle_currency;
+
+  /// When a refresher or renewal falls due; date is preformatted
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String certifications_currency_dueOn(String date);
+
+  /// When a refresher or renewal lapsed; date is preformatted
+  ///
+  /// In en, this message translates to:
+  /// **'Lapsed since {date}'**
+  String certifications_currency_lapsedSince(String date);
+
+  /// What a currency clock counts from: the last dive
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive {date}'**
+  String certifications_currency_anchor_lastDive(String date);
+
+  /// What a currency clock counts from: the last dive of a counted type or mode
+  ///
+  /// In en, this message translates to:
+  /// **'Last qualifying dive {date}'**
+  String certifications_currency_anchor_lastQualifyingDive(String date);
+
+  /// What a currency clock counts from: the card's expiry date
+  ///
+  /// In en, this message translates to:
+  /// **'Card expiry {date}'**
+  String certifications_currency_anchor_cardExpiry(String date);
+
+  /// What a currency clock counts from: the card's issue date
+  ///
+  /// In en, this message translates to:
+  /// **'Issued {date}'**
+  String certifications_currency_anchor_cardIssue(String date);
+
+  /// What a currency clock counts from: a logged refresher or renewal; event is its type
+  ///
+  /// In en, this message translates to:
+  /// **'{event} logged {date}'**
+  String certifications_currency_anchor_ledgerEvent(String event, String date);
+
+  /// The other cards a collapsed currency row stands for; names is a list
+  ///
+  /// In en, this message translates to:
+  /// **'Also covers {names}'**
+  String certifications_currency_alsoCovers(String names);
+
+  /// A currency rule the diver muted for this card
+  ///
+  /// In en, this message translates to:
+  /// **'Muted'**
+  String get certifications_currency_muted;
+
+  /// Action: log a refresher, renewal or revalidation
+  ///
+  /// In en, this message translates to:
+  /// **'Log refresher'**
+  String get certifications_currency_action_log;
+
+  /// Action: edit a currency rule's interval for this card
+  ///
+  /// In en, this message translates to:
+  /// **'Edit interval'**
+  String get certifications_currency_action_interval;
+
+  /// Action: choose which dive types and modes count toward a currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Which dives count'**
+  String get certifications_currency_action_mapping;
+
+  /// Action: mute a currency rule for this card
+  ///
+  /// In en, this message translates to:
+  /// **'Mute'**
+  String get certifications_currency_action_mute;
+
+  /// Action: unmute a currency rule for this card
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute'**
+  String get certifications_currency_action_unmute;
+
+  /// Heading of a certification's logged refreshers and renewals
+  ///
+  /// In en, this message translates to:
+  /// **'Currency history'**
+  String get certifications_currency_history;
+
+  /// Title of the dialog confirming a refresher entry deletion
+  ///
+  /// In en, this message translates to:
+  /// **'Delete entry?'**
+  String get certifications_currency_deleteEvent_title;
+
+  /// Body of the dialog confirming a refresher entry deletion
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the {event} logged {date}.'**
+  String certifications_currency_deleteEvent_content(String event, String date);
+
+  /// Title of the dialog that logs a refresher or renewal
+  ///
+  /// In en, this message translates to:
+  /// **'Log refresher or renewal'**
+  String get certifications_currency_eventDialog_title;
+
+  /// Field label: the kind of refresher or renewal
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get certifications_currency_eventDialog_type;
+
+  /// Field label: when the refresher or renewal took place
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get certifications_currency_eventDialog_date;
+
+  /// Field label: who ran the refresher
+  ///
+  /// In en, this message translates to:
+  /// **'Shop, club or instructor'**
+  String get certifications_currency_eventDialog_provider;
+
+  /// Field label: notes on the refresher
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get certifications_currency_eventDialog_notes;
+
+  /// Title of the dialog that tunes a currency rule's interval for one card
+  ///
+  /// In en, this message translates to:
+  /// **'Interval'**
+  String get certifications_currency_intervalDialog_title;
+
+  /// Field label: days until the rule lapses
+  ///
+  /// In en, this message translates to:
+  /// **'Lapses after (days)'**
+  String get certifications_currency_intervalDialog_lapse;
+
+  /// Field label: days of warning before the rule lapses
+  ///
+  /// In en, this message translates to:
+  /// **'Warn this many days before'**
+  String get certifications_currency_intervalDialog_lead;
+
+  /// Hint under an interval field: leaving it blank uses the rule's own value
+  ///
+  /// In en, this message translates to:
+  /// **'Blank uses the rule\'s value ({days})'**
+  String certifications_currency_intervalDialog_inheritHint(String days);
+
+  /// Validation: the warning window is longer than the interval
+  ///
+  /// In en, this message translates to:
+  /// **'The warning cannot start before the interval does'**
+  String get certifications_currency_intervalDialog_leadTooLong;
+
+  /// Title of the dialog choosing which dives count toward a currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Which dives count'**
+  String get certifications_currency_mappingDialog_title;
+
+  /// Field label: dive types that count
+  ///
+  /// In en, this message translates to:
+  /// **'Dive types'**
+  String get certifications_currency_mappingDialog_types;
+
+  /// Field label: dive modes that count
+  ///
+  /// In en, this message translates to:
+  /// **'Dive modes'**
+  String get certifications_currency_mappingDialog_modes;
+
+  /// Hint: selecting nothing means any dive counts
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing selected means any dive counts'**
+  String get certifications_currency_mappingDialog_anyHint;
+
+  /// Button: go back to the rule's own dive mapping
+  ///
+  /// In en, this message translates to:
+  /// **'Use the rule\'s default'**
+  String get certifications_currency_mappingDialog_reset;
+
   /// No description provided for @certifications_detail_sectionTitle_details.
   ///
   /// In en, this message translates to:

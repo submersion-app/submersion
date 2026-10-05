@@ -2124,6 +2124,194 @@
   "certifications_detail_photo_unableToLoad": "Unable to load image",
   "certifications_detail_sectionTitle_cardPhotos": "Card Photos",
   "certifications_detail_sectionTitle_dates": "Dates",
+  "certifications_detail_sectionTitle_currency": "Currency",
+  "@certifications_detail_sectionTitle_currency": {
+    "description": "Certification detail section title for refresher and renewal currency"
+  },
+  "certifications_currency_dueOn": "Due {date}",
+  "@certifications_currency_dueOn": {
+    "description": "When a refresher or renewal falls due; date is preformatted",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_lapsedSince": "Lapsed since {date}",
+  "@certifications_currency_lapsedSince": {
+    "description": "When a refresher or renewal lapsed; date is preformatted",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_anchor_lastDive": "Last dive {date}",
+  "@certifications_currency_anchor_lastDive": {
+    "description": "What a currency clock counts from: the last dive",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_anchor_lastQualifyingDive": "Last qualifying dive {date}",
+  "@certifications_currency_anchor_lastQualifyingDive": {
+    "description": "What a currency clock counts from: the last dive of a counted type or mode",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_anchor_cardExpiry": "Card expiry {date}",
+  "@certifications_currency_anchor_cardExpiry": {
+    "description": "What a currency clock counts from: the card's expiry date",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_anchor_cardIssue": "Issued {date}",
+  "@certifications_currency_anchor_cardIssue": {
+    "description": "What a currency clock counts from: the card's issue date",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_anchor_ledgerEvent": "{event} logged {date}",
+  "@certifications_currency_anchor_ledgerEvent": {
+    "description": "What a currency clock counts from: a logged refresher or renewal; event is its type",
+    "placeholders": {
+      "event": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_alsoCovers": "Also covers {names}",
+  "@certifications_currency_alsoCovers": {
+    "description": "The other cards a collapsed currency row stands for; names is a list",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_muted": "Muted",
+  "@certifications_currency_muted": {
+    "description": "A currency rule the diver muted for this card"
+  },
+  "certifications_currency_action_log": "Log refresher",
+  "@certifications_currency_action_log": {
+    "description": "Action: log a refresher, renewal or revalidation"
+  },
+  "certifications_currency_action_interval": "Edit interval",
+  "@certifications_currency_action_interval": {
+    "description": "Action: edit a currency rule's interval for this card"
+  },
+  "certifications_currency_action_mapping": "Which dives count",
+  "@certifications_currency_action_mapping": {
+    "description": "Action: choose which dive types and modes count toward a currency rule"
+  },
+  "certifications_currency_action_mute": "Mute",
+  "@certifications_currency_action_mute": {
+    "description": "Action: mute a currency rule for this card"
+  },
+  "certifications_currency_action_unmute": "Unmute",
+  "@certifications_currency_action_unmute": {
+    "description": "Action: unmute a currency rule for this card"
+  },
+  "certifications_currency_history": "Currency history",
+  "@certifications_currency_history": {
+    "description": "Heading of a certification's logged refreshers and renewals"
+  },
+  "certifications_currency_deleteEvent_title": "Delete entry?",
+  "@certifications_currency_deleteEvent_title": {
+    "description": "Title of the dialog confirming a refresher entry deletion"
+  },
+  "certifications_currency_deleteEvent_content": "This removes the {event} logged {date}.",
+  "@certifications_currency_deleteEvent_content": {
+    "description": "Body of the dialog confirming a refresher entry deletion",
+    "placeholders": {
+      "event": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_eventDialog_title": "Log refresher or renewal",
+  "@certifications_currency_eventDialog_title": {
+    "description": "Title of the dialog that logs a refresher or renewal"
+  },
+  "certifications_currency_eventDialog_type": "Type",
+  "@certifications_currency_eventDialog_type": {
+    "description": "Field label: the kind of refresher or renewal"
+  },
+  "certifications_currency_eventDialog_date": "Date",
+  "@certifications_currency_eventDialog_date": {
+    "description": "Field label: when the refresher or renewal took place"
+  },
+  "certifications_currency_eventDialog_provider": "Shop, club or instructor",
+  "@certifications_currency_eventDialog_provider": {
+    "description": "Field label: who ran the refresher"
+  },
+  "certifications_currency_eventDialog_notes": "Notes",
+  "@certifications_currency_eventDialog_notes": {
+    "description": "Field label: notes on the refresher"
+  },
+  "certifications_currency_intervalDialog_title": "Interval",
+  "@certifications_currency_intervalDialog_title": {
+    "description": "Title of the dialog that tunes a currency rule's interval for one card"
+  },
+  "certifications_currency_intervalDialog_lapse": "Lapses after (days)",
+  "@certifications_currency_intervalDialog_lapse": {
+    "description": "Field label: days until the rule lapses"
+  },
+  "certifications_currency_intervalDialog_lead": "Warn this many days before",
+  "@certifications_currency_intervalDialog_lead": {
+    "description": "Field label: days of warning before the rule lapses"
+  },
+  "certifications_currency_intervalDialog_inheritHint": "Blank uses the rule's value ({days})",
+  "@certifications_currency_intervalDialog_inheritHint": {
+    "description": "Hint under an interval field: leaving it blank uses the rule's own value",
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_intervalDialog_leadTooLong": "The warning cannot start before the interval does",
+  "@certifications_currency_intervalDialog_leadTooLong": {
+    "description": "Validation: the warning window is longer than the interval"
+  },
+  "certifications_currency_mappingDialog_title": "Which dives count",
+  "@certifications_currency_mappingDialog_title": {
+    "description": "Title of the dialog choosing which dives count toward a currency rule"
+  },
+  "certifications_currency_mappingDialog_types": "Dive types",
+  "@certifications_currency_mappingDialog_types": {
+    "description": "Field label: dive types that count"
+  },
+  "certifications_currency_mappingDialog_modes": "Dive modes",
+  "@certifications_currency_mappingDialog_modes": {
+    "description": "Field label: dive modes that count"
+  },
+  "certifications_currency_mappingDialog_anyHint": "Nothing selected means any dive counts",
+  "@certifications_currency_mappingDialog_anyHint": {
+    "description": "Hint: selecting nothing means any dive counts"
+  },
+  "certifications_currency_mappingDialog_reset": "Use the rule's default",
+  "@certifications_currency_mappingDialog_reset": {
+    "description": "Button: go back to the rule's own dive mapping"
+  },
   "certifications_detail_sectionTitle_details": "Certification Details",
   "certifications_detail_sectionTitle_instructor": "Instructor",
   "certifications_detail_sectionTitle_notes": "Notes",

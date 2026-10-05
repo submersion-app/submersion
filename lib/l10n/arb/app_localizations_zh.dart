@@ -3049,6 +3049,128 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_detail_sectionTitle_dates => '日期';
 
   @override
+  String get certifications_detail_sectionTitle_currency => '有效性';
+
+  @override
+  String certifications_currency_dueOn(String date) {
+    return '到期日 $date';
+  }
+
+  @override
+  String certifications_currency_lapsedSince(String date) {
+    return '自 $date 起已失效';
+  }
+
+  @override
+  String certifications_currency_anchor_lastDive(String date) {
+    return '上次潜水 $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastQualifyingDive(String date) {
+    return '上次符合条件的潜水 $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardExpiry(String date) {
+    return '证卡到期 $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardIssue(String date) {
+    return '签发于 $date';
+  }
+
+  @override
+  String certifications_currency_anchor_ledgerEvent(String event, String date) {
+    return '$date 记录了$event';
+  }
+
+  @override
+  String certifications_currency_alsoCovers(String names) {
+    return '同时适用于 $names';
+  }
+
+  @override
+  String get certifications_currency_muted => '已静音';
+
+  @override
+  String get certifications_currency_action_log => '记录复习';
+
+  @override
+  String get certifications_currency_action_interval => '编辑间隔';
+
+  @override
+  String get certifications_currency_action_mapping => '哪些潜水计入';
+
+  @override
+  String get certifications_currency_action_mute => '静音';
+
+  @override
+  String get certifications_currency_action_unmute => '取消静音';
+
+  @override
+  String get certifications_currency_history => '记录';
+
+  @override
+  String get certifications_currency_deleteEvent_title => '删除此记录？';
+
+  @override
+  String certifications_currency_deleteEvent_content(
+    String event,
+    String date,
+  ) {
+    return '这将删除 $date 记录的$event。';
+  }
+
+  @override
+  String get certifications_currency_eventDialog_title => '记录复习或续证';
+
+  @override
+  String get certifications_currency_eventDialog_type => '类型';
+
+  @override
+  String get certifications_currency_eventDialog_date => '日期';
+
+  @override
+  String get certifications_currency_eventDialog_provider => '潜店、俱乐部或教练';
+
+  @override
+  String get certifications_currency_eventDialog_notes => '备注';
+
+  @override
+  String get certifications_currency_intervalDialog_title => '间隔';
+
+  @override
+  String get certifications_currency_intervalDialog_lapse => '到期天数';
+
+  @override
+  String get certifications_currency_intervalDialog_lead => '提前提醒天数';
+
+  @override
+  String certifications_currency_intervalDialog_inheritHint(String days) {
+    return '留空则使用规则的值（$days）';
+  }
+
+  @override
+  String get certifications_currency_intervalDialog_leadTooLong => '提醒不能早于间隔开始';
+
+  @override
+  String get certifications_currency_mappingDialog_title => '哪些潜水计入';
+
+  @override
+  String get certifications_currency_mappingDialog_types => '潜水类型';
+
+  @override
+  String get certifications_currency_mappingDialog_modes => '潜水模式';
+
+  @override
+  String get certifications_currency_mappingDialog_anyHint => '不选择则任何潜水都计入';
+
+  @override
+  String get certifications_currency_mappingDialog_reset => '使用规则默认值';
+
+  @override
   String get certifications_detail_sectionTitle_details => '证书详情';
 
   @override

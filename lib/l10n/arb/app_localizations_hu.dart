@@ -3208,6 +3208,137 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_detail_sectionTitle_dates => 'Dátumok';
 
   @override
+  String get certifications_detail_sectionTitle_currency => 'Érvényesség';
+
+  @override
+  String certifications_currency_dueOn(String date) {
+    return 'Esedékes: $date';
+  }
+
+  @override
+  String certifications_currency_lapsedSince(String date) {
+    return 'Lejárt: $date óta';
+  }
+
+  @override
+  String certifications_currency_anchor_lastDive(String date) {
+    return 'Utolsó merülés: $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastQualifyingDive(String date) {
+    return 'Utolsó beszámító merülés: $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardExpiry(String date) {
+    return 'Kártya lejárata: $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardIssue(String date) {
+    return 'Kiállítva: $date';
+  }
+
+  @override
+  String certifications_currency_anchor_ledgerEvent(String event, String date) {
+    return '$event rögzítve: $date';
+  }
+
+  @override
+  String certifications_currency_alsoCovers(String names) {
+    return 'Erre is vonatkozik: $names';
+  }
+
+  @override
+  String get certifications_currency_muted => 'Némítva';
+
+  @override
+  String get certifications_currency_action_log => 'Felfrissítés rögzítése';
+
+  @override
+  String get certifications_currency_action_interval => 'Időköz szerkesztése';
+
+  @override
+  String get certifications_currency_action_mapping =>
+      'Mely merülések számítanak';
+
+  @override
+  String get certifications_currency_action_mute => 'Némítás';
+
+  @override
+  String get certifications_currency_action_unmute => 'Némítás feloldása';
+
+  @override
+  String get certifications_currency_history => 'Előzmények';
+
+  @override
+  String get certifications_currency_deleteEvent_title => 'Törli a bejegyzést?';
+
+  @override
+  String certifications_currency_deleteEvent_content(
+    String event,
+    String date,
+  ) {
+    return 'Ez törli a(z) $date napon rögzített $event bejegyzést.';
+  }
+
+  @override
+  String get certifications_currency_eventDialog_title =>
+      'Felfrissítés vagy megújítás rögzítése';
+
+  @override
+  String get certifications_currency_eventDialog_type => 'Típus';
+
+  @override
+  String get certifications_currency_eventDialog_date => 'Dátum';
+
+  @override
+  String get certifications_currency_eventDialog_provider =>
+      'Merülőközpont, klub vagy oktató';
+
+  @override
+  String get certifications_currency_eventDialog_notes => 'Megjegyzések';
+
+  @override
+  String get certifications_currency_intervalDialog_title => 'Időköz';
+
+  @override
+  String get certifications_currency_intervalDialog_lapse =>
+      'Lejár ennyi nap után';
+
+  @override
+  String get certifications_currency_intervalDialog_lead =>
+      'Ennyi nappal előtte figyelmeztessen';
+
+  @override
+  String certifications_currency_intervalDialog_inheritHint(String days) {
+    return 'Üresen a szabály értéke érvényes ($days)';
+  }
+
+  @override
+  String get certifications_currency_intervalDialog_leadTooLong =>
+      'A figyelmeztetés nem kezdődhet az időköz előtt';
+
+  @override
+  String get certifications_currency_mappingDialog_title =>
+      'Mely merülések számítanak';
+
+  @override
+  String get certifications_currency_mappingDialog_types => 'Merüléstípusok';
+
+  @override
+  String get certifications_currency_mappingDialog_modes => 'Merülési módok';
+
+  @override
+  String get certifications_currency_mappingDialog_anyHint =>
+      'Ha semmi nincs kiválasztva, minden merülés számít';
+
+  @override
+  String get certifications_currency_mappingDialog_reset =>
+      'A szabály alapértékének használata';
+
+  @override
   String get certifications_detail_sectionTitle_details =>
       'Képesítés részletek';
 

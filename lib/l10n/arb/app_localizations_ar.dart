@@ -3290,6 +3290,134 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_detail_sectionTitle_dates => 'التواريخ';
 
   @override
+  String get certifications_detail_sectionTitle_currency => 'الصلاحية';
+
+  @override
+  String certifications_currency_dueOn(String date) {
+    return 'مستحق في $date';
+  }
+
+  @override
+  String certifications_currency_lapsedSince(String date) {
+    return 'منتهي منذ $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastDive(String date) {
+    return 'آخر غطسة $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastQualifyingDive(String date) {
+    return 'آخر غطسة مؤهلة $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardExpiry(String date) {
+    return 'انتهاء البطاقة $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardIssue(String date) {
+    return 'صدرت في $date';
+  }
+
+  @override
+  String certifications_currency_anchor_ledgerEvent(String event, String date) {
+    return 'تم تسجيل $event في $date';
+  }
+
+  @override
+  String certifications_currency_alsoCovers(String names) {
+    return 'يشمل أيضًا $names';
+  }
+
+  @override
+  String get certifications_currency_muted => 'مكتوم';
+
+  @override
+  String get certifications_currency_action_log => 'تسجيل دورة تنشيطية';
+
+  @override
+  String get certifications_currency_action_interval => 'تعديل الفترة';
+
+  @override
+  String get certifications_currency_action_mapping => 'الغطسات المحتسبة';
+
+  @override
+  String get certifications_currency_action_mute => 'كتم';
+
+  @override
+  String get certifications_currency_action_unmute => 'إلغاء الكتم';
+
+  @override
+  String get certifications_currency_history => 'سجل الصلاحية';
+
+  @override
+  String get certifications_currency_deleteEvent_title => 'حذف الإدخال؟';
+
+  @override
+  String certifications_currency_deleteEvent_content(
+    String event,
+    String date,
+  ) {
+    return 'سيؤدي هذا إلى إزالة $event المسجل في $date.';
+  }
+
+  @override
+  String get certifications_currency_eventDialog_title =>
+      'تسجيل تنشيط أو تجديد';
+
+  @override
+  String get certifications_currency_eventDialog_type => 'النوع';
+
+  @override
+  String get certifications_currency_eventDialog_date => 'التاريخ';
+
+  @override
+  String get certifications_currency_eventDialog_provider =>
+      'المركز أو النادي أو المدرب';
+
+  @override
+  String get certifications_currency_eventDialog_notes => 'ملاحظات';
+
+  @override
+  String get certifications_currency_intervalDialog_title => 'الفترة';
+
+  @override
+  String get certifications_currency_intervalDialog_lapse => 'تنتهي بعد (أيام)';
+
+  @override
+  String get certifications_currency_intervalDialog_lead =>
+      'التنبيه قبل هذا العدد من الأيام';
+
+  @override
+  String certifications_currency_intervalDialog_inheritHint(String days) {
+    return 'اتركه فارغًا لاستخدام قيمة القاعدة ($days)';
+  }
+
+  @override
+  String get certifications_currency_intervalDialog_leadTooLong =>
+      'لا يمكن أن يبدأ التنبيه قبل بدء الفترة';
+
+  @override
+  String get certifications_currency_mappingDialog_title => 'الغطسات المحتسبة';
+
+  @override
+  String get certifications_currency_mappingDialog_types => 'أنواع الغطس';
+
+  @override
+  String get certifications_currency_mappingDialog_modes => 'أنماط الغطس';
+
+  @override
+  String get certifications_currency_mappingDialog_anyHint =>
+      'عدم تحديد أي شيء يعني احتساب أي غطسة';
+
+  @override
+  String get certifications_currency_mappingDialog_reset =>
+      'استخدام الإعداد الافتراضي للقاعدة';
+
+  @override
   String get certifications_detail_sectionTitle_details => 'تفاصيل الشهادة';
 
   @override

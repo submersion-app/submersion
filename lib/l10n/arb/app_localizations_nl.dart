@@ -3195,6 +3195,136 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_detail_sectionTitle_dates => 'Datums';
 
   @override
+  String get certifications_detail_sectionTitle_currency => 'Geldigheid';
+
+  @override
+  String certifications_currency_dueOn(String date) {
+    return 'Vervalt op $date';
+  }
+
+  @override
+  String certifications_currency_lapsedSince(String date) {
+    return 'Verlopen sinds $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastDive(String date) {
+    return 'Laatste duik $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastQualifyingDive(String date) {
+    return 'Laatste meetellende duik $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardExpiry(String date) {
+    return 'Vervaldatum kaart $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardIssue(String date) {
+    return 'Uitgegeven $date';
+  }
+
+  @override
+  String certifications_currency_anchor_ledgerEvent(String event, String date) {
+    return '$event vastgelegd op $date';
+  }
+
+  @override
+  String certifications_currency_alsoCovers(String names) {
+    return 'Geldt ook voor $names';
+  }
+
+  @override
+  String get certifications_currency_muted => 'Gedempt';
+
+  @override
+  String get certifications_currency_action_log => 'Opfrissing vastleggen';
+
+  @override
+  String get certifications_currency_action_interval => 'Interval bewerken';
+
+  @override
+  String get certifications_currency_action_mapping => 'Welke duiken tellen';
+
+  @override
+  String get certifications_currency_action_mute => 'Dempen';
+
+  @override
+  String get certifications_currency_action_unmute => 'Dempen opheffen';
+
+  @override
+  String get certifications_currency_history => 'Geschiedenis';
+
+  @override
+  String get certifications_currency_deleteEvent_title => 'Item verwijderen?';
+
+  @override
+  String certifications_currency_deleteEvent_content(
+    String event,
+    String date,
+  ) {
+    return 'Hiermee wordt $event van $date verwijderd.';
+  }
+
+  @override
+  String get certifications_currency_eventDialog_title =>
+      'Opfrissing of verlenging vastleggen';
+
+  @override
+  String get certifications_currency_eventDialog_type => 'Type';
+
+  @override
+  String get certifications_currency_eventDialog_date => 'Datum';
+
+  @override
+  String get certifications_currency_eventDialog_provider =>
+      'Duikschool, club of instructeur';
+
+  @override
+  String get certifications_currency_eventDialog_notes => 'Notities';
+
+  @override
+  String get certifications_currency_intervalDialog_title => 'Interval';
+
+  @override
+  String get certifications_currency_intervalDialog_lapse =>
+      'Verloopt na (dagen)';
+
+  @override
+  String get certifications_currency_intervalDialog_lead =>
+      'Zoveel dagen vooraf waarschuwen';
+
+  @override
+  String certifications_currency_intervalDialog_inheritHint(String days) {
+    return 'Leeg gebruikt de waarde van de regel ($days)';
+  }
+
+  @override
+  String get certifications_currency_intervalDialog_leadTooLong =>
+      'De waarschuwing kan niet vóór het interval beginnen';
+
+  @override
+  String get certifications_currency_mappingDialog_title =>
+      'Welke duiken tellen';
+
+  @override
+  String get certifications_currency_mappingDialog_types => 'Duiktypes';
+
+  @override
+  String get certifications_currency_mappingDialog_modes => 'Duikmodi';
+
+  @override
+  String get certifications_currency_mappingDialog_anyHint =>
+      'Zonder selectie telt elke duik';
+
+  @override
+  String get certifications_currency_mappingDialog_reset =>
+      'Standaard van de regel gebruiken';
+
+  @override
   String get certifications_detail_sectionTitle_details =>
       'Certificeringsdetails';
 

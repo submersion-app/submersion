@@ -3168,6 +3168,135 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_detail_sectionTitle_dates => 'Dates';
 
   @override
+  String get certifications_detail_sectionTitle_currency => 'Currency';
+
+  @override
+  String certifications_currency_dueOn(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String certifications_currency_lapsedSince(String date) {
+    return 'Lapsed since $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastDive(String date) {
+    return 'Last dive $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastQualifyingDive(String date) {
+    return 'Last qualifying dive $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardExpiry(String date) {
+    return 'Card expiry $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardIssue(String date) {
+    return 'Issued $date';
+  }
+
+  @override
+  String certifications_currency_anchor_ledgerEvent(String event, String date) {
+    return '$event logged $date';
+  }
+
+  @override
+  String certifications_currency_alsoCovers(String names) {
+    return 'Also covers $names';
+  }
+
+  @override
+  String get certifications_currency_muted => 'Muted';
+
+  @override
+  String get certifications_currency_action_log => 'Log refresher';
+
+  @override
+  String get certifications_currency_action_interval => 'Edit interval';
+
+  @override
+  String get certifications_currency_action_mapping => 'Which dives count';
+
+  @override
+  String get certifications_currency_action_mute => 'Mute';
+
+  @override
+  String get certifications_currency_action_unmute => 'Unmute';
+
+  @override
+  String get certifications_currency_history => 'Currency history';
+
+  @override
+  String get certifications_currency_deleteEvent_title => 'Delete entry?';
+
+  @override
+  String certifications_currency_deleteEvent_content(
+    String event,
+    String date,
+  ) {
+    return 'This removes the $event logged $date.';
+  }
+
+  @override
+  String get certifications_currency_eventDialog_title =>
+      'Log refresher or renewal';
+
+  @override
+  String get certifications_currency_eventDialog_type => 'Type';
+
+  @override
+  String get certifications_currency_eventDialog_date => 'Date';
+
+  @override
+  String get certifications_currency_eventDialog_provider =>
+      'Shop, club or instructor';
+
+  @override
+  String get certifications_currency_eventDialog_notes => 'Notes';
+
+  @override
+  String get certifications_currency_intervalDialog_title => 'Interval';
+
+  @override
+  String get certifications_currency_intervalDialog_lapse =>
+      'Lapses after (days)';
+
+  @override
+  String get certifications_currency_intervalDialog_lead =>
+      'Warn this many days before';
+
+  @override
+  String certifications_currency_intervalDialog_inheritHint(String days) {
+    return 'Blank uses the rule\'s value ($days)';
+  }
+
+  @override
+  String get certifications_currency_intervalDialog_leadTooLong =>
+      'The warning cannot start before the interval does';
+
+  @override
+  String get certifications_currency_mappingDialog_title => 'Which dives count';
+
+  @override
+  String get certifications_currency_mappingDialog_types => 'Dive types';
+
+  @override
+  String get certifications_currency_mappingDialog_modes => 'Dive modes';
+
+  @override
+  String get certifications_currency_mappingDialog_anyHint =>
+      'Nothing selected means any dive counts';
+
+  @override
+  String get certifications_currency_mappingDialog_reset =>
+      'Use the rule\'s default';
+
+  @override
   String get certifications_detail_sectionTitle_details =>
       'Certification Details';
 

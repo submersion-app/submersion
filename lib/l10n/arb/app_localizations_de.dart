@@ -3217,6 +3217,137 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_detail_sectionTitle_dates => 'Daten';
 
   @override
+  String get certifications_detail_sectionTitle_currency => 'Gültigkeit';
+
+  @override
+  String certifications_currency_dueOn(String date) {
+    return 'Fällig am $date';
+  }
+
+  @override
+  String certifications_currency_lapsedSince(String date) {
+    return 'Abgelaufen seit $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastDive(String date) {
+    return 'Letzter Tauchgang $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastQualifyingDive(String date) {
+    return 'Letzter zählender Tauchgang $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardExpiry(String date) {
+    return 'Kartenablauf $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardIssue(String date) {
+    return 'Ausgestellt $date';
+  }
+
+  @override
+  String certifications_currency_anchor_ledgerEvent(String event, String date) {
+    return '$event erfasst am $date';
+  }
+
+  @override
+  String certifications_currency_alsoCovers(String names) {
+    return 'Gilt auch für $names';
+  }
+
+  @override
+  String get certifications_currency_muted => 'Stummgeschaltet';
+
+  @override
+  String get certifications_currency_action_log => 'Auffrischung erfassen';
+
+  @override
+  String get certifications_currency_action_interval => 'Intervall bearbeiten';
+
+  @override
+  String get certifications_currency_action_mapping =>
+      'Welche Tauchgänge zählen';
+
+  @override
+  String get certifications_currency_action_mute => 'Stummschalten';
+
+  @override
+  String get certifications_currency_action_unmute => 'Stummschaltung aufheben';
+
+  @override
+  String get certifications_currency_history => 'Verlauf';
+
+  @override
+  String get certifications_currency_deleteEvent_title => 'Eintrag löschen?';
+
+  @override
+  String certifications_currency_deleteEvent_content(
+    String event,
+    String date,
+  ) {
+    return 'Damit wird $event vom $date entfernt.';
+  }
+
+  @override
+  String get certifications_currency_eventDialog_title =>
+      'Auffrischung oder Verlängerung erfassen';
+
+  @override
+  String get certifications_currency_eventDialog_type => 'Art';
+
+  @override
+  String get certifications_currency_eventDialog_date => 'Datum';
+
+  @override
+  String get certifications_currency_eventDialog_provider =>
+      'Tauchbasis, Verein oder Ausbilder';
+
+  @override
+  String get certifications_currency_eventDialog_notes => 'Notizen';
+
+  @override
+  String get certifications_currency_intervalDialog_title => 'Intervall';
+
+  @override
+  String get certifications_currency_intervalDialog_lapse =>
+      'Läuft ab nach (Tagen)';
+
+  @override
+  String get certifications_currency_intervalDialog_lead =>
+      'So viele Tage vorher warnen';
+
+  @override
+  String certifications_currency_intervalDialog_inheritHint(String days) {
+    return 'Leer übernimmt den Wert der Regel ($days)';
+  }
+
+  @override
+  String get certifications_currency_intervalDialog_leadTooLong =>
+      'Die Warnung kann nicht vor dem Intervall beginnen';
+
+  @override
+  String get certifications_currency_mappingDialog_title =>
+      'Welche Tauchgänge zählen';
+
+  @override
+  String get certifications_currency_mappingDialog_types => 'Tauchgangsarten';
+
+  @override
+  String get certifications_currency_mappingDialog_modes => 'Tauchmodi';
+
+  @override
+  String get certifications_currency_mappingDialog_anyHint =>
+      'Ohne Auswahl zählt jeder Tauchgang';
+
+  @override
+  String get certifications_currency_mappingDialog_reset =>
+      'Standard der Regel verwenden';
+
+  @override
   String get certifications_detail_sectionTitle_details =>
       'Zertifizierungsdetails';
 

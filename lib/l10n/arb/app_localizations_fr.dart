@@ -3225,6 +3225,140 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_detail_sectionTitle_dates => 'Dates';
 
   @override
+  String get certifications_detail_sectionTitle_currency => 'Validité';
+
+  @override
+  String certifications_currency_dueOn(String date) {
+    return 'Échéance le $date';
+  }
+
+  @override
+  String certifications_currency_lapsedSince(String date) {
+    return 'Expiré depuis le $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastDive(String date) {
+    return 'Dernière plongée $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastQualifyingDive(String date) {
+    return 'Dernière plongée prise en compte $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardExpiry(String date) {
+    return 'Expiration de la carte $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardIssue(String date) {
+    return 'Délivrée le $date';
+  }
+
+  @override
+  String certifications_currency_anchor_ledgerEvent(String event, String date) {
+    return '$event enregistré le $date';
+  }
+
+  @override
+  String certifications_currency_alsoCovers(String names) {
+    return 'Couvre aussi $names';
+  }
+
+  @override
+  String get certifications_currency_muted => 'En sourdine';
+
+  @override
+  String get certifications_currency_action_log =>
+      'Enregistrer une remise à niveau';
+
+  @override
+  String get certifications_currency_action_interval =>
+      'Modifier l\'intervalle';
+
+  @override
+  String get certifications_currency_action_mapping =>
+      'Plongées prises en compte';
+
+  @override
+  String get certifications_currency_action_mute => 'Mettre en sourdine';
+
+  @override
+  String get certifications_currency_action_unmute => 'Réactiver';
+
+  @override
+  String get certifications_currency_history => 'Historique';
+
+  @override
+  String get certifications_currency_deleteEvent_title =>
+      'Supprimer l\'entrée ?';
+
+  @override
+  String certifications_currency_deleteEvent_content(
+    String event,
+    String date,
+  ) {
+    return 'Cela supprime $event enregistré le $date.';
+  }
+
+  @override
+  String get certifications_currency_eventDialog_title =>
+      'Enregistrer une remise à niveau ou un renouvellement';
+
+  @override
+  String get certifications_currency_eventDialog_type => 'Type';
+
+  @override
+  String get certifications_currency_eventDialog_date => 'Date';
+
+  @override
+  String get certifications_currency_eventDialog_provider =>
+      'Centre, club ou moniteur';
+
+  @override
+  String get certifications_currency_eventDialog_notes => 'Notes';
+
+  @override
+  String get certifications_currency_intervalDialog_title => 'Intervalle';
+
+  @override
+  String get certifications_currency_intervalDialog_lapse =>
+      'Expire après (jours)';
+
+  @override
+  String get certifications_currency_intervalDialog_lead =>
+      'Prévenir ce nombre de jours avant';
+
+  @override
+  String certifications_currency_intervalDialog_inheritHint(String days) {
+    return 'Vide : utilise la valeur de la règle ($days)';
+  }
+
+  @override
+  String get certifications_currency_intervalDialog_leadTooLong =>
+      'L\'avertissement ne peut pas commencer avant l\'intervalle';
+
+  @override
+  String get certifications_currency_mappingDialog_title =>
+      'Plongées prises en compte';
+
+  @override
+  String get certifications_currency_mappingDialog_types => 'Types de plongée';
+
+  @override
+  String get certifications_currency_mappingDialog_modes => 'Modes de plongée';
+
+  @override
+  String get certifications_currency_mappingDialog_anyHint =>
+      'Sans sélection, toute plongée compte';
+
+  @override
+  String get certifications_currency_mappingDialog_reset =>
+      'Utiliser la valeur de la règle';
+
+  @override
   String get certifications_detail_sectionTitle_details =>
       'Détails de la certification';
 
