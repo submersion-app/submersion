@@ -115,6 +115,44 @@ void main() {
       },
     );
 
+    test('sharing is refused while another diver has a private agency of '
+        'that name', () async {
+      final a = await repo.createAgency(
+        diverId: 'a',
+        name: 'Club X',
+        isShared: false,
+      );
+      await repo.createAgency(diverId: 'b', name: 'club x', isShared: false);
+      expect(
+        () => repo.updateAgency(a.copyWith(isShared: true), actingDiverId: 'a'),
+        throwsA(isA<CertificationNameTakenException>()),
+      );
+      expect(
+        () => repo.createAgency(diverId: 'a', name: 'CLUB X', isShared: true),
+        throwsA(isA<CertificationNameTakenException>()),
+      );
+    });
+
+    test('agencyUsage counts the agency and every one of its levels', () async {
+      final a = await repo.createAgency(
+        diverId: 'a',
+        name: 'Club X',
+        isShared: false,
+      );
+      final l = await repo.createLevel(
+        diverId: 'a',
+        agencyId: a.id,
+        name: 'Club Diver',
+        isProgression: true,
+        isShared: false,
+      );
+      await insertCert('c1', agency: a.id);
+      await insertCert('c2', level: l.id);
+      final used = await repo.agencyUsage(a.id);
+      expect(used.certifications, 2);
+      expect(used.courses, 0);
+    });
+
     test('refuses writes from a non-owner', () async {
       final a = await repo.createAgency(
         diverId: 'a',
@@ -233,6 +271,59 @@ void main() {
         );
       },
     );
+
+    test("reorder keeps another diver's shared rungs where they are", () async {
+      final a1 = await repo.createLevel(
+        diverId: 'a',
+        agencyId: 'padi',
+        name: 'Ice Diver',
+        isProgression: true,
+        isShared: false,
+      );
+      final b1 = await repo.createLevel(
+        diverId: 'b',
+        agencyId: 'padi',
+        name: 'Cave Guide',
+        isProgression: true,
+        isShared: true,
+      );
+      final a2 = await repo.createLevel(
+        diverId: 'a',
+        agencyId: 'padi',
+        name: 'Ice Instructor',
+        isProgression: true,
+        isShared: false,
+      );
+      await repo.reorderProgression('padi', [a2.id, a1.id], actingDiverId: 'a');
+      final byId = {for (final l in await repo.getAllLevels()) l.id: l};
+      // The diver's rungs swap the slots they held; the shared rung keeps
+      // its slot and no two rungs share one.
+      expect(byId[a2.id]!.sortOrder, a1.sortOrder);
+      expect(byId[a1.id]!.sortOrder, a2.sortOrder);
+      expect(byId[b1.id]!.sortOrder, b1.sortOrder);
+    });
+
+    test('sharing a level is refused while another diver has a private one '
+        'of that name under the agency', () async {
+      await repo.createLevel(
+        diverId: 'a',
+        agencyId: 'padi',
+        name: 'Ice Diver',
+        isProgression: true,
+        isShared: false,
+      );
+      final b = await repo.createLevel(
+        diverId: 'b',
+        agencyId: 'padi',
+        name: 'ice diver',
+        isProgression: true,
+        isShared: false,
+      );
+      expect(
+        () => repo.updateLevel(b.copyWith(isShared: true), actingDiverId: 'b'),
+        throwsA(isA<CertificationNameTakenException>()),
+      );
+    });
 
     test('reorder refuses another diver\'s level', () async {
       final l1 = await repo.createLevel(

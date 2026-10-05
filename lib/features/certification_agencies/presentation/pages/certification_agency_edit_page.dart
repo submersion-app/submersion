@@ -163,16 +163,22 @@ class _LevelSection extends ConsumerWidget {
     WidgetRef ref,
     CustomCertificationLevel level,
   ) async {
-    if (!await confirmCertificationDelete(context, level.name)) return;
-    if (!context.mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     final failed = context.l10n.common_error_tryAgain;
+    final repo = ref.read(customCertificationRepositoryProvider);
     try {
+      // A certification in use is refused up front, not after a
+      // confirmation; the delete checks again in case that changes.
+      final used = await repo.usage(level.id);
+      if (!context.mounted) return;
+      if (used.isUsed) {
+        await showCertificationDeleteRefusal(context, used);
+        return;
+      }
+      if (!await confirmCertificationDelete(context, level.name)) return;
       final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
       if (diverId == null) return;
-      final refused = await ref
-          .read(customCertificationRepositoryProvider)
-          .deleteLevel(level.id, actingDiverId: diverId);
+      final refused = await repo.deleteLevel(level.id, actingDiverId: diverId);
       if (refused != null && context.mounted) {
         await showCertificationDeleteRefusal(context, refused);
       }

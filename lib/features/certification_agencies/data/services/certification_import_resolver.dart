@@ -1,6 +1,7 @@
 import 'package:submersion/core/constants/certification_levels.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/certification_agencies/data/repositories/custom_certification_repository.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_agency.dart';
 
 /// Maps imported agency and level text to ids (issue #690).
 ///
@@ -42,12 +43,24 @@ class CertificationImportResolver {
           (a.diverId == diverId || a.isShared) && a.name.toLowerCase() == lower,
     );
     if (visible.isNotEmpty) return _agencyCache[lower] = visible.first.id;
-    final created = await _repo.createAgency(
-      diverId: diverId,
-      name: t,
-      isShared: shareByDefault,
-    );
-    return _agencyCache[lower] = created.id;
+    return _agencyCache[lower] = (await _createAgency(t)).id;
+  }
+
+  /// A shared agency must not duplicate another diver's private one, so
+  /// when the name is held that way the import keeps the agency private.
+  Future<CustomCertificationAgency> _createAgency(String name) async {
+    if (shareByDefault) {
+      try {
+        return await _repo.createAgency(
+          diverId: diverId,
+          name: name,
+          isShared: true,
+        );
+      } on CertificationNameTakenException {
+        // Held privately by another diver; fall through.
+      }
+    }
+    return _repo.createAgency(diverId: diverId, name: name, isShared: false);
   }
 
   /// The level id for [text] under [agencyId], or null when nothing matches.

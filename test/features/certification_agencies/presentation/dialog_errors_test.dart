@@ -27,6 +27,10 @@ class _FailingRepository extends CustomCertificationRepository {
   Future<List<CustomCertificationAgency>> getAllAgencies() async => agencies;
 
   @override
+  Future<CertificationUsage> agencyUsage(String id) async =>
+      const CertificationUsage();
+
+  @override
   Future<CertificationUsage?> deleteAgency(
     String id, {
     required String actingDiverId,

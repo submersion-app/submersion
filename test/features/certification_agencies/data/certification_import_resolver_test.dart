@@ -132,4 +132,18 @@ void main() {
     // With no custom match, the global built-ins still apply.
     expect(await r.levelId(club.id, 'Rescue Diver'), 'rescue');
   });
+
+  test('a shared import falls back to private when another diver holds the '
+      'name privately', () async {
+    await repo.createAgency(diverId: 'b', name: 'Club X', isShared: false);
+    final r = CertificationImportResolver(
+      repo,
+      diverId: 'a',
+      shareByDefault: true,
+    );
+    final id = await r.agencyId('Club X');
+    final created = (await repo.getAllAgencies()).firstWhere((a) => a.id == id);
+    expect(created.diverId, 'a');
+    expect(created.isShared, isFalse);
+  });
 }

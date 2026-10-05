@@ -136,8 +136,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Delete').last);
-      await tester.pumpAndSettle();
+      // No "Delete?" first: an agency in use is refused at once.
+      expect(find.text('Delete Club A?'), findsNothing);
       expect(find.text('Still in use'), findsOneWidget);
       expect(
         find.text('Used by 1 certification. Change those first.'),

@@ -99,7 +99,11 @@ class CustomCertificationRepository {
   }) async {
     try {
       final trimmed = _requireName(name);
-      await _ensureAgencyNameFree(trimmed, diverId: diverId);
+      await _ensureAgencyNameFree(
+        trimmed,
+        diverId: diverId,
+        isShared: isShared,
+      );
       final id = _uuid.v4();
       final now = DateTime.now().millisecondsSinceEpoch;
       await _db
@@ -137,6 +141,7 @@ class CustomCertificationRepository {
       await _ensureAgencyNameFree(
         trimmed,
         diverId: actingDiverId,
+        isShared: agency.isShared,
         exceptId: agency.id,
       );
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -177,7 +182,12 @@ class CustomCertificationRepository {
         throw CertificationNotOwnerException(agencyId);
       }
       final trimmed = _requireName(name);
-      await _ensureLevelNameFree(trimmed, agencyId: agencyId, diverId: diverId);
+      await _ensureLevelNameFree(
+        trimmed,
+        agencyId: agencyId,
+        diverId: diverId,
+        isShared: isShared,
+      );
       final id = _uuid.v4();
       final now = DateTime.now().millisecondsSinceEpoch;
       final sortOrder = isProgression ? await _nextSortOrder(agencyId) : 0;
@@ -219,6 +229,7 @@ class CustomCertificationRepository {
         trimmed,
         agencyId: existing.agencyId,
         diverId: actingDiverId,
+        isShared: level.isShared,
         exceptId: level.id,
       );
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -260,18 +271,25 @@ class CustomCertificationRepository {
     try {
       await _db.transaction(() async {
         final now = DateTime.now().millisecondsSinceEpoch;
-        for (var i = 0; i < orderedIds.length; i++) {
-          final existing = await _level(orderedIds[i]);
+        final slots = <int>[];
+        for (final id in orderedIds) {
+          final existing = await _level(id);
           if (existing == null ||
               existing.diverId != actingDiverId ||
               existing.agencyId != agencyId) {
-            throw CertificationNotOwnerException(orderedIds[i]);
+            throw CertificationNotOwnerException(id);
           }
+          slots.add(existing.sortOrder);
+        }
+        // The diver's rungs trade the slots they already hold, so another
+        // diver's shared rungs keep their place and no two rungs collide.
+        slots.sort();
+        for (var i = 0; i < orderedIds.length; i++) {
           await (_db.update(
             _db.customCertificationLevels,
           )..where((t) => t.id.equals(orderedIds[i]))).write(
             CustomCertificationLevelsCompanion(
-              sortOrder: Value(i),
+              sortOrder: Value(slots[i]),
               updatedAt: Value(now),
             ),
           );
@@ -313,6 +331,19 @@ class CustomCertificationRepository {
     );
   }
 
+  /// References to agency [id] and to every one of its custom levels: what
+  /// stands in the way of deleting the agency.
+  Future<CertificationUsage> agencyUsage(String id) async {
+    final levels = await (_db.select(
+      _db.customCertificationLevels,
+    )..where((t) => t.agencyId.equals(id))).get();
+    var total = await usage(id);
+    for (final l in levels) {
+      total = total + await usage(l.id);
+    }
+    return total;
+  }
+
   /// Deletes an unused agency and its custom levels. Returns the usage and
   /// deletes nothing when the agency or any of its levels is referenced.
   Future<CertificationUsage?> deleteAgency(
@@ -329,14 +360,11 @@ class CustomCertificationRepository {
       // that lands between them (a sync pull, another screen) cannot leave a
       // reference to a deleted row.
       final refused = await _db.transaction<CertificationUsage?>(() async {
+        final total = await agencyUsage(id);
+        if (total.isUsed) return total;
         final levels = await (_db.select(
           _db.customCertificationLevels,
         )..where((t) => t.agencyId.equals(id))).get();
-        var total = await usage(id);
-        for (final l in levels) {
-          total = total + await usage(l.id);
-        }
-        if (total.isUsed) return total;
         for (final l in levels) {
           await (_db.delete(
             _db.customCertificationLevels,
@@ -420,10 +448,14 @@ class CustomCertificationRepository {
     return row == null ? null : mapCustomLevelRow(row);
   }
 
-  /// Built-in names, the diver's own agencies and every shared one.
+  /// Built-in names, the diver's own agencies and every shared one. A
+  /// shared agency is seen by every diver, so it is checked against every
+  /// diver's agencies, private ones included: two agencies of one name must
+  /// never show side by side.
   Future<void> _ensureAgencyNameFree(
     String name, {
     required String diverId,
+    required bool isShared,
     String? exceptId,
   }) async {
     final lower = name.toLowerCase();
@@ -435,7 +467,7 @@ class CustomCertificationRepository {
     final clash = (await getAllAgencies()).any(
       (a) =>
           a.id != exceptId &&
-          (a.diverId == diverId || a.isShared) &&
+          (isShared || a.diverId == diverId || a.isShared) &&
           a.name.toLowerCase() == lower,
     );
     if (clash) throw CertificationNameTakenException(name);
@@ -443,11 +475,13 @@ class CustomCertificationRepository {
 
   /// The agency's built-in levels and the custom levels of it the diver can
   /// see. Under a custom agency every level counts, since its levels follow
-  /// the agency's visibility.
+  /// the agency's visibility. A shared level is checked against every
+  /// diver's levels of the agency, as a shared agency is.
   Future<void> _ensureLevelNameFree(
     String name, {
     required String agencyId,
     required String diverId,
+    required bool isShared,
     String? exceptId,
   }) async {
     final lower = name.toLowerCase();
@@ -462,7 +496,10 @@ class CustomCertificationRepository {
       (l) =>
           l.id != exceptId &&
           l.agencyId == agencyId &&
-          (l.diverId == diverId || l.isShared || builtInAgency == null) &&
+          (isShared ||
+              l.diverId == diverId ||
+              l.isShared ||
+              builtInAgency == null) &&
           l.name.toLowerCase() == lower,
     );
     if (clash) throw CertificationNameTakenException(name);
