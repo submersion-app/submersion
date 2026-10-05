@@ -86,6 +86,15 @@ enum _ConsolidateOutcome {
 /// left behind (only [_ConsolidateOutcome.keptStandalone] leaves one).
 typedef _ConsolidateResult = ({_ConsolidateOutcome outcome, String? diveId});
 
+/// What a download reported to [DiveComputerAdapter.ensureComputer].
+typedef _PendingComputerSave = ({
+  DiscoveredDevice device,
+  String? serialNumber,
+  String? firmwareVersion,
+  String? reportedProduct,
+  int? reportedModel,
+});
+
 /// Import source adapter for dive computer downloads.
 ///
 /// Implements [ImportSourceAdapter] for the unified import wizard. Supports
@@ -168,14 +177,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
   /// What the last [ensureComputer] call was given, kept so [buildBundle]
   /// can retry the save when the download step's attempt failed.
-  ({
-    DiscoveredDevice device,
-    String? serialNumber,
-    String? firmwareVersion,
-    String? reportedProduct,
-    int? reportedModel,
-  })?
-  _pendingComputerSave;
+  _PendingComputerSave? _pendingComputerSave;
 
   /// Why the last retry of [_pendingComputerSave] failed, reported by
   /// [performImport] in place of importing without a computer.
@@ -585,7 +587,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   /// download from a known computer starts from.
   ImportSourceDetails _sourceDetails() {
     final pending = _pendingComputerSave;
-    final stored = computer;
+    final stored = _asDownloadSavedIt(computer, pending);
     return ImportSourceDetails(
       title:
           _customDeviceName ??
@@ -602,6 +604,24 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           pending?.device.connectionType ??
           _storedConnection(stored?.connectionType),
     );
+  }
+
+  /// [stored] as the download step saves it once the download completes: a
+  /// known computer whose device named a different model is relabeled to it
+  /// (issue #422), unless the serials say the device is another computer.
+  /// The adapter's own copy of a known computer is never refreshed, so the
+  /// Review step would otherwise show the model it was scanned as.
+  static DiveComputer? _asDownloadSavedIt(
+    DiveComputer? stored,
+    _PendingComputerSave? pending,
+  ) {
+    if (stored == null || pending == null) return stored;
+    final storedSerial = stored.serialNumber;
+    final serial = pending.serialNumber;
+    if (storedSerial != null && serial != null && storedSerial != serial) {
+      return stored;
+    }
+    return relabelToReportedProduct(stored, pending.reportedProduct);
   }
 
   /// The connection a stored computer was last saved with, read the way the

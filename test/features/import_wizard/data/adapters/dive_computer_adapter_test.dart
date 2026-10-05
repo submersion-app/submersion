@@ -292,6 +292,61 @@ void main() {
         expect(details.model, 'Shearwater Perdix');
       });
 
+      group('a model the device reported about itself (#422)', () {
+        DiveComputerAdapter cartesioAdapter() => DiveComputerAdapter(
+          importService: mockImportService,
+          computerRepository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          consolidationService: mockConsolidationService,
+          diverId: diverId,
+          knownComputer: makeComputer(
+            name: 'Cressi Cartesio',
+            manufacturer: 'Cressi',
+            model: 'Cartesio',
+            serialNumber: 'SN-1',
+          ),
+        );
+
+        Future<ImportSourceDetails> detailsAfter({
+          required DiveComputerAdapter adapter,
+          String? serial,
+        }) async {
+          await adapter.ensureComputer(
+            device: DiscoveredDevice(
+              id: 'device-1',
+              name: 'Cartesio',
+              connectionType: DeviceConnectionType.ble,
+              address: 'AA:BB:CC:DD:EE:FF',
+              discoveredAt: DateTime(2026, 3, 20),
+            ),
+            serialNumber: serial,
+            reportedProduct: 'Donatello',
+            reportedModel: 7,
+          );
+          adapter.setDownloadedDives([]);
+          return (await adapter.buildBundle()).source.details;
+        }
+
+        test('relabels the stored computer as the download did', () async {
+          final details = await detailsAfter(
+            adapter: cartesioAdapter(),
+            serial: 'SN-1',
+          );
+
+          expect(details.title, 'Cressi Donatello');
+          expect(details.model, 'Cressi Donatello');
+        });
+
+        test('keeps the record when the serial says it is another', () async {
+          final details = await detailsAfter(
+            adapter: cartesioAdapter(),
+            serial: 'SN-2',
+          );
+
+          expect(details.model, 'Cressi Cartesio');
+        });
+      });
+
       test('the name typed on the confirm step is the title', () async {
         adapter
           ..setCustomDeviceName('Backup computer')
