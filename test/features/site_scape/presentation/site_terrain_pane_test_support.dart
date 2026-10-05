@@ -109,6 +109,7 @@ Widget page(
   List<Override> extraOverrides = const [],
   SeascapePlaybackContext? playbackContext,
   List<Widget> leadingActions = const [],
+  Locale locale = const Locale('en'),
 }) => ProviderScope(
   overrides: [
     settingsProvider.overrideWith((ref) => TestSettingsNotifier(settings)),
@@ -117,7 +118,7 @@ Widget page(
     ...extraOverrides,
   ],
   child: MaterialApp(
-    locale: const Locale('en'),
+    locale: locale,
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(

@@ -41,6 +41,23 @@ const _hostToggle = [
 ];
 
 void main() {
+  // The overlays are placed against the pane's physical left edge, like the
+  // docked card and the zoom column they keep clear of on the right; a
+  // right-to-left locale must not mirror the legend over to the controls.
+  testWidgets('the depth legend stays at the left edge in a right-to-left '
+      'locale', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 520));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(page(readyState(), locale: const Locale('ar')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(
+      tester.getRect(find.byKey(const ValueKey('seascapeDepthLegend'))).left,
+      8,
+    );
+  });
+
   // On a phone-width pane the source caption ran under the docked control
   // card at the top right, and the overlays stacked below it at fixed
   // offsets collided once it wrapped.

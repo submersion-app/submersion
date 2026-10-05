@@ -461,8 +461,12 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                             right: 16 + dockWidth,
                             child: column!,
                           ),
+                          // Lined up on the physical left, as the docked card
+                          // and the zoom column are fixed to the physical
+                          // right; only the alignment, not the text inside.
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            textDirection: TextDirection.ltr,
                             children: [
                               SeascapeSourceChip(
                                 sourceId: patch?.grid.sourceId ?? sourceId,
