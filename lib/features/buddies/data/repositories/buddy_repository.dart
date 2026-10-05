@@ -832,9 +832,7 @@ class BuddyRepository {
   ) async {
     if (diveIds.isEmpty || buddyIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
-    for (final diveId in diveIds) {
-      await _roleLinks.deleteBuddyRoles(diveId, buddyIds);
-    }
+    await _roleLinks.deleteBuddyRolesOnDives(diveIds, buddyIds);
     final existing = await (_db.select(
       _db.diveBuddies,
     )..where((t) => t.diveId.isIn(diveIds) & t.buddyId.isIn(buddyIds))).get();

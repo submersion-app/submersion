@@ -151,10 +151,14 @@ abstract final class UddfBuddyRoles {
     final leaderText = dive.remove(_leaderTextKey);
     if (leaderText is String) {
       final covered = <String, int>{};
+      // One cover per PERSON: <divemaster> names each leader once, however
+      // many leader roles they hold (issue #1221).
+      final coveredRefs = <Object?>{};
       for (final row in (dive[roleRefsKey] as List?) ?? const []) {
         if (row is! Map || !DiveRole.leaderIds.contains(row['roleId'])) {
           continue;
         }
+        if (!coveredRefs.add(row['buddyRef'])) continue;
         final name = buddies[row['buddyRef']]?['name'];
         if (name is String) {
           covered.update(_normalized(name), (n) => n + 1, ifAbsent: () => 1);

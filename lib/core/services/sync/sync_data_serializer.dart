@@ -2237,7 +2237,11 @@ class SyncDataSerializer {
         'diveDiverRoles',
         () async => _withPendingChildren(
           'diveDiverRoles',
-          await _exportDiveDiverRoles(hlcSince),
+          await _exportDiveRoleRows(hlcSince, (diveIds) {
+            final query = _db.select(_db.diveDiverRoles);
+            if (diveIds != null) query.where((t) => t.diveId.isIn(diveIds));
+            return query.get();
+          }),
           pendingChildren,
         ),
       ),
@@ -2245,7 +2249,11 @@ class SyncDataSerializer {
         'diveBuddyRoles',
         () async => _withPendingChildren(
           'diveBuddyRoles',
-          await _exportDiveBuddyRoles(hlcSince),
+          await _exportDiveRoleRows(hlcSince, (diveIds) {
+            final query = _db.select(_db.diveBuddyRoles);
+            if (diveIds != null) query.where((t) => t.diveId.isIn(diveIds));
+            return query.get();
+          }),
           pendingChildren,
         ),
       ),
@@ -8431,42 +8439,19 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  /// The diver's role rows (v264), gated on the parent dive's clock like
-  /// [_exportDiveDiveTypes].
-  Future<List<Map<String, dynamic>>> _exportDiveDiverRoles(
+  /// A role junction's rows (v264, issue #1221), gated on the parent dive's
+  /// clock like [_exportDiveDiveTypes]. [select] reads the junction rows of
+  /// the given dives, or every row when passed null (a full export).
+  Future<List<Map<String, dynamic>>> _exportDiveRoleRows<R extends DataClass>(
     String? hlcSince,
+    Future<List<R>> Function(List<String>? diveIds) select,
   ) async {
-    if (hlcSince != null) {
-      final diveIds = await _diveIdsModifiedSince(hlcSince);
-      if (diveIds.isEmpty) return [];
-      return _childRowsOf(
-        diveIds,
-        (chunk) => (_db.select(
-          _db.diveDiverRoles,
-        )..where((t) => t.diveId.isIn(chunk))).get(),
-      );
+    if (hlcSince == null) {
+      return [for (final row in await select(null)) row.toJson()];
     }
-    final rows = await _db.select(_db.diveDiverRoles).get();
-    return rows.map((r) => r.toJson()).toList();
-  }
-
-  /// Each buddy's role rows (v264), gated on the parent dive's clock like
-  /// [_exportDiveDiveTypes].
-  Future<List<Map<String, dynamic>>> _exportDiveBuddyRoles(
-    String? hlcSince,
-  ) async {
-    if (hlcSince != null) {
-      final diveIds = await _diveIdsModifiedSince(hlcSince);
-      if (diveIds.isEmpty) return [];
-      return _childRowsOf(
-        diveIds,
-        (chunk) => (_db.select(
-          _db.diveBuddyRoles,
-        )..where((t) => t.diveId.isIn(chunk))).get(),
-      );
-    }
-    final rows = await _db.select(_db.diveBuddyRoles).get();
-    return rows.map((r) => r.toJson()).toList();
+    final diveIds = await _diveIdsModifiedSince(hlcSince);
+    if (diveIds.isEmpty) return [];
+    return _childRowsOf(diveIds, select);
   }
 
   Future<Set<String>> _diveIdsModifiedSince(String hlcSince) async {

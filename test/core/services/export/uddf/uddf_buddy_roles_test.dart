@@ -429,4 +429,25 @@ void main() {
       expect(r.unmatched, ['Zed']);
     });
   });
+
+  test('a person with two leader roles covers their name once (#1221)', () {
+    // Two namesakes, both named in <divemaster>. Only the first carries
+    // exact roles (two leader roles); the second must still be linked as a
+    // guide from the text.
+    final buddies = <String, Map<String, dynamic>>{
+      'a': {'name': 'Ana Reyes'},
+      'b': {'name': 'Ana Reyes'},
+    };
+    final dive = <String, dynamic>{
+      UddfBuddyRoles.roleRefsKey: [
+        {'buddyRef': 'a', 'roleId': DiveRole.diveMasterId},
+        {'buddyRef': 'a', 'roleId': DiveRole.diveGuideId},
+      ],
+    };
+    UddfBuddyRoles.recordLeaderText(dive, 'Ana Reyes, Ana Reyes');
+
+    UddfBuddyRoles.settle(dive, buddies);
+
+    expect(dive['diveGuideRefs'], ['b']);
+  });
 }

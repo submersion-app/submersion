@@ -237,6 +237,16 @@ class DiveConsolidationService {
               .nonNulls
               .fold<int>(-1, (a, b) => a > b ? a : b);
 
+      // Role sets (issue #1221): resolved once from the capture, then the
+      // target's are widened as each secondary folds in.
+      final capturedBuddyRoles = snapshot.resolvedBuddyRoles();
+      final capturedDiverRoles = snapshot.resolvedDiverRoles();
+      final targetBuddyRoles = <String, List<String>>{
+        for (final entry in capturedBuddyRoles.entries)
+          if (entry.key.$1 == targetDiveId) entry.key.$2: entry.value,
+      };
+      var targetDiverRoles = capturedDiverRoles[targetDiveId] ?? const [];
+
       for (final secondary in plan.secondaries) {
         final secRow = snapshot.diveRows.firstWhere(
           (r) => r.id == secondary.id,
@@ -563,35 +573,30 @@ class DiveConsolidationService {
         }
 
         // Roles (issue #1221): each person on both dives, and the diver,
-        // ends up holding every role they held on either. Read the target's
-        // current sets, which an earlier secondary may already have widened.
-        final secondaryBuddyRoles = snapshot.resolvedBuddyRoles();
-        final targetBuddyRoles =
-            (await _roleLinks.buddyRoleIdsForDives([
-              targetDiveId,
-            ]))[targetDiveId] ??
-            const <String, List<String>>{};
+        // ends up holding every role they held on either, including what an
+        // earlier secondary already folded into the target.
         for (final row in snapshot.buddyRows.where(
           (r) => r.diveId == secondary.id,
         )) {
+          final union = DiveRoleSet.union([
+            ?targetBuddyRoles[row.buddyId],
+            ?capturedBuddyRoles[(secondary.id, row.buddyId)],
+          ]);
           await _roleLinks.writeBuddyRoles(
             targetDiveId,
             row.buddyId,
-            DiveRoleSet.union([
-              ?targetBuddyRoles[row.buddyId],
-              ?secondaryBuddyRoles[(secondary.id, row.buddyId)],
-            ]),
+            union,
             now: now,
           );
+          targetBuddyRoles[row.buddyId] = union;
         }
+        targetDiverRoles = DiveRoleSet.union([
+          targetDiverRoles,
+          ?capturedDiverRoles[secondary.id],
+        ]);
         await _roleLinks.writeDiverRoles(
           targetDiveId,
-          DiveRoleSet.union([
-            ?(await _roleLinks.diverRoleIdsForDives([
-              targetDiveId,
-            ]))[targetDiveId],
-            ?snapshot.resolvedDiverRoles()[secondary.id],
-          ]),
+          targetDiverRoles,
           now: now,
         );
 

@@ -49,15 +49,26 @@ class DiveRoleLinkRepository {
               ..addColumns([_db.dives.id, _db.dives.diverRole])
               ..where(_db.dives.id.isIn(diveIds)))
             .get();
+    return resolveDiverRoleIds({
+      for (final d in dives) d.read(_db.dives.id)!: d.read(_db.dives.diverRole),
+    });
+  }
+
+  /// [diverRoleIdsForDives] for callers that already hold each dive's
+  /// `diver_role` scalar ([scalarByDive]), so only the junction is read.
+  Future<Map<String, List<String>>> resolveDiverRoleIds(
+    Map<String, String?> scalarByDive,
+  ) async {
+    if (scalarByDive.isEmpty) return const {};
     final junction = <String, List<String>>{};
-    for (final row in await diverRoleRowsForDives(diveIds)) {
+    for (final row in await diverRoleRowsForDives(scalarByDive.keys.toList())) {
       junction.putIfAbsent(row.diveId, () => []).add(row.roleId);
     }
     return {
-      for (final d in dives)
-        d.read(_db.dives.id)!: DiveRoleSet.resolve(
-          scalar: d.read(_db.dives.diverRole),
-          junction: junction[d.read(_db.dives.id)!] ?? const [],
+      for (final entry in scalarByDive.entries)
+        entry.key: DiveRoleSet.resolve(
+          scalar: entry.value,
+          junction: junction[entry.key] ?? const [],
         ),
     };
   }
@@ -115,11 +126,13 @@ class DiveRoleLinkRepository {
     final at = now ?? DateTime.now().millisecondsSinceEpoch;
     final wanted = DiveRoleSet.normalize(roleIds);
     final primary = wanted.isEmpty ? null : wanted.first;
-    final dive = await (_db.select(
-      _db.dives,
-    )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+    final dive =
+        await (_db.selectOnly(_db.dives)
+              ..addColumns([_db.dives.diverRole])
+              ..where(_db.dives.id.equals(diveId)))
+            .getSingleOrNull();
     if (dive == null) return;
-    if (dive.diverRole != primary) {
+    if (dive.read(_db.dives.diverRole) != primary) {
       await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
         DivesCompanion(diverRole: Value(primary), updatedAt: Value(at)),
       );
@@ -226,19 +239,23 @@ class DiveRoleLinkRepository {
 
   /// Deletes and tombstones every role row of [buddyIds] on [diveId], for a
   /// buddy leaving the dive.
-  Future<void> deleteBuddyRoles(
-    String diveId,
+  Future<void> deleteBuddyRoles(String diveId, Iterable<String> buddyIds) =>
+      deleteBuddyRolesOnDives([diveId], buddyIds);
+
+  /// [deleteBuddyRoles] across [diveIds] in one pass, for bulk removals.
+  Future<void> deleteBuddyRolesOnDives(
+    List<String> diveIds,
     Iterable<String> buddyIds,
   ) async {
     final ids = buddyIds.toList();
-    if (ids.isEmpty) return;
+    if (ids.isEmpty || diveIds.isEmpty) return;
     final rows = await (_db.select(
       _db.diveBuddyRoles,
-    )..where((t) => t.diveId.equals(diveId) & t.buddyId.isIn(ids))).get();
+    )..where((t) => t.diveId.isIn(diveIds) & t.buddyId.isIn(ids))).get();
     if (rows.isEmpty) return;
     await (_db.delete(
       _db.diveBuddyRoles,
-    )..where((t) => t.diveId.equals(diveId) & t.buddyId.isIn(ids))).go();
+    )..where((t) => t.diveId.isIn(diveIds) & t.buddyId.isIn(ids))).go();
     await _syncRepository.logDeletions(
       entityType: 'diveBuddyRoles',
       recordIds: rows.map((r) => r.id),

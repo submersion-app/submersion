@@ -558,7 +558,9 @@ class DiveRepository {
         // Load all tags for these dives in one query
         final tagsByDive = await _tagRepository.getTagsForDives(diveIds);
         final diveTypesByDive = await _diveTypesForDives(diveIds);
-        final diverRolesByDive = await _roleLinks.diverRoleIdsForDives(diveIds);
+        final diverRolesByDive = await _roleLinks.resolveDiverRoleIds({
+          for (final row in rows) row.id: row.diverRole,
+        });
 
         // Load all custom fields for these dives in one query
         final customFieldsByDive = await _customFieldRepository
@@ -4268,7 +4270,9 @@ class DiveRepository {
     final diveTypesByDive = await _diveTypesForDives([row.id]);
     final diveTypeIds = diveTypesByDive[row.id] ?? [row.diveType];
     final diverRoleIds =
-        (await _roleLinks.diverRoleIdsForDives([row.id]))[row.id] ??
+        (await _roleLinks.resolveDiverRoleIds({
+          row.id: row.diverRole,
+        }))[row.id] ??
         const <String>[];
 
     // Derive waterTemp from the profile if not set on the dive row. Some
