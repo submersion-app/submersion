@@ -267,16 +267,22 @@ List<ProfileGasSegment> buildProfileGasSegments(
 /// bailout, else air. The FIRST tank must not be assumed to be the diluent --
 /// on imported CCR dives it is often the O2-richer loop/bailout mix
 /// (issue #455: dive 003's first tank is EAN40, the diluent is air).
+///
+/// [tanks] scopes the search to the analysed computer's cylinders on a
+/// multi-source dive; defaults to every tank.
 @visibleForTesting
-GasMix resolveCcrDiluentMix(Dive dive) {
-  final diluentTank = dive.diluentTank;
-  if (diluentTank != null) return diluentTank.gasMix;
+GasMix resolveCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) {
+  final candidates = tanks ?? dive.tanks;
+  for (final tank in candidates) {
+    if (tank.role == TankRole.diluent) return tank.gasMix;
+  }
   final diluentGas = dive.diluentGas;
   if (diluentGas != null) return diluentGas;
-  for (final tank in dive.tanks) {
-    if (tank.role == TankRole.oxygenSupply || tank.role == TankRole.bailout) {
-      continue;
-    }
+  for (final tank in candidates) {
+    // Roles read as the CCR switch classifier reads them, so an untagged
+    // pure-O2 cylinder is the O2 supply, never the diluent.
+    final role = ccrCylinderRole(tank);
+    if (role == TankRole.oxygenSupply || role == TankRole.bailout) continue;
     return tank.gasMix;
   }
   return const GasMix();
@@ -317,7 +323,7 @@ List<ProfileGasSegment>? buildRebreatherProfileGasSegments(
       return buildCcrProfileGasSegments(
         timestamps: timestamps,
         loopPpO2Curve: rebreatherPpO2?.curve,
-        diluentMix: resolveCcrDiluentMix(dive),
+        diluentMix: resolveCcrDiluentMix(dive, tanks: tanks),
         fallbackSetpoint: dive.setpointHigh ?? dive.setpointLow,
         // A switch before the first sample is one the builder drops; the
         // classifier must not run its loop/OC state through it either.
@@ -372,6 +378,7 @@ List<AvailableGas> buildAvailableGases(
   required double maxPpO2,
   required AscentGasSet gasSet,
   bool forCcrBailout = false,
+  List<DiveTank>? tanks,
 }) {
   bool keep(DiveTank t) {
     // A CCR bailout reads cylinder roles the way its switches are read, so
@@ -390,7 +397,7 @@ List<AvailableGas> buildAvailableGases(
 
   final gases = <AvailableGas>[];
   final seen = <String>{};
-  for (final tank in dive.tanks.where(keep)) {
+  for (final tank in (tanks ?? dive.tanks).where(keep)) {
     final fO2 = tank.gasMix.o2 / 100.0;
     final fHe = tank.gasMix.he / 100.0;
     final fN2 = (1.0 - fO2 - fHe).clamp(0.0, 1.0);
@@ -1353,6 +1360,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
           maxPpO2: ascentMaxPpO2,
           gasSet: inputs.ascentGasSet,
           forCcrBailout: true,
+          tanks: tanks,
         ),
       _ => null,
     };

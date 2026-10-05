@@ -266,6 +266,28 @@ void main() {
       expect(segments.single.setpoint, 1.3);
     });
 
+    test('the loop starts on the diluent of the analysed computer', () {
+      const otherDiluent = DiveTank(
+        id: 'other-dil',
+        gasMix: GasMix(o2: 21, he: 35),
+        role: TankRole.diluent,
+      );
+      final dive = Dive(
+        id: 'ccr',
+        dateTime: DateTime.utc(2026, 10, 5),
+        diveMode: DiveMode.ccr,
+        tanks: const [otherDiluent, o2, diluent],
+        profile: profile(setpoint: 1.3),
+      );
+      final segments = buildRebreatherProfileGasSegments(
+        dive,
+        profile: dive.profile,
+        rebreatherPpO2: resolveRebreatherPpO2(dive.profile),
+        tanks: const [o2, diluent],
+      )!;
+      expect(segments.first.fHe, closeTo(0.5, 1e-9));
+    });
+
     test('SCR ignores gas switches', () {
       final dive = Dive(
         id: 'scr',
