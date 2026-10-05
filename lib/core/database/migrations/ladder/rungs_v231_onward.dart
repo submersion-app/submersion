@@ -204,9 +204,16 @@ extension RungsFromV231 on AppDatabase {
       await _dropDefaultCeilingSourceColumn();
     }
     if (from < 261) await reportProgress();
+    // v263: diver_settings.distance_unit (issue #2030), backfilled from each
+    // diver's depth unit as the column is added. Re-asserted in beforeOpen.
+    // 262 is held by an open branch (#2991).
+    if (from < 263) {
+      await _assertDistanceUnitColumn();
+    }
+    if (from < 263) await reportProgress();
     // v264: the role junctions (issue #1221), several roles per person on a
-    // dive. Table-only rung, no backfill; re-asserted in beforeOpen. 262 and
-    // 263 are held by open branches (#2991, #3004).
+    // dive. Table-only rung, no backfill; re-asserted in beforeOpen. 262 is held
+    // by an open branch (#2991).
     if (from < 264) {
       await _assertDiveRoleLinkSchema();
     }

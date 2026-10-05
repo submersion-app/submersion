@@ -1092,10 +1092,11 @@ class AppDatabase extends _$AppDatabase {
     // column default, so nothing it applies is lost or misread and the floor
     // stays. Inbound, the generated fromJson ignores the legacy key.
     261,
+    263,
     // v264: dive_diver_roles and dive_buddy_roles, several roles per person
     // on a dive (issue #1221). New synced child tables, no backfill: an
     // older peer ignores them and its scalar role writes still resolve, so
-    // the floor stays. 262 and 263 are held by open branches (#2991, #3004).
+    // the floor stays. 262 is held by an open branch (#2991).
     264,
   ];
 

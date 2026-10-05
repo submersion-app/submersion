@@ -6,25 +6,34 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_summary_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_filter_banner.dart';
 import 'package:submersion/features/insights/domain/career_totals.dart';
 import 'package:submersion/features/insights/presentation/providers/career_totals_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Summary widget shown in the detail pane when no dive is selected.
 ///
-/// Displays aggregate statistics about the user's dive history,
-/// including total dives, hours logged, records, and recent activity.
+/// Displays aggregate statistics: total dives, dive time, depth and site
+/// totals, most visited sites, and personal records.
 ///
-/// Dive count and dive time are career totals (logged + prior dives), matching
-/// the Insights overview and the home hero header (issue #808).
+/// With no dive list filter it covers the whole log, and dive count and dive
+/// time are career totals (logged + prior dives), matching the Insights
+/// overview and the home hero header (issue #808).
+///
+/// While the dive list is filtered, it describes the dives the list shows
+/// instead (issue #1078): totals, most visited sites and records come from
+/// the filtered dives, prior dives are left out (no filter can match them),
+/// and a banner says how many dives it covers.
 class DiveSummaryWidget extends ConsumerWidget {
   const DiveSummaryWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(diveStatisticsProvider);
-    final careerAsync = ref.watch(careerTotalsProvider);
-    final recordsAsync = ref.watch(diveRecordsProvider);
+    // `effective`, not the raw state: under "All dives" (#2773) the axes
+    // stay set but only the typed query applies, so with nothing typed the
+    // list shows every dive and the summary must not read as filtered.
+    final isFiltered = ref.watch(diveFilterProvider).effective.hasActiveFilters;
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
 
@@ -35,27 +44,31 @@ class DiveSummaryWidget extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(context),
+            if (isFiltered) ...[
+              const SizedBox(height: 16),
+              const DiveSummaryFilterBanner(),
+            ],
             const SizedBox(height: 24),
-            careerAsync.when(
-              // careerTotalsProvider awaits diveStatisticsProvider, so stats
-              // are resolved by the time career totals are; the null branch is
-              // only reachable while a refresh is in flight.
-              data: (career) {
-                final stats = statsAsync.valueOrNull;
-                if (stats == null) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                return _buildStatsSummary(context, stats, career, units);
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
-            ),
+            if (isFiltered)
+              _buildFilteredStats(context, ref, units)
+            else
+              _buildCareerStats(context, ref, units),
             const SizedBox(height: 24),
-            recordsAsync.when(
-              data: (records) => _buildRecordsSection(context, records, units),
-              loading: () => const SizedBox.shrink(),
-              error: (_, _) => const SizedBox.shrink(),
-            ),
+            ref
+                .watch(
+                  isFiltered
+                      ? diveListScopedRecordsProvider
+                      : diveRecordsProvider,
+                )
+                .when(
+                  // A filter edit (each keystroke in the search row) keeps
+                  // the previous records up until the new ones arrive.
+                  skipLoadingOnReload: true,
+                  data: (records) =>
+                      _buildRecordsSection(context, records, units),
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
+                ),
             const SizedBox(height: 24),
             _buildQuickActions(context),
             const SizedBox(height: 32),
@@ -63,6 +76,47 @@ class DiveSummaryWidget extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildCareerStats(
+    BuildContext context,
+    WidgetRef ref,
+    UnitFormatter units,
+  ) {
+    final statsAsync = ref.watch(diveStatisticsProvider);
+    return ref
+        .watch(careerTotalsProvider)
+        .when(
+          // careerTotalsProvider awaits diveStatisticsProvider, so stats
+          // are resolved by the time career totals are; the null branch is
+          // only reachable while a refresh is in flight.
+          data: (career) {
+            final stats = statsAsync.valueOrNull;
+            if (stats == null) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            return _buildStatsSummary(context, stats, units, career: career);
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('Error: $e')),
+        );
+  }
+
+  Widget _buildFilteredStats(
+    BuildContext context,
+    WidgetRef ref,
+    UnitFormatter units,
+  ) {
+    return ref
+        .watch(diveListScopedStatisticsProvider)
+        .when(
+          // A filter edit keeps the previous totals up until the new ones
+          // arrive, rather than flashing a spinner on every keystroke.
+          skipLoadingOnReload: true,
+          data: (stats) => _buildStatsSummary(context, stats, units),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('Error: $e')),
+        );
   }
 
   Widget _buildHeader(BuildContext context) {
@@ -98,13 +152,17 @@ class DiveSummaryWidget extends ConsumerWidget {
     );
   }
 
+  /// [career] is null under a dive list filter: prior dives carry no date,
+  /// site or buddy, so no filter can match them, and the cards count the
+  /// filtered logged dives alone.
   Widget _buildStatsSummary(
     BuildContext context,
     DiveStatistics stats,
-    CareerTotals career,
-    UnitFormatter units,
-  ) {
-    final totalTimeSeconds = career.combinedTimeSeconds;
+    UnitFormatter units, {
+    CareerTotals? career,
+  }) {
+    final totalTimeSeconds =
+        career?.combinedTimeSeconds ?? stats.totalTimeSeconds;
     final hours = totalTimeSeconds ~/ 3600;
     final minutes = (totalTimeSeconds % 3600) ~/ 60;
     final timeString = hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
@@ -126,9 +184,9 @@ class DiveSummaryWidget extends ConsumerWidget {
             _buildStatCard(
               context,
               icon: Icons.tag,
-              value: '${career.combinedDives}',
+              value: '${career?.combinedDives ?? stats.totalDives}',
               label: context.l10n.diveLog_summary_stat_totalDives,
-              subtitle: career.hasPriorDives
+              subtitle: career != null && career.hasPriorDives
                   ? context.l10n.insights_priorBreakdown(
                       '${career.loggedDives}',
                       '${career.priorDives}',
@@ -141,7 +199,7 @@ class DiveSummaryWidget extends ConsumerWidget {
               icon: Icons.timer,
               value: timeString,
               label: context.l10n.diveLog_summary_stat_diveTime,
-              subtitle: career.hasPriorTime
+              subtitle: career != null && career.hasPriorTime
                   ? context.l10n.insights_priorBreakdown(
                       career.loggedTimeFormatted,
                       career.priorTimeFormatted,
