@@ -197,5 +197,11 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankSharedComputerIds();
     }
     if (from < 260) await reportProgress();
+    // v261: diver_settings.default_show_late_gas_switches (issue #2939).
+    // Column only, defaulting on. Re-asserted in beforeOpen.
+    if (from < 261) {
+      await _assertLateGasSwitchSettingColumn();
+    }
+    if (from < 261) await reportProgress();
   }
 }

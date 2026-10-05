@@ -630,6 +630,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDefaultShowGasSwitchMarkers(bool value) async =>
       state = state.copyWith(defaultShowGasSwitchMarkers: value);
   @override
+  Future<void> setDefaultShowLateGasSwitches(bool value) async =>
+      state = state.copyWith(defaultShowLateGasSwitches: value);
+  @override
   Future<void> setDefaultShowPpO2(bool value) async =>
       state = state.copyWith(defaultShowPpO2: value);
   @override

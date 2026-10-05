@@ -26,10 +26,8 @@ extension BeforeOpenBackstops on AppDatabase {
     // consolidated dive that arrived since with nothing recorded.
     await _assertTankSharedComputerIds();
 
-    // v237 backstop: the dive figure switch.
+    // v237 and v229 backstops: the dive and per-set diver figure switches.
     await _assertShowDiveFigureColumn();
-
-    // v229 backstop: the per-set diver figure switch.
     await _assertEquipmentSetShowFigureColumn();
 
     // v227 backstop: the hidden built-in tank presets.
@@ -44,8 +42,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // v217 and v219 backstop: the tag scope flags.
     await _assertTagScopeColumns();
 
-    // v211 backstop: re-assert diver_settings.auto_tag_imports.
+    // v211 and v261 backstops: diver_settings.auto_tag_imports and
+    // default_show_late_gas_switches.
     await _assertAutoTagImportsColumn();
+    await _assertLateGasSwitchSettingColumn();
 
     // v210 backstop: the dive_tanks equipment link sets null on delete.
     // First, while foreign keys are still off: the rebuild it may do
