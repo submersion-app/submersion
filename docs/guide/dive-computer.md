@@ -182,8 +182,13 @@ If you dive with multiple computers simultaneously:
    tanks and transmitter pressure curves, events, and per-computer summary
    stats
 4. Dives already imported as separate entries can be consolidated later:
-   select the overlapping dives in the dive list and choose **Combine**, or
-   use **Merge with another dive** on the dive detail page
+   select them in the dive list and choose **Combine**. When the records
+   overlap in time they are merged as one dive with each computer. When
+   they do not (one computer's clock was wrong), choose **Merge as another
+   computer**: Submersion lines the records up by their depth profiles
+   (**Best fit**) or by their starts (**Align starts**), shows the result
+   before anything is saved, and suggests Merge when two computers' profiles
+   match
 5. On the dive detail page, toggle each computer's chart overlay, compare
    the computers' numbers in the Data Sources grid, and use **Set as
    primary** to choose which computer drives the dive's statistics
