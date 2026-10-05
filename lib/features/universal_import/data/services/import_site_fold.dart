@@ -2,13 +2,14 @@ import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 
-/// Result of folding a Subsurface `<divesites>` block.
+/// Result of folding an imported file's dive sites.
 class FoldedSites {
   /// Surviving sites, in the order their first entry appeared in the file.
   final List<Map<String, dynamic>> sites;
 
-  /// Maps each folded-away site uuid to the uuid it folded into, so a dive's
-  /// `divesiteid` can be redirected to the survivor.
+  /// Maps each folded-away site's `uddfId` to the one it folded into, so a
+  /// dive's reference (Subsurface's `divesiteid`, UDDF's `<link ref>`) can be
+  /// redirected to the survivor.
   final Map<String, String> aliases;
 
   const FoldedSites({required this.sites, required this.aliases});
@@ -22,28 +23,37 @@ class FoldedSites {
 /// are treated as genuinely different places that happen to share a name.
 const double _sameNameFoldMeters = 1000;
 
-/// An entry Subsurface left unnamed folds into a site this close, whatever
+/// An entry the file left unnamed folds into a site this close, whatever
 /// that site is called. Matches the coincidence guard `SiteMatchingService`
 /// applies when it proposes sites for a dive.
 const double _unnamedFoldMeters = 100;
 
-/// Collapses the duplicate dive sites a Subsurface logbook accumulates.
+/// Collapses the duplicate dive sites an imported logbook accumulates.
 ///
-/// Named entries fold into an earlier entry of the same name; entries
-/// Subsurface left unnamed fold into whichever site sits on top of them, and
-/// otherwise survive under a name built from their coordinates rather than
-/// being discarded. An entry with neither a name nor coordinates carries
-/// nothing worth importing and is dropped.
-FoldedSites foldSubsurfaceSites(List<Map<String, dynamic>> raw) {
+/// Entries the file left unnamed fold into whichever site sits on top of
+/// them, and otherwise survive under a name built from their coordinates
+/// rather than being discarded. An entry with neither a name nor coordinates
+/// carries nothing worth importing and is dropped.
+///
+/// With [foldSameName], named entries also fold into an earlier entry of the
+/// same name nearby. Subsurface needs that: it starts a new site whenever a
+/// dive's GPS drifts. UDDF passes false, because Submersion's own export can
+/// carry two distinct sites under one name and a round trip must keep both;
+/// its unnamed entries still fold, which is what collapses the one-site-per-
+/// dive placeholders Oceanic+ writes (#2938).
+FoldedSites foldImportSites(
+  List<Map<String, dynamic>> raw, {
+  bool foldSameName = true,
+}) {
   final aliases = <String, String>{};
   final survivors = <_Survivor>[];
 
-  // Named entries fold among themselves first so that an unnamed entry can
-  // see every named site regardless of the order Subsurface wrote them in.
+  // Named entries are placed first so that an unnamed entry can see every
+  // named site regardless of the order the file wrote them in.
   for (var i = 0; i < raw.length; i++) {
     final name = _normalizedName(raw[i]['name'] as String?);
     if (name == null) continue;
-    final host = _findSameName(survivors, name, raw[i]);
+    final host = foldSameName ? _findSameName(survivors, name, raw[i]) : null;
     if (host == null) {
       // Copy: _absorb writes into the survivor, and the caller's maps must
       // come back out of here exactly as they went in.
@@ -91,7 +101,7 @@ class _Survivor {
 
   final Map<String, dynamic> site;
 
-  /// Null for a site Subsurface left unnamed: its coordinate-derived name is
+  /// Null for a site the file left unnamed: its coordinate-derived name is
   /// a label, not an identity, and must never attract a same-name fold.
   final String? normalizedName;
 
@@ -114,7 +124,16 @@ void _absorb(
 ) {
   final foldedId = folded['uddfId'] as String?;
   final hostId = host.site['uddfId'] as String?;
-  if (foldedId != null && hostId != null) aliases[foldedId] = hostId;
+  if (foldedId != null) {
+    // A survivor with no id of its own (UDDF keeps a <site> without one)
+    // takes the folded entry's, or the dives linking that entry would point
+    // at nothing.
+    if (hostId == null) {
+      host.site['uddfId'] = foldedId;
+    } else {
+      aliases[foldedId] = hostId;
+    }
+  }
 
   folded.forEach((key, value) {
     if (key == 'uddfId' || key == 'name') return;
@@ -162,7 +181,7 @@ _Survivor? _findNearest(
 }
 
 /// Case- and whitespace-insensitive identity for a site name, or null when
-/// Subsurface supplied no usable name.
+/// the file supplied no usable name.
 String? _normalizedName(String? raw) {
   if (raw == null) return null;
   final collapsed = raw.trim().replaceAll(RegExp(r'\s+'), ' ').toLowerCase();

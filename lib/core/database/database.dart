@@ -1082,10 +1082,16 @@ class AppDatabase extends _$AppDatabase {
     // from 241, 248, 250 and 251 while this was open; gas_switches.computer_id,
     // which the analysis also reads, is v258 (#2582).
     260,
+    // v261: drops diver_settings.default_ceiling_source (issue #767), unread
+    // since the ceiling line lost its source toggle at v137 (#755). Dropping
+    // a synced column normally raises the floor, but every reader the floor
+    // admits (240 and up) ignores the value and fills a missing key from its
+    // column default, so nothing it applies is lost or misread and the floor
+    // stays. Inbound, the generated fromJson ignores the legacy key.
+    261,
     // v262: diver_settings certification/course list view modes and the
     // formerly device-local profile "metrics follow viewport" and pSCR
-    // ratio (issue #2948). Additive columns, so the floor stays. 261 is
-    // held by an open branch (#2985).
+    // ratio (issue #2948). Additive columns, so the floor stays.
     262,
   ];
 

@@ -43,8 +43,6 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 262);
     expect(AppDatabase.migrationVersions, contains(262));
-    // 261 is claimed by an open branch (#2985); counting from it holds
-    // whether or not that rung has landed below this one.
     expect(AppDatabase.migrationStepCount(261), 1);
   });
 

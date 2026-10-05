@@ -7,6 +7,10 @@ part of 'app_database_migrations.dart';
 /// asserted again here.
 extension BeforeOpenBackstops on AppDatabase {
   Future<void> _beforeOpen(OpeningDetails details) async {
+    // v261 backstop: drop diver_settings.default_ceiling_source from a
+    // database that reached 261 without the rung.
+    await _dropDefaultCeilingSourceColumn();
+
     // v257 backstop: metadata-only profile revision history over existing
     // dive_profile_series rows. Safe to re-run: INSERT OR IGNORE keeps
     // existing revisions untouched and only fills missing pointer rows.

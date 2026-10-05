@@ -275,6 +275,10 @@ class GearFeature extends Equatable {
     // would move every diver's buoyancy by that much per computer. An explicit
     // dry_weight_kg attribute still wins, so a bulky console can be modeled.
     EquipmentType.computer => 0.0,
+    // A bag (#2952) carries gear to the dive and is rarely in the water with
+    // it: a roller in a dive's gear list must not add the fallthrough's
+    // 0.5 kg. A catch bag that does go down can still be given a weight.
+    EquipmentType.bag => 0.0,
     _ => 0.5,
   };
 
