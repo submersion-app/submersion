@@ -2219,6 +2219,52 @@ void main() {
       ).called(1);
     });
 
+    test(
+      'an unknown exact role is dropped when another resolves (#1221)',
+      () async {
+        // The custom role's definition never arrived: no row here.
+        when(
+          mockDiveRoleRepo.getDiveRoleById('role-never-arrived'),
+        ).thenAnswer((_) async => null);
+        when(mockBuddyRepo.createBuddy(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Buddy,
+        );
+        when(
+          mockBuddyRepo.addBuddyToDiveWithRoles(any, any, any),
+        ).thenAnswer((_) async {});
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+
+        await importer.import(
+          data: UddfImportResult(
+            buddies: [
+              {'name': 'Alice', 'uddfId': 'buddy-1'},
+            ],
+            dives: [
+              {
+                'dateTime': now,
+                'maxDepth': 25.0,
+                'buddyRoleRefs': [
+                  {'buddyRef': 'buddy-1', 'roleId': DiveRole.diveMasterId},
+                  {'buddyRef': 'buddy-1', 'roleId': 'role-never-arrived'},
+                ],
+              },
+            ],
+          ),
+          selections: const UddfImportSelections(buddies: {0}, dives: {0}),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        verify(
+          mockBuddyRepo.addBuddyToDiveWithRoles(any, any, const [
+            DiveRole.diveMasterId,
+          ]),
+        ).called(1);
+      },
+    );
+
     test('preResolvedBuddyIds links a skipped duplicate buddy to the existing '
         'record without creating a twin (#756)', () async {
       when(

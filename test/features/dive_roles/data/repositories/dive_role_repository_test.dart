@@ -198,6 +198,31 @@ void main() {
       expect(await repository.isDiveRoleInUse(c2.id), isTrue);
     });
 
+    test('an orphan buddy role row is not a use (#1221)', () async {
+      final diverId = await _insertDiver();
+      final custom = await repository.createDiveRole(
+        name: 'Photographer',
+        diverId: diverId,
+      );
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        "INSERT INTO dives (id, diver_id, dive_date_time, created_at, "
+        "updated_at) VALUES ('d1', '$diverId', 1000, 1000, 1000)",
+      );
+      await db.customStatement(
+        "INSERT INTO buddies (id, name, created_at, updated_at) "
+        "VALUES ('b1', 'Bud', 1000, 1000)",
+      );
+      // What an older app version leaves when it removes the buddy: the
+      // role row without its dive_buddies link.
+      await db.customStatement(
+        'INSERT INTO dive_buddy_roles '
+        '(id, dive_id, buddy_id, role_id, created_at) '
+        "VALUES ('x1', 'd1', 'b1', '${custom.id}', 1000)",
+      );
+      expect(await repository.isDiveRoleInUse(custom.id), isFalse);
+    });
+
     test('isDiveRoleInUse ignores references from another diver\'s dives '
         '(#1806)', () async {
       final diverId = await _insertDiver();

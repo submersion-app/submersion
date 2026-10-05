@@ -3479,8 +3479,9 @@ class UddfEntityImporter {
     // Exact roles from Submersion's private <buddyroles> block (issue
     // #1737), one entry per role since #1221. They replace whatever the
     // standard elements inferred for that person. A role this diver lacks
-    // can only be a custom role whose definition never arrived, which the
-    // standard elements carried as a plain buddy.
+    // can only be a custom role whose definition never arrived: it is
+    // dropped, and stands in as a plain buddy only when nothing else of the
+    // person's resolves (normalizeBuddy).
     final roleRefsValue = diveData['buddyRoleRefs'];
     final roleRefs = roleRefsValue is List ? roleRefsValue : const [];
     for (final entry in roleRefs) {
@@ -3490,9 +3491,9 @@ class UddfEntityImporter {
       if (buddyRef is! String || roleId is! String || roleId.isEmpty) continue;
       final newBuddyId = buddyIdMapping[buddyRef];
       if (newBuddyId == null) continue;
-      exact
-          .putIfAbsent(newBuddyId, () => [])
-          .add(await localRoleId(roleId) ?? DiveRole.buddyId);
+      final localId = await localRoleId(roleId);
+      final roles = exact.putIfAbsent(newBuddyId, () => []);
+      if (localId != null) roles.add(localId);
     }
 
     for (final buddyId in {...inferred.keys, ...exact.keys}) {

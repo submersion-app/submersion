@@ -273,8 +273,12 @@ class DiveRoleRepository {
             'AND (?2 IS NULL OR dive_id NOT IN ($otherDiversDives))) + '
             '(SELECT COUNT(*) FROM dives WHERE diver_role = ?1 '
             'AND (?2 IS NULL OR diver_id IS NULL OR diver_id = ?2)) + '
-            '(SELECT COUNT(*) FROM dive_buddy_roles WHERE role_id = ?1 '
-            'AND (?2 IS NULL OR dive_id NOT IN ($otherDiversDives))) + '
+            // A role row whose link is gone (an older version removed the
+            // buddy) is no use: no dive shows it (#1221).
+            '(SELECT COUNT(*) FROM dive_buddy_roles r WHERE r.role_id = ?1 '
+            'AND EXISTS (SELECT 1 FROM dive_buddies l '
+            'WHERE l.dive_id = r.dive_id AND l.buddy_id = r.buddy_id) '
+            'AND (?2 IS NULL OR r.dive_id NOT IN ($otherDiversDives))) + '
             '(SELECT COUNT(*) FROM dive_diver_roles r JOIN dives d '
             'ON d.id = r.dive_id WHERE r.role_id = ?1 '
             'AND (?2 IS NULL OR d.diver_id IS NULL OR d.diver_id = ?2)) '
