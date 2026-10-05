@@ -107,6 +107,8 @@ void main() {
           weatherCode: 61,
           importId: 'import-1392',
           surfaceInterval: const Duration(hours: 1, minutes: 30),
+          // Several roles of the diver's own (issue #1221).
+          diverRoleIds: const ['diveMaster', 'diveGuide'],
         ),
       );
 
@@ -169,6 +171,10 @@ void main() {
         reason: 'gradientFactorHigh reset',
       );
       expect(reloaded.weatherCode, 61, reason: 'weatherCode reset');
+      expect(reloaded.diverRoleIds, [
+        'diveGuide',
+        'diveMaster',
+      ], reason: 'every role of the diver survives a save');
       expect(reloaded.importId, 'import-1392', reason: 'importId reset');
       expect(
         reloaded.surfaceInterval,
