@@ -34314,6 +34314,12 @@ abstract class AppLocalizations {
   /// **'Depth & time trends'**
   String get insights_category_progression_subtitle;
 
+  /// No description provided for @insights_category_focus_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Best, worst and threshold groups'**
+  String get insights_category_focus_subtitle;
+
   /// No description provided for @insights_category_progression_title.
   ///
   /// In en, this message translates to:
@@ -34874,6 +34880,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gas consumption records'**
   String get insights_gas_sacRecords_title;
+
+  /// No description provided for @insights_gas_sacRecords_seeTop.
+  ///
+  /// In en, this message translates to:
+  /// **'See top 10'**
+  String get insights_gas_sacRecords_seeTop;
 
   /// No description provided for @insights_gas_sacTrend_error.
   ///

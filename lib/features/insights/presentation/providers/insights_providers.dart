@@ -116,9 +116,6 @@ void _keepAliveWithExpiry(Ref ref) {
   ref.onDispose(timer.cancel);
 }
 
-/// [_keepAliveWithExpiry] for Insights providers declared in other files.
-void keepInsightsProviderAlive(Ref ref) => _keepAliveWithExpiry(ref);
-
 // ============================================================================
 // Gas Statistics Providers
 // ============================================================================

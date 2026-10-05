@@ -21267,6 +21267,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_category_progression_subtitle => 'Mélység és idő trendek';
 
   @override
+  String get insights_category_focus_subtitle =>
+      'Best, worst and threshold groups';
+
+  @override
   String get insights_category_progression_title => 'Fejlődés';
 
   @override
@@ -21600,6 +21604,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_gas_sacRecords_title => 'Gázfogyasztási rekordok';
+
+  @override
+  String get insights_gas_sacRecords_seeTop => 'See top 10';
 
   @override
   String get insights_gas_sacTrend_error =>

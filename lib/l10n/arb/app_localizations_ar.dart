@@ -21546,6 +21546,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_category_progression_subtitle => 'اتجاهات العمق والوقت';
 
   @override
+  String get insights_category_focus_subtitle =>
+      'Best, worst and threshold groups';
+
+  @override
   String get insights_category_progression_title => 'التقدم';
 
   @override
@@ -21873,6 +21877,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_gas_sacRecords_title => 'سجلات استهلاك الغاز';
+
+  @override
+  String get insights_gas_sacRecords_seeTop => 'See top 10';
 
   @override
   String get insights_gas_sacTrend_error => 'فشل تحميل اتجاه الاستهلاك';

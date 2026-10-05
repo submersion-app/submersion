@@ -20265,6 +20265,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_category_progression_subtitle => '深度与时间趋势';
 
   @override
+  String get insights_category_focus_subtitle =>
+      'Best, worst and threshold groups';
+
+  @override
   String get insights_category_progression_title => '进展';
 
   @override
@@ -20568,6 +20572,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_gas_sacRecords_title => '气体消耗记录';
+
+  @override
+  String get insights_gas_sacRecords_seeTop => 'See top 10';
 
   @override
   String get insights_gas_sacTrend_error => '加载消耗趋势失败';

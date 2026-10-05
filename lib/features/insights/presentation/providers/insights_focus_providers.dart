@@ -23,8 +23,8 @@ final focusMetricSeriesProvider =
       ref,
       metric,
     ) async {
-      keepInsightsProviderAlive(ref);
       final repository = ref.watch(insightsRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchInsightsChanges());
       final diverId = ref.watch(currentDiverIdProvider);
       final filter = ref.watch(insightsFilterProvider);
       return switch (metric) {
@@ -68,8 +68,8 @@ final focusGroupProvider = FutureProvider<FocusGroup>((ref) async {
 final focusFactorRowsProvider = FutureProvider<List<FocusFactorRow>>((
   ref,
 ) async {
-  keepInsightsProviderAlive(ref);
   final repository = ref.watch(insightsRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchInsightsChanges());
   final diverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
   final scale = ref.watch(settingsProvider.select((s) => s.visibilityScale));

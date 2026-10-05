@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/insights/domain/focus/focus_metric.dart';
 import 'package:submersion/features/insights/domain/focus/focus_selection.dart';
@@ -55,7 +56,8 @@ class _FocusSelectorState extends ConsumerState<FocusSelector> {
       ref.read(focusSelectionProvider.notifier).state = next;
 
   void _onCountChanged(String text, FocusSelection selection) {
-    final n = int.tryParse(text.trim());
+    final read = readNumber(text, integer: true, allowNegative: false);
+    final n = read is NumberValue ? read.value.toInt() : null;
     final valid =
         n != null &&
         n >= FocusSelection.minCount &&
@@ -72,13 +74,14 @@ class _FocusSelectorState extends ConsumerState<FocusSelector> {
     FocusSelection selection,
     FocusMetricUnits units,
   ) {
-    final value = parseUserDecimal(text);
+    // Read with negatives allowed, so a sub-zero entry can be told apart
+    // from unreadable text and named as the problem it is.
+    final read = readNumber(text);
+    final value = read is NumberValue ? read.value : null;
     String? error;
-    if (value == null) {
-      error = text.trim().isEmpty
-          ? null
-          : context.l10n.insights_focus_threshold_error;
-    } else if (value < 0 && !units.allowsNegative) {
+    if (read is NumberInvalid) {
+      error = context.l10n.insights_focus_threshold_error;
+    } else if (value != null && value < 0 && !units.allowsNegative) {
       error = context.l10n.insights_focus_threshold_negativeError;
     }
     setState(() => _thresholdError = error);

@@ -21327,6 +21327,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tendenze profondità e tempo';
 
   @override
+  String get insights_category_focus_subtitle =>
+      'Best, worst and threshold groups';
+
+  @override
   String get insights_category_progression_title => 'Progressione';
 
   @override
@@ -21663,6 +21667,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insights_gas_sacRecords_title => 'Record di consumo di gas';
+
+  @override
+  String get insights_gas_sacRecords_seeTop => 'See top 10';
 
   @override
   String get insights_gas_sacTrend_error =>

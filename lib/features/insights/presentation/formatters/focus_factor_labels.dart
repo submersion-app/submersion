@@ -52,6 +52,10 @@ String focusNumericValue(
   _ => value.toStringAsFixed(1),
 };
 
+const _monthKeys = [
+  '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', //
+];
+
 String _month(int month, AppLocalizations l10n) => [
   l10n.insights_timePatterns_month_jan,
   l10n.insights_timePatterns_month_feb,
@@ -90,8 +94,9 @@ String focusCategoryLabel(
     case FocusFactorId.entryMethod:
       return entryMethodDistributionLabel(key, l10n);
     case FocusFactorId.month:
-      final m = int.tryParse(key);
-      return m == null || m < 1 || m > 12 ? key : _month(m, l10n);
+      // Keys are "1".."12"; looked up rather than parsed.
+      final index = _monthKeys.indexOf(key);
+      return index < 0 ? key : _month(index + 1, l10n);
     case FocusFactorId.timeOfDay:
       return timeOfDayDistributionLabel(key, l10n);
     case FocusFactorId.site:
