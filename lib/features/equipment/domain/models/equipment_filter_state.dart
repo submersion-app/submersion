@@ -68,10 +68,11 @@ class EquipmentFilterState {
   /// Tag ids, any-of (issue #1942). Empty means no tag narrowing.
   final Set<String> tagIds;
 
-  /// Current places, any-of (v267). Empty means no place narrowing.
-  final Set<String> locationIds;
+  /// Current places by name, any-of and ignoring case (v267), so the panel
+  /// and a typed query agree. Empty means no place narrowing.
+  final Set<String> locationNames;
 
-  /// Include gear with no current location, ORed with [locationIds].
+  /// Include gear with no current location, ORed with [locationNames].
   final bool noLocation;
 
   /// Whose gear to show (issue #2046). [EquipmentOwnerFilter.all] narrows
@@ -89,7 +90,7 @@ class EquipmentFilterState {
     this.type,
     this.attrConditions = const [],
     this.tagIds = const {},
-    this.locationIds = const {},
+    this.locationNames = const {},
     this.noLocation = false,
     this.owner = EquipmentOwnerFilter.all,
     this.query,
@@ -111,7 +112,7 @@ class EquipmentFilterState {
       type != null ||
       attrConditions.isNotEmpty ||
       tagIds.isNotEmpty ||
-      locationIds.isNotEmpty ||
+      locationNames.isNotEmpty ||
       noLocation ||
       owner != EquipmentOwnerFilter.all ||
       query != null;
@@ -133,7 +134,7 @@ class EquipmentFilterState {
     EquipmentType? type,
     List<EquipmentAttrCondition>? attrConditions,
     Set<String>? tagIds,
-    Set<String>? locationIds,
+    Set<String>? locationNames,
     bool? noLocation,
     EquipmentOwnerFilter? owner,
     QueryNode? query,
@@ -163,7 +164,9 @@ class EquipmentFilterState {
                 (categoryChanged ? const [] : this.attrConditions)),
       // Tags do not belong to the category, so a new one keeps them.
       tagIds: clearTagIds ? const {} : (tagIds ?? this.tagIds),
-      locationIds: clearLocation ? const {} : (locationIds ?? this.locationIds),
+      locationNames: clearLocation
+          ? const {}
+          : (locationNames ?? this.locationNames),
       noLocation: !clearLocation && (noLocation ?? this.noLocation),
       owner: owner ?? this.owner,
       query: clearQuery ? null : (query ?? this.query),
@@ -180,7 +183,7 @@ class EquipmentFilterState {
           other.type == type &&
           listEquals(other.attrConditions, attrConditions) &&
           setEquals(other.tagIds, tagIds) &&
-          setEquals(other.locationIds, locationIds) &&
+          setEquals(other.locationNames, locationNames) &&
           other.noLocation == noLocation &&
           other.owner == owner &&
           other.query == query;
@@ -193,7 +196,7 @@ class EquipmentFilterState {
     type,
     Object.hashAll(attrConditions),
     Object.hashAllUnordered(tagIds),
-    Object.hashAllUnordered(locationIds),
+    Object.hashAllUnordered(locationNames),
     noLocation,
     owner,
     query,
@@ -204,6 +207,6 @@ class EquipmentFilterState {
       'EquipmentFilterState(status: $status, allStatuses: $allStatuses, '
       'serviceDue: $serviceDue, '
       'type: $type, attrConditions: $attrConditions, tagIds: $tagIds, '
-      'locationIds: $locationIds, noLocation: $noLocation, '
+      'locationNames: $locationNames, noLocation: $noLocation, '
       'owner: $owner, query: $query)';
 }

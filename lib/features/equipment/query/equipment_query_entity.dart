@@ -116,15 +116,19 @@ final equipmentQueryEntity = QueryEntity(
       labelKey: 'query_equipment_nextServiceDue',
       tables: [serviceStatusTable],
     ),
-    // Where the item is now (v267): its newest move's place. Reads the move
-    // log, so a move refreshes any list this field narrows.
+    // Where the item is now (v267): the name of its newest move's place, so
+    // a typed `location = Garage` and the filter panel both match what the
+    // diver sees. Reads the move log and the places, so a move or a rename
+    // refreshes any list this field narrows.
     QueryField(
       key: 'location',
-      type: FieldType.id,
-      sql: currentLocationIdSql('{r}.id'),
+      type: FieldType.text,
+      sql:
+          '(SELECT l.name FROM equipment_locations l '
+          'WHERE l.id = ${currentLocationIdSql('{r}.id')})',
       emptySql: '${currentLocationIdSql('{r}.id')} IS NULL',
       labelKey: 'query_equipment_location',
-      tables: const ['equipment_location_moves'],
+      tables: const ['equipment_location_moves', 'equipment_locations'],
     ),
   ],
   relations: const [

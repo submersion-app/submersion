@@ -63,7 +63,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
   EquipmentType? _type;
   List<EquipmentAttrCondition> _attrConditions = const [];
   Set<String> _tagIds = const {};
-  Set<String> _locationIds = const {};
+  Set<String> _locationNames = const {};
   bool _noLocation = false;
   EquipmentOwnerFilter _owner = EquipmentOwnerFilter.all;
 
@@ -80,7 +80,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
     _type = filter.type;
     _attrConditions = filter.attrConditions;
     _tagIds = filter.tagIds;
-    _locationIds = filter.locationIds;
+    _locationNames = filter.locationNames;
     _noLocation = filter.noLocation;
     _owner = filter.owner;
     _query = filter.query;
@@ -158,10 +158,10 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                         _buildCategorySection(),
                         _buildTagSection(),
                         EquipmentLocationFilterSection(
-                          locationIds: _locationIds,
+                          locationNames: _locationNames,
                           noLocation: _noLocation,
                           onChanged: (ids, none) => setState(() {
-                            _locationIds = ids;
+                            _locationNames = ids;
                             _noLocation = none;
                           }),
                         ),
@@ -388,7 +388,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
       _type = null;
       _attrConditions = const [];
       _tagIds = const {};
-      _locationIds = const {};
+      _locationNames = const {};
       _noLocation = false;
       _owner = EquipmentOwnerFilter.all;
       _query = null;
@@ -405,7 +405,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
       type: _type,
       attrConditions: _attrConditions,
       tagIds: _tagIds,
-      locationIds: _locationIds,
+      locationNames: _locationNames,
       noLocation: _noLocation,
       owner: _owner,
       query: _query,

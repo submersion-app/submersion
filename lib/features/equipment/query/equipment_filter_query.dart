@@ -70,15 +70,16 @@ extension EquipmentFilterQuery on EquipmentFilterState {
         ),
       );
     }
-    if (locationIds.isNotEmpty || noLocation) {
+    if (locationNames.isNotEmpty || noLocation) {
       // Any of the chosen places, or none at all.
       final options = <QueryNode>[
-        if (locationIds.isNotEmpty)
+        if (locationNames.isNotEmpty)
           c(
             'location',
             QueryOp.inList,
             ListValue([
-              for (final id in locationIds.toList()..sort()) StringValue(id),
+              for (final name in locationNames.toList()..sort())
+                StringValue(name),
             ]),
           ),
         if (noLocation) c('location', QueryOp.isEmpty, null),

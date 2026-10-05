@@ -1073,7 +1073,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                     ),
                 icon: Icons.sell_outlined,
               ),
-            if (filter.locationIds.isNotEmpty || filter.noLocation)
+            if (filter.locationNames.isNotEmpty || filter.noLocation)
               _buildActiveFilterChip(
                 context.l10n.equipment_location_activeFilter,
                 () => ref.read(equipmentFilterProvider.notifier).state = filter
