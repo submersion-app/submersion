@@ -75,6 +75,20 @@ const List<_OwnedTable> _ownedTables = [
     hasBuiltIns: true,
     children: [],
   ),
+  // Custom certification levels before agencies: a level names its agency
+  // by id (issue #690).
+  (
+    table: 'custom_certification_levels',
+    entityType: 'customCertificationLevels',
+    hasBuiltIns: false,
+    children: [],
+  ),
+  (
+    table: 'custom_certification_agencies',
+    entityType: 'customCertificationAgencies',
+    hasBuiltIns: false,
+    children: [],
+  ),
   // Mission rows first (they reference only the plan), then segments before
   // tanks: a segment's tank_id has no ON DELETE action. The plan's equipment
   // links cascade, here and on a peer applying the plan's tombstone, as

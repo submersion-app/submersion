@@ -6,11 +6,11 @@ import 'package:submersion/core/database/tank_shared_computer_backfill.dart';
 
 void main() {
   test('v260 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 260);
+    // Relaxed once v261 (#690) landed on top; the newest rung owns the
+    // exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(260));
     expect(AppDatabase.migrationVersions, contains(260));
-    expect(AppDatabase.migrationStepCount(259), 1);
+    expect(AppDatabase.migrationStepCount(259), greaterThanOrEqualTo(1));
   });
 
   test('the column is additive, so the sync floor does not move', () {
