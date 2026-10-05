@@ -1566,14 +1566,18 @@ void main() {
           noFlyStatus: null,
           daysSinceLastDive: null,
           certCurrency: CurrencyAttention(
-            count: 1,
+            count: 5,
             anyLapsed: true,
             anyHardened: true,
+            hardenedCount: 1,
           ),
         ),
         settingsNotifier: await allHidden(),
       );
+      // Through the hide the chip names only what the hide cannot silence,
+      // as the gear chip shows only overdue items.
       expect(find.text('1 certification needs attention'), findsOneWidget);
+      expect(find.textContaining('5 certifications'), findsNothing);
     });
 
     testWidgets('an inferred certification lapse stays hideable', (

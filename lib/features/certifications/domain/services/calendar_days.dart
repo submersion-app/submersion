@@ -12,11 +12,3 @@ DateTime calendarDay(DateTime t) => DateTime(t.year, t.month, t.day);
 
 DateTime addCalendarDays(DateTime day, int n) =>
     DateTime(day.year, day.month, day.day + n);
-
-/// Whole calendar days from [from] to [to]; negative when [to] is earlier.
-/// Counted on UTC dates so no local offset change can shave an hour off.
-int calendarDaysBetween(DateTime from, DateTime to) {
-  final a = DateTime.utc(from.year, from.month, from.day);
-  final b = DateTime.utc(to.year, to.month, to.day);
-  return b.difference(a).inHours ~/ 24;
-}

@@ -122,10 +122,6 @@ void main() {
       // lands on 23:00 the day before in a DST zone; this must not.
       final day = addCalendarDays(DateTime(2026, 3, 1), 7);
       expect(day, DateTime(2026, 3, 8));
-      expect(
-        calendarDaysBetween(DateTime(2026, 3, 1), DateTime(2026, 3, 8)),
-        7,
-      );
     });
 
     test('a UTC-flagged wall clock keeps its own day', () {
@@ -648,6 +644,21 @@ void main() {
         ),
         isEmpty,
       );
+    });
+
+    test('an unreadable custom copy does not hide its built-in', () {
+      final copy = rule(
+        'future_copy',
+        builtIn: false,
+        supersedes: 'padi_reactivate',
+      ).copyWith(unreadableScope: true);
+      final s = run(
+        certs: [cert('c')],
+        rules: [padiRefresher, copy],
+        activity: DiveActivityIndex(lastDiveAt: DateTime(2020, 1, 1)),
+        now: DateTime(2026, 1, 1),
+      ).single;
+      expect(s.rule.id, 'padi_reactivate');
     });
 
     test('a card expiry event never moves the due date', () {

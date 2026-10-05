@@ -34,9 +34,13 @@ List<CredentialCurrency> evaluateCurrency({
   required DateTime now,
 }) {
   final today = calendarDay(now);
+  // Only a copy this build can read replaces its built-in: an unreadable
+  // copy matches nothing, and hiding the built-in too would silence the
+  // card entirely.
   final superseded = {
     for (final r in rules)
-      if (!r.isBuiltIn && r.supersedesRuleId != null) r.supersedesRuleId!,
+      if (!r.isBuiltIn && !r.unreadableScope && r.supersedesRuleId != null)
+        r.supersedesRuleId!,
   };
   final live = [
     for (final r in rules)

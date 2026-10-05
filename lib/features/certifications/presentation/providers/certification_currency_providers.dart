@@ -75,13 +75,19 @@ final diveActivityIndexProvider = FutureProvider<DiveActivityIndex>((
 final credentialCurrencyProvider = FutureProvider<List<CredentialCurrency>>((
   ref,
 ) async {
+  // Watch every input before awaiting any, so they load concurrently.
+  final certifications = ref.watch(allCertificationsProvider.future);
+  final rules = ref.watch(currencyRulesProvider.future);
+  final prefs = ref.watch(currencyPrefsProvider.future);
+  final events = ref.watch(currencyEventsProvider.future);
+  final activity = ref.watch(diveActivityIndexProvider.future);
   try {
     return evaluateCurrency(
-      certifications: await ref.watch(allCertificationsProvider.future),
-      rules: await ref.watch(currencyRulesProvider.future),
-      prefs: await ref.watch(currencyPrefsProvider.future),
-      events: await ref.watch(currencyEventsProvider.future),
-      activity: await ref.watch(diveActivityIndexProvider.future),
+      certifications: await certifications,
+      rules: await rules,
+      prefs: await prefs,
+      events: await events,
+      activity: await activity,
       now: DateTime.now(),
     );
   } catch (e, stackTrace) {
@@ -104,12 +110,17 @@ class CurrencyAttention {
   final int count;
   final bool anyLapsed;
   final bool anyHardened;
+
+  /// Distinct certifications with a hardened lapse: what the chip still
+  /// names when the diver has hidden it.
+  final int hardenedCount;
   final Set<String> certificationIds;
 
   const CurrencyAttention({
     this.count = 0,
     this.anyLapsed = false,
     this.anyHardened = false,
+    this.hardenedCount = 0,
     this.certificationIds = const {},
   });
 
@@ -131,6 +142,10 @@ final currencyAttentionProvider = FutureProvider<CurrencyAttention>((
     count: ids.length,
     anyLapsed: groups.any((g) => g.severity == CurrencySeverity.lapsed),
     anyHardened: groups.any((g) => g.hardened),
+    hardenedCount: {
+      for (final g in groups)
+        if (g.hardened) ...g.certificationIds,
+    }.length,
     certificationIds: ids,
   );
 });

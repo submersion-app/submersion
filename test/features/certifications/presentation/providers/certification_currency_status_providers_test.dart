@@ -135,12 +135,14 @@ void main() {
     final expired = _container(
       certs: [
         _cert('nx', CertificationLevel.nitrox, expires: DateTime(2021, 1, 1)),
+        ...ladder,
       ],
+      lastDive: DateTime(2020, 1, 1),
     );
-    expect(
-      (await expired.read(currencyAttentionProvider.future)).anyHardened,
-      isTrue,
-    );
+    final attention = await expired.read(currencyAttentionProvider.future);
+    expect(attention.anyHardened, isTrue);
+    expect(attention.count, 4);
+    expect(attention.hardenedCount, 1, reason: 'only the expired card');
   });
 
   test('a currency failure returns empty, never throws', () async {

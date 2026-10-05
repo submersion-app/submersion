@@ -292,15 +292,18 @@ class GaugeStrip extends ConsumerWidget {
     // and the flight window: a lapse on a date the diver entered (a card
     // expiry or a logged event) renders through the hide. An inferred lapse
     // (no recent dive, an issue date plus a catalog interval) stays hideable.
+    // Through a hide the chip names only the hardened certifications, as
+    // the gear chip shows only overdue items.
     final cert = g.certCurrency;
-    if (cert.count > 0 &&
-        (_shown(hidden, HomeChipType.certifications) || cert.anyHardened)) {
+    final certShown = _shown(hidden, HomeChipType.certifications);
+    final certCount = certShown ? cert.count : cert.hardenedCount;
+    if (certCount > 0) {
       chips.add(
         _chip(
           context,
           icon: Icons.card_membership_outlined,
-          label: l10n.dashboard_gauges_certsNeedAttention(cert.count),
-          tone: cert.anyLapsed ? _Tone.alert : _Tone.warn,
+          label: l10n.dashboard_gauges_certsNeedAttention(certCount),
+          tone: cert.anyLapsed || !certShown ? _Tone.alert : _Tone.warn,
           onTap: () => openCertificationsNeedingAttention(context, ref),
         ),
       );

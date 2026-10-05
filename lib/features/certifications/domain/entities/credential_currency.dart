@@ -54,6 +54,30 @@ class CredentialCurrency extends Equatable {
     this.anchorEventType,
   });
 
+  CredentialCurrency copyWith({
+    Certification? certification,
+    CurrencyRule? rule,
+    CurrencySeverity? severity,
+    DateTime? anchor,
+    CurrencyAnchorOrigin? origin,
+    DateTime? dueDate,
+    int? lapseDays,
+    int? leadDays,
+    bool? muted,
+    CurrencyEventType? anchorEventType,
+  }) => CredentialCurrency(
+    certification: certification ?? this.certification,
+    rule: rule ?? this.rule,
+    severity: severity ?? this.severity,
+    anchor: anchor ?? this.anchor,
+    origin: origin ?? this.origin,
+    dueDate: dueDate ?? this.dueDate,
+    lapseDays: lapseDays ?? this.lapseDays,
+    leadDays: leadDays ?? this.leadDays,
+    muted: muted ?? this.muted,
+    anchorEventType: anchorEventType ?? this.anchorEventType,
+  );
+
   /// Lapsed or due soon, and not muted: what the chip and the list scope
   /// count.
   bool get needsAttention => !muted && severity != CurrencySeverity.current;
@@ -89,6 +113,9 @@ class CurrencyGroup extends Equatable {
   final List<CredentialCurrency> members;
 
   const CurrencyGroup(this.members);
+
+  CurrencyGroup copyWith({List<CredentialCurrency>? members}) =>
+      CurrencyGroup(members ?? this.members);
 
   CredentialCurrency get representative => members.first;
   CurrencySeverity get severity => representative.severity;

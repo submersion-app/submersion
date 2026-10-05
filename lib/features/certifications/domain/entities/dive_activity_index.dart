@@ -18,6 +18,16 @@ class DiveActivityIndex extends Equatable {
 
   static const empty = DiveActivityIndex();
 
+  DiveActivityIndex copyWith({
+    DateTime? lastDiveAt,
+    Map<String, DateTime>? lastDiveByTypeId,
+    Map<DiveMode, DateTime>? lastDiveByMode,
+  }) => DiveActivityIndex(
+    lastDiveAt: lastDiveAt ?? this.lastDiveAt,
+    lastDiveByTypeId: lastDiveByTypeId ?? this.lastDiveByTypeId,
+    lastDiveByMode: lastDiveByMode ?? this.lastDiveByMode,
+  );
+
   @override
   List<Object?> get props => [lastDiveAt, lastDiveByTypeId, lastDiveByMode];
 }
