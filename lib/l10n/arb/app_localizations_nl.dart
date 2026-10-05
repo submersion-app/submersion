@@ -8002,6 +8002,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get setup_units_altitude => 'Hoogte';
 
   @override
+  String get setup_units_distance => 'Afstand';
+
+  @override
   String get setup_units_dateFormat => 'Datumnotatie';
 
   @override
@@ -8930,6 +8933,17 @@ class AppLocalizationsNl extends AppLocalizations {
       one: 'duik',
     );
     return '$count $_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total duiken',
+      one: '$total duik',
+    );
+    return 'Gefilterd: overzicht van $shown van $_temp0';
   }
 
   @override
@@ -20778,6 +20792,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_summary_weight => 'Gewicht';
 
   @override
+  String get settings_summary_altitude => 'Hoogte';
+
+  @override
+  String get settings_summary_distance => 'Afstand';
+
+  @override
   String get settings_units_custom => 'Aangepast';
 
   @override
@@ -20928,6 +20948,30 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'Pond (lbs)';
+
+  @override
+  String get settings_units_altitude => 'Hoogte';
+
+  @override
+  String get settings_units_altitude_feet => 'Voet (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'Meters (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'Hoogte-eenheid';
+
+  @override
+  String get settings_units_distance => 'Afstand';
+
+  @override
+  String get settings_units_distance_kilometers => 'Kilometers (km)';
+
+  @override
+  String get settings_units_distance_miles => 'Mijlen (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'Afstandseenheid';
 
   @override
   String get settings_updates_automaticUpdates => 'Automatische updates';

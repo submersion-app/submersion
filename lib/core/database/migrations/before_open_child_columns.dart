@@ -17,7 +17,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v259: dive_tanks.usage_duration (issue #1496).
     await _assertTankUsageDurationColumn();
 
-    // v262: the weight name columns (issue #956), defaulted to ''.
+    // v264: the weight name columns (issue #956), defaulted to ''.
     await _assertWeightLabelColumns();
   }
 }
