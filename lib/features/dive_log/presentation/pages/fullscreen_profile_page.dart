@@ -51,6 +51,10 @@ class FullscreenProfilePage extends ConsumerStatefulWidget {
 }
 
 class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
+  /// Width the chart header leaves for the legend and its zoom controls
+  /// (plus the page's side padding) before the title starts to ellipsize.
+  static const double _legendReservedWidth = 150;
+
   late final AppLifecycleListener _lifecycleListener;
 
   // Captured in initState rather than looked up via `ref` in dispose:
@@ -416,34 +420,54 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                               : (rows) =>
                                     setState(() => _fixedTooltipRows = rows),
                           playbackIsPlaying: playbackIsPlaying,
-                          legendLeading: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.close),
-                                tooltip: context
-                                    .l10n
-                                    .diveLog_fullscreenProfile_close,
-                                visualDensity: VisualDensity.compact,
-                                onPressed: () => Navigator.of(context).pop(),
+                          // Capped so the legend and its zoom controls keep
+                          // room beside it on the narrowest phones: there the
+                          // title ellipsizes rather than the header
+                          // overflowing (#1577 added the range toggle here).
+                          legendLeading: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: math.max(
+                                0,
+                                MediaQuery.sizeOf(context).width -
+                                    _legendReservedWidth,
                               ),
-                              Padding(
-                                padding: const EdgeInsets.only(right: 4),
-                                child: Text(
-                                  context.l10n.diveLog_fullscreenProfile_title(
-                                    dive.diveNumber ?? 0,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.close),
+                                  tooltip: context
+                                      .l10n
+                                      .diveLog_fullscreenProfile_close,
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () => Navigator.of(context).pop(),
+                                ),
+                                Flexible(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(right: 4),
+                                    child: Text(
+                                      context.l10n
+                                          .diveLog_fullscreenProfile_title(
+                                            dive.diveNumber ?? 0,
+                                          ),
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                  style: Theme.of(context).textTheme.titleSmall,
                                 ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: _RangeModeToggle(
-                                  diveId: widget.diveId,
-                                  isEnabled: rangeState.isEnabled,
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: _RangeModeToggle(
+                                    diveId: widget.diveId,
+                                    isEnabled: rangeState.isEnabled,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           // Analysis curves: identical wiring to the old
                           // fullscreen call site (dive_detail_page.dart:4946-4990)

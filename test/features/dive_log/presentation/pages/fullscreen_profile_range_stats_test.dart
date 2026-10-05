@@ -50,8 +50,12 @@ ProviderContainer _container() {
   return container;
 }
 
-Future<void> _pumpPage(WidgetTester tester, ProviderContainer container) async {
-  tester.view.physicalSize = const Size(1200, 900);
+Future<void> _pumpPage(
+  WidgetTester tester,
+  ProviderContainer container, {
+  Size size = const Size(1200, 900),
+}) async {
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
@@ -82,6 +86,19 @@ void main() {
     await _pumpPage(tester, container);
 
     expect(container.read(rangeSelectionProvider('d1')).maxTimestamp, 600);
+  });
+
+  testWidgets('the header still fits a 320pt phone with the toggle in it', (
+    tester,
+  ) async {
+    // The toggle widens the fixed-width group ahead of the legend; on the
+    // narrowest phones the title gives way instead of the zoom controls
+    // overflowing.
+    final container = _container();
+    await _pumpPage(tester, container, size: const Size(320, 640));
+
+    expect(tester.takeException(), isNull);
+    expect(_rangeToggle, findsOneWidget);
   });
 
   testWidgets('range mode starts off: no handles and no stats strip', (
