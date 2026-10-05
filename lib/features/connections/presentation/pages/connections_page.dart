@@ -363,9 +363,17 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
 
     Widget canvasArea(double bottomInset) {
       // The strip sits 8 px down and grows with the reader's text size;
-      // overlays start below it.
-      final stripHeight = InsightStrip.heightOf(context);
-      final belowStrip = stripHeight + 16;
+      // overlays start below it, or at the top when it has nothing to say.
+      final stripHeight = _insights.isEmpty
+          ? 0.0
+          : InsightStrip.heightOf(context) + 8;
+      final belowStrip = stripHeight + (_insights.isEmpty ? 12 : 8);
+      // Shown over the canvas and over an empty played year alike.
+      final playPill = Positioned(
+        left: 12,
+        bottom: bottomInset + 12,
+        child: const YearPlayPill(),
+      );
       if (held == null && graphAsync.hasError) {
         return graphAsync.error is FocusNotFoundException
             ? const Center(child: CircularProgressIndicator())
@@ -400,11 +408,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         return Stack(
           children: [
             Positioned.fill(child: empty),
-            Positioned(
-              left: 12,
-              bottom: bottomInset + 12,
-              child: const YearPlayPill(),
-            ),
+            playPill,
           ],
         );
       }
@@ -420,8 +424,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
               semanticsLabel: _semanticsLabel(graph, selection),
               animate: animate,
               bottomInset: bottomInset,
-              // The strip sits 8 px down; 0 when it has no tiles.
-              topInset: _insights.isEmpty ? 0 : stripHeight + 8,
+              topInset: stripHeight,
               highlight: view.highlight,
               groupOf: _groups.groupOf,
               onSelect: (s) =>
@@ -499,11 +502,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
                 ),
               ),
             ),
-          Positioned(
-            left: 12,
-            bottom: bottomInset + 12,
-            child: const YearPlayPill(),
-          ),
+          playPill,
           if (graphAsync.isLoading)
             Positioned(
               left: 0,

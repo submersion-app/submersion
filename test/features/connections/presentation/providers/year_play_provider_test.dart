@@ -243,4 +243,22 @@ void main() {
       n.pause();
     });
   });
+  test('a load reported during the filter write still counts', () {
+    fakeAsync((async) {
+      final c = container();
+      async.flushMicrotasks();
+      final n = c.read(yearPlayProvider.notifier);
+      // A graph that rebuilds synchronously reports its load inside the
+      // filter write itself.
+      c.listen(connectionsFilterProvider, (_, _) {
+        n
+          ..loadStarted()
+          ..loadSettled(failed: false);
+      });
+      n.play();
+      async.elapse(YearPlayNotifier.beat);
+      expect(c.read(yearPlayProvider), 2020);
+      n.pause();
+    });
+  });
 }

@@ -152,4 +152,10 @@ void main() {
     await future;
     expect(origin, tester.getRect(find.byType(SizedBox).last));
   });
+  testWidgets('a completed save says so', (tester) async {
+    await open(tester, render: () async => Uint8List(4), saveResult: '/x.png');
+    await tester.tap(find.text('Save to File'));
+    await tester.pumpAndSettle();
+    expect(find.text('Image saved'), findsOneWidget);
+  });
 }

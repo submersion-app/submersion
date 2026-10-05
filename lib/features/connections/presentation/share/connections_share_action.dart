@@ -48,10 +48,17 @@ Future<void> shareConnectionsImage(
       case ExportDestination.share:
         await (share ?? _share)(bytes, name, origin);
       case ExportDestination.saveToFile:
-        await (save ?? _saveTitled(l10n.connections_share_saveTitle))(
-          bytes,
-          name,
-        );
+        final saved =
+            await (save ?? _saveTitled(l10n.connections_share_saveTitle))(
+              bytes,
+              name,
+            );
+        // A cancelled panel returns null and says nothing.
+        if (saved != null) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.diveLog_exportImage_savedToFiles)),
+          );
+        }
     }
   } catch (e, st) {
     _log.error(

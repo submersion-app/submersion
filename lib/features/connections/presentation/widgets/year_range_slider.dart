@@ -26,11 +26,7 @@ class _YearRangeSliderState extends ConsumerState<YearRangeSlider> {
       return const SizedBox.shrink();
     }
     final filter = ref.watch(connectionsFilterProvider);
-    final lo = (filter.startDate?.year ?? span.first).clamp(
-      span.first,
-      span.last,
-    );
-    final hi = (filter.endDate?.year ?? span.last).clamp(span.first, span.last);
+    final (lower: lo, upper: hi) = filteredYears(filter, span);
     final values = _dragging ?? RangeValues(lo.toDouble(), hi.toDouble());
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),

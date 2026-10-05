@@ -54,14 +54,7 @@ class YearPlayNotifier extends Notifier<int?> {
     final span = ref.read(connectionsYearSpanProvider).value;
     if (span == null || span.first >= span.last) return;
     final filter = ref.read(connectionsFilterProvider);
-    final lower = (filter.startDate?.year ?? span.first).clamp(
-      span.first,
-      span.last,
-    );
-    final upper = (filter.endDate?.year ?? span.last).clamp(
-      span.first,
-      span.last,
-    );
+    final (:lower, :upper) = filteredYears(filter, span);
     _first = span.first;
     _last = span.last;
     _show(upper >= span.last ? lower : upper + 1);
@@ -107,11 +100,13 @@ class YearPlayNotifier extends Notifier<int?> {
     _cancel();
     state = atEnd ? null : year;
     _written = next;
-    ref.read(connectionsFilterProvider.notifier).state = next;
-    if (atEnd) return;
+    // Reset before the write: a graph that reloads synchronously reports
+    // its load during it, and that report must not be wiped afterwards.
     _beatDone = false;
     _loaded = false;
     _started = false;
+    ref.read(connectionsFilterProvider.notifier).state = next;
+    if (atEnd) return;
     _timer = Timer(beat, () {
       _beatDone = true;
       _advance();
@@ -132,4 +127,15 @@ class YearPlayNotifier extends Notifier<int?> {
 
 final yearPlayProvider = NotifierProvider.autoDispose<YearPlayNotifier, int?>(
   YearPlayNotifier.new,
+);
+
+/// The years the connections filter covers within the log's [span]: no
+/// start or end date means the span's own first or last year. The year
+/// slider, the play pill and play itself all read the range this way.
+({int lower, int upper}) filteredYears(
+  DiveFilterState filter,
+  ({int first, int last}) span,
+) => (
+  lower: (filter.startDate?.year ?? span.first).clamp(span.first, span.last),
+  upper: (filter.endDate?.year ?? span.last).clamp(span.first, span.last),
 );

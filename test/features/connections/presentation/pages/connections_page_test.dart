@@ -24,6 +24,7 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/saved_connection_maps_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/year_play_provider.dart';
+import 'package:submersion/features/connections/presentation/widgets/hidden_nodes_chip.dart';
 import 'package:submersion/features/connections/presentation/widgets/insight_strip.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -834,5 +835,25 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('connections-share')));
     await tester.pump();
     expect(painter().frame.settled, isTrue);
+  });
+  testWidgets('with no insight tiles the overlays sit at the top', (
+    tester,
+  ) async {
+    // Entities that share no dives: nothing for the strip to say.
+    final loners = ConnectionGraph(
+      nodes: [
+        ConnectionNode(ref: _b('a'), label: 'A', diveCount: 2),
+        ConnectionNode(ref: _b('b'), label: 'B', diveCount: 1),
+      ],
+      edges: const [],
+      hiddenNodeCount: 3,
+    );
+    await _pump(tester, graph: (ref, budget) => loners);
+    expect(find.byKey(const ValueKey('insight-mostConnected')), findsNothing);
+    final canvasTop = tester
+        .getTopLeft(find.byKey(const ValueKey('connections-canvas-paint')))
+        .dy;
+    final chipTop = tester.getTopLeft(find.byType(HiddenNodesChip)).dy;
+    expect(chipTop - canvasTop, 12);
   });
 }

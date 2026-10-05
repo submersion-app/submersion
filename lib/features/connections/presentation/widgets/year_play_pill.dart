@@ -38,11 +38,7 @@ class YearPlayPill extends ConsumerWidget {
       return const SizedBox.shrink();
     }
     final filter = ref.watch(connectionsFilterProvider);
-    final lo = (filter.startDate?.year ?? span.first).clamp(
-      span.first,
-      span.last,
-    );
-    final hi = (filter.endDate?.year ?? span.last).clamp(span.first, span.last);
+    final (lower: lo, upper: hi) = filteredYears(filter, span);
     final theme = Theme.of(context);
     return Material(
       key: const ValueKey('year-play-pill'),
