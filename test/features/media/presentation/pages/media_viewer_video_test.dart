@@ -217,4 +217,92 @@ void main() {
     expect(find.text('Failed to load video'), findsNothing);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('in fullscreen a tap plays, reveals the controls, and they '
+      'stay while paused', (tester) async {
+    final platform = _FakeVideoPlatform();
+    final originalPlatform = VideoPlayerPlatform.instance;
+    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
+    VideoPlayerPlatform.instance = platform;
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            mediaSourceResolverRegistryProvider.overrideWithValue(
+              MediaSourceResolverRegistry({
+                MediaSourceType.localFile: _UnavailableResolver(),
+              }),
+            ),
+            resolvedFilePathProvider.overrideWith(
+              (ref, MediaItem arg) async => '/tmp/v1.mp4',
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: MediaViewerPage(
+              mediaList: [video('v1')],
+              initialMediaId: 'v1',
+            ),
+          ),
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      platform.completeInitialization();
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      await tester.pump();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    // Matched on the Semantics widgets the player wraps its controls in,
+    // which does not depend on how the semantics tree merges them.
+    Finder semanticsWidget(String label) => find.byWidgetPredicate(
+      (w) => w is Semantics && w.properties.label == label,
+    );
+    final seekBar = semanticsWidget('Seek video position');
+    final playPause = semanticsWidget('Play or pause video');
+    final exitButton = find.byTooltip('Exit full screen');
+
+    await tester.tap(find.byTooltip('Full screen'));
+    await tester.pump();
+    expect(seekBar, findsNothing);
+    expect(exitButton, findsNothing);
+    // The paused clip's centre play indicator is chrome too.
+    expect(find.byIcon(Icons.play_arrow), findsNothing);
+
+    // Tap: plays, and reveals the exit button and controls bar.
+    await tester.tap(playPause);
+    // PhotoView's double-tap recognizer holds a single tap until its
+    // timeout, so the video only sees it after that.
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(platform.playing, isTrue);
+    expect(exitButton, findsOneWidget);
+    expect(seekBar, findsOneWidget);
+
+    // Playing: hidden again after 3 s.
+    await tester.pump(const Duration(seconds: 3));
+    expect(exitButton, findsNothing);
+    expect(seekBar, findsNothing);
+
+    // Tap: pauses, reveals, and stays while paused.
+    await tester.tap(playPause);
+    // PhotoView's double-tap recognizer holds a single tap until its
+    // timeout, so the video only sees it after that.
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(platform.playing, isFalse);
+    await tester.pump(const Duration(seconds: 5));
+    expect(exitButton, findsOneWidget);
+    expect(seekBar, findsOneWidget);
+    // With no metadata panel under it, the bar sits at the bottom edge
+    // rather than 160 px up.
+    final viewHeight =
+        tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    expect(tester.getRect(seekBar).bottom, greaterThan(viewHeight - 100));
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

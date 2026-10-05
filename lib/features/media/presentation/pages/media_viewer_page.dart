@@ -485,6 +485,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                         : _showOverlay,
                     onToggleOverlay: () =>
                         setState(() => _showOverlay = !_showOverlay),
+                    fullscreen: isFullscreen,
                     onSetOverlay: _onSetOverlay,
                     onVideoControllerChanged: _onVideoControllerChanged,
                     currentIndex: currentIndex,
@@ -847,6 +848,9 @@ class _PhotoGallery extends ConsumerWidget {
   final PageController pageController;
   final ValueChanged<int> onPageChanged;
   final bool showOverlay;
+
+  /// The viewer's fullscreen mode, passed on to video pages.
+  final bool fullscreen;
   final VoidCallback onToggleOverlay;
   final ValueChanged<bool> onSetOverlay;
   final void Function(String mediaId, VideoPlayerController? controller)
@@ -858,6 +862,7 @@ class _PhotoGallery extends ConsumerWidget {
     required this.pageController,
     required this.onPageChanged,
     required this.showOverlay,
+    required this.fullscreen,
     required this.onToggleOverlay,
     required this.onSetOverlay,
     required this.onVideoControllerChanged,
@@ -894,6 +899,7 @@ class _PhotoGallery extends ConsumerWidget {
             child: _VideoItem(
               item: item,
               showOverlay: showOverlay,
+              fullscreen: fullscreen,
               onSetOverlay: onSetOverlay,
               onControllerChanged: onVideoControllerChanged,
             ),
@@ -1005,6 +1011,11 @@ class _ConnectorVideoItem extends ConsumerWidget {
 class _VideoItem extends ConsumerStatefulWidget {
   final MediaItem item;
   final bool showOverlay;
+
+  /// The viewer's fullscreen mode: the centre play indicator follows the
+  /// controls' visibility, and the controls bar sits at the bottom edge
+  /// because no metadata panel is drawn under it.
+  final bool fullscreen;
   final ValueChanged<bool> onSetOverlay;
 
   /// Reports the live controller (or null on dispose) so the page can drive
@@ -1015,6 +1026,7 @@ class _VideoItem extends ConsumerStatefulWidget {
   const _VideoItem({
     required this.item,
     required this.showOverlay,
+    this.fullscreen = false,
     required this.onSetOverlay,
     required this.onControllerChanged,
   });
@@ -1192,7 +1204,8 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
           ),
 
           // Play/pause button overlay (center) - visual indicator only when paused
-          if (!controller.value.isPlaying)
+          if (!controller.value.isPlaying &&
+              (!widget.fullscreen || widget.showOverlay))
             IgnorePointer(
               child: Container(
                 width: 72,
@@ -1214,7 +1227,11 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
             Positioned(
               left: 0,
               right: 0,
-              bottom: 160, // Above the metadata overlay and mini profile
+              // Above the metadata overlay and mini profile; at the edge in
+              // fullscreen, where neither is drawn.
+              bottom: widget.fullscreen
+                  ? MediaQuery.paddingOf(context).bottom + 24
+                  : 160,
               child: _VideoControlsOverlay(controller: controller),
             ),
         ],
