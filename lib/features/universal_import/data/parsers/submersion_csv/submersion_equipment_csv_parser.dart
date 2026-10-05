@@ -165,6 +165,8 @@ class SubmersionEquipmentCsvParser implements ImportParser {
       if (components != null) componentCells[items.length] = components;
       // Tags (issue #1942): linked by the importer once the tags exist.
       final tagRefs = tags.refsFor(table.text(row, 'Tags'));
+      // Location (v267): the place is matched or made by the importer.
+      final locationName = table.text(row, 'Location')?.trim();
 
       items.add(
         <String, dynamic>{
@@ -184,6 +186,8 @@ class SubmersionEquipmentCsvParser implements ImportParser {
           'notes': table.text(row, 'Notes'),
           if (attributes.isNotEmpty) 'attributes': attributes,
           if (tagRefs.isNotEmpty) 'tagRefs': tagRefs,
+          if (locationName != null && locationName.isNotEmpty)
+            'locationName': locationName,
         }..removeWhere((_, value) => value == null),
       );
     }

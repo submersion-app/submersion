@@ -34,6 +34,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_featu
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
@@ -159,6 +160,18 @@ class ExportNotifier extends StateNotifier<ExportState> {
     return ComponentsIndex.fromRows(
       rows,
     ).namesByParent({for (final e in equipment) e.id: e});
+  }
+
+  /// Each item's current place name, for the equipment CSV's Location
+  /// column (v267). Items with no location are absent.
+  Future<Map<String, String>> _equipmentLocationNamesFor(
+    List<EquipmentItem> equipment,
+  ) async {
+    final current = await _ref.read(currentEquipmentLocationsProvider.future);
+    return {
+      for (final item in equipment)
+        if (current[item.id] case final place?) item.id: place.name,
+    };
   }
 
   /// Each exported item's tag names, by name, for the Tags column of the
@@ -316,6 +329,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         equipment,
         componentNames: await _componentNamesFor(equipment),
         tagNames: await _equipmentTagNamesFor(equipment),
+        locationNames: await _equipmentLocationNamesFor(equipment),
         units: _csvUnits(unitMode),
       );
       state = state.copyWith(
@@ -1272,6 +1286,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         equipment,
         componentNames: await _componentNamesFor(equipment),
         tagNames: await _equipmentTagNamesFor(equipment),
+        locationNames: await _equipmentLocationNamesFor(equipment),
         dialogTitle: _l10n.settings_export_saveEquipmentCsvDialogTitle,
         units: _csvUnits(unitMode),
       );

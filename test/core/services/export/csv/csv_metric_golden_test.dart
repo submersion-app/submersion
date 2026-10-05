@@ -18,6 +18,9 @@ import 'csv_test_fixtures.dart';
 /// their order and position, so a consumer reading this file by column
 /// offset or by header name is unaffected.
 ///
+/// The equipment golden moved once, for equipment locations (v267): a
+/// Location column is APPENDED after Notes, for the same reason.
+///
 /// The fills golden (cylinder passports phase 5) was written by the new
 /// writer on 2026-09-29; it exists so a later change to the sheet is a
 /// deliberate one.

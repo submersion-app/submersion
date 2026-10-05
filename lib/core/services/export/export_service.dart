@@ -108,11 +108,13 @@ class ExportService {
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
     Map<String, List<String>> tagNames = const {},
+    Map<String, String> locationNames = const {},
     CsvExportUnits units = CsvExportUnits.metric,
   }) => _csv.exportEquipmentToCsv(
     equipment,
     componentNames: componentNames,
     tagNames: tagNames,
+    locationNames: locationNames,
     units: units,
   );
 
@@ -147,11 +149,13 @@ class ExportService {
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
     Map<String, List<String>> tagNames = const {},
+    Map<String, String> locationNames = const {},
     CsvExportUnits units = CsvExportUnits.metric,
   }) => _csv.generateEquipmentCsvContent(
     equipment,
     componentNames: componentNames,
     tagNames: tagNames,
+    locationNames: locationNames,
     units: units,
   );
 
@@ -189,12 +193,14 @@ class ExportService {
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
     Map<String, List<String>> tagNames = const {},
+    Map<String, String> locationNames = const {},
     required String dialogTitle,
     CsvExportUnits units = CsvExportUnits.metric,
   }) => _csv.saveEquipmentCsvToFile(
     equipment,
     componentNames: componentNames,
     tagNames: tagNames,
+    locationNames: locationNames,
     dialogTitle: dialogTitle,
     units: units,
   );

@@ -203,8 +203,10 @@ the `:equipmentId` catch-all).
 
 ## CSV
 
-- **Export:** a `Location` column after `Tags` holding the current place's
-  name, empty when there is none. The cell goes through `sanitizeCsvField`.
+- **Export:** a `Location` column, appended after `Notes` so readers that
+  take the older columns by offset are unaffected (the convention #2201 set),
+  holding the current place's name, empty when there is none. The cell goes
+  through `sanitizeCsvField`.
 - **Import (Submersion CSV):** a non-empty `Location` cell is matched,
   case-insensitively, to one of the importing diver's non-archived places;
   failing that, an archived one; failing that, a new place of kind Other is

@@ -36,6 +36,7 @@ import 'package:submersion/features/equipment/data/services/sensor_summary_sched
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
@@ -2050,6 +2051,12 @@ ImportRepositories universalImportRepositories(WidgetRef ref) {
     // Equipment tags (issue #1942); without it imported gear arrives with
     // none of its tags.
     equipmentTagRepository: ref.read(equipmentTagRepositoryProvider),
+    // Equipment locations (v267); without both, a CSV's Location column is
+    // dropped.
+    equipmentLocationRepository: ref.read(equipmentLocationRepositoryProvider),
+    equipmentLocationMoveRepository: ref.read(
+      equipmentLocationMoveRepositoryProvider,
+    ),
     // Site features (issue #2200); without it every feature in the file is
     // dropped and the site arrives with none of its markers.
     siteFeatureRepository: ref.read(siteFeatureRepositoryProvider),

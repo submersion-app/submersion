@@ -11,8 +11,9 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 
 /// Writes the equipment CSV. [write]'s `componentNames` maps an assembly's
 /// id to its parts' names in template order (issue #1487), and `tagNames`
-/// maps an item's id to its tag names (issue #1942); items absent from
-/// either get an empty cell. Both lists use the list codec. Free-text cells
+/// maps an item's id to its tag names (issue #1942), and `locationNames`
+/// its current place's name (v267); items absent from any of them get an
+/// empty cell. Both lists use the list codec. Free-text cells
 /// go through [sanitizeCsvField] so a spreadsheet never evaluates them as
 /// formulas; the importer reverses it.
 class CsvEquipmentWriter {
@@ -38,6 +39,7 @@ class CsvEquipmentWriter {
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
     Map<String, List<String>> tagNames = const {},
+    Map<String, String> locationNames = const {},
   }) {
     final rows = <List<dynamic>>[
       [
@@ -58,6 +60,9 @@ class CsvEquipmentWriter {
         'Tags',
         'Active',
         'Notes',
+        // Appended (v267), like the restored site columns of #2201, so a
+        // reader taking the older columns by offset is unaffected.
+        'Location',
       ],
     ];
 
@@ -100,6 +105,7 @@ class CsvEquipmentWriter {
         ),
         item.isActive ? 'Yes' : 'No',
         sanitizeCsvField(item.notes.replaceAll('\n', ' ')),
+        sanitizeCsvField(locationNames[item.id]),
       ]);
     }
 

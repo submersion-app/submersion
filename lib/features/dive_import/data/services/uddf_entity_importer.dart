@@ -54,7 +54,10 @@ import 'package:submersion/features/site_types/data/repositories/site_type_repos
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_import/data/services/import_equipment_location_linker.dart';
 import 'package:submersion/features/dive_import/data/services/import_equipment_tag_linker.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_location_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
@@ -139,6 +142,11 @@ class ImportRepositories {
   /// equipment is not linked to its tags (issue #1942).
   final EquipmentTagRepository? equipmentTagRepository;
 
+  /// Optional for the same reason; when either is null, the locations in a
+  /// Submersion equipment CSV are skipped (v267).
+  final EquipmentLocationRepository? equipmentLocationRepository;
+  final EquipmentLocationMoveRepository? equipmentLocationMoveRepository;
+
   /// Optional for the same reason; when null, the site features in the
   /// source are skipped rather than failing the import (issue #2200).
   final SiteFeatureRepository? siteFeatureRepository;
@@ -171,6 +179,8 @@ class ImportRepositories {
     this.siteTypeRepository,
     this.siteClassificationRepository,
     this.equipmentTagRepository,
+    this.equipmentLocationRepository,
+    this.equipmentLocationMoveRepository,
     this.siteFeatureRepository,
     this.speciesRepository,
     this.cylinderFillRepository,
@@ -556,6 +566,20 @@ class UddfEntityImporter {
         items: data.equipment,
         equipmentIdMapping: equipmentIdMapping,
         tagIdMapping: tagIdMapping,
+      );
+    }
+
+    // Equipment locations (v267), from the Submersion equipment CSV.
+    final locationRepository = repositories.equipmentLocationRepository;
+    final moveRepository = repositories.equipmentLocationMoveRepository;
+    if (locationRepository != null && moveRepository != null) {
+      await ImportEquipmentLocationLinker(
+        places: locationRepository,
+        moves: moveRepository,
+      ).link(
+        items: data.equipment,
+        equipmentIdMapping: equipmentIdMapping,
+        diverId: diverId,
       );
     }
 

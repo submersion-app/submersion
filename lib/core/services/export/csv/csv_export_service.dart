@@ -84,12 +84,14 @@ class CsvExportService {
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
     Map<String, List<String>> tagNames = const {},
+    Map<String, String> locationNames = const {},
     CsvExportUnits units = CsvExportUnits.metric,
   }) async {
     final csvData = generateEquipmentCsvContent(
       equipment,
       componentNames: componentNames,
       tagNames: tagNames,
+      locationNames: locationNames,
       units: units,
     );
     return saveAndShareFile(csvData, 'equipment_export.csv', 'text/csv');
@@ -218,10 +220,14 @@ class CsvExportService {
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
     Map<String, List<String>> tagNames = const {},
+    Map<String, String> locationNames = const {},
     CsvExportUnits units = CsvExportUnits.metric,
-  }) => CsvEquipmentWriter(
-    units,
-  ).write(equipment, componentNames: componentNames, tagNames: tagNames);
+  }) => CsvEquipmentWriter(units).write(
+    equipment,
+    componentNames: componentNames,
+    tagNames: tagNames,
+    locationNames: locationNames,
+  );
 
   // ==================== Save to File ====================
 
@@ -288,6 +294,7 @@ class CsvExportService {
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
     Map<String, List<String>> tagNames = const {},
+    Map<String, String> locationNames = const {},
     required String dialogTitle,
     CsvExportUnits units = CsvExportUnits.metric,
   }) async {
@@ -295,6 +302,7 @@ class CsvExportService {
       equipment,
       componentNames: componentNames,
       tagNames: tagNames,
+      locationNames: locationNames,
       units: units,
     );
     final dateStr = _dateFormat.format(DateTime.now());
