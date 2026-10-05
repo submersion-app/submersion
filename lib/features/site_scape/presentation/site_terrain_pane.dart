@@ -24,6 +24,7 @@ import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_picker.
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/seascape_chrome.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/scene_focus.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_depth_legend.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_hover_tooltip.dart';
@@ -416,6 +417,18 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                                         u: imagery.frame.whiteU,
                                         v: imagery.frame.whiteV,
                                       ),
+                                // A dive whose path is a measured route opens
+                                // framed on that route, not on the terrain
+                                // tile it would be a dot in (#1445). The site
+                                // and route views keep the whole-tile view.
+                                focus:
+                                    playbackContext is DivePlaybackContext &&
+                                        activePath != null
+                                    ? SceneFocus.forRoute(
+                                        activePath.overlay.scrubPath,
+                                        activePath.overlay.provenance,
+                                      )
+                                    : null,
                                 onZoomSettled: (zoom) {
                                   if (mounted) {
                                     setState(() => _settledZoom = zoom);

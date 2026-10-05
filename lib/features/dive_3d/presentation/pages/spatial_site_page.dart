@@ -21,6 +21,7 @@ import 'package:submersion/features/dive_3d/presentation/widgets/tissue_tooltip_
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/scene_focus.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
@@ -214,6 +215,12 @@ class _DiveSeascapeStandaloneState
                                     ),
                                   ),
                             hoverPick: grid == null ? null : _hoverPick,
+                            // Open on a measured route rather than the whole
+                            // terrain-plus-path box (#1445).
+                            focus: SceneFocus.forRoute(
+                              scene.scrubPath,
+                              result.pathProvenance,
+                            ),
                             terrainImagery: result.imagery?.image,
                             imageryWhiteTexel: result.imagery == null
                                 ? null

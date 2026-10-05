@@ -6,6 +6,7 @@ import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/features/dive_3d/domain/entities/dive_3d_scene_data.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/axis_frame.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/scene_focus.dart';
 import 'package:submersion/features/dive_3d/domain/metric_palette.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/scene_geometry_service.dart';
@@ -81,6 +82,7 @@ void main() {
     SceneChromeMode chromeMode = SceneChromeMode.none,
     bool showPosePresets = false,
     ValueChanged<double>? onZoomSettled,
+    SceneFocus? focus,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -99,6 +101,7 @@ void main() {
             chromeMode: chromeMode,
             showPosePresets: showPosePresets,
             onZoomSettled: onZoomSettled,
+            focus: focus,
           ),
         ),
       ),
@@ -725,6 +728,68 @@ void main() {
     painter = scenePainterOf(tester);
     expect(painter.yawDegrees, -32);
     expect(painter.pitchDegrees, 22);
+  });
+
+  // A measured route is tens of metres inside a terrain tile kilometres
+  // wide; the dive view opens framed on it instead of on the tile (#1445).
+  group('focus framing', () {
+    const focus = SceneFocus(
+      minX: 5.0,
+      maxX: 5.1,
+      minY: -1.0,
+      maxY: -0.9,
+      minZ: -0.05,
+      maxZ: 0.05,
+    );
+
+    testWidgets('opens zoomed onto the focus and reports that zoom', (
+      tester,
+    ) async {
+      final settled = <double>[];
+      await pumpViewport(
+        tester,
+        scene: buildScene(),
+        focus: focus,
+        onZoomSettled: settled.add,
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+
+      final zoom = scenePainterOf(tester).zoom;
+      expect(zoom, greaterThan(8.0));
+      expect(settled, [zoom]);
+    });
+
+    testWidgets('zooming in goes past the usual limit around a focus', (
+      tester,
+    ) async {
+      await pumpViewport(tester, scene: buildScene(), focus: focus);
+      final fitted = scenePainterOf(tester).zoom;
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pump();
+
+      expect(scenePainterOf(tester).zoom, greaterThan(fitted));
+    });
+
+    testWidgets('double tap returns to the focus framing', (tester) async {
+      await pumpViewport(tester, scene: buildScene(), focus: focus);
+      final fitted = scenePainterOf(tester).zoom;
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pump();
+
+      await tester.tap(find.byType(Dive3dInteractiveViewport));
+      await tester.pump(const Duration(milliseconds: 80));
+      await tester.tap(find.byType(Dive3dInteractiveViewport));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(scenePainterOf(tester).zoom, closeTo(fitted, 1e-9));
+    });
+
+    testWidgets('without a focus the whole scene stays framed', (tester) async {
+      await pumpViewport(tester, scene: buildScene());
+
+      expect(scenePainterOf(tester).zoom, 1.0);
+    });
   });
 
   group('onZoomSettled', () {

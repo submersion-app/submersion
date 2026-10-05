@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/site_active_path_overlay_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
 
 import 'site_terrain_pane_test_support.dart';
@@ -37,6 +38,9 @@ SiteActivePathOverlay _overlay({
   ),
 )!;
 
+Dive3dInteractiveViewport _viewport(WidgetTester tester) => tester
+    .widget<Dive3dInteractiveViewport>(find.byType(Dive3dInteractiveViewport));
+
 void main() {
   testWidgets(
     'dive playback with a linked route shows the timeline, caption and route toggle',
@@ -64,6 +68,8 @@ void main() {
 
       expect(find.byType(TimeScrubBar), findsOneWidget);
       expect(find.text('Recorded track (Seacraft ENC)'), findsOneWidget);
+      // A measured route frames the camera on itself (#1445).
+      expect(_viewport(tester).focus, isNotNull);
       expect(
         find.byKey(const ValueKey('spatial-site-show-route-toggle')),
         findsOneWidget,
@@ -99,6 +105,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
 
     expect(find.text('Estimated path (dead reckoning)'), findsOneWidget);
+    expect(_viewport(tester).focus, isNull);
     expect(
       find.byKey(const ValueKey('spatial-site-show-route-toggle')),
       findsNothing,
@@ -131,6 +138,8 @@ void main() {
 
       expect(find.byType(TimeScrubBar), findsOneWidget);
       expect(find.text('Recorded track'), findsNothing);
+      // The route view keeps the whole-tile framing.
+      expect(_viewport(tester).focus, isNull);
       expect(
         find.byKey(const ValueKey('spatial-site-show-route-toggle')),
         findsNothing,
