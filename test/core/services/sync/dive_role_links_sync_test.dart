@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -128,5 +129,34 @@ void main() {
       final rows = await db.select(db.diveBuddyRoles).get();
       expect(rows.map((r) => r.id).toSet(), {'x-a', 'x-c'});
     });
+  });
+
+  test('a secondary role reaches an incremental changeset without a dive '
+      'change', () async {
+    final roles = DiveRoleLinkRepository();
+    await roles.writeDiverRoles('d1', ['diveGuide']);
+    final dive = await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals('d1'))).getSingle();
+    final watermark = dive.hlc!;
+
+    // Dive Master sorts after Dive Guide, so the primary (and the dives row)
+    // is untouched: only a junction row is written.
+    await roles.writeDiverRoles('d1', ['diveGuide', 'diveMaster']);
+    final after = await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals('d1'))).getSingle();
+    expect(after.hlc, watermark, reason: 'the dive row was not restamped');
+
+    final changeset = await serializer.exportChangeset(
+      deviceId: 'dev-a',
+      hlcWatermark: watermark,
+      deletions: const [],
+    );
+    expect(changeset.data.dives.map((r) => r['id']), isNot(contains('d1')));
+    expect(
+      changeset.data.diveDiverRoles.map((r) => r['roleId']),
+      contains('diveMaster'),
+    );
   });
 }
