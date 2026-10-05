@@ -27,6 +27,7 @@ void main() {
     weightType: WeightType.belt,
     amountKg: 6,
     notes: 'their belt',
+    label: 'Rental belt',
   );
   const trim = DiveWeight(
     id: 'w2',
@@ -91,6 +92,8 @@ void main() {
     expect(copies.first.weightType, WeightType.belt);
     expect(copies.first.amountKg, 6);
     expect(copies.first.notes, 'their belt');
+    expect(copies.first.label, 'Rental belt');
+    expect(copies.last.label, '');
     expect(copies.last.weightType, WeightType.trimWeights);
     // The source list is untouched.
     expect(last.weights.first.id, 'w1');

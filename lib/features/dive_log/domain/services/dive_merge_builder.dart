@@ -3,7 +3,6 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/services/sequential_tank_merge.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -233,13 +232,7 @@ class DiveMergeBuilder {
     );
     final mergedWeights = [
       for (final w in weightSource.weights)
-        DiveWeight(
-          id: idGen(),
-          diveId: mergedId,
-          weightType: w.weightType,
-          amountKg: w.amountKg,
-          notes: w.notes,
-        ),
+        w.copyWith(id: idGen(), diveId: mergedId),
     ];
 
     // Custom fields: union by key, first-in-order wins.
