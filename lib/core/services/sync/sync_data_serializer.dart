@@ -9228,6 +9228,9 @@ class SyncDataSerializer {
       'equipmentListViewMode': 'detailed',
       'buddyListViewMode': 'detailed',
       'diveCenterListViewMode': 'detailed',
+      // v261: seed them so payloads predating the columns hydrate.
+      'certificationListViewMode': 'detailed',
+      'courseListViewMode': 'detailed',
       // Map style
       'mapStyle': 'openStreetMap',
       // Auto site matching sensitivity
