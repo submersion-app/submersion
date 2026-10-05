@@ -16,6 +16,7 @@ import 'package:submersion/features/settings/data/repositories/diver_settings_re
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
     show AppSettings;
 import 'package:submersion/features/divers/data/repositories/diver_delete_steps.dart';
+import 'package:submersion/features/divers/data/repositories/diver_location_retirement.dart';
 import 'package:submersion/features/divers/data/repositories/diver_owned_rows.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
@@ -790,6 +791,13 @@ class DiverRepository {
           _syncRepository,
           id,
           survivorId: targetId,
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
+        // After the gear, so only surviving gear's moves keep a place.
+        await retireDiverEquipmentLocations(
+          _db,
+          _syncRepository,
+          id,
           now: DateTime.now().millisecondsSinceEpoch,
         );
         await deleteDiverRows(_db, _syncRepository, id, diverLibrarySteps);

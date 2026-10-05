@@ -804,6 +804,7 @@ const _clearedByDelete = {
   'diver_weight_entries',
   'dives',
   'equipment',
+  'equipment_locations',
   'equipment_sets',
   'pre_dive_checklist_templates',
   'pre_dive_sessions',

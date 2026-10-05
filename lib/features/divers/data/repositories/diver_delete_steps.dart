@@ -195,6 +195,13 @@ const List<DiverDeleteStep> diverGearSteps = [
     entityType: 'equipmentOwnershipEvents',
     where: 'equipment_id IN ($_diverGear)',
   ),
+  // The location log of the diver's gear (v267). Moves on other profiles'
+  // gear stay; their places are kept by retireDiverEquipmentLocations.
+  (
+    table: 'equipment_location_moves',
+    entityType: 'equipmentLocationMoves',
+    where: 'equipment_id IN ($_diverGear)',
+  ),
   (table: 'equipment', entityType: 'equipment', where: 'diver_id = ?1'),
 ];
 
