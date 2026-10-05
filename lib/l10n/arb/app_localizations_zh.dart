@@ -6345,6 +6345,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_label_waterType => '水类型';
 
   @override
+  String get diveLog_edit_label_weightName => '名称（可选）';
+
+  @override
+  String get diveLog_edit_hint_weightName => '例如：上方口袋';
+
+  @override
   String get diveLog_edit_marineLifeHint => '点击「添加」记录目击';
 
   @override
@@ -42350,6 +42356,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_weights_amount => '数量';
+
+  @override
+  String get query_weights_label => '名称';
 
   @override
   String get query_weights_notes => '备注';

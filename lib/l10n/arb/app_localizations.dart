@@ -10597,6 +10597,18 @@ abstract class AppLocalizations {
   /// **'Water Type'**
   String get diveLog_edit_label_waterType;
 
+  /// Label of the optional name field under a weight row in the dive and weight preset editors
+  ///
+  /// In en, this message translates to:
+  /// **'Name (optional)'**
+  String get diveLog_edit_label_weightName;
+
+  /// Example name shown in the empty weight name field
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Top pocket'**
+  String get diveLog_edit_hint_weightName;
+
   /// No description provided for @diveLog_edit_marineLifeHint.
   ///
   /// In en, this message translates to:
@@ -71318,6 +71330,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Amount'**
   String get query_weights_amount;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_weights_label;
 
   /// Field label in the query builder
   ///

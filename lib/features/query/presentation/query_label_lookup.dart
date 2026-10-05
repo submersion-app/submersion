@@ -545,6 +545,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_trips_tripType;
     case 'query_weights_amount':
       return l10n.query_weights_amount;
+    case 'query_weights_label':
+      return l10n.query_weights_label;
     case 'query_weights_notes':
       return l10n.query_weights_notes;
     case 'query_weights_type':
