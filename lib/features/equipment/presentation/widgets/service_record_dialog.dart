@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
+import 'package:submersion/core/built_ins/visible_built_ins.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
@@ -192,12 +195,26 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
     // The diver's own kinds plus any kind this item's schedules use: a
     // shared item's schedule can use its owner's custom kind (issue #2046).
     final allKinds = ref.watch(allServiceKindsByIdProvider).value ?? const {};
-    List<ServiceKind> offered(List<ServiceKind> scoped) => [
-      ...scoped,
-      for (final s in schedules)
-        if (allKinds[s.serviceKindId] case final k?)
-          if (!scoped.any((e) => e.id == k.id)) k,
-    ];
+    final hiddenKinds = ref.watch(
+      hiddenBuiltInIdsProvider(BuiltInCatalog.serviceKinds),
+    );
+    // Hidden built-in kinds leave the dropdown (issue #401), except the one
+    // this record uses; any kind this item's own clocks use is re-added below.
+    List<ServiceKind> offered(List<ServiceKind> scoped) {
+      final shown = visibleBuiltIns(
+        scoped,
+        hiddenKinds,
+        isBuiltIn: (k) => k.isBuiltIn,
+        idOf: (k) => k.id,
+        keep: [_serviceKindId],
+      );
+      return [
+        ...shown,
+        for (final s in schedules)
+          if (allKinds[s.serviceKindId] case final k?)
+            if (!shown.any((e) => e.id == k.id)) k,
+      ];
+    }
 
     // Resolved every build while the field is untouched, so switching the
     // clock re-prices the record.
