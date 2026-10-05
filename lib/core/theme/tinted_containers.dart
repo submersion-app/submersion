@@ -20,7 +20,12 @@ const double _darkTint = 0.28;
 /// Each container here is its accent tinted over the scheme's own surface, so
 /// it keeps the theme's hue and stays close to the surface in lightness, and
 /// its foreground is the scheme's onSurface.
-ColorScheme withTintedContainers(ColorScheme scheme) {
+///
+/// [secondaryAccent] replaces the secondary (and tertiary) accent as the tint
+/// source, for a theme whose secondary sits too close to its surface to tint
+/// into a visible fill. Material draws selection indicators (navigation
+/// indicators, selected segments and chips) in secondaryContainer.
+ColorScheme withTintedContainers(ColorScheme scheme, {Color? secondaryAccent}) {
   final tint = scheme.brightness == Brightness.dark ? _darkTint : _lightTint;
   Color container(Color accent) =>
       Color.alphaBlend(accent.withValues(alpha: tint), scheme.surface);
@@ -28,9 +33,9 @@ ColorScheme withTintedContainers(ColorScheme scheme) {
   return scheme.copyWith(
     primaryContainer: container(scheme.primary),
     onPrimaryContainer: scheme.onSurface,
-    secondaryContainer: container(scheme.secondary),
+    secondaryContainer: container(secondaryAccent ?? scheme.secondary),
     onSecondaryContainer: scheme.onSurface,
-    tertiaryContainer: container(scheme.tertiary),
+    tertiaryContainer: container(secondaryAccent ?? scheme.tertiary),
     onTertiaryContainer: scheme.onSurface,
     errorContainer: container(scheme.error),
     onErrorContainer: scheme.onSurface,

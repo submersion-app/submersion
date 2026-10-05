@@ -29,6 +29,11 @@ const _fabColor = Color(0xFF2070C0);
 const _errorColor = Color(0xFFB00020);
 const _onErrorColor = Color(0xFFFFFFFF);
 
+// A dark surface needs a light error: #B00020 reads at under 3:1 on it.
+// Matches the seeded Submersion dark theme's error tone.
+const _errorDark = Color(0xFFFFB4AB);
+const _onErrorDark = Color(0xFF690005);
+
 // -- Shared shape constants --------------------------------------------------
 
 const _cardRadius = 16.0;
@@ -126,8 +131,8 @@ final ThemeData deepDark = ThemeData(
       onPrimary: Color(0xFF0A1428),
       secondary: Color(0xFF3080D0),
       onSecondary: Color(0xFFFFFFFF),
-      error: _errorColor,
-      onError: _onErrorColor,
+      error: _errorDark,
+      onError: _onErrorDark,
       surface: _surfaceDark,
       onSurface: Color(0xFFD0E0F0),
       surfaceContainerLow: Color(0xFF0F1E37),

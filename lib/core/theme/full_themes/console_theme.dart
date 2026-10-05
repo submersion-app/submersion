@@ -35,6 +35,11 @@ const _fabDark = Color(0xFF4AE0C0);
 const _errorColor = Color(0xFFB00020);
 const _onErrorColor = Color(0xFFFFFFFF);
 
+// A dark surface needs a light error: #B00020 reads at under 3:1 on it.
+// Matches the seeded Submersion dark theme's error tone.
+const _errorDark = Color(0xFFFFB4AB);
+const _onErrorDark = Color(0xFF690005);
+
 // -- Shared shape constants --------------------------------------------------
 
 const _cardRadius = 4.0;
@@ -132,12 +137,15 @@ final ThemeData consoleDark = ThemeData(
       onPrimary: _onPrimaryDark,
       secondary: _appBarDark,
       onSecondary: _onPrimaryLight,
-      error: _errorColor,
-      onError: _onErrorColor,
+      error: _errorDark,
+      onError: _onErrorDark,
       surface: _surfaceDark,
       onSurface: Color(0xFFE0E4E8),
       surfaceContainerLow: _cardDark,
     ),
+    // The secondary is the app-bar navy, a step from the surface; tinting
+    // it would leave selection indicators invisible.
+    secondaryAccent: _primaryDark,
   ),
   textTheme: _buildTextTheme(Brightness.dark),
   appBarTheme: const AppBarTheme(
