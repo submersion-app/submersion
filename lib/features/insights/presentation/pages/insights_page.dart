@@ -14,6 +14,7 @@ import 'package:submersion/features/insights/presentation/pages/insights_equipme
 import 'package:submersion/features/insights/presentation/pages/insights_gas_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_geographic_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_marine_life_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_observations_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_profile_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_progression_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_social_page.dart';
@@ -73,6 +74,8 @@ class InsightsPage extends ConsumerWidget {
         return const InsightsEquipmentPage(embedded: true);
       case 'profile':
         return const InsightsProfilePage(embedded: true);
+      case 'observations':
+        return const InsightsObservationsPage(embedded: true);
       default:
         return Center(child: Text('Unknown category: $categoryId'));
     }
