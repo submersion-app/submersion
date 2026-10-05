@@ -247,6 +247,23 @@ void main() {
       });
     });
 
+    testWidgets('leaves a form left open in the URL alone', (tester) async {
+      // Turning the pane off keeps '?selected=x&mode=edit'; switching the
+      // selection would open the edit form on a row nobody chose to edit.
+      await pumpLayout(
+        tester,
+        initialLocation: '/test?selected=x&mode=edit',
+        detailsPane: false,
+      );
+      highlighted.value = 'a';
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('details_toggle')));
+      await tester.pumpAndSettle();
+
+      expect(location(), '/test?selected=x&mode=edit');
+    });
+
     testWidgets('shows the summary when no row is highlighted', (tester) async {
       await pumpLayout(tester, detailsPane: false);
 

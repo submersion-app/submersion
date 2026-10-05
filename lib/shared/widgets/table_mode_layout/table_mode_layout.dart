@@ -280,11 +280,14 @@ class TableModeLayout extends ConsumerWidget {
   /// Only here, not whenever the pane is built: other pages link straight to
   /// `?selected=<id>` without touching the highlight, which outlives the list
   /// it was set in, so a pane opening with its page keeps the URL's choice.
+  /// A create or edit form left in the URL when the pane was turned off is
+  /// kept too, rather than moved onto a row nobody chose to edit.
   void _openHighlightedInPane(BuildContext context) {
     final id = selectedId;
     final router = GoRouter.maybeOf(context);
     if (id == null || router == null) return;
     final uri = router.state.uri;
+    if (uri.queryParameters.containsKey('mode')) return;
     if (uri.queryParameters['selected'] == id) return;
     router.go(
       uri
@@ -452,9 +455,10 @@ class _TableModeMaster extends StatefulWidget {
 class _TableModeMasterState extends State<_TableModeMaster> {
   bool _syncScheduled = false;
 
-  /// The page route this table sits in. A page pushed over it, the full dive
-  /// page say, still sees highlight changes reach this table underneath.
-  ModalRoute<Object?>? _route;
+  /// Whether this table's page route is the one on top. A page pushed over
+  /// it, the full dive page say, still sees highlight changes reach this
+  /// table underneath.
+  bool _routeIsCurrent = true;
 
   /// A sync skipped while another page covered the table, run once it pops.
   bool _syncDeferred = false;
@@ -462,10 +466,10 @@ class _TableModeMasterState extends State<_TableModeMaster> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Depending on the route also brings this back when its status changes,
-    // so a sync deferred under a pushed page runs as soon as that page pops.
-    _route = ModalRoute.of(context);
-    if (_syncDeferred && (_route?.isCurrent ?? true)) _scheduleSync();
+    // Depending on the route being current brings this back when that
+    // changes, so a sync deferred under a pushed page runs once it pops.
+    _routeIsCurrent = ModalRoute.isCurrentOf(context) ?? true;
+    if (_syncDeferred && _routeIsCurrent) _scheduleSync();
   }
 
   @override
@@ -485,7 +489,7 @@ class _TableModeMasterState extends State<_TableModeMaster> {
       if (!mounted) return;
       // The full dive page steps to a neighbour by setting the highlight;
       // going to the list route now would replace that page with the table.
-      if (!(_route?.isCurrent ?? true)) {
+      if (!_routeIsCurrent) {
         _syncDeferred = true;
         return;
       }
