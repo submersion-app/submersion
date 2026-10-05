@@ -56,11 +56,19 @@ class EquipmentHeaderStatus extends ConsumerWidget {
             label: Text(l10n.equipment_detail_markPurchased),
             onPressed: () async {
               final messenger = ScaffoldMessenger.of(context);
-              final message = l10n.equipment_snackbar_purchased;
-              await ref
-                  .read(equipmentListNotifierProvider.notifier)
-                  .markPurchased(item.id);
-              messenger.showSnackBar(SnackBar(content: Text(message)));
+              try {
+                await ref
+                    .read(equipmentListNotifierProvider.notifier)
+                    .markPurchased(item.id);
+                messenger.showSnackBar(
+                  SnackBar(content: Text(l10n.equipment_snackbar_purchased)),
+                );
+              } catch (e) {
+                // The repository has logged it; say the item was not moved.
+                messenger.showSnackBar(
+                  SnackBar(content: Text('${l10n.common_label_error}: $e')),
+                );
+              }
             },
           ),
       ],

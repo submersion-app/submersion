@@ -134,9 +134,18 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
       // items are shared across every diver.
       if (!template.isBuiltIn) {
         final templateRepo = ref.read(preDiveTemplateRepositoryProvider);
+        // A remembered device on the wishlist (#2025) was hidden from the
+        // picker, not unchosen: keep it remembered for when it is bought.
+        final wantedIds = {
+          for (final e in ref.read(allEquipmentProvider).value ?? const [])
+            if (e.isWanted) e.id,
+        };
         for (final item in _equipmentItems) {
           final chosen = _equipmentByItemId[item.id];
           final chosenId = chosen?.id;
+          if (chosenId == null && wantedIds.contains(item.equipmentId)) {
+            continue;
+          }
           if (chosenId != item.equipmentId) {
             await templateRepo.updateItemEquipment(item.id, chosenId);
           }

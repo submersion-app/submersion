@@ -249,8 +249,10 @@ void main() {
   /// Opens the sheet inside a GoRouter so the post-start `context.push` to the
   /// runner resolves. Returns the fake repos for assertions.
   Future<(_FakeSessionRepo, _FakeTemplateRepo)> pumpSheetForBegin(
-    WidgetTester tester,
-  ) async {
+    WidgetTester tester, {
+    List<EquipmentItem>? gear,
+    String? rememberedId,
+  }) async {
     final fakeTemplateRepo = _FakeTemplateRepo({
       'plain': [tItem('plain', PreDiveItemType.check)],
       'packing': [tItem('packing', PreDiveItemType.equipmentSet)],
@@ -260,6 +262,7 @@ void main() {
           templateId: 'computer',
           title: 'Computer check',
           itemType: PreDiveItemType.equipment,
+          equipmentId: rememberedId,
           createdAt: now,
           updatedAt: now,
         ),
@@ -301,7 +304,7 @@ void main() {
           ),
           equipmentSetsProvider.overrideWith((ref) async => [defaultSet]),
           allEquipmentProvider.overrideWith(
-            (ref) async => [primaryComputer, backupComputer],
+            (ref) async => gear ?? [primaryComputer, backupComputer],
           ),
           serviceClockStatusesProvider(
             'g1',
@@ -419,4 +422,31 @@ void main() {
       expect(find.text('SESSION newsession'), findsOneWidget);
     },
   );
+
+  testWidgets('Begin keeps a remembered device that is now on the wishlist '
+      '(#2025)', (tester) async {
+    final wishedPrimary = primaryComputer.copyWith(
+      status: EquipmentStatus.wanted,
+      isActive: false,
+    );
+    final (repo, templateRepo) = await pumpSheetForBegin(
+      tester,
+      gear: [wishedPrimary, backupComputer],
+      rememberedId: 'g1',
+    );
+
+    await tester.tap(find.text('Checklist'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Computer Check').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Begin'));
+    await tester.pumpAndSettle();
+
+    expect(repo.startCalls, 1);
+    // Hidden is not unchosen: once bought, the next session pre-fills it.
+    expect(
+      templateRepo.updatedEquipmentByItemId,
+      isNot(contains('computer-i')),
+    );
+  });
 }
