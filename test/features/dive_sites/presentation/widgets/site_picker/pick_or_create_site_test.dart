@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/location_service.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';

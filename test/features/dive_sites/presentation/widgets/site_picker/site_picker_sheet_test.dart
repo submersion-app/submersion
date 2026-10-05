@@ -6,7 +6,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/location_service.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -75,6 +75,8 @@ Future<void> _pump(
   String? selectedSiteId,
   void Function(DiveSite)? onSiteSelected,
   VoidCallback? onCreateNewSite,
+  VoidCallback? onClear,
+  bool useDeviceLocation = true,
   LocationService? locationService,
 }) async {
   tester.view.physicalSize = const Size(900, 2000);
@@ -105,6 +107,8 @@ Future<void> _pump(
             diveLocation: diveLocation,
             onSiteSelected: onSiteSelected ?? (_) {},
             onCreateNewSite: onCreateNewSite,
+            onClear: onClear,
+            useDeviceLocation: useDeviceLocation,
           ),
         ),
       ),
@@ -113,30 +117,164 @@ Future<void> _pump(
   await tester.pumpAndSettle();
 }
 
-List<String> _tileTitles(WidgetTester tester) {
-  return tester
-      .widgetList<ListTile>(find.byType(ListTile))
-      .map((tile) => ((tile.title) as Text).data!)
-      .toList();
-}
+/// Titles of the site rows in the picker list, top to bottom.
+List<String> _rowTitles(WidgetTester tester) => tester
+    .widgetList<ListTile>(
+      find.descendant(
+        of: find.byKey(sitePickerListKey),
+        matching: find.byType(ListTile),
+      ),
+    )
+    .map((tile) => (tile.title! as Text).data!)
+    .toList();
+
+const _auSite = DiveSite(
+  id: 'au1',
+  name: 'Cod Hole',
+  country: 'Australia',
+  region: 'Queensland',
+);
+const _egSite = DiveSite(
+  id: 'eg1',
+  name: 'Blue Hole',
+  country: 'Egypt',
+  city: 'Dahab',
+  bodyOfWater: 'Red Sea',
+);
+const _mxSite = DiveSite(id: 'mx1', name: 'Angelita', country: 'Mexico');
 
 void main() {
-  testWidgets('sorts by distance with GPS-less sites last', (tester) async {
+  testWidgets('lists sites within 50 km under Nearby, nearest first', (
+    tester,
+  ) async {
     await _pump(
       tester,
-      sites: const [_farSite, _noGpsSite, _nearSite, _midSite],
+      sites: const [_farSite, _noGpsSite, _midSite, _nearSite],
       currentLocation: _here,
     );
     expect(find.text('Sorted by distance'), findsOneWidget);
-    expect(_tileTitles(tester), [
+    expect(find.text('Nearby'), findsOneWidget);
+    // Nearby holds near and mid; then the single No country group lists every
+    // site in the order the provider gave them.
+    expect(_rowTitles(tester), [
       'House Reef',
       'Channel',
       'Blue Hole',
       'Mystery Lake',
+      'Channel',
+      'House Reef',
     ]);
     // Distance captions cover both the meters and kilometers formats.
     expect(find.text('0 m away'), findsOneWidget);
-    expect(find.textContaining('km away'), findsNWidgets(2));
+    expect(find.textContaining('km away'), findsOneWidget);
+    expect(find.text('No country'), findsOneWidget);
+  });
+
+  testWidgets('a GPS site with no country is in Nearby and in No country', (
+    tester,
+  ) async {
+    await _pump(tester, sites: const [_nearSite], currentLocation: _here);
+    expect(_rowTitles(tester), ['House Reef', 'House Reef']);
+  });
+
+  testWidgets('groups by country, collapsed except the selected country', (
+    tester,
+  ) async {
+    await _pump(tester, selectedSiteId: 'au1', sites: const [_auSite, _egSite]);
+    expect(find.text('Australia'), findsOneWidget);
+    expect(find.text('Queensland'), findsOneWidget);
+    expect(_rowTitles(tester), ['Cod Hole']);
+    expect(find.text('Egypt'), findsOneWidget);
+
+    await tester.tap(find.text('Egypt'));
+    await tester.pumpAndSettle();
+    expect(_rowTitles(tester), ['Cod Hole', 'Blue Hole']);
+    expect(find.text('Dahab · Red Sea'), findsOneWidget);
+
+    await tester.tap(find.text('Australia'));
+    await tester.pumpAndSettle();
+    expect(_rowTitles(tester), ['Blue Hole']);
+  });
+
+  testWidgets('searching opens every group with a match', (tester) async {
+    await _pump(tester, sites: const [_auSite, _egSite, _mxSite]);
+    expect(_rowTitles(tester), isEmpty);
+
+    await tester.enterText(find.byType(TextField), 'hole');
+    await tester.pumpAndSettle();
+    expect(_rowTitles(tester), ['Cod Hole', 'Blue Hole']);
+    expect(find.text('Mexico'), findsNothing);
+
+    await tester.enterText(find.byType(TextField), 'red sea');
+    await tester.pumpAndSettle();
+    expect(_rowTitles(tester), ['Blue Hole']);
+
+    await tester.tap(find.byIcon(Icons.clear));
+    await tester.pumpAndSettle();
+    expect(_rowTitles(tester), isEmpty);
+    expect(find.text('Mexico'), findsOneWidget);
+  });
+
+  testWidgets(
+    'a header tapped while searching closes until the query changes',
+    (tester) async {
+      await _pump(tester, sites: const [_auSite, _egSite]);
+      await tester.enterText(find.byType(TextField), 'hole');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Egypt'));
+      await tester.pumpAndSettle();
+      expect(_rowTitles(tester), ['Cod Hole']);
+
+      await tester.enterText(find.byType(TextField), 'hol');
+      await tester.pumpAndSettle();
+      expect(_rowTitles(tester), ['Cod Hole', 'Blue Hole']);
+    },
+  );
+
+  testWidgets('a whitespace-only query keeps the manual expansion', (
+    tester,
+  ) async {
+    await _pump(tester, sites: const [_auSite, _egSite]);
+    await tester.enterText(find.byType(TextField), '   ');
+    await tester.pumpAndSettle();
+    expect(_rowTitles(tester), isEmpty);
+    expect(find.text('Australia'), findsOneWidget);
+  });
+
+  testWidgets('filter mode offers an All sites row that clears', (
+    tester,
+  ) async {
+    var cleared = 0;
+    await _pump(tester, sites: const [_farSite], onClear: () => cleared++);
+    await tester.tap(find.text('All sites'));
+    expect(cleared, 1);
+  });
+
+  testWidgets('without onClear there is no All sites row', (tester) async {
+    await _pump(tester, sites: const [_farSite]);
+    expect(find.text('All sites'), findsNothing);
+  });
+
+  testWidgets('a selected id that no longer exists checks nothing', (
+    tester,
+  ) async {
+    await _pump(tester, sites: const [_farSite], selectedSiteId: 'deleted');
+    expect(find.byIcon(Icons.check_circle), findsNothing);
+    expect(_rowTitles(tester), ['Blue Hole']);
+  });
+
+  testWidgets('does not ask for the device location when told not to', (
+    tester,
+  ) async {
+    final service = _FakeLocationService(result: _here);
+    await _pump(
+      tester,
+      sites: const [_nearSite],
+      locationService: service,
+      useDeviceLocation: false,
+    );
+    expect(service.calls, 0);
+    expect(find.text('Nearby'), findsNothing);
   });
 
   testWidgets('marks the selected site and selects on tap', (tester) async {
@@ -152,18 +290,6 @@ void main() {
     expect(selected?.id, 'near');
   });
 
-  testWidgets('search filters the list and clear restores it', (tester) async {
-    await _pump(tester, sites: const [_nearSite, _farSite]);
-    await tester.enterText(find.byType(TextField), 'blue');
-    await tester.pumpAndSettle();
-    expect(find.text('Blue Hole'), findsOneWidget);
-    expect(find.text('House Reef'), findsNothing);
-
-    await tester.tap(find.byIcon(Icons.clear));
-    await tester.pumpAndSettle();
-    expect(find.text('House Reef'), findsOneWidget);
-  });
-
   testWidgets('search with no matches shows the no-results message', (
     tester,
   ) async {
@@ -171,7 +297,7 @@ void main() {
     await tester.enterText(find.byType(TextField), 'zzzzz');
     await tester.pumpAndSettle();
     expect(find.textContaining('zzzzz'), findsWidgets);
-    expect(find.byType(ListTile), findsNothing);
+    expect(find.byKey(sitePickerListKey), findsNothing);
   });
 
   testWidgets('empty state offers creating a site', (tester) async {
@@ -208,13 +334,15 @@ void main() {
     expect(find.text('New Dive Site'), findsNothing);
   });
 
-  testWidgets('sorts by diveLocation when provided', (tester) async {
+  testWidgets('measures Nearby from diveLocation when provided', (
+    tester,
+  ) async {
     await _pump(
       tester,
       sites: const [_farSite, _nearSite, _midSite],
       diveLocation: const GeoPoint(10.0, 10.0),
     );
-    expect(_tileTitles(tester), ['House Reef', 'Channel', 'Blue Hole']);
+    expect(_rowTitles(tester).take(2), ['House Reef', 'Channel']);
     expect(find.text('Sorted by distance from this dive'), findsOneWidget);
   });
 
@@ -226,14 +354,14 @@ void main() {
       sites: const [_farSite, _nearSite, _midSite],
       currentLocation: _here,
     );
-    expect(_tileTitles(tester), ['House Reef', 'Channel', 'Blue Hole']);
+    expect(_rowTitles(tester).take(2), ['House Reef', 'Channel']);
     expect(find.text('Sorted by distance'), findsOneWidget);
     expect(find.text('Sorted by distance from this dive'), findsNothing);
   });
 
   // #965: a dive computer import produces a dive with no GPS, and the edit
   // page captures device GPS only for new dives, so the sheet used to receive
-  // no anchor at all and fell back to the repository's alphabetical order.
+  // no anchor at all and offered no nearby sites.
   testWidgets('falls back to device location when the caller gives none', (
     tester,
   ) async {
@@ -242,12 +370,8 @@ void main() {
       sites: const [_farSite, _noGpsSite, _nearSite, _midSite],
       locationService: _FakeLocationService(result: _here),
     );
-    expect(_tileTitles(tester), [
-      'House Reef',
-      'Channel',
-      'Blue Hole',
-      'Mystery Lake',
-    ]);
+    expect(find.text('Nearby'), findsOneWidget);
+    expect(_rowTitles(tester).take(2), ['House Reef', 'Channel']);
     expect(find.text('Sorted by distance'), findsOneWidget);
   });
 
@@ -259,7 +383,8 @@ void main() {
       sites: const [_farSite, _nearSite, _midSite],
       locationService: _FakeLocationService(),
     );
-    expect(_tileTitles(tester), ['Blue Hole', 'House Reef', 'Channel']);
+    expect(find.text('Nearby'), findsNothing);
+    expect(_rowTitles(tester), ['Blue Hole', 'House Reef', 'Channel']);
     expect(find.text('Sorted by distance'), findsNothing);
   });
 
@@ -290,17 +415,18 @@ void main() {
     pending.complete(_here);
     await tester.pumpAndSettle();
     expect(find.text('Getting location...'), findsNothing);
-    expect(_tileTitles(tester), ['House Reef', 'Blue Hole']);
+    expect(find.text('Nearby'), findsOneWidget);
+    expect(_rowTitles(tester).first, 'House Reef');
   });
 
   testWidgets('distance readout respects imperial units', (tester) async {
     await _pump(
       tester,
-      sites: const [_farSite],
+      sites: const [_midSite],
       diveLocation: const GeoPoint(10.0, 10.0),
       settings: const AppSettings(depthUnit: DepthUnit.feet),
     );
-    expect(find.textContaining('mi'), findsWidgets);
+    expect(find.textContaining('mi away'), findsOneWidget);
     expect(find.textContaining('km'), findsNothing);
   });
 }
