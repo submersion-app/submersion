@@ -185,6 +185,46 @@ void main() {
     expect(prefs.getBool(SettingsKeys.profileMetricsFollowViewport), isNull);
   });
 
+  test('no adoptable pref skips the unset-column probe', () async {
+    final repository = _CountingProbeRepository();
+    await containerWith({
+      SettingsKeys.pscrRatio: 100.0,
+      SettingsKeys.profileMetricsFollowViewport: false,
+    }, repository: repository);
+
+    expect(repository.probes, 0);
+  });
+
+  test('a failed load never overwrites the device prefs', () async {
+    // After a failed load the notifier holds defaults and no diver; a save
+    // then must not write those defaults over the prefs a row may still
+    // adopt.
+    SharedPreferences.setMockInitialValues({
+      currentDiverIdKey: 'd1',
+      SettingsKeys.pscrRatio: 40.0,
+      SettingsKeys.profileMetricsFollowViewport: true,
+    });
+    final prefs = await SharedPreferences.getInstance();
+    db = await setUpTestDatabase();
+    await insertDiver('d1');
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        diverSettingsRepositoryProvider.overrideWithValue(
+          _FailingLoadRepository(),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final notifier = container.read(settingsProvider.notifier);
+    await expectLater(notifier.settingsLoaded, throwsStateError);
+
+    await notifier.setGfHigh(70);
+
+    expect(prefs.getDouble(SettingsKeys.pscrRatio), 40.0);
+    expect(prefs.getBool(SettingsKeys.profileMetricsFollowViewport), isTrue);
+  });
+
   test('with no diver the prefs remain the store', () async {
     final container = await containerWith({
       SettingsKeys.pscrRatio: 40.0,
@@ -215,5 +255,26 @@ class _SyncRacesAdoptionRepository extends DiverSettingsRepository {
       pscrRatio: pscrRatio,
       profileMetricsFollowViewport: profileMetricsFollowViewport,
     );
+  }
+}
+
+/// A diver settings read that fails, as a corrupt row or a closed database
+/// would.
+class _FailingLoadRepository extends DiverSettingsRepository {
+  @override
+  Future<AppSettings> getOrCreateSettingsForDiver(
+    String diverId, {
+    AppSettings? defaultSettings,
+  }) async => throw StateError('settings read failed');
+}
+
+class _CountingProbeRepository extends DiverSettingsRepository {
+  int probes = 0;
+
+  @override
+  Future<({bool pscrRatio, bool profileMetricsFollowViewport})>
+  unsetAdoptableColumns(String diverId) {
+    probes++;
+    return super.unsetAdoptableColumns(diverId);
   }
 }

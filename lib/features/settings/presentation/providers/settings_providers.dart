@@ -1141,6 +1141,13 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   final Ref _ref;
   String? _validatedDiverId;
 
+  /// Whether [state] came from the no-diver load, so its pSCR ratio and
+  /// viewport choice are this device's prefs (v262, issue #2948). Only then
+  /// does a save write them back: after a failed load [state] holds the
+  /// defaults, and mid-switch the previous diver's synced values, and either
+  /// would overwrite the prefs a diver row may still adopt.
+  bool _prefsAreStore = false;
+
   /// Completes when the constructor's first load has finished, or, if a
   /// diver change superseded that load before it landed, the load that
   /// replaced it.
@@ -1274,6 +1281,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       if (previous != next) {
         // Reset diver ID immediately to prevent saving to wrong diver during switch
         _validatedDiverId = null;
+        _prefsAreStore = false;
         _replaceBase(null);
         // Starting a new load supersedes any still in flight: its reads may
         // return after this one's, and must not overwrite the new diver's
@@ -1304,6 +1312,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     } catch (_) {
       if (_isCurrentLoad(generation) && _landedGeneration != generation) {
         _validatedDiverId = null;
+        _prefsAreStore = false;
         _replaceBase(null);
         // Only an EARLIER load's settings need replacing. When none has
         // landed (a failed startup load) state already holds the defaults.
@@ -1416,6 +1425,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         perdixOverlayY: perdixOverlayY,
         seascapeAppearance: seascapeAppearance,
       );
+      _prefsAreStore = true;
       _landedGeneration = generation;
       await _writeCachedTheme(prefs);
       return;
@@ -1433,15 +1443,20 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     // one is no sign of a choice, and adopting it would stamp a fresh clock
     // that lets this device's default overwrite a value chosen on another.
     const defaults = AppSettings();
-    final unset = await _repository.unsetAdoptableColumns(diverId);
-    final adoptPscrRatio =
-        unset.pscrRatio && pscrRatioPref != defaults.pscrRatio
+    final pscrRatioCandidate = pscrRatioPref != defaults.pscrRatio
         ? pscrRatioPref
         : null;
-    final adoptFollowViewport =
-        unset.profileMetricsFollowViewport &&
-            followViewportPref != defaults.profileMetricsFollowViewport
+    final followViewportCandidate =
+        followViewportPref != defaults.profileMetricsFollowViewport
         ? followViewportPref
+        : null;
+    // Nothing to adopt (no pref, or only defaults): skip the row read.
+    final unset = pscrRatioCandidate == null && followViewportCandidate == null
+        ? (pscrRatio: false, profileMetricsFollowViewport: false)
+        : await _repository.unsetAdoptableColumns(diverId);
+    final adoptPscrRatio = unset.pscrRatio ? pscrRatioCandidate : null;
+    final adoptFollowViewport = unset.profileMetricsFollowViewport
+        ? followViewportCandidate
         : null;
 
     // Load settings from database
@@ -1568,11 +1583,13 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       if (diverId == null) {
         // No diver yet: these prefs are the pSCR ratio's and viewport
         // choice's only store; a diver row adopts them on load (v262).
-        await prefs.setDouble(SettingsKeys.pscrRatio, state.pscrRatio);
-        await prefs.setBool(
-          SettingsKeys.profileMetricsFollowViewport,
-          state.profileMetricsFollowViewport,
-        );
+        if (_prefsAreStore) {
+          await prefs.setDouble(SettingsKeys.pscrRatio, state.pscrRatio);
+          await prefs.setBool(
+            SettingsKeys.profileMetricsFollowViewport,
+            state.profileMetricsFollowViewport,
+          );
+        }
         // No diver yet: the device-local pref is the seascape knobs' only
         // store; it is adopted into the diver row and retired on the first
         // load with a diver (see _loadSettings).

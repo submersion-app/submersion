@@ -103,40 +103,49 @@ class DiverSettingsRepository {
       return false;
     }
     try {
-      final now = DateTime.now().millisecondsSinceEpoch;
-      var written = 0;
-      if (pscrRatio != null) {
-        written +=
-            await (_db.update(_db.diverSettings)..where(
-                  (t) => t.diverId.equals(diverId) & t.pscrRatio.isNull(),
-                ))
-                .write(
-                  DiverSettingsCompanion(
-                    pscrRatio: Value(pscrRatio),
-                    updatedAt: Value(now),
-                  ),
-                );
-      }
-      if (profileMetricsFollowViewport != null) {
-        written +=
-            await (_db.update(_db.diverSettings)..where(
-                  (t) =>
-                      t.diverId.equals(diverId) &
-                      t.profileMetricsFollowViewport.isNull(),
-                ))
-                .write(
-                  DiverSettingsCompanion(
-                    profileMetricsFollowViewport: Value(
-                      profileMetricsFollowViewport,
+      // One transaction: both columns and the sync mark land together, and
+      // the table-updates stream fires once.
+      final adopted = await _db.transaction(() async {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        var written = 0;
+        if (pscrRatio != null) {
+          written +=
+              await (_db.update(_db.diverSettings)..where(
+                    (t) => t.diverId.equals(diverId) & t.pscrRatio.isNull(),
+                  ))
+                  .write(
+                    DiverSettingsCompanion(
+                      pscrRatio: Value(pscrRatio),
+                      updatedAt: Value(now),
                     ),
-                    updatedAt: Value(now),
-                  ),
-                );
+                  );
+        }
+        if (profileMetricsFollowViewport != null) {
+          written +=
+              await (_db.update(_db.diverSettings)..where(
+                    (t) =>
+                        t.diverId.equals(diverId) &
+                        t.profileMetricsFollowViewport.isNull(),
+                  ))
+                  .write(
+                    DiverSettingsCompanion(
+                      profileMetricsFollowViewport: Value(
+                        profileMetricsFollowViewport,
+                      ),
+                      updatedAt: Value(now),
+                    ),
+                  );
+        }
+        if (written == 0) return false;
+        await _markSettingsPending(diverId, now, notify: false);
+        return true;
+      });
+      if (adopted) {
+        // After the commit, so a sync it starts sees the adopted values.
+        SyncEventBus.notifyLocalChange();
+        _log.info('Adopted device-local settings for diver: $diverId');
       }
-      if (written == 0) return false;
-      await _markSettingsPending(diverId, now);
-      _log.info('Adopted device-local settings for diver: $diverId');
-      return true;
+      return adopted;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to adopt device-local settings for diver: $diverId',
@@ -390,8 +399,14 @@ class DiverSettingsRepository {
     }
   }
 
-  /// Queues the diver's settings row for sync after a write at [now].
-  Future<void> _markSettingsPending(String diverId, int now) async {
+  /// Queues the diver's settings row for sync after a write at [now], and
+  /// unless [notify] is false (a caller inside a transaction notifies after
+  /// its commit) tells the sync scheduler.
+  Future<void> _markSettingsPending(
+    String diverId,
+    int now, {
+    bool notify = true,
+  }) async {
     final row = await (_db.select(
       _db.diverSettings,
     )..where((t) => t.diverId.equals(diverId))).getSingleOrNull();
@@ -401,7 +416,7 @@ class DiverSettingsRepository {
       recordId: row.id,
       localUpdatedAt: now,
     );
-    SyncEventBus.notifyLocalChange();
+    if (notify) SyncEventBus.notifyLocalChange();
   }
 
   /// Whether [a] and [b] store the same values in a diver's settings row.
@@ -627,6 +642,8 @@ class DiverSettingsRepository {
   // Helpers
   // ============================================================================
 
+  static const _defaults = AppSettings();
+
   AppSettings _mapRowToAppSettings(DiverSetting row) {
     return AppSettings(
       depthUnit: _parseDepthUnit(row.depthUnit),
@@ -728,8 +745,10 @@ class DiverSettingsRepository {
       ),
       courseListViewMode: ListViewMode.fromName(row.courseListViewMode),
       // Null: the row has never held a value (v262); read the default.
-      pscrRatio: row.pscrRatio ?? 100.0,
-      profileMetricsFollowViewport: row.profileMetricsFollowViewport ?? false,
+      pscrRatio: row.pscrRatio ?? _defaults.pscrRatio,
+      profileMetricsFollowViewport:
+          row.profileMetricsFollowViewport ??
+          _defaults.profileMetricsFollowViewport,
       mapStyle: MapStyle.fromName(row.mapStyle),
       siteMatchSensitivity: SiteMatchSensitivity.fromName(
         row.siteMatchSensitivity,
