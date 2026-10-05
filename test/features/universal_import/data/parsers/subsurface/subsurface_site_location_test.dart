@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
-import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_site_folder.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_fold.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
 
 /// Subsurface's share of the shared location contract (#2232).
@@ -14,9 +14,9 @@ import 'package:submersion/features/universal_import/data/parsers/subsurface_xml
 /// 0,0, the pair logbooks write for "no fix", came out as a real site called
 /// "0.000000, 0.000000", which the importer could then no longer drop.
 void main() {
-  group('foldSubsurfaceSites', () {
+  group('foldImportSites', () {
     test('drops a nameless entry at 0,0 rather than naming it', () {
-      final folded = foldSubsurfaceSites([
+      final folded = foldImportSites([
         {'uddfId': 'aaa', 'latitude': 0.0, 'longitude': 0.0},
       ]);
 
@@ -24,7 +24,7 @@ void main() {
     });
 
     test('drops a nameless entry off the globe', () {
-      final folded = foldSubsurfaceSites([
+      final folded = foldImportSites([
         {'uddfId': 'aaa', 'latitude': 91.0, 'longitude': -66.0},
       ]);
 
@@ -32,7 +32,7 @@ void main() {
     });
 
     test('still names a nameless entry at a usable fix', () {
-      final folded = foldSubsurfaceSites([
+      final folded = foldImportSites([
         {'uddfId': 'aaa', 'latitude': 18.465562, 'longitude': -66.084902},
       ]);
 
@@ -42,7 +42,7 @@ void main() {
     test('a nameless 0,0 entry does not fold into a named site at 0,0', () {
       // Two "no fix" entries are not a match: 0,0 is an absent position, so
       // it cannot place one site on top of another.
-      final folded = foldSubsurfaceSites([
+      final folded = foldImportSites([
         {'uddfId': 'aaa', 'name': 'Reef', 'latitude': 0.0, 'longitude': 0.0},
         {'uddfId': 'bbb', 'latitude': 0.0, 'longitude': 0.0},
       ]);

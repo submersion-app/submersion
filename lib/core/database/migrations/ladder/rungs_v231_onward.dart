@@ -197,10 +197,17 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankSharedComputerIds();
     }
     if (from < 260) await reportProgress();
+    // v261: drop diver_settings.default_ceiling_source (issue #767), unread
+    // since the ceiling line lost its source toggle (#755). Re-asserted in
+    // beforeOpen.
+    if (from < 261) {
+      await _dropDefaultCeilingSourceColumn();
+    }
+    if (from < 261) await reportProgress();
     // v263: media.site_category and media.display_size (issue #1039).
     // Columns only, no backfill: null is an uncategorized tile, which is how
     // every existing attachment already renders. Re-asserted in beforeOpen.
-    // 261 and 262 are claimed by open branches.
+    // 262 is claimed by an open branch.
     if (from < 263) {
       await _assertMediaSiteAttachmentColumns();
     }

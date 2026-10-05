@@ -115,6 +115,10 @@ For tide predictions:
 
 Configure cloud synchronization. For a complete guide to syncing across devices &mdash; including a free Cloudflare R2 setup &mdash; see [Multi-Device Sync](guide/multi-device-sync.md).
 
+Most settings sync with your diver profile, and some stay on each device. See
+[What Syncs Between Devices](guide/multi-device-sync.md?id=what-syncs-between-devices)
+for the full list.
+
 ### Google Drive
 
 1. Go to **Settings** > **Cloud Sync**
