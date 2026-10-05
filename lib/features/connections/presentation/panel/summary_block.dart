@@ -7,8 +7,8 @@ import 'package:submersion/features/connections/presentation/canvas/connection_k
 import 'package:submersion/features/connections/presentation/widgets/connections_legend.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Counts per kind (with their colour, so it doubles as the legend), the
-/// number of connections, and the standouts of the map in view.
+/// Counts per kind (with their colour, so it doubles as the legend) and the
+/// number of connections. The standouts sit in the insight strip.
 class SummaryBlock extends StatelessWidget {
   const SummaryBlock({super.key, required this.graph, this.focus});
 
@@ -23,7 +23,6 @@ class SummaryBlock extends StatelessWidget {
     final s = GraphSummary.of(graph, focus: focus);
     final kinds = s.countsByKind.keys.toList()
       ..sort((a, b) => a.index.compareTo(b.index));
-    String label(NodeRef r) => graph.nodeFor(r)?.label ?? r.id;
     Widget row(String left, String right, {Color? dot}) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -60,23 +59,6 @@ class SummaryBlock extends StatelessWidget {
             dot: colors.colorFor(k),
           ),
         row(l10n.connections_filterBar_edges(s.connectionCount), ''),
-        if (focus != null && s.closest != null)
-          row(
-            l10n.connections_summary_closest,
-            '${s.closest!.label}, '
-            '${l10n.connections_selection_divesTogether(s.closestWeight)}',
-          ),
-        if (focus == null && s.mostConnected != null)
-          row(l10n.connections_summary_mostConnected, s.mostConnected!.label),
-        if (focus == null && s.strongest != null)
-          row(
-            l10n.connections_summary_strongestPair,
-            l10n.connections_summary_pairValue(
-              s.strongest!.weight,
-              label(s.strongest!.source),
-              label(s.strongest!.target),
-            ),
-          ),
       ],
     );
   }

@@ -349,6 +349,123 @@ add(
     ),
 )
 
+# Camera parts (issue #1997). Each is drawn doing its job, because the bare
+# parts are generic shapes: a lens is a barrel with grip ribs and a flared
+# front, a port is a dome on its collar, an arm shows the ball clamp that
+# joins two segments, and a float is the same arm drawn fat. A hole only
+# cancels one layer of winding, so every hole here sits on a single solid
+# contour: the clamp and the float body are one-contour capsules rather than
+# bar()'s quad-plus-circles, whose overlaps a hole cannot clear.
+def capsule(p1, p2, w, steps=10):
+    """A thick segment with round caps as one solid contour."""
+    (x1, y1), (x2, y2) = p1, p2
+    a = math.atan2(y2 - y1, x2 - x1)
+    r = w / 2
+    pts = []
+    for cx, cy, start in ((x2, y2, a - math.pi / 2), (x1, y1, a + math.pi / 2)):
+        for i in range(steps + 1):
+            t = start + math.pi * i / steps
+            pts.append((cx + r * math.cos(t), cy + r * math.sin(t)))
+    return poly(pts)
+
+
+def slot(p1, p2, w):
+    """A capless rectangular hole along p1-p2."""
+    (x1, y1), (x2, y2) = p1, p2
+    dx, dy = x2 - x1, y2 - y1
+    length = math.hypot(dx, dy) or 1e-6
+    ox, oy = -dy / length * w / 2, dx / length * w / 2
+    return poly(
+        [(x1 + ox, y1 + oy), (x2 + ox, y2 + oy), (x2 - ox, y2 - oy), (x1 - ox, y1 - oy)],
+        solid=False,
+    )
+
+
+add(
+    "lens",
+    "Lens",
+    "A lens barrel seen side-on: mount, ribbed grip and a flared front.",
+    g(
+        rrect(2.0, 8.0, 3.6, 8.0, 0.6),               # mount
+        rrect(5.0, 5.0, 10.6, 14.0, 1.2),             # barrel
+        poly([(15.0, 5.0), (21.6, 2.4), (21.6, 21.6), (15.0, 19.0)]),  # front
+        rrect(7.0, 7.0, 1.2, 10.0, 0.4, solid=False),  # grip rib
+        rrect(9.7, 7.0, 1.2, 10.0, 0.4, solid=False),  # grip rib
+        rrect(12.4, 7.0, 1.2, 10.0, 0.4, solid=False),  # grip rib
+    ),
+)
+
+add(
+    "port",
+    "Port",
+    "A dome port seen side-on: a half-dome on its mounting collar.",
+    g(
+        rrect(2.6, 4.0, 6.0, 16.0, 1.0),              # collar
+        "M8 3A9 9 0 0 1 8 21Z",                       # dome
+        rrect(4.6, 6.0, 1.2, 12.0, 0.4, solid=False),  # collar groove
+        poly(
+            [(11.4, 7.0), (13.4, 6.4), (15.4, 9.6), (14.0, 10.6)],
+            solid=False,
+        ),                                             # glint on the dome
+    ),
+)
+
+add(
+    "tray_handle",
+    "Tray / Handle",
+    "A camera tray with a handle rising at each end and a camera on it.",
+    g(
+        rrect(2.0, 16.4, 20.0, 3.6, 1.2),             # tray
+        rrect(2.0, 3.0, 3.8, 17.0, 1.8),              # left handle
+        rrect(18.2, 3.0, 3.8, 17.0, 1.8),             # right handle
+        rrect(7.8, 8.4, 8.4, 6.6, 1.2),               # camera
+        circle(12.0, 11.7, 1.8, solid=False),         # its lens
+    ),
+)
+
+add(
+    "arm_clamp",
+    "Arm / Clamp",
+    "Two arm segments with ball ends, joined by a ball clamp with its knob.",
+    g(
+        bar((4.6, 19.4), (10.0, 14.0), 2.4),          # lower segment
+        circle(4.6, 19.4, 2.3),                       # ball end
+        bar((14.0, 10.0), (19.4, 4.6), 2.4),          # upper segment
+        circle(19.4, 4.6, 2.3),                       # ball end
+        capsule((9.4, 14.6), (14.6, 9.4), 5.6),       # clamp
+        bar((12.0, 12.0), (16.4, 16.4), 1.8),         # knob screw
+        circle(17.4, 17.4, 2.2),                      # knob
+    ),
+)
+
+add(
+    "video_light",
+    "Video Light",
+    "A video light seen front-on: a square head round a wide LED, on a ball mount.",
+    g(
+        rrect(3.4, 1.6, 17.2, 15.2, 3.0),             # head
+        circle(12.0, 9.2, 5.0, solid=False),          # bezel
+        circle(12.0, 9.2, 3.0),                       # LED
+        rrect(10.4, 16.0, 3.2, 3.4, 0.6),             # stem
+        circle(12.0, 20.4, 2.4),                      # ball mount
+    ),
+)
+
+add(
+    "float_arm",
+    "Float Arm / Float",
+    "A fat foam float with a ball at each end, banded across.",
+    g(
+        bar((3.6, 20.4), (6.8, 17.2), 2.0),           # lower stub
+        circle(3.6, 20.4, 2.3),                       # ball end
+        bar((17.2, 6.8), (20.4, 3.6), 2.0),           # upper stub
+        circle(20.4, 3.6, 2.3),                       # ball end
+        capsule((8.0, 16.0), (16.0, 8.0), 8.4),       # foam body
+        slot((7.4, 11.4), (12.6, 16.6), 1.0),         # band
+        slot((11.4, 7.4), (16.6, 12.6), 1.0),         # band
+    ),
+)
+
 # Private Use Area code points, assigned in declaration order and never
 # renumbered: they are baked into the committed font and into
 # lib/core/icons/submersion_icons.dart.

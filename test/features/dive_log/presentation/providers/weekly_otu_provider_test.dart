@@ -103,4 +103,82 @@ void main() {
       },
     );
   });
+
+  group('dives that cross midnight', () {
+    // 23:30 to 00:20 with 100 OTU. The stubbed analysis has no OTU curve, so
+    // the split falls back to elapsed time: 30 of its 50 minutes (60 OTU) on
+    // the day it started, 20 minutes (40 OTU) on the next.
+    const nightDiveOtu = 100.0;
+    const morningDiveOtu = 10.0;
+
+    ProviderContainer nightContainer() {
+      final container = ProviderContainer(
+        overrides: [
+          profileAnalysisProvider('dive-night').overrideWith(
+            (ref) async => ProfileAnalysis.empty().copyWith(
+              o2Exposure: const O2Exposure(otu: nightDiveOtu),
+            ),
+          ),
+          profileAnalysisProvider('dive-morning').overrideWith(
+            (ref) async => ProfileAnalysis.empty().copyWith(
+              o2Exposure: const O2Exposure(otu: morningDiveOtu),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      return container;
+    }
+
+    Future<void> createNightDive(DateTime start) => repository.createDive(
+      Dive(
+        id: 'dive-night',
+        diveNumber: 1,
+        dateTime: start,
+        entryTime: start,
+        runtime: const Duration(minutes: 50),
+      ),
+    );
+
+    test(
+      'the next day\'s residual OTU counts the post-midnight part',
+      () async {
+        await createNightDive(DateTime.utc(2025, 9, 7, 23, 30));
+        await repository.createDive(
+          Dive(
+            id: 'dive-morning',
+            diveNumber: 2,
+            dateTime: DateTime.utc(2025, 9, 8, 9),
+          ),
+        );
+        final container = nightContainer();
+
+        final residual = await container.read(
+          residualOtuProvider('dive-morning').future,
+        );
+
+        expect(residual, closeTo(40.0, 1e-9));
+      },
+    );
+
+    test('the weekly window counts only the part inside it', () async {
+      // The 7-day window for a dive on 2025-09-08 opens at 2025-09-02 00:00;
+      // this dive started the evening before and crossed into it.
+      await createNightDive(DateTime.utc(2025, 9, 1, 23, 30));
+      await repository.createDive(
+        Dive(
+          id: 'dive-morning',
+          diveNumber: 2,
+          dateTime: DateTime.utc(2025, 9, 8, 9),
+        ),
+      );
+      final container = nightContainer();
+
+      final weekly = await container.read(
+        weeklyOtuProvider('dive-morning').future,
+      );
+
+      expect(weekly, closeTo(40.0 + morningDiveOtu, 1e-9));
+    });
+  });
 }

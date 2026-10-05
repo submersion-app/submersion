@@ -4,11 +4,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_line_builders.dart'
-    show
-        DecimatedCurveIndices,
-        SeriesGetsLeadIn,
-        SurfaceValueOf,
-        WithSurfaceLeadIn;
+    show DecimatedCurveIndices, SurfaceValueOf, WithSurfaceLeadIn;
 
 /// Build ppO2 (partial pressure of oxygen) line
 /// Values typically range from 0.21 (surface air) to 1.6+ (critical)
@@ -29,7 +25,6 @@ LineChartBarData _buildPartialPressureLine({
   required DecimatedCurveIndices decimatedCurveIndices,
   required WithSurfaceLeadIn withSurfaceLeadIn,
   required SurfaceValueOf surfaceValueOf,
-  required SeriesGetsLeadIn seriesGetsLeadIn,
   double? filterAtOrBelow,
 }) {
   const min = 0.0;
@@ -52,13 +47,10 @@ LineChartBarData _buildPartialPressureLine({
         maxScale,
       ),
     ),
-    isCurved: true,
-    curveSmoothness: 0.2,
-    // Only while a lead-in is drawn: that vertex is a sharp direction
-    // change and the spline would otherwise overshoot it and hook below
-    // the curve at the left edge. Dives already starting at t=0 keep
-    // their existing smoothing untouched.
-    preventCurveOverShooting: seriesGetsLeadIn(spots, profile),
+    // Straight between samples: a gas switch is a step in every
+    // partial-pressure curve, and a spline overshoots each step, dipping
+    // below the gas before the switch and past it after (issue #577).
+    isCurved: false,
     color: color,
     barWidth: 1,
     isStrokeCapRound: true,
@@ -75,7 +67,6 @@ LineChartBarData buildPpO2Line(
   DecimatedCurveIndices decimatedCurveIndices,
   WithSurfaceLeadIn withSurfaceLeadIn,
   SurfaceValueOf surfaceValueOf,
-  SeriesGetsLeadIn seriesGetsLeadIn,
 ) => _buildPartialPressureLine(
   band: band,
   curve: ppO2Curve,
@@ -85,7 +76,6 @@ LineChartBarData buildPpO2Line(
   decimatedCurveIndices: decimatedCurveIndices,
   withSurfaceLeadIn: withSurfaceLeadIn,
   surfaceValueOf: surfaceValueOf,
-  seriesGetsLeadIn: seriesGetsLeadIn,
 );
 
 /// Build ppN2 (partial pressure of nitrogen) line
@@ -97,7 +87,6 @@ LineChartBarData buildPpN2Line(
   DecimatedCurveIndices decimatedCurveIndices,
   WithSurfaceLeadIn withSurfaceLeadIn,
   SurfaceValueOf surfaceValueOf,
-  SeriesGetsLeadIn seriesGetsLeadIn,
 ) => _buildPartialPressureLine(
   band: band,
   curve: ppN2Curve,
@@ -107,7 +96,6 @@ LineChartBarData buildPpN2Line(
   decimatedCurveIndices: decimatedCurveIndices,
   withSurfaceLeadIn: withSurfaceLeadIn,
   surfaceValueOf: surfaceValueOf,
-  seriesGetsLeadIn: seriesGetsLeadIn,
 );
 
 /// Build ppHe (partial pressure of helium) line for trimix dives. The
@@ -121,7 +109,6 @@ LineChartBarData buildPpHeLine(
   DecimatedCurveIndices decimatedCurveIndices,
   WithSurfaceLeadIn withSurfaceLeadIn,
   SurfaceValueOf surfaceValueOf,
-  SeriesGetsLeadIn seriesGetsLeadIn,
 ) => _buildPartialPressureLine(
   band: band,
   curve: ppHeCurve,
@@ -131,6 +118,5 @@ LineChartBarData buildPpHeLine(
   decimatedCurveIndices: decimatedCurveIndices,
   withSurfaceLeadIn: withSurfaceLeadIn,
   surfaceValueOf: surfaceValueOf,
-  seriesGetsLeadIn: seriesGetsLeadIn,
   filterAtOrBelow: 0.001,
 );

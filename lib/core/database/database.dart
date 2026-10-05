@@ -225,7 +225,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // A profile's hidden shared trips and sites (v250, issue #2594)
     TripHides,
     SiteHides,
-    // Insight observation dismissals (v264)
+    // Insight observation dismissals (v265)
     InsightObservationDismissals,
   ],
 )
@@ -236,7 +236,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 264;
+  static const int currentSchemaVersion = 265;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1094,11 +1094,14 @@ class AppDatabase extends _$AppDatabase {
     // stays. Inbound, the generated fromJson ignores the legacy key.
     261,
     263,
-    // v264: insight_observation_dismissals (synced) and
-    // diver_settings.insights_muted_observation_rules (#2381). Additive, so
-    // the floor stays. Renumbered from 261, then 262, while this was open
-    // (262 is held by #2991).
+    // v264: diver_settings.default_show_late_gas_switches (issue #2939).
+    // Additive column with a default, so the floor stays.
     264,
+    // v265: insight_observation_dismissals (synced) and
+    // diver_settings.insights_muted_observation_rules (#2381). Additive, so
+    // the floor stays. Renumbered several times while this was open (262 is
+    // held by #2991; 261, 263 and 264 landed first).
+    265,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

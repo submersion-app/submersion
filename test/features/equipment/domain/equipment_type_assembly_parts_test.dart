@@ -144,8 +144,17 @@ void main() {
   });
 
   test('photo parts follow the camera', () {
-    expect(indexOf(EquipmentType.housing), indexOf(EquipmentType.camera) + 1);
-    expect(indexOf(EquipmentType.strobe), indexOf(EquipmentType.camera) + 2);
+    // The whole family's order (#1997) is pinned in
+    // equipment_type_camera_parts_test.dart; here only that the #1487 parts
+    // still sit after the camera they belong to.
+    expect(
+      indexOf(EquipmentType.housing),
+      greaterThan(indexOf(EquipmentType.camera)),
+    );
+    expect(
+      indexOf(EquipmentType.strobe),
+      greaterThan(indexOf(EquipmentType.housing)),
+    );
   });
 
   test(

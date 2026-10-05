@@ -11,7 +11,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/tables/diver_tables.dart';
 
-/// v264: one row per dismissed Insights observation. The id is derived
+/// v265: one row per dismissed Insights observation. The id is derived
 /// from (diver, rule, fingerprint) by `observationDismissalId`, so two
 /// devices that dismiss the same observation write the same row and sync
 /// merges it as a plain upsert. Undo clears [dismissedAt]; the feature

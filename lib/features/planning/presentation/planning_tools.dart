@@ -128,5 +128,12 @@ List<PlanningTool> planningToolsOf(BuildContext context) {
       title: context.l10n.safetySettings_noFlyHeader,
       subtitle: context.l10n.planning_card_noFly_subtitle,
     ),
+    PlanningTool(
+      id: 'cns-otu',
+      icon: Icons.air,
+      color: colorScheme.secondary,
+      title: context.l10n.safetySettings_cnsOtuHeader,
+      subtitle: context.l10n.planning_card_cnsOtu_subtitle,
+    ),
   ];
 }

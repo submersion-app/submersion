@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/dive_log/domain/services/profile_alignment.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/run_dive_consolidation.dart';
 
 import '../../../../helpers/fake_dive_consolidation_service.dart';
@@ -32,6 +33,18 @@ void main() {
         expect(service.capturedSecondaryDiveIds, equals(_secondaryDiveIds));
       },
     );
+
+    testWidgets('forwards the alignment to apply', (tester) async {
+      final service = FakeDiveConsolidationService();
+
+      await _pumpAndRun(
+        tester,
+        service: service,
+        alignment: ConsolidationAlignment.starts,
+      );
+
+      expect(service.capturedAlignment, ConsolidationAlignment.starts);
+    });
 
     testWidgets('reports the fold to the caller via onConsolidated', (
       tester,
@@ -237,13 +250,15 @@ Future<void> _pumpAndRun(
   WidgetTester tester, {
   required FakeDiveConsolidationService service,
   VoidCallback? onConsolidated,
+  ConsolidationAlignment? alignment,
 }) async {
   await tester.pumpWidget(
     testApp(
       locale: const Locale('en'),
       child: Builder(
         builder: (context) => TextButton(
-          onPressed: () async => _run(context, service, onConsolidated),
+          onPressed: () async =>
+              _run(context, service, onConsolidated, alignment: alignment),
           child: const Text('Merge'),
         ),
       ),
@@ -294,13 +309,15 @@ Future<void> _pumpAndRunFromPoppedDialog(
 Future<void> _run(
   BuildContext context,
   FakeDiveConsolidationService service,
-  VoidCallback? onConsolidated,
-) {
+  VoidCallback? onConsolidated, {
+  ConsolidationAlignment? alignment,
+}) {
   return runDiveConsolidation(
     context: context,
     service: service,
     targetDiveId: _targetDiveId,
     secondaryDiveIds: _secondaryDiveIds,
     onConsolidated: onConsolidated ?? () {},
+    alignment: alignment,
   );
 }

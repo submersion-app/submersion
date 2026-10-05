@@ -11,6 +11,7 @@ import 'package:submersion/features/media/data/services/media_share_temp_file.da
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_fullscreen_controls.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/media_nav_arrows.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -48,7 +49,8 @@ class SiteMediaViewerPage extends ConsumerStatefulWidget {
       _SiteMediaViewerPageState();
 }
 
-class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage> {
+class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
+    with MediaFullscreenMixin<SiteMediaViewerPage> {
   late PageController _pageController;
   int _currentIndex = 0;
 
@@ -57,6 +59,9 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage> {
   int _navTargetIndex = 0;
 
   bool _showOverlay = true;
+
+  @override
+  void onExitFullscreen() => _showOverlay = true;
 
   @override
   void initState() {
@@ -122,7 +127,11 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage> {
       return KeyEventResult.handled;
     }
     if (event.logicalKey == LogicalKeyboardKey.escape) {
-      Navigator.of(context).maybePop();
+      if (isFullscreen) {
+        exitFullscreen();
+      } else {
+        Navigator.of(context).maybePop();
+      }
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
@@ -137,114 +146,130 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage> {
       (list) => list.where((m) => !m.isDocument).toList(),
     );
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: mediaAsync.when(
-        data: (mediaList) {
-          if (mediaList.isEmpty) {
-            return Center(
-              child: Text(
-                context.l10n.media_photoViewer_noPhotosAvailable,
-                style: const TextStyle(color: Colors.white),
-              ),
-            );
-          }
-
-          // Find initial index
-          final initialIndex = mediaList.indexWhere(
-            (m) => m.id == widget.initialMediaId,
-          );
-          if (initialIndex != -1 && _pageController.hasClients == false) {
-            _currentIndex = initialIndex;
-            _navTargetIndex = initialIndex;
-            // hasClients == false means no PageView is attached, so the
-            // outgoing controller is safe to dispose; without this the one
-            // built in initState leaks.
-            _pageController.dispose();
-            _pageController = PageController(initialPage: initialIndex);
-          }
-
-          // The list is live: a media delete or a sync pull can shrink it
-          // under the open viewer, leaving _currentIndex past the end.
-          // Clamp once here and use it everywhere rather than writing it back
-          // during build -- the pager corrects _currentIndex itself on the
-          // next settle via onPageChanged, so the clamp only has to survive
-          // one frame. Same guard MediaViewerPage carries.
-          final currentIndex = _currentIndex.clamp(0, mediaList.length - 1);
-          final currentItem = mediaList[currentIndex];
-
-          final viewer = GestureDetector(
-            // Swipe down to close (common pattern for fullscreen viewers)
-            onVerticalDragEnd: (details) {
-              if (details.primaryVelocity != null &&
-                  details.primaryVelocity! > 300) {
-                Navigator.of(context).pop();
-              }
-            },
-            child: Stack(
-              children: [
-                _MediaGalleryPager(
-                  mediaList: mediaList,
-                  pageController: _pageController,
-                  onPageChanged: (index) {
-                    // Swipes and settles both land here, which is what
-                    // re-syncs the nav target after a gesture.
-                    setState(() {
-                      _currentIndex = index;
-                      _navTargetIndex = index;
-                    });
-                  },
+    return fullscreenPopScope(
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: mediaAsync.when(
+          data: (mediaList) {
+            if (mediaList.isEmpty) {
+              // Nothing left to tap means no exit button (a sync can empty the
+              // list under the viewer).
+              exitFullscreenWhenEmpty();
+              return Center(
+                child: Text(
+                  context.l10n.media_photoViewer_noPhotosAvailable,
+                  style: const TextStyle(color: Colors.white),
                 ),
+              );
+            }
 
-                // Transparent tap target to toggle overlays
-                Positioned.fill(
-                  child: Semantics(
-                    label: context.l10n.media_photoViewer_toggleOverlayLabel,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.translucent,
-                      onTap: () => setState(() => _showOverlay = !_showOverlay),
-                      child: const SizedBox.expand(),
+            // Find initial index
+            final initialIndex = mediaList.indexWhere(
+              (m) => m.id == widget.initialMediaId,
+            );
+            if (initialIndex != -1 && _pageController.hasClients == false) {
+              _currentIndex = initialIndex;
+              _navTargetIndex = initialIndex;
+              // hasClients == false means no PageView is attached, so the
+              // outgoing controller is safe to dispose; without this the one
+              // built in initState leaks.
+              _pageController.dispose();
+              _pageController = PageController(initialPage: initialIndex);
+            }
+
+            // The list is live: a media delete or a sync pull can shrink it
+            // under the open viewer, leaving _currentIndex past the end.
+            // Clamp once here and use it everywhere rather than writing it back
+            // during build -- the pager corrects _currentIndex itself on the
+            // next settle via onPageChanged, so the clamp only has to survive
+            // one frame. Same guard MediaViewerPage carries.
+            final currentIndex = _currentIndex.clamp(0, mediaList.length - 1);
+            final currentItem = mediaList[currentIndex];
+
+            final viewer = GestureDetector(
+              // Swipe down to close (common pattern for fullscreen viewers)
+              onVerticalDragEnd: (details) {
+                if (details.primaryVelocity != null &&
+                    details.primaryVelocity! > 300) {
+                  Navigator.of(context).pop();
+                }
+              },
+              child: Stack(
+                children: [
+                  _MediaGalleryPager(
+                    mediaList: mediaList,
+                    pageController: _pageController,
+                    onPageChanged: (index) {
+                      // Swipes and settles both land here, which is what
+                      // re-syncs the nav target after a gesture.
+                      setState(() {
+                        _currentIndex = index;
+                        _navTargetIndex = index;
+                      });
+                    },
+                  ),
+
+                  // Transparent tap target to toggle overlays
+                  Positioned.fill(
+                    child: Semantics(
+                      label: context.l10n.media_photoViewer_toggleOverlayLabel,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onTap: isFullscreen
+                            ? toggleFullscreenControls
+                            : () =>
+                                  setState(() => _showOverlay = !_showOverlay),
+                        child: const SizedBox.expand(),
+                      ),
                     ),
                   ),
-                ),
 
-                if (_showOverlay) ...[
-                  _TopOverlay(
-                    currentIndex: currentIndex,
-                    totalCount: mediaList.length,
-                    onClose: () => Navigator.of(context).pop(),
-                    onShare: (anchor) => _shareCurrentItem(currentItem, anchor),
-                  ),
-                  // Previous / next controls. Mounted with the rest of the
-                  // chrome, so the tap-to-hide gesture takes them away too.
-                  MediaNavArrows(
-                    currentIndex: currentIndex,
-                    totalCount: mediaList.length,
-                    onPrevious: () => _stepPage(-1, mediaList.length),
-                    onNext: () => _stepPage(1, mediaList.length),
-                  ),
-                  _BottomMetadataOverlay(item: currentItem),
+                  if (_showOverlay && !isFullscreen) ...[
+                    _TopOverlay(
+                      currentIndex: currentIndex,
+                      totalCount: mediaList.length,
+                      onClose: () => Navigator.of(context).pop(),
+                      onEnterFullscreen: enterFullscreen,
+                      onShare: (anchor) =>
+                          _shareCurrentItem(currentItem, anchor),
+                    ),
+                    // Previous / next controls. Mounted with the rest of the
+                    // chrome, so the tap-to-hide gesture takes them away too.
+                    MediaNavArrows(
+                      currentIndex: currentIndex,
+                      totalCount: mediaList.length,
+                      onPrevious: () => _stepPage(-1, mediaList.length),
+                      onNext: () => _stepPage(1, mediaList.length),
+                    ),
+                    _BottomMetadataOverlay(item: currentItem),
+                  ],
+
+                  if (isFullscreen && fullscreenControlsVisible)
+                    MediaFullscreenExitButton(onExit: exitFullscreen),
                 ],
-              ],
-            ),
-          );
+              ),
+            );
 
-          // Keyboard nav has to wrap the whole viewer to see its key events.
-          // Built as a local above rather than nested inline so the tree it
-          // wraps stays where it is.
-          return Focus(
-            autofocus: true,
-            onKeyEvent: (node, event) =>
-                _handleKeyEvent(event, mediaList.length),
-            child: viewer,
-          );
-        },
-        loading: () =>
-            const Center(child: CircularProgressIndicator(color: Colors.white)),
-        error: (error, stack) => Center(
-          child: Text(
-            context.l10n.media_photoViewer_errorLoadingPhotos(error.toString()),
-            style: const TextStyle(color: Colors.white),
+            // Keyboard nav has to wrap the whole viewer to see its key events.
+            // Built as a local above rather than nested inline so the tree it
+            // wraps stays where it is.
+            return Focus(
+              autofocus: true,
+              onKeyEvent: (node, event) =>
+                  _handleKeyEvent(event, mediaList.length),
+              child: viewer,
+            );
+          },
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          ),
+          error: (error, stack) => Center(
+            child: Text(
+              context.l10n.media_photoViewer_errorLoadingPhotos(
+                error.toString(),
+              ),
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
         ),
       ),
@@ -341,17 +366,20 @@ class _MediaGalleryPager extends StatelessWidget {
   }
 }
 
-/// Top overlay with close button, page indicator, and share button.
+/// Top overlay with close and fullscreen buttons, page indicator, and share
+/// button.
 class _TopOverlay extends StatelessWidget {
   final int currentIndex;
   final int totalCount;
   final VoidCallback onClose;
+  final VoidCallback onEnterFullscreen;
   final void Function(Rect? anchor) onShare;
 
   const _TopOverlay({
     required this.currentIndex,
     required this.totalCount,
     required this.onClose,
+    required this.onEnterFullscreen,
     required this.onShare,
   });
 
@@ -379,6 +407,12 @@ class _TopOverlay extends StatelessWidget {
                   icon: const Icon(Icons.close, color: Colors.white),
                   tooltip: context.l10n.media_photoViewer_closeTooltip,
                   onPressed: onClose,
+                ),
+                IconButton(
+                  key: const ValueKey('viewer_enter_fullscreen'),
+                  icon: const Icon(Icons.fullscreen, color: Colors.white),
+                  tooltip: context.l10n.media_viewer_enterFullscreen,
+                  onPressed: onEnterFullscreen,
                 ),
                 Expanded(
                   child: Center(

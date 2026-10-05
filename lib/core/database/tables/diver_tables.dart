@@ -261,7 +261,7 @@ class DiverSettings extends Table {
   /// #2305), JSON list of preset slugs. Null or absent = none hidden.
   TextColumn get hiddenTankPresetIds => text().nullable()();
 
-  /// v264: muted Insights observation rules (#2381), JSON list of
+  /// v265: muted Insights observation rules (#2381), JSON list of
   /// ObservationRuleId.dbValue. Null or absent = none muted.
   TextColumn get insightsMutedObservationRules => text().nullable()();
   // Appearance settings
@@ -363,6 +363,10 @@ class DiverSettings extends Table {
   BoolColumn get defaultShowOtu =>
       boolean().withDefault(const Constant(false))();
   BoolColumn get defaultShowGasSwitchMarkers =>
+      boolean().withDefault(const Constant(true))();
+
+  /// v264: shade late and missed deco gas switches on the profile (#2939).
+  BoolColumn get defaultShowLateGasSwitches =>
       boolean().withDefault(const Constant(true))();
   BoolColumn get defaultShowGasTimeline =>
       boolean().withDefault(const Constant(false))();

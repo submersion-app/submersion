@@ -18,6 +18,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/
 import 'package:submersion/features/dive_log/presentation/widgets/searchable_filter_dropdown.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_field.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
@@ -93,7 +95,24 @@ void main() {
       tester,
     ) async {
       final h = await pump(tester);
-      await pick(tester, 'All sites', 'mexico', 'Coral Garden');
+      // The site field opens the shared site picker sheet (#1080).
+      await tester.tap(find.byKey(sitePickerFieldKey));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(TextField),
+        ),
+        'mexico',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(sitePickerListKey),
+          matching: find.text('Coral Garden'),
+        ),
+      );
+      await tester.pumpAndSettle();
       expect(h.draft.siteId, 's2');
       await pick(tester, 'All trips', 'sharm', 'Summer week');
       expect(h.draft.tripId, 't1');

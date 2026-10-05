@@ -14,7 +14,14 @@ extension EquipmentFilterQuery on EquipmentFilterState {
   /// Null only under [allStatuses] (#2590) with no other axis set: every
   /// other status choice narrows (the default view hides retired and sold
   /// gear, #636).
-  QueryNode? toQuery() {
+  QueryNode? toQuery() => _lower(defaultStatus: true);
+
+  /// What Save stores (#2989): [toQuery] without the default status view,
+  /// which every unfiltered list applies on its own, so a saved query names
+  /// only what the diver chose. Null while nothing else is set.
+  QueryNode? toSavedQuery() => _lower(defaultStatus: false);
+
+  QueryNode? _lower({required bool defaultStatus}) {
     final parts = <QueryNode>[];
     QueryNode c(String key, QueryOp op, QueryValue? v) =>
         ConditionNode(FieldPath([key]), op, v);
@@ -24,11 +31,14 @@ extension EquipmentFilterQuery on EquipmentFilterState {
       // Every status (#2590): the axis adds no condition.
     } else if (s == null) {
       // getActiveEquipment: legacy rows can be retired with is_active still
-      // set, and sold gear has left the kit.
-      parts
-        ..add(c('active', QueryOp.eq, const BoolValue(true)))
-        ..add(c('status', QueryOp.neq, e(EquipmentStatus.retired.name)))
-        ..add(c('status', QueryOp.neq, e(EquipmentStatus.sold.name)));
+      // set, and sold gear has left the kit. Not saved: the list applies it
+      // without being asked.
+      if (defaultStatus) {
+        parts
+          ..add(c('active', QueryOp.eq, const BoolValue(true)))
+          ..add(c('status', QueryOp.neq, e(EquipmentStatus.retired.name)))
+          ..add(c('status', QueryOp.neq, e(EquipmentStatus.sold.name)));
+      }
     } else if (s == EquipmentStatus.retired) {
       // getEquipmentByStatus(retired): legacy rows that only flipped
       // is_active, but not sold gear.
@@ -97,6 +107,20 @@ extension EquipmentFilterQuery on EquipmentFilterState {
     };
   }
 }
+
+/// Whether [node] constrains the gear's own status (`status` or `active`
+/// at the root, not through a relation). A saved query that does takes
+/// over the sheet's status axis on load (#2989): a picked status is saved
+/// as conditions, and the default view ANDed back in would contradict it.
+bool constrainsEquipmentStatus(QueryNode node) => switch (node) {
+  AndNode(:final children) ||
+  OrNode(:final children) => children.any(constrainsEquipmentStatus),
+  NotNode(:final child) => constrainsEquipmentStatus(child),
+  ConditionNode(:final path) =>
+    path.segments.length == 1 &&
+        (path.segments.single == 'status' || path.segments.single == 'active'),
+  ScopedNode() || TextNode() => false,
+};
 
 /// The one compile call the equipment list shares. Root alias `r0`, which
 /// [EquipmentFilterQuery.ownerScope] assumes. [diverId] reads shared gear's

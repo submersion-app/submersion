@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
+import 'package:submersion/features/connections/presentation/providers/year_play_provider.dart';
 import 'package:submersion/features/connections/presentation/widgets/year_range_slider.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -78,5 +79,26 @@ void main() {
     expect(f.startDate, isNull);
     expect(f.endDate, isNull);
     expect(f.hasActiveFilters, isFalse);
+  });
+  testWidgets('the slider has a play button that moves the thumbs', (
+    tester,
+  ) async {
+    final c = await _pump(tester, const YearRangeSlider());
+    await tester.tap(find.byKey(const ValueKey('year-play-button')));
+    await tester.pump();
+    final slider = tester.widget<RangeSlider>(find.byType(RangeSlider));
+    expect(slider.values, const RangeValues(2019, 2019));
+    c.read(yearPlayProvider.notifier).pause();
+  });
+  testWidgets('starting a drag pauses play at once', (tester) async {
+    final c = await _pump(tester, const YearRangeSlider());
+    c.read(yearPlayProvider.notifier).play();
+    await tester.pump();
+    expect(c.read(yearPlayProvider), isNotNull);
+    tester.widget<RangeSlider>(find.byType(RangeSlider)).onChangeStart!(
+      const RangeValues(2019, 2019),
+    );
+    await tester.pump();
+    expect(c.read(yearPlayProvider), isNull);
   });
 }

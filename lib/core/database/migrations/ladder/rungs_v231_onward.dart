@@ -211,9 +211,15 @@ extension RungsFromV231 on AppDatabase {
       await _assertDistanceUnitColumn();
     }
     if (from < 263) await reportProgress();
-    // v264: Insights observation dismissals (synced) and the muted-rules
-    // column on diver_settings (#2381). Additive; re-asserted in beforeOpen.
-    if (from < 264) await _assertInsightObservationsSchema();
+    // v264: diver_settings.default_show_late_gas_switches (issue #2939).
+    // Column only, defaulting on. Re-asserted in beforeOpen.
+    if (from < 264) {
+      await _assertLateGasSwitchSettingColumn();
+    }
     if (from < 264) await reportProgress();
+    // v265: Insights observation dismissals (synced) and the muted-rules
+    // column on diver_settings (#2381). Additive; re-asserted in beforeOpen.
+    if (from < 265) await _assertInsightObservationsSchema();
+    if (from < 265) await reportProgress();
   }
 }
