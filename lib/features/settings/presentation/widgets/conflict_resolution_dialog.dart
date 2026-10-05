@@ -289,7 +289,7 @@ class _ConflictResolutionDialogState
                     _selectResolution(key, ConflictResolution.keepRemote),
                 avatar: const Icon(Icons.cloud, size: 18),
               ),
-              if (canKeepBoth(conflict))
+              if (canKeepBoth(comparison, conflict))
                 ChoiceChip(
                   label: Text(context.l10n.settings_conflict_keepBoth),
                   selected: selected == ConflictResolution.keepBoth,

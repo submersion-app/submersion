@@ -112,23 +112,24 @@ void main() {
     );
 
     test('a normal record with an id can be copied', () {
-      expect(canKeepBoth(c({'id': 'r'}, {'id': 'r'})), isTrue);
+      expect(canKeepBoth(differing, c({'id': 'r'}, {'id': 'r'})), isTrue);
     });
 
     test('not when the remote side is a deletion', () {
       expect(
-        canKeepBoth(c({'id': 'r'}, {'id': 'r', '_deleted': true})),
+        canKeepBoth(differing, c({'id': 'r'}, {'id': 'r', '_deleted': true})),
         isFalse,
       );
     });
 
     test('not when the local side is gone', () {
-      expect(canKeepBoth(c({}, {'id': 'r'})), isFalse);
+      expect(canKeepBoth(differing, c({}, {'id': 'r'})), isFalse);
     });
 
     test('not for a junction row with no id', () {
       expect(
         canKeepBoth(
+          differing,
           c(
             {'diveId': 'd', 'tagId': 't'},
             {'diveId': 'd', 'tagId': 't'},
@@ -139,9 +140,18 @@ void main() {
       );
     });
 
+    test('not when both versions match', () {
+      // Keep both would still copy the remote row, making a duplicate of a
+      // record the dialog has just said is unchanged.
+      const same = ConflictComparison(
+        state: ConflictComparisonState.sameContent,
+      );
+      expect(canKeepBoth(same, c({'id': 'r'}, {'id': 'r'})), isFalse);
+    });
+
     test('not for settings', () {
       expect(
-        canKeepBoth(c({'id': 'r'}, {'id': 'r'}, type: 'settings')),
+        canKeepBoth(differing, c({'id': 'r'}, {'id': 'r'}, type: 'settings')),
         isFalse,
       );
     });

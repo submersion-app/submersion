@@ -204,15 +204,9 @@ void main() {
       conflictFieldFor('certifications', 'expiryDate').kind,
       FieldKind.date,
     );
-    expect(
-      conflictFieldFor('tripDayWeather', 'date').kind,
-      FieldKind.utcDate,
-    );
+    expect(conflictFieldFor('tripDayWeather', 'date').kind, FieldKind.utcDate);
     expect(conflictFieldFor('itineraryDays', 'date').kind, FieldKind.date);
-    expect(
-      conflictFieldFor('incidents', 'occurredAt').kind,
-      FieldKind.utcDate,
-    );
+    expect(conflictFieldFor('incidents', 'occurredAt').kind, FieldKind.utcDate);
     expect(
       conflictFieldFor('tripCylinderEvents', 'occurredAt').kind,
       FieldKind.wallClock,
