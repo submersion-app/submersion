@@ -429,9 +429,14 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
       // A level from another agency's catalog is reset -- a visible
       // consequence of the user's own switch.
       final level = _levelAt(i);
+      // A custom agency has no built-in rungs. Checked by id as well as by
+      // catalog, because one just created from the dropdown is not in the
+      // catalog until it reloads (issue #690).
+      final customAgency = CertificationAgency.fromId(agency) == null;
       final resetLevel =
           level != null &&
-          !_catalog.levelsFor(agency).any((e) => e.id == level);
+          ((customAgency && CertificationLevel.fromId(level) != null) ||
+              !_catalog.levelsFor(agency).any((e) => e.id == level));
       if (i == 0) {
         _agency = agency;
         if (resetLevel) _level = null;

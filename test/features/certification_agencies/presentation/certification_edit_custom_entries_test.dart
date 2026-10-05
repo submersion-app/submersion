@@ -116,6 +116,24 @@ void main() {
     );
   });
 
+  testWidgets('a quick-created agency clears a built-in level', (tester) async {
+    await pumpEditor(tester);
+    await openAndTap(tester, levelField(), 'Open Water');
+    expect(
+      find.descendant(of: levelField(), matching: find.text('Open Water')),
+      findsOneWidget,
+    );
+    await openAndTap(tester, agencyField(), 'Add custom agency...');
+    await tester.enterText(find.byType(TextField).last, 'Club Z');
+    await tester.tap(find.text('Save').last);
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(of: levelField(), matching: find.text('Open Water')),
+      findsNothing,
+      reason: 'a custom agency has no built-in rungs',
+    );
+  });
+
   testWidgets('Add custom certification creates a ranked rung under PADI', (
     tester,
   ) async {
