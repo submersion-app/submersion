@@ -156,10 +156,10 @@ abstract final class ConnectionsShareRenderer {
     final top = size.height - _captionHeight + 10;
     const markWidth = 110.0;
     final textWidth = size.width - 32 - markWidth;
-    TextPainter text(String s, TextStyle style) => TextPainter(
+    TextPainter text(String s, TextStyle style, {int lines = 1}) => TextPainter(
       text: TextSpan(text: s, style: style),
       textDirection: TextDirection.ltr,
-      maxLines: 1,
+      maxLines: lines,
       ellipsis: '…',
     )..layout(maxWidth: textWidth);
     final title = text(
@@ -178,6 +178,8 @@ abstract final class ConnectionsShareRenderer {
         color: ink.withValues(alpha: 0.75),
         fontFamily: fontFamily,
       ),
+      // Range and counts may need a second line beside the app mark.
+      lines: 2,
     );
     title.paint(canvas, Offset(16, top));
     details.paint(canvas, Offset(16, top + title.height + 2));
