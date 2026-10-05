@@ -151,6 +151,7 @@ void main() {
     WidgetTester tester, {
     void Function(DiveTank)? onChanged,
     Future<void> Function(EquipmentItem)? onOwnCylinderUsed,
+    DiveTank tank = const DiveTank(id: 'tank-1'),
   }) async {
     // Tall enough for the whole open menu: a menu opened on a chosen preset
     // scrolls to it, which would push the cylinders above it out of view.
@@ -183,13 +184,20 @@ void main() {
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: SingleChildScrollView(
-              child: TankEditor(
-                tank: const DiveTank(id: 'tank-1'),
-                tankNumber: 1,
-                onChanged: onChanged ?? (_) {},
-                onOwnCylinderUsed: onOwnCylinderUsed,
+          // Feeds each change back in as the dive edit page does, so the
+          // editor sees the tank it reported.
+          home: StatefulBuilder(
+            builder: (context, setState) => Scaffold(
+              body: SingleChildScrollView(
+                child: TankEditor(
+                  tank: tank,
+                  tankNumber: 1,
+                  onChanged: (t) {
+                    setState(() => tank = t);
+                    onChanged?.call(t);
+                  },
+                  onOwnCylinderUsed: onOwnCylinderUsed,
+                ),
               ),
             ),
           ),
@@ -334,6 +342,46 @@ void main() {
     expect(changed!.presetName, 'al80');
     expect(changed!.volume, closeTo(11.1, 0.01));
     expect(shownPreset(tester), 'AL80');
+  });
+
+  // The tank already uses a preset, so the field falls back to the tank's
+  // own presetName once the chosen cylinder clears the selection.
+  testWidgets('a cylinder matching no preset clears a preset the tank had', (
+    tester,
+  ) async {
+    DiveTank? changed;
+    final l10n = await pump(
+      tester,
+      onChanged: (t) => changed = t,
+      onOwnCylinderUsed: (_) async {},
+      tank: const DiveTank(
+        id: 'tank-1',
+        volume: 11.1,
+        workingPressure: 207,
+        presetName: 'al80',
+      ),
+    );
+    expect(shownPreset(tester), 'AL80');
+
+    await choose(tester, faber.name);
+    expect(changed!.presetName, isNull);
+    expect(shownPreset(tester), l10n.diveLog_tank_selectPreset);
+  });
+
+  // Choosing a cylinder adds it to the dive's gear, which choosing a preset
+  // does not, so a screen reader must tell the two apart.
+  testWidgets('a cylinder entry is announced as one of my cylinders', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    final l10n = await pump(tester, onOwnCylinderUsed: (_) async {});
+    await openDropdown(tester);
+
+    expect(
+      find.bySemanticsLabel(RegExp(l10n.diveLog_tank_ownCylinderTitle)),
+      findsWidgets,
+    );
+    handle.dispose();
   });
 
   testWidgets('a failing gear add is reported, not left unhandled', (

@@ -97,6 +97,10 @@ class _TankPresetDropdownState extends ConsumerState<TankPresetDropdown> {
             child: _IconLabel(
               key: Key('tank-preset-cylinder-${cylinder.id}'),
               icon: Icons.inventory_2_outlined,
+              // Choosing a cylinder also adds it to the dive's gear, so a
+              // screen reader must tell it apart from a preset of the same
+              // name.
+              iconSemanticLabel: context.l10n.diveLog_tank_ownCylinderTitle,
               label: cylinder.name,
             ),
           ),
@@ -169,13 +173,25 @@ class _IconLabel extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  const _IconLabel({super.key, required this.icon, required this.label});
+  /// What the icon says to a screen reader; null leaves it unread.
+  final String? iconSemanticLabel;
+
+  const _IconLabel({
+    super.key,
+    required this.icon,
+    required this.label,
+    this.iconSemanticLabel,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final semanticLabel = iconSemanticLabel;
     return Row(
       children: [
-        ExcludeSemantics(child: Icon(icon, size: 16)),
+        if (semanticLabel == null)
+          ExcludeSemantics(child: Icon(icon, size: 16))
+        else
+          Icon(icon, size: 16, semanticLabel: semanticLabel),
         const SizedBox(width: 8),
         Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
       ],
