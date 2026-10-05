@@ -498,7 +498,7 @@ class ProfileLegend extends _$ProfileLegend {
   }
 
   /// Flip the overlay scaling mode for this chart session only, leaving the
-  /// device-local default untouched.
+  /// saved default untouched.
   void toggleMetricsFollowViewport() {
     state = state.copyWith(metricsFollowViewport: !state.metricsFollowViewport);
   }
