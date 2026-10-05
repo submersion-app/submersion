@@ -4090,6 +4090,7 @@
   "equipment_locations_delete": "מחיקה",
   "equipment_locations_itemsHere": "פריטים כאן",
   "equipment_locations_noItemsHere": "אין כאן כלום כרגע.",
+  "equipment_locations_moveItems": "העברת הפריטים שכאן",
   "equipment_locations_newTitle": "מקום חדש",
   "equipment_locations_editTitle": "עריכת מקום",
   "equipment_locations_nameLabel": "שם",

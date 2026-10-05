@@ -14500,6 +14500,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_locations_noItemsHere => 'No hay nada aquí ahora mismo.';
 
   @override
+  String get equipment_locations_moveItems => 'Mover los elementos de aquí';
+
+  @override
   String get equipment_locations_newTitle => 'Nuevo lugar';
 
   @override

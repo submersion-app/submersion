@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_l
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_location_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_edit_dialog.dart';
+import 'package:submersion/features/equipment/presentation/widgets/move_equipment_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Whether any move names the place, so Delete is offered only for a place
@@ -63,6 +64,16 @@ class EquipmentLocationDetailPage extends ConsumerWidget {
       appBar: AppBar(
         title: Text(place.name),
         actions: [
+          // Bring everything here home (or on) in one go: the move flow's
+          // parts and status prompts apply as from the equipment list.
+          if (items.isNotEmpty)
+            IconButton(
+              key: const ValueKey('equipment_location_move_items'),
+              icon: const Icon(Icons.move_down),
+              tooltip: l10n.equipment_locations_moveItems,
+              onPressed: () =>
+                  showMoveEquipmentFlow(context, ref, items: items),
+            ),
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: l10n.equipment_locations_editTitle,

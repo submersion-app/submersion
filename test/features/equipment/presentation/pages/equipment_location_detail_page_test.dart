@@ -6,7 +6,9 @@ import 'package:submersion/features/equipment/domain/entities/equipment_location
 import 'package:submersion/features/equipment/presentation/pages/equipment_location_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
 void main() {
@@ -31,6 +33,10 @@ void main() {
       testApp(
         locale: const Locale('en'),
         overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          equipmentLocationsProvider.overrideWith(
+            (ref) async => [shop, garage],
+          ),
           allEquipmentLocationsByIdProvider.overrideWith(
             (ref) async => {'s': shop, 'g': garage},
           ),
@@ -72,6 +78,16 @@ void main() {
     expect(find.text('Primary reg'), findsOneWidget);
     expect(find.text('Wing'), findsNothing);
     expect(find.text('Old reg'), findsNothing);
+  });
+
+  testWidgets('the gear here can be moved from the place page', (tester) async {
+    await pump(tester, inUse: true);
+    await tester.tap(
+      find.byKey(const ValueKey('equipment_location_move_items')),
+    );
+    await tester.pumpAndSettle();
+    // The move sheet opens for the one item here (sold gear left out).
+    expect(find.text('Move 1 item'), findsOneWidget);
   });
 
   testWidgets('a place in use offers Archive but not Delete', (tester) async {

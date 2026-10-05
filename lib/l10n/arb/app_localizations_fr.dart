@@ -14542,6 +14542,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_locations_noItemsHere => 'Rien ici pour le moment.';
 
   @override
+  String get equipment_locations_moveItems => 'Déplacer les éléments présents';
+
+  @override
   String get equipment_locations_newTitle => 'Nouveau lieu';
 
   @override

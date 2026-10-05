@@ -4293,6 +4293,7 @@
   "equipment_locations_delete": "Löschen",
   "equipment_locations_itemsHere": "Hier vorhanden",
   "equipment_locations_noItemsHere": "Hier ist gerade nichts.",
+  "equipment_locations_moveItems": "Teile von hier verschieben",
   "equipment_locations_newTitle": "Neuer Ort",
   "equipment_locations_editTitle": "Ort bearbeiten",
   "equipment_locations_nameLabel": "Name",

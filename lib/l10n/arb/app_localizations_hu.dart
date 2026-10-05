@@ -14461,6 +14461,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_locations_noItemsHere => 'Jelenleg nincs itt semmi.';
 
   @override
+  String get equipment_locations_moveItems => 'Az itt lévő elemek áthelyezése';
+
+  @override
   String get equipment_locations_newTitle => 'Új hely';
 
   @override

@@ -4191,6 +4191,7 @@
   "equipment_locations_delete": "Eliminar",
   "equipment_locations_itemsHere": "Elementos aquí",
   "equipment_locations_noItemsHere": "No hay nada aquí ahora mismo.",
+  "equipment_locations_moveItems": "Mover los elementos de aquí",
   "equipment_locations_newTitle": "Nuevo lugar",
   "equipment_locations_editTitle": "Editar lugar",
   "equipment_locations_nameLabel": "Nombre",

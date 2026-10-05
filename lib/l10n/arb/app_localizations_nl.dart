@@ -14406,6 +14406,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_locations_noItemsHere => 'Er is hier nu niets.';
 
   @override
+  String get equipment_locations_moveItems => 'Items hier verplaatsen';
+
+  @override
   String get equipment_locations_newTitle => 'Nieuwe plek';
 
   @override

@@ -14202,6 +14202,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_locations_noItemsHere => 'אין כאן כלום כרגע.';
 
   @override
+  String get equipment_locations_moveItems => 'העברת הפריטים שכאן';
+
+  @override
   String get equipment_locations_newTitle => 'מקום חדש';
 
   @override

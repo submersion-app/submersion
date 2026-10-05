@@ -4318,6 +4318,7 @@
   "equipment_locations_delete": "删除",
   "equipment_locations_itemsHere": "此处物品",
   "equipment_locations_noItemsHere": "目前这里没有物品。",
+  "equipment_locations_moveItems": "移动此处的物品",
   "equipment_locations_newTitle": "新地点",
   "equipment_locations_editTitle": "编辑地点",
   "equipment_locations_nameLabel": "名称",

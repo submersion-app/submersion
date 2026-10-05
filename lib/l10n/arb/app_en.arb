@@ -8424,6 +8424,8 @@
   "@equipment_locations_itemsHere": {"description": "Heading of the list of items currently at a place"},
   "equipment_locations_noItemsHere": "Nothing is here right now.",
   "@equipment_locations_noItemsHere": {"description": "Shown when no item is currently at a place"},
+  "equipment_locations_moveItems": "Move the items here",
+  "@equipment_locations_moveItems": {"description": "Tooltip of the action on a place's page that moves every item currently there"},
   "equipment_locations_newTitle": "New place",
   "@equipment_locations_newTitle": {"description": "Title of the dialog creating a place where gear is kept"},
   "equipment_locations_editTitle": "Edit place",

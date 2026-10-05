@@ -4191,6 +4191,7 @@
   "equipment_locations_delete": "Verwijderen",
   "equipment_locations_itemsHere": "Items hier",
   "equipment_locations_noItemsHere": "Er is hier nu niets.",
+  "equipment_locations_moveItems": "Items hier verplaatsen",
   "equipment_locations_newTitle": "Nieuwe plek",
   "equipment_locations_editTitle": "Plek bewerken",
   "equipment_locations_nameLabel": "Naam",

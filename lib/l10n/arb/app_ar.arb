@@ -4191,6 +4191,7 @@
   "equipment_locations_delete": "حذف",
   "equipment_locations_itemsHere": "العناصر هنا",
   "equipment_locations_noItemsHere": "لا يوجد شيء هنا حاليًا.",
+  "equipment_locations_moveItems": "نقل العناصر الموجودة هنا",
   "equipment_locations_newTitle": "مكان جديد",
   "equipment_locations_editTitle": "تعديل المكان",
   "equipment_locations_nameLabel": "الاسم",

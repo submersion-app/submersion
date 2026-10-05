@@ -14699,6 +14699,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_locations_noItemsHere => 'لا يوجد شيء هنا حاليًا.';
 
   @override
+  String get equipment_locations_moveItems => 'نقل العناصر الموجودة هنا';
+
+  @override
   String get equipment_locations_newTitle => 'مكان جديد';
 
   @override

@@ -4090,6 +4090,7 @@
   "equipment_locations_delete": "Törlés",
   "equipment_locations_itemsHere": "Itt lévő elemek",
   "equipment_locations_noItemsHere": "Jelenleg nincs itt semmi.",
+  "equipment_locations_moveItems": "Az itt lévő elemek áthelyezése",
   "equipment_locations_newTitle": "Új hely",
   "equipment_locations_editTitle": "Hely szerkesztése",
   "equipment_locations_nameLabel": "Név",

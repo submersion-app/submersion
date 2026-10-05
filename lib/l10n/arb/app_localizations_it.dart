@@ -14505,6 +14505,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Qui non c\'è niente al momento.';
 
   @override
+  String get equipment_locations_moveItems => 'Sposta gli elementi qui';
+
+  @override
   String get equipment_locations_newTitle => 'Nuovo luogo';
 
   @override

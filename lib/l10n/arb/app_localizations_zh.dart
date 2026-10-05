@@ -13850,6 +13850,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_locations_noItemsHere => '目前这里没有物品。';
 
   @override
+  String get equipment_locations_moveItems => '移动此处的物品';
+
+  @override
   String get equipment_locations_newTitle => '新地点';
 
   @override

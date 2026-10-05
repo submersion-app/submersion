@@ -4090,6 +4090,7 @@
   "equipment_locations_delete": "Elimina",
   "equipment_locations_itemsHere": "Elementi qui",
   "equipment_locations_noItemsHere": "Qui non c'è niente al momento.",
+  "equipment_locations_moveItems": "Sposta gli elementi qui",
   "equipment_locations_newTitle": "Nuovo luogo",
   "equipment_locations_editTitle": "Modifica luogo",
   "equipment_locations_nameLabel": "Nome",

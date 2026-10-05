@@ -23489,6 +23489,12 @@ abstract class AppLocalizations {
   /// **'Nothing is here right now.'**
   String get equipment_locations_noItemsHere;
 
+  /// Tooltip of the action on a place's page that moves every item currently there
+  ///
+  /// In en, this message translates to:
+  /// **'Move the items here'**
+  String get equipment_locations_moveItems;
+
   /// Title of the dialog creating a place where gear is kept
   ///
   /// In en, this message translates to:
