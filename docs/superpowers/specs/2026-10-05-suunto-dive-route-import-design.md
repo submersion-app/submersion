@@ -148,26 +148,10 @@ pending and notifies the sync bus.
 
 ### 5. Display
 
-`spatialReckonedPathProvider` already prefers the primary route through
-`NavTrackPathAdapter`, so the provenance chip shows a recorded route instead
-of "Estimated path". The dive detail Route section lists the route with the
-existing "Suunto" source label.
-
-Framing (follow-up from the reporter's test of the draft PR): the dive's 3D
-scene is framed on the bathymetry tile (about 8 km), so a route of about
-80 m was a dot at the default zoom. A dive whose path is a measured route
-now opens framed on that route:
-
-- `SceneFocus` is the route's padded scene-space box, built only for a
-  measured path (`SceneFocus.forRoute`).
-- `Dive3dInteractiveViewport` takes an optional `focus`. It fits the camera
-  to it on first layout, on double-tap reset and on a pose change
-  (`fitSceneFocus`: the zoom that fills the canvas, panned to centre). It
-  raises the zoom ceiling as far as the fit needs. Zooming out still
-  reaches the whole tile.
-- Both dive views pass it: the site-seascape dive overlay
-  (`SiteTerrainPane` with a `DivePlaybackContext`) and the standalone dive
-  scene. The site view and the route view keep the whole-tile framing.
+No renderer changes. `spatialReckonedPathProvider` already prefers the
+primary route through `NavTrackPathAdapter`, so the provenance chip shows a
+recorded route instead of "Estimated path". The dive detail Route section
+lists the route with the existing "Suunto" source label.
 
 ## Testing
 

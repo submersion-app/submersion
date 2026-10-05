@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -9,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/axis_frame.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
-import 'package:submersion/features/dive_3d/domain/geometry/scene_focus.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/contour_builder.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_grid.dart';
@@ -17,7 +15,6 @@ import 'package:submersion/features/dive_3d/presentation/renderer/axis_labels.da
 import 'package:submersion/features/dive_3d/presentation/renderer/camera_pose.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/preview_painter.dart';
-import 'package:submersion/features/dive_3d/presentation/renderer/scene_focus_fit.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/scene_projector.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/scrub_cursor.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/tissue_chrome_painters.dart';
@@ -92,14 +89,6 @@ class Dive3dInteractiveViewport extends StatefulWidget {
   /// intermediate `_zoom` change.
   final ValueChanged<double>? onZoomSettled;
 
-  /// The part of the scene the camera frames by default, instead of the
-  /// whole scene box: the dive views pass a measured route's extent, which
-  /// is tens of metres inside a terrain tile kilometres wide (issue #1445).
-  /// The view opens on it, double tap and the pose presets return to it,
-  /// and zooming in may go as far past the usual limit as the fit needs.
-  /// Zooming out still reaches the whole scene.
-  final SceneFocus? focus;
-
   const Dive3dInteractiveViewport({
     super.key,
     required this.scene,
@@ -120,7 +109,6 @@ class Dive3dInteractiveViewport extends StatefulWidget {
     this.terrainImagery,
     this.imageryWhiteTexel,
     this.onZoomSettled,
-    this.focus,
   });
 
   @override
@@ -153,13 +141,6 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
   // the LayoutBuilder constraints) can re-project the hover pick.
   Size? _lastLayoutSize;
 
-  // Set whenever the camera returns to its default framing while a focus is
-  // given: the fit needs the laid-out size, so build performs it.
-  bool _focusFitPending = false;
-
-  // The zoom ceiling: the usual limit, raised while a focus fit needs more.
-  double _zoomCeiling = _maxZoom;
-
   /// Snaps the camera to the pose the current mode calls for: the chart
   /// plan view, or the default orbit view.
   void _applyPose() {
@@ -172,30 +153,6 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
     }
     _zoom = 1.0;
     _pan = Offset.zero;
-    _zoomCeiling = _maxZoom;
-    _focusFitPending = widget.focus != null;
-  }
-
-  /// Frames [Dive3dInteractiveViewport.focus] at the current camera angle.
-  /// Runs inside build (it needs the laid-out size), so it assigns the
-  /// camera fields directly and reports the new zoom after the frame.
-  void _fitFocus(Size size) {
-    final focus = widget.focus;
-    _focusFitPending = false;
-    if (focus == null || size.isEmpty) return;
-    final fit = fitSceneFocus(
-      size: size,
-      bounds: widget.scene.bounds,
-      yawDegrees: _yaw,
-      pitchDegrees: _pitch,
-      focus: focus,
-    );
-    _zoom = fit.zoom;
-    _pan = fit.pan;
-    _zoomCeiling = math.max(_maxZoom, fit.zoom * 4);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _scheduleZoomSettled();
-    });
   }
 
   void _selectPose(CameraPose pose) {
@@ -236,10 +193,6 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
       setState(_applyPose);
       _scheduleZoomSettled();
       _refreshHoverAfterCameraChange();
-    } else if (old.focus != widget.focus) {
-      // The route arrives after the scene (or is toggled off): reframe.
-      setState(_applyPose);
-      _scheduleZoomSettled();
     }
   }
 
@@ -272,7 +225,7 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
     setState(() {
       _setZoomAnchored(
         size,
-        (_scaleGestureBaseZoom * details.scale).clamp(_minZoom, _zoomCeiling),
+        (_scaleGestureBaseZoom * details.scale).clamp(_minZoom, _maxZoom),
         focalPoint: details.localFocalPoint,
         focalDelta: delta,
       );
@@ -305,7 +258,7 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
 
   void _zoomBy(double factor) {
     setState(() {
-      _zoom = (_zoom * factor).clamp(_minZoom, _zoomCeiling);
+      _zoom = (_zoom * factor).clamp(_minZoom, _maxZoom);
     });
     _scheduleZoomSettled();
     _refreshHoverAfterCameraChange();
@@ -320,7 +273,7 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
   void _onPanZoomUpdate(PointerPanZoomUpdateEvent event) {
     setState(() {
       _pan += event.panDelta;
-      _zoom = (_panZoomBaseZoom * event.scale).clamp(_minZoom, _zoomCeiling);
+      _zoom = (_panZoomBaseZoom * event.scale).clamp(_minZoom, _maxZoom);
     });
     _scheduleZoomSettled();
     _refreshHoverAfterCameraChange();
@@ -425,7 +378,6 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
       builder: (context, constraints) {
         final size = constraints.biggest;
         _lastLayoutSize = size;
-        if (_focusFitPending) _fitFocus(size);
         // Without a frame there is nothing to draw: a seascape whose axes are
         // not ready yet (or a synthesized fallback) degrades to no chrome.
         final mode = widget.axisFrame == null || widget.chromeStyle == null
