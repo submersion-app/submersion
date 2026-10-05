@@ -987,20 +987,20 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _weatherDescriptionController.text = dive.weatherDescription ?? '';
 
           // Load weight entries (weights already stored in kg, conversion happens in display)
-          _weights = List.from(dive.weights);
           // Migrate legacy single weight to weights list if needed
-          if (_weights.isEmpty &&
-              dive.weightAmount != null &&
-              dive.weightAmount! > 0) {
-            _weights.add(
-              DiveWeight(
-                id: _uuid.v4(),
-                diveId: dive.id,
-                weightType: dive.weightType ?? WeightType.belt,
-                amountKg: dive.weightAmount!,
-              ),
-            );
-          }
+          _weights =
+              dive.weights.isEmpty &&
+                  dive.weightAmount != null &&
+                  dive.weightAmount! > 0
+              ? [
+                  DiveWeight(
+                    id: _uuid.v4(),
+                    diveId: dive.id,
+                    weightType: dive.weightType ?? WeightType.belt,
+                    amountKg: dive.weightAmount!,
+                  ),
+                ]
+              : List.of(dive.weights);
 
           // Load weighting feedback
           _weightingFeedback = dive.weightingFeedback;
@@ -5127,14 +5127,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           onTap: () {
             setState(() {
               _markDirty();
-              _weights.add(
+              _weights = [
+                ..._weights,
                 DiveWeight(
                   id: _uuid.v4(),
                   diveId: widget.diveId ?? '',
                   weightType: WeightType.integrated,
                   amountKg: 0,
                 ),
-              );
+              ];
             });
           },
         ),

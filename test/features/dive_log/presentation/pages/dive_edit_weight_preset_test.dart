@@ -174,4 +174,50 @@ void main() {
 
     expect(find.text('Total: 6.0 kg'), findsOneWidget);
   });
+
+  testWidgets('a dive with only the legacy weight opens as one editable row', (
+    tester,
+  ) async {
+    final dive = await dives.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime(2026, 3, 2, 10),
+        weightAmount: 5.0,
+        weightType: WeightType.ankleWeights,
+      ),
+    );
+    await pumpEditor(tester, dive.id);
+
+    expect(find.widgetWithText(TextFormField, '5'), findsOneWidget);
+    expect(find.text('Ankle Weights'), findsOneWidget);
+    expect(find.text('Total: 5.0 kg'), findsOneWidget);
+  });
+
+  testWidgets('Add Weight Entry appends a row after the existing ones', (
+    tester,
+  ) async {
+    final dive = await dives.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime(2026, 3, 3, 10),
+        weights: const [
+          DiveWeight(
+            id: 'w1',
+            diveId: '',
+            weightType: WeightType.belt,
+            amountKg: 4.0,
+          ),
+        ],
+      ),
+    );
+    await pumpEditor(tester, dive.id);
+    final add = find.text('Add Weight Entry');
+    await tester.ensureVisible(add);
+    await tester.tap(add);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Weight Belt'), findsOneWidget);
+    expect(find.text('Integrated Weights'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, '4'), findsOneWidget);
+  });
 }
