@@ -9,7 +9,6 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_template_display.dart';
 import 'package:submersion/core/constants/gas_templates.dart';
-import 'package:submersion/core/constants/tank_preset_display.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/number_display.dart';
@@ -23,11 +22,11 @@ import 'package:submersion/features/cylinder_passports/presentation/utils/scan_c
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
-import 'package:submersion/features/tank_presets/domain/services/tank_preset_visibility.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/own_cylinder_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_preset_dropdown.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/import_tag_fill.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -577,88 +576,26 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   }
 
   Widget _buildPresetAndRoleRow(UnitFormatter units) {
-    final presetsAsync = ref.watch(tankPresetsProvider);
-
     return Row(
       children: [
-        // Tank preset dropdown
         Expanded(
-          child: presetsAsync.when(
-            // A reload (a synced settings change, a preset edit) keeps the
-            // dropdown in place instead of swapping it for a progress bar.
-            skipLoadingOnReload: true,
-            loading: () => const LinearProgressIndicator(),
-            error: (e, st) => Text('Error: $e'),
-            data: (visiblePresets) {
-              final presetName =
-                  _selectedPreset?.name ?? widget.tank.presetName;
-              // A tank logged with a preset the diver has since hidden keeps
-              // showing it (issue #2305).
-              final presets = withKeptTankPresets(visiblePresets, [presetName]);
-              final customPresets = presets.where((p) => !p.isBuiltIn).toList();
-              final builtInPresets = presets.where((p) => p.isBuiltIn).toList();
-
-              // Find the matching preset from the loaded list to ensure object equality
-              // This is necessary because DropdownButtonFormField requires the value
-              // to be the exact same instance as one of the items
-              final matchingPreset = presetName != null
-                  ? presets.where((p) => p.name == presetName).firstOrNull
-                  : null;
-
-              return DropdownButtonFormField<TankPresetEntity?>(
-                key: ValueKey(matchingPreset?.id ?? 'no-preset'),
-                initialValue: matchingPreset,
-                // Each dropdown here is one Expanded of a shared Row, so it is
-                // narrow. Without this a long label (a custom preset name,
-                // "Carbon Fiber") overflows instead of ellipsizing.
-                isExpanded: true,
-                decoration: InputDecoration(
-                  labelText: context.l10n.diveLog_tank_label_tankPreset,
-                  isDense: true,
-                ),
-                items: [
-                  DropdownMenuItem<TankPresetEntity?>(
-                    value: null,
-                    child: Text(context.l10n.diveLog_tank_selectPreset),
-                  ),
-                  // Custom presets first (shown with a star icon)
-                  ...customPresets.map(
-                    (preset) => DropdownMenuItem(
-                      value: preset,
-                      child: Row(
-                        children: [
-                          const ExcludeSemantics(
-                            child: Icon(Icons.star, size: 16),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(preset.displayName),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Built-in presets. Their stored displayName is the stable
-                  // English identifier that exports and sync carry, so the
-                  // localized label is resolved here at render time.
-                  ...builtInPresets.map(
-                    (preset) => DropdownMenuItem(
-                      value: preset,
-                      child: Text(
-                        builtInTankPresetName(context.l10n, preset.name) ??
-                            preset.displayName,
-                      ),
-                    ),
-                  ),
-                ],
-                onChanged: (preset) {
-                  if (preset != null) {
-                    _applyPreset(preset);
-                  } else {
-                    setState(() => _selectedPreset = null);
-                    _notifyChange();
-                  }
-                },
-              );
+          child: TankPresetDropdown(
+            key: const Key('tank-preset-dropdown'),
+            presetName: _selectedPreset?.name ?? widget.tank.presetName,
+            // Like the "My cylinders" button, only where the host records
+            // the cylinder as dive gear too.
+            cylinders: widget.onOwnCylinderUsed == null
+                ? const []
+                : _ownCylinders(),
+            onPresetChanged: (preset) {
+              if (preset != null) {
+                _applyPreset(preset);
+              } else {
+                setState(() => _selectedPreset = null);
+                _notifyChange();
+              }
             },
+            onCylinderChosen: _chooseOwnCylinder,
           ),
         ),
         const SizedBox(width: 16),
@@ -1186,10 +1123,16 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   );
 
   Future<void> _pickOwnCylinder() async {
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
     final item = await showOwnCylinderPicker(context);
     if (item == null || !mounted) return;
+    await _chooseOwnCylinder(item);
+  }
+
+  /// Fills the tank from [item], picked from "My cylinders" or chosen in the
+  /// preset dropdown (issue #163).
+  Future<void> _chooseOwnCylinder(EquipmentItem item) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     // Like a scan, the cylinder reaches the dive's gear through database
     // work Save must wait for.
     final use = _fillFromOwnCylinder(item, messenger, l10n);

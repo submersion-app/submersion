@@ -72,11 +72,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final dropdown = tester.widget<DropdownButton<TankPresetEntity?>>(
-        find.byType(DropdownButton<TankPresetEntity?>),
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('tank-preset-dropdown')),
+          matching: find.text('HP80'),
+        ),
+        findsOneWidget,
       );
-      expect(dropdown.value?.name, 'hp80');
-      expect(find.text('HP80'), findsOneWidget);
     });
 
     testWidgets('renders pressure values in metric (bar)', (tester) async {
@@ -808,9 +810,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Open the preset dropdown and select AL80
-      final presetDropdown = find.byType(
-        DropdownButtonFormField<TankPresetEntity?>,
-      );
+      final presetDropdown = find.byKey(const Key('tank-preset-dropdown'));
       expect(presetDropdown, findsOneWidget);
       await tester.tap(presetDropdown);
       await tester.pumpAndSettle();
