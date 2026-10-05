@@ -30,6 +30,7 @@ import 'package:submersion/features/dive_log/domain/services/profile_event_mappe
 import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/otu_window_totals.dart';
 
 /// Reports which data source was actually used for each metric in the current profile.
 /// Updated as a side-effect of profileAnalysisProvider.
@@ -1693,10 +1694,13 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
   }
 }
 
-/// Computes cumulative OTU from earlier dives on the same calendar day.
+/// Computes cumulative OTU accrued earlier on the same calendar day, before
+/// this dive started.
 ///
-/// Non-recursive: queries all dives on the same day, gets each dive's
-/// profile analysis, and sums their per-dive OTU values.
+/// Non-recursive: queries the dives around that day, gets each earlier
+/// dive's profile analysis, and sums the OTU it accrued between midnight and
+/// this dive's start. A dive that began the evening before and crossed
+/// midnight contributes only its post-midnight part (see [sumOtuInWindow]).
 ///
 /// Returns 0.0 if no earlier dives exist on the same day.
 Future<double> _computeResidualOtu(Ref ref, String diveId) async {
@@ -1715,29 +1719,23 @@ Future<double> _computeResidualOtu(Ref ref, String diveId) async {
     );
     final endOfDay = startOfDay.add(const Duration(days: 1));
 
-    // Get all dives on the same day
-    final sameDayDives = await repository.getDiveTimesInRange(
-      startOfDay,
+    final nearbyDives = await repository.getDiveTimesInRange(
+      startOfDay.subtract(otuWindowLookback),
       endOfDay,
     );
 
-    // Sum OTU from dives that occurred BEFORE this one
-    double totalOtu = 0.0;
-    for (final dive in sameDayDives) {
-      if (dive.id == diveId) continue;
-      final diveTime = dive.entryTime ?? dive.dateTime;
-      if (diveTime.isBefore(diveDate)) {
-        // Read (not watch) to avoid cascading Riverpod invalidations.
-        final analysis = await ref.read(
-          profileAnalysisProvider(dive.id).future,
-        );
-        if (analysis != null) {
-          totalOtu += analysis.o2Exposure.otu;
-        }
-      }
-    }
-
-    return totalOtu;
+    // Only dives that began BEFORE this one count toward its residual.
+    return await sumOtuInWindow(
+      dives: nearbyDives.where(
+        (dive) =>
+            dive.id != diveId &&
+            (dive.entryTime ?? dive.dateTime).isBefore(diveDate),
+      ),
+      from: startOfDay,
+      to: diveDate,
+      // Read (not watch) to avoid cascading Riverpod invalidations.
+      analysisOf: (id) => ref.read(profileAnalysisProvider(id).future),
+    );
   } catch (e, stackTrace) {
     _log.error(
       'Failed to calculate residual OTU for: $diveId',
@@ -1822,32 +1820,35 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
     final sevenDaysAgo = endOfDay.subtract(const Duration(days: 7));
 
     final weekDives = await repository.getDiveTimesInRange(
-      sevenDaysAgo,
+      sevenDaysAgo.subtract(otuWindowLookback),
       endOfDay,
     );
 
-    double totalOtu = 0.0;
-    for (final dive in weekDives) {
-      // Count the current dive and any dive that occurred at or before it, but
-      // skip dives logged LATER than the current dive. The query window spans
-      // the current dive's whole calendar day, so without this guard a later
-      // same-day dive would inflate the rolling total -- and the card derives
-      // "Prior" as (weekly - thisDive), wrongly attributing the future dive's
-      // OTU to this dive's prior exposure (issue #407). Mirrors the same-day
-      // ordering discipline in [_computeResidualOtu].
-      final diveTime = dive.entryTime ?? dive.dateTime;
-      if (dive.id != diveId && diveTime.isAfter(diveDate)) continue;
+    // Count the current dive and any dive that occurred at or before it, but
+    // skip dives logged LATER than the current dive. The query window spans
+    // the current dive's whole calendar day, so without this guard a later
+    // same-day dive would inflate the rolling total -- and the card derives
+    // "Prior" as (weekly - thisDive), wrongly attributing the future dive's
+    // OTU to this dive's prior exposure (issue #407). Mirrors the same-day
+    // ordering discipline in [_computeResidualOtu].
+    final counted = weekDives.where(
+      (dive) =>
+          dive.id == diveId ||
+          !(dive.entryTime ?? dive.dateTime).isAfter(diveDate),
+    );
 
+    // The window closes at the end of the dive's day, or at the dive's own
+    // end if it crossed midnight, so the dive always counts in full here.
+    final currentEnd = currentDive.effectiveExitTime;
+    return await sumOtuInWindow(
+      dives: counted,
+      from: sevenDaysAgo,
+      to: currentEnd.isAfter(endOfDay) ? currentEnd : endOfDay,
       // Read (not watch) to avoid cascading Riverpod invalidations.
       // Each profileAnalysisProvider independently watches settings,
       // so ref.read is sufficient for aggregation.
-      final analysis = await ref.read(profileAnalysisProvider(dive.id).future);
-      if (analysis != null) {
-        totalOtu += analysis.o2Exposure.otu;
-      }
-    }
-
-    return totalOtu;
+      analysisOf: (id) => ref.read(profileAnalysisProvider(id).future),
+    );
   } catch (e, stackTrace) {
     _log.error(
       'Failed to calculate weekly OTU for: $diveId',
