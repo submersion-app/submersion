@@ -7221,6 +7221,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_clearWeekdays => 'Hét napjai törlése';
 
   @override
+  String get diveLog_filter_clearSite => 'Merülőhely-szűrő törlése';
+
+  @override
   String get diveLog_filter_dateSeparator => '–';
 
   @override
@@ -10620,6 +10623,32 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_list_sort_title => 'Helyszínek rendezése';
+
+  @override
+  String get diveSites_group_noCountry => 'Nincs ország';
+
+  @override
+  String diveSites_group_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülőhely',
+      one: '1 merülőhely',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveSites_picker_nearby => 'A közelben';
+
+  @override
+  String get diveSites_list_groupBy => 'Csoportosítás';
+
+  @override
+  String get diveSites_list_groupBy_location => 'Ország és régió';
+
+  @override
+  String get diveSites_list_groupBy_none => 'Nincs';
 
   @override
   String diveSites_list_tile_diveCount(int count) {

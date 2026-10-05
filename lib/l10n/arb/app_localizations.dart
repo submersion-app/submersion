@@ -11467,6 +11467,12 @@ abstract class AppLocalizations {
   /// **'Clear weekdays'**
   String get diveLog_filter_clearWeekdays;
 
+  /// No description provided for @diveLog_filter_clearSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear site filter'**
+  String get diveLog_filter_clearSite;
+
   /// No description provided for @diveLog_filter_dateSeparator.
   ///
   /// In en, this message translates to:
@@ -17079,6 +17085,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sort Sites'**
   String get diveSites_list_sort_title;
+
+  /// No description provided for @diveSites_group_noCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'No country'**
+  String get diveSites_group_noCountry;
+
+  /// No description provided for @diveSites_group_siteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 site} other{{count} sites}}'**
+  String diveSites_group_siteCount(int count);
+
+  /// No description provided for @diveSites_picker_nearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby'**
+  String get diveSites_picker_nearby;
+
+  /// No description provided for @diveSites_list_groupBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Group by'**
+  String get diveSites_list_groupBy;
+
+  /// No description provided for @diveSites_list_groupBy_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Country & region'**
+  String get diveSites_list_groupBy_location;
+
+  /// No description provided for @diveSites_list_groupBy_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get diveSites_list_groupBy_none;
 
   /// No description provided for @diveSites_list_tile_diveCount.
   ///

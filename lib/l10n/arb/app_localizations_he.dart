@@ -7070,6 +7070,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_clearWeekdays => 'ניקוי ימי השבוע';
 
   @override
+  String get diveLog_filter_clearSite => 'נקה מסנן אתר';
+
+  @override
   String get diveLog_filter_dateSeparator => 'עד';
 
   @override
@@ -10401,6 +10404,32 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_list_sort_title => 'מיין אתרים';
+
+  @override
+  String get diveSites_group_noCountry => 'ללא מדינה';
+
+  @override
+  String diveSites_group_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אתרים',
+      one: 'אתר אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveSites_picker_nearby => 'בקרבת מקום';
+
+  @override
+  String get diveSites_list_groupBy => 'קיבוץ לפי';
+
+  @override
+  String get diveSites_list_groupBy_location => 'מדינה ואזור';
+
+  @override
+  String get diveSites_list_groupBy_none => 'ללא';
 
   @override
   String diveSites_list_tile_diveCount(int count) {

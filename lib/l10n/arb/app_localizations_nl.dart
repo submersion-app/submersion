@@ -7187,6 +7187,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_clearWeekdays => 'Weekdagen wissen';
 
   @override
+  String get diveLog_filter_clearSite => 'Stekfilter wissen';
+
+  @override
   String get diveLog_filter_dateSeparator => 'tot';
 
   @override
@@ -10564,6 +10567,32 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_list_sort_title => 'Stekken sorteren';
+
+  @override
+  String get diveSites_group_noCountry => 'Geen land';
+
+  @override
+  String diveSites_group_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stekken',
+      one: '1 stek',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveSites_picker_nearby => 'In de buurt';
+
+  @override
+  String get diveSites_list_groupBy => 'Groeperen op';
+
+  @override
+  String get diveSites_list_groupBy_location => 'Land en regio';
+
+  @override
+  String get diveSites_list_groupBy_none => 'Geen';
 
   @override
   String diveSites_list_tile_diveCount(int count) {

@@ -7236,6 +7236,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_filter_clearWeekdays => 'Borrar días de la semana';
 
   @override
+  String get diveLog_filter_clearSite => 'Borrar filtro de punto';
+
+  @override
   String get diveLog_filter_dateSeparator => 'hasta';
 
   @override
@@ -10641,6 +10644,32 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveSites_list_sort_title => 'Ordenar sitios';
+
+  @override
+  String get diveSites_group_noCountry => 'Sin país';
+
+  @override
+  String diveSites_group_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count puntos',
+      one: '1 punto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveSites_picker_nearby => 'Cerca';
+
+  @override
+  String get diveSites_list_groupBy => 'Agrupar por';
+
+  @override
+  String get diveSites_list_groupBy_location => 'País y región';
+
+  @override
+  String get diveSites_list_groupBy_none => 'Ninguno';
 
   @override
   String diveSites_list_tile_diveCount(int count) {

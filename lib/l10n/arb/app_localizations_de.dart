@@ -7233,6 +7233,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_filter_clearWeekdays => 'Wochentage zurücksetzen';
 
   @override
+  String get diveLog_filter_clearSite => 'Tauchplatzfilter löschen';
+
+  @override
   String get diveLog_filter_dateSeparator => 'bis';
 
   @override
@@ -10639,6 +10642,32 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_list_sort_title => 'Tauchplätze sortieren';
+
+  @override
+  String get diveSites_group_noCountry => 'Kein Land';
+
+  @override
+  String diveSites_group_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchplätze',
+      one: '1 Tauchplatz',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveSites_picker_nearby => 'In der Nähe';
+
+  @override
+  String get diveSites_list_groupBy => 'Gruppieren nach';
+
+  @override
+  String get diveSites_list_groupBy_location => 'Land und Region';
+
+  @override
+  String get diveSites_list_groupBy_none => 'Keine';
 
   @override
   String diveSites_list_tile_diveCount(int count) {

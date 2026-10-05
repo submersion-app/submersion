@@ -4132,6 +4132,7 @@
   "diveLog_filter_clearDates": "Clear dates",
   "diveLog_filter_clearRating": "Clear rating filter",
   "diveLog_filter_clearWeekdays": "Clear weekdays",
+  "diveLog_filter_clearSite": "Clear site filter",
   "diveLog_filter_dateSeparator": "to",
   "diveLog_filter_endDate": "End Date",
   "diveLog_filter_errorLoadingSites": "Error loading sites",
@@ -6125,6 +6126,19 @@
   "diveSites_list_search_placeholder": "Search sites...",
   "diveSites_list_selection_mergeTooltip": "Merge Selected",
   "diveSites_list_sort_title": "Sort Sites",
+  "diveSites_group_noCountry": "No country",
+  "diveSites_group_siteCount": "{count, plural, =1{1 site} other{{count} sites}}",
+  "@diveSites_group_siteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_picker_nearby": "Nearby",
+  "diveSites_list_groupBy": "Group by",
+  "diveSites_list_groupBy_location": "Country & region",
+  "diveSites_list_groupBy_none": "None",
   "diveSites_list_tile_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "diveSites_list_tile_semantics": "Dive site: {name}",
   "diveSites_list_tooltip_filterSites": "Filter Sites",
