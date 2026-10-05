@@ -31,6 +31,7 @@ void main() {
         diveId: 'd0',
         weightType: WeightType.belt,
         amountKg: 6,
+        label: 'Rental belt',
       ),
       DiveWeight(
         id: 'w2',
@@ -121,6 +122,8 @@ void main() {
     expect(find.text('Last time at Reef Divers'), findsOneWidget);
     expect(find.textContaining('Last dive here:'), findsOneWidget);
     expect(find.text('Lead: 8.0 kg'), findsOneWidget);
+    expect(find.text('Rental belt · Weight Belt 6.0 kg'), findsOneWidget);
+    expect(find.text('Trim Weights 2.0 kg'), findsOneWidget);
     expect(find.text('1.0 kg over'), findsOneWidget);
     expect(find.textContaining('11 L'), findsOneWidget);
     expect(find.text('Apply last dive'), findsOneWidget);

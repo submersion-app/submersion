@@ -8,10 +8,10 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center_gea
 import 'package:submersion/features/dive_centers/domain/services/rental_memory_resolver.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_gear_note_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/rental_gear_note_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/weight_name_text.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -167,7 +167,7 @@ class _LastDiveRows extends StatelessWidget {
               ),
               for (final w in last.weights)
                 Text(
-                  '${w.weightType.localizedName(l10n)} '
+                  '${weightDisplayName(w, l10n)} '
                   '${units.formatWeight(w.amountKg)}',
                   style: muted,
                 ),
