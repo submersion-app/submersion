@@ -1,0 +1,199 @@
+# Site attachment categories, large view, and rename
+
+Issue: #1039 (Dive Site: Media / PDF Attachment: Display Large)
+
+## Problem
+
+Divers attach site reference material to a dive site: hand-drawn or annotated
+site maps (often PDFs with points of interest), parking and access photos,
+anchorage notes. Today every site attachment renders as a small tile in one
+4-column grid, so a map PDF is a thumbnail the size of a fingernail and must be
+opened to be read. Attachments cannot be grouped, and a file attached under the
+wrong name cannot be renamed.
+
+## Goals
+
+1. Show selected attachments large, spanning the full card width, with PDFs
+   showing a sharp render of page 1.
+2. Let the user assign each attachment a category from a fixed list, and show
+   the site's attachments grouped under category headings.
+3. Let the user rename an attachment.
+
+## Non-goals
+
+- Categories, sizes, or rename on dive or equipment media (the columns are
+  generic so those surfaces can adopt them later).
+- User-defined categories.
+- Manual reordering within a group.
+- Asking for a category at add time.
+- Rendering PDF pages other than page 1 inline.
+
+## Data model
+
+### Columns
+
+Two nullable text columns on `media`, added by the next free schema rung
+(v261 at the time of writing; re-read the ladder at implementation time):
+
+| Column | Values | Null means |
+| --- | --- | --- |
+| `site_category` | `siteMap`, `parking`, `access`, `anchorage`, `underwater`, `general` | Uncategorized |
+| `display_size` | `large`, `tile` | Follow the category default |
+
+The rung adds both columns; a `beforeOpen` backstop adds any that are missing,
+so a device that never enters the rung still heals. Existing rows stay null,
+which keeps every existing attachment rendering exactly as today.
+
+The values travel with the `media` row in the sync payload. They are user
+edits, so they belong to the row clock, not to the upload or verification fact
+groups.
+
+### Domain
+
+- `SiteAttachmentCategory` enum in the fixed display order: `siteMap`,
+  `parking`, `access`, `anchorage`, `underwater`, `general`. Each value has a
+  stable storage key, a localized label, and a default display size:
+  `underwater` defaults to tile, every other category to large.
+- `AttachmentDisplaySize` enum: `large`, `tile`.
+- `MediaItem` gains `siteCategory` (`SiteAttachmentCategory?`) and
+  `displaySizeOverride` (`AttachmentDisplaySize?`), both carried by `copyWith`,
+  plus an `effectiveDisplaySize` getter:
+  1. the override, when set;
+  2. otherwise the category default, when categorized;
+  3. otherwise tile.
+- Parsing is lenient and explicit: an unknown key (for example, a category
+  added by a newer app version and synced in) parses as null. There is no
+  `default:` arm that maps an unknown value onto a real category.
+
+### Rename
+
+Rename edits `originalFilename`. The file on disk, the bookmark, and the store
+object are never touched.
+
+- The editable part is the stem. The extension (from the last `.`, as
+  `documentExtension` reads it) is fixed and shown as a suffix, so `isPdf` and
+  the share MIME type cannot change. A name with no extension is editable as a
+  whole.
+- A blank stem is rejected.
+- The characters `/ \ : * ? " < > |` and control characters are rejected with
+  an inline error, because `shareFilename` becomes a temp file name on whatever
+  device the row syncs to.
+- Leading and trailing whitespace is trimmed.
+
+## Site card layout
+
+The Media card on the site detail page keeps its header row (title, checklist
+button, add menu). Its body changes from one grid to a list of groups.
+
+### Grouping
+
+- Groups appear in the fixed category order, then Uncategorized last. Empty
+  groups do not render.
+- Each group has a heading (`titleSmall`): the category label and a count.
+- When every attachment is uncategorized, no heading is drawn, so a site nobody
+  has categorized looks the same as before this change.
+- Within a group, large items come first, stacked one per row at full width, in
+  `takenAt` order. The group's tile items follow in the existing 4-column grid,
+  also in `takenAt` order.
+- The collapsed "Photos from dives at this site" group stays at the bottom,
+  unchanged. It does not take part in categories.
+
+### Large item rendering
+
+| Kind | Large rendering | Tap |
+| --- | --- | --- |
+| Image | Full width at the image's aspect ratio from `width`/`height`, 4:3 when unknown, height capped at about 70% of the screen height; resolved at display size, not as a thumbnail | Existing site photo viewer |
+| PDF | Page 1 rendered at card width times device pixel ratio; filename and an "N pages" badge | Existing full-screen PDF viewer |
+| Video | Poster frame at full width with a play overlay | Existing site photo viewer |
+| Other document | Full-width row: file-type icon, name, extension | Opens as today |
+
+Bytes that cannot be resolved show the existing placeholder and orphan states
+at the same footprint; a large card never collapses to zero height.
+
+The PDF render comes from a new `PdfThumbnailService.largeRenderFor(item,
+maxDimension:)`. It shares the existing service's cache-first behaviour and
+source read, caches per size, and returns the page count with the image. The
+renderer is an injectable seam so widget and service tests stay hermetic
+(pdfium cannot load under `flutter test`).
+
+### Selection
+
+- Large cards take part in checklist selection: a checkbox overlay, and tap
+  toggles while selection is active. Every group grid and every large card
+  reports to the one id-based `SelectionController`, so a selection can span
+  groups.
+- The selection bar keeps Unlink and gains:
+  - **Set category**, for any number of checked items;
+  - **Edit details**, when exactly one item is checked.
+
+### Entry points to Edit details
+
+- The overflow menu on each large card.
+- The app bar of the site photo viewer and of the PDF viewer, when the item is
+  a site attachment.
+- The selection bar with one item checked. This is the path for a tile, and
+  for a non-PDF document, which has no viewer.
+
+## Edit details sheet
+
+A modal bottom sheet on phone widths and a dialog on desktop widths.
+
+- **Name:** a text field holding the stem, with the fixed extension as a suffix.
+  Validation as in "Rename". Save is disabled while the stem is invalid.
+- **Category:** a dropdown with Uncategorized and the six categories.
+- **Size:** a three-way segmented control. The first segment reads
+  "Default (Large)" or "Default (Tile)" and follows the chosen category live;
+  the other two are "Large" and "Tile".
+- **Save** writes only the fields that changed. On failure it shows an error
+  snackbar and keeps the sheet open. **Cancel** discards.
+
+## Bulk Set category
+
+A picker with Uncategorized and the six categories. It applies the chosen
+category to every checked id in one transaction, leaves each item's size
+override and name unchanged, exits selection, and reports with the same
+success and failure snackbars as the existing Unlink action.
+
+## Repository writes
+
+Following the narrow-writer convention (`setManualElapsedSeconds`):
+
+- `setAttachmentDetails(id, {filename, category, displaySize})` writes only the
+  columns passed, plus `updatedAt`, in one transaction with
+  `markRecordPending`, then notifies the sync event bus.
+- `setSiteCategory(ids, category)` writes `site_category` and `updatedAt` for
+  every id in one transaction and marks each row pending.
+
+`updateMedia` and the insert paths carry both new columns, so a whole-row write
+from a snapshot cannot drop them, and the row mapper reads them back.
+
+## Localization
+
+New English ARB keys for the six category labels, Uncategorized, the group
+heading with count, the sheet (title, field labels, size segments, validation
+messages), Set category, Edit details, and "N pages". All 11 catalogs receive
+translations so key parity holds.
+
+## Testing
+
+Written first, per TDD.
+
+- **Domain unit tests:** effective size for every combination of override and
+  category, including uncategorized; unknown keys parse to null; stem and
+  extension split; name validation (blank, forbidden characters, trimming, no
+  extension).
+- **Row mapper:** both columns round-trip.
+- **Repository:** `setAttachmentDetails` touches only the passed columns and
+  marks the row pending; `setSiteCategory` is atomic over many ids and leaves
+  overrides and names alone; `updateMedia` and insert preserve the columns.
+- **Migration:** v260 to v261 adds both columns; the backstop heals a database
+  missing them.
+- **Sync:** a serializer export and import round-trips `site_category` and
+  `display_size`.
+- **PDF service:** `largeRenderFor` caches per size and returns the page count,
+  through the injected renderer.
+- **Widgets** (media widget harness): group order and headings; no headings when
+  all are uncategorized; large and tile placement, including both override
+  directions; each large kind renders and taps through; a selection spanning a
+  large card and a tile; the edit sheet's validation, live default label, and
+  save; bulk Set category; Edit details offered only for a single selection.
