@@ -23,8 +23,11 @@ class DiveSummaryFilterBanner extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final shown = ref.watch(diveListScopedStatisticsProvider).valueOrNull;
-    final total = ref.watch(diveStatisticsProvider).valueOrNull;
+    // `.value`, not `valueOrNull`: a filter edit reloads the scoped totals,
+    // and `.value` keeps the previous counts until the new query lands, the
+    // way the cards below do, instead of blanking on every keystroke.
+    final shown = ref.watch(diveListScopedStatisticsProvider).value;
+    final total = ref.watch(diveStatisticsProvider).value;
 
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 8, 8),

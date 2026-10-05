@@ -28,7 +28,10 @@ class DiveSummaryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isFiltered = ref.watch(diveFilterProvider).hasActiveFilters;
+    // `effective`, not the raw state: under "All dives" (#2773) the axes
+    // stay set but only the typed query applies, so with nothing typed the
+    // list shows every dive and the summary must not read as filtered.
+    final isFiltered = ref.watch(diveFilterProvider).effective.hasActiveFilters;
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
 
