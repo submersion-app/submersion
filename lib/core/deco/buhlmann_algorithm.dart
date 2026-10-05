@@ -60,6 +60,18 @@ class BuhlmannAlgorithm {
   /// Get current compartments state (read-only copy).
   List<TissueCompartment> get compartments => List.unmodifiable(_compartments);
 
+  /// A new engine with this one's configuration and surface-saturated
+  /// tissues, for read-only replays that must decompress exactly like this
+  /// engine without disturbing its state.
+  BuhlmannAlgorithm withSameConfig() => BuhlmannAlgorithm(
+    gfLow: gfLow,
+    gfHigh: gfHigh,
+    lastStopDepth: lastStopDepth,
+    stopIncrement: stopIncrement,
+    ascentRate: ascentRate,
+    environment: environment,
+  );
+
   /// Create compartments saturated at surface.
   static List<TissueCompartment> _createSurfaceSaturatedCompartments(
     DiveEnvironment environment,
