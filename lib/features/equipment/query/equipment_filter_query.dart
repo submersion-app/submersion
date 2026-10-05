@@ -13,7 +13,7 @@ import 'package:submersion/features/query/data/query_id_set_runner.dart';
 extension EquipmentFilterQuery on EquipmentFilterState {
   /// Null only under [allStatuses] (#2590) with no other axis set: every
   /// other status choice narrows (the default view hides retired and sold
-  /// gear, #636).
+  /// gear, #636, and wishlist gear, #2025).
   QueryNode? toQuery() {
     final parts = <QueryNode>[];
     QueryNode c(String key, QueryOp op, QueryValue? v) =>
@@ -24,14 +24,16 @@ extension EquipmentFilterQuery on EquipmentFilterState {
       // Every status (#2590): the axis adds no condition.
     } else if (s == null) {
       // getActiveEquipment: legacy rows can be retired with is_active still
-      // set, and sold gear has left the kit.
+      // set, sold gear has left the kit, and wanted gear has not joined it
+      // (#2025).
       parts
         ..add(c('active', QueryOp.eq, const BoolValue(true)))
         ..add(c('status', QueryOp.neq, e(EquipmentStatus.retired.name)))
-        ..add(c('status', QueryOp.neq, e(EquipmentStatus.sold.name)));
+        ..add(c('status', QueryOp.neq, e(EquipmentStatus.sold.name)))
+        ..add(c('status', QueryOp.neq, e(EquipmentStatus.wanted.name)));
     } else if (s == EquipmentStatus.retired) {
       // getEquipmentByStatus(retired): legacy rows that only flipped
-      // is_active, but not sold gear.
+      // is_active, but not sold or wanted gear.
       parts
         ..add(
           OrNode([
@@ -39,7 +41,8 @@ extension EquipmentFilterQuery on EquipmentFilterState {
             c('active', QueryOp.eq, const BoolValue(false)),
           ]),
         )
-        ..add(c('status', QueryOp.neq, e(EquipmentStatus.sold.name)));
+        ..add(c('status', QueryOp.neq, e(EquipmentStatus.sold.name)))
+        ..add(c('status', QueryOp.neq, e(EquipmentStatus.wanted.name)));
     } else {
       parts.add(c('status', QueryOp.eq, e(s.name)));
     }
