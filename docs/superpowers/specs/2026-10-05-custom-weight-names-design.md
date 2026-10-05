@@ -39,7 +39,7 @@ both names on the dive detail page and on any other device.
 | Question | Decision |
 | --- | --- |
 | Where the name is stored | A new `label` column, separate from the existing (hidden) `notes` column |
-| Subsurface weight descriptions | The importer writes them to `label` from now on; existing rows untouched |
+| Subsurface weight descriptions | The importer writes them to `label` from now on, except Subsurface's stock placement names; existing rows untouched |
 | Editor layout | An optional Name field on a second line under each Type / amount / delete row |
 | Read-only display | Name first, then the type muted: `Top pocket · Trim Weights`; unnamed rows unchanged |
 | Maximum length | 256 characters |
@@ -95,7 +95,11 @@ drop the name:
   snapshot copy whole domain objects or rows; they get regression tests, and
   any that turn out to copy field by field get the field.
 - **Subsurface import.** `<weightsystem description="...">` goes to `label`;
-  `notes` is left empty.
+  `notes` is left empty. A description that is only one of Subsurface's
+  stock placement names (`integrated`, `belt`, `ankle`, `backplate`,
+  `backplate weight`, `clip-on`; compared trimmed and case-insensitively)
+  sets the type alone and leaves `label` empty, so a stock row never reads
+  `belt · Weight Belt`.
 - **UDDF.** Export writes `<label>` beside `<notes>` inside the app-specific
   `<weights><weight>` block; import reads it back, so a Submersion to
   Submersion round trip keeps names. A file without `<label>` imports as `''`.
