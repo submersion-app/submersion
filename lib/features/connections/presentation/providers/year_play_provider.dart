@@ -1,0 +1,118 @@
+import 'dart:async';
+
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+
+/// Grows the map one year at a time by moving the connections filter's end
+/// date. The state is the year on screen while playing, null when idle.
+///
+/// A beat moves to the next year only once [beat] has passed and the page
+/// has reported the year's graph loaded ([loadSettled]), so a slow log never
+/// piles up steps. Any filter or view change it did not make itself stops
+/// play, so it never overwrites what the diver just chose.
+class YearPlayNotifier extends Notifier<int?> {
+  static const Duration beat = Duration(milliseconds: 1200);
+
+  Timer? _timer;
+  bool _beatDone = false;
+  bool _loaded = false;
+
+  /// The last filter play wrote, to tell its own writes from the diver's.
+  DiveFilterState? _written;
+  int _first = 0;
+  int _last = 0;
+
+  /// The lower year of the range being played.
+  int _lower = 0;
+
+  @override
+  int? build() {
+    ref.onDispose(_cancel);
+    ref.listen<DiveFilterState>(connectionsFilterProvider, (_, next) {
+      if (state != null && next != _written) stop();
+    });
+    ref.listen<ConnectionsViewState>(connectionsViewProvider, (prev, next) {
+      if (state != null && prev != next) stop();
+    });
+    return null;
+  }
+
+  /// Starts from the lower year when the range already reaches the last
+  /// year, otherwise continues past the current upper year.
+  void play() {
+    final span = ref.read(connectionsYearSpanProvider).value;
+    if (span == null || span.first >= span.last) return;
+    final filter = ref.read(connectionsFilterProvider);
+    final lower = (filter.startDate?.year ?? span.first).clamp(
+      span.first,
+      span.last,
+    );
+    final upper = (filter.endDate?.year ?? span.last).clamp(
+      span.first,
+      span.last,
+    );
+    _first = span.first;
+    _last = span.last;
+    _lower = lower;
+    _show(upper >= span.last ? lower : upper + 1);
+  }
+
+  /// Stops where it is; the slider keeps the range on screen.
+  void pause() => stop();
+
+  void stop() {
+    _cancel();
+    state = null;
+  }
+
+  /// The page reports each settled load of the graph. A failed load stops
+  /// play; the page shows the reload error.
+  void loadSettled({required bool failed}) {
+    if (state == null) return;
+    if (failed) {
+      stop();
+      return;
+    }
+    _loaded = true;
+    _advance();
+  }
+
+  void _show(int year) {
+    final filter = ref.read(connectionsFilterProvider);
+    final atEnd = year >= _last;
+    // The whole span is no filter at all, as the year slider has it.
+    final next = atEnd && _lower <= _first
+        ? filter.copyWith(clearStartDate: true, clearEndDate: true)
+        : filter.copyWith(endDate: DateTime(year, 12, 31));
+    _cancel();
+    state = atEnd ? null : year;
+    _written = next;
+    ref.read(connectionsFilterProvider.notifier).state = next;
+    if (atEnd) return;
+    _beatDone = false;
+    _loaded = false;
+    _timer = Timer(beat, () {
+      _beatDone = true;
+      _advance();
+    });
+  }
+
+  void _advance() {
+    final year = state;
+    if (year == null || !_beatDone || !_loaded) return;
+    _show(year + 1);
+  }
+
+  void _cancel() {
+    _timer?.cancel();
+    _timer = null;
+  }
+}
+
+final yearPlayProvider = NotifierProvider.autoDispose<YearPlayNotifier, int?>(
+  YearPlayNotifier.new,
+);
