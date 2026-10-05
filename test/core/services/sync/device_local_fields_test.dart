@@ -36,4 +36,18 @@ void main() {
   test('active_diver_id is a device-local settings key', () {
     expect(deviceLocalSettingsKeys, contains('active_diver_id'));
   });
+
+  test('the notification settings and theme mode are device-local', () {
+    expect(deviceLocalSyncColumns['diverSettings'], {
+      'notificationsEnabled',
+      'serviceReminderDays',
+      'reminderTime',
+      'tripServiceLeadDays',
+      'themeMode',
+    });
+    expect(isDeviceLocalColumn('diverSettings', 'theme_mode'), isTrue);
+    expect(isDeviceLocalColumn('diverSettings', 'theme_preset'), isFalse);
+    expect(isDeviceLocalColumn('diverSettings', 'map_style'), isFalse);
+    expect(isDeviceLocalColumn('diverSettings', 'locale'), isFalse);
+  });
 }

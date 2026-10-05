@@ -1441,7 +1441,9 @@ class SyncDataSerializer {
               maxRowHlc = clock;
             }
           }
-          await writeData(jsonEncode(row));
+          // Device-local columns never leave this device, in a base as in a
+          // changeset (issue #2947).
+          await writeData(jsonEncode(withoutDeviceLocalColumns(spec.key, row)));
         }
 
         if (spec.table != null) {
@@ -2637,7 +2639,9 @@ class SyncDataSerializer {
         final row = await (_db.select(
           _db.diverSettings,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
-        return row?.toJson();
+        return row == null
+            ? null
+            : withoutDeviceLocalColumns('diverSettings', row.toJson());
       case 'dives':
         final row = await (_db.select(
           _db.dives,
@@ -3197,7 +3201,10 @@ class SyncDataSerializer {
         final rows = await (_db.select(
           _db.diverSettings,
         )..where((t) => t.id.isIn(idList))).get();
-        return {for (final r in rows) r.id: r.toJson()};
+        return {
+          for (final r in rows)
+            r.id: withoutDeviceLocalColumns('diverSettings', r.toJson()),
+        };
       case 'dives':
         final rows = await (_db.select(
           _db.dives,
@@ -7470,7 +7477,9 @@ class SyncDataSerializer {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
-    return rows.map((r) => r.toJson()).toList();
+    return rows
+        .map((r) => withoutDeviceLocalColumns('diverSettings', r.toJson()))
+        .toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportDives(String? hlcSince) async {
@@ -8981,6 +8990,10 @@ class SyncDataSerializer {
     switch (entityType) {
       case 'diveComputers':
         final query = _db.select(_db.diveComputers);
+        if (ids != null) query.where((t) => t.id.isIn(ids));
+        rows = [for (final row in await query.get()) row.toJson()];
+      case 'diverSettings':
+        final query = _db.select(_db.diverSettings);
         if (ids != null) query.where((t) => t.id.isIn(ids));
         rows = [for (final row in await query.get()) row.toJson()];
       default:

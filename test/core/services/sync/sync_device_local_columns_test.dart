@@ -1,7 +1,14 @@
+import 'package:flutter/material.dart' show ThemeMode, TimeOfDay;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/sync_service.dart';
+import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../helpers/changeset_test_helpers.dart';
+import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/test_database.dart';
 
 /// Columns listed in deviceLocalSyncColumns belong to this device: an
@@ -17,6 +24,19 @@ void main() {
   });
 
   tearDown(tearDownTestDatabase);
+
+  /// Runs one sync against a fresh fake cloud and reads back the base this
+  /// device published.
+  Future<SyncPayload> syncedBase() async {
+    final cloud = FakeCloudStorageProvider();
+    final deviceId = await SyncRepository().getDeviceId();
+    await SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: cloud,
+    ).performSync();
+    return (await cloudBasePayload(cloud, deviceId))!;
+  }
 
   group('diveComputers.bluetoothAddress', () {
     Future<Map<String, dynamic>> seedComputer() async {
@@ -65,6 +85,14 @@ void main() {
       expect((await storedComputer('c1')).bluetoothAddress, 'AA:BB');
     });
 
+    test('the synced base omits the address', () async {
+      await seedComputer();
+      final payload = await syncedBase();
+      final exported = payload.data.diveComputers.single;
+      expect(exported, isNot(contains('bluetoothAddress')));
+      expect(exported['name'], 'Perdix');
+    });
+
     test('a computer new to this device has no address', () async {
       final local = await seedComputer();
       await serializer.upsertRecord('diveComputers', {
@@ -73,6 +101,125 @@ void main() {
         'bluetoothAddress': 'EE:FF',
       });
       expect((await storedComputer('c2')).bluetoothAddress, isNull);
+    });
+  });
+
+  group('diverSettings notification settings and theme mode', () {
+    const deviceLocal = {
+      'notificationsEnabled',
+      'serviceReminderDays',
+      'reminderTime',
+      'tripServiceLeadDays',
+      'themeMode',
+    };
+
+    Future<DiverSetting> storedRow() => (db.select(
+      db.diverSettings,
+    )..where((t) => t.diverId.equals('d1'))).getSingle();
+
+    /// This device's choices, all different from the column defaults.
+    Future<Map<String, dynamic>> seedSettings() async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: 'd1',
+              name: 'Test Diver',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      await DiverSettingsRepository().createSettingsForDiver(
+        'd1',
+        settings: const AppSettings().copyWith(
+          themeMode: ThemeMode.dark,
+          notificationsEnabled: false,
+          serviceReminderDays: [3],
+          reminderTime: const TimeOfDay(hour: 6, minute: 15),
+          tripServiceLeadDays: 21,
+        ),
+      );
+      return (await storedRow()).toJson();
+    }
+
+    /// What a peer on an older build sends: every column, its own values.
+    Map<String, dynamic> olderPeerRow(Map<String, dynamic> local) => {
+      ...local,
+      'themeMode': 'light',
+      'notificationsEnabled': true,
+      'serviceReminderDays': '[30]',
+      'reminderTime': '20:00',
+      'tripServiceLeadDays': 2,
+      'gfHigh': 70,
+      'updatedAt': (local['updatedAt'] as int) + 1000,
+    };
+
+    void expectLocalValuesKept(DiverSetting row) {
+      expect(row.themeMode, 'dark');
+      expect(row.notificationsEnabled, isFalse);
+      expect(row.serviceReminderDays, '[3]');
+      expect(row.reminderTime, '06:15');
+      expect(row.tripServiceLeadDays, 21);
+    }
+
+    test('fetchRecord and fetchRecords omit them', () async {
+      final local = await seedSettings();
+      final id = local['id'] as String;
+      final single = await serializer.fetchRecord('diverSettings', id);
+      expect(single!.keys.toSet().intersection(deviceLocal), isEmpty);
+      expect(single, contains('gfHigh'));
+      final batch = await serializer.fetchRecords('diverSettings', [id]);
+      expect(batch[id]!.keys.toSet().intersection(deviceLocal), isEmpty);
+    });
+
+    test('the synced payload omits them', () async {
+      await seedSettings();
+      final payload = await syncedBase();
+      final exported = payload.data.diverSettings.single;
+      expect(exported.keys.toSet().intersection(deviceLocal), isEmpty);
+      expect(exported, contains('themePreset'));
+      expect(exported, contains('mapStyle'));
+      expect(exported, contains('locale'));
+    });
+
+    test(
+      'upsertRecord of an older peer row keeps them and applies the rest',
+      () async {
+        final local = await seedSettings();
+        await serializer.upsertRecord('diverSettings', olderPeerRow(local));
+        final row = await storedRow();
+        expectLocalValuesKept(row);
+        expect(row.gfHigh, 70);
+      },
+    );
+
+    test('upsertRecords of an older peer row keeps them', () async {
+      final local = await seedSettings();
+      await serializer.upsertRecords('diverSettings', [olderPeerRow(local)]);
+      final row = await storedRow();
+      expectLocalValuesKept(row);
+      expect(row.gfHigh, 70);
+    });
+
+    test('a replace-adopt clear and refill keeps them', () async {
+      final local = await seedSettings();
+      await serializer.deleteAllRecords('diverSettings');
+      await serializer.upsertRecords('diverSettings', [
+        withoutKeys(olderPeerRow(local), deviceLocal),
+      ]);
+      final row = await storedRow();
+      expectLocalValuesKept(row);
+      expect(row.gfHigh, 70);
+    });
+
+    test('a settings row new to this device takes the defaults', () async {
+      final local = await seedSettings();
+      await db.delete(db.diverSettings).go();
+      await serializer.upsertRecord('diverSettings', olderPeerRow(local));
+      final row = await storedRow();
+      expect(row.themeMode, 'system');
+      expect(row.gfHigh, 70);
     });
   });
 }
