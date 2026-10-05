@@ -21646,6 +21646,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Pressione di esercizio';
 
   @override
+  String get settings_conflict_finerThanShown =>
+      'La differenza è più fine di quanto mostri questa visualizzazione.';
+
+  @override
   String get settings_conflict_keepBoth => 'Mantieni entrambi';
 
   @override
@@ -21661,6 +21665,17 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String settings_conflict_modifiedBy(String device, String time) {
     return '$device · modificato $time';
+  }
+
+  @override
+  String settings_conflict_moreFields(String fields, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count altri',
+      one: '$count altro',
+    );
+    return '$fields e $_temp0';
   }
 
   @override

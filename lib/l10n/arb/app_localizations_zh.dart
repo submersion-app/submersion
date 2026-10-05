@@ -20436,6 +20436,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_workingPressureBar => '工作压力';
 
   @override
+  String get settings_conflict_finerThanShown => '差异比此处显示的精度更细。';
+
+  @override
   String get settings_conflict_keepBoth => '保留两者';
 
   @override
@@ -20451,6 +20454,16 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String settings_conflict_modifiedBy(String device, String time) {
     return '$device · 修改于 $time';
+  }
+
+  @override
+  String settings_conflict_moreFields(String fields, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项',
+    );
+    return '$fields等另外 $_temp0';
   }
 
   @override

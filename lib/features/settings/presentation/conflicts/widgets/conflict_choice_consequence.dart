@@ -43,7 +43,7 @@ String conflictConsequence({
           devices.remote,
         );
       }
-      final fields = comparison.differences.map((d) => d.label).join(', ');
+      final fields = _fieldList(l10n, comparison);
       return keepLocal
           ? l10n.settings_conflict_consequence_keep(
               devices.local,
@@ -56,6 +56,20 @@ String conflictConsequence({
               fields,
             );
   }
+}
+
+/// Field labels for the consequence line. A record can disagree on dozens of
+/// columns, and the line sits outside the scrolling area, so it names the
+/// first few and counts the rest.
+const _namedFields = 3;
+
+String _fieldList(AppLocalizations l10n, ConflictComparison comparison) {
+  final labels = [for (final d in comparison.differences) d.label];
+  if (labels.length <= _namedFields + 1) return labels.join(', ');
+  return l10n.settings_conflict_moreFields(
+    labels.take(_namedFields).join(', '),
+    labels.length - _namedFields,
+  );
 }
 
 /// The line under the resolution chips.

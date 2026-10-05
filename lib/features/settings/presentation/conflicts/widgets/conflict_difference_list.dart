@@ -139,7 +139,20 @@ class ConflictDifferenceList extends StatelessWidget {
   }) {
     final style = Theme.of(context).textTheme.bodySmall;
     if (diff == null) {
-      return Text(local ? d.localDisplay : d.remoteDisplay, style: style);
+      final text = Text(local ? d.localDisplay : d.remoteDisplay, style: style);
+      // The stored values differ but round to the same text (30.04 m and
+      // 30.0 m); say why the row is listed. Shown once, under the local side.
+      if (!local || d.localDisplay != d.remoteDisplay) return text;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          text,
+          Text(
+            context.l10n.settings_conflict_finerThanShown,
+            style: style?.copyWith(fontStyle: FontStyle.italic),
+          ),
+        ],
+      );
     }
     final scheme = Theme.of(context).colorScheme;
     final text = ConflictTextDiff(

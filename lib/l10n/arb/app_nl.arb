@@ -5522,6 +5522,8 @@
   "settings_conflict_ref_tripCylinder": "Reisfles",
   "settings_conflict_resolved": "{count, plural, =1{1 conflict} other{{count} conflicten}} opgelost",
   "settings_conflict_title": "Conflicten oplossen",
+  "settings_conflict_finerThanShown": "Het verschil is kleiner dan deze weergave laat zien.",
+  "settings_conflict_moreFields": "{fields} en {count, plural, one{{count} andere} other{{count} andere}}",
   "enum_eventSeverity_info": "Info",
   "settings_conflict_changed": "Gewijzigd",
   "settings_conflict_chooseVersion": "Kies welke versie je wilt bewaren.",

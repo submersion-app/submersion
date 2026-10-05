@@ -5421,6 +5421,8 @@
   "settings_conflict_ref_tripCylinder": "Utazási palack",
   "settings_conflict_resolved": "{count, plural, =1{1 ütközés} other{{count} ütközés}} feloldva",
   "settings_conflict_title": "Ütközések feloldása",
+  "settings_conflict_finerThanShown": "Az eltérés kisebb annál, amit ez a nézet mutat.",
+  "settings_conflict_moreFields": "{fields} és még {count, plural, one{{count}} other{{count}}}",
   "enum_eventSeverity_info": "Információ",
   "settings_conflict_changed": "Módosult",
   "settings_conflict_chooseVersion": "Válaszd ki, melyik verziót tartod meg.",

@@ -21697,6 +21697,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Pression de service';
 
   @override
+  String get settings_conflict_finerThanShown =>
+      'La différence est plus fine que ce que cet affichage montre.';
+
+  @override
   String get settings_conflict_keepBoth => 'Conserver les deux';
 
   @override
@@ -21712,6 +21716,17 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String settings_conflict_modifiedBy(String device, String time) {
     return '$device · modifié $time';
+  }
+
+  @override
+  String settings_conflict_moreFields(String fields, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count autres',
+      one: '$count autre',
+    );
+    return '$fields et $_temp0';
   }
 
   @override

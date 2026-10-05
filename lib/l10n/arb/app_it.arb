@@ -5421,6 +5421,8 @@
   "settings_conflict_ref_tripCylinder": "Bombola del viaggio",
   "settings_conflict_resolved": "{count, plural, =1{1 conflitto risolto} other{{count} conflitti risolti}}",
   "settings_conflict_title": "Risolvi conflitti",
+  "settings_conflict_finerThanShown": "La differenza è più fine di quanto mostri questa visualizzazione.",
+  "settings_conflict_moreFields": "{fields} e {count, plural, one{{count} altro} other{{count} altri}}",
   "enum_eventSeverity_info": "Informazione",
   "settings_conflict_changed": "Modificato",
   "settings_conflict_chooseVersion": "Scegli quale versione mantenere.",

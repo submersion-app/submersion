@@ -5671,6 +5671,8 @@
   "settings_conflict_ref_tripCylinder": "行程气瓶",
   "settings_conflict_resolved": "已解决 {count, plural, =1{1 个冲突} other{{count} 个冲突}}",
   "settings_conflict_title": "解决冲突",
+  "settings_conflict_finerThanShown": "差异比此处显示的精度更细。",
+  "settings_conflict_moreFields": "{fields}等另外 {count, plural, other{{count} 项}}",
   "enum_eventSeverity_info": "信息",
   "settings_conflict_changed": "已更改",
   "settings_conflict_chooseVersion": "选择要保留的版本。",

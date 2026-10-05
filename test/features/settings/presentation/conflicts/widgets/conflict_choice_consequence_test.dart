@@ -49,6 +49,18 @@ void main() {
     );
   });
 
+  test('a long list of fields is cut short', () {
+    final many = ConflictComparison(
+      state: ConflictComparisonState.differing,
+      differences: [for (final l in ['A', 'B', 'C', 'D', 'E']) d(l)],
+    );
+    expect(
+      text(many, ConflictResolution.keepLocal),
+      "Keeps Pixel 8's version. Windows PC's values for A, B, C and 2 more "
+      'are discarded.',
+    );
+  });
+
   test('keep remote is the mirror', () {
     expect(
       text(differing, ConflictResolution.keepRemote),

@@ -21771,6 +21771,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_workingPressureBar => 'ضغط التشغيل';
 
   @override
+  String get settings_conflict_finerThanShown =>
+      'الفرق أدق مما يعرضه هذا العرض.';
+
+  @override
   String get settings_conflict_keepBoth => 'الاحتفاظ بكليهما';
 
   @override
@@ -21786,6 +21790,21 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String settings_conflict_modifiedBy(String device, String time) {
     return '$device · عُدِّل $time';
+  }
+
+  @override
+  String settings_conflict_moreFields(String fields, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count حقل آخر',
+      many: '$count حقلًا آخر',
+      few: '$count حقول أخرى',
+      two: 'حقلان آخران',
+      one: 'حقل آخر',
+      zero: 'لا شيء آخر',
+    );
+    return '$fields و$_temp0';
   }
 
   @override

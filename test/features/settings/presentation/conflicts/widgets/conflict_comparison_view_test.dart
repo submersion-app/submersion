@@ -129,6 +129,32 @@ void main() {
     expect(find.text('Only spacing or line breaks differ.'), findsOneWidget);
   });
 
+  testWidgets('a difference too fine to display says so', (tester) async {
+    // 30.04 m and 30.0 m both round to 30.0m; without the note the diver sees
+    // a listed difference with the same value on both sides.
+    await _pump(
+      tester,
+      ConflictComparison(
+        state: ConflictComparisonState.differing,
+        differences: [
+          FieldDifference(
+            key: 'maxDepth',
+            label: 'Max depth',
+            kind: FieldKind.depth,
+            localValue: 30.04,
+            remoteValue: 30.0,
+            localDisplay: '30.0m',
+            remoteDisplay: '30.0m',
+          ),
+        ],
+      ),
+    );
+    expect(
+      find.text('The difference is finer than this display shows.'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('a remote deletion is a banner over the local values', (
     tester,
   ) async {

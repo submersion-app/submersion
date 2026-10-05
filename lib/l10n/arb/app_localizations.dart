@@ -34904,6 +34904,12 @@ abstract class AppLocalizations {
   /// **'Working pressure'**
   String get settings_conflict_field_workingPressureBar;
 
+  /// No description provided for @settings_conflict_finerThanShown.
+  ///
+  /// In en, this message translates to:
+  /// **'The difference is finer than this display shows.'**
+  String get settings_conflict_finerThanShown;
+
   /// No description provided for @settings_conflict_keepBoth.
   ///
   /// In en, this message translates to:
@@ -34927,6 +34933,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{device} · modified {time}'**
   String settings_conflict_modifiedBy(String device, String time);
+
+  /// No description provided for @settings_conflict_moreFields.
+  ///
+  /// In en, this message translates to:
+  /// **'{fields} and {count, plural, one{{count} more} other{{count} more}}'**
+  String settings_conflict_moreFields(String fields, int count);
 
   /// No description provided for @settings_conflict_next_tooltip.
   ///

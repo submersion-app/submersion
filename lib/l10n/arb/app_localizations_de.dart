@@ -21592,6 +21592,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_workingPressureBar => 'Betriebsdruck';
 
   @override
+  String get settings_conflict_finerThanShown =>
+      'Der Unterschied ist feiner, als diese Anzeige zeigt.';
+
+  @override
   String get settings_conflict_keepBoth => 'Beide behalten';
 
   @override
@@ -21607,6 +21611,17 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String settings_conflict_modifiedBy(String device, String time) {
     return '$device · geändert $time';
+  }
+
+  @override
+  String settings_conflict_moreFields(String fields, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weitere',
+      one: '$count weiteres',
+    );
+    return '$fields und $_temp0';
   }
 
   @override

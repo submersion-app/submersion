@@ -21536,6 +21536,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_workingPressureBar => 'Üzemi nyomás';
 
   @override
+  String get settings_conflict_finerThanShown =>
+      'Az eltérés kisebb annál, amit ez a nézet mutat.';
+
+  @override
   String get settings_conflict_keepBoth => 'Mindkettő megtartása';
 
   @override
@@ -21551,6 +21555,17 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String settings_conflict_modifiedBy(String device, String time) {
     return '$device · módosítva $time';
+  }
+
+  @override
+  String settings_conflict_moreFields(String fields, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count',
+      one: '$count',
+    );
+    return '$fields és még $_temp0';
   }
 
   @override

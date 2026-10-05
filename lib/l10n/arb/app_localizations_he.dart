@@ -21066,6 +21066,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_workingPressureBar => 'לחץ עבודה';
 
   @override
+  String get settings_conflict_finerThanShown =>
+      'ההבדל עדין יותר ממה שהתצוגה הזו מראה.';
+
+  @override
   String get settings_conflict_keepBoth => 'שמור את שניהם';
 
   @override
@@ -21081,6 +21085,18 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String settings_conflict_modifiedBy(String device, String time) {
     return '$device · שונה $time';
+  }
+
+  @override
+  String settings_conflict_moreFields(String fields, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count',
+      two: 'שניים',
+      one: 'אחד',
+    );
+    return '$fields ועוד $_temp0';
   }
 
   @override

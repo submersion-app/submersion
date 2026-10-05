@@ -5421,6 +5421,8 @@
   "settings_conflict_ref_tripCylinder": "Bouteille du voyage",
   "settings_conflict_resolved": "{count, plural, =1{{count} conflit résolu} other{{count} conflits résolus}}",
   "settings_conflict_title": "Résoudre les conflits",
+  "settings_conflict_finerThanShown": "La différence est plus fine que ce que cet affichage montre.",
+  "settings_conflict_moreFields": "{fields} et {count, plural, one{{count} autre} other{{count} autres}}",
   "enum_eventSeverity_info": "Info",
   "settings_conflict_changed": "Modifié",
   "settings_conflict_chooseVersion": "Choisissez la version à conserver.",
