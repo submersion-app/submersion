@@ -79,6 +79,30 @@ void main() {
     expect(tripCylinderEventKindLabeler(l10n, 'fill'), 'Fill');
   });
 
+  test('equipment enums reuse the labels the equipment screens show', () {
+    expect(
+      equipmentStatusLabeler(l10n, 'active'),
+      l10n.enum_equipmentStatus_active,
+    );
+    expect(
+      observationStatusLabeler(l10n, 'ok'),
+      l10n.equipmentObservation_status_ok,
+    );
+    expect(
+      serviceCategoryLabeler(l10n, 'annual'),
+      l10n.equipment_serviceCategory_annual,
+    );
+    expect(
+      conditionSeverityLabeler(l10n, 'caution'),
+      l10n.enum_safetySeverity_caution,
+    );
+  });
+
+  test('equipment enums without a screen label get their own', () {
+    expect(fillSourceLabeler(l10n, 'qr'), 'QR code');
+    expect(ownershipEventKindLabeler(l10n, 'transferred'), 'Transferred');
+  });
+
   test('returns null for a value this build does not know', () {
     expect(entryMethodLabeler(l10n, 'jetpack'), isNull);
     expect(entryMethodLabeler(l10n, ''), isNull);

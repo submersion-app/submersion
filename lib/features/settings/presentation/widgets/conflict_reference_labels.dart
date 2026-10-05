@@ -33,6 +33,12 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_attachedThrough;
     case 'viaSetId':
       return l10n.settings_conflict_ref_appliedSet;
+    case 'parentEquipmentId':
+      return l10n.settings_conflict_ref_installedIn;
+    case 'componentEquipmentId':
+      return l10n.settings_conflict_ref_component;
+    case 'transmitterEquipmentId':
+      return l10n.settings_conflict_ref_transmitter;
   }
   switch (reference.targetType) {
     case 'dives':
@@ -45,6 +51,8 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_diveType;
     case 'diveRoles':
       return l10n.settings_conflict_ref_diveRole;
+    case 'weightPresets':
+      return l10n.settings_conflict_ref_weightPreset;
     case 'siteTypes':
       return l10n.settings_conflict_ref_siteType;
     case 'divers':

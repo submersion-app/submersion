@@ -43,6 +43,7 @@ void main() {
       'tags': 'Tag',
       'diveTypes': 'Dive type',
       'diveRoles': 'Dive role',
+      'weightPresets': 'Weight preset',
       'siteTypes': 'Site type',
       'divers': 'Diver',
       'buddies': 'Buddy',
@@ -126,6 +127,9 @@ void main() {
         ('regulatorEquipmentId', 'equipment', 'Regulator'),
         ('viaEquipmentId', 'equipment', 'Attached through'),
         ('viaSetId', 'equipmentSets', 'Applied from set'),
+        ('parentEquipmentId', 'equipment', 'Installed in'),
+        ('componentEquipmentId', 'equipment', 'Component'),
+        ('transmitterEquipmentId', 'equipment', 'Transmitter'),
       ]) {
         expect(
           conflictReferenceLabel(l10n, ref(field: field, targetType: target)),

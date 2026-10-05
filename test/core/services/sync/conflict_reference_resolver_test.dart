@@ -138,6 +138,11 @@ void main() {
       ('diveTanks', 'regulatorEquipmentId'): 'equipment',
       ('diveEquipment', 'viaEquipmentId'): 'equipment',
       ('diveEquipment', 'viaSetId'): 'equipmentSets',
+      ('equipment', 'parentEquipmentId'): 'equipment',
+      ('equipmentComponents', 'componentEquipmentId'): 'equipment',
+      ('transmitters', 'transmitterEquipmentId'): 'equipment',
+      ('transmitters', 'diveComputerId'): 'diveComputers',
+      ('weightPresetEntries', 'presetId'): 'weightPresets',
     };
     for (final MapEntry(key: (entity, field), value: target)
         in expected.entries) {

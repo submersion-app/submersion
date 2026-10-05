@@ -114,4 +114,24 @@ void main() {
       FieldKind.shortText,
     );
   });
+
+  test('equipment fields', () {
+    expect(conflictFieldFor('equipment', 'status').kind, FieldKind.enumValue);
+    expect(conflictFieldFor('equipment', 'status').enumLabel, isNotNull);
+    expect(
+      conflictFieldFor('equipmentOwnershipEvents', 'kind').kind,
+      FieldKind.enumValue,
+    );
+    expect(
+      conflictFieldFor('cylinderFills', 'source').kind,
+      FieldKind.enumValue,
+    );
+    // The same column name on a track is free text.
+    expect(conflictFieldFor('gpsTracks', 'source').kind, FieldKind.shortText);
+    expect(
+      conflictFieldFor('tankPresets', 'workingPressureBar').kind,
+      FieldKind.pressure,
+    );
+    expect(conflictFieldFor('equipment', 'purchaseDate').kind, FieldKind.date);
+  });
 }

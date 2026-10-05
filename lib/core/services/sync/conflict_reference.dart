@@ -118,6 +118,10 @@ class ConflictReferenceResolver {
     'regulatorEquipmentId': 'equipment',
     'viaEquipmentId': 'equipment',
     'viaSetId': 'equipmentSets',
+    'parentEquipmentId': 'equipment',
+    'componentEquipmentId': 'equipment',
+    'transmitterEquipmentId': 'equipment',
+    'diveComputerId': 'diveComputers',
     'sessionId': 'preDiveSessions',
     'templateId': 'checklistTemplates',
   };
@@ -128,6 +132,7 @@ class ConflictReferenceResolver {
     // Generic names that hold a row id only on these tables (#694).
     'dives': {'diveType': 'diveTypes'},
     'diveBuddies': {'role': 'diveRoles'},
+    'weightPresetEntries': {'presetId': 'weightPresets'},
     'divePlanSegments': {'tankId': 'divePlanTanks'},
     'preDiveSessions': {'templateId': 'preDiveChecklistTemplates'},
     'preDiveChecklistTemplateItems': {
