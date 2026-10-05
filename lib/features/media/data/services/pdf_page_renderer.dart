@@ -20,6 +20,27 @@ typedef PdfThumbRenderer =
       int quality,
     });
 
+/// A page-1 render with the document's page count, for the large site card
+/// (issue #1039).
+class PdfPagePreview {
+  const PdfPagePreview({required this.jpeg, required this.pageCount});
+
+  final Uint8List jpeg;
+
+  /// Null when it is unknown (a cache entry written without one).
+  final int? pageCount;
+}
+
+/// Signature of the large-preview seam, injectable for the same reason as
+/// [PdfThumbRenderer]. Matches [PdfPageRenderer.renderFirstPagePreview].
+typedef PdfPreviewRenderer =
+    Future<PdfPagePreview?> Function({
+      File? file,
+      Uint8List? bytes,
+      int maxDimension,
+      int quality,
+    });
+
 /// Renders the first page of a PDF to JPEG bytes for thumbnails.
 ///
 /// Every failure path returns null: thumbnail absence must never block an
@@ -36,6 +57,20 @@ class PdfPageRenderer {
   static Future<void> Function() initializer = pdfrxFlutterInitialize;
 
   static Future<Uint8List?> renderFirstPageJpeg({
+    File? file,
+    Uint8List? bytes,
+    int maxDimension = 512,
+    int quality = 80,
+  }) async => (await renderFirstPagePreview(
+    file: file,
+    bytes: bytes,
+    maxDimension: maxDimension,
+    quality: quality,
+  ))?.jpeg;
+
+  /// Page 1 as JPEG with its longest side at [maxDimension], plus the page
+  /// count; null on every failure path.
+  static Future<PdfPagePreview?> renderFirstPagePreview({
     File? file,
     Uint8List? bytes,
     int maxDimension = 512,
@@ -62,7 +97,10 @@ class PdfPageRenderer {
       if (pageImage == null) return null;
       try {
         final image = pageImage.createImageNF();
-        return Uint8List.fromList(img.encodeJpg(image, quality: quality));
+        return PdfPagePreview(
+          jpeg: Uint8List.fromList(img.encodeJpg(image, quality: quality)),
+          pageCount: document.pages.length,
+        );
       } finally {
         pageImage.dispose();
       }
