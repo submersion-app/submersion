@@ -135,6 +135,10 @@ class AppSettings {
   final WeightUnit weightUnit;
   final AltitudeUnit altitudeUnit;
 
+  /// Unit for geographic distances (site distances, track length, tide
+  /// station distance, chamber distance, geofence radius). Issue #2030.
+  final DistanceUnit distanceUnit;
+
   /// Which gas-consumption lanes the single-value surfaces show: SAC
   /// (tank-pressure rate), RMV (surface volume rate), or both. Replaces the
   /// SAC unit toggle; each lane now has a fixed unit family.
@@ -569,6 +573,7 @@ class AppSettings {
     this.volumeUnit = VolumeUnit.liters,
     this.weightUnit = WeightUnit.kilograms,
     this.altitudeUnit = AltitudeUnit.meters,
+    this.distanceUnit = DistanceUnit.kilometers,
     this.gasConsumptionDisplay = GasConsumptionDisplay.both,
     this.gasModel = GasModel.real,
     this.defaultPlannerWaterType = PlannerWaterType.salt,
@@ -720,7 +725,8 @@ class AppSettings {
         pressureUnit == PressureUnit.bar &&
         volumeUnit == VolumeUnit.liters &&
         weightUnit == WeightUnit.kilograms &&
-        altitudeUnit == AltitudeUnit.meters;
+        altitudeUnit == AltitudeUnit.meters &&
+        distanceUnit == DistanceUnit.kilometers;
 
     final isAllImperial =
         depthUnit == DepthUnit.feet &&
@@ -728,7 +734,8 @@ class AppSettings {
         pressureUnit == PressureUnit.psi &&
         volumeUnit == VolumeUnit.cubicFeet &&
         weightUnit == WeightUnit.pounds &&
-        altitudeUnit == AltitudeUnit.feet;
+        altitudeUnit == AltitudeUnit.feet &&
+        distanceUnit == DistanceUnit.miles;
 
     if (isAllMetric) return UnitPreset.metric;
     if (isAllImperial) return UnitPreset.imperial;
@@ -752,6 +759,7 @@ class AppSettings {
     VolumeUnit? volumeUnit,
     WeightUnit? weightUnit,
     AltitudeUnit? altitudeUnit,
+    DistanceUnit? distanceUnit,
     GasConsumptionDisplay? gasConsumptionDisplay,
     GasModel? gasModel,
     PlannerWaterType? defaultPlannerWaterType,
@@ -901,6 +909,7 @@ class AppSettings {
       volumeUnit: volumeUnit ?? this.volumeUnit,
       weightUnit: weightUnit ?? this.weightUnit,
       altitudeUnit: altitudeUnit ?? this.altitudeUnit,
+      distanceUnit: distanceUnit ?? this.distanceUnit,
       gasConsumptionDisplay:
           gasConsumptionDisplay ?? this.gasConsumptionDisplay,
       gasModel: gasModel ?? this.gasModel,
@@ -1704,6 +1713,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setAltitudeUnit(AltitudeUnit unit) async {
     state = state.copyWith(altitudeUnit: unit);
+    await _saveSettings();
+  }
+
+  Future<void> setDistanceUnit(DistanceUnit unit) async {
+    state = state.copyWith(distanceUnit: unit);
     await _saveSettings();
   }
 
@@ -2573,6 +2587,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       volumeUnit: VolumeUnit.liters,
       weightUnit: WeightUnit.kilograms,
       altitudeUnit: AltitudeUnit.meters,
+      distanceUnit: DistanceUnit.kilometers,
     );
     await _saveSettings();
   }
@@ -2586,6 +2601,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       volumeUnit: VolumeUnit.cubicFeet,
       weightUnit: WeightUnit.pounds,
       altitudeUnit: AltitudeUnit.feet,
+      distanceUnit: DistanceUnit.miles,
     );
     await _saveSettings();
   }
@@ -2670,6 +2686,10 @@ final defaultCurrencyProvider = Provider<String>((ref) {
 
 final altitudeUnitProvider = Provider<AltitudeUnit>((ref) {
   return ref.watch(settingsProvider.select((s) => s.altitudeUnit));
+});
+
+final distanceUnitProvider = Provider<DistanceUnit>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.distanceUnit));
 });
 
 final coordinateFormatProvider = Provider<CoordinateFormat>((ref) {
