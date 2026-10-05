@@ -109,6 +109,7 @@ import 'package:submersion/features/dive_log/domain/services/field_attribution_s
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/gas_switch_efficiency_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_loading_withheld_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card.dart';
@@ -2340,7 +2341,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// exposure and the tissue heat map stay three views of the same instant,
   /// even though the diver can show, hide and order Deco Status and Tissue
   /// Loading separately.
-  ({Widget deco, Widget o2, Widget Function({bool expand}) tissue})?
+  ({
+    Widget deco,
+    Widget o2,
+    Widget? gasSwitches,
+    Widget Function({bool expand}) tissue,
+  })?
   _decoPanelCards(
     BuildContext context,
     WidgetRef ref,
@@ -2431,6 +2437,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       return (
         deco: withheld(context.l10n.diveLog_detail_section_decoStatus),
         o2: o2Card,
+        gasSwitches: null,
         tissue: ({bool expand = false}) =>
             withheld(context.l10n.diveLog_deco_sectionTissueLoading),
       );
@@ -2469,7 +2476,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       subtitle: timeSubtitle,
     );
 
-    return (deco: decoCard, o2: o2Card, tissue: buildTissueCard);
+    final efficiency = analysis.gasSwitchEfficiency;
+    final gasSwitchCard = efficiency != null && efficiency.evaluated
+        ? GasSwitchEfficiencyCard(efficiency: efficiency)
+        : null;
+
+    return (
+      deco: decoCard,
+      o2: o2Card,
+      gasSwitches: gasSwitchCard,
+      tissue: buildTissueCard,
+    );
   }
 
   /// The Deco Status section: the deco card with the O2 exposure card beneath
@@ -2493,6 +2510,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         if (stretch) Expanded(child: cards.deco) else cards.deco,
         const SizedBox(height: 8),
         cards.o2,
+        if (cards.gasSwitches != null) ...[
+          const SizedBox(height: 8),
+          cards.gasSwitches!,
+        ],
       ],
     );
   }
