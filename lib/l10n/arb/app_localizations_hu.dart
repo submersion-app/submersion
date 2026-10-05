@@ -5929,7 +5929,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_combine_modeJoin => 'Összefűzés egy merüléssé';
 
   @override
+  String get diveLog_combine_modeJoinShort => 'Összefűzés';
+
+  @override
   String get diveLog_combine_modeMerge => 'Összevonás másik számítógépként';
+
+  @override
+  String get diveLog_combine_modeMergeShort => 'Összevonás';
 
   @override
   String get diveLog_combine_profilePreview => 'Összevont profil';
@@ -5979,11 +5985,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_consolidate_alignStarts => 'Kezdetek igazítása';
 
   @override
+  String get diveLog_consolidate_alignStartsShort => 'Kezdetek';
+
+  @override
   String get diveLog_consolidate_alignmentLabel => 'Felvételek igazítása';
 
   @override
   String get diveLog_consolidate_clockNote =>
       'Ezek a felvételek időben nem fedik egymást, így valószínűleg az egyik számítógép órája rosszul jár. A merülés az elsődleges számítógép idejét tartja meg.';
+
+  @override
+  String get diveLog_consolidate_clockNoteShort =>
+      'Valószínűleg az egyik számítógép órája rosszul jár.';
 
   @override
   String get diveLog_consolidate_confirm =>

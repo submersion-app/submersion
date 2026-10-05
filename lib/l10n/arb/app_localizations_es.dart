@@ -5942,7 +5942,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_combine_modeJoin => 'Unir en una inmersión';
 
   @override
+  String get diveLog_combine_modeJoinShort => 'Unir';
+
+  @override
   String get diveLog_combine_modeMerge => 'Fusionar como otro ordenador';
+
+  @override
+  String get diveLog_combine_modeMergeShort => 'Fusionar';
 
   @override
   String get diveLog_combine_profilePreview => 'Perfil combinado';
@@ -5991,11 +5997,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_consolidate_alignStarts => 'Alinear inicios';
 
   @override
+  String get diveLog_consolidate_alignStartsShort => 'Inicios';
+
+  @override
   String get diveLog_consolidate_alignmentLabel => 'Alinear los registros por';
 
   @override
   String get diveLog_consolidate_clockNote =>
       'Estos registros no se superponen en el tiempo, así que probablemente el reloj de un ordenador está mal. La inmersión conserva la hora del ordenador principal.';
+
+  @override
+  String get diveLog_consolidate_clockNoteShort =>
+      'Probablemente el reloj de un ordenador está mal.';
 
   @override
   String get diveLog_consolidate_confirm =>

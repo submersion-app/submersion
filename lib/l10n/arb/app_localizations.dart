@@ -9407,11 +9407,23 @@ abstract class AppLocalizations {
   /// **'Join into one dive'**
   String get diveLog_combine_modeJoin;
 
+  /// No description provided for @diveLog_combine_modeJoinShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get diveLog_combine_modeJoinShort;
+
   /// No description provided for @diveLog_combine_modeMerge.
   ///
   /// In en, this message translates to:
   /// **'Merge as another computer'**
   String get diveLog_combine_modeMerge;
+
+  /// No description provided for @diveLog_combine_modeMergeShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get diveLog_combine_modeMergeShort;
 
   /// No description provided for @diveLog_combine_profilePreview.
   ///
@@ -9477,6 +9489,12 @@ abstract class AppLocalizations {
   /// **'Align starts'**
   String get diveLog_consolidate_alignStarts;
 
+  /// No description provided for @diveLog_consolidate_alignStartsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts'**
+  String get diveLog_consolidate_alignStartsShort;
+
   /// No description provided for @diveLog_consolidate_alignmentLabel.
   ///
   /// In en, this message translates to:
@@ -9488,6 +9506,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These records don\'t overlap in time, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.'**
   String get diveLog_consolidate_clockNote;
+
+  /// No description provided for @diveLog_consolidate_clockNoteShort.
+  ///
+  /// In en, this message translates to:
+  /// **'One computer\'s clock is probably off.'**
+  String get diveLog_consolidate_clockNoteShort;
 
   /// No description provided for @diveLog_consolidate_confirm.
   ///

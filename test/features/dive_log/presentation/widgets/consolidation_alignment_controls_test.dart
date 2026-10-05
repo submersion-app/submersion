@@ -67,6 +67,72 @@ void main() {
     });
   });
 
+  group('compact (phone-width) layout', () {
+    testWidgets('the mode selector shortens its labels', (tester) async {
+      await _pump(
+        tester,
+        CombineModeSelector(mode: CombineMode.join, onChanged: (_) {}),
+        width: 262,
+      );
+      expect(find.text('Join'), findsOneWidget);
+      expect(find.text('Merge'), findsOneWidget);
+      expect(find.text('Join into one dive'), findsNothing);
+    });
+
+    testWidgets('the alignment controls shorten the toggle, drop the label '
+        'and fold the clock note into one line', (tester) async {
+      ConsolidationAlignment? picked;
+      await _pump(
+        tester,
+        ConsolidationAlignmentControls(
+          alignment: ConsolidationAlignment.bestFit,
+          onChanged: (a) => picked = a,
+        ),
+        width: 262,
+      );
+      expect(find.text('Best fit'), findsOneWidget);
+      expect(find.text('Starts'), findsOneWidget);
+      expect(find.text('Line up the records by'), findsNothing);
+      expect(
+        find.text("One computer's clock is probably off."),
+        findsOneWidget,
+      );
+      expect(find.textContaining('keeps the primary'), findsNothing);
+
+      await tester.tap(find.text('Starts'));
+      expect(picked, ConsolidationAlignment.starts);
+    });
+
+    testWidgets('tapping the short clock note shows the full text', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        ConsolidationAlignmentControls(
+          alignment: ConsolidationAlignment.bestFit,
+          onChanged: (_) {},
+        ),
+        width: 262,
+      );
+      await tester.tap(find.text("One computer's clock is probably off."));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('keeps the primary'), findsOneWidget);
+    });
+
+    testWidgets('a desktop-width dialog keeps the full labels', (tester) async {
+      await _pump(
+        tester,
+        ConsolidationAlignmentControls(
+          alignment: ConsolidationAlignment.bestFit,
+          onChanged: (_) {},
+        ),
+        width: 472,
+      );
+      expect(find.text('Align starts'), findsOneWidget);
+      expect(find.text('Line up the records by'), findsOneWidget);
+    });
+  });
+
   group('ConsolidationAlignmentControls', () {
     testWidgets('shows the clock note and reports the tapped alignment', (
       tester,

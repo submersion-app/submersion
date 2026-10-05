@@ -5955,7 +5955,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_combine_modeJoin => 'Joindre en une seule plongée';
 
   @override
+  String get diveLog_combine_modeJoinShort => 'Joindre';
+
+  @override
   String get diveLog_combine_modeMerge => 'Fusionner comme un autre ordinateur';
+
+  @override
+  String get diveLog_combine_modeMergeShort => 'Fusionner';
 
   @override
   String get diveLog_combine_profilePreview => 'Profil combiné';
@@ -6005,12 +6011,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_consolidate_alignStarts => 'Aligner les débuts';
 
   @override
+  String get diveLog_consolidate_alignStartsShort => 'Débuts';
+
+  @override
   String get diveLog_consolidate_alignmentLabel =>
       'Aligner les enregistrements par';
 
   @override
   String get diveLog_consolidate_clockNote =>
       'Ces enregistrements ne se chevauchent pas dans le temps : l\'horloge d\'un ordinateur est probablement décalée. La plongée garde l\'heure de l\'ordinateur principal.';
+
+  @override
+  String get diveLog_consolidate_clockNoteShort =>
+      'L\'horloge d\'un ordinateur est probablement décalée.';
 
   @override
   String get diveLog_consolidate_confirm =>

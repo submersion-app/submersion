@@ -13,6 +13,11 @@ enum CombineMode {
   merge,
 }
 
+/// Below this width (a phone's dialog is about 262 pt wide, a desktop's 472)
+/// the controls shorten their labels and fold the clock note, so the preview
+/// chart stays on the first screen.
+const double _compactMaxWidth = 360;
+
 /// The Join / Merge choice at the top of the combine dialog, shown when a
 /// non-overlapping selection could also be merged as computers.
 class CombineModeSelector extends StatelessWidget {
@@ -30,7 +35,12 @@ class CombineModeSelector extends StatelessWidget {
   final bool showSameDiveHint;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) =>
+        _build(context, compact: constraints.maxWidth < _compactMaxWidth),
+  );
+
+  Widget _build(BuildContext context, {required bool compact}) {
     final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -40,11 +50,19 @@ class CombineModeSelector extends StatelessWidget {
           segments: [
             ButtonSegment(
               value: CombineMode.join,
-              label: Text(l10n.diveLog_combine_modeJoin),
+              label: Text(
+                compact
+                    ? l10n.diveLog_combine_modeJoinShort
+                    : l10n.diveLog_combine_modeJoin,
+              ),
             ),
             ButtonSegment(
               value: CombineMode.merge,
-              label: Text(l10n.diveLog_combine_modeMerge),
+              label: Text(
+                compact
+                    ? l10n.diveLog_combine_modeMergeShort
+                    : l10n.diveLog_combine_modeMerge,
+              ),
             ),
           ],
           selected: {mode},
@@ -79,20 +97,38 @@ class ConsolidationAlignmentControls extends StatelessWidget {
   final bool showFallbackNote;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) =>
+        _build(context, compact: constraints.maxWidth < _compactMaxWidth),
+  );
+
+  Widget _build(BuildContext context, {required bool compact}) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _Note(icon: Icons.schedule, text: l10n.diveLog_consolidate_clockNote),
-        const SizedBox(height: 12),
-        Text(
-          l10n.diveLog_consolidate_alignmentLabel,
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+        if (compact)
+          // One short line; the full explanation is a tap away.
+          Tooltip(
+            message: l10n.diveLog_consolidate_clockNote,
+            triggerMode: TooltipTriggerMode.tap,
+            showDuration: const Duration(seconds: 8),
+            child: _Note(
+              icon: Icons.info_outline,
+              text: l10n.diveLog_consolidate_clockNoteShort,
+            ),
+          )
+        else ...[
+          _Note(icon: Icons.schedule, text: l10n.diveLog_consolidate_clockNote),
+          const SizedBox(height: 12),
+          Text(
+            l10n.diveLog_consolidate_alignmentLabel,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
-        ),
+        ],
         const SizedBox(height: 8),
         SegmentedButton<ConsolidationAlignment>(
           showSelectedIcon: false,
@@ -103,7 +139,11 @@ class ConsolidationAlignmentControls extends StatelessWidget {
             ),
             ButtonSegment(
               value: ConsolidationAlignment.starts,
-              label: Text(l10n.diveLog_consolidate_alignStarts),
+              label: Text(
+                compact
+                    ? l10n.diveLog_consolidate_alignStartsShort
+                    : l10n.diveLog_consolidate_alignStarts,
+              ),
             ),
           ],
           selected: {alignment},

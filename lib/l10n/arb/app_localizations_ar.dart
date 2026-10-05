@@ -6025,7 +6025,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_combine_modeJoin => 'ربط في غوصة واحدة';
 
   @override
+  String get diveLog_combine_modeJoinShort => 'ربط';
+
+  @override
   String get diveLog_combine_modeMerge => 'دمج ككمبيوتر إضافي';
+
+  @override
+  String get diveLog_combine_modeMergeShort => 'دمج';
 
   @override
   String get diveLog_combine_profilePreview => 'الملف المدمج';
@@ -6077,11 +6083,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_consolidate_alignStarts => 'محاذاة البدايات';
 
   @override
+  String get diveLog_consolidate_alignStartsShort => 'البدايات';
+
+  @override
   String get diveLog_consolidate_alignmentLabel => 'محاذاة السجلات حسب';
 
   @override
   String get diveLog_consolidate_clockNote =>
       'هذه السجلات لا تتداخل زمنيًا، لذا ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة. تحتفظ الغوصة بوقت الكمبيوتر الأساسي.';
+
+  @override
+  String get diveLog_consolidate_clockNoteShort =>
+      'ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة.';
 
   @override
   String get diveLog_consolidate_confirm =>

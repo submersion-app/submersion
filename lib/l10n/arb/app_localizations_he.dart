@@ -5814,7 +5814,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_combine_modeJoin => 'חיבור לצלילה אחת';
 
   @override
+  String get diveLog_combine_modeJoinShort => 'חיבור';
+
+  @override
   String get diveLog_combine_modeMerge => 'מיזוג כמחשב נוסף';
+
+  @override
+  String get diveLog_combine_modeMergeShort => 'מיזוג';
 
   @override
   String get diveLog_combine_profilePreview => 'פרופיל ממוזג';
@@ -5863,11 +5869,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_consolidate_alignStarts => 'יישור התחלות';
 
   @override
+  String get diveLog_consolidate_alignStartsShort => 'התחלות';
+
+  @override
   String get diveLog_consolidate_alignmentLabel => 'יישור הרשומות לפי';
 
   @override
   String get diveLog_consolidate_clockNote =>
       'הרשומות האלה לא חופפות בזמן, כך שכנראה השעון של אחד המחשבים שגוי. הצלילה שומרת על השעה של המחשב הראשי.';
+
+  @override
+  String get diveLog_consolidate_clockNoteShort =>
+      'כנראה השעון של אחד המחשבים שגוי.';
 
   @override
   String get diveLog_consolidate_confirm => 'לשמור כצלילה אחת עם שני המחשבים';

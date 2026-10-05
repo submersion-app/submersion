@@ -5845,7 +5845,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_combine_modeJoin => 'Join into one dive';
 
   @override
+  String get diveLog_combine_modeJoinShort => 'Join';
+
+  @override
   String get diveLog_combine_modeMerge => 'Merge as another computer';
+
+  @override
+  String get diveLog_combine_modeMergeShort => 'Merge';
 
   @override
   String get diveLog_combine_profilePreview => 'Combined profile';
@@ -5894,11 +5900,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_consolidate_alignStarts => 'Align starts';
 
   @override
+  String get diveLog_consolidate_alignStartsShort => 'Starts';
+
+  @override
   String get diveLog_consolidate_alignmentLabel => 'Line up the records by';
 
   @override
   String get diveLog_consolidate_clockNote =>
       'These records don\'t overlap in time, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.';
+
+  @override
+  String get diveLog_consolidate_clockNoteShort =>
+      'One computer\'s clock is probably off.';
 
   @override
   String get diveLog_consolidate_confirm =>
