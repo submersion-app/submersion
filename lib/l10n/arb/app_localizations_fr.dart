@@ -48331,4 +48331,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get query_saveNeedsDiver =>
       'Créez un profil de plongeur pour enregistrer des requêtes';
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'Unité de distance';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Changements de gaz tardifs';
 }

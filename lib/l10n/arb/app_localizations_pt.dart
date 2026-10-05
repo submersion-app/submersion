@@ -48235,4 +48235,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get query_saveNeedsDiver =>
       'Crie um perfil de mergulhador para salvar consultas';
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'Unidade de distância';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Trocas de gás tardias';
 }

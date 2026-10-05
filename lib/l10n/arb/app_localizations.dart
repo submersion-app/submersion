@@ -76833,6 +76833,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create a diver profile to save queries'**
   String get query_saveNeedsDiver;
+
+  /// Sync conflict dialog label for the diver setting distanceUnit
+  ///
+  /// In en, this message translates to:
+  /// **'Distance unit'**
+  String get settings_conflict_field_distanceUnit;
+
+  /// Sync conflict dialog label for the diver setting defaultShowLateGasSwitches
+  ///
+  /// In en, this message translates to:
+  /// **'Late gas switches'**
+  String get settings_conflict_field_defaultShowLateGasSwitches;
 }
 
 class _AppLocalizationsDelegate

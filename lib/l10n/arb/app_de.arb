@@ -14543,5 +14543,7 @@
   "settings_manage_savedQueries": "Gespeicherte Abfragen",
   "settings_manage_savedQueries_subtitle": "Gespeicherte Abfragen umbenennen, sortieren und löschen",
   "query_editor_needsText": "Mindestens ein Wort eingeben",
-  "query_saveNeedsDiver": "Legen Sie ein Taucherprofil an, um Abfragen zu speichern"
+  "query_saveNeedsDiver": "Legen Sie ein Taucherprofil an, um Abfragen zu speichern",
+  "settings_conflict_field_distanceUnit": "Entfernungseinheit",
+  "settings_conflict_field_defaultShowLateGasSwitches": "Späte Gaswechsel"
 }

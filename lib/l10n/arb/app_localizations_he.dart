@@ -47224,4 +47224,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_saveNeedsDiver => 'צור פרופיל צולל כדי לשמור שאילתות';
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'יחידת מרחק';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'החלפות גז מאוחרות';
 }

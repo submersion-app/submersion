@@ -48224,4 +48224,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get query_saveNeedsDiver =>
       'Crea un profilo subacqueo per salvare le query';
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'Unità di distanza';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Cambi gas tardivi';
 }

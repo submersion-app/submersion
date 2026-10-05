@@ -45335,4 +45335,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_saveNeedsDiver => '请先创建潜水员档案再保存查询';
+
+  @override
+  String get settings_conflict_field_distanceUnit => '距离单位';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches => '延迟换气';
 }

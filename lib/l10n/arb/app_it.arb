@@ -14422,5 +14422,7 @@
   "settings_manage_savedQueries": "Query salvate",
   "settings_manage_savedQueries_subtitle": "Rinomina, riordina ed elimina le query salvate",
   "query_editor_needsText": "Inserisci almeno una parola",
-  "query_saveNeedsDiver": "Crea un profilo subacqueo per salvare le query"
+  "query_saveNeedsDiver": "Crea un profilo subacqueo per salvare le query",
+  "settings_conflict_field_distanceUnit": "Unità di distanza",
+  "settings_conflict_field_defaultShowLateGasSwitches": "Cambi gas tardivi"
 }

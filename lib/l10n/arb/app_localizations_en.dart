@@ -47478,4 +47478,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get query_saveNeedsDiver => 'Create a diver profile to save queries';
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'Distance unit';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Late gas switches';
 }

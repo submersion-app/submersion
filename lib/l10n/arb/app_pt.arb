@@ -14422,5 +14422,7 @@
   "settings_manage_savedQueries": "Consultas salvas",
   "settings_manage_savedQueries_subtitle": "Renomear, reordenar e excluir consultas salvas",
   "query_editor_needsText": "Digite pelo menos uma palavra",
-  "query_saveNeedsDiver": "Crie um perfil de mergulhador para salvar consultas"
+  "query_saveNeedsDiver": "Crie um perfil de mergulhador para salvar consultas",
+  "settings_conflict_field_distanceUnit": "Unidade de distância",
+  "settings_conflict_field_defaultShowLateGasSwitches": "Trocas de gás tardias"
 }
