@@ -105,6 +105,14 @@ extension MediaMigrations on AppDatabase {
     }
   }
 
+  /// The beforeOpen backstop for the media columns the row mapper reads on
+  /// every hydration: v164 manual_elapsed_seconds and v263's site
+  /// attachment columns. One call keeps before_open.dart under its size cap.
+  Future<void> _assertMediaRowColumns() async {
+    await _assertMediaManualElapsedColumn();
+    await _assertMediaSiteAttachmentColumns();
+  }
+
   /// v263: media.site_category and media.display_size (issue #1039).
   /// Idempotent; called from the rung and the beforeOpen backstop. Both are
   /// nullable with no default, so every existing row reads back as an

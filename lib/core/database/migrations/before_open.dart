@@ -389,13 +389,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // parallel-branch version-collision self-heal).
     await _assertSiteSuggestionDismissedAtColumn();
 
-    // v164 backstop: re-assert media.manual_elapsed_seconds (issue
-    // #1090; same parallel-branch version-collision self-heal). The
-    // media row mapper reads it on every hydration.
-    await _assertMediaManualElapsedColumn();
-    // v263 backstop: re-assert media.site_category and media.display_size
-    // (issue #1039). The media row mapper reads both on every hydration.
-    await _assertMediaSiteAttachmentColumns();
+    // v164 and v263 backstops: re-assert media.manual_elapsed_seconds
+    // (#1090) and the site attachment columns (#1039). The media row
+    // mapper reads all three on every hydration.
+    await _assertMediaRowColumns();
     // v165 backstop: re-assert diver_settings.trim_tank_pressure_at_
     // surfacing (issue #1092; same parallel-branch collision self-heal).
     await _assertSurfacingPressureColumn();
