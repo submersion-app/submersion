@@ -905,6 +905,7 @@ void main() {
 
       await tester.pumpWidget(
         testApp(
+          locale: const Locale('en'),
           child: SingleChildScrollView(
             child: DataSourcesSection(
               dataSources: [source],
