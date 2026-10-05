@@ -1013,7 +1013,6 @@ CREATE TABLE diver_settings (
   end_limit REAL DEFAULT 30.0,
   use_dive_computer_cns_data INTEGER DEFAULT 0,
   default_ndl_source INTEGER DEFAULT 1,
-  default_ceiling_source INTEGER DEFAULT 1,
   default_tts_source INTEGER DEFAULT 1,
   default_cns_source INTEGER DEFAULT 1,
   -- Profile display settings
