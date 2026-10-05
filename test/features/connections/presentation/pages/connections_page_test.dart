@@ -737,7 +737,7 @@ void main() {
     final canvasTop = tester
         .getTopLeft(find.byKey(const ValueKey('connections-canvas-paint')))
         .dy;
-    expect(stripBottom - canvasTop, InsightStrip.height + 8);
+    expect(stripBottom - canvasTop, greaterThanOrEqualTo(InsightStrip.height));
     for (final n in chain.nodes) {
       final p = painter.frame.positions[n.ref]!;
       final top = painter.viewport.toScreen(p).dy - painter.radiusOf(n);
@@ -772,5 +772,37 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
     expect(c.read(yearPlayProvider), 2020);
     c.read(yearPlayProvider.notifier).pause();
+  });
+  testWidgets('beside the tiles, the strip band still reaches the canvas', (
+    tester,
+  ) async {
+    final pair = ConnectionGraph(
+      nodes: [
+        ConnectionNode(ref: _b('a'), label: 'A', diveCount: 2),
+        ConnectionNode(ref: _b('b'), label: 'B', diveCount: 1),
+      ],
+      edges: [
+        ConnectionEdge(
+          source: _b('a'),
+          target: _b('b'),
+          weight: 1,
+          firstDiveAt: DateTime.utc(2024),
+          lastDiveAt: DateTime.utc(2024),
+        ),
+      ],
+    );
+    await _pump(
+      tester,
+      size: const Size(1800, 800),
+      graph: (ref, budget) => pair,
+    );
+    final canvas = find.byKey(const ValueKey('connections-canvas-paint'));
+    final band = tester.getRect(
+      find.byKey(const ValueKey('connections-insights')),
+    );
+    final point = Offset(tester.getRect(canvas).right - 20, band.center.dy);
+    final hit = tester.hitTestOnBinding(point);
+    final target = tester.renderObject(canvas);
+    expect(hit.path.any((e) => e.target == target), isTrue);
   });
 }

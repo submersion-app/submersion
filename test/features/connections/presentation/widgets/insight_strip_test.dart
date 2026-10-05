@@ -96,6 +96,11 @@ void main() {
       ),
       findsOneWidget,
     );
+    await tester.dragUntilVisible(
+      find.byKey(const ValueKey('insight-driftingApart')),
+      find.byType(ListView),
+      const Offset(-200, 0),
+    );
     expect(
       find.text(
         'Ana and Bo, last ${units.formatMonthYear(DateTime(2018, 6, 1))}',
@@ -180,5 +185,40 @@ void main() {
       matching: find.byType(RichText),
     );
     expect(tester.widget<RichText>(value.last).maxLines, 2);
+  });
+  testWidgets('every tile carries an icon', (tester) async {
+    await _pump(
+      tester,
+      tiles: GraphInsights.of(
+        _graph,
+        groups: LabelPropagation.communities(_graph),
+      ),
+    );
+    for (final kind in ['mostConnected', 'strongestPair', 'newest']) {
+      expect(
+        find.descendant(
+          of: find.byKey(ValueKey('insight-$kind')),
+          matching: find.byType(Icon),
+        ),
+        findsOneWidget,
+        reason: kind,
+      );
+    }
+  });
+
+  testWidgets('large text grows the strip instead of clipping it', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      tiles: GraphInsights.of(
+        _graph,
+        groups: LabelPropagation.communities(_graph),
+      ),
+      textScale: 1.6,
+    );
+    expect(tester.takeException(), isNull);
+    final context = tester.element(find.byType(InsightStrip));
+    expect(InsightStrip.heightOf(context), greaterThan(InsightStrip.height));
   });
 }

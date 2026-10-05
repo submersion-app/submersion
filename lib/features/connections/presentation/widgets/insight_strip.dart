@@ -27,8 +27,13 @@ class InsightStrip extends ConsumerWidget {
   final ValueChanged<GraphSelection> onSelect;
   final VoidCallback onGroups;
 
-  /// The strip's height; overlays below it start under this.
+  /// The strip's height at the default text size.
   static const double height = 76;
+
+  /// The strip's height at the reader's text size; canvas overlays and the
+  /// camera fit start below this.
+  static double heightOf(BuildContext context) =>
+      MediaQuery.textScalerOf(context).scale(height).clamp(height, height * 3);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -36,63 +41,91 @@ class InsightStrip extends ConsumerWidget {
     final l10n = context.l10n;
     final units = UnitFormatter(ref.watch(settingsProvider));
     final theme = Theme.of(context);
-    return SizedBox(
-      height: height,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: tiles.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (context, i) {
-          final t = tiles[i];
-          return ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 300),
-            child: Card(
-              key: ValueKey('insight-${t.kind.name}'),
-              margin: const EdgeInsets.symmetric(vertical: 2),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: () {
-                  final target = t.target;
-                  if (t.kind == InsightKind.groups) {
-                    onGroups();
-                  } else if (target != null) {
-                    onSelect(target);
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _title(l10n, t.kind),
-                        style: theme.textTheme.labelSmall,
-                      ),
-                      Text(
-                        _value(l10n, units, t),
-                        // Two lines, so long names wrap rather than cut the
-                        // count or date off the end.
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
+    // Sized to its tiles, so the band beside them stays the canvas's own
+    // (a full-width list would swallow pans and taps there).
+    return Align(
+      alignment: AlignmentDirectional.topStart,
+      child: SizedBox(
+        height: heightOf(context),
+        child: ListView.separated(
+          shrinkWrap: true,
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          itemCount: tiles.length,
+          separatorBuilder: (_, _) => const SizedBox(width: 8),
+          itemBuilder: (context, i) {
+            final t = tiles[i];
+            return ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 300),
+              child: Card(
+                key: ValueKey('insight-${t.kind.name}'),
+                margin: const EdgeInsets.symmetric(vertical: 2),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () {
+                    final target = t.target;
+                    if (t.kind == InsightKind.groups) {
+                      onGroups();
+                    } else if (target != null) {
+                      onSelect(target);
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _icon(t.kind),
+                          size: 18,
+                          color: theme.colorScheme.primary,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                _title(l10n, t.kind),
+                                style: theme.textTheme.labelSmall,
+                              ),
+                              Text(
+                                _value(l10n, units, t),
+                                // Two lines, so long names wrap rather than
+                                // cut the count or date off the end.
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
+
+  static IconData _icon(InsightKind k) => switch (k) {
+    InsightKind.mostConnected => Icons.hub_outlined,
+    InsightKind.strongestPair => Icons.link,
+    InsightKind.closest => Icons.near_me_outlined,
+    InsightKind.newest => Icons.fiber_new_outlined,
+    InsightKind.driftingApart => Icons.trending_down,
+    InsightKind.groups => Icons.workspaces_outlined,
+  };
 
   static String _title(AppLocalizations l10n, InsightKind k) => switch (k) {
     InsightKind.mostConnected => l10n.connections_summary_mostConnected,

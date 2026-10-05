@@ -49,9 +49,6 @@ class ConnectionsPage extends ConsumerStatefulWidget {
   ConsumerState<ConnectionsPage> createState() => _ConnectionsPageState();
 }
 
-/// Where canvas overlays start, under the insight strip.
-const double _belowStrip = InsightStrip.height + 16;
-
 class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     with SingleTickerProviderStateMixin {
   late final ConnectionsLayoutController _layout = ConnectionsLayoutController(
@@ -352,6 +349,10 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         graphAsync.error is! FocusNotFoundException;
 
     Widget canvasArea(double bottomInset) {
+      // The strip sits 8 px down and grows with the reader's text size;
+      // overlays start below it.
+      final stripHeight = InsightStrip.heightOf(context);
+      final belowStrip = stripHeight + 16;
       if (held == null && graphAsync.hasError) {
         return graphAsync.error is FocusNotFoundException
             ? const Center(child: CircularProgressIndicator())
@@ -407,7 +408,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
               animate: animate,
               bottomInset: bottomInset,
               // The strip sits 8 px down; 0 when it has no tiles.
-              topInset: _insights.isEmpty ? 0 : InsightStrip.height + 8,
+              topInset: _insights.isEmpty ? 0 : stripHeight + 8,
               highlight: view.highlight,
               groupOf: _groups.groupOf,
               onSelect: (s) =>
@@ -439,7 +440,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
           if (!wide)
             Positioned(
               left: 12,
-              top: _belowStrip,
+              top: belowStrip,
               child: Card(
                 child: Padding(
                   padding: const EdgeInsets.all(8),
@@ -455,7 +456,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
             ),
           Positioned(
             right: 12,
-            top: _belowStrip,
+            top: belowStrip,
             child: HiddenNodesChip(
               count: graph.hiddenNodeCount,
               onShowAll: budget >= ConnectionsPage.maxBudget
@@ -467,7 +468,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
             Positioned(
               left: 12,
               right: 12,
-              top: _belowStrip + 44,
+              top: belowStrip + 44,
               child: Card(
                 key: const ValueKey('connections-reload-error'),
                 child: Padding(
