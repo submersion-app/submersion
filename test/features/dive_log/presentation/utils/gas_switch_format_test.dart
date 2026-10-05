@@ -35,21 +35,19 @@ void main() {
   });
 
   test('late tooltip in metric and imperial', () {
-    final metric = UnitFormatter(const AppSettings());
+    const metric = UnitFormatter(AppSettings());
     expect(lateSwitchTooltipLabel(late, l10n), 'Late switch');
     expect(
       lateSwitchTooltipValue(late, metric, l10n),
       'EAN50, 3:20 / ${metric.formatDepth(9, decimals: 0)} late, +4:10 deco',
     );
-    final imperial = UnitFormatter(
-      const AppSettings(depthUnit: DepthUnit.feet),
-    );
+    const imperial = UnitFormatter(AppSettings(depthUnit: DepthUnit.feet));
     expect(lateSwitchTooltipValue(late, imperial, l10n), contains('ft'));
   });
 
   test('missed tooltip', () {
     final missed = late.copyWith(kind: GasSwitchWindowKind.missed);
-    final metric = UnitFormatter(const AppSettings());
+    const metric = UnitFormatter(AppSettings());
     expect(lateSwitchTooltipLabel(missed, l10n), 'Missed switch');
     expect(lateSwitchTooltipValue(missed, metric, l10n), 'EAN50, +4:10 deco');
   });
