@@ -47155,4 +47155,8 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_defaultShowLateGasSwitches =>
       'החלפות גז מאוחרות';
+
+  @override
+  String get settings_conflict_field_hiddenBuiltInIds =>
+      'פריטים מובנים מוסתרים';
 }

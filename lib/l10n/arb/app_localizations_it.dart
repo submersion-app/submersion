@@ -48155,4 +48155,8 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_conflict_field_defaultShowLateGasSwitches =>
       'Cambi gas tardivi';
+
+  @override
+  String get settings_conflict_field_hiddenBuiltInIds =>
+      'Voci integrate nascoste';
 }

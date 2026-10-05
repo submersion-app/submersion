@@ -48055,4 +48055,8 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_defaultShowLateGasSwitches =>
       'Späte Gaswechsel';
+
+  @override
+  String get settings_conflict_field_hiddenBuiltInIds =>
+      'Ausgeblendete integrierte Einträge';
 }

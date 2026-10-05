@@ -14406,5 +14406,6 @@
   "builtIns_showInPickers": "Mostrar nos seletores",
   "preDive_start_allTemplatesHidden": "Todas as listas de verificação estão ocultas. Mostre uma novamente em {path}.",
   "settings_conflict_field_distanceUnit": "Unidade de distância",
-  "settings_conflict_field_defaultShowLateGasSwitches": "Trocas de gás tardias"
+  "settings_conflict_field_defaultShowLateGasSwitches": "Trocas de gás tardias",
+  "settings_conflict_field_hiddenBuiltInIds": "Entradas integradas ocultas"
 }

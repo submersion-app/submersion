@@ -14406,5 +14406,6 @@
   "builtIns_showInPickers": "Megjelenítés a választókban",
   "preDive_start_allTemplatesHidden": "Minden ellenőrzőlista el van rejtve. Jelenítsen meg újra egyet itt: {path}.",
   "settings_conflict_field_distanceUnit": "Távolság mértékegysége",
-  "settings_conflict_field_defaultShowLateGasSwitches": "Késői gázváltások"
+  "settings_conflict_field_defaultShowLateGasSwitches": "Késői gázváltások",
+  "settings_conflict_field_hiddenBuiltInIds": "Elrejtett beépített elemek"
 }

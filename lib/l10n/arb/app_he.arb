@@ -14406,5 +14406,6 @@
   "builtIns_showInPickers": "הצג בבוררים",
   "preDive_start_allTemplatesHidden": "כל רשימות הבדיקה מוסתרות. אפשר להציג אחת מחדש ב-{path}.",
   "settings_conflict_field_distanceUnit": "יחידת מרחק",
-  "settings_conflict_field_defaultShowLateGasSwitches": "החלפות גז מאוחרות"
+  "settings_conflict_field_defaultShowLateGasSwitches": "החלפות גז מאוחרות",
+  "settings_conflict_field_hiddenBuiltInIds": "פריטים מובנים מוסתרים"
 }

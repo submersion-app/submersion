@@ -76737,6 +76737,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Late gas switches'**
   String get settings_conflict_field_defaultShowLateGasSwitches;
+
+  /// Sync conflict dialog label for the built-in dive types, roles, site types, service types and checklists a diver hid from the pickers
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden built-in entries'**
+  String get settings_conflict_field_hiddenBuiltInIds;
 }
 
 class _AppLocalizationsDelegate

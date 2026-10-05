@@ -14406,5 +14406,6 @@
   "builtIns_showInPickers": "Afficher dans les sélecteurs",
   "preDive_start_allTemplatesHidden": "Toutes les checklists sont masquées. Réaffichez-en une dans {path}.",
   "settings_conflict_field_distanceUnit": "Unité de distance",
-  "settings_conflict_field_defaultShowLateGasSwitches": "Changements de gaz tardifs"
+  "settings_conflict_field_defaultShowLateGasSwitches": "Changements de gaz tardifs",
+  "settings_conflict_field_hiddenBuiltInIds": "Entrées intégrées masquées"
 }

@@ -45267,4 +45267,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_defaultShowLateGasSwitches => '延迟换气';
+
+  @override
+  String get settings_conflict_field_hiddenBuiltInIds => '已隐藏的内置项目';
 }

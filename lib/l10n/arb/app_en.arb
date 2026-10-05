@@ -28776,5 +28776,7 @@
   "settings_conflict_field_distanceUnit": "Distance unit",
   "@settings_conflict_field_distanceUnit": {"description": "Sync conflict dialog label for the diver setting distanceUnit"},
   "settings_conflict_field_defaultShowLateGasSwitches": "Late gas switches",
-  "@settings_conflict_field_defaultShowLateGasSwitches": {"description": "Sync conflict dialog label for the diver setting defaultShowLateGasSwitches"}
+  "@settings_conflict_field_defaultShowLateGasSwitches": {"description": "Sync conflict dialog label for the diver setting defaultShowLateGasSwitches"},
+  "settings_conflict_field_hiddenBuiltInIds": "Hidden built-in entries",
+  "@settings_conflict_field_hiddenBuiltInIds": {"description": "Sync conflict dialog label for the built-in dive types, roles, site types, service types and checklists a diver hid from the pickers"}
 }

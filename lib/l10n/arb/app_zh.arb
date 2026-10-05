@@ -14406,5 +14406,6 @@
   "builtIns_showInPickers": "在选择列表中显示",
   "preDive_start_allTemplatesHidden": "所有检查清单都已隐藏。可在 {path} 中重新显示。",
   "settings_conflict_field_distanceUnit": "距离单位",
-  "settings_conflict_field_defaultShowLateGasSwitches": "延迟换气"
+  "settings_conflict_field_defaultShowLateGasSwitches": "延迟换气",
+  "settings_conflict_field_hiddenBuiltInIds": "已隐藏的内置项目"
 }

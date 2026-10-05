@@ -14406,5 +14406,6 @@
   "builtIns_showInPickers": "إظهار في قوائم الاختيار",
   "preDive_start_allTemplatesHidden": "جميع قوائم التحقق مخفية. أظهر واحدة مجددًا من {path}.",
   "settings_conflict_field_distanceUnit": "وحدة المسافة",
-  "settings_conflict_field_defaultShowLateGasSwitches": "تبديلات الغاز المتأخرة"
+  "settings_conflict_field_defaultShowLateGasSwitches": "تبديلات الغاز المتأخرة",
+  "settings_conflict_field_hiddenBuiltInIds": "العناصر المضمنة المخفية"
 }

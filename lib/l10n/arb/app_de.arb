@@ -14527,5 +14527,6 @@
   "builtIns_showInPickers": "In der Auswahl anzeigen",
   "preDive_start_allTemplatesHidden": "Alle Checklisten sind ausgeblendet. Unter {path} wieder einblenden.",
   "settings_conflict_field_distanceUnit": "Entfernungseinheit",
-  "settings_conflict_field_defaultShowLateGasSwitches": "Späte Gaswechsel"
+  "settings_conflict_field_defaultShowLateGasSwitches": "Späte Gaswechsel",
+  "settings_conflict_field_hiddenBuiltInIds": "Ausgeblendete integrierte Einträge"
 }

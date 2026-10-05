@@ -48262,4 +48262,8 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_defaultShowLateGasSwitches =>
       'Changements de gaz tardifs';
+
+  @override
+  String get settings_conflict_field_hiddenBuiltInIds =>
+      'Entrées intégrées masquées';
 }

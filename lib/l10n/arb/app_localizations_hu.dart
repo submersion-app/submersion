@@ -47924,4 +47924,8 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_defaultShowLateGasSwitches =>
       'Késői gázváltások';
+
+  @override
+  String get settings_conflict_field_hiddenBuiltInIds =>
+      'Elrejtett beépített elemek';
 }

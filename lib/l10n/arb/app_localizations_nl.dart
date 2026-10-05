@@ -47845,4 +47845,8 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_defaultShowLateGasSwitches =>
       'Late gaswissels';
+
+  @override
+  String get settings_conflict_field_hiddenBuiltInIds =>
+      'Verborgen ingebouwde items';
 }

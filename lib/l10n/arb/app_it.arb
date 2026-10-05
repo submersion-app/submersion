@@ -14406,5 +14406,6 @@
   "builtIns_showInPickers": "Mostra nei selettori",
   "preDive_start_allTemplatesHidden": "Tutte le checklist sono nascoste. Mostrane di nuovo una in {path}.",
   "settings_conflict_field_distanceUnit": "Unità di distanza",
-  "settings_conflict_field_defaultShowLateGasSwitches": "Cambi gas tardivi"
+  "settings_conflict_field_defaultShowLateGasSwitches": "Cambi gas tardivi",
+  "settings_conflict_field_hiddenBuiltInIds": "Voci integrate nascoste"
 }

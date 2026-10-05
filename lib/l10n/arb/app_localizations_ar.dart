@@ -48738,4 +48738,8 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_defaultShowLateGasSwitches =>
       'تبديلات الغاز المتأخرة';
+
+  @override
+  String get settings_conflict_field_hiddenBuiltInIds =>
+      'العناصر المضمنة المخفية';
 }

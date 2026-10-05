@@ -48165,4 +48165,8 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_defaultShowLateGasSwitches =>
       'Trocas de gás tardias';
+
+  @override
+  String get settings_conflict_field_hiddenBuiltInIds =>
+      'Entradas integradas ocultas';
 }

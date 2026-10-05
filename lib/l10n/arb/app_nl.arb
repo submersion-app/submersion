@@ -14406,5 +14406,6 @@
   "builtIns_showInPickers": "Tonen in kiezers",
   "preDive_start_allTemplatesHidden": "Alle checklists zijn verborgen. Toon er weer een via {path}.",
   "settings_conflict_field_distanceUnit": "Afstandseenheid",
-  "settings_conflict_field_defaultShowLateGasSwitches": "Late gaswissels"
+  "settings_conflict_field_defaultShowLateGasSwitches": "Late gaswissels",
+  "settings_conflict_field_hiddenBuiltInIds": "Verborgen ingebouwde items"
 }
