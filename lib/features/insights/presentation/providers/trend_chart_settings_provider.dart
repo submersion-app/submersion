@@ -1,5 +1,6 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
+import 'package:submersion/features/insights/domain/trend_range.dart';
 
 /// Stable ids for the charts that carry a trend control strip. Used as the
 /// family key so each chart keeps its own aggregation and overlay choices.
@@ -18,21 +19,27 @@ class TrendChartSettings {
     this.aggregation = TrendAggregation.none,
     this.showRollingMean = true,
     this.showLinearFit = false,
+    this.range = TrendRange.all,
   });
 
   final TrendAggregation aggregation;
   final bool showRollingMean;
   final bool showLinearFit;
 
+  /// The visible window, from the Range menu or the last pan and zoom.
+  final TrendRange range;
+
   TrendChartSettings copyWith({
     TrendAggregation? aggregation,
     bool? showRollingMean,
     bool? showLinearFit,
+    TrendRange? range,
   }) {
     return TrendChartSettings(
       aggregation: aggregation ?? this.aggregation,
       showRollingMean: showRollingMean ?? this.showRollingMean,
       showLinearFit: showLinearFit ?? this.showLinearFit,
+      range: range ?? this.range,
     );
   }
 }
