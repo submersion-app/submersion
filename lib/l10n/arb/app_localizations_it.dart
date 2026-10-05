@@ -214,7 +214,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get connections_highlight_groups => 'Gruppi';
 
   @override
-  String get connections_highlight_recency => 'Recenza';
+  String get connections_highlight_recency => 'Attualità';
 
   @override
   String get connections_legend_group => 'Colore: gruppo';

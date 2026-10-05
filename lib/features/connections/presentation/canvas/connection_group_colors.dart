@@ -9,8 +9,8 @@ const List<Color> kConnectionGroupColors = [
   Color(0xFF43A047),
   Color(0xFF8E24AA),
   Color(0xFFE53935),
-  Color(0xFF00ACC1),
-  Color(0xFFC0CA33),
+  Color(0xFF00838F),
+  Color(0xFF827717),
   Color(0xFFD81B60),
 ];
 
