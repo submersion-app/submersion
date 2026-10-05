@@ -298,6 +298,9 @@ void main() {
         'Transport case': EquipmentType.other,
         'Support strap': EquipmentType.other,
         'Alarm tool': EquipmentType.tool,
+        // Forearm kit is not a camera arm.
+        'Arm slate': EquipmentType.other,
+        'Arm warmers': EquipmentType.other,
         'Floating reel': EquipmentType.reel,
         // A float on its own is a surface float, not a camera part.
         'Surface float': EquipmentType.other,

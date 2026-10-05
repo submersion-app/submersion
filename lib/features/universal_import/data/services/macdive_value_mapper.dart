@@ -89,7 +89,10 @@ class MacDiveValueMapper {
   static final _cameraFloat = RegExp(
     r'\bfloat\s*(?:arms?|collars?)\b|\barm\s*floats?\b',
   );
-  static final _armWord = RegExp(r'\barms?\b');
+
+  /// An arm, but not the forearm kit a diver straps on: an "arm slate" is a
+  /// writing slate and "arm warmers" are thermal wear.
+  static final _armWord = RegExp(r'\barms?\b(?!\s*(?:slates?|warmers?)\b)');
   static final _trayWord = RegExp(r'\btrays?\b');
   static final _portWord = RegExp(r'\bports?\b');
   static final _lensWord = RegExp(r'\blens(es)?\b');
