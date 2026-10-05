@@ -18556,6 +18556,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Country, region, body of water, GPS coordinates';
 
   @override
+  String get siteDetailSection_seascape_description =>
+      '3D view of the underwater terrain around the site';
+
+  @override
   String get siteDetailSection_depth_description =>
       'Rated depth range and depths reached on dives';
 
@@ -22285,6 +22289,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files',
+      one: '$count file',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'from $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {

@@ -17933,6 +17933,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get siteDetailSection_location_description => '国家、地区、水域、GPS 坐标';
 
   @override
+  String get siteDetailSection_seascape_description => '潜点周围水下地形的 3D 视图';
+
+  @override
   String get siteDetailSection_depth_description => '标注深度范围及潜水实际到达深度';
 
   @override
@@ -21486,6 +21489,26 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => '标签';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个文件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return '固件 $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return '来自 $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {

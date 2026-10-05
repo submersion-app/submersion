@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
@@ -1074,11 +1075,22 @@ class SyncRepository {
     }
   }
 
-  /// Get all conflict records
+  /// Get all conflict records.
+  ///
+  /// A conflict an older build stored for a settings key that is now
+  /// device-local ([deviceLocalSettingsKeys], issue #2947) is left out: the
+  /// key no longer syncs, so the card could not be resolved and the count
+  /// would show a conflict nobody can see.
   Future<List<SyncRecord>> getConflictRecords() async {
     try {
       final query = _db.select(_db.syncRecords)
-        ..where((t) => t.syncStatus.equals('conflict'));
+        ..where(
+          (t) =>
+              t.syncStatus.equals('conflict') &
+              (t.entityType.equals('settings') &
+                      t.recordId.isIn(deviceLocalSettingsKeys))
+                  .not(),
+        );
       return await query.get();
     } catch (e, stackTrace) {
       _log.error(

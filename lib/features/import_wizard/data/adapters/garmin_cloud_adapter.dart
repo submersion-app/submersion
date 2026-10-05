@@ -121,6 +121,15 @@ class GarminCloudAdapter implements ImportSourceAdapter {
     _client = client;
   }
 
+  /// The account the sign-in step signed in with, shown on the Review step
+  /// (issue #161).
+  String? _account;
+
+  /// Set by the sign-in step alongside [setClient].
+  void setAccount(String? account) {
+    _account = account;
+  }
+
   /// The authenticated client set by the sign-in step. Only meaningful once
   /// the sign-in acquisition step has completed.
   GarminConnectClient? get client => _client;
@@ -141,6 +150,7 @@ class GarminCloudAdapter implements ImportSourceAdapter {
   void resetState() {
     _computersByKey.clear();
     _client = null;
+    _account = null;
     _parsedDives = [];
     final ref = _ref;
     if (ref == null) return;
@@ -183,7 +193,10 @@ class GarminCloudAdapter implements ImportSourceAdapter {
     WizardStepDef(
       label: 'Sign In',
       icon: Icons.login,
-      builder: (context) => GarminCloudSignInStep(onSignedIn: setClient),
+      builder: (context) => GarminCloudSignInStep(
+        onSignedIn: setClient,
+        onAccountSignedIn: setAccount,
+      ),
       canAdvance: garminCloudSignedInProvider,
       autoAdvance: true,
     ),
@@ -212,6 +225,10 @@ class GarminCloudAdapter implements ImportSourceAdapter {
       source: ImportSourceInfo(
         type: ImportSourceType.garminCloud,
         displayName: displayName,
+        details: ImportSourceDetails(
+          account: _account,
+          deviceModels: _deviceModels(),
+        ),
       ),
       groups: {ImportEntityType.dives: EntityGroup(items: items)},
     );
@@ -519,6 +536,15 @@ class GarminCloudAdapter implements ImportSourceAdapter {
   // ---------------------------------------------------------------------------
   // Helpers -- dive computer resolution
   // ---------------------------------------------------------------------------
+
+  /// The models of the devices that recorded the fetched dives, each once,
+  /// in the order the dives list them.
+  List<String> _deviceModels() => {
+    for (final parsed in _parsedDives)
+      ?parsed.profileMissing
+          ? null
+          : normalizedIdentityPart(parsed.deviceModel),
+  }.toList();
 
   Future<void> _ensureComputers() async {
     for (final parsed in _parsedDives) {
