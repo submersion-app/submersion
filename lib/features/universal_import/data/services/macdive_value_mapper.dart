@@ -75,14 +75,16 @@ class MacDiveValueMapper {
 
   /// A name that ends on "bag", the noun the words before it qualify, for
   /// [equipmentType] (#2952): a "regulator bag" is a bag, not a regulator.
-  static final _bagHeadNoun = RegExp(r'\bbags?$');
+  /// A trailing note in parentheses ("Fin bag (large)") does not move it.
+  static final _bagHeadNoun = RegExp(r'\bbags?(?:\s*\([^)]*\))?$');
 
   /// A joining word that hangs a bag off another item ("BCD w/ bag",
   /// "camera with bag"), so the item, not the bag, is what the name lists.
   static final _accessoryJoin = RegExp(r'\b(?:with|and)\b|w/|&|\+');
 
   /// A bag that lifts rather than carries, for [equipmentType] (#2952).
-  static final _liftBag = RegExp(r'\b(?:lift|lifting|salvage)\s+bags?\b');
+  /// Spelled as one word ("Liftbag") or hyphenated as often as not.
+  static final _liftBag = RegExp(r'\b(?:lift|lifting|salvage)[\s-]*bags?\b');
 
   /// Maps MacDive's free-text equipment type onto [EquipmentType].
   ///

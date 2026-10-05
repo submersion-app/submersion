@@ -287,6 +287,9 @@ void main() {
         'Reg bag': EquipmentType.bag,
         'Fin bag': EquipmentType.bag,
         'Wetsuit bag': EquipmentType.bag,
+        // A trailing note does not hand the bag back to what it holds.
+        'Regulator bag (Apeks)': EquipmentType.bag,
+        'Fin bag (large)': EquipmentType.bag,
       };
       holders.forEach((input, expected) {
         expect(
@@ -301,6 +304,11 @@ void main() {
       // A lift bag is a lift device, so it files with the SMB rather than
       // with luggage, and a bag listed beside an item stays that item.
       expect(MacDiveValueMapper.equipmentType('Lift bag'), EquipmentType.smb);
+      expect(MacDiveValueMapper.equipmentType('Liftbag'), EquipmentType.smb);
+      expect(
+        MacDiveValueMapper.equipmentType('Lift-bag 30kg'),
+        EquipmentType.smb,
+      );
       expect(MacDiveValueMapper.equipmentType('BCD w/ bag'), EquipmentType.bcd);
       expect(
         MacDiveValueMapper.equipmentType('Camera with bag'),

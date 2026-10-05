@@ -541,10 +541,6 @@ abstract final class FigurePlacement {
         );
       case EquipmentType.hose:
       case EquipmentType.tankBand:
-        return const FigurePlacementSpec(
-          zones: [],
-          defaultColor: FigureColors.black,
-        );
       // Carried to the dive, never worn on it (#2952).
       case EquipmentType.bag:
         return const FigurePlacementSpec(
