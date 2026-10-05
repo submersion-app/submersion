@@ -11900,6 +11900,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentStatus_spare => 'Tartalék';
 
   @override
+  String get enum_equipmentStatus_wanted => 'Kívánt';
+
+  @override
   String get enum_equipmentType_backplate => 'Hátlemez';
 
   @override
@@ -13692,6 +13695,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_detail_retiredChip => 'Kivont';
 
   @override
+  String get equipment_detail_markPurchased => 'Megjelölés megvásároltként';
+
+  @override
   String get equipment_detail_serialNumberLabel => 'Sorozatszám';
 
   @override
@@ -14275,6 +14281,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'Vásárlási ár';
+
+  @override
+  String get equipment_edit_expectedPriceLabel => 'Várható ár';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -15325,6 +15334,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_snackbar_reactivated => 'Felszerelés újraaktiválva';
 
   @override
+  String get equipment_snackbar_purchased =>
+      'Áthelyezve az aktív felszerelésed közé';
+
+  @override
   String get equipment_snackbar_retired => 'Felszerelés kivonva';
 
   @override
@@ -15371,6 +15384,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String equipment_summary_totalValue(String currency) {
     return 'Összes érték ($currency)';
+  }
+
+  @override
+  String equipment_summary_wantedValue(String currency) {
+    return 'Kívánt érték ($currency)';
   }
 
   @override

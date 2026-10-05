@@ -11,6 +11,12 @@ void main() {
     expect(EquipmentStatus.spare.localizedName(l10n), 'Spare');
   });
 
+  test('wanted has its own label in English (#2025)', () {
+    final l10n = lookupAppLocalizations(const Locale('en'));
+
+    expect(EquipmentStatus.wanted.localizedName(l10n), 'Wanted');
+  });
+
   test('every locale gives every status a distinct, non-empty label', () {
     // The status dropdown and the filter chips show these side by side, so
     // two statuses sharing a label would be indistinguishable.

@@ -11670,6 +11670,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentStatus_spare => 'רזרבי';
 
   @override
+  String get enum_equipmentStatus_wanted => 'רצוי';
+
+  @override
   String get enum_equipmentType_backplate => 'פלטת גב';
 
   @override
@@ -13446,6 +13449,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_detail_retiredChip => 'הוצא משימוש';
 
   @override
+  String get equipment_detail_markPurchased => 'סמן כנרכש';
+
+  @override
   String get equipment_detail_serialNumberLabel => 'מספר סידורי';
 
   @override
@@ -14024,6 +14030,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'מחיר רכישה';
+
+  @override
+  String get equipment_edit_expectedPriceLabel => 'מחיר צפוי';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -15038,6 +15047,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_snackbar_reactivated => 'הציוד הופעל מחדש';
 
   @override
+  String get equipment_snackbar_purchased => 'הועבר לציוד הפעיל שלך';
+
+  @override
   String get equipment_snackbar_retired => 'הציוד הוצא משימוש';
 
   @override
@@ -15084,6 +15096,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String equipment_summary_totalValue(String currency) {
     return 'ערך כולל ($currency)';
+  }
+
+  @override
+  String equipment_summary_wantedValue(String currency) {
+    return 'שווי רצוי ($currency)';
   }
 
   @override

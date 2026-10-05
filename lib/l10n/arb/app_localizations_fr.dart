@@ -11962,6 +11962,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_equipmentStatus_spare => 'De rechange';
 
   @override
+  String get enum_equipmentStatus_wanted => 'Souhaité';
+
+  @override
   String get enum_equipmentType_backplate => 'Plaque dorsale';
 
   @override
@@ -13767,6 +13770,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_detail_retiredChip => 'Retiré';
 
   @override
+  String get equipment_detail_markPurchased => 'Marquer comme acheté';
+
+  @override
   String get equipment_detail_serialNumberLabel => 'Numéro de série';
 
   @override
@@ -14360,6 +14366,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'Prix d\'achat';
+
+  @override
+  String get equipment_edit_expectedPriceLabel => 'Prix prévu';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -15417,6 +15426,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_snackbar_reactivated => 'Équipement réactivé';
 
   @override
+  String get equipment_snackbar_purchased =>
+      'Déplacé vers votre équipement actif';
+
+  @override
   String get equipment_snackbar_retired => 'Équipement retiré';
 
   @override
@@ -15463,6 +15476,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String equipment_summary_totalValue(String currency) {
     return 'Valeur totale ($currency)';
+  }
+
+  @override
+  String equipment_summary_wantedValue(String currency) {
+    return 'Valeur souhaitée ($currency)';
   }
 
   @override

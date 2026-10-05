@@ -7017,6 +7017,7 @@
   "enum_equipmentStatus_retired": "Retired",
   "enum_equipmentStatus_sold": "Sold",
   "enum_equipmentStatus_spare": "Spare",
+  "enum_equipmentStatus_wanted": "Wanted",
   "enum_equipmentType_backplate": "Backplate",
   "enum_equipmentType_bcd": "BCD",
   "enum_equipmentType_boots": "Boots",
@@ -7919,6 +7920,7 @@
   "equipment_detail_purchaseDateLabel": "Purchase Date",
   "equipment_detail_purchasePriceLabel": "Purchase Price",
   "equipment_detail_retiredChip": "Retired",
+  "equipment_detail_markPurchased": "Mark as purchased",
   "equipment_detail_serialNumberLabel": "Serial Number",
   "equipment_serviceClocks_title": "Service clocks",
   "equipment_serviceClocks_addClock": "Add clock",
@@ -8356,6 +8358,7 @@
   "equipment_edit_purchaseDateLabel": "Purchase Date",
   "equipment_edit_purchaseInfoTitle": "Purchase Information",
   "equipment_edit_purchasePriceLabel": "Purchase Price",
+  "equipment_edit_expectedPriceLabel": "Expected Price",
   "equipment_edit_remindMeBeforeServiceDue": "Remind me before service is due:",
   "equipment_edit_reminderDays": "{days} days",
   "equipment_edit_saveButton_edit": "Save Changes",
@@ -8826,6 +8829,7 @@
   "equipment_sets_retryButton": "Retry",
   "equipment_snackbar_deleted": "Equipment deleted",
   "equipment_snackbar_reactivated": "Equipment reactivated",
+  "equipment_snackbar_purchased": "Moved to your active gear",
   "equipment_snackbar_retired": "Equipment retired",
   "equipment_summary_active": "Active",
   "equipment_summary_addEquipmentButton": "Add Equipment",
@@ -8840,6 +8844,7 @@
   "equipment_summary_title": "Equipment",
   "equipment_summary_totalItems": "Total Items",
   "equipment_summary_totalValue": "Total Value ({currency})",
+  "equipment_summary_wantedValue": "Wanted Value ({currency})",
   "equipment_tab_equipment": "Equipment",
   "equipment_tab_sets": "Sets",
   "@equipment_detail_divesCountPlural": {
@@ -9085,6 +9090,13 @@
     }
   },
   "@equipment_summary_totalValue": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "@equipment_summary_wantedValue": {
     "placeholders": {
       "currency": {
         "type": "String"

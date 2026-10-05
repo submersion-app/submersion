@@ -54,6 +54,7 @@ import 'package:submersion/features/equipment/presentation/widgets/condition_fin
 import 'package:submersion/features/equipment/presentation/widgets/condition_trend_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_header_status.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_tag_chips.dart';
 import 'package:submersion/features/equipment/presentation/widgets/installed_in_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
@@ -185,15 +186,19 @@ class _EquipmentDetailContent extends ConsumerWidget {
       }
     }
 
-    consider(ref.watch(equipmentRollupClockProvider).value?[equipmentId]);
-    for (final status
-        in ref.watch(serviceClockStatusesProvider(equipmentId)).value ??
-            const <ServiceClockStatus>[]) {
-      consider((
-        ownerId: equipmentId,
-        ownerName: equipment.name,
-        status: status,
-      ));
+    // Wishlist gear (#2025) is out of service clocks: a schedule kept from
+    // when it was owned shows nothing until the item is bought again.
+    if (!equipment.isWanted) {
+      consider(ref.watch(equipmentRollupClockProvider).value?[equipmentId]);
+      for (final status
+          in ref.watch(serviceClockStatusesProvider(equipmentId)).value ??
+              const <ServiceClockStatus>[]) {
+        consider((
+          ownerId: equipmentId,
+          ownerName: equipment.name,
+          status: status,
+        ));
+      }
     }
     // The avatar still reddens for overdue only, as the list tiles do; a
     // due-soon item keeps the plain avatar and says so in the banner.
@@ -221,16 +226,18 @@ class _EquipmentDetailContent extends ConsumerWidget {
             PassportEntryCard(equipment: equipment),
             const SizedBox(height: 24),
           ],
-          ServiceClocksCard(
-            equipmentId: equipmentId,
-            equipmentType: equipment.type,
-            onLogService: (status) => _showAddServiceDialogForKind(
-              context,
-              ref,
-              serviceKindId: status.kind.id,
+          if (!equipment.isWanted) ...[
+            ServiceClocksCard(
+              equipmentId: equipmentId,
+              equipmentType: equipment.type,
+              onLogService: (status) => _showAddServiceDialogForKind(
+                context,
+                ref,
+                serviceKindId: status.kind.id,
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
+          ],
           ExposureCard(equipmentId: equipmentId),
           // The findings and trend cards carry their own top gap and render
           // nothing when they have nothing to say, so the page never shows
@@ -492,20 +499,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      if (!equipment.isActive)
-                        Chip(
-                          label: Text(
-                            context.l10n.equipment_detail_retiredChip,
-                          ),
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerHighest,
-                          labelStyle: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
+                      // Why the item is out of the kit, and the purchase
+                      // action for wishlist gear (#2025).
+                      EquipmentHeaderStatus(item: equipment),
                       // Tags (issue #1942), under the name and type.
                       EquipmentTagChips(equipmentId: equipment.id),
                     ],
@@ -762,7 +758,10 @@ class _EquipmentDetailContent extends ConsumerWidget {
             if (equipment.purchasePrice != null)
               _buildDetailRow(
                 context,
-                context.l10n.equipment_detail_purchasePriceLabel,
+                // Wishlist gear (#2025) has a price to pay, not one paid.
+                equipment.isWanted
+                    ? context.l10n.equipment_edit_expectedPriceLabel
+                    : context.l10n.equipment_detail_purchasePriceLabel,
                 formatMoney(
                   equipment.purchasePrice!,
                   equipment.purchaseCurrency,

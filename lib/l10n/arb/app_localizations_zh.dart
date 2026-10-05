@@ -11381,6 +11381,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentStatus_spare => '备用';
 
   @override
+  String get enum_equipmentStatus_wanted => '想要';
+
+  @override
   String get enum_equipmentType_backplate => '背板';
 
   @override
@@ -13132,6 +13135,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_detail_retiredChip => '已退役';
 
   @override
+  String get equipment_detail_markPurchased => '标记为已购买';
+
+  @override
   String get equipment_detail_serialNumberLabel => '序列编号';
 
   @override
@@ -13687,6 +13693,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => '购买价格';
+
+  @override
+  String get equipment_edit_expectedPriceLabel => '预计价格';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue => '在维护到期前提醒我：';
@@ -14661,6 +14670,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_snackbar_reactivated => '装备已重新启用';
 
   @override
+  String get equipment_snackbar_purchased => '已移至在用装备';
+
+  @override
   String get equipment_snackbar_retired => '装备已停用';
 
   @override
@@ -14706,6 +14718,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String equipment_summary_totalValue(String currency) {
     return '总价值 ($currency)';
+  }
+
+  @override
+  String equipment_summary_wantedValue(String currency) {
+    return '想要的价值 ($currency)';
   }
 
   @override
