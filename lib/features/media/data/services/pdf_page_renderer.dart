@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
@@ -68,6 +69,39 @@ class PdfPageRenderer {
     quality: quality,
   ))?.jpeg;
 
+  /// JPEG-encodes a BGRA page bitmap on a background isolate.
+  ///
+  /// package:image is pure Dart: converting and encoding a 2048 px site card
+  /// render takes long enough to drop frames, and the caller is a widget on
+  /// the UI isolate. Raw pixels and two ints are the sendable form of the
+  /// page, so they cross; the image object is built on the other side.
+  static Future<Uint8List> encodeBgraJpeg({
+    required Uint8List pixels,
+    required int width,
+    required int height,
+    required int quality,
+  }) => Isolate.run(
+    () => Uint8List.fromList(
+      img.encodeJpg(
+        img.Image.fromBytes(
+          width: width,
+          height: height,
+          // Image.fromBytes reads the whole buffer, so a view into a larger
+          // one is copied out first.
+          bytes:
+              (pixels.offsetInBytes == 0 &&
+                          pixels.lengthInBytes == pixels.buffer.lengthInBytes
+                      ? pixels
+                      : Uint8List.fromList(pixels))
+                  .buffer,
+          numChannels: 4,
+          order: img.ChannelOrder.bgra,
+        ),
+        quality: quality,
+      ),
+    ),
+  );
+
   /// Page 1 as JPEG with its longest side at [maxDimension], plus the page
   /// count; null on every failure path.
   static Future<PdfPagePreview?> renderFirstPagePreview({
@@ -95,15 +129,27 @@ class PdfPageRenderer {
         height: (page.height * scale).round(),
       );
       if (pageImage == null) return null;
+      // Own copy of the pixels, so they outlive the native buffer that
+      // dispose frees.
+      final Uint8List pixels;
+      final int width;
+      final int height;
       try {
-        final image = pageImage.createImageNF();
-        return PdfPagePreview(
-          jpeg: Uint8List.fromList(img.encodeJpg(image, quality: quality)),
-          pageCount: document.pages.length,
-        );
+        pixels = Uint8List.fromList(pageImage.pixels);
+        width = pageImage.width;
+        height = pageImage.height;
       } finally {
         pageImage.dispose();
       }
+      return PdfPagePreview(
+        jpeg: await encodeBgraJpeg(
+          pixels: pixels,
+          width: width,
+          height: height,
+          quality: quality,
+        ),
+        pageCount: document.pages.length,
+      );
     } on Exception catch (e) {
       _log.warning('PDF page render failed: $e');
       return null;
