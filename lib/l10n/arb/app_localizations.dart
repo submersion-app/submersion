@@ -18319,6 +18319,18 @@ abstract class AppLocalizations {
   /// **'FFESSM'**
   String get enum_certificationAgency_ffessm;
 
+  /// No description provided for @enum_certificationAgency_acuc.
+  ///
+  /// In en, this message translates to:
+  /// **'ACUC'**
+  String get enum_certificationAgency_acuc;
+
+  /// No description provided for @enum_certificationAgency_dan.
+  ///
+  /// In en, this message translates to:
+  /// **'DAN'**
+  String get enum_certificationAgency_dan;
+
   /// No description provided for @enum_certificationAgency_gue.
   ///
   /// In en, this message translates to:

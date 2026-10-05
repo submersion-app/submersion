@@ -167,10 +167,24 @@ enum CertificationAgency {
   iantd('IANTD'),
   psai('PSAI'),
   ffessm('FFESSM'),
+  // American Canadian Underwater Certifications and Divers Alert Network
+  // (issue #690). Brand names, never translated.
+  acuc('ACUC'),
+  dan('DAN'),
   other('Other');
 
   final String displayName;
   const CertificationAgency(this.displayName);
+
+  /// The built-in whose enum name is [id], or null for a custom agency id,
+  /// an unknown slug or null. Stored ids are enum names (issue #690).
+  static CertificationAgency? fromId(String? id) {
+    if (id == null) return null;
+    for (final a in values) {
+      if (a.name == id) return a;
+    }
+    return null;
+  }
 
   /// Primary brand color for this agency
   Color get primaryColor => switch (this) {
@@ -186,6 +200,8 @@ enum CertificationAgency {
     CertificationAgency.iantd => const Color(0xFF283593),
     CertificationAgency.psai => const Color(0xFF2e7d32),
     CertificationAgency.ffessm => const Color(0xFF00529b),
+    CertificationAgency.acuc => const Color(0xFF0D3B7A),
+    CertificationAgency.dan => const Color(0xFF9E1B32),
     CertificationAgency.other => const Color(0xFF00838f),
   };
 
@@ -203,6 +219,8 @@ enum CertificationAgency {
     CertificationAgency.iantd => const Color(0xFF5c6bc0),
     CertificationAgency.psai => const Color(0xFF66bb6a),
     CertificationAgency.ffessm => const Color(0xFF1e88e5),
+    CertificationAgency.acuc => const Color(0xFF2E6BC4),
+    CertificationAgency.dan => const Color(0xFFD23C52),
     CertificationAgency.other => const Color(0xFF26c6da),
   };
 }
@@ -337,10 +355,41 @@ enum CertificationLevel {
   ffessmVideo1('Vidéaste sous-marin Niveau 1'),
   ffessmVideo2('Vidéaste sous-marin Niveau 2'),
   ffessmVideo3('Vidéaste sous-marin Niveau 3'),
+  // ACUC, American Canadian Underwater Certifications (issue #690). Proper
+  // names, kept untranslated like the BSAC, GUE and FFESSM ratings.
+  acucScubaDiver('Scuba Diver'),
+  acucAdvancedDiver('Advanced Diver'),
+  acucRescueLeader('Rescue Leader'),
+  acucUnderwaterGuide('Underwater Guide'),
+  acucTeachingAssistant('Teaching Assistant'),
+  acucOpenWaterInstructor('Open Water Instructor'),
+  acucAdvancedInstructor('Advanced Instructor'),
+  acucInstructorTrainer('Instructor Trainer'),
+  acucInstructorTrainerEvaluator('Instructor Trainer Evaluator'),
+  // DAN, Divers Alert Network (issue #690). First-aid and emergency
+  // credentials, not diver grades.
+  danBls('Basic Life Support: CPR and First Aid'),
+  danEmergencyOxygen('Emergency Oxygen for Scuba Diving Injuries'),
+  danDfaPro('Diving First Aid for Professional Divers'),
+  danDemp('Diving Emergency Management Provider'),
+  danInstructor('DAN Instructor'),
+  danInstructorTrainer('DAN Instructor Trainer'),
+  danAdvancedOxygen('Advanced Oxygen Provider'),
+  danNeurologicalAssessment('On-Site Neurological Assessment'),
+  danMarineLifeInjuries('First Aid for Hazardous Marine Life Injuries'),
   other('Other');
 
   final String displayName;
   const CertificationLevel(this.displayName);
+
+  /// The built-in whose enum name is [id], or null (issue #690).
+  static CertificationLevel? fromId(String? id) {
+    if (id == null) return null;
+    for (final l in values) {
+      if (l.name == id) return l;
+    }
+    return null;
+  }
 
   /// Grades that can independently certify students — drives the
   /// instructor picker (spec 2026-08-08 buddy-professional-roles-fold).
@@ -355,6 +404,12 @@ enum CertificationLevel {
     CertificationLevel.bsacOpenWaterInstructor ||
     CertificationLevel.bsacAdvancedInstructor ||
     CertificationLevel.bsacNationalInstructor ||
+    CertificationLevel.acucOpenWaterInstructor ||
+    CertificationLevel.acucAdvancedInstructor ||
+    CertificationLevel.acucInstructorTrainer ||
+    CertificationLevel.acucInstructorTrainerEvaluator ||
+    CertificationLevel.danInstructor ||
+    CertificationLevel.danInstructorTrainer ||
     CertificationLevel.ffessmMf1 ||
     CertificationLevel.ffessmMf2 => true,
     _ => false,
