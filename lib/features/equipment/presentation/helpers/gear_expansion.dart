@@ -6,11 +6,13 @@ import 'package:submersion/features/equipment/domain/services/gear_expander.dart
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 
-/// True for gear the expander may attach as a part.
+/// True for gear the expander may attach as a part. Wishlist gear (#2025)
+/// never is, even on a row whose isActive was left true.
 bool isGearActive(EquipmentItem item) =>
     item.isActive &&
     item.status != EquipmentStatus.retired &&
-    item.status != EquipmentStatus.lost;
+    item.status != EquipmentStatus.lost &&
+    item.status != EquipmentStatus.wanted;
 
 /// What a page gets back from [expandGearOnPage]: the new provenance list
 /// and the items (parts) that were not in the page's list before, so the

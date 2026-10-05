@@ -162,6 +162,10 @@ void main() {
           (type: 'cylinderFills', table: db.cylinderFills.actualTableName),
           (type: 'savedQueries', table: db.savedQueries.actualTableName),
           (
+            type: 'insightObservationDismissals',
+            table: db.insightObservationDismissals.actualTableName,
+          ),
+          (
             type: 'mediaSmartAlbums',
             table: db.mediaSmartAlbums.actualTableName,
           ),

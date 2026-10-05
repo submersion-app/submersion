@@ -526,14 +526,19 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         id: 'retire',
         icon: Icons.archive,
         label: context.l10n.equipment_menu_retireEquipment,
-        isEnabled: (ids) => everyChecked(ids, (e) => e.isActive),
+        // Wishlist gear (#2025) is not owned, so it cannot be retired, even
+        // on an imported row whose isActive was left true.
+        isEnabled: (ids) => everyChecked(ids, (e) => e.isActive && !e.isWanted),
         onInvoke: () => _applyRetirement(retire: true),
       ),
       BulkAction(
         id: 'reactivate',
         icon: Icons.unarchive,
         label: context.l10n.equipment_menu_reactivate,
-        isEnabled: (ids) => everyChecked(ids, (e) => !e.isActive),
+        // Wanted gear is inactive too, but buying it is not reactivating it
+        // (#2025): the detail page's Mark as purchased does that.
+        isEnabled: (ids) =>
+            everyChecked(ids, (e) => !e.isActive && !e.isWanted),
         onInvoke: () => _applyRetirement(retire: false),
       ),
       BulkAction(

@@ -1545,6 +1545,13 @@ class SyncService {
             records: data.savedQueries,
             hasUpdatedAt: true,
           ),
+          // Observation dismissals (#2381) carry a diver FK only, and their
+          // deterministic ids make a plain last-writer-wins upsert safe.
+          (
+            type: 'insightObservationDismissals',
+            records: data.insightObservationDismissals,
+            hasUpdatedAt: true,
+          ),
           (type: 'species', records: data.species, hasUpdatedAt: false),
           (type: 'tags', records: data.tags, hasUpdatedAt: true),
           // Courses must apply before dives/certifications that reference them.
@@ -2576,6 +2583,7 @@ class SyncService {
     'cylinderFills': true,
     'connectionMaps': true,
     'savedQueries': true,
+    'insightObservationDismissals': true,
     'species': false,
     'tags': true,
     'courses': true,

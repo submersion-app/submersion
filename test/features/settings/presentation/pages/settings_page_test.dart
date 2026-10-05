@@ -8,6 +8,7 @@ import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/insights/domain/observations/observation_rule_id.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -382,6 +383,20 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       rules.add(rule.dbValue);
     }
     state = state.copyWith(conditionDisabledRules: rules);
+  }
+
+  @override
+  Future<void> setObservationRuleMuted(
+    ObservationRuleId rule,
+    bool muted,
+  ) async {
+    final rules = {...state.insightsMutedObservationRules};
+    if (muted) {
+      rules.add(rule.dbValue);
+    } else {
+      rules.remove(rule.dbValue);
+    }
+    state = state.copyWith(insightsMutedObservationRules: rules);
   }
 
   @override

@@ -81,5 +81,6 @@ extension EquipmentStatusDisplay on EquipmentStatus {
     EquipmentStatus.sold => l10n.enum_equipmentStatus_sold,
     EquipmentStatus.loaned => l10n.enum_equipmentStatus_loaned,
     EquipmentStatus.lost => l10n.enum_equipmentStatus_lost,
+    EquipmentStatus.wanted => l10n.enum_equipmentStatus_wanted,
   };
 }
