@@ -34899,6 +34899,114 @@ abstract class AppLocalizations {
   /// **'min'**
   String get insights_focus_unit_minutes;
 
+  /// No description provided for @insights_focus_metric_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Metric'**
+  String get insights_focus_metric_label;
+
+  /// No description provided for @insights_focus_metric_rmv.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV'**
+  String get insights_focus_metric_rmv;
+
+  /// No description provided for @insights_focus_metric_sac.
+  ///
+  /// In en, this message translates to:
+  /// **'SAC'**
+  String get insights_focus_metric_sac;
+
+  /// No description provided for @insights_focus_metric_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get insights_focus_metric_maxDepth;
+
+  /// No description provided for @insights_focus_metric_bottomTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom time'**
+  String get insights_focus_metric_bottomTime;
+
+  /// No description provided for @insights_focus_metric_weight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get insights_focus_metric_weight;
+
+  /// No description provided for @insights_focus_metric_waterTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Water temp'**
+  String get insights_focus_metric_waterTemp;
+
+  /// No description provided for @insights_focus_mode_best.
+  ///
+  /// In en, this message translates to:
+  /// **'Best'**
+  String get insights_focus_mode_best;
+
+  /// No description provided for @insights_focus_mode_worst.
+  ///
+  /// In en, this message translates to:
+  /// **'Worst'**
+  String get insights_focus_mode_worst;
+
+  /// No description provided for @insights_focus_mode_lowest.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowest'**
+  String get insights_focus_mode_lowest;
+
+  /// No description provided for @insights_focus_mode_highest.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest'**
+  String get insights_focus_mode_highest;
+
+  /// No description provided for @insights_focus_mode_above.
+  ///
+  /// In en, this message translates to:
+  /// **'Above'**
+  String get insights_focus_mode_above;
+
+  /// No description provided for @insights_focus_mode_below.
+  ///
+  /// In en, this message translates to:
+  /// **'Below'**
+  String get insights_focus_mode_below;
+
+  /// No description provided for @insights_focus_count_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get insights_focus_count_label;
+
+  /// No description provided for @insights_focus_count_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number from 1 to 999'**
+  String get insights_focus_count_error;
+
+  /// No description provided for @insights_focus_threshold_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get insights_focus_threshold_label;
+
+  /// No description provided for @insights_focus_threshold_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number'**
+  String get insights_focus_threshold_error;
+
+  /// No description provided for @insights_focus_threshold_negativeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter zero or more'**
+  String get insights_focus_threshold_negativeError;
+
   /// No description provided for @insights_gas_tankRole_backGas.
   ///
   /// In en, this message translates to:

@@ -20582,6 +20582,60 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_focus_unit_minutes => 'min';
 
   @override
+  String get insights_focus_metric_label => 'Metric';
+
+  @override
+  String get insights_focus_metric_rmv => 'RMV';
+
+  @override
+  String get insights_focus_metric_sac => 'SAC';
+
+  @override
+  String get insights_focus_metric_maxDepth => 'Max depth';
+
+  @override
+  String get insights_focus_metric_bottomTime => 'Bottom time';
+
+  @override
+  String get insights_focus_metric_weight => 'Weight';
+
+  @override
+  String get insights_focus_metric_waterTemp => 'Water temp';
+
+  @override
+  String get insights_focus_mode_best => 'Best';
+
+  @override
+  String get insights_focus_mode_worst => 'Worst';
+
+  @override
+  String get insights_focus_mode_lowest => 'Lowest';
+
+  @override
+  String get insights_focus_mode_highest => 'Highest';
+
+  @override
+  String get insights_focus_mode_above => 'Above';
+
+  @override
+  String get insights_focus_mode_below => 'Below';
+
+  @override
+  String get insights_focus_count_label => 'Dives';
+
+  @override
+  String get insights_focus_count_error => 'Enter a whole number from 1 to 999';
+
+  @override
+  String get insights_focus_threshold_label => 'Value';
+
+  @override
+  String get insights_focus_threshold_error => 'Enter a number';
+
+  @override
+  String get insights_focus_threshold_negativeError => 'Enter zero or more';
+
+  @override
   String get insights_gas_tankRole_backGas => '主气';
 
   @override
