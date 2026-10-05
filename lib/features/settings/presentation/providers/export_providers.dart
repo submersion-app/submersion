@@ -1,5 +1,6 @@
 import 'package:clock/clock.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/export/models/currency_backup_data.dart';
 import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
@@ -38,6 +39,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_t
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_currency_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -334,6 +336,17 @@ class ExportNotifier extends StateNotifier<ExportState> {
   /// The active diver's gear check-ins. The export's equipment and dives
   /// are scoped to that diver, and a shared item can carry another diver's
   /// check-in, so an unscoped read would put it in this diver's file.
+  /// The certification currency rows a full backup of [certifications]
+  /// carries (issue #2267).
+  Future<CurrencyBackupData> _currencyBackup(
+    List<Certification> certifications,
+  ) async => CurrencyBackupData.forCertifications(
+    certifications,
+    rules: await _ref.read(currencyRulesProvider.future),
+    prefs: await _ref.read(currencyPrefsProvider.future),
+    events: await _ref.read(currencyEventsProvider.future),
+  );
+
   Future<List<EquipmentObservation>> _diverObservations() async {
     final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
     return _ref
@@ -747,12 +760,14 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final relations = await _uddfDiveRelations(dives);
 
       state = state.copyWith(message: _l10n.settings_export_progress_uddf);
+      final currency = await _currencyBackup(certifications);
       final path = await _exportService.exportAllDataToUddf(
         dives: dives,
         sites: sites,
         equipment: equipment,
         buddies: buddies,
         certifications: certifications,
+        currency: currency,
         diveCenters: diveCenters,
         species: species,
         diveBuddies: relations.diveBuddies,
@@ -1489,12 +1504,14 @@ class ExportNotifier extends StateNotifier<ExportState> {
       state = state.copyWith(
         message: _l10n.settings_export_progress_chooseLocation,
       );
+      final currency = await _currencyBackup(certifications);
       final path = await _exportService.saveAllDataToUddfFile(
         dives: dives,
         sites: sites,
         equipment: equipment,
         buddies: buddies,
         certifications: certifications,
+        currency: currency,
         diveCenters: diveCenters,
         species: species,
         diveBuddies: relations.diveBuddies,
