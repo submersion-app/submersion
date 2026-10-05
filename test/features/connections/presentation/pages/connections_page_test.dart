@@ -748,4 +748,29 @@ void main() {
       );
     }
   });
+  testWidgets('play carries on through a year with an empty map', (
+    tester,
+  ) async {
+    final c = await _pump(
+      tester,
+      size: _phone,
+      graph: (ref, budget) {
+        final end = ref.watch(connectionsFilterProvider).endDate;
+        return end != null && end.year == 2019 ? ConnectionGraph.empty : _graph;
+      },
+    );
+    await tester.tap(find.byKey(const ValueKey('year-play-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(c.read(yearPlayProvider), 2019);
+    expect(
+      find.byKey(const ValueKey('year-play-pill')),
+      findsOneWidget,
+      reason: 'the pill stays over the empty state so play can be paused',
+    );
+    await tester.pump(YearPlayNotifier.beat);
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(c.read(yearPlayProvider), 2020);
+    c.read(yearPlayProvider.notifier).pause();
+  });
 }

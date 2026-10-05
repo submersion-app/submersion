@@ -320,6 +320,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
       }
     });
     ref.listen<GraphSelection?>(connectionsSelectionProvider, _onSelection);
+    // Year play lives as long as the page, not only while the pill shows:
+    // an empty year swaps the canvas out, and play must carry on past it.
+    ref.listen<int?>(yearPlayProvider, (_, _) {});
     // A saved map edited or deleted elsewhere (sync, another device) must
     // not leave its card selected over a stale drawing.
     ref.listen(savedConnectionMapsProvider, (_, next) {
@@ -373,10 +376,22 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
       if (!showCanvas) {
         // Around mode with no centre prompts for one even while the
         // previous map is still held for the reload.
-        return ConnectionsEmptyState(
+        final empty = ConnectionsEmptyState(
           view: view,
           hasAnyDives: ref.watch(connectionsYearSpanProvider).value != null,
           hasActiveFilter: hasActiveFilter,
+        );
+        if (view.isAroundWithoutFocus) return empty;
+        // A played year can be empty; the pill stays so play can be paused.
+        return Stack(
+          children: [
+            Positioned.fill(child: empty),
+            Positioned(
+              left: 12,
+              bottom: bottomInset + 12,
+              child: const YearPlayPill(),
+            ),
+          ],
         );
       }
       final kinds = graph.nodes.map((n) => n.ref.kind).toSet();
