@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Minimal export service for the navigator tests: every delivery succeeds.
 class _StubExportService implements ExportService {
@@ -149,6 +150,10 @@ void main() {
           exportServiceProvider.overrideWithValue(exportService),
           // These tests have no database. The real fetch would reach the
           // repository, so the export would never be issued.
+          // No database: the export's custom agency names (#690).
+          allCustomCertificationsCatalogProvider.overrideWith(
+            (ref) async => CertificationCatalog.builtInOnly,
+          ),
           uddfSourceFetchProvider.overrideWithValue(
             (diveIds, options) async => const [],
           ),

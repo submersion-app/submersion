@@ -62,7 +62,7 @@ class CertificationEcard extends ConsumerWidget {
 
     return Semantics(
       label:
-          '${context.certificationCatalog.agency(certification.agency).interchangeName} ${certificationTitle(certification)} certification for $diverName$issueDateStr$statusStr. ${showBack ? 'Showing back' : 'Showing front'}. Tap to flip',
+          '${context.certificationCatalog.agency(certification.agency).interchangeName} ${certificationTitle(certification, catalog: context.certificationCatalog)} certification for $diverName$issueDateStr$statusStr. ${showBack ? 'Showing back' : 'Showing front'}. Tap to flip',
       child: AspectRatio(
         aspectRatio: aspectRatio,
         child: GestureDetector(

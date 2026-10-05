@@ -743,7 +743,7 @@ class CourseDetailPage extends ConsumerWidget {
         ),
         units: UnitFormatter(settings),
         localization: localization,
-        catalog: ref.read(certificationCatalogSyncProvider),
+        catalog: await ref.read(allCustomCertificationsCatalogProvider.future),
       );
 
       // Dismiss loading

@@ -117,13 +117,21 @@ class _AgencyRow extends ConsumerWidget {
   Future<void> _delete(BuildContext context, WidgetRef ref) async {
     final name = entry.localizedName(context.l10n);
     if (!await confirmCertificationDelete(context, name)) return;
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    if (diverId == null) return;
-    final refused = await ref
-        .read(customCertificationRepositoryProvider)
-        .deleteAgency(entry.id, actingDiverId: diverId);
-    if (refused != null && context.mounted) {
-      await showCertificationDeleteRefusal(context, refused);
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.l10n.common_error_tryAgain;
+    try {
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      if (diverId == null) return;
+      final refused = await ref
+          .read(customCertificationRepositoryProvider)
+          .deleteAgency(entry.id, actingDiverId: diverId);
+      if (refused != null && context.mounted) {
+        await showCertificationDeleteRefusal(context, refused);
+      }
+    } catch (_) {
+      // Logged by the repository; tell the diver it did not happen.
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
     }
   }
 

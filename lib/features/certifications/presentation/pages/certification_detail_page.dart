@@ -512,11 +512,18 @@ class _CertificationDetailContent extends ConsumerWidget {
             const SizedBox(height: 12),
             // Only shown when the stored name says something the agency and
             // certification rows do not already say.
-            if (customNameOrNull(certification) != null)
+            if (customNameOrNull(
+                  certification,
+                  catalog: context.certificationCatalog,
+                ) !=
+                null)
               IconDetailRow(
                 icon: Icons.card_membership,
                 label: context.l10n.certifications_detail_label_type,
-                value: customNameOrNull(certification)!,
+                value: customNameOrNull(
+                  certification,
+                  catalog: context.certificationCatalog,
+                )!,
               ),
             IconDetailRow(
               icon: Icons.business,

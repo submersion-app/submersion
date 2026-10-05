@@ -248,6 +248,40 @@ void main() {
       );
     });
 
+    test("levels under another diver's custom agency are refused", () async {
+      final a = await repo.createAgency(
+        diverId: 'a',
+        name: 'Club A',
+        isShared: true,
+      );
+      expect(
+        () => repo.createLevel(
+          diverId: 'b',
+          agencyId: a.id,
+          name: 'Borrowed Rung',
+          isProgression: true,
+          isShared: false,
+        ),
+        throwsA(isA<CertificationNotOwnerException>()),
+      );
+      // The owner may, and anyone may under a built-in agency.
+      await repo.createLevel(
+        diverId: 'a',
+        agencyId: a.id,
+        name: 'Club Diver',
+        isProgression: true,
+        isShared: false,
+      );
+      await repo.createLevel(
+        diverId: 'b',
+        agencyId: 'padi',
+        name: 'Ice Diver',
+        isProgression: true,
+        isShared: false,
+      );
+      expect(await repo.getAllLevels(), hasLength(2));
+    });
+
     test('a built-in level name under the same agency is taken', () async {
       expect(
         () => repo.createLevel(

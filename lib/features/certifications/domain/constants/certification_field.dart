@@ -200,7 +200,10 @@ class CertificationFieldAdapter
     return switch (field) {
       // Not entity.name: that is empty for certs without a custom name, and
       // for legacy rows it repeats the Agency and Certification columns.
-      CertificationField.certName => certificationTitle(entity),
+      CertificationField.certName => certificationTitle(
+        entity,
+        catalog: _catalog,
+      ),
       CertificationField.agency => entity.agency,
       CertificationField.level => entity.level,
       CertificationField.cardNumber => entity.cardNumber,

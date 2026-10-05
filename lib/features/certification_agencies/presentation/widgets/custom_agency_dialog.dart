@@ -70,12 +70,12 @@ class _CustomAgencyDialogState extends ConsumerState<_CustomAgencyDialog> {
     }
     setState(() => _saving = true);
     final repo = ref.read(customCertificationRepositoryProvider);
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    if (diverId == null) {
-      if (mounted) setState(() => _saving = false);
-      return;
-    }
     try {
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      if (diverId == null) {
+        if (mounted) setState(() => _saving = false);
+        return;
+      }
       final existing = widget.existing;
       final saved = existing == null
           ? await repo.createAgency(
@@ -98,6 +98,14 @@ class _CustomAgencyDialogState extends ConsumerState<_CustomAgencyDialog> {
       setState(() {
         _saving = false;
         _error = l10n.certificationAgencies_error_nameTaken;
+      });
+    } catch (_) {
+      // The repository has logged it; keep the dialog usable so the diver
+      // can retry or cancel.
+      if (!mounted) return;
+      setState(() {
+        _saving = false;
+        _error = l10n.common_error_tryAgain;
       });
     }
   }

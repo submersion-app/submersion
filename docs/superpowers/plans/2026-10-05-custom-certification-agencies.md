@@ -17,7 +17,7 @@
 - Built-in ids are the enum `.name` strings. Custom ids are UUID v4.
 - Agency names (built-in brands and user text) are never translated. ACUC and DAN level names fall back to `displayName` in every locale.
 - No em-dashes or en-dashes as prose punctuation anywhere (code, comments, ARB values, commits). No emojis.
-- No mention of Claude, Claude Code or Anthropic in any commit, comment or PR text.
+- No AI-tool attribution in any commit, comment or PR text (see the Attribution section of the project instructions).
 - Imports grouped dart, flutter, packages, local. Files 200-400 lines typical, 800 max.
 - All domain entities get `copyWith`.
 - Paths in tests are built with `p.join`, temp space via `Directory.systemTemp`.
@@ -3087,7 +3087,7 @@ Expected: all PASS. Do not pipe the test command through `grep` (it hides the ex
 
 ```bash
 git diff origin/main...HEAD | python3.14 -c "import sys; t=sys.stdin.read(); print('emdash', t.count(chr(0x2014)), 'endash', t.count(chr(0x2013)))"
-git log origin/main..HEAD --format=%B | grep -i -E "claude|anthropic" || echo clean
+git log origin/main..HEAD --format=%B | grep -i -E "co-authored-by|generated with" || echo clean
 ```
 
 Expected: `emdash 0 endash 0` for added lines (pre-existing ones in context lines are fine; inspect any hit) and `clean`.

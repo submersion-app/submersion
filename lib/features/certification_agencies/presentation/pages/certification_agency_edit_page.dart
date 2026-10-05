@@ -164,22 +164,41 @@ class _LevelSection extends ConsumerWidget {
     CustomCertificationLevel level,
   ) async {
     if (!await confirmCertificationDelete(context, level.name)) return;
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    if (diverId == null) return;
-    final refused = await ref
-        .read(customCertificationRepositoryProvider)
-        .deleteLevel(level.id, actingDiverId: diverId);
-    if (refused != null && context.mounted) {
-      await showCertificationDeleteRefusal(context, refused);
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.l10n.common_error_tryAgain;
+    try {
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      if (diverId == null) return;
+      final refused = await ref
+          .read(customCertificationRepositoryProvider)
+          .deleteLevel(level.id, actingDiverId: diverId);
+      if (refused != null && context.mounted) {
+        await showCertificationDeleteRefusal(context, refused);
+      }
+    } catch (_) {
+      // Logged by the repository; tell the diver it did not happen.
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
     }
   }
 
-  Future<void> _reorder(WidgetRef ref, List<String> ids) async {
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    if (diverId == null) return;
-    await ref
-        .read(customCertificationRepositoryProvider)
-        .reorderProgression(agencyId, ids, actingDiverId: diverId);
+  Future<void> _reorder(
+    BuildContext context,
+    WidgetRef ref,
+    List<String> ids,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.l10n.common_error_tryAgain;
+    try {
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      if (diverId == null) return;
+      await ref
+          .read(customCertificationRepositoryProvider)
+          .reorderProgression(agencyId, ids, actingDiverId: diverId);
+    } catch (_) {
+      // The order on screen comes from the catalog, which did not change.
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+    }
   }
 
   Widget _ownTile(
@@ -252,7 +271,7 @@ class _LevelSection extends ConsumerWidget {
             onReorderItem: (oldIndex, newIndex) {
               final ids = [for (final l in own) l.id];
               ids.insert(newIndex, ids.removeAt(oldIndex));
-              _reorder(ref, ids);
+              _reorder(context, ref, ids);
             },
             children: [
               for (var i = 0; i < own.length; i++)

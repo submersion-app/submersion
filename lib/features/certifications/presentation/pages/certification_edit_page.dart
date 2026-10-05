@@ -137,7 +137,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     _originalCertification = cert;
     // A name that merely repeats agency + level is shown as blank, so the
     // field's hint offers the derivation instead of duplicating it.
-    _nameController.text = hasDerivedName(cert) ? '' : cert.name;
+    _nameController.text = hasDerivedName(cert, catalog: _catalog)
+        ? ''
+        : cert.name;
     _cardNumberController.text = cert.cardNumber ?? '';
     _instructorNameController.text = cert.instructorName ?? '';
     _instructorNumberController.text = cert.instructorNumber ?? '';
@@ -164,7 +166,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
       if (cert != null && mounted) {
         _originalCertification = cert;
         // See _prefillFrom: a derived name renders as a blank field.
-        _nameController.text = hasDerivedName(cert) ? '' : cert.name;
+        _nameController.text = hasDerivedName(cert, catalog: _catalog)
+            ? ''
+            : cert.name;
         _cardNumberController.text = cert.cardNumber ?? '';
         _instructorNameController.text = cert.instructorName ?? '';
         _instructorNumberController.text = cert.instructorNumber ?? '';
@@ -589,13 +593,17 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
       header('specialties', context.l10n.certifications_edit_group_specialties),
       ...specialties.map(item),
       if (extra != null) item(extra),
-      DropdownMenuItem<CertificationOption>(
-        value: const CertificationOption.addCustom(),
-        child: Text(
-          context.l10n.certificationAgencies_addCustomCertification,
-          style: TextStyle(color: theme.colorScheme.primary),
+      // Another diver's custom agency takes certifications from its owner
+      // only (issue #690).
+      if (_catalog.customAgency(agency) == null ||
+          _catalog.canEditAgency(agency))
+        DropdownMenuItem<CertificationOption>(
+          value: const CertificationOption.addCustom(),
+          child: Text(
+            context.l10n.certificationAgencies_addCustomCertification,
+            style: TextStyle(color: theme.colorScheme.primary),
+          ),
         ),
-      ),
       item(_catalog.level(CertificationLevel.other.name)),
     ];
   }

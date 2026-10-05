@@ -8,6 +8,7 @@ import 'package:submersion/features/certifications/presentation/widgets/certific
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// The front face of the certification card.
 ///
@@ -108,7 +109,9 @@ class CertificationEcardFront extends StatelessWidget {
                 // level and a full field grid all compete for a CR80 card on a
                 // narrow phone. The header and grid are the facts a dive
                 // operator reads, so they keep their intrinsic height.
-                Flexible(child: _buildHero(context.l10n)),
+                Flexible(
+                  child: _buildHero(context.l10n, context.certificationCatalog),
+                ),
                 _buildFieldGrid(context),
               ],
             ),
@@ -141,9 +144,17 @@ class CertificationEcardFront extends StatelessWidget {
     );
   }
 
-  Widget _buildHero(AppLocalizations l10n) {
-    final subtitle = certificationSubtitleL10n(certification, l10n);
-    final alsoRecognized = additionalCredentialsLineL10n(certification, l10n);
+  Widget _buildHero(AppLocalizations l10n, CertificationCatalog catalog) {
+    final subtitle = certificationSubtitleL10n(
+      certification,
+      l10n,
+      catalog: catalog,
+    );
+    final alsoRecognized = additionalCredentialsLineL10n(
+      certification,
+      l10n,
+      catalog: catalog,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,7 +162,7 @@ class CertificationEcardFront extends StatelessWidget {
       children: [
         Flexible(
           child: Text(
-            certificationTitleL10n(certification, l10n),
+            certificationTitleL10n(certification, l10n, catalog: catalog),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 20,

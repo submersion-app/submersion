@@ -452,9 +452,15 @@ class UddfFullExportService {
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
     Map<String, List<ProfileEvent>>? diveProfileEvents,
     Map<String, DiveTankPressureExport>? diveTankPressures,
+    // A backup's certifications and the catalog naming their custom
+    // agencies and levels (issue #690).
+    List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     UddfExportOptions options = const UddfExportOptions(),
   }) => _generateAllDataXml(
     dives: dives,
+    certifications: certifications,
+    certificationCatalog: certificationCatalog,
     sites: sites,
     tags: tags,
     customSiteTypes: customSiteTypes,

@@ -105,6 +105,8 @@ class _CertificationShareSheetState
   }
 
   Future<void> _shareAsCard(Rect? anchor) async {
+    // Read before the first await: the context is not used across gaps.
+    final catalog = context.certificationCatalog;
     setState(() => _isExporting = true);
 
     try {
@@ -112,7 +114,7 @@ class _CertificationShareSheetState
         certification: widget.certification,
         diverName: widget.diverName,
         l10n: context.l10n,
-        catalog: context.certificationCatalog,
+        catalog: catalog,
       );
       if (bytes == null) {
         throw Exception('Failed to generate card image');
@@ -121,7 +123,7 @@ class _CertificationShareSheetState
       // Save to temp file
       final tempDir = await getTemporaryDirectory();
       final filename = certificationImageFileName(
-        certificationTitle(widget.certification),
+        certificationTitle(widget.certification, catalog: catalog),
         CertificationImage.card,
       );
       final file = File(p.join(tempDir.path, filename));
@@ -146,6 +148,8 @@ class _CertificationShareSheetState
   }
 
   Future<void> _shareAsCertificate(Rect? anchor) async {
+    // Read before the first await: the context is not used across gaps.
+    final catalog = context.certificationCatalog;
     setState(() => _isExporting = true);
 
     try {
@@ -155,7 +159,7 @@ class _CertificationShareSheetState
         diverName: widget.diverName,
         l10n: context.l10n,
         dateFormat: ref.read(dateFormatProvider),
-        catalog: context.certificationCatalog,
+        catalog: catalog,
       );
       if (bytes == null) {
         throw Exception('Failed to generate certificate image');
@@ -164,7 +168,7 @@ class _CertificationShareSheetState
       // Save to temp file
       final tempDir = await getTemporaryDirectory();
       final filename = certificationImageFileName(
-        certificationTitle(widget.certification),
+        certificationTitle(widget.certification, catalog: catalog),
         CertificationImage.certificate,
       );
       final file = File(p.join(tempDir.path, filename));

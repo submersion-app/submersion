@@ -103,7 +103,9 @@ Future<void> shareDivesWithBuddy(
           dataSources: dataSources,
           extras: extras,
           options: options,
-          certificationCatalog: ref.read(certificationCatalogSyncProvider),
+          certificationCatalog: await ref.read(
+            allCustomCertificationsCatalogProvider.future,
+          ),
         );
       case ExportDestination.saveToFile:
         await exportService.saveDivesToUddfFile(
@@ -112,7 +114,9 @@ Future<void> shareDivesWithBuddy(
           dataSources: dataSources,
           extras: extras,
           options: options,
-          certificationCatalog: ref.read(certificationCatalogSyncProvider),
+          certificationCatalog: await ref.read(
+            allCustomCertificationsCatalogProvider.future,
+          ),
         );
     }
   } catch (e) {

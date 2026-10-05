@@ -170,6 +170,12 @@ class CustomCertificationRepository {
     required bool isShared,
   }) async {
     try {
+      // A custom agency's certifications belong to its owner; anyone may
+      // add their own under a built-in agency.
+      final parent = await _agency(agencyId);
+      if (parent != null && parent.diverId != diverId) {
+        throw CertificationNotOwnerException(agencyId);
+      }
       final trimmed = _requireName(name);
       await _ensureLevelNameFree(trimmed, agencyId: agencyId, diverId: diverId);
       final id = _uuid.v4();

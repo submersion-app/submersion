@@ -94,4 +94,13 @@ void main() {
       expect(await r.levelId('padi', 'ice diver'), l.id);
     },
   );
+
+  test(
+    "a level name shared by two agencies resolves to the agency's own",
+    () async {
+      final r = resolver();
+      expect(await r.levelId('acuc', 'Advanced Diver'), 'acucAdvancedDiver');
+      expect(await r.levelId('bsac', 'Advanced Diver'), 'bsacAdvancedDiver');
+    },
+  );
 }

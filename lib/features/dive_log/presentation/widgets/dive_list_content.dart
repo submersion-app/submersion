@@ -947,8 +947,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     selectedDives.map((d) => d.id).toList(growable: false),
                     uddfOptions,
                   ),
-                  certificationCatalog: ref.read(
-                    certificationCatalogSyncProvider,
+                  certificationCatalog: await ref.read(
+                    allCustomCertificationsCatalogProvider.future,
                   ),
                 )
               : await exportService.saveDivesToUddfFile(
@@ -963,8 +963,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     selectedDives.map((d) => d.id).toList(growable: false),
                     uddfOptions,
                   ),
-                  certificationCatalog: ref.read(
-                    certificationCatalogSyncProvider,
+                  certificationCatalog: await ref.read(
+                    allCustomCertificationsCatalogProvider.future,
                   ),
                 ),
       };

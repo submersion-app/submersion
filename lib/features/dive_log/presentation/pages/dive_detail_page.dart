@@ -5822,8 +5822,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         extras: await ref.read(uddfDivesExtrasFetchProvider)([
                           dive.id,
                         ], choice.options),
-                        certificationCatalog: ref.read(
-                          certificationCatalogSyncProvider,
+                        certificationCatalog: await ref.read(
+                          allCustomCertificationsCatalogProvider.future,
                         ),
                       ),
                   saveFn: (choice) async => ref
@@ -5838,8 +5838,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         extras: await ref.read(uddfDivesExtrasFetchProvider)([
                           dive.id,
                         ], choice.options),
-                        certificationCatalog: ref.read(
-                          certificationCatalogSyncProvider,
+                        certificationCatalog: await ref.read(
+                          allCustomCertificationsCatalogProvider.future,
                         ),
                       ),
                 );

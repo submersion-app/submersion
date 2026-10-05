@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/certification_levels.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/certification_agencies/data/repositories/custom_certification_repository.dart';
 
@@ -54,13 +55,20 @@ class CertificationImportResolver {
     final t = text?.trim() ?? '';
     if (t.isEmpty) return null;
     final lower = t.toLowerCase();
-    for (final l in CertificationLevel.values) {
-      if (l.name.toLowerCase() == lower ||
-          l.displayName.toLowerCase() == lower) {
-        return l.name;
+    bool matches(CertificationLevel l) =>
+        l.name.toLowerCase() == lower || l.displayName.toLowerCase() == lower;
+    // The agency's own levels first: display names repeat across agencies
+    // ("Advanced Diver" is both BSAC and ACUC).
+    final builtIn = CertificationAgency.fromId(agencyId);
+    if (builtIn != null) {
+      for (final l in CertificationLevelCatalog.levelsFor(builtIn)) {
+        if (matches(l)) return l.name;
       }
     }
-    final builtInAgency = CertificationAgency.fromId(agencyId) != null;
+    for (final l in CertificationLevel.values) {
+      if (matches(l)) return l.name;
+    }
+    final builtInAgency = builtIn != null;
     final custom = (await _repo.getAllLevels()).where(
       (l) =>
           l.agencyId == agencyId &&

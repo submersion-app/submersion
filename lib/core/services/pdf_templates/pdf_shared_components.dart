@@ -400,7 +400,7 @@ class PdfSharedComponents {
               ),
               // Only when the title above is a custom name -- otherwise the
               // title already is the certification.
-              if (certificationSubtitle(cert) != null)
+              if (certificationSubtitle(cert, catalog: catalog) != null)
                 pw.Container(
                   padding: const pw.EdgeInsets.symmetric(
                     horizontal: 8,
@@ -411,7 +411,7 @@ class PdfSharedComponents {
                     borderRadius: pw.BorderRadius.circular(4),
                   ),
                   child: pw.Text(
-                    certificationSubtitle(cert)!,
+                    certificationSubtitle(cert, catalog: catalog)!,
                     style: pw.TextStyle(
                       fontSize: 10,
                       fontWeight: pw.FontWeight.bold,
