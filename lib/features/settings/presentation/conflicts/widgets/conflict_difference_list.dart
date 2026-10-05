@@ -102,13 +102,18 @@ class ConflictDifferenceList extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '$device: ',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+          // Loose, so a short name keeps its width and a long one wraps
+          // instead of pushing the value off the screen.
+          Flexible(
+            flex: 2,
+            child: Text(
+              '$device: ',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
-          Expanded(child: value),
+          Expanded(flex: 3, child: value),
         ],
       ),
     );

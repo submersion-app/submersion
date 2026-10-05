@@ -1,4 +1,5 @@
 import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -65,8 +66,11 @@ String _format(
       return value.toString();
     case FieldKind.unknown:
       if (value is bool) return _yesNo(l10n, value);
+      if (value is double) return formatDecimalForDisplay(value);
       return value.toString();
     case FieldKind.number:
+      if (value is double) return formatDecimalForDisplay(value);
+      return value.toString();
     case FieldKind.shortText:
     case FieldKind.longText:
     case FieldKind.reference:
@@ -96,7 +100,8 @@ String _format(
     FieldKind.longitude => units.formatLongitude(number),
     FieldKind.percent => '${_trim(number)}%',
     FieldKind.fraction => '${_trim(number * 100)}%',
-    FieldKind.partialPressure => '${number.toStringAsFixed(2)} bar',
+    FieldKind.partialPressure =>
+      '${formatFixedForDisplay(number, 2)} ${l10n.units_pressure_bar}',
     FieldKind.durationSeconds => formatConflictSeconds(number.round()),
     FieldKind.durationMinutes => formatConflictSeconds((number * 60).round()),
     FieldKind.durationHours => formatConflictSeconds((number * 3600).round()),
@@ -126,10 +131,9 @@ DateTime? _wallClock(Object value) {
   return null;
 }
 
-/// 32.0 -> "32", 32.5 -> "32.5".
-String _trim(double value) => value == value.roundToDouble()
-    ? value.toStringAsFixed(0)
-    : value.toStringAsFixed(1);
+/// 32.0 -> "32", 32.5 -> "32.5" ("32,5" under de).
+String _trim(double value) =>
+    formatFixedForDisplay(value, value == value.roundToDouble() ? 0 : 1);
 
 /// A stored count of seconds as "1h 5m" or "45min".
 ///

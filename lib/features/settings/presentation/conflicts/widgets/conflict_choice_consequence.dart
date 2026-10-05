@@ -4,17 +4,13 @@ import 'package:submersion/features/settings/presentation/conflicts/conflict_com
 import 'package:submersion/features/settings/presentation/conflicts/conflict_device_labels.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// Whether "Keep both" should be offered. `SyncService.resolveConflict`
-/// copies the remote row under a new id only for a non-deleted record with
-/// its own `id`, outside `settings`; anywhere else it keeps the local row, so
-/// offering it would promise a copy that is never made. When the versions
-/// match, the copy it does make is a duplicate of an unchanged record.
+/// Whether "Keep both" should be offered: only where resolving with it
+/// really makes a copy (the service's own rule), and not when the versions
+/// match, where the copy would duplicate an unchanged record.
 bool canKeepBoth(ConflictComparison comparison, SyncConflict conflict) =>
     comparison.state != ConflictComparisonState.sameContent &&
-    conflict.entityType != 'settings' &&
-    conflict.remoteData['_deleted'] != true &&
     conflict.localData.isNotEmpty &&
-    conflict.remoteData['id'] != null;
+    SyncService.keepBothMakesCopy(conflict.entityType, conflict.remoteData);
 
 /// What the selected choice keeps and discards, in one sentence.
 String conflictConsequence({

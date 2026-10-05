@@ -130,9 +130,14 @@ ConflictComparison buildConflictComparison({
   final localRefs = {for (final r in conflict.localReferences) r.field: r};
   final remoteRefs = {for (final r in conflict.remoteReferences) r.field: r};
 
+  // Each column's label and kind, resolved once however often it is asked.
+  final fields = <String, ConflictField>{};
+  ConflictField fieldOf(String key) =>
+      fields.putIfAbsent(key, () => conflictFieldFor(entity, key));
+
   String labelFor(String key) {
     final target = ConflictReferenceResolver.targetTypeFor(entity, key);
-    if (target == null) return conflictFieldFor(entity, key).label(l10n);
+    if (target == null) return fieldOf(key).label(l10n);
     final reference =
         localRefs[key] ??
         remoteRefs[key] ??
@@ -153,13 +158,12 @@ ConflictComparison buildConflictComparison({
     return formatConflictValue(
       l10n: l10n,
       units: units,
-      field: conflictFieldFor(entity, key),
+      field: fieldOf(key),
       value: value,
     );
   }
 
-  bool opaque(String key) =>
-      conflictFieldFor(entity, key).kind == FieldKind.opaque;
+  bool opaque(String key) => fieldOf(key).kind == FieldKind.opaque;
 
   // A deleted record's values: an opaque payload has nothing a diver could
   // read, so it is left out rather than shown as a bare placeholder.
@@ -249,7 +253,7 @@ ConflictComparison buildConflictComparison({
       FieldDifference(
         key: key,
         label: labelFor(key),
-        kind: conflictFieldFor(entity, key).kind,
+        kind: fieldOf(key).kind,
         localValue: entry.value,
         remoteValue: remote[key],
         localDisplay: display(key, entry.value, localRefs),

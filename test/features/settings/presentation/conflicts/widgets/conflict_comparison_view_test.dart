@@ -4,6 +4,7 @@ import 'package:submersion/features/settings/presentation/conflicts/conflict_com
 import 'package:submersion/features/settings/presentation/conflicts/conflict_device_labels.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field.dart';
 import 'package:submersion/features/settings/presentation/conflicts/widgets/conflict_comparison_view.dart';
+import 'package:submersion/features/settings/presentation/conflicts/widgets/conflict_difference_list.dart';
 import 'package:submersion/features/settings/presentation/conflicts/widgets/conflict_text_diff.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -164,6 +165,30 @@ void main() {
       ),
     );
     expect(find.text('Only spacing or line breaks differ.'), findsOneWidget);
+  });
+
+  testWidgets('a long device name wraps in the narrow layout', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: ConflictDifferenceList(
+            differences: [_diff('Water temp', '26 C', '27 C')],
+            devices: const ConflictDeviceLabels(
+              local: "Eric's MacBook Pro (Work, 16-inch, 2023) in the office",
+              remote: 'Windows PC',
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('26 C'), findsOneWidget);
   });
 
   testWidgets('a remote deletion is a banner over the local values', (

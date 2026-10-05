@@ -279,6 +279,17 @@ void main() {
     );
   });
 
+  test('decimals use the locale separator, like the rest of the app', () {
+    final saved = Intl.defaultLocale;
+    Intl.defaultLocale = 'de';
+    addTearDown(() => Intl.defaultLocale = saved);
+    expect(fmt(metric, FieldKind.partialPressure, 1.4), '1,40 bar');
+    expect(fmt(metric, FieldKind.percent, 32.5), '32,5%');
+    expect(fmt(metric, FieldKind.fraction, 0.255), '25,5%');
+    expect(fmt(metric, FieldKind.number, 35.5), '35,5');
+    expect(fmt(metric, FieldKind.number, 12), '12');
+  });
+
   test('unknown kind formats by runtime type', () {
     expect(fmt(metric, FieldKind.unknown, true), 'Yes');
     expect(fmt(metric, FieldKind.unknown, 12), '12');
