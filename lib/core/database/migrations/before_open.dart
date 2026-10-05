@@ -48,8 +48,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // v217 and v219 backstop: the tag scope flags.
     await _assertTagScopeColumns();
 
-    // v211 backstop: re-assert diver_settings.auto_tag_imports.
+    // v211 and v264 backstops: diver_settings.auto_tag_imports and
+    // default_show_late_gas_switches.
     await _assertAutoTagImportsColumn();
+    await _assertLateGasSwitchSettingColumn();
 
     // v210 backstop: the dive_tanks equipment link sets null on delete.
     // First, while foreign keys are still off: the rebuild it may do

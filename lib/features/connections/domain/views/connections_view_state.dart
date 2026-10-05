@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/views/connection_presets.dart';
+import 'package:submersion/features/connections/domain/views/highlight_mode.dart';
 import 'package:submersion/features/connections/domain/views/kind_link.dart';
 import 'package:submersion/features/connections/domain/views/map_spec.dart';
 
@@ -28,6 +29,7 @@ class ConnectionsViewState extends Equatable {
     this.focus,
     this.aroundKinds = kDefaultAroundKinds,
     this.hops = 1,
+    this.highlight = HighlightMode.byKind,
   });
 
   static final ConnectionsViewState initial = ConnectionsViewState(
@@ -53,6 +55,9 @@ class ConnectionsViewState extends Equatable {
   final Set<ConnectionKind> aroundKinds;
   final int hops;
 
+  /// How the map is coloured; remembered with the rest of the view.
+  final HighlightMode highlight;
+
   bool get isAroundWithoutFocus =>
       mode == ConnectionsMode.around && focus == null;
 
@@ -64,6 +69,7 @@ class ConnectionsViewState extends Equatable {
         focus: focus,
         aroundKinds: aroundKinds,
         hops: hops,
+        highlight: highlight,
       );
 
   ConnectionsViewState applySavedMap(String id, MapSpec spec) =>
@@ -74,6 +80,7 @@ class ConnectionsViewState extends Equatable {
         focus: focus,
         aroundKinds: aroundKinds,
         hops: hops,
+        highlight: highlight,
       );
 
   /// Shows [spec] as a custom map without marking any preset edited (a map
@@ -84,6 +91,7 @@ class ConnectionsViewState extends Equatable {
     focus: focus,
     aroundKinds: aroundKinds,
     hops: hops,
+    highlight: highlight,
   );
 
   /// Reconciles the applied saved map with the current saved maps: follows
@@ -102,6 +110,7 @@ class ConnectionsViewState extends Equatable {
       focus: focus,
       aroundKinds: aroundKinds,
       hops: hops,
+      highlight: highlight,
     );
   }
 
@@ -113,6 +122,7 @@ class ConnectionsViewState extends Equatable {
     focus: focus,
     aroundKinds: aroundKinds,
     hops: hops,
+    highlight: highlight,
   );
 
   ConnectionsViewState centreOn(NodeRef ref) =>
@@ -124,6 +134,8 @@ class ConnectionsViewState extends Equatable {
       copyWith(aroundKinds: Set.unmodifiable(kinds));
 
   ConnectionsViewState withHops(int n) => copyWith(hops: n.clamp(1, 3));
+
+  ConnectionsViewState withHighlight(HighlightMode m) => copyWith(highlight: m);
 
   /// Applies a `hops` route parameter; a missing or unreadable one leaves
   /// the view as it is (a deep link never fails on a malformed value).
@@ -139,6 +151,7 @@ class ConnectionsViewState extends Equatable {
     bool clearFocus = false,
     Set<ConnectionKind>? aroundKinds,
     int? hops,
+    HighlightMode? highlight,
   }) {
     return ConnectionsViewState(
       mode: mode ?? this.mode,
@@ -149,6 +162,7 @@ class ConnectionsViewState extends Equatable {
       focus: clearFocus ? null : (focus ?? this.focus),
       aroundKinds: aroundKinds ?? this.aroundKinds,
       hops: hops ?? this.hops,
+      highlight: highlight ?? this.highlight,
     );
   }
 
@@ -165,6 +179,7 @@ class ConnectionsViewState extends Equatable {
         k.name,
     ],
     'hops': hops,
+    'highlight': highlight.name,
   };
 
   static ConnectionsViewState? fromJson(Object? json) {
@@ -200,6 +215,11 @@ class ConnectionsViewState extends Equatable {
           ? Set.unmodifiable(kinds)
           : kDefaultAroundKinds,
       hops: hops is int ? hops.clamp(1, 3) : 1,
+      highlight:
+          HighlightMode.values
+              .where((m) => m.name == json['highlight'])
+              .firstOrNull ??
+          HighlightMode.byKind,
     );
   }
 
@@ -230,5 +250,6 @@ class ConnectionsViewState extends Equatable {
     focus,
     aroundKinds,
     hops,
+    highlight,
   ];
 }

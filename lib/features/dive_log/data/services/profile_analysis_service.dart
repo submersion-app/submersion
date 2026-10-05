@@ -11,12 +11,15 @@ import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
+import 'package:submersion/features/dive_log/domain/services/ccr_gas_schedule.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_time_remaining.dart';
 import 'package:submersion/core/deco/entities/gradient_factor_source.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/deco/gas_density.dart';
+import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency.dart';
+import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency_analyzer.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/profile_depth_sanitizer.dart';
 import 'package:submersion/core/deco/scr_calculator.dart';
@@ -346,6 +349,11 @@ class ProfileAnalysis {
   /// (issue #2592). Null for an analysis built outside the pipeline.
   final String? inputsFingerprint;
 
+  /// Late and missed deco gas switches against the ideal ascent (#2939).
+  /// Null off the open-circuit path or with fewer than two gases. Read-only:
+  /// computing it changes no other field.
+  final GasSwitchEfficiency? gasSwitchEfficiency;
+
   const ProfileAnalysis({
     required this.ascentRates,
     required this.ascentRateStats,
@@ -381,6 +389,7 @@ class ProfileAnalysis {
     this.gfSource,
     this.tissueLoadingWithheld = false,
     this.inputsFingerprint,
+    this.gasSwitchEfficiency,
   });
 
   /// Whether diver went into decompression obligation
@@ -481,6 +490,7 @@ class ProfileAnalysis {
     GradientFactorSource? gfSource,
     bool? tissueLoadingWithheld,
     String? inputsFingerprint,
+    GasSwitchEfficiency? gasSwitchEfficiency,
   }) {
     return ProfileAnalysis(
       ascentRates: ascentRates ?? this.ascentRates,
@@ -519,6 +529,7 @@ class ProfileAnalysis {
       tissueLoadingWithheld:
           tissueLoadingWithheld ?? this.tissueLoadingWithheld,
       inputsFingerprint: inputsFingerprint ?? this.inputsFingerprint,
+      gasSwitchEfficiency: gasSwitchEfficiency ?? this.gasSwitchEfficiency,
     );
   }
 
@@ -810,22 +821,32 @@ class ProfileAnalysisService {
         // grossly overstates CNS). With no ppO2 data at all, leave it unknown
         // (zero) rather than fabricate a value.
         final ccrSetpoint = setpointHigh ?? setpointLow;
+        final List<double> loopPpO2;
         if (measuredPpO2 != null) {
           // CCR: measured loop ppO2 from O2 cells / setpoint
-          ppO2Curve = measuredPpO2;
+          loopPpO2 = measuredPpO2;
         } else if (ccrSetpoint != null) {
           // CCR: ppO2 equals the setpoint (constant or variable by depth phase).
           // Only apply the depth-phased low setpoint when a high setpoint is the
           // working value; an only-low-setpoint dive uses it as a constant.
-          ppO2Curve = _o2ToxicityCalculator.calculatePpO2CurveCCR(
+          loopPpO2 = _o2ToxicityCalculator.calculatePpO2CurveCCR(
             depths,
             setpointHigh: ccrSetpoint,
             setpointLow: setpointHigh != null ? setpointLow : null,
             lowSetpointMaxDepth: lowSetpointMaxDepth,
           );
         } else {
-          ppO2Curve = List<double>.filled(depths.length, 0.0);
+          loopPpO2 = List<double>.filled(depths.length, 0.0);
         }
+        // Only a bailout (a segment with no setpoint) changes the curve.
+        ppO2Curve = gasSegments == null || !hasOpenCircuitBailout(gasSegments)
+            ? loopPpO2
+            : _withOpenCircuitPpO2(
+                depths: depths,
+                timestamps: timestamps,
+                gasSegments: gasSegments,
+                loopPpO2Curve: loopPpO2,
+              );
       case DiveMode.scr:
         if (measuredPpO2 != null) {
           // SCR: measured loop ppO2 from O2 cells / setpoint
@@ -1039,6 +1060,24 @@ class ProfileAnalysisService {
         ocGasMetrics?.otuCurve ??
         _calculateOtuCurve(ppO2Curve: ppO2Curve, timestamps: timestamps);
 
+    // Read-only technique feedback (#2939): its own engines, after every
+    // curve above is final, so no deco value can move.
+    final plan = ascentGasPlan;
+    final gasSwitchEfficiency = useOcGasSegments && plan is OptimalOcAscentGas
+        ? GasSwitchEfficiencyAnalyzer(
+            newEngine: _buhlmannAlgorithm.withSameConfig,
+            gases: plan.gases,
+            maxPpO2: plan.maxPpO2,
+            startCompartments: startCompartments,
+          ).analyze(
+            depths: depths,
+            timestamps: timestamps,
+            gasSegments: gasSegments,
+            ceilingCurve: ceilingCurve,
+            ttsCurve: ttsCurve,
+          )
+        : null;
+
     return ProfileAnalysis(
       ascentRates: ascentRates,
       ascentRateStats: ascentRateStats,
@@ -1070,6 +1109,7 @@ class ProfileAnalysisService {
       durationSeconds: durationSeconds,
       gfSource: _gfSource,
       tissueLoadingWithheld: tissueLoadingWithheld,
+      gasSwitchEfficiency: gasSwitchEfficiency,
     );
   }
 
@@ -1915,6 +1955,8 @@ class ProfileAnalysisService {
   /// ambient (the loop cannot exceed it near the surface) and a sample with no
   /// loop ppO2 information falls back to breathing the diluent open-circuit
   /// rather than reporting a hypoxic loop.
+  /// A bailout segment (no setpoint) is breathed open circuit on its own
+  /// fractions.
   ({
     List<double> o2Fractions,
     List<double> n2Fractions,
@@ -1946,6 +1988,15 @@ class ProfileAnalysisService {
       final diluentInert = overFull ? 1.0 : rawInert;
       diluentO2Fractions.add(1.0 - diluentInert);
 
+      // Bailed out: the diver breathes this cylinder open circuit, not the
+      // loop (issue #577).
+      if (diluent.setpoint == null) {
+        o2Fractions.add(1.0 - diluentInert);
+        n2Fractions.add(diluentFN2);
+        heFractions.add(diluentFHe);
+        continue;
+      }
+
       final ambientPressure = 1.0 + (depths[i] / 10.0);
       final loopPpO2 = i < loopPpO2Curve.length ? loopPpO2Curve[i] : 0.0;
       if (loopPpO2 <= 0 || diluentInert <= 0) {
@@ -1969,6 +2020,23 @@ class ProfileAnalysisService {
       heFractions: heFractions,
       diluentO2Fractions: diluentO2Fractions,
     );
+  }
+
+  /// The loop ppO2 on samples breathed on the loop, and ambient x FO2 on
+  /// samples breathed open circuit after a bailout (issue #577): the O2 cells
+  /// keep reading a loop the diver is no longer breathing.
+  List<double> _withOpenCircuitPpO2({
+    required List<double> depths,
+    required List<int> timestamps,
+    required List<ProfileGasSegment> gasSegments,
+    required List<double> loopPpO2Curve,
+  }) {
+    return List<double>.generate(depths.length, (i) {
+      final gas = _activeGasSegmentAtTimestamp(timestamps[i], gasSegments);
+      if (gas.setpoint != null) return loopPpO2Curve[i];
+      final fO2 = (1.0 - gas.fN2 - gas.fHe).clamp(0.0, 1.0);
+      return (1.0 + depths[i] / 10.0) * fO2;
+    });
   }
 
   /// Calculate partial pressure curve from per-point gas fractions.

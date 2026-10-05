@@ -62,12 +62,14 @@ class EntityQueryEditor extends ConsumerWidget {
     required this.value,
     required this.onChanged,
     this.onSave,
+    this.canSave,
   });
 
   final QueryEntity root;
   final QueryNode? value;
   final ValueChanged<QueryNode?> onChanged;
   final VoidCallback? onSave;
+  final bool? canSave;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -87,6 +89,7 @@ class EntityQueryEditor extends ConsumerWidget {
       onChanged: onChanged,
       strings: queryEditorStringsOf(context.l10n),
       onSave: onSave,
+      canSave: canSave,
       describeError: (e) => describeQueryError(context.l10n, e),
     );
   }

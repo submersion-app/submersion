@@ -1090,10 +1090,13 @@ class AppDatabase extends _$AppDatabase {
     // stays. Inbound, the generated fromJson ignores the legacy key.
     261,
     263,
+    // v264: diver_settings.default_show_late_gas_switches (issue #2939).
+    // Additive column with a default, so the floor stays.
+    264,
     // v266: media.site_category and media.display_size, a site attachment's
     // category and size override (issue #1039). Additive nullable columns,
     // so the floor stays. Renumbered from 263, which main shipped first
-    // (#2030); 262, 264 and 265 are claimed by open branches.
+    // (#2030); 262 and 265 are claimed by open branches.
     266,
   ];
 

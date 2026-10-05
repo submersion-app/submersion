@@ -24,12 +24,14 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/ccr_gas_schedule.dart';
 import 'package:submersion/features/dive_log/domain/services/computer_cns_extractor.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_time_remaining.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/otu_window_totals.dart';
 
 /// Reports which data source was actually used for each metric in the current profile.
 /// Updated as a side-effect of profileAnalysisProvider.
@@ -266,86 +268,29 @@ List<ProfileGasSegment> buildProfileGasSegments(
 /// bailout, else air. The FIRST tank must not be assumed to be the diluent --
 /// on imported CCR dives it is often the O2-richer loop/bailout mix
 /// (issue #455: dive 003's first tank is EAN40, the diluent is air).
+///
+/// [tanks] scopes the search to the analysed computer's cylinders on a
+/// multi-source dive; defaults to every tank.
 @visibleForTesting
-GasMix resolveCcrDiluentMix(Dive dive) {
-  final diluentTank = dive.diluentTank;
-  if (diluentTank != null) return diluentTank.gasMix;
+GasMix resolveCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) {
+  final candidates = tanks ?? dive.tanks;
+  for (final tank in candidates) {
+    if (tank.role == TankRole.diluent) return tank.gasMix;
+  }
   final diluentGas = dive.diluentGas;
   if (diluentGas != null) return diluentGas;
-  for (final tank in dive.tanks) {
-    if (tank.role == TankRole.oxygenSupply || tank.role == TankRole.bailout) {
-      continue;
-    }
+  // Roles read as the CCR switch classifier reads them: an untagged cylinder
+  // that is not pure O2 is the diluent, ahead of any cylinder tagged for open
+  // circuit, and an untagged pure-O2 cylinder is the O2 supply, never it.
+  for (final tank in candidates) {
+    if (ccrCylinderRole(tank) == TankRole.diluent) return tank.gasMix;
+  }
+  for (final tank in candidates) {
+    final role = ccrCylinderRole(tank);
+    if (role == TankRole.oxygenSupply || role == TankRole.bailout) continue;
     return tank.gasMix;
   }
   return const GasMix();
-}
-
-/// Builds the CCR gas schedule for decompression analysis: the diluent's
-/// inert fractions with the loop ppO2 as each segment's setpoint, so the
-/// engine loads tissues at constant ppO2 (inspired inert = ambient - loop
-/// ppO2, split by the diluent's He:N2 ratio) and holds the setpoint through
-/// the TTS ascent.
-///
-/// [loopPpO2Curve] is the per-sample resolved loop ppO2
-/// ([resolveRebreatherPpO2]: measured cells / dc-supplied ppO2, falling back
-/// to recorded setpoint samples), aligned with [timestamps]. A new segment
-/// starts when the value moves more than [setpointTolerance] bar from the
-/// active segment's setpoint -- tracking real setpoint switches without
-/// emitting a segment per noisy cell sample. [fallbackSetpoint] (the
-/// dive-level setpoint) is used as a constant when no curve exists. Returns
-/// null when neither exists: with no loop ppO2 information the loop cannot
-/// be modeled and callers keep the legacy path.
-@visibleForTesting
-List<ProfileGasSegment>? buildCcrProfileGasSegments({
-  required List<int> timestamps,
-  required List<double>? loopPpO2Curve,
-  required GasMix diluentMix,
-  double? fallbackSetpoint,
-  double setpointTolerance = 0.05,
-}) {
-  final fN2 = diluentMix.isAir
-      ? airN2Fraction
-      : (100.0 - diluentMix.o2 - diluentMix.he) / 100.0;
-  final fHe = diluentMix.he / 100.0;
-
-  final curve =
-      loopPpO2Curve != null && loopPpO2Curve.length == timestamps.length
-      ? loopPpO2Curve
-      : null;
-  if (curve == null) {
-    if (fallbackSetpoint == null) return null;
-    return [
-      ProfileGasSegment(
-        startTimestamp: 0,
-        fN2: fN2,
-        fHe: fHe,
-        setpoint: fallbackSetpoint,
-      ),
-    ];
-  }
-
-  final segments = <ProfileGasSegment>[
-    ProfileGasSegment(
-      startTimestamp: 0,
-      fN2: fN2,
-      fHe: fHe,
-      setpoint: curve[0],
-    ),
-  ];
-  for (int i = 1; i < timestamps.length; i++) {
-    if ((curve[i] - segments.last.setpoint!).abs() > setpointTolerance) {
-      segments.add(
-        ProfileGasSegment(
-          startTimestamp: timestamps[i],
-          fN2: fN2,
-          fHe: fHe,
-          setpoint: curve[i],
-        ),
-      );
-    }
-  }
-  return segments;
 }
 
 /// The gas schedule a rebreather dive's tissues load from, or null when the
@@ -364,12 +309,18 @@ List<ProfileGasSegment>? buildCcrProfileGasSegments({
 /// taken out, so the inspired inert pressure is ambient less that ppO2, split
 /// by the supply's He:N2 ratio: the CCR model with the supply as diluent.
 ///
+/// [gasSwitches] are this computer's recorded switches and [tanks] the
+/// cylinders it breathed (default every tank); on CCR they switch the diluent
+/// or bail out (issue #577). SCR ignores them.
+///
 /// Null for open-circuit and gauge dives, which are not loop dives.
 @visibleForTesting
 List<ProfileGasSegment>? buildRebreatherProfileGasSegments(
   Dive dive, {
   required List<DiveProfilePoint> profile,
   required RebreatherPpO2? rebreatherPpO2,
+  List<GasSwitchWithTank> gasSwitches = const [],
+  List<DiveTank>? tanks,
 }) {
   final timestamps = [for (final p in profile) p.timestamp];
   switch (dive.diveMode) {
@@ -377,8 +328,15 @@ List<ProfileGasSegment>? buildRebreatherProfileGasSegments(
       return buildCcrProfileGasSegments(
         timestamps: timestamps,
         loopPpO2Curve: rebreatherPpO2?.curve,
-        diluentMix: resolveCcrDiluentMix(dive),
+        diluentMix: resolveCcrDiluentMix(dive, tanks: tanks),
         fallbackSetpoint: dive.setpointHigh ?? dive.setpointLow,
+        // A switch before the first sample is one the builder drops; the
+        // classifier must not run its loop/OC state through it either.
+        gasChanges: classifyCcrGasChanges([
+          for (final s in gasSwitches)
+            if (timestamps.isEmpty || s.gasSwitch.timestamp >= timestamps.first)
+              s,
+        ], tanks ?? dive.tanks),
       );
     case DiveMode.scr:
       final measured = profile.any(
@@ -414,23 +372,37 @@ List<ProfileGasSegment>? buildRebreatherProfileGasSegments(
 /// it via [O2ToxicityCalculator.calculateMod]. No gases are invented -- only
 /// cylinders recorded on the dive. [gasSet] filters per the diver setting; the
 /// back gas is always retained as the ascent floor.
+///
+/// [forCcrBailout] is the gas set a CCR dive ascends on after a bailout: the
+/// diluent is left out (it is the loop's gas), and the O2 supply is kept under
+/// either [gasSet], since a bailed-out diver can breathe it open circuit
+/// shallow and the analysis already loads tissues on it when they do.
 @visibleForTesting
 List<AvailableGas> buildAvailableGases(
   Dive dive, {
   required double maxPpO2,
   required AscentGasSet gasSet,
+  bool forCcrBailout = false,
+  List<DiveTank>? tanks,
 }) {
   bool keep(DiveTank t) {
+    // A CCR bailout reads cylinder roles the way its switches are read, so
+    // an untagged diluent is left out here exactly as a tagged one is.
+    final role = forCcrBailout ? ccrCylinderRole(t) : t.role;
+    if (forCcrBailout) {
+      if (role == TankRole.diluent) return false;
+      if (role == TankRole.oxygenSupply) return true;
+    }
     if (gasSet == AscentGasSet.allCarried) return true;
-    return t.role == TankRole.backGas ||
-        t.role == TankRole.deco ||
-        t.role == TankRole.stage ||
-        t.role == TankRole.bailout;
+    return role == TankRole.backGas ||
+        role == TankRole.deco ||
+        role == TankRole.stage ||
+        role == TankRole.bailout;
   }
 
   final gases = <AvailableGas>[];
   final seen = <String>{};
-  for (final tank in dive.tanks.where(keep)) {
+  for (final tank in (tanks ?? dive.tanks).where(keep)) {
     final fO2 = tank.gasMix.o2 / 100.0;
     final fHe = tank.gasMix.he / 100.0;
     final fN2 = (1.0 - fO2 - fHe).clamp(0.0, 1.0);
@@ -1345,18 +1317,15 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
             profile,
             measuredOnly: dive.diveMode == DiveMode.scr,
           );
-    final gasSegments = switch (dive.diveMode) {
-      DiveMode.oc => buildProfileGasSegments(
-        dive,
-        // Scope switches to this computer's own gas plan: on a multi-source
-        // dive, getGasSwitchesForDive returns every computer's switches on
-        // its own clock, and mixing another computer's timestamps into this
-        // source's schedule can produce a non-monotonic list that
-        // BuhlmannAlgorithm rejects outright (#garmin-cloud-merge-analysis-
-        // blank), silently blanking every decompression/gas overlay. A
-        // switch must go to a tank this computer breathed, and be its own
-        // or unattributed: a cylinder two computers share carries both
-        // computers' switches (#2560).
+    // Scope switches to this computer's own gas plan: on a multi-source
+    // dive, getGasSwitchesForDive returns every computer's switches on its
+    // own clock, and mixing another computer's timestamps into this source's
+    // schedule can produce a non-monotonic list that BuhlmannAlgorithm
+    // rejects outright (#garmin-cloud-merge-analysis-blank), silently
+    // blanking every decompression/gas overlay. A switch must go to a tank
+    // this computer breathed, and be its own or unattributed: a cylinder two
+    // computers share carries both computers' switches (#2560).
+    Future<List<GasSwitchWithTank>> scopedGasSwitches() async =>
         (await repository.getGasSwitchesForDive(diveId))
             .where(
               (gs) =>
@@ -1364,31 +1333,53 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
                   (tankIds.contains(gs.gasSwitch.tankId) &&
                       gs.gasSwitch.appliesTo(computerId)),
             )
-            .toList(),
+            .toList();
+    final gasSegments = switch (dive.diveMode) {
+      DiveMode.oc => buildProfileGasSegments(
+        dive,
+        await scopedGasSwitches(),
         tanks: tanks,
         // A secondary computer's own bucket on a multi-source dive can
         // start before the merged timeline's zero point (it was switched on
         // earlier); seed the schedule there instead of a hardcoded 0.
         startTimestamp: timestamps.isEmpty ? 0 : timestamps.first,
       ),
+      // A CCR diver's switches change the diluent or bail out (#577).
+      DiveMode.ccr => buildRebreatherProfileGasSegments(
+        dive,
+        profile: profile,
+        rebreatherPpO2: rebreatherPpO2,
+        gasSwitches: await scopedGasSwitches(),
+        tanks: tanks,
+      ),
       // Gauge dives return a profile-only analysis before this point; they
       // take the rebreather arm only for exhaustiveness (it returns null).
-      DiveMode.ccr ||
-      DiveMode.scr ||
-      DiveMode.gauge => buildRebreatherProfileGasSegments(
+      DiveMode.scr || DiveMode.gauge => buildRebreatherProfileGasSegments(
         dive,
         profile: profile,
         rebreatherPpO2: rebreatherPpO2,
       ),
     };
     final ascentMaxPpO2 = inputs.ppO2MaxDeco;
-    final ascentGases = dive.diveMode == DiveMode.oc
-        ? buildAvailableGases(
-            dive,
-            maxPpO2: ascentMaxPpO2,
-            gasSet: inputs.ascentGasSet,
-          )
-        : null;
+    // OC ascends on its carried gases; a CCR dive that bailed out ascends
+    // from its bailout samples on what it carried, the O2 supply included
+    // and the diluent left out.
+    final ascentGases = switch (dive.diveMode) {
+      DiveMode.oc => buildAvailableGases(
+        dive,
+        maxPpO2: ascentMaxPpO2,
+        gasSet: inputs.ascentGasSet,
+      ),
+      DiveMode.ccr when hasOpenCircuitBailout(gasSegments) =>
+        buildAvailableGases(
+          dive,
+          maxPpO2: ascentMaxPpO2,
+          gasSet: inputs.ascentGasSet,
+          forCcrBailout: true,
+          tanks: tanks,
+        ),
+      _ => null,
+    };
     // Run Buhlmann analysis on a background isolate to keep UI responsive
     _log.debug(
       'Analyzing profile for dive $diveId with ${depths.length} points, '
@@ -1444,6 +1435,24 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       inputsFingerprint: inputs.fingerprint,
     );
 
+    // After a bailout the chart's ppO2 is the gas breathed, not the cells'
+    // reading of the abandoned loop (#577).
+    final displayedPpO2 =
+        rebreatherPpO2 != null &&
+            dive.diveMode == DiveMode.ccr &&
+            hasOpenCircuitBailout(gasSegments)
+        ? (
+            curve: breathedPpO2Curve(
+              loopCurve: rebreatherPpO2.curve,
+              analysedCurve: analysis.ppO2Curve,
+              timestamps: timestamps,
+              segments: gasSegments!,
+            ),
+            fromSensorAverage: rebreatherPpO2.fromSensorAverage,
+            sensorCurves: rebreatherPpO2.sensorCurves,
+          )
+        : rebreatherPpO2;
+
     // Overlay computer-reported deco data where available
     final (overlaid, sourceInfo) = overlayComputerDecoData(
       analysis,
@@ -1455,7 +1464,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       cnsSource: cnsSource,
       decoStopSource: decoStopSource,
       gtrSource: gtrSource,
-      rebreatherPpO2: rebreatherPpO2,
+      rebreatherPpO2: displayedPpO2,
       measuredPpO2Only: dive.diveMode == DiveMode.scr,
     );
 
@@ -1727,10 +1736,13 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
   }
 }
 
-/// Computes cumulative OTU from earlier dives on the same calendar day.
+/// Computes cumulative OTU accrued earlier on the same calendar day, before
+/// this dive started.
 ///
-/// Non-recursive: queries all dives on the same day, gets each dive's
-/// profile analysis, and sums their per-dive OTU values.
+/// Non-recursive: queries the dives around that day, gets each earlier
+/// dive's profile analysis, and sums the OTU it accrued between midnight and
+/// this dive's start. A dive that began the evening before and crossed
+/// midnight contributes only its post-midnight part (see [sumOtuInWindow]).
 ///
 /// Returns 0.0 if no earlier dives exist on the same day.
 Future<double> _computeResidualOtu(Ref ref, String diveId) async {
@@ -1749,29 +1761,23 @@ Future<double> _computeResidualOtu(Ref ref, String diveId) async {
     );
     final endOfDay = startOfDay.add(const Duration(days: 1));
 
-    // Get all dives on the same day
-    final sameDayDives = await repository.getDiveTimesInRange(
-      startOfDay,
+    final nearbyDives = await repository.getDiveTimesInRange(
+      startOfDay.subtract(otuWindowLookback),
       endOfDay,
     );
 
-    // Sum OTU from dives that occurred BEFORE this one
-    double totalOtu = 0.0;
-    for (final dive in sameDayDives) {
-      if (dive.id == diveId) continue;
-      final diveTime = dive.entryTime ?? dive.dateTime;
-      if (diveTime.isBefore(diveDate)) {
-        // Read (not watch) to avoid cascading Riverpod invalidations.
-        final analysis = await ref.read(
-          profileAnalysisProvider(dive.id).future,
-        );
-        if (analysis != null) {
-          totalOtu += analysis.o2Exposure.otu;
-        }
-      }
-    }
-
-    return totalOtu;
+    // Only dives that began BEFORE this one count toward its residual.
+    return await sumOtuInWindow(
+      dives: nearbyDives.where(
+        (dive) =>
+            dive.id != diveId &&
+            (dive.entryTime ?? dive.dateTime).isBefore(diveDate),
+      ),
+      from: startOfDay,
+      to: diveDate,
+      // Read (not watch) to avoid cascading Riverpod invalidations.
+      analysisOf: (id) => ref.read(profileAnalysisProvider(id).future),
+    );
   } catch (e, stackTrace) {
     _log.error(
       'Failed to calculate residual OTU for: $diveId',
@@ -1856,32 +1862,35 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
     final sevenDaysAgo = endOfDay.subtract(const Duration(days: 7));
 
     final weekDives = await repository.getDiveTimesInRange(
-      sevenDaysAgo,
+      sevenDaysAgo.subtract(otuWindowLookback),
       endOfDay,
     );
 
-    double totalOtu = 0.0;
-    for (final dive in weekDives) {
-      // Count the current dive and any dive that occurred at or before it, but
-      // skip dives logged LATER than the current dive. The query window spans
-      // the current dive's whole calendar day, so without this guard a later
-      // same-day dive would inflate the rolling total -- and the card derives
-      // "Prior" as (weekly - thisDive), wrongly attributing the future dive's
-      // OTU to this dive's prior exposure (issue #407). Mirrors the same-day
-      // ordering discipline in [_computeResidualOtu].
-      final diveTime = dive.entryTime ?? dive.dateTime;
-      if (dive.id != diveId && diveTime.isAfter(diveDate)) continue;
+    // Count the current dive and any dive that occurred at or before it, but
+    // skip dives logged LATER than the current dive. The query window spans
+    // the current dive's whole calendar day, so without this guard a later
+    // same-day dive would inflate the rolling total -- and the card derives
+    // "Prior" as (weekly - thisDive), wrongly attributing the future dive's
+    // OTU to this dive's prior exposure (issue #407). Mirrors the same-day
+    // ordering discipline in [_computeResidualOtu].
+    final counted = weekDives.where(
+      (dive) =>
+          dive.id == diveId ||
+          !(dive.entryTime ?? dive.dateTime).isAfter(diveDate),
+    );
 
+    // The window closes at the end of the dive's day, or at the dive's own
+    // end if it crossed midnight, so the dive always counts in full here.
+    final currentEnd = currentDive.effectiveExitTime;
+    return await sumOtuInWindow(
+      dives: counted,
+      from: sevenDaysAgo,
+      to: currentEnd.isAfter(endOfDay) ? currentEnd : endOfDay,
       // Read (not watch) to avoid cascading Riverpod invalidations.
       // Each profileAnalysisProvider independently watches settings,
       // so ref.read is sufficient for aggregation.
-      final analysis = await ref.read(profileAnalysisProvider(dive.id).future);
-      if (analysis != null) {
-        totalOtu += analysis.o2Exposure.otu;
-      }
-    }
-
-    return totalOtu;
+      analysisOf: (id) => ref.read(profileAnalysisProvider(id).future),
+    );
   } catch (e, stackTrace) {
     _log.error(
       'Failed to calculate weekly OTU for: $diveId',

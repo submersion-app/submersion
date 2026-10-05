@@ -9334,6 +9334,9 @@ class SyncDataSerializer {
       'defaultShowGtr': false,
       'defaultGtrSource': 1,
       'gtrReservePressure': 50.0,
+      // v264: seed it so payloads predating the column hydrate instead of
+      // throwing in DiverSetting.fromJson (issue #2939).
+      'defaultShowLateGasSwitches': true,
       // v166: seed it so payloads predating the column hydrate instead of
       // throwing in DiverSetting.fromJson (issue #1187).
       'placeNameLanguage': 'en',

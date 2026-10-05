@@ -8,7 +8,7 @@ abstract final class DivelogsReferenceMappers {
   /// Keyword table, first match wins. Drysuit keywords come before the
   /// generic suit keywords so "Trockentauchanzug"/"Drysuit" do not fall
   /// into wetsuit.
-  static const List<(List<String>, EquipmentType)> _geartypeKeywords = [
+  static const List<(List<String>, EquipmentType)> _leadingKeywords = [
     (['regulator', 'lungenautomat', 'atemregler'], EquipmentType.regulator),
     (['bcd', 'jacket', 'wing', 'tarierweste'], EquipmentType.bcd),
     (['drysuit', 'dry suit', 'trocken'], EquipmentType.drysuit),
@@ -18,6 +18,23 @@ abstract final class DivelogsReferenceMappers {
     (['computer'], EquipmentType.computer),
     (['tank', 'cylinder', 'flasche'], EquipmentType.tank),
     (['weight', 'blei'], EquipmentType.weights),
+  ];
+
+  /// After [_leadingKeywords]: the English camera part words come from
+  /// [MacDiveValueMapper.cameraPartType] (#1997), and these rows carry the
+  /// German ones, ahead of the light and camera words their names contain
+  /// ("Videolampe", "Blitzarm"). A float arm comes before the arms and an
+  /// arm before the strobe it carries. "Nasslinse" (a wet lens) cannot be
+  /// listed: the wetsuit row's "nass" claims it first.
+  static const List<(List<String>, EquipmentType)> _geartypeKeywords = [
+    (['auftriebsarm'], EquipmentType.floatArm),
+    (['blitzarm', 'klemme'], EquipmentType.armClamp),
+    (['kameraschiene', 'pistolengriff'], EquipmentType.trayHandle),
+    (['videolicht', 'videolampe'], EquipmentType.videoLight),
+    (['domeport', 'makroport'], EquipmentType.port),
+    (['objektiv', 'dioptrie'], EquipmentType.lens),
+    (['housing', 'gehäuse'], EquipmentType.housing),
+    (['strobe', 'blitz'], EquipmentType.strobe),
     (['light', 'lamp', 'lampe'], EquipmentType.light),
     (['camera', 'kamera'], EquipmentType.camera),
     (['boot', 'füßling', 'fussling'], EquipmentType.boots),
@@ -42,6 +59,11 @@ abstract final class DivelogsReferenceMappers {
     if (MacDiveValueMapper.breathingBag.hasMatch(lower)) {
       return EquipmentType.other;
     }
+    for (final (keywords, type) in _leadingKeywords) {
+      if (keywords.any(lower.contains)) return type;
+    }
+    final cameraPart = MacDiveValueMapper.cameraPartType(lower);
+    if (cameraPart != null) return cameraPart;
     for (final (keywords, type) in _geartypeKeywords) {
       if (keywords.any(lower.contains)) return type;
     }

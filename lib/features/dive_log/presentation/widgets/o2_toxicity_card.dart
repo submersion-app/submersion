@@ -4,6 +4,7 @@ import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/otu_limit_progress_row.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -24,6 +25,23 @@ class O2ToxicityCard extends StatelessWidget {
   /// Weekly OTU rolling total (7-day window, null if not yet loaded)
   final double? weeklyOtu;
 
+  /// CNS% right now, decayed since [exposure]'s dive ended. Null on the
+  /// dive's own view.
+  ///
+  /// Set when the card is a live readout projected forward from the diver's
+  /// most recent dive (see `CnsOtuPage`) rather than a view of that dive.
+  /// The CNS reading, its bar and the warning badge then follow this value,
+  /// while [exposure] stays the dive's own record: its start and delta read
+  /// as "before last dive" and "last dive", and its OTU row as "Last dive".
+  final double? liveCns;
+
+  /// Daily OTU total for the "Daily" row, in place of `exposure.otuDaily`
+  /// (the total for the dive's own day). Null when not yet loaded.
+  ///
+  /// The live readout passes today's total: once "now" is a later day than
+  /// the dive, the dive's own daily figure no longer describes today.
+  final double? dailyOtu;
+
   /// Unit preferences, so the max-ppO2 depth renders in m or ft.
   ///
   /// Passed rather than read from a provider: this widget is a plain
@@ -39,7 +57,26 @@ class O2ToxicityCard extends StatelessWidget {
     this.showHeader = true,
     this.useCard = true,
     this.weeklyOtu,
+    this.liveCns,
+    this.dailyOtu,
   });
+
+  bool get _isLive => liveCns != null;
+
+  /// The CNS% the card reads out: live when projected, else the dive's end.
+  double get _shownCns => liveCns ?? exposure.cnsEnd;
+
+  bool get _cnsWarning => _shownCns >= O2Exposure.cnsWarningPercent;
+
+  bool get _cnsCritical => _shownCns >= O2Exposure.cnsCriticalPercent;
+
+  // ppO2 warning/critical is a peak the dive already reached and ended. On
+  // the live readout only the still-decaying CNS% can justify a "current"
+  // warning; a ppO2 badge (with showDetails:false hiding the peak) would flag
+  // a past event with no visible reason why.
+  bool get _ppO2Warning => !_isLive && exposure.ppO2Warning;
+
+  bool get _ppO2Critical => !_isLive && exposure.ppO2Critical;
 
   @override
   Widget build(BuildContext context) {
@@ -64,9 +101,9 @@ class O2ToxicityCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              if (exposure.cnsWarning || exposure.ppO2Warning)
+              if (_cnsWarning || _ppO2Warning)
                 Semantics(
-                  label: exposure.cnsCritical || exposure.ppO2Critical
+                  label: _cnsCritical || _ppO2Critical
                       ? context.l10n.diveLog_o2tox_semantics_criticalWarning
                       : context.l10n.diveLog_o2tox_semantics_warning,
                   child: Container(
@@ -75,13 +112,13 @@ class O2ToxicityCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: exposure.cnsCritical || exposure.ppO2Critical
+                      color: _cnsCritical || _ppO2Critical
                           ? colorScheme.error
                           : Colors.orange,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      exposure.cnsCritical || exposure.ppO2Critical
+                      _cnsCritical || _ppO2Critical
                           ? context.l10n.diveLog_detail_badge_critical
                           : context.l10n.diveLog_detail_badge_warning,
                       style: textTheme.labelSmall?.copyWith(
@@ -126,16 +163,18 @@ class O2ToxicityCard extends StatelessWidget {
 
     // Determine color based on CNS level
     Color getProgressColor() {
-      if (exposure.cnsEnd >= 100) return colorScheme.error;
-      if (exposure.cnsEnd >= 80) return Colors.orange;
-      if (exposure.cnsEnd >= 50) return Colors.amber;
+      if (_shownCns >= 100) return colorScheme.error;
+      if (_shownCns >= 80) return Colors.orange;
+      if (_shownCns >= 50) return Colors.amber;
       return Colors.green;
     }
+
+    final cnsText = '${_shownCns.toStringAsFixed(0)}%';
 
     return Semantics(
       label: statLabel(
         name: context.l10n.diveLog_o2tox_cnsOxygenClock,
-        value: exposure.cnsFormatted,
+        value: cnsText,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,7 +187,7 @@ class O2ToxicityCard extends StatelessWidget {
                 style: textTheme.bodyMedium,
               ),
               Text(
-                exposure.cnsFormatted,
+                cnsText,
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: getProgressColor(),
@@ -159,12 +198,12 @@ class O2ToxicityCard extends StatelessWidget {
           const SizedBox(height: 8),
           Semantics(
             label: context.l10n.o2Toxicity_cnsProgressSemantics(
-              exposure.cnsEnd.toStringAsFixed(0),
+              _shownCns.toStringAsFixed(0),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
-                value: (exposure.cnsEnd / 100).clamp(0.0, 1.0),
+                value: (_shownCns / 100).clamp(0.0, 1.0),
                 minHeight: 8,
                 backgroundColor: colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation<Color>(getProgressColor()),
@@ -176,17 +215,25 @@ class O2ToxicityCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                context.l10n.diveLog_o2tox_startPercent(
-                  exposure.cnsStart.toStringAsFixed(0),
-                ),
+                _isLive
+                    ? context.l10n.o2Toxicity_lastDiveStart(
+                        exposure.cnsStart.toStringAsFixed(0),
+                      )
+                    : context.l10n.diveLog_o2tox_startPercent(
+                        exposure.cnsStart.toStringAsFixed(0),
+                      ),
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
               Text(
-                context.l10n.diveLog_o2tox_deltaDive(
-                  exposure.cnsDelta.toStringAsFixed(1),
-                ),
+                _isLive
+                    ? context.l10n.o2Toxicity_lastDiveDelta(
+                        exposure.cnsDelta.toStringAsFixed(1),
+                      )
+                    : context.l10n.diveLog_o2tox_deltaDive(
+                        exposure.cnsDelta.toStringAsFixed(1),
+                      ),
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -202,16 +249,8 @@ class O2ToxicityCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    Color otuLimitColor(double pct) {
-      if (pct >= 100) return colorScheme.error;
-      if (pct >= 80) return Colors.orange;
-      if (pct >= 50) return Colors.amber;
-      return Colors.green;
-    }
-
-    final dailyPct = exposure.otuDailyPercentOfLimit;
+    final dailyTotal = dailyOtu ?? exposure.otuDaily;
     final weeklyTotal = weeklyOtu ?? exposure.otu;
-    final weeklyPct = (weeklyTotal / O2Exposure.weeklyOtuLimit) * 100;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,7 +264,9 @@ class O2ToxicityCard extends StatelessWidget {
         // This Dive
         _buildOtuRow(
           context,
-          label: context.l10n.o2Toxicity_thisDive,
+          label: _isLive
+              ? context.l10n.o2Toxicity_lastDive
+              : context.l10n.o2Toxicity_thisDive,
           value: exposure.otu,
           textTheme: textTheme,
           colorScheme: colorScheme,
@@ -233,28 +274,18 @@ class O2ToxicityCard extends StatelessWidget {
         const SizedBox(height: 6),
 
         // Daily cumulative with progress bar
-        _buildOtuProgressRow(
-          context,
+        OtuLimitProgressRow(
           label: context.l10n.o2Toxicity_daily,
-          value: exposure.otuDaily,
+          value: dailyTotal,
           limit: O2Exposure.dailyOtuLimit,
-          percent: dailyPct,
-          color: otuLimitColor(dailyPct),
-          textTheme: textTheme,
-          colorScheme: colorScheme,
         ),
         const SizedBox(height: 6),
 
         // Weekly rolling with progress bar
-        _buildOtuProgressRow(
-          context,
+        OtuLimitProgressRow(
           label: context.l10n.o2Toxicity_weekly,
           value: weeklyTotal,
           limit: O2Exposure.weeklyOtuLimit,
-          percent: weeklyPct,
-          color: otuLimitColor(weeklyPct),
-          textTheme: textTheme,
-          colorScheme: colorScheme,
         ),
       ],
     );
@@ -284,60 +315,6 @@ class O2ToxicityCard extends StatelessWidget {
           Text(
             '${value.toStringAsFixed(0)} OTU',
             style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOtuProgressRow(
-    BuildContext context, {
-    required String label,
-    required double value,
-    required double limit,
-    required double percent,
-    required Color color,
-    required TextTheme textTheme,
-    required ColorScheme colorScheme,
-  }) {
-    return Semantics(
-      label: context.l10n.o2Toxicity_otuSemantics(
-        label,
-        value.toStringAsFixed(0),
-        limit.toStringAsFixed(0),
-        percent.toStringAsFixed(0),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                label,
-                style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-              Text(
-                '${value.toStringAsFixed(0)} / ${limit.toStringAsFixed(0)} OTU '
-                '(${percent.toStringAsFixed(0)}%)',
-                style: textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: LinearProgressIndicator(
-              value: (percent / 100).clamp(0.0, 1.0),
-              minHeight: 6,
-              backgroundColor: colorScheme.surfaceContainerHighest,
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-            ),
           ),
         ],
       ),

@@ -25,6 +25,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_cus
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/presentation/widgets/children_card.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 class EquipmentEditPage extends ConsumerStatefulWidget {
@@ -263,13 +264,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   static Set<EquipmentType> _parentTypesFor(EquipmentType type) =>
       switch (type) {
         EquipmentType.o2Cell => const {EquipmentType.rebreather},
-        EquipmentType.battery => const {
-          EquipmentType.computer,
-          EquipmentType.transmitter,
-          EquipmentType.light,
-          EquipmentType.dpv,
-          EquipmentType.rebreather,
-        },
+        // The detail page's host set, so a battery is only ever installed
+        // where its host's Children card will show it.
+        EquipmentType.battery => childHostTypes,
         _ => const {},
       };
 

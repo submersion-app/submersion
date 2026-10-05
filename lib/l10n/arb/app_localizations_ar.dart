@@ -179,6 +179,103 @@ class AppLocalizationsAr extends AppLocalizations {
   String get connections_summary_strongestPair => 'أقوى ثنائي';
 
   @override
+  String get connections_insight_newest => 'أحدث ارتباط';
+
+  @override
+  String get connections_insight_drifting => 'يتباعدان';
+
+  @override
+  String get connections_insight_groups => 'المجموعات';
+
+  @override
+  String connections_insight_groupsValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مجموعة',
+      many: '$count مجموعة',
+      few: '$count مجموعات',
+      two: 'مجموعتان',
+      one: 'مجموعة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_insight_pair(String a, String b) {
+    return '$a و$b';
+  }
+
+  @override
+  String connections_insight_since(String label, String date) {
+    return '$label، منذ $date';
+  }
+
+  @override
+  String connections_insight_last(String label, String date) {
+    return '$label، آخر مرة $date';
+  }
+
+  @override
+  String connections_insight_closestValue(String label, String together) {
+    return '$label، $together';
+  }
+
+  @override
+  String get connections_highlight_title => 'التلوين حسب';
+
+  @override
+  String get connections_highlight_byKind => 'النوع';
+
+  @override
+  String get connections_highlight_groups => 'المجموعات';
+
+  @override
+  String get connections_highlight_recency => 'الحداثة';
+
+  @override
+  String get connections_legend_group => 'اللون: المجموعة';
+
+  @override
+  String get connections_legend_recent => 'حديث';
+
+  @override
+  String get connections_legend_old => 'قديم';
+
+  @override
+  String get connections_yearPlay_play => 'تشغيل الأعوام';
+
+  @override
+  String get connections_yearPlay_pause => 'إيقاف مؤقت';
+
+  @override
+  String get connections_share_tooltip => 'مشاركة الصورة';
+
+  @override
+  String get connections_share_sheetTitle => 'مشاركة صورة الخريطة';
+
+  @override
+  String get connections_share_saveTitle => 'حفظ صورة الخريطة';
+
+  @override
+  String get connections_share_failed => 'تعذّر إنشاء الصورة';
+
+  @override
+  String connections_share_aroundName(String label) {
+    return 'حول $label';
+  }
+
+  @override
+  String connections_share_allDives(int first, int last) {
+    return 'كل الغوصات، من $first إلى $last';
+  }
+
+  @override
+  String connections_share_details(String range, String counts) {
+    return '$range. $counts';
+  }
+
+  @override
   String get connections_summary_title => 'الملخص';
 
   @override
@@ -1425,6 +1522,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get o2Toxicity_thisDive => 'هذه الغطسة';
+
+  @override
+  String get o2Toxicity_lastDive => 'الغطسة الأخيرة';
+
+  @override
+  String o2Toxicity_lastDiveStart(String percent) {
+    return 'قبل الغطسة الأخيرة: $percent%';
+  }
+
+  @override
+  String o2Toxicity_lastDiveDelta(String percent) {
+    return 'الغطسة الأخيرة: +$percent%';
+  }
 
   @override
   String get o2Toxicity_weekly => 'أسبوعي';
@@ -6022,6 +6132,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'الغوصات المحددة تخص غواصين مختلفين ولا يمكن دمجها.';
 
   @override
+  String get diveLog_combine_modeJoin => 'ربط في غوصة واحدة';
+
+  @override
+  String get diveLog_combine_modeJoinShort => 'ربط';
+
+  @override
+  String get diveLog_combine_modeMerge => 'دمج ككمبيوتر إضافي';
+
+  @override
+  String get diveLog_combine_modeMergeShort => 'دمج';
+
+  @override
   String get diveLog_combine_profilePreview => 'الملف المدمج';
 
   @override
@@ -6065,6 +6187,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => 'أساسي';
 
   @override
+  String get diveLog_consolidate_alignBestFit => 'أفضل تطابق';
+
+  @override
+  String get diveLog_consolidate_alignStarts => 'محاذاة البدايات';
+
+  @override
+  String get diveLog_consolidate_alignStartsShort => 'البدايات';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel => 'محاذاة السجلات حسب';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      'هذه السجلات لا تتداخل زمنيًا، لذا ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة. تحتفظ الغوصة بوقت الكمبيوتر الأساسي.';
+
+  @override
+  String get diveLog_consolidate_clockNoteShort =>
+      'ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة.';
+
+  @override
   String get diveLog_consolidate_confirm =>
       'الاحتفاظ بها كغوصة واحدة بجهازي كمبيوتر';
 
@@ -6079,6 +6221,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'هاتان الغوصتان من نفس كمبيوتر الغوص ولا يمكن دمجهما بهذه الطريقة.';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      'أحد السجلات لا يحتوي على ملف عمق للمطابقة، لذا تتم محاذاة بدايته مع بداية الأساسي.';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint =>
+      'تبدو هذه الملفات كأنها الغوصة نفسها سجّلها جهازا كمبيوتر.';
 
   @override
   String get diveLog_consolidate_selectPrimary => 'كمبيوتر الغوص الأساسي';
@@ -6381,6 +6531,41 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_detail_section_customFields => 'Custom Fields';
+
+  @override
+  String get diveLog_gasSwitches_title => 'تبديلات الغاز';
+
+  @override
+  String get diveLog_gasSwitches_onTime => 'جميع تبديلات الغاز في وقتها';
+
+  @override
+  String diveLog_gasSwitches_lateRow(
+    String actual,
+    String ideal,
+    String delay,
+  ) {
+    return 'تم التبديل عند $actual بدلاً من $ideal، بتأخير $delay';
+  }
+
+  @override
+  String diveLog_gasSwitches_missedRow(String ideal) {
+    return 'لم يتم التبديل (المثالي عند $ideal)';
+  }
+
+  @override
+  String diveLog_gasSwitches_extraDeco(String extra) {
+    return '+$extra تخفيف ضغط';
+  }
+
+  @override
+  String diveLog_gasSwitches_total(String extra) {
+    return 'إجمالي تخفيف الضغط الإضافي: $extra';
+  }
+
+  @override
+  String diveLog_gasSwitches_lateRowTime(String delay, String actual) {
+    return 'تم التبديل بتأخير $delay عند $actual';
+  }
 
   @override
   String get diveLog_detail_section_decoStatus => 'حالة الديكو';
@@ -7330,6 +7515,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_clearWeekdays => 'مسح أيام الأسبوع';
 
   @override
+  String get diveLog_filter_clearSite => 'مسح مرشح الموقع';
+
+  @override
   String get diveLog_filter_dateSeparator => 'إلى';
 
   @override
@@ -7379,9 +7567,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_filter_searchComputersHint => 'اكتب للبحث عن حواسيب الغوص';
-
-  @override
-  String get diveLog_filter_searchSitesHint => 'اكتب للبحث عن المواقع';
 
   @override
   String get diveLog_filter_searchTypesHint => 'اكتب للبحث عن الأنواع';
@@ -7459,6 +7644,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_gasDensity => 'كثافة الغاز';
+
+  @override
+  String get diveLog_legend_label_lateGasSwitches => 'تبديلات الغاز المتأخرة';
 
   @override
   String get diveLog_legend_label_gasSwitches => 'تبديلات الغاز';
@@ -9363,6 +9551,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tooltip_tts => 'TTS';
 
   @override
+  String get diveLog_tooltip_lateSwitch => 'تبديل متأخر';
+
+  @override
+  String get diveLog_tooltip_missedSwitch => 'تبديل فائت';
+
+  @override
+  String get diveLog_tooltip_switchDelay => 'التأخير';
+
+  @override
+  String get diveLog_tooltip_extraDeco => 'تخفيف ضغط إضافي';
+
+  @override
   String get diveLog_tooltip_gtr => 'GTR';
 
   @override
@@ -10798,6 +10998,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_list_sort_title => 'ترتيب المواقع';
 
   @override
+  String get diveSites_group_noCountry => 'بلا دولة';
+
+  @override
+  String diveSites_group_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count موقع',
+      many: '$count موقعًا',
+      few: '$count مواقع',
+      two: 'موقعان',
+      one: 'موقع واحد',
+      zero: 'لا مواقع',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveSites_picker_nearby => 'قريب';
+
+  @override
+  String get diveSites_list_groupBy => 'التجميع حسب';
+
+  @override
+  String get diveSites_list_groupBy_location => 'الدولة والمنطقة';
+
+  @override
+  String get diveSites_list_groupBy_none => 'بلا';
+
+  @override
   String diveSites_list_tile_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11910,6 +12140,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentType_strobe => 'فلاش';
 
   @override
+  String get enum_equipmentType_lens => 'عدسة';
+
+  @override
+  String get enum_equipmentType_port => 'منفذ العدسة';
+
+  @override
+  String get enum_equipmentType_trayHandle => 'حامل / مقبض';
+
+  @override
+  String get enum_equipmentType_armClamp => 'ذراع / مشبك';
+
+  @override
+  String get enum_equipmentType_videoLight => 'مصباح فيديو';
+
+  @override
+  String get enum_equipmentType_floatArm => 'ذراع طفو / عوامة';
+
+  @override
   String get enum_equipmentType_undersuit => 'بدلة داخلية';
 
   @override
@@ -11977,6 +12225,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_eventSeverity_alert => 'تنبيه';
+
+  @override
+  String get enum_eventSeverity_info => 'معلومة';
 
   @override
   String get enum_eventSeverity_warning => 'تحذير';
@@ -18557,6 +18808,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'عرض علامات لتبديل الغازات';
 
   @override
+  String get settings_appearance_lateGasSwitches => 'تبديلات الغاز المتأخرة';
+
+  @override
+  String get settings_appearance_lateGasSwitches_subtitle =>
+      'تظليل تبديلات غاز تخفيف الضغط المتأخرة والفائتة على المخطط';
+
+  @override
   String get settings_appearance_gasTimeline => 'الجدول الزمني للغاز';
 
   @override
@@ -18681,6 +18939,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String safetyReview_highSurfaceGf_title(String gf, String gfHigh) {
     return 'الصعود إلى السطح بعامل تدرج $gf، أعلى من $gfHigh المُعد';
   }
+
+  @override
+  String safetyReview_lateGasSwitch_title(String extra) {
+    return 'أضاف تبديل غاز متأخر أو فائت $extra من تخفيف الضغط';
+  }
+
+  @override
+  String get safetyReview_lateGasSwitch_noCost_title =>
+      'تأخر تبديل الغاز لكنه لم يضف أي تخفيف ضغط';
 
   @override
   String safetyReview_timeRange(String start, String end) {
@@ -18815,6 +19082,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get safetySettings_rule_sawtoothProfile => 'ملفات بنمط سن المنشار';
+
+  @override
+  String get safetySettings_rule_lateGasSwitch => 'تبديل غاز متأخر';
 
   @override
   String get safetySettings_rule_highSurfaceGf => 'عامل تدرج مرتفع عند الصعود';
@@ -19979,7 +20249,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_cancel => 'إلغاء';
 
   @override
-  String get settings_conflict_chooseResolution => 'اختر الحل';
+  String get settings_conflict_changed => 'تغيّر';
+
+  @override
+  String get settings_conflict_chooseVersion =>
+      'اختر النسخة التي تريد الاحتفاظ بها.';
 
   @override
   String get settings_conflict_close => 'إغلاق';
@@ -19988,8 +20262,44 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_close_tooltip => 'إغلاق نافذة التعارضات';
 
   @override
+  String get settings_conflict_consequence_deleteHere =>
+      'يحذف السجل على هذا الجهاز أيضًا.';
+
+  @override
+  String settings_conflict_consequence_keep(
+    String kept,
+    String discarded,
+    String fields,
+  ) {
+    return 'يحتفظ بنسخة $kept. تُتجاهل قيم $discarded لهذه الحقول: $fields.';
+  }
+
+  @override
+  String settings_conflict_consequence_keepBoth(String local, String remote) {
+    return 'يحتفظ بنسخة $local ويضيف نسخة $remote كنسخة منفصلة.';
+  }
+
+  @override
+  String settings_conflict_consequence_keepRecord(String device) {
+    return 'يحتفظ بالسجل بقيم $device.';
+  }
+
+  @override
+  String get settings_conflict_consequence_nothingLost =>
+      'النسختان متطابقتان، فلا يضيع شيء.';
+
+  @override
+  String get settings_conflict_consequence_staysDeleted =>
+      'يبقى السجل محذوفًا على هذا الجهاز.';
+
+  @override
   String settings_conflict_counterLabel(Object current, Object total) {
     return 'التعارض $current من $total';
+  }
+
+  @override
+  String settings_conflict_deletedValues(String device) {
+    return 'السجل كما هو على $device:';
   }
 
   @override
@@ -19998,20 +20308,1904 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_conflict_fieldHeader => 'الحقل';
+
+  @override
+  String get settings_conflict_field_accentListIcons => 'أيقونات قوائم ملونة';
+
+  @override
+  String get settings_conflict_field_accentNavIcons => 'أيقونات تنقل ملونة';
+
+  @override
+  String get settings_conflict_field_accentSectionHeaders =>
+      'عناوين أقسام ملونة';
+
+  @override
+  String get settings_conflict_field_accessNotes => 'ملاحظات الوصول';
+
+  @override
+  String get settings_conflict_field_accountIdentifier => 'الحساب';
+
+  @override
+  String get settings_conflict_field_additionalCredentials => 'مؤهلات إضافية';
+
+  @override
+  String get settings_conflict_field_airBreakBreakSeconds =>
+      'مدة استراحة الهواء';
+
+  @override
+  String get settings_conflict_field_airBreakO2Seconds =>
+      'وقت الأكسجين بين استراحات الهواء';
+
+  @override
+  String get settings_conflict_field_allergies => 'الحساسية';
+
+  @override
+  String get settings_conflict_field_altitudeUnit => 'وحدة الارتفاع';
+
+  @override
+  String get settings_conflict_field_amountKg => 'الوزن';
+
+  @override
+  String get settings_conflict_field_analyzedHe => 'الهيليوم المقاس';
+
+  @override
+  String get settings_conflict_field_analyzedO2 => 'الأكسجين المقاس';
+
+  @override
+  String get settings_conflict_field_analyzer => 'جهاز التحليل';
+
+  @override
+  String get settings_conflict_field_anchorDate => 'العد بدءًا من';
+
+  @override
+  String get settings_conflict_field_anchorLatitude => 'خط عرض بداية المسار';
+
+  @override
+  String get settings_conflict_field_anchorLongitude => 'خط طول بداية المسار';
+
+  @override
+  String get settings_conflict_field_anchorSetAt => 'تاريخ البدء محدد';
+
+  @override
+  String get settings_conflict_field_applicableTypes => 'مقترح لـ';
+
+  @override
+  String get settings_conflict_field_appliesToDives => 'متاح للغوصات';
+
+  @override
+  String get settings_conflict_field_appliesToEquipment => 'متاح للمعدات';
+
+  @override
+  String get settings_conflict_field_appliesToSites => 'متاح لمواقع الغوص';
+
+  @override
+  String get settings_conflict_field_applyDefaultTankToImports =>
+      'الأسطوانة الافتراضية للغوصات المستوردة';
+
+  @override
+  String get settings_conflict_field_ascentGasSet => 'غازات الصعود';
+
+  @override
+  String get settings_conflict_field_ascentRate => 'سرعة الصعود';
+
+  @override
+  String get settings_conflict_field_ascentRateCritical => 'سرعة الصعود الحرجة';
+
+  @override
+  String get settings_conflict_field_ascentRateWarning => 'تحذير سرعة الصعود';
+
+  @override
+  String get settings_conflict_field_assumedVo2 => 'استهلاك الأكسجين المفترض';
+
+  @override
+  String get settings_conflict_field_attrKey => 'الخاصية';
+
+  @override
+  String get settings_conflict_field_autoApplyOnComputerImport =>
+      'يُطبَّق عند الاستيراد من حاسوب الغوص';
+
+  @override
+  String get settings_conflict_field_autoAttach => 'مجدول تلقائيًا';
+
+  @override
+  String get settings_conflict_field_autoTagImports => 'وسم الغوصات المستوردة';
+
+  @override
+  String get settings_conflict_field_avgSpeed => 'متوسط السرعة';
+
+  @override
+  String get settings_conflict_field_batteryReserveFraction =>
+      'احتياطي البطارية';
+
+  @override
+  String get settings_conflict_field_bboxHeight => 'ارتفاع الإطار';
+
+  @override
+  String get settings_conflict_field_bboxWidth => 'عرض الإطار';
+
+  @override
+  String get settings_conflict_field_bboxX => 'الحافة اليسرى للإطار';
+
+  @override
+  String get settings_conflict_field_bboxY => 'الحافة العليا للإطار';
+
+  @override
+  String get settings_conflict_field_bearingDeg => 'الاتجاه بالدرجات';
+
+  @override
+  String get settings_conflict_field_bestMixEndMeters =>
+      'العمق المخدر لأفضل خليط';
+
+  @override
+  String get settings_conflict_field_bloodType => 'فصيلة الدم';
+
+  @override
+  String get settings_conflict_field_bluetoothAddress => 'عنوان البلوتوث';
+
+  @override
+  String get settings_conflict_field_boatCaptain => 'قبطان القارب';
+
+  @override
+  String get settings_conflict_field_boatName => 'اسم القارب';
+
+  @override
+  String get settings_conflict_field_bookmarkRef => 'الوصول إلى الملف';
+
+  @override
+  String get settings_conflict_field_bottleLabel => 'رقم الأسطوانة';
+
+  @override
+  String get settings_conflict_field_buddyListViewMode => 'عرض قائمة الرفاق';
+
+  @override
+  String get settings_conflict_field_builtinKey => 'قالب مدمج';
+
+  @override
+  String get settings_conflict_field_buoyancyKg => 'الطفو';
+
+  @override
+  String get settings_conflict_field_byteCount => 'حجم الملف بالبايت';
+
+  @override
+  String get settings_conflict_field_bytes => 'محتوى الملف';
+
+  @override
+  String get settings_conflict_field_cabinType => 'نوع المقصورة';
+
+  @override
+  String get settings_conflict_field_capacity => 'السعة';
+
+  @override
+  String get settings_conflict_field_caption => 'التعليق';
+
+  @override
+  String get settings_conflict_field_cardColorGradientEnd =>
+      'نهاية تدرج ألوان البطاقات';
+
+  @override
+  String get settings_conflict_field_cardColorGradientPreset =>
+      'تدرج ألوان البطاقات';
+
+  @override
+  String get settings_conflict_field_cardColorGradientStart =>
+      'بداية تدرج ألوان البطاقات';
+
+  @override
+  String get settings_conflict_field_ccrDiluentModPpO2 =>
+      'ppO2 لأقصى عمق تشغيل لمخفف CCR';
+
+  @override
+  String get settings_conflict_field_ccrSetpointHigh => 'نقطة ضبط CCR العليا';
+
+  @override
+  String get settings_conflict_field_ccrSetpointLow => 'نقطة ضبط CCR الدنيا';
+
+  @override
+  String get settings_conflict_field_channelIndex => 'القناة';
+
+  @override
+  String get settings_conflict_field_checklistTemplateItems_category => 'الفئة';
+
+  @override
+  String get settings_conflict_field_city => 'المدينة';
+
+  @override
+  String get settings_conflict_field_cloudAssetId => 'صورة في السحابة';
+
+  @override
+  String get settings_conflict_field_cns => 'CNS';
+
+  @override
+  String get settings_conflict_field_cnsWarningThreshold => 'حد تحذير CNS';
+
+  @override
+  String get settings_conflict_field_codecVersion => 'إصدار التنسيق';
+
+  @override
+  String get settings_conflict_field_coldWaterThresholdC => 'حد المياه الباردة';
+
+  @override
+  String get settings_conflict_field_color => 'اللون';
+
+  @override
+  String get settings_conflict_field_commonName => 'الاسم الشائع';
+
+  @override
+  String get settings_conflict_field_completedAt => 'اكتمل';
+
+  @override
+  String get settings_conflict_field_compressedLevel => 'الضغط';
+
+  @override
+  String get settings_conflict_field_compressedSizeBytes =>
+      'الحجم المضغوط بالبايت';
+
+  @override
+  String get settings_conflict_field_computerModel => 'طراز حاسوب الغوص';
+
+  @override
+  String get settings_conflict_field_computerSerial =>
+      'الرقم التسلسلي لحاسوب الغوص';
+
+  @override
+  String get settings_conflict_field_computerTissueJson =>
+      'بيانات الأنسجة من حاسوب الغوص';
+
+  @override
+  String get settings_conflict_field_conditionDisabledRules =>
+      'فحوصات المعدات المعطلة';
+
+  @override
+  String get settings_conflict_field_conditionEngineEnabled =>
+      'فحوصات حالة المعدات';
+
+  @override
+  String get settings_conflict_field_configJson => 'الإعدادات';
+
+  @override
+  String get settings_conflict_field_connectedAccounts_kind => 'الخدمة';
+
+  @override
+  String get settings_conflict_field_connectionType => 'الاتصال';
+
+  @override
+  String get settings_conflict_field_contentHash => 'بصمة المحتوى';
+
+  @override
+  String get settings_conflict_field_contentSizeBytes => 'الحجم بالبايت';
+
+  @override
+  String get settings_conflict_field_contributingFactors => 'العوامل المساهمة';
+
+  @override
+  String get settings_conflict_field_coordinateFormat => 'تنسيق الإحداثيات';
+
+  @override
+  String get settings_conflict_field_cost => 'التكلفة';
+
+  @override
+  String get settings_conflict_field_count => 'العدد';
+
+  @override
+  String get settings_conflict_field_country => 'البلد';
+
+  @override
+  String get settings_conflict_field_courseRequirements_kind => 'نوع المتطلب';
+
+  @override
+  String get settings_conflict_field_credentialsHostId => 'خادم تسجيل الدخول';
+
+  @override
+  String get settings_conflict_field_currency => 'العملة';
+
+  @override
+  String get settings_conflict_field_currentSetsTowardDeg =>
+      'اتجاه التيار بالدرجات';
+
+  @override
+  String get settings_conflict_field_currentSpeedMps => 'سرعة التيار';
+
+  @override
+  String get settings_conflict_field_customReminderDays => 'أيام التذكير';
+
+  @override
+  String get settings_conflict_field_customReminderEnabled => 'تذكيرات مخصصة';
+
+  @override
+  String get settings_conflict_field_cylinderFills_source => 'سُجِّل عبر';
+
+  @override
+  String get settings_conflict_field_date => 'التاريخ';
+
+  @override
+  String get settings_conflict_field_dateFormat => 'تنسيق التاريخ';
+
+  @override
+  String get settings_conflict_field_dayNumber => 'رقم اليوم';
+
+  @override
+  String get settings_conflict_field_dayType => 'نوع اليوم';
+
+  @override
+  String get settings_conflict_field_decoStopIncrement =>
+      'المسافة بين محطات تخفيف الضغط';
+
+  @override
+  String get settings_conflict_field_decoSwitchDepth =>
+      'عمق التبديل إلى غاز تخفيف الضغط';
+
+  @override
+  String get settings_conflict_field_deepDiveThresholdM => 'حد الغوص العميق';
+
+  @override
+  String get settings_conflict_field_defaultCategory => 'الفئة الافتراضية';
+
+  @override
+  String get settings_conflict_field_defaultCeilingSource =>
+      'مصدر بيانات السقف';
+
+  @override
+  String get settings_conflict_field_defaultCnsSource => 'مصدر بيانات CNS';
+
+  @override
+  String get settings_conflict_field_defaultCost => 'التكلفة الافتراضية';
+
+  @override
+  String get settings_conflict_field_defaultCurrency => 'العملة الافتراضية';
+
+  @override
+  String get settings_conflict_field_defaultCurrentSetsTowardDeg =>
+      'اتجاه التيار الافتراضي بالدرجات';
+
+  @override
+  String get settings_conflict_field_defaultCurrentSpeedMps =>
+      'سرعة التيار الافتراضية';
+
+  @override
+  String get settings_conflict_field_defaultDecoStopSource =>
+      'مصدر بيانات محطات تخفيف الضغط';
+
+  @override
+  String get settings_conflict_field_defaultDiveType => 'نوع الغوص الافتراضي';
+
+  @override
+  String get settings_conflict_field_defaultGtrSource => 'مصدر بيانات GTR';
+
+  @override
+  String get settings_conflict_field_defaultIntervalDays =>
+      'الفاصل الافتراضي بالأيام';
+
+  @override
+  String get settings_conflict_field_defaultIntervalDives =>
+      'الفاصل الافتراضي بالغوصات';
+
+  @override
+  String get settings_conflict_field_defaultIntervalHours =>
+      'الفاصل الافتراضي بالساعات';
+
+  @override
+  String get settings_conflict_field_defaultNdlSource => 'مصدر بيانات NDL';
+
+  @override
+  String get settings_conflict_field_defaultPlannerWaterType =>
+      'نوع الماء الافتراضي في المخطط';
+
+  @override
+  String get settings_conflict_field_defaultRightAxisMetric =>
+      'المحور الأيمن للملف';
+
+  @override
+  String get settings_conflict_field_defaultShowAscentRateLine =>
+      'الملف يعرض سرعة الصعود';
+
+  @override
+  String get settings_conflict_field_defaultShowCns => 'الملف يعرض CNS';
+
+  @override
+  String get settings_conflict_field_defaultShowEstimatedTankPressure =>
+      'الملف يعرض ضغط الأسطوانة المقدر';
+
+  @override
+  String get settings_conflict_field_defaultShowEvents => 'الملف يعرض الأحداث';
+
+  @override
+  String get settings_conflict_field_defaultShowGasDensity =>
+      'الملف يعرض كثافة الغاز';
+
+  @override
+  String get settings_conflict_field_defaultShowGasSwitchMarkers =>
+      'الملف يعرض تبديلات الغاز';
+
+  @override
+  String get settings_conflict_field_defaultShowGasTimeline =>
+      'الملف يعرض الخط الزمني للغازات';
+
+  @override
+  String get settings_conflict_field_defaultShowGf => 'الملف يعرض معامل التدرج';
+
+  @override
+  String get settings_conflict_field_defaultShowGtr => 'الملف يعرض GTR';
+
+  @override
+  String get settings_conflict_field_defaultShowHeartRate =>
+      'الملف يعرض معدل ضربات القلب';
+
+  @override
+  String get settings_conflict_field_defaultShowMeanDepth =>
+      'الملف يعرض متوسط العمق';
+
+  @override
+  String get settings_conflict_field_defaultShowO2CellMv =>
+      'الملف يعرض ملي فولت خلايا O2';
+
+  @override
+  String get settings_conflict_field_defaultShowOtu => 'الملف يعرض OTU';
+
+  @override
+  String get settings_conflict_field_defaultShowPhotoMarkers =>
+      'الملف يعرض الصور';
+
+  @override
+  String get settings_conflict_field_defaultShowPpHe => 'الملف يعرض ppHe';
+
+  @override
+  String get settings_conflict_field_defaultShowPpN2 => 'الملف يعرض ppN2';
+
+  @override
+  String get settings_conflict_field_defaultShowPpO2 => 'الملف يعرض ppO2';
+
+  @override
+  String get settings_conflict_field_defaultShowPressure =>
+      'الملف يعرض ضغط الأسطوانة';
+
+  @override
+  String get settings_conflict_field_defaultShowSac =>
+      'الملف يعرض استهلاك الغاز';
+
+  @override
+  String get settings_conflict_field_defaultShowSurfaceGf =>
+      'الملف يعرض معامل التدرج السطحي';
+
+  @override
+  String get settings_conflict_field_defaultShowTemperature =>
+      'الملف يعرض درجة الحرارة';
+
+  @override
+  String get settings_conflict_field_defaultShowTts =>
+      'الملف يعرض الوقت حتى السطح';
+
+  @override
+  String get settings_conflict_field_defaultStartPressure =>
+      'ضغط البداية الافتراضي';
+
+  @override
+  String get settings_conflict_field_defaultStartPressureBar =>
+      'ضغط البداية الافتراضي';
+
+  @override
+  String get settings_conflict_field_defaultTankPreset =>
+      'قالب الأسطوانة الافتراضي';
+
+  @override
+  String get settings_conflict_field_defaultTankVolume =>
+      'حجم الأسطوانة الافتراضي';
+
+  @override
+  String get settings_conflict_field_defaultTtsSource =>
+      'مصدر بيانات الوقت حتى السطح';
+
+  @override
+  String get settings_conflict_field_depth => 'العمق';
+
+  @override
+  String get settings_conflict_field_depthM => 'العمق';
+
+  @override
+  String get settings_conflict_field_depthMeters => 'العمق';
+
+  @override
+  String get settings_conflict_field_depthUnit => 'وحدة العمق';
+
+  @override
+  String get settings_conflict_field_descentRate => 'سرعة النزول';
+
+  @override
+  String get settings_conflict_field_description => 'الوصف';
+
+  @override
+  String get settings_conflict_field_descriptorModel => 'رقم طراز حاسوب الغوص';
+
+  @override
+  String get settings_conflict_field_descriptorProduct => 'منتج حاسوب الغوص';
+
+  @override
+  String get settings_conflict_field_descriptorVendor =>
+      'الشركة المصنعة لحاسوب الغوص';
+
+  @override
+  String get settings_conflict_field_detectorId => 'الفحص';
+
+  @override
+  String get settings_conflict_field_detectorVersion => 'إصدار الفحص';
+
+  @override
+  String get settings_conflict_field_deviationDepthDelta => 'عمق إضافي للطوارئ';
+
+  @override
+  String get settings_conflict_field_deviationTimeMinutes =>
+      'وقت إضافي للطوارئ';
+
+  @override
+  String get settings_conflict_field_deviceName => 'سُجِّل على';
+
+  @override
+  String get settings_conflict_field_diluentHe => 'هيليوم المخفف';
+
+  @override
+  String get settings_conflict_field_diluentO2 => 'أكسجين المخفف';
+
+  @override
+  String get settings_conflict_field_disembarkLatitude =>
+      'خط عرض النزول من القارب';
+
+  @override
+  String get settings_conflict_field_disembarkLongitude =>
+      'خط طول النزول من القارب';
+
+  @override
+  String get settings_conflict_field_disembarkPort => 'ميناء النزول';
+
+  @override
+  String get settings_conflict_field_dismissedAt => 'تم التجاهل';
+
+  @override
+  String get settings_conflict_field_displayHint => 'تلميح العرض';
+
+  @override
+  String get settings_conflict_field_displayName => 'الاسم المعروض';
+
+  @override
+  String get settings_conflict_field_distanceM => 'المسافة';
+
+  @override
+  String get settings_conflict_field_diveCenterListViewMode =>
+      'عرض قائمة مراكز الغوص';
+
+  @override
+  String get settings_conflict_field_diveComputerFirmware =>
+      'البرنامج الثابت لحاسوب الغوص';
+
+  @override
+  String get settings_conflict_field_diveComputerSerial =>
+      'الرقم التسلسلي لحاسوب الغوص';
+
+  @override
+  String get settings_conflict_field_diveCount => 'عدد الغوصات';
+
+  @override
+  String get settings_conflict_field_diveDetailLayout => 'تخطيط تفاصيل الغوصة';
+
+  @override
+  String get settings_conflict_field_diveDetailSections =>
+      'أقسام تفاصيل الغوصة';
+
+  @override
+  String get settings_conflict_field_diveListViewMode => 'عرض قائمة الغوصات';
+
+  @override
+  String get settings_conflict_field_diveModeOverride =>
+      'وضع التنفس لهذا المقطع';
+
+  @override
+  String get settings_conflict_field_diveOperator => 'مشغل الغوص';
+
+  @override
+  String get settings_conflict_field_divePlanSegments_type => 'المقطع';
+
+  @override
+  String get settings_conflict_field_divePlanTanks_role => 'دور الأسطوانة';
+
+  @override
+  String get settings_conflict_field_diveProfileEvents_severity => 'الخطورة';
+
+  @override
+  String get settings_conflict_field_diveProfileEvents_source => 'المصدر';
+
+  @override
+  String get settings_conflict_field_diveSafetyFindings_severity => 'الخطورة';
+
+  @override
+  String get settings_conflict_field_diversSharingCylinders =>
+      'الغواصون المتشاركون في الأسطوانات';
+
+  @override
+  String get settings_conflict_field_divesPerDayTarget => 'هدف الغوصات اليومي';
+
+  @override
+  String get settings_conflict_field_divingSince => 'يغوص منذ';
+
+  @override
+  String get settings_conflict_field_dueDate => 'الاستحقاق';
+
+  @override
+  String get settings_conflict_field_dueOffsetDays =>
+      'الاستحقاق بالأيام قبل الرحلة';
+
+  @override
+  String get settings_conflict_field_duration => 'المدة';
+
+  @override
+  String get settings_conflict_field_durationSeconds => 'المدة';
+
+  @override
+  String get settings_conflict_field_elapsedSeconds => 'الوقت داخل الغوصة';
+
+  @override
+  String get settings_conflict_field_embarkLatitude =>
+      'خط عرض الصعود إلى القارب';
+
+  @override
+  String get settings_conflict_field_embarkLongitude =>
+      'خط طول الصعود إلى القارب';
+
+  @override
+  String get settings_conflict_field_embarkPort => 'ميناء الصعود';
+
+  @override
+  String get settings_conflict_field_emergencyContact2Name =>
+      'جهة اتصال الطوارئ الثانية';
+
+  @override
+  String get settings_conflict_field_emergencyContact2Phone =>
+      'هاتف جهة اتصال الطوارئ الثانية';
+
+  @override
+  String get settings_conflict_field_emergencyContact2Relation =>
+      'صلة جهة اتصال الطوارئ الثانية';
+
+  @override
+  String get settings_conflict_field_emergencyContactName =>
+      'جهة اتصال الطوارئ';
+
+  @override
+  String get settings_conflict_field_emergencyContactPhone =>
+      'هاتف جهة اتصال الطوارئ';
+
+  @override
+  String get settings_conflict_field_emergencyContactRelation =>
+      'صلة جهة اتصال الطوارئ';
+
+  @override
+  String get settings_conflict_field_emergencyRegion => 'منطقة الطوارئ';
+
+  @override
+  String get settings_conflict_field_enabled => 'مفعّل';
+
+  @override
+  String get settings_conflict_field_endDepth => 'عمق النهاية';
+
+  @override
+  String get settings_conflict_field_endLatitude => 'خط عرض النهاية';
+
+  @override
+  String get settings_conflict_field_endLimit => 'حد العمق المخدر';
+
+  @override
+  String get settings_conflict_field_endLongitude => 'خط طول النهاية';
+
+  @override
+  String get settings_conflict_field_endMode => 'نهاية المسار';
+
+  @override
+  String get settings_conflict_field_endTime => 'وقت الانتهاء';
+
+  @override
+  String get settings_conflict_field_endTimestamp =>
+      'ينتهي عند (الوقت داخل الغوصة)';
+
+  @override
+  String get settings_conflict_field_engineVersion => 'إصدار التحليل';
+
+  @override
+  String get settings_conflict_field_entryKey => 'الإدخال';
+
+  @override
+  String get settings_conflict_field_entryLatitude => 'خط عرض الدخول';
+
+  @override
+  String get settings_conflict_field_entryLongitude => 'خط طول الدخول';
+
+  @override
+  String get settings_conflict_field_entryTime => 'وقت الدخول';
+
+  @override
+  String get settings_conflict_field_environment => 'البيئة';
+
+  @override
+  String get settings_conflict_field_equipmentComponents_role => 'الدور';
+
+  @override
+  String get settings_conflict_field_equipmentFindings_severity => 'الخطورة';
+
+  @override
+  String get settings_conflict_field_equipmentListViewMode =>
+      'عرض قائمة المعدات';
+
+  @override
+  String get settings_conflict_field_equipmentObservations_status => 'الحالة';
+
+  @override
+  String get settings_conflict_field_equipmentOwnershipEvents_kind => 'الحدث';
+
+  @override
+  String get settings_conflict_field_equipmentSetName => 'مجموعة المعدات';
+
+  @override
+  String get settings_conflict_field_eventType => 'الحدث';
+
+  @override
+  String get settings_conflict_field_evidence => 'الدليل';
+
+  @override
+  String get settings_conflict_field_evidenceFingerprint => 'بصمة الدليل';
+
+  @override
+  String get settings_conflict_field_excludedFromGasStats =>
+      'مستبعد من إحصاءات الغاز';
+
+  @override
+  String get settings_conflict_field_excludedFromStats => 'مستبعد من الإحصاءات';
+
+  @override
+  String get settings_conflict_field_exitLatitude => 'خط عرض الخروج';
+
+  @override
+  String get settings_conflict_field_exitLongitude => 'خط طول الخروج';
+
+  @override
+  String get settings_conflict_field_exitTime => 'وقت الخروج';
+
+  @override
+  String get settings_conflict_field_expectedDives => 'الغوصات المتوقعة';
+
+  @override
+  String get settings_conflict_field_expectedRuntimeMinutes =>
+      'المدة المتوقعة لكل غوصة';
+
+  @override
+  String get settings_conflict_field_exposureIntervals => 'فترات التعرض';
+
+  @override
+  String get settings_conflict_field_fetchedAt => 'تم الجلب';
+
+  @override
+  String get settings_conflict_field_fieldKey => 'حقل مخصص';
+
+  @override
+  String get settings_conflict_field_fieldValue => 'قيمة الحقل المخصص';
+
+  @override
+  String get settings_conflict_field_fileName => 'اسم الملف';
+
+  @override
+  String get settings_conflict_field_filePath => 'الملف';
+
+  @override
+  String get settings_conflict_field_fileType => 'نوع الملف';
+
+  @override
+  String get settings_conflict_field_fillClosesAt => 'انتهاء التعبئة';
+
+  @override
+  String get settings_conflict_field_fillOpensAt => 'بدء التعبئة';
+
+  @override
+  String get settings_conflict_field_filledAt => 'تمت التعبئة';
+
+  @override
+  String get settings_conflict_field_filterJson => 'المرشح';
+
+  @override
+  String get settings_conflict_field_finalAscentRate => 'سرعة الصعود النهائية';
+
+  @override
+  String get settings_conflict_field_firmwareVersion => 'البرنامج الثابت';
+
+  @override
+  String get settings_conflict_field_firstDepth => 'عمق أول قراءة';
+
+  @override
+  String get settings_conflict_field_format => 'التنسيق';
+
+  @override
+  String get settings_conflict_field_gasConsumptionDisplay =>
+      'عرض استهلاك الغاز بصيغة';
+
+  @override
+  String get settings_conflict_field_gasHe => 'الهيليوم';
+
+  @override
+  String get settings_conflict_field_gasO2 => 'الأكسجين';
+
+  @override
+  String get settings_conflict_field_gasSwitchStopSeconds => 'محطة تبديل الغاز';
+
+  @override
+  String get settings_conflict_field_gearType => 'نوع المعدات';
+
+  @override
+  String get settings_conflict_field_groupTripsInDiveList =>
+      'تجميع الرحلات في قائمة الغوصات';
+
+  @override
+  String get settings_conflict_field_gtrReservePressure => 'ضغط احتياطي GTR';
+
+  @override
+  String get settings_conflict_field_hasDecoStop => 'فيها محطة تخفيف ضغط';
+
+  @override
+  String get settings_conflict_field_hasDecoType => 'فيها بيانات تخفيف ضغط';
+
+  @override
+  String get settings_conflict_field_hasPositiveCeiling => 'فيها سقف';
+
+  @override
+  String get settings_conflict_field_hePercent => 'الهيليوم';
+
+  @override
+  String get settings_conflict_field_headingDeg => 'الاتجاه بالدرجات';
+
+  @override
+  String get settings_conflict_field_headingOffsetDeg =>
+      'تصحيح الاتجاه بالدرجات';
+
+  @override
+  String get settings_conflict_field_height => 'الارتفاع بالبكسل';
+
+  @override
+  String get settings_conflict_field_heightCm => 'الطول';
+
+  @override
+  String get settings_conflict_field_heightMeters => 'ارتفاع المد';
+
+  @override
+  String get settings_conflict_field_hiddenChamberIds => 'غرف الضغط المخفية';
+
+  @override
+  String get settings_conflict_field_hiddenTankPresetIds =>
+      'قوالب الأسطوانات المخفية';
+
+  @override
+  String get settings_conflict_field_highO2ThresholdPercent =>
+      'حد الأكسجين المرتفع';
+
+  @override
+  String get settings_conflict_field_highTideHeight => 'ارتفاع المد العالي';
+
+  @override
+  String get settings_conflict_field_highTideTime => 'المد العالي';
+
+  @override
+  String get settings_conflict_field_imageData => 'الصورة';
+
+  @override
+  String get settings_conflict_field_importId => 'معرّف الاستيراد';
+
+  @override
+  String get settings_conflict_field_importVersion => 'إصدار الاستيراد';
+
+  @override
+  String get settings_conflict_field_importedAt => 'تم الاستيراد';
+
+  @override
+  String get settings_conflict_field_incidents_category => 'الفئة';
+
+  @override
+  String get settings_conflict_field_incidents_severity => 'الخطورة';
+
+  @override
+  String get settings_conflict_field_inputsHash => 'الإعدادات المستخدمة';
+
+  @override
+  String get settings_conflict_field_insuranceEmergencyPhone =>
+      'خط طوارئ التأمين';
+
+  @override
+  String get settings_conflict_field_insuranceExpiryDate => 'انتهاء التأمين';
+
+  @override
+  String get settings_conflict_field_insurancePhone => 'هاتف التأمين';
+
+  @override
+  String get settings_conflict_field_insurancePolicyNumber =>
+      'رقم وثيقة التأمين';
+
+  @override
+  String get settings_conflict_field_insuranceProvider => 'شركة التأمين';
+
+  @override
+  String get settings_conflict_field_intermediateAscentRate =>
+      'سرعة الصعود بين المحطات العميقة';
+
+  @override
+  String get settings_conflict_field_intervalDays => 'الفاصل بالأيام';
+
+  @override
+  String get settings_conflict_field_intervalDives => 'الفاصل بالغوصات';
+
+  @override
+  String get settings_conflict_field_intervalHours => 'الفاصل بالساعات';
+
+  @override
+  String get settings_conflict_field_isBuiltIn => 'مدمج';
+
+  @override
+  String get settings_conflict_field_isCustom => 'مخصص';
+
+  @override
+  String get settings_conflict_field_isDefault => 'افتراضي';
+
+  @override
+  String get settings_conflict_field_isDone => 'تم';
+
+  @override
+  String get settings_conflict_field_isOrphaned => 'الملف مفقود';
+
+  @override
+  String get settings_conflict_field_isPackage => 'جزء من باقة';
+
+  @override
+  String get settings_conflict_field_isPlanned => 'غوصة مخططة';
+
+  @override
+  String get settings_conflict_field_isPrimary => 'أساسي';
+
+  @override
+  String get settings_conflict_field_isRequired => 'إلزامي';
+
+  @override
+  String get settings_conflict_field_isShared => 'مشترك';
+
+  @override
+  String get settings_conflict_field_isTravelGas => 'غاز العبور';
+
+  @override
+  String get settings_conflict_field_issueTags => 'المشكلات';
+
+  @override
+  String get settings_conflict_field_itemType => 'نوع العنصر';
+
+  @override
+  String get settings_conflict_field_label => 'التسمية';
+
+  @override
+  String get settings_conflict_field_lastDepth => 'عمق آخر قراءة';
+
+  @override
+  String get settings_conflict_field_lastDiveFingerprint => 'آخر غوصة منزّلة';
+
+  @override
+  String get settings_conflict_field_lastDownloadTimestamp => 'آخر تنزيل';
+
+  @override
+  String get settings_conflict_field_lastParsedAt => 'آخر قراءة';
+
+  @override
+  String get settings_conflict_field_lastStopDepth => 'عمق آخر محطة';
+
+  @override
+  String get settings_conflict_field_lastSweepAt => 'آخر فحص';
+
+  @override
+  String get settings_conflict_field_lastVerifiedAt => 'آخر تحقق';
+
+  @override
+  String get settings_conflict_field_latitude => 'خط العرض';
+
+  @override
+  String get settings_conflict_field_leadAdjustmentKg =>
+      'الرصاص الإضافي المطلوب';
+
+  @override
+  String get settings_conflict_field_lessonsLearned => 'الدروس المستفادة';
+
+  @override
+  String get settings_conflict_field_libdivecomputerVersion =>
+      'إصدار libdivecomputer';
+
+  @override
+  String get settings_conflict_field_linkMode => 'مرتبط';
+
+  @override
+  String get settings_conflict_field_localPath => 'ملف محلي';
+
+  @override
+  String get settings_conflict_field_locale => 'اللغة';
+
+  @override
+  String get settings_conflict_field_longitude => 'خط الطول';
+
+  @override
+  String get settings_conflict_field_loopO2Avg => 'متوسط ppO2 في الدائرة';
+
+  @override
+  String get settings_conflict_field_loopO2Max => 'أعلى ppO2 في الدائرة';
+
+  @override
+  String get settings_conflict_field_loopO2Min => 'أدنى ppO2 في الدائرة';
+
+  @override
+  String get settings_conflict_field_loopVolume => 'حجم الدائرة';
+
+  @override
+  String get settings_conflict_field_lowTideHeight => 'ارتفاع الجزر';
+
+  @override
+  String get settings_conflict_field_lowTideTime => 'الجزر';
+
+  @override
+  String get settings_conflict_field_manifestUrl => 'عنوان الموجز';
+
+  @override
+  String get settings_conflict_field_manualElapsedSeconds =>
+      'الوقت داخل الغوصة، مضبوط يدويًا';
+
+  @override
+  String get settings_conflict_field_manufacturer => 'الشركة المصنعة';
+
+  @override
+  String get settings_conflict_field_matchConfidence => 'المطابقة';
+
+  @override
+  String get settings_conflict_field_material => 'مادة الأسطوانة';
+
+  @override
+  String get settings_conflict_field_maxAscentRate => 'أقصى سرعة صعود';
+
+  @override
+  String get settings_conflict_field_maxDescentRate => 'أقصى سرعة نزول';
+
+  @override
+  String get settings_conflict_field_maxSpeed => 'السرعة القصوى';
+
+  @override
+  String get settings_conflict_field_measuredAt => 'تم القياس';
+
+  @override
+  String get settings_conflict_field_medicalClearanceExpiryDate =>
+      'انتهاء الشهادة الطبية';
+
+  @override
+  String get settings_conflict_field_medicalNotes => 'ملاحظات طبية';
+
+  @override
+  String get settings_conflict_field_medications => 'الأدوية';
+
+  @override
+  String get settings_conflict_field_mergeSourceSlot =>
+      'الموضع بين المصادر المدمجة';
+
+  @override
+  String get settings_conflict_field_mode => 'وضع التنفس';
+
+  @override
+  String get settings_conflict_field_name => 'الاسم';
+
+  @override
+  String get settings_conflict_field_narrative => 'ما حدث';
+
+  @override
+  String get settings_conflict_field_noFlyPreset => 'قاعدة حظر الطيران';
+
+  @override
+  String get settings_conflict_field_note => 'ملاحظة';
+
+  @override
+  String get settings_conflict_field_notedAt => 'تم التدوين';
+
+  @override
+  String get settings_conflict_field_notificationsEnabled => 'الإشعارات';
+
+  @override
+  String get settings_conflict_field_o2Narcotic => 'الأكسجين محسوب كمخدر';
+
+  @override
+  String get settings_conflict_field_o2Percent => 'الأكسجين';
+
+  @override
+  String get settings_conflict_field_observedAt => 'تمت الملاحظة';
+
+  @override
+  String get settings_conflict_field_occurredAt => 'وقع';
+
+  @override
+  String get settings_conflict_field_operatorName => 'المشغل';
+
+  @override
+  String get settings_conflict_field_originalFilename => 'اسم الملف الأصلي';
+
+  @override
+  String get settings_conflict_field_outingId => 'الرحلة البحرية';
+
+  @override
+  String get settings_conflict_field_overdueServices => 'صيانات متأخرة';
+
+  @override
+  String get settings_conflict_field_params => 'التفاصيل';
+
+  @override
+  String get settings_conflict_field_parkingInfo => 'موقف السيارات';
+
+  @override
+  String get settings_conflict_field_passportId => 'جواز الأسطوانة';
+
+  @override
+  String get settings_conflict_field_phone => 'الهاتف';
+
+  @override
+  String get settings_conflict_field_photo => 'الصورة';
+
+  @override
+  String get settings_conflict_field_photoBack => 'ظهر البطاقة';
+
+  @override
+  String get settings_conflict_field_photoBackPath => 'ظهر البطاقة';
+
+  @override
+  String get settings_conflict_field_photoFront => 'وجه البطاقة';
+
+  @override
+  String get settings_conflict_field_photoFrontPath => 'وجه البطاقة';
+
+  @override
+  String get settings_conflict_field_photoPath => 'الصورة';
+
+  @override
+  String get settings_conflict_field_placeNameLanguage => 'لغة أسماء الأماكن';
+
+  @override
+  String get settings_conflict_field_plannedDives => 'الغوصات المخططة';
+
+  @override
+  String get settings_conflict_field_plannedWeightKg => 'الرصاص المخطط';
+
+  @override
+  String get settings_conflict_field_plannedWeightPlacement =>
+      'توزيع الرصاص المخطط';
+
+  @override
+  String get settings_conflict_field_platformAssetId => 'عنصر مكتبة الصور';
+
+  @override
+  String get settings_conflict_field_pointCount => 'عدد النقاط';
+
+  @override
+  String get settings_conflict_field_points => 'نقاط المسار';
+
+  @override
+  String get settings_conflict_field_pollIntervalSeconds => 'التحقق كل';
+
+  @override
+  String get settings_conflict_field_portName => 'الميناء';
+
+  @override
+  String get settings_conflict_field_ppO2Bottom => 'ppO2 في القاع';
+
+  @override
+  String get settings_conflict_field_ppO2Deco => 'ppO2 لتخفيف الضغط';
+
+  @override
+  String get settings_conflict_field_ppO2MaxDeco => 'أقصى ppO2 لتخفيف الضغط';
+
+  @override
+  String get settings_conflict_field_ppO2MaxWorking => 'أقصى ppO2 للعمل';
+
+  @override
+  String get settings_conflict_field_preDiveChecklistTemplates_category =>
+      'الفئة';
+
+  @override
+  String get settings_conflict_field_preDiveSessions_status => 'الحالة';
+
+  @override
+  String get settings_conflict_field_presetJson => 'الإعداد المسبق';
+
+  @override
+  String get settings_conflict_field_presetName => 'قالب الأسطوانة';
+
+  @override
+  String get settings_conflict_field_pressure => 'الضغط';
+
+  @override
+  String get settings_conflict_field_pressureBar => 'الضغط';
+
+  @override
+  String get settings_conflict_field_pressureUnit => 'وحدة الضغط';
+
+  @override
+  String get settings_conflict_field_priorDiveCount => 'الغوصات قبل هذا السجل';
+
+  @override
+  String get settings_conflict_field_priorDiveTimeSeconds =>
+      'وقت الغوص قبل هذا السجل';
+
+  @override
+  String get settings_conflict_field_problemSolvingMinutes => 'وقت حل المشكلات';
+
+  @override
+  String get settings_conflict_field_provider => 'مقدم الخدمة';
+
+  @override
+  String get settings_conflict_field_providerType => 'مزود التخزين';
+
+  @override
+  String get settings_conflict_field_purchaseCurrency => 'عملة الشراء';
+
+  @override
+  String get settings_conflict_field_qualityFindings_category => 'الفئة';
+
+  @override
+  String get settings_conflict_field_qualityFindings_severity => 'الخطورة';
+
+  @override
+  String get settings_conflict_field_qualityFindings_status => 'الحالة';
+
+  @override
+  String get settings_conflict_field_queryJson => 'الاستعلام';
+
+  @override
+  String get settings_conflict_field_radiusMeters => 'نصف القطر';
+
+  @override
+  String get settings_conflict_field_rate => 'السرعة';
+
+  @override
+  String get settings_conflict_field_rateOfChange => 'معدل التغير';
+
+  @override
+  String get settings_conflict_field_rawData => 'البيانات الخام لحاسوب الغوص';
+
+  @override
+  String get settings_conflict_field_rawFingerprint => 'بصمة حاسوب الغوص';
+
+  @override
+  String get settings_conflict_field_reminderTime => 'وقت التذكير';
+
+  @override
+  String get settings_conflict_field_remoteAssetId => 'عنصر بعيد';
+
+  @override
+  String get settings_conflict_field_remoteCompressedUploadedAt =>
+      'تم رفع النسخة المضغوطة';
+
+  @override
+  String get settings_conflict_field_remoteThumbUploadedAt =>
+      'تم رفع الصورة المصغرة';
+
+  @override
+  String get settings_conflict_field_remoteUploadedAt => 'تم الرفع';
+
+  @override
+  String get settings_conflict_field_reservePressure => 'ضغط الاحتياطي';
+
+  @override
+  String get settings_conflict_field_retainInLibrary => 'محفوظ في المكتبة';
+
+  @override
+  String get settings_conflict_field_returnFlightAt => 'رحلة العودة';
+
+  @override
+  String get settings_conflict_field_reviewedAt => 'تمت المراجعة';
+
+  @override
+  String get settings_conflict_field_roleSource => 'حدّد الدور';
+
+  @override
+  String get settings_conflict_field_ruleId => 'القاعدة';
+
+  @override
+  String get settings_conflict_field_sacBottom => 'استهلاك الغاز في القاع';
+
+  @override
+  String get settings_conflict_field_sacDeco =>
+      'استهلاك الغاز أثناء تخفيف الضغط';
+
+  @override
+  String get settings_conflict_field_sacFactor => 'معامل استهلاك الغاز';
+
+  @override
+  String get settings_conflict_field_sacStressed =>
+      'استهلاك الغاز تحت الضغط النفسي';
+
+  @override
+  String get settings_conflict_field_safetyReviewDisabledRules =>
+      'فحوصات السلامة المعطلة';
+
+  @override
+  String get settings_conflict_field_safetyReviewEnabled => 'مراجعة السلامة';
+
+  @override
+  String get settings_conflict_field_salinityPpt => 'الملوحة بالأجزاء في الألف';
+
+  @override
+  String get settings_conflict_field_sampleCount => 'عدد القراءات';
+
+  @override
+  String get settings_conflict_field_samples => 'قراءات الملف';
+
+  @override
+  String get settings_conflict_field_scientificName => 'الاسم العلمي';
+
+  @override
+  String get settings_conflict_field_scooterBurnSeconds => 'مدة تشغيل السكوتر';
+
+  @override
+  String get settings_conflict_field_scooterName => 'السكوتر';
+
+  @override
+  String get settings_conflict_field_scooterSpeedMps => 'سرعة السكوتر';
+
+  @override
+  String get settings_conflict_field_scrAdditionRatio => 'نسبة إضافة SCR';
+
+  @override
+  String get settings_conflict_field_scrInjectionRate => 'معدل حقن SCR';
+
+  @override
+  String get settings_conflict_field_scrOrificeSize => 'حجم فتحة SCR';
+
+  @override
+  String get settings_conflict_field_scrType => 'نوع SCR';
+
+  @override
+  String get settings_conflict_field_scrubberDurationMinutes =>
+      'مدة الجير الماص';
+
+  @override
+  String get settings_conflict_field_scrubberRemainingMinutes =>
+      'المدة المتبقية للجير الماص';
+
+  @override
+  String get settings_conflict_field_scrubberType => 'نوع الجير الماص';
+
+  @override
+  String get settings_conflict_field_seascapeAppearance =>
+      'مظهر المشهد تحت الماء';
+
+  @override
+  String get settings_conflict_field_seascapeVerticalExaggerationOverrides =>
+      'المقياس الرأسي للمشهد تحت الماء';
+
+  @override
+  String get settings_conflict_field_section => 'القسم';
+
+  @override
+  String get settings_conflict_field_serviceCategory => 'نوع الصيانة';
+
+  @override
+  String get settings_conflict_field_serviceDate => 'تاريخ الصيانة';
+
+  @override
+  String get settings_conflict_field_serviceReminderDays =>
+      'أيام تذكير الصيانة';
+
+  @override
+  String get settings_conflict_field_setpointBar => 'نقطة الضبط';
+
+  @override
+  String get settings_conflict_field_setpointSwitchDepth =>
+      'عمق تبديل نقطة الضبط';
+
+  @override
+  String get settings_conflict_field_settings_key => 'الإعداد';
+
+  @override
+  String get settings_conflict_field_settings_value => 'القيمة';
+
+  @override
+  String get settings_conflict_field_shallowAscentRate =>
+      'سرعة الصعود بين المحطات الضحلة';
+
+  @override
+  String get settings_conflict_field_sharedComputerIds => 'مشترك مع الحواسيب';
+
+  @override
+  String get settings_conflict_field_shoreSwimM => 'السباحة إلى الشاطئ';
+
+  @override
+  String get settings_conflict_field_shoreWalkM => 'المشي إلى الشاطئ';
+
+  @override
+  String get settings_conflict_field_shortName => 'الاسم المختصر';
+
+  @override
+  String get settings_conflict_field_showAscentRateColors =>
+      'ألوان سرعة الصعود';
+
+  @override
+  String get settings_conflict_field_showCeilingOnProfile => 'الملف يعرض السقف';
+
+  @override
+  String get settings_conflict_field_showDataSourceBadges =>
+      'شارات مصدر البيانات';
+
+  @override
+  String get settings_conflict_field_showDecoStopsOnProfile =>
+      'الملف يعرض محطات تخفيف الضغط';
+
+  @override
+  String get settings_conflict_field_showDepthColoredDiveCards =>
+      'بطاقات الغوص ملونة حسب العمق';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneBuddies =>
+      'لوحة التفاصيل للرفاق';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneCertifications =>
+      'لوحة التفاصيل للشهادات';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneCourses =>
+      'لوحة التفاصيل للدورات';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneDiveCenters =>
+      'لوحة التفاصيل لمراكز الغوص';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneDives =>
+      'لوحة التفاصيل للغوصات';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneEquipment =>
+      'لوحة التفاصيل للمعدات';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneSites =>
+      'لوحة التفاصيل للمواقع';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneTrips =>
+      'لوحة التفاصيل للرحلات';
+
+  @override
+  String get settings_conflict_field_showDiveFigure => 'مجسم الغواص';
+
+  @override
+  String get settings_conflict_field_showFigure => 'معروض على مجسم الغواص';
+
+  @override
+  String get settings_conflict_field_showInDetailHeader =>
+      'معروض في رأس الغوصة';
+
+  @override
+  String get settings_conflict_field_showInListView => 'معروض في قائمة الغوصات';
+
+  @override
+  String get settings_conflict_field_showMapBackgroundOnDiveCards =>
+      'خريطة خلف بطاقات الغوص';
+
+  @override
+  String get settings_conflict_field_showMapBackgroundOnSiteCards =>
+      'خريطة خلف بطاقات المواقع';
+
+  @override
+  String get settings_conflict_field_showMaxDepthMarker =>
+      'الملف يعرض أقصى عمق';
+
+  @override
+  String get settings_conflict_field_showNdlOnProfile => 'الملف يعرض NDL';
+
+  @override
+  String get settings_conflict_field_showPressureThresholdMarkers =>
+      'الملف يعرض حدود الضغط';
+
+  @override
+  String get settings_conflict_field_showProfilePanelInTableView =>
+      'لوحة الملف في عرض الجدول';
+
+  @override
+  String get settings_conflict_field_signatureType => 'نوع التوقيع';
+
+  @override
+  String get settings_conflict_field_signedRecord => 'سجل تعبئة موقّع';
+
+  @override
+  String get settings_conflict_field_signerName => 'موقّع من';
+
+  @override
+  String get settings_conflict_field_siteDetailLayout => 'تخطيط تفاصيل الموقع';
+
+  @override
+  String get settings_conflict_field_siteDetailSections =>
+      'أقسام تفاصيل الموقع';
+
+  @override
+  String get settings_conflict_field_siteFeatures_type => 'نوع المعلم';
+
+  @override
+  String get settings_conflict_field_siteListViewMode => 'عرض قائمة المواقع';
+
+  @override
+  String get settings_conflict_field_siteSuggestionDismissedAt =>
+      'تم تجاهل اقتراح الموقع';
+
+  @override
+  String get settings_conflict_field_size => 'المقاس';
+
+  @override
+  String get settings_conflict_field_sortOrder => 'ترتيب الفرز';
+
+  @override
+  String get settings_conflict_field_source => 'المصدر';
+
+  @override
+  String get settings_conflict_field_sourceDiverKey => 'الغواص في السجل المصدر';
+
+  @override
+  String get settings_conflict_field_sourceFileFormat => 'تنسيق الملف المصدر';
+
+  @override
+  String get settings_conflict_field_sourceFileName => 'اسم الملف المصدر';
+
+  @override
+  String get settings_conflict_field_sourceFormat => 'تنسيق المصدر';
+
+  @override
+  String get settings_conflict_field_sourceItemId => 'عنصر مرتبط';
+
+  @override
+  String get settings_conflict_field_sourceRef => 'الملف أو الجهاز المصدر';
+
+  @override
+  String get settings_conflict_field_sourceTankIndex =>
+      'رقم الأسطوانة في السجل المصدر';
+
+  @override
+  String get settings_conflict_field_sourceType => 'المصدر';
+
+  @override
+  String get settings_conflict_field_sourceUuid => 'معرّف المصدر';
+
+  @override
+  String get settings_conflict_field_sourceValueNumber => 'القيمة المرجعية';
+
+  @override
+  String get settings_conflict_field_spec => 'خريطة الاتصالات';
+
+  @override
+  String get settings_conflict_field_species_category => 'الفئة';
+
+  @override
+  String get settings_conflict_field_startDateTime => 'البداية المخططة';
+
+  @override
+  String get settings_conflict_field_startDepth => 'عمق البداية';
+
+  @override
+  String get settings_conflict_field_startTime => 'وقت البدء';
+
+  @override
+  String get settings_conflict_field_startTimestamp =>
+      'يبدأ عند (الوقت داخل الغوصة)';
+
+  @override
+  String get settings_conflict_field_startedAt => 'بدأ';
+
+  @override
+  String get settings_conflict_field_state => 'الحالة';
+
+  @override
+  String get settings_conflict_field_stationKey => 'مفتاح محطة التعبئة';
+
+  @override
+  String get settings_conflict_field_stationName => 'محطة التعبئة';
+
+  @override
+  String get settings_conflict_field_stopMinimumsJson =>
+      'الحد الأدنى لأوقات المحطات';
+
+  @override
+  String get settings_conflict_field_strictOrder => 'عناصر بترتيب ثابت';
+
+  @override
+  String get settings_conflict_field_subject => 'يبحث في';
+
+  @override
+  String get settings_conflict_field_summaryMaxDepth => 'أقصى عمق مخطط';
+
+  @override
+  String get settings_conflict_field_summaryRuntimeSeconds => 'المدة المخططة';
+
+  @override
+  String get settings_conflict_field_summaryTtsSeconds =>
+      'الوقت المخطط حتى السطح';
+
+  @override
+  String get settings_conflict_field_surfaceConditions => 'الأحوال على السطح';
+
+  @override
+  String get settings_conflict_field_surfaceSwimLimitM =>
+      'أطول سباحة على السطح';
+
+  @override
+  String get settings_conflict_field_swimSpeedMps => 'سرعة السباحة';
+
+  @override
+  String get settings_conflict_field_takenAt => 'التُقطت';
+
+  @override
+  String get settings_conflict_field_tankMaterial => 'مادة الأسطوانة';
+
+  @override
+  String get settings_conflict_field_tankName => 'اسم الأسطوانة';
+
+  @override
+  String get settings_conflict_field_tankOrder => 'ترتيب الأسطوانة';
+
+  @override
+  String get settings_conflict_field_tankRole => 'دور الأسطوانة';
+
+  @override
+  String get settings_conflict_field_targetCount => 'الهدف';
+
+  @override
+  String get settings_conflict_field_taxonomyClass => 'الطائفة التصنيفية';
+
+  @override
+  String get settings_conflict_field_temperatureC => 'درجة الحرارة';
+
+  @override
+  String get settings_conflict_field_temperatureCelsius => 'درجة الحرارة';
+
+  @override
+  String get settings_conflict_field_temperatureUnit => 'وحدة درجة الحرارة';
+
+  @override
+  String get settings_conflict_field_templateName => 'قالب قائمة التحقق';
+
+  @override
+  String get settings_conflict_field_themeMode => 'السمة';
+
+  @override
+  String get settings_conflict_field_themePreset => 'سمة الألوان';
+
+  @override
+  String get settings_conflict_field_thickness => 'السماكة';
+
+  @override
+  String get settings_conflict_field_thumbnailGeneratedAt =>
+      'تم إنشاء الصورة المصغرة';
+
+  @override
+  String get settings_conflict_field_tideState => 'المد والجزر';
+
+  @override
+  String get settings_conflict_field_timeFormat => 'تنسيق الوقت';
+
+  @override
+  String get settings_conflict_field_timeOffsetSeconds => 'فارق الوقت';
+
+  @override
+  String get settings_conflict_field_timestamp => 'الوقت داخل الغوصة';
+
+  @override
+  String get settings_conflict_field_timestampOffsetSeconds => 'فارق الوقت';
+
+  @override
+  String get settings_conflict_field_tissueColorScheme => 'ألوان الأنسجة';
+
+  @override
+  String get settings_conflict_field_tissueVizMode => 'مخطط الأنسجة';
+
+  @override
+  String get settings_conflict_field_title => 'العنوان';
+
+  @override
+  String get settings_conflict_field_totalDistance => 'المسافة الإجمالية';
+
+  @override
+  String get settings_conflict_field_towBurnFactor =>
+      'معامل الاستهلاك عند السحب';
+
+  @override
+  String get settings_conflict_field_towSpeedFactor => 'معامل السرعة عند السحب';
+
+  @override
+  String get settings_conflict_field_transmitterSerial =>
+      'الرقم التسلسلي للمرسل';
+
+  @override
+  String get settings_conflict_field_trimEndTime => 'النهاية المقصوصة';
+
+  @override
+  String get settings_conflict_field_trimStartTime => 'البداية المقصوصة';
+
+  @override
+  String get settings_conflict_field_trimTankPressureAtSurfacing =>
+      'ضغط الأسطوانة مقصوص عند الخروج إلى السطح';
+
+  @override
+  String get settings_conflict_field_tripChecklistItems_category => 'الفئة';
+
+  @override
+  String get settings_conflict_field_tripCylinderEvents_kind => 'الحدث';
+
+  @override
+  String get settings_conflict_field_tripListViewMode => 'عرض قائمة الرحلات';
+
+  @override
+  String get settings_conflict_field_tripServiceLeadDays =>
+      'تحذير الصيانة بالأيام قبل الرحلة';
+
+  @override
+  String get settings_conflict_field_trustFraction => 'الجزء الموثوق من المسار';
+
+  @override
+  String get settings_conflict_field_turnPressureFraction => 'نسبة ضغط العودة';
+
+  @override
+  String get settings_conflict_field_turnPressureRule => 'قاعدة ضغط العودة';
+
+  @override
+  String get settings_conflict_field_tzOffsetMinutes =>
+      'فارق المنطقة الزمنية بالدقائق';
+
+  @override
+  String get settings_conflict_field_uploadFactsHlc => 'سجل الرفع';
+
+  @override
+  String get settings_conflict_field_url => 'العنوان';
+
+  @override
+  String get settings_conflict_field_usageDuration => 'وقت التنفس';
+
+  @override
+  String get settings_conflict_field_useDiveComputerCnsData =>
+      'CNS من حاسوب الغوص';
+
+  @override
+  String get settings_conflict_field_value => 'القيمة';
+
+  @override
+  String get settings_conflict_field_valueLabel => 'تسمية القيمة';
+
+  @override
+  String get settings_conflict_field_valueMax => 'أعلى قيمة متوقعة';
+
+  @override
+  String get settings_conflict_field_valueMin => 'أدنى قيمة متوقعة';
+
+  @override
+  String get settings_conflict_field_valueNum => 'القيمة';
+
+  @override
+  String get settings_conflict_field_valueNumber => 'القراءة';
+
+  @override
+  String get settings_conflict_field_valueText => 'القيمة';
+
+  @override
+  String get settings_conflict_field_valueUnit => 'الوحدة';
+
+  @override
+  String get settings_conflict_field_verdict => 'الحكم';
+
+  @override
+  String get settings_conflict_field_verifyFactsHlc => 'سجل التحقق';
+
+  @override
+  String get settings_conflict_field_vesselName => 'السفينة';
+
+  @override
+  String get settings_conflict_field_vesselType => 'نوع السفينة';
+
+  @override
+  String get settings_conflict_field_viewMode => 'العرض';
+
+  @override
+  String get settings_conflict_field_visibilityScaleExcellentM =>
+      'رؤية ممتازة بدءًا من';
+
+  @override
+  String get settings_conflict_field_visibilityScaleGoodM =>
+      'رؤية جيدة بدءًا من';
+
+  @override
+  String get settings_conflict_field_visibilityScaleModerateM =>
+      'رؤية متوسطة بدءًا من';
+
+  @override
+  String get settings_conflict_field_volume => 'الحجم';
+
+  @override
+  String get settings_conflict_field_volumeL => 'الحجم';
+
+  @override
+  String get settings_conflict_field_volumeLiters => 'الحجم';
+
+  @override
+  String get settings_conflict_field_volumeUnit => 'وحدة الحجم';
+
+  @override
+  String get settings_conflict_field_walkSpeedMps => 'سرعة المشي';
+
+  @override
+  String get settings_conflict_field_weatherCode => 'رمز الطقس';
+
+  @override
+  String get settings_conflict_field_weatherFetchedAt => 'تم جلب الطقس';
+
+  @override
+  String get settings_conflict_field_weatherSource => 'مصدر الطقس';
+
+  @override
+  String get settings_conflict_field_weightAmount => 'الرصاص';
+
+  @override
+  String get settings_conflict_field_weightKg => 'الوزن';
+
+  @override
+  String get settings_conflict_field_weightType => 'نوع الرصاص';
+
+  @override
+  String get settings_conflict_field_weightUnit => 'وحدة الوزن';
+
+  @override
+  String get settings_conflict_field_weightingFeedback => 'ضبط الوزن';
+
+  @override
+  String get settings_conflict_field_weightingFeedbackKg => 'فرق الوزن';
+
+  @override
+  String get settings_conflict_field_width => 'العرض بالبكسل';
+
+  @override
+  String get settings_conflict_field_windDirection => 'اتجاه الرياح';
+
+  @override
+  String get settings_conflict_field_workingPressure => 'ضغط التشغيل';
+
+  @override
+  String get settings_conflict_field_workingPressureBar => 'ضغط التشغيل';
+
+  @override
+  String get settings_conflict_finerThanShown =>
+      'الفرق أدق مما يعرضه هذا العرض.';
+
+  @override
   String get settings_conflict_keepBoth => 'الاحتفاظ بكليهما';
 
   @override
-  String get settings_conflict_keepLocal => 'الاحتفاظ بالمحلي';
+  String settings_conflict_keepDevice(String device) {
+    return 'الاحتفاظ بـ $device';
+  }
 
   @override
-  String get settings_conflict_keepRemote => 'الاحتفاظ بالبعيد';
+  String settings_conflict_localDeleted(String device) {
+    return 'حذف $device هذا السجل.';
+  }
 
   @override
-  String get settings_conflict_localVersion => 'النسخة المحلية';
+  String settings_conflict_modifiedBy(String device, String time) {
+    return '$device · عُدِّل $time';
+  }
 
   @override
-  String settings_conflict_modified(Object time) {
-    return 'تم التعديل: $time';
+  String settings_conflict_moreFields(String fields, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count حقل آخر',
+      many: '$count حقلًا آخر',
+      few: '$count حقول أخرى',
+      two: 'حقلان آخران',
+      one: 'حقل آخر',
+      zero: 'لا شيء آخر',
+    );
+    return '$fields و$_temp0';
   }
 
   @override
@@ -20025,10 +22219,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_noConflicts_title => 'لا توجد تعارضات';
 
   @override
-  String get settings_conflict_noDataAvailable => 'لا توجد بيانات متاحة';
+  String get settings_conflict_notSet => 'غير محدد';
+
+  @override
+  String get settings_conflict_otherDevice => 'جهاز آخر';
 
   @override
   String get settings_conflict_previous_tooltip => 'التعارض السابق';
+
+  @override
+  String get settings_conflict_ref_appliedSet => 'مطبّق من المجموعة';
+
+  @override
+  String get settings_conflict_ref_attachedThrough => 'مركّب عبر';
 
   @override
   String get settings_conflict_ref_buddy => 'رفيق الغوص';
@@ -20038,6 +22241,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_checklistTemplate => 'قالب قائمة التحقق';
+
+  @override
+  String get settings_conflict_ref_component => 'المكوّن';
 
   @override
   String get settings_conflict_ref_connectedAccount => 'الحساب المتصل';
@@ -20067,6 +22273,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'خطة الغوص';
 
   @override
+  String get settings_conflict_ref_diveRole => 'الدور في الغوص';
+
+  @override
   String get settings_conflict_ref_diveSite => 'موقع الغوص';
 
   @override
@@ -20086,6 +22295,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_importedFile => 'ملف مستورد';
+
+  @override
+  String get settings_conflict_ref_installedIn => 'مركّب في';
 
   @override
   String get settings_conflict_ref_instructor => 'المدرب';
@@ -20118,7 +22330,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_preDiveSession => 'قائمة التحقق قبل الغوص';
 
   @override
+  String get settings_conflict_ref_regulator => 'المنظم';
+
+  @override
   String get settings_conflict_ref_relatedDive => 'الغوصة ذات الصلة';
+
+  @override
+  String get settings_conflict_ref_samePerson => 'الشخص نفسه مثل';
 
   @override
   String get settings_conflict_ref_serviceKind => 'نوع الصيانة';
@@ -20145,13 +22363,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_tank => 'الأسطوانة';
 
   @override
+  String get settings_conflict_ref_transmitter => 'المرسل';
+
+  @override
   String get settings_conflict_ref_trip => 'الرحلة';
 
   @override
   String get settings_conflict_ref_tripCylinder => 'أسطوانة الرحلة';
 
   @override
-  String get settings_conflict_remoteVersion => 'النسخة البعيدة';
+  String get settings_conflict_ref_weightPreset => 'قالب الرصاص';
+
+  @override
+  String get settings_conflict_ref_yourRole => 'دورك';
+
+  @override
+  String settings_conflict_remoteDeleted(String device) {
+    return 'حذف $device هذا السجل.';
+  }
 
   @override
   String settings_conflict_resolved(int count) {
@@ -20168,7 +22397,219 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_conflict_same => 'متطابق';
+
+  @override
+  String get settings_conflict_sameContent =>
+      'للنسختين المحتوى نفسه؛ يختلف وقت الحفظ فقط. أي خيار يحتفظ بكل شيء.';
+
+  @override
+  String settings_conflict_sameFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count حقل متطابق',
+      many: '$count حقلًا متطابقًا',
+      few: '$count حقول متطابقة',
+      two: 'حقلان متطابقان',
+      one: 'حقل واحد متطابق',
+      zero: 'لا توجد حقول متطابقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_conflict_textDiffHint =>
+      'الكلمات المميزة موجودة في تلك النسخة فقط.';
+
+  @override
+  String get settings_conflict_thisDevice => 'هذا الجهاز';
+
+  @override
   String get settings_conflict_title => 'حل التعارضات';
+
+  @override
+  String get enum_tissueVizMode_heatMap => 'خريطة حرارية';
+
+  @override
+  String get enum_tissueVizMode_stackedArea => 'مساحات متراكمة';
+
+  @override
+  String get enum_tissueColorScheme_classic => 'كلاسيكي';
+
+  @override
+  String get enum_tissueColorScheme_thermal => 'حراري';
+
+  @override
+  String get enum_manifestFormat_atom => 'Atom';
+
+  @override
+  String get enum_manifestFormat_csv => 'CSV';
+
+  @override
+  String get enum_manifestFormat_json => 'JSON';
+
+  @override
+  String get enum_requirementKind_checklist => 'قائمة تحقق';
+
+  @override
+  String get enum_requirementKind_dive => 'غوصات';
+
+  @override
+  String get enum_preDiveSessionStatus_aborted => 'أُلغيت';
+
+  @override
+  String get enum_preDiveSessionStatus_completed => 'اكتملت';
+
+  @override
+  String get enum_preDiveSessionStatus_inProgress => 'قيد التنفيذ';
+
+  @override
+  String get enum_preDiveItemType_cellLinearity => 'خطية الخلايا';
+
+  @override
+  String get enum_preDiveItemType_check => 'فحص';
+
+  @override
+  String get enum_preDiveItemType_equipment => 'المعدات';
+
+  @override
+  String get enum_preDiveItemType_equipmentSet => 'مجموعة المعدات';
+
+  @override
+  String get enum_preDiveItemType_value => 'قيمة';
+
+  @override
+  String get enum_preDiveItemState_done => 'تم';
+
+  @override
+  String get enum_preDiveItemState_flagged => 'مُعلَّم';
+
+  @override
+  String get enum_preDiveItemState_pending => 'معلّق';
+
+  @override
+  String get enum_preDiveItemState_skipped => 'تم التخطي';
+
+  @override
+  String get enum_planMode_pscr => 'جهاز إعادة تنفس شبه مغلق سلبي';
+
+  @override
+  String get enum_missionEnvironment_openWater => 'مياه مفتوحة';
+
+  @override
+  String get enum_missionEnvironment_overhead => 'بيئة ذات سقف';
+
+  @override
+  String get enum_ownershipEventKind_shared => 'تمت المشاركة';
+
+  @override
+  String get enum_ownershipEventKind_transferred => 'تم النقل';
+
+  @override
+  String get enum_ownershipEventKind_unshared => 'توقفت المشاركة';
+
+  @override
+  String get enum_fillSource_file => 'ملف';
+
+  @override
+  String get enum_fillSource_issued => 'صادر عن محطة التعبئة';
+
+  @override
+  String get enum_fillSource_link => 'رابط';
+
+  @override
+  String get enum_fillSource_manual => 'مُدخل يدويًا';
+
+  @override
+  String get enum_fillSource_nfc => 'وسم NFC';
+
+  @override
+  String get enum_fillSource_qr => 'رمز QR';
+
+  @override
+  String get enum_tripCylinderEventKind_adjustment => 'تعديل';
+
+  @override
+  String get enum_tripCylinderEventKind_fill => 'تعبئة';
+
+  @override
+  String get enum_weatherSource_manual => 'يدوي';
+
+  @override
+  String get enum_weatherSource_openMeteo => 'Open-Meteo';
+
+  @override
+  String get enum_tankRoleSource_transmitterName => 'اسم المرسل';
+
+  @override
+  String get enum_safetySeverity_caution => 'تنبيه';
+
+  @override
+  String get enum_safetySeverity_info => 'معلومة';
+
+  @override
+  String get enum_safetySeverity_significant => 'مهم';
+
+  @override
+  String get enum_qualityStatus_dismissed => 'تم التجاهل';
+
+  @override
+  String get enum_qualityStatus_open => 'مفتوح';
+
+  @override
+  String get enum_qualityStatus_resolved => 'تم الحل';
+
+  @override
+  String get enum_qualitySeverity_critical => 'حرج';
+
+  @override
+  String get enum_qualitySeverity_info => 'معلومة';
+
+  @override
+  String get enum_qualitySeverity_warning => 'تحذير';
+
+  @override
+  String get enum_qualityCategory_duplicate => 'مكرر';
+
+  @override
+  String get enum_qualityCategory_gas => 'الغاز';
+
+  @override
+  String get enum_qualityCategory_pressure => 'الضغط';
+
+  @override
+  String get enum_qualityCategory_profile => 'الملف';
+
+  @override
+  String get enum_qualityCategory_source => 'المصدر';
+
+  @override
+  String get enum_qualityCategory_tank => 'الأسطوانة';
+
+  @override
+  String get enum_qualityCategory_temperature => 'درجة الحرارة';
+
+  @override
+  String get enum_qualityCategory_time => 'الوقت';
+
+  @override
+  String get enum_eventSource_computed => 'محسوب';
+
+  @override
+  String get enum_eventSource_imported => 'مستورد';
+
+  @override
+  String get enum_eventSource_user => 'أضفته أنت';
+
+  @override
+  String settings_conflict_whatDiffers(int count) {
+    return 'ما يختلف ($count)';
+  }
+
+  @override
+  String get settings_conflict_whitespaceOnly =>
+      'تختلف المسافات أو فواصل الأسطر فقط.';
 
   @override
   String get settings_data_appDefaultLocation => 'موقع التطبيق الافتراضي';
@@ -30686,6 +33127,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_pocket_mount => 'التثبيت';
 
   @override
+  String get attrLabel_lens_type => 'نوع العدسة';
+
+  @override
+  String get attrLabel_focal_length_mm => 'البعد البؤري (مم)';
+
+  @override
+  String get attrLabel_port_type => 'نوع المنفذ';
+
+  @override
+  String get attrLabel_tray_style => 'النمط';
+
+  @override
+  String get attrLabel_arm_length_m => 'طول الذراع';
+
+  @override
+  String get attrLabel_guide_number_m => 'الرقم الدليلي';
+
+  @override
   String get attrLabel_bag_style => 'النمط';
 
   @override
@@ -30843,6 +33302,33 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'الفخذ';
+
+  @override
+  String get attrChoice_lens_type_camera_lens => 'عدسة الكاميرا';
+
+  @override
+  String get attrChoice_lens_type_wet_lens => 'عدسة رطبة';
+
+  @override
+  String get attrChoice_lens_type_diopter => 'عدسة مقرّبة (ديوبتر)';
+
+  @override
+  String get attrChoice_port_type_dome => 'قبة';
+
+  @override
+  String get attrChoice_port_type_flat => 'مسطح';
+
+  @override
+  String get attrChoice_port_type_macro => 'ماكرو';
+
+  @override
+  String get attrChoice_tray_style_single_handle => 'مقبض واحد';
+
+  @override
+  String get attrChoice_tray_style_double_handle => 'مقبضان';
+
+  @override
+  String get attrChoice_tray_style_pistol_grip => 'مقبض مسدس';
 
   @override
   String get attrChoice_bag_style_duffel => 'حقيبة سفر';
@@ -31154,6 +33640,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'الطيران بعد الغوص';
 
   @override
+  String get safetySettings_cnsOtuHeader => 'الحمل الحالي لـ CNS/OTU';
+
+  @override
   String get safetySettings_noFlyPreset_standard => 'قياسي (12/18/24 س)';
 
   @override
@@ -31200,6 +33689,30 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get safetyHub_noFly_clear_subtitle => 'لا يوجد قيد نشط على الطيران';
+
+  @override
+  String get safetyHub_cnsOtu_clear_title => 'لا يوجد حمل نشط';
+
+  @override
+  String get safetyHub_cnsOtu_clear_subtitle =>
+      'تلاشى كل من CNS وOTU منذ غطستك الأخيرة';
+
+  @override
+  String safetyHub_cnsOtu_sinceLastDive(String duration) {
+    return 'انتهت الغطسة الأخيرة منذ $duration';
+  }
+
+  @override
+  String safetyHub_cnsOtu_elapsedDaysHours(int days, int hours) {
+    return '${days}d ${hours}h';
+  }
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_title => 'آخر غطسة بلا بيانات مخطط';
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_body =>
+      'لا يمكن حساب CNS% و OTU لها بدون بيانات العمق. المجاميع أدناه لا تشملها.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -31635,6 +34148,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get planning_card_noFly_subtitle => 'عدّاد إرشادي منذ آخر غطساتك';
+
+  @override
+  String get planning_card_cnsOtu_subtitle => 'تناقص مباشر منذ غطستك الأخيرة';
 
   @override
   String get settings_section_safety_title => 'السلامة';
