@@ -50,7 +50,11 @@ class HighlightKey extends StatelessWidget {
               height: 4,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(2),
+                // Directional, so the recent end sits beside "Recent" in
+                // right-to-left languages too.
                 gradient: LinearGradient(
+                  begin: AlignmentDirectional.centerStart,
+                  end: AlignmentDirectional.centerEnd,
                   colors: [ink, ink.withValues(alpha: 0.15)],
                 ),
               ),

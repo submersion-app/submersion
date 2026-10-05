@@ -7,6 +7,7 @@ import 'package:submersion/features/connections/presentation/canvas/connection_k
 import 'package:submersion/features/connections/presentation/panel/highlight_mode_control.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_legend.dart';
+import 'package:submersion/features/connections/presentation/widgets/highlight_key.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -70,5 +71,27 @@ void main() {
     await show(HighlightMode.recency);
     expect(find.text('Buddies'), findsOneWidget);
     expect(find.text('Recent'), findsOneWidget);
+  });
+  testWidgets('the recency fade follows the reading direction', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const Directionality(
+          textDirection: TextDirection.rtl,
+          child: Material(child: HighlightKey(mode: HighlightMode.recency)),
+        ),
+      ),
+    );
+    final box = tester.widget<Container>(
+      find.descendant(
+        of: find.byKey(const ValueKey('highlight-key-recency')),
+        matching: find.byType(Container),
+      ),
+    );
+    final gradient =
+        (box.decoration! as BoxDecoration).gradient! as LinearGradient;
+    final resolved = gradient.begin.resolve(TextDirection.rtl);
+    expect(resolved, Alignment.centerRight, reason: 'recent end sits at start');
   });
 }
