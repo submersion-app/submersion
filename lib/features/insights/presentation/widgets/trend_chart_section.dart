@@ -8,6 +8,7 @@ import 'package:submersion/features/insights/presentation/providers/trend_chart_
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_control_strip.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 /// One per-dive trend chart, its card and its controls.
 ///
@@ -165,11 +166,13 @@ class TrendChartSection extends ConsumerWidget {
             end: clampDay(current.end!),
           )
         : DateTimeRange(start: firstDay, end: lastDay);
-    final picked = await showDateRangePicker(
+    // The shared wrapper, so typed dates follow the diver's date format.
+    final picked = await showAppDateRangePicker(
       context: context,
       firstDate: firstDay,
       lastDate: lastDay,
       initialDateRange: initial,
+      dateFormat: ref.read(dateFormatProvider),
     );
     if (picked == null) return;
     final latest = ref.read(trendChartSettingsProvider(chartId));
