@@ -15,7 +15,7 @@ void main() {
     });
 
     test('matches the name the Subsurface fold already gives a site', () {
-      // subsurface_site_folder.dart names an unnamed survivor with
+      // import_site_fold.dart names an unnamed survivor with
       // GeoPoint.toString(); the shared contract must not diverge from it,
       // or the same reef imports under two different names depending on
       // which file it arrived in.

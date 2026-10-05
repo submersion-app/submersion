@@ -10,7 +10,7 @@ import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dar
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gradient_factor.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
-import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_fold.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -113,8 +113,7 @@ class UddfFullImportService {
     }
 
     // Parse dive sites with extended fields
-    final sites = <Map<String, dynamic>>[];
-    final siteMap = <String, Map<String, dynamic>>{};
+    final rawSites = <Map<String, dynamic>>[];
     // Every <divesite> block is read. Only the first used to be, so a file
     // carrying a second block lost its sites and every dive linking one
     // (#2209). A <site> with no id is kept: no dive can link to it, but a
@@ -122,19 +121,25 @@ class UddfFullImportService {
     // worth more than the id the file forgot to give it.
     for (final divesiteElement in uddfElement.findElements('divesite')) {
       for (final siteElement in divesiteElement.findElements('site')) {
-        // A `<site>` the file never named is filed under its own
-        // coordinates, so the review step shows where it is rather than
-        // "Unnamed" and the position survives the import (#2232). A site
-        // with neither is dropped, which is all it was ever worth.
-        final siteData = ImportSiteLocation.named(_parseFullSite(siteElement));
-        if (siteData == null) continue;
+        final siteData = _parseFullSite(siteElement);
         final siteId = siteElement.getAttribute('id');
-        if (siteId != null) {
-          siteData['uddfId'] = siteId;
-          siteMap[siteId] = siteData;
-        }
-        sites.add(siteData);
+        if (siteId != null) siteData['uddfId'] = siteId;
+        rawSites.add(siteData);
       }
+    }
+    // A `<site>` the file never named is filed under its own coordinates, so
+    // the review step shows where it is rather than "Unnamed" and the
+    // position survives the import (#2232). A site with neither is dropped,
+    // which is all it was ever worth. Unnamed sites at one spot fold into a
+    // single site first: Oceanic+ mints one per dive (#2938).
+    final folded = foldImportSites(rawSites, foldSameName: false);
+    final sites = folded.sites;
+    final siteMap = <String, Map<String, dynamic>>{
+      for (final site in sites)
+        if (site['uddfId'] case final String id) id: site,
+    };
+    for (final alias in folded.aliases.entries) {
+      siteMap[alias.key] = siteMap[alias.value]!;
     }
 
     // Parse trips. Submersion writes one <divetrip> per trip, carrying the
@@ -1084,7 +1089,10 @@ class UddfFullImportService {
   Map<String, dynamic> _parseUddfSite(XmlElement siteElement) {
     final site = <String, dynamic>{};
 
-    site['name'] = UddfImportParsers.getElementText(siteElement, 'name');
+    // Oceanic+ writes every site's own id as its <name> (#2938). That is a
+    // placeholder, not a name, so the site is treated as unnamed.
+    final name = UddfImportParsers.getElementText(siteElement, 'name');
+    site['name'] = name == siteElement.getAttribute('id')?.trim() ? null : name;
 
     final geoElement = siteElement.findElements('geography').firstOrNull;
     if (geoElement != null) {

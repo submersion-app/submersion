@@ -13,7 +13,8 @@ import 'package:flutter_test/flutter_test.dart';
 ///
 /// A file is a candidate when it assigns a `latitude` key into a map, which
 /// is how every import layer in this repo hands a position to the next one.
-/// A candidate passes by *calling* `ImportSiteLocation`, or by appearing in
+/// A candidate passes by *calling* `ImportSiteLocation` or `foldImportSites`
+/// (which names every unnamed survivor through it, #2938), or by appearing in
 /// `allowed` with the reason it does not need to.
 ///
 /// What this proves and what it does not: matching a call rather than the
@@ -50,11 +51,11 @@ void main() {
     // place the dive happened.
     'lib/features/universal_import/data/services/macdive_media_entries.dart':
         "a photo's coordinates, not a site",
-    // Returns the unnamed map deliberately: `foldSubsurfaceSites` is the
+    // Returns the unnamed map deliberately: `foldImportSites` is the
     // caller, and naming from coordinates happens there, once, after the
     // fold has had its chance to merge the entry into a named neighbour.
     'lib/features/universal_import/data/parsers/subsurface/subsurface_inline_site.dart':
-        'hands its unnamed map to foldSubsurfaceSites, which names it',
+        'hands its unnamed map to foldImportSites, which names it',
     // A photo's coordinates, which belong to the picture rather than to the
     // place the dive happened. Diving Log's pictures table has no GPS, so
     // the mapper writes nulls in the same shape as MacDive's media entries.
@@ -68,9 +69,12 @@ void main() {
     '''\\[['"]latitude['"]\\]\\s*=|['"]latitude['"]\\s*:''',
   );
 
-  /// A call into the contract, such as `ImportSiteLocation.named(`. The bare
-  /// class name is not enough: a doc comment mentioning it would pass.
-  final callsContract = RegExp(r'ImportSiteLocation\s*\.\s*\w+\s*\(');
+  /// A call into the contract, such as `ImportSiteLocation.named(` or
+  /// `foldImportSites(`. The bare name is not enough: a doc comment
+  /// mentioning it would pass.
+  final callsContract = RegExp(
+    r'ImportSiteLocation\s*\.\s*\w+\s*\(|\bfoldImportSites\s*\(',
+  );
 
   /// The contract itself declares the class rather than calling it.
   const contractPath =
