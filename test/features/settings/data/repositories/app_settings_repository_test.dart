@@ -140,7 +140,9 @@ void main() {
       expect(fired, isTrue);
     });
 
-    test('setNavPrimaryIds notifies the sync change bus', () async {
+    // The nav layout stays on each device (issue #2947), so writing it has
+    // nothing to sync and must not wake an on-change auto-sync.
+    test('setNavPrimaryIds does not notify the sync change bus', () async {
       var fired = false;
       final sub = SyncEventBus.changes.listen((_) => fired = true);
       addTearDown(sub.cancel);
@@ -148,7 +150,7 @@ void main() {
       await repository.setNavPrimaryIds(const ['a', 'b']);
       await pumpEventQueue();
 
-      expect(fired, isTrue);
+      expect(fired, isFalse);
     });
   });
 

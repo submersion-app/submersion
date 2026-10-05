@@ -559,7 +559,7 @@ class EquipmentListNotifier
     await refresh();
   }
 
-  /// The status offer after a location move (v267).
+  /// The status offer after a location move (v268).
   Future<void> setStatusForMany(
     List<String> ids,
     EquipmentStatus status,

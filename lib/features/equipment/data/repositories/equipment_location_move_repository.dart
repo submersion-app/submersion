@@ -9,7 +9,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/equipment/data/equipment_location_sql.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location_move.dart';
 
-/// Each item's location log (v267). Writes never touch the `equipment` row
+/// Each item's location log (v268). Writes never touch the `equipment` row
 /// (#1769: a child change does not re-stamp its parent); each move carries
 /// its own clock.
 class EquipmentLocationMoveRepository {

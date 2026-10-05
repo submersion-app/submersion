@@ -29,7 +29,8 @@ class SafetyReviewService {
   /// offsets read as rapid ascents no computer recorded (#2888). A finding
   /// whose span moves onto the primary's own samples is a new finding, so a
   /// dismissal made on the interleaved one does not carry over.
-  static const int engineVersion = 5;
+  /// v6: late and missed deco gas switches against the ideal ascent (#2939).
+  static const int engineVersion = 6;
 
   const SafetyReviewService();
 
@@ -52,10 +53,44 @@ class SafetyReviewService {
     findings.addAll(_omittedSafetyStopFindings(diveId, analysis, now, nextId));
     findings.addAll(_sawtoothFindings(diveId, analysis, now, nextId));
     findings.addAll(_highSurfaceGfFindings(diveId, analysis, now, nextId));
+    findings.addAll(_lateGasSwitchFindings(diveId, analysis, now, nextId));
 
     return idGenerator == null
         ? withDeterministicIds(diveId, findings)
         : findings;
+  }
+
+  /// Extra deco from one late or missed gas switch at or above which the
+  /// finding is significant rather than a caution. A late switch that cost
+  /// no deco at all is only info.
+  static const int _significantExtraDecoSeconds = 300;
+
+  List<SafetyFinding> _lateGasSwitchFindings(
+    String diveId,
+    ProfileAnalysis analysis,
+    DateTime now,
+    String Function() nextId,
+  ) {
+    final efficiency = analysis.gasSwitchEfficiency;
+    if (efficiency == null || !efficiency.evaluated) return const [];
+    return [
+      for (final window in efficiency.windows)
+        SafetyFinding(
+          id: nextId(),
+          diveId: diveId,
+          ruleId: SafetyRuleId.lateGasSwitch,
+          severity: window.extraDecoSeconds >= _significantExtraDecoSeconds
+              ? SafetySeverity.significant
+              : window.extraDecoSeconds > 0
+              ? SafetySeverity.caution
+              : SafetySeverity.info,
+          startTimestamp: window.idealTimestamp,
+          endTimestamp: window.endTimestamp,
+          value: window.extraDecoSeconds.toDouble(),
+          engineVersion: engineVersion,
+          createdAt: now,
+        ),
+    ];
   }
 
   /// Contiguous ceiling-violation ranges shorter than this are ignored as

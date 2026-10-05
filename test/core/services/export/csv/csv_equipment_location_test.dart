@@ -9,7 +9,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_equipment_csv_parser.dart';
 
-/// The equipment CSV carries each item's current location both ways (v267).
+/// The equipment CSV carries each item's current location both ways (v268).
 void main() {
   const reg = EquipmentItem(
     id: 'reg',

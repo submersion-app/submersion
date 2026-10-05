@@ -211,11 +211,17 @@ extension RungsFromV231 on AppDatabase {
       await _assertDistanceUnitColumn();
     }
     if (from < 263) await reportProgress();
-    // v267: equipment locations and their move log. Re-asserted in
-    // beforeOpen. 264 to 266 are held by open branches.
-    if (from < 267) {
+    // v264: diver_settings.default_show_late_gas_switches (issue #2939).
+    // Column only, defaulting on. Re-asserted in beforeOpen.
+    if (from < 264) {
+      await _assertLateGasSwitchSettingColumn();
+    }
+    if (from < 264) await reportProgress();
+    // v268: equipment locations and their move log (issue #3037).
+    // Re-asserted in beforeOpen. 265 to 267 are held by open branches.
+    if (from < 268) {
       await _assertEquipmentLocationSchema();
     }
-    if (from < 267) await reportProgress();
+    if (from < 268) await reportProgress();
   }
 }

@@ -48,8 +48,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // v217 and v219 backstop: the tag scope flags.
     await _assertTagScopeColumns();
 
-    // v211 backstop: re-assert diver_settings.auto_tag_imports.
+    // v211 and v264 backstops: diver_settings.auto_tag_imports and
+    // default_show_late_gas_switches.
     await _assertAutoTagImportsColumn();
+    await _assertLateGasSwitchSettingColumn();
 
     // v210 backstop: the dive_tanks equipment link sets null on delete.
     // First, while foreign keys are still off: the rebuild it may do
@@ -166,7 +168,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // (parallel-branch version-collision self-heal; all idempotent).
     await _assertTripCylindersSchema();
 
-    // v234 and v267 backstops: the equipment sharing tables and share pair
+    // v234 and v268 backstops: the equipment sharing tables and share pair
     // index, and the equipment location tables (parallel-branch
     // version-collision self-heal; all idempotent).
     await _assertEquipmentSchemaBackstops();

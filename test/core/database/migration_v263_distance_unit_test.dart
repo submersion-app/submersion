@@ -48,11 +48,15 @@ void main() {
   }
 
   test('v263 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v267 landed on top; the newest rung owns the exact
-    // assertion.
+    // Relaxed once v264 (diver_settings.default_show_late_gas_switches,
+    // #2939) landed on top; the newest rung owns the exact assertions. 262 is
+    // held by an open branch (#2991), so from 261 this is one step.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(263));
     expect(AppDatabase.migrationVersions, contains(263));
-    expect(AppDatabase.migrationStepCount(261), greaterThanOrEqualTo(1));
+    expect(
+      AppDatabase.migrationStepCount(261),
+      AppDatabase.migrationStepCount(263) + 1,
+    );
   });
 
   test('the column is additive and did not move the sync floor', () {

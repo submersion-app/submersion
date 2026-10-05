@@ -360,6 +360,10 @@ class DiverSettings extends Table {
       boolean().withDefault(const Constant(false))();
   BoolColumn get defaultShowGasSwitchMarkers =>
       boolean().withDefault(const Constant(true))();
+
+  /// v264: shade late and missed deco gas switches on the profile (#2939).
+  BoolColumn get defaultShowLateGasSwitches =>
+      boolean().withDefault(const Constant(true))();
   BoolColumn get defaultShowGasTimeline =>
       boolean().withDefault(const Constant(false))();
   // v161: default visibility for the per-cell O2 mV traces (issue #1235).

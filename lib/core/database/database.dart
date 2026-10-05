@@ -148,7 +148,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Equipment sharing and its event log (v234, issue #2046)
     EquipmentShares,
     EquipmentOwnershipEvents,
-    // Equipment locations and their move log (v267)
+    // Equipment locations and their move log (v268)
     EquipmentLocations,
     EquipmentLocationMoves,
     // Equipment service cache for the query language (v242, issue
@@ -237,7 +237,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 267;
+  static const int currentSchemaVersion = 268;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1095,10 +1095,13 @@ class AppDatabase extends _$AppDatabase {
     // stays. Inbound, the generated fromJson ignores the legacy key.
     261,
     263,
-    // v267: equipment locations and their move log. Two new tables, so the
-    // floor stays. 264 to 266 are held by open branches (#3010, #3011,
-    // #3001).
-    267,
+    // v264: diver_settings.default_show_late_gas_switches (issue #2939).
+    // Additive column with a default, so the floor stays.
+    264,
+    // v268: equipment locations and their move log (issue #3037). Two new
+    // tables, so the floor stays. 265 to 267 are held by open branches
+    // (#3009, #3011, #3001, #3007, #3010).
+    268,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

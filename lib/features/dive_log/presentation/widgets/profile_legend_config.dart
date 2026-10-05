@@ -78,6 +78,9 @@ class ProfileLegendConfig {
   final bool hasMaxDepthMarker;
   final bool hasPressureMarkers;
   final bool hasGasSwitches;
+
+  /// The dive has late or missed gas switch windows to shade (#2939).
+  final bool hasLateGasSwitches;
   final bool hasPhotoMarkers;
   final bool hasMultiTankPressure;
   final bool hasGasData;
@@ -135,6 +138,7 @@ class ProfileLegendConfig {
     this.hasMaxDepthMarker = false,
     this.hasPressureMarkers = false,
     this.hasGasSwitches = false,
+    this.hasLateGasSwitches = false,
     this.hasPhotoMarkers = false,
     this.hasMultiTankPressure = false,
     this.hasGasData = false,
@@ -176,6 +180,7 @@ class ProfileLegendConfig {
       hasMaxDepthMarker ||
       hasPressureMarkers ||
       hasGasSwitches ||
+      hasLateGasSwitches ||
       hasPhotoMarkers ||
       hasTankListSection ||
       hasGasData ||

@@ -68,7 +68,7 @@ class EquipmentFilterState {
   /// Tag ids, any-of (issue #1942). Empty means no tag narrowing.
   final Set<String> tagIds;
 
-  /// Current places by name, any-of and ignoring case (v267), so the panel
+  /// Current places by name, any-of and ignoring case (v268), so the panel
   /// and a typed query agree. Empty means no place narrowing.
   final Set<String> locationNames;
 

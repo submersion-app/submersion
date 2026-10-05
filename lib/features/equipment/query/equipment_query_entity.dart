@@ -116,7 +116,7 @@ final equipmentQueryEntity = QueryEntity(
       labelKey: 'query_equipment_nextServiceDue',
       tables: [serviceStatusTable],
     ),
-    // Where the item is now (v267): the name of its newest move's place, so
+    // Where the item is now (v268): the name of its newest move's place, so
     // a typed `location = Garage` and the filter panel both match what the
     // diver sees. Reads the move log and the places, so a move or a rename
     // refreshes any list this field narrows.

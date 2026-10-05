@@ -2,7 +2,7 @@ import 'package:submersion/features/dive_import/data/services/import_equipment_t
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_repository.dart';
 
-/// Records imported equipment's location (v267). Each item map's
+/// Records imported equipment's location (v268). Each item map's
 /// `locationName` resolves to one of the diver's places by name, ignoring
 /// case (an active place before an archived one), or to a new place of kind
 /// other; the item then gets one move there, dated now. An item already at

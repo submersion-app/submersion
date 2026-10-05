@@ -6,7 +6,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 
 import '../../../helpers/test_database.dart';
 
-/// Equipment locations (v267) in sync: places are a top-level entity,
+/// Equipment locations (v268) in sync: places are a top-level entity,
 /// moves a parent-gated child of equipment.
 void main() {
   late AppDatabase db;

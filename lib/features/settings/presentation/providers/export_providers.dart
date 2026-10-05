@@ -163,7 +163,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
   }
 
   /// Each item's current place name, for the equipment CSV's Location
-  /// column (v267). Items with no location are absent.
+  /// column (v268). Items with no location are absent.
   Future<Map<String, String>> _equipmentLocationNamesFor(
     List<EquipmentItem> equipment,
   ) async {

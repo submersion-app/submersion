@@ -143,7 +143,7 @@ class ImportRepositories {
   final EquipmentTagRepository? equipmentTagRepository;
 
   /// Optional for the same reason; when either is null, the locations in a
-  /// Submersion equipment CSV are skipped (v267).
+  /// Submersion equipment CSV are skipped (v268).
   final EquipmentLocationRepository? equipmentLocationRepository;
   final EquipmentLocationMoveRepository? equipmentLocationMoveRepository;
 
@@ -569,7 +569,7 @@ class UddfEntityImporter {
       );
     }
 
-    // Equipment locations (v267), from the Submersion equipment CSV.
+    // Equipment locations (v268), from the Submersion equipment CSV.
     final locationRepository = repositories.equipmentLocationRepository;
     final moveRepository = repositories.equipmentLocationMoveRepository;
     if (locationRepository != null && moveRepository != null) {

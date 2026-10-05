@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/services/sync/sync_service.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/conflicts/conflict_comparison.dart';
+import 'package:submersion/features/settings/presentation/conflicts/conflict_device_labels.dart';
+import 'package:submersion/features/settings/presentation/conflicts/widgets/conflict_choice_consequence.dart';
+import 'package:submersion/features/settings/presentation/conflicts/widgets/conflict_comparison_view.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
-import 'package:submersion/features/settings/presentation/widgets/conflict_data_preview.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_reference_labels.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -21,33 +26,43 @@ class _ConflictResolutionDialogState
   int _currentIndex = 0;
   final Map<String, ConflictResolution> _resolutions = {};
 
+  /// Below this window width the comparison needs the whole screen.
+  static const _fullScreenBelow = 600.0;
+
   @override
   Widget build(BuildContext context) {
     final conflictsAsync = ref.watch(conflictsProvider);
-
-    return Dialog(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
-        child: conflictsAsync.when(
-          data: (conflicts) => _buildContent(context, conflicts),
-          loading: () => const Padding(
-            padding: EdgeInsets.all(32),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-          error: (error, _) => Padding(
-            padding: const EdgeInsets.all(32),
-            child: Center(
-              child: Text(
-                context.l10n.settings_conflict_errorLoading(error.toString()),
-              ),
-            ),
+    final narrow = MediaQuery.sizeOf(context).width < _fullScreenBelow;
+    final body = conflictsAsync.when(
+      data: (conflicts) => _buildContent(context, conflicts, narrow: narrow),
+      loading: () => const Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, _) => Padding(
+        padding: const EdgeInsets.all(32),
+        child: Center(
+          child: Text(
+            context.l10n.settings_conflict_errorLoading(error.toString()),
           ),
         ),
       ),
     );
+
+    if (narrow) return Dialog.fullscreen(child: SafeArea(child: body));
+    return Dialog(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 720, maxHeight: 680),
+        child: body,
+      ),
+    );
   }
 
-  Widget _buildContent(BuildContext context, List<SyncConflict> conflicts) {
+  Widget _buildContent(
+    BuildContext context,
+    List<SyncConflict> conflicts, {
+    required bool narrow,
+  }) {
     if (conflicts.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(24),
@@ -78,30 +93,56 @@ class _ConflictResolutionDialogState
     // is rebuilt, and can come back shorter than the card being shown.
     if (_currentIndex >= conflicts.length) _currentIndex = conflicts.length - 1;
     final conflict = conflicts[_currentIndex];
-    final hasResolution = _resolutions.containsKey(_conflictKey(conflict));
+    final comparison = buildConflictComparison(
+      l10n: context.l10n,
+      units: UnitFormatter(ref.watch(settingsProvider)),
+      conflict: conflict,
+    );
+    final localDevice = ref.watch(conflictLocalDeviceProvider).value;
+    final devices = conflictDeviceLabels(
+      l10n: context.l10n,
+      localName: localDevice?.name,
+      localDeviceId: localDevice?.id,
+      peerNames: ref.watch(peerDeviceNamesProvider).value ?? const {},
+      remoteData: conflict.remoteData,
+    );
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildHeader(context, conflicts),
+        _buildHeader(context, conflicts, narrow: narrow),
         Expanded(
           child: SingleChildScrollView(
+            // Keyed by conflict so the next one opens at the top, with its
+            // unchanged fields collapsed.
+            key: ValueKey(_conflictKey(conflict)),
             padding: const EdgeInsets.all(16),
-            child: _buildConflictDetails(context, conflict),
+            child: _buildConflictDetails(
+              context,
+              conflict,
+              comparison,
+              devices,
+            ),
           ),
         ),
-        _buildResolutionOptions(context, conflict),
-        _buildFooter(context, conflicts, hasResolution),
+        _buildResolutionOptions(context, conflict, comparison, devices),
+        _buildFooter(context, conflicts),
       ],
     );
   }
 
-  Widget _buildHeader(BuildContext context, List<SyncConflict> conflicts) {
+  Widget _buildHeader(
+    BuildContext context,
+    List<SyncConflict> conflicts, {
+    required bool narrow,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: narrow
+            ? null
+            : const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Row(
         children: [
@@ -135,7 +176,12 @@ class _ConflictResolutionDialogState
     );
   }
 
-  Widget _buildConflictDetails(BuildContext context, SyncConflict conflict) {
+  Widget _buildConflictDetails(
+    BuildContext context,
+    SyncConflict conflict,
+    ConflictComparison comparison,
+    ConflictDeviceLabels devices,
+  ) {
     final theme = Theme.of(context);
 
     return Column(
@@ -175,80 +221,11 @@ class _ConflictResolutionDialogState
           ),
         ),
         const SizedBox(height: 16),
-
-        // Local version
-        Text(
-          context.l10n.settings_conflict_localVersion,
-          style: theme.textTheme.labelLarge?.copyWith(color: Colors.blue),
-        ),
-        const SizedBox(height: 8),
-        Card(
-          color: Colors.blue.withAlpha(20),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.phone_android, size: 16),
-                    const SizedBox(width: 8),
-                    Text(
-                      context.l10n.settings_conflict_modified(
-                        _formatDateTime(conflict.localModified),
-                      ),
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ConflictDataPreview(
-                  entityType: conflict.entityType,
-                  data: conflict.localData,
-                  references: conflict.localReferences,
-                  counterpart: conflict.remoteData,
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // Remote version
-        Text(
-          context.l10n.settings_conflict_remoteVersion,
-          style: theme.textTheme.labelLarge?.copyWith(color: Colors.green),
-        ),
-        const SizedBox(height: 8),
-        Card(
-          color: Colors.green.withAlpha(20),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.cloud, size: 16),
-                    const SizedBox(width: 8),
-                    Text(
-                      context.l10n.settings_conflict_modified(
-                        _formatDateTime(conflict.remoteModified),
-                      ),
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ConflictDataPreview(
-                  entityType: conflict.entityType,
-                  data: conflict.remoteData,
-                  references: conflict.remoteReferences,
-                  counterpart: conflict.localData,
-                ),
-              ],
-            ),
-          ),
+        ConflictComparisonView(
+          comparison: comparison,
+          devices: devices,
+          localModified: _formatDateTime(conflict.localModified),
+          remoteModified: _formatDateTime(conflict.remoteModified),
         ),
       ],
     );
@@ -274,11 +251,18 @@ class _ConflictResolutionDialogState
     return (name != null && name.isNotEmpty) ? name : null;
   }
 
-  Widget _buildResolutionOptions(BuildContext context, SyncConflict conflict) {
+  Widget _buildResolutionOptions(
+    BuildContext context,
+    SyncConflict conflict,
+    ConflictComparison comparison,
+    ConflictDeviceLabels devices,
+  ) {
     final key = _conflictKey(conflict);
     final selected = _resolutions[key];
 
     return Container(
+      key: const Key('conflict-resolution-options'),
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerLow,
@@ -286,48 +270,52 @@ class _ConflictResolutionDialogState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            context.l10n.settings_conflict_chooseResolution,
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-          const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
               ChoiceChip(
-                label: Text(context.l10n.settings_conflict_keepLocal),
+                label: Text(
+                  context.l10n.settings_conflict_keepDevice(devices.local),
+                ),
                 selected: selected == ConflictResolution.keepLocal,
                 onSelected: (_) =>
                     _selectResolution(key, ConflictResolution.keepLocal),
                 avatar: const Icon(Icons.phone_android, size: 18),
               ),
               ChoiceChip(
-                label: Text(context.l10n.settings_conflict_keepRemote),
+                label: Text(
+                  context.l10n.settings_conflict_keepDevice(devices.remote),
+                ),
                 selected: selected == ConflictResolution.keepRemote,
                 onSelected: (_) =>
                     _selectResolution(key, ConflictResolution.keepRemote),
                 avatar: const Icon(Icons.cloud, size: 18),
               ),
-              ChoiceChip(
-                label: Text(context.l10n.settings_conflict_keepBoth),
-                selected: selected == ConflictResolution.keepBoth,
-                onSelected: (_) =>
-                    _selectResolution(key, ConflictResolution.keepBoth),
-                avatar: const Icon(Icons.copy_all, size: 18),
-              ),
+              if (canKeepBoth(comparison, conflict))
+                ChoiceChip(
+                  label: Text(context.l10n.settings_conflict_keepBoth),
+                  selected: selected == ConflictResolution.keepBoth,
+                  onSelected: (_) =>
+                      _selectResolution(key, ConflictResolution.keepBoth),
+                  avatar: const Icon(Icons.copy_all, size: 18),
+                ),
             ],
+          ),
+          ConflictChoiceConsequence(
+            text: conflictConsequence(
+              l10n: context.l10n,
+              comparison: comparison,
+              devices: devices,
+              choice: selected,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFooter(
-    BuildContext context,
-    List<SyncConflict> conflicts,
-    bool hasResolution,
-  ) {
+  Widget _buildFooter(BuildContext context, List<SyncConflict> conflicts) {
     final allResolved = conflicts.every(
       (c) => _resolutions.containsKey(_conflictKey(c)),
     );
@@ -351,16 +339,26 @@ class _ConflictResolutionDialogState
             icon: const Icon(Icons.chevron_right),
             tooltip: context.l10n.settings_conflict_next_tooltip,
           ),
-          const Spacer(),
-          // Action buttons
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(context.l10n.settings_conflict_cancel),
-          ),
-          const SizedBox(width: 8),
-          FilledButton(
-            onPressed: allResolved ? () => _applyResolutions(conflicts) : null,
-            child: Text(context.l10n.settings_conflict_applyAll),
+          // Action buttons. A phone in a long-worded locale cannot fit both
+          // beside the arrows, so they wrap rather than overflow.
+          Expanded(
+            child: Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(context.l10n.settings_conflict_cancel),
+                ),
+                FilledButton(
+                  onPressed: allResolved
+                      ? () => _applyResolutions(conflicts)
+                      : null,
+                  child: Text(context.l10n.settings_conflict_applyAll),
+                ),
+              ],
+            ),
           ),
         ],
       ),

@@ -165,7 +165,7 @@ class SubmersionEquipmentCsvParser implements ImportParser {
       if (components != null) componentCells[items.length] = components;
       // Tags (issue #1942): linked by the importer once the tags exist.
       final tagRefs = tags.refsFor(table.text(row, 'Tags'));
-      // Location (v267): the place is matched or made by the importer.
+      // Location (v268): the place is matched or made by the importer.
       final locationName = table.text(row, 'Location')?.trim();
 
       items.add(

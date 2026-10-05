@@ -620,7 +620,7 @@ class EquipmentRepository {
         await EquipmentShareRepository().deleteForEquipment(id);
         // Trip packing links (issue #2338), tombstoned like the shares.
         await TripEquipmentRepository().deleteForEquipment(id);
-        // Location history (v267), tombstoned like the shares.
+        // Location history (v268), tombstoned like the shares.
         await EquipmentLocationMoveRepository().deleteForEquipment(id);
         await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
         for (final s in schedules) {

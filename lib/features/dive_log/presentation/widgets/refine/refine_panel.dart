@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/query/presentation/query_tree_edit.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/refine_custom_fields_group.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/
 import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/refine_rules_group.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_count_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_group_tile.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/query/presentation/widgets/saved_query_chip_row.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -88,13 +90,27 @@ class _RefinePanelState extends ConsumerState<RefinePanel> {
   List<Widget> _groups() {
     final l10n = context.l10n;
     final d = _draft;
+    // A computer deleted since the filter was set resolves to All
+    // computers, as Show writes it.
+    final resolved = RefineGasEquipmentGroup.resolveOnApply(
+      d,
+      ref.watch(allDiveComputersProvider),
+    );
     Widget tile(String title, int active, Widget child) =>
         RefineGroupTile(title: title, activeCount: active, child: child);
     return [
       tile(
         RefineRulesGroup.title(l10n),
         RefineRulesGroup.activeCount(d),
-        RefineRulesGroup(draft: d, onChanged: _update),
+        RefineRulesGroup(
+          draft: d,
+          onChanged: _update,
+          // The whole search as Show would apply it (#2989), All dives
+          // lifted: a search set only in the other groups saves too.
+          saveNode: normalizeQuery(
+            resolved.copyWith(axesSuspended: false).toQuery(),
+          ),
+        ),
       ),
       tile(
         RefineDateGroup.title(l10n),
@@ -115,12 +131,7 @@ class _RefinePanelState extends ConsumerState<RefinePanel> {
         RefineGasEquipmentGroup.title(l10n),
         // A computer deleted since the filter was set shows as All in the
         // group, so it is not counted either.
-        RefineGasEquipmentGroup.activeCount(
-          RefineGasEquipmentGroup.resolveOnApply(
-            d,
-            ref.watch(allDiveComputersProvider),
-          ),
-        ),
+        RefineGasEquipmentGroup.activeCount(resolved),
         RefineGasEquipmentGroup(draft: d, onChanged: _update),
       ),
       tile(

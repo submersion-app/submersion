@@ -49,4 +49,16 @@ void main() {
       expect(fahrenheit.formatTemperature(null), '--');
     });
   });
+
+  group('formatTemperatureDelta', () {
+    test('scales a Fahrenheit difference without the 32-degree offset', () {
+      // 2 C warmer is 3.6 F warmer; as a reading 2 C would be 35.6 F.
+      expect(fahrenheit.formatTemperatureDelta(2), '3.6°F');
+    });
+
+    test('leaves a Celsius difference as it is', () {
+      expect(celsius.formatTemperatureDelta(1.7), '1.7°C');
+      expect(celsius.formatTemperatureDelta(2), '2°C');
+    });
+  });
 }

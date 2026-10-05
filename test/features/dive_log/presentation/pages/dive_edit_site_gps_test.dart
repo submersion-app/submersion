@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
@@ -48,6 +49,15 @@ void main() {
       tags: const [],
     );
     final created = await repository.createDive(dive);
+    // The distance caption labels the Nearby section, so a site within
+    // 50 km of the dive is what makes the anchoring visible.
+    await SiteRepository().createSite(
+      const DiveSite(
+        id: 'site-near',
+        name: 'Santa Monica Pier',
+        location: GeoPoint(34.0100, -118.4960),
+      ),
+    );
     final base = await getBaseOverrides();
 
     await tester.pumpWidget(
@@ -79,5 +89,6 @@ void main() {
 
     // Dive has entry GPS -> the picker is anchored on it.
     expect(find.text('Sorted by distance from this dive'), findsOneWidget);
+    expect(find.text('Nearby'), findsOneWidget);
   });
 }

@@ -215,8 +215,8 @@ the `:equipmentId` catch-all).
 
 ## Sync, schema and lifecycle
 
-- **Schema:** one rung at the next free schema version (current is 263; #2991
-  holds 262, so confirm the next free number against open PRs at plan time).
+- **Schema:** one rung at v268 (main reached 264 while this was built, and
+  265 to 267 are claimed by open branches).
   It creates both tables and indexes. An idempotent before-open backstop
   asserts them; it lives in a part file, because `before_open.dart` is at
   794 of its 800-line limit. New tables do not raise

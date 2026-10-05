@@ -12,7 +12,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/tables/diver_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 
-/// A diver's named places where gear can be (v267). No unique name: a
+/// A diver's named places where gear can be (v268). No unique name: a
 /// diver merge or a two-device race would otherwise fail; the Manage page
 /// warns about a duplicate instead.
 @DataClassName('EquipmentLocationRow')
@@ -35,7 +35,7 @@ class EquipmentLocations extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// Each item's location log (v267). The newest move by moved_at, then
+/// Each item's location log (v268). The newest move by moved_at, then
 /// created_at, then id is where the item is now; a null location_id
 /// records a cleared location. A parent-gated child of equipment in sync.
 @DataClassName('EquipmentLocationMoveRow')

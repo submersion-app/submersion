@@ -346,7 +346,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // is rebuilt inside the selection listener on every check toggle, and
     // re-sorting the whole inventory there made bulk selection cost a full
     // sort per tap.
-    // Group by location (v267) is this page's own switch, layered over the
+    // Group by location (v268) is this page's own switch, layered over the
     // shared arrangement: one section per place, the type groups inside it.
     final groupByLocation =
         _honoursArrangement(viewMode) &&
@@ -1699,7 +1699,7 @@ class _EquipmentHeadingRow extends _EquipmentListRow {
   final String? sectionKey;
 }
 
-/// A place's heading when the page groups by location (v267).
+/// A place's heading when the page groups by location (v268).
 class _EquipmentLocationHeadingRow extends _EquipmentListRow {
   const _EquipmentLocationHeadingRow(this.location, this.count);
 

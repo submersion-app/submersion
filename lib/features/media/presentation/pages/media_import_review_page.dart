@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/media/domain/entities/import_candidate.dart';
 import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
@@ -9,7 +10,6 @@ import 'package:submersion/features/media/presentation/providers/media_import_su
 import 'package:submersion/features/media/presentation/widgets/ambiguous_dive_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/import_preview_thumbnail.dart';
-import 'package:submersion/features/media/presentation/widgets/site_picker_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 typedef ImportReviewConfirm =
@@ -65,9 +65,9 @@ class _MediaImportReviewPageState extends ConsumerState<MediaImportReviewPage> {
   }
 
   Future<void> _chooseSite(ImportCandidate c) async {
-    final siteId = await showSitePickerSheet(context);
-    if (siteId == null || !mounted) return;
-    setState(() => _overrides[c.key] = SiteAttachTarget(siteId));
+    final result = await showSitePicker(context, useDeviceLocation: false);
+    if (result is! SitePicked || !mounted) return;
+    setState(() => _overrides[c.key] = SiteAttachTarget(result.site.id));
   }
 
   void _toggle(ImportCandidate c, ImportSuggestion? s) {

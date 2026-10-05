@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/deco_calculator/presentation/pages/deco_calculator_page.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_tool_pane.dart';
+import 'package:submersion/features/safety/presentation/pages/cns_otu_page.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
+import 'package:submersion/features/safety/presentation/providers/cns_otu_providers.dart';
 import 'package:submersion/features/safety/presentation/providers/flight_window_providers.dart';
 import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
@@ -28,6 +30,9 @@ void main() {
       // exists in a widget test.
       noFlyStatusProvider.overrideWith((ref) async => null),
       activeTripFlightWindowProvider.overrideWith((ref) async => null),
+      // The CNS/OTU readout reaches a repository and the profile analysis
+      // pipeline; neither exists in a widget test.
+      cnsOtuSnapshotProvider.overrideWith((ref) async => null),
     ];
   });
 
@@ -52,6 +57,11 @@ void main() {
       embedded: const NoFlyPage(embedded: true),
       page: const NoFlyPage(),
       title: 'Flying after diving',
+    ),
+    'cns-otu': (
+      embedded: const CnsOtuPage(embedded: true),
+      page: const CnsOtuPage(),
+      title: 'Current CNS/OTU load',
     ),
   };
 

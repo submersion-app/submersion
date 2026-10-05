@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/universal_import/data/services/divelogs_reference_mappers.dart';
+import 'package:submersion/features/universal_import/data/services/macdive_value_mapper.dart';
 
 void main() {
   group('equipmentTypeForGeartypeName', () {
@@ -40,6 +41,44 @@ void main() {
       );
     });
 
+    test('maps the camera parts ahead of the light and camera (#1997)', () {
+      const cases = {
+        'Video light': EquipmentType.videoLight,
+        'Videolampe': EquipmentType.videoLight,
+        'Videolicht': EquipmentType.videoLight,
+        'Strobe arm': EquipmentType.armClamp,
+        'Blitzarm': EquipmentType.armClamp,
+        'Clamp': EquipmentType.armClamp,
+        'Float arm': EquipmentType.floatArm,
+        'Float collar': EquipmentType.floatArm,
+        'Arm floats': EquipmentType.floatArm,
+        'Buoyancy arm': EquipmentType.floatArm,
+        'Auftriebsarm': EquipmentType.floatArm,
+        'Camera tray': EquipmentType.trayHandle,
+        'Tray': EquipmentType.trayHandle,
+        'Pistol grip': EquipmentType.trayHandle,
+        'Dome port': EquipmentType.port,
+        'Macro port': EquipmentType.port,
+        'Wet lens': EquipmentType.lens,
+        'Lens': EquipmentType.lens,
+        'Macro lens': EquipmentType.lens,
+        'Objektiv': EquipmentType.lens,
+        'Housing': EquipmentType.housing,
+        'Kameragehäuse': EquipmentType.housing,
+        'Strobe': EquipmentType.strobe,
+        'Blitz': EquipmentType.strobe,
+        'Camera': EquipmentType.camera,
+        'Lampe': EquipmentType.light,
+      };
+      cases.forEach((input, expected) {
+        expect(
+          DivelogsReferenceMappers.equipmentTypeForGeartypeName(input),
+          expected,
+          reason: input,
+        );
+      });
+    });
+
     test('maps bag geartypes, but not a lift bag or a weight pouch', () {
       // #2952. The German "Tasche" also names a pocket, so the lead pouch's
       // "Blei" must still win over it.
@@ -68,6 +107,27 @@ void main() {
           reason: input,
         );
       });
+    });
+
+    test('reads camera parts with the MacDive mapper\'s words (#1997)', () {
+      // One vocabulary for both readers: every English camera word reaches
+      // divelogs through MacDiveValueMapper.cameraPartType, guards included.
+      const names = [
+        'Video lamp',
+        'Float collar',
+        'Arm slate',
+        'Surface float',
+        'Transport case',
+        'Ball clamp',
+        'Flat ports',
+      ];
+      for (final name in names) {
+        expect(
+          DivelogsReferenceMappers.equipmentTypeForGeartypeName(name),
+          MacDiveValueMapper.equipmentType(name),
+          reason: name,
+        );
+      }
     });
 
     test('unknown or null names map to other', () {

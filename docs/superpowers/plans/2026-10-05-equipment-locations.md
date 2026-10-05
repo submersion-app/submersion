@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Schema version for this feature: **267** (`currentSchemaVersion = 267`). Claims as of 2026-10-05: 262 #2991/#2999, 264 #3010/#3009/#3005/#3007/#2999, 265 #3011, 266 #3001. Re-check open PR diffs before merging.
+- Schema version for this feature: **267** (`currentSchemaVersion = 267`), renumbered to **268** at merge time when main reached 264 and #3010 claimed 267. Claims as of 2026-10-05: 262 #2991/#2999, 264 #3010/#3009/#3005/#3007/#2999, 265 #3011, 266 #3001. Re-check open PR diffs before merging.
 - Place kinds, stored by name: `storage`, `serviceShop`, `person`, `other`. Unknown names read as `other`.
 - Current location ordering, everywhere (SQL and Dart): `moved_at DESC, created_at DESC, id DESC`.
 - Status offer: Service shop offers In Service unless status is In Service, Retired or Sold; Person offers Loaned Out unless Loaned Out, Retired or Sold; Storage offers Active only from In Service, Loaned Out or Lost; Other and No location offer nothing.

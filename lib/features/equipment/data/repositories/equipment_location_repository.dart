@@ -8,7 +8,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 
-/// CRUD for a diver's named places (v267). A place any move references can
+/// CRUD for a diver's named places (v268). A place any move references can
 /// only be archived, so history never loses a name.
 class EquipmentLocationRepository {
   AppDatabase get _db => DatabaseService.instance.database;
