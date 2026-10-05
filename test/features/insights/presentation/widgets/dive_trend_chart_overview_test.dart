@@ -95,4 +95,27 @@ void main() {
     expect(reported, TrendRange.all);
     expect(find.byType(ChartOverviewStrip), findsNothing);
   });
+
+  testWidgets('the strip starts where the plot starts, axis label or not', (
+    tester,
+  ) async {
+    for (final label in [null, 'L/min']) {
+      await tester.pumpWidget(
+        host(
+          DiveTrendChart(
+            key: ValueKey(label),
+            chartId: 'c',
+            points: weekly(52),
+            yAxisLabel: label,
+          ),
+        ),
+      );
+      await tester.tap(find.byKey(const ValueKey('trend-c-zoom-in')));
+      await tester.pump();
+      final chartLeft = tester.getTopLeft(find.byType(LineChart)).dx;
+      final stripLeft = tester.getTopLeft(find.byType(ChartOverviewStrip)).dx;
+      // 50 px of tick labels, plus 20 px for the rotated axis name.
+      expect(stripLeft - chartLeft, label == null ? 50 : 70);
+    }
+  });
 }

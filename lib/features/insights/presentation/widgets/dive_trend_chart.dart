@@ -142,6 +142,10 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
 
   static double _x(DateTime date) => date.millisecondsSinceEpoch.toDouble();
 
+  /// Room fl_chart reserves for the rotated y-axis name, left of the tick
+  /// labels. The overview strip has to clear it to line up with the plot.
+  double get _yAxisNameSize => widget.yAxisLabel != null ? 20 : 0;
+
   /// True while the strip is being dragged, so a drag that zooms all the way
   /// out keeps its strip until the gesture ends.
   bool _stripActive = false;
@@ -175,7 +179,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
             if (_viewport.isZoomed || _stripActive)
               Padding(
                 padding: EdgeInsets.only(
-                  left: trendChartPlotInsets.left,
+                  left: trendChartPlotInsets.left + _yAxisNameSize,
                   top: 6,
                 ),
                 child: ChartOverviewStrip(
@@ -678,7 +682,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
                 style: Theme.of(context).textTheme.bodySmall,
               )
             : null,
-        axisNameSize: widget.yAxisLabel != null ? 20 : 0,
+        axisNameSize: _yAxisNameSize,
         sideTitles: SideTitles(
           showTitles: true,
           reservedSize: 50,
