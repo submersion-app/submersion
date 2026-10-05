@@ -27,7 +27,7 @@ class DiveSummaryFilterBanner extends ConsumerWidget {
     final total = ref.watch(diveStatisticsProvider).valueOrNull;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 8, 8),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(12),

@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_summary_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_filter_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -211,7 +212,11 @@ void main() {
       ),
     );
 
-    Future<void> pump(WidgetTester tester, DiveFilterState filter) async {
+    Future<void> pump(
+      WidgetTester tester,
+      DiveFilterState filter, {
+      Locale locale = const Locale('en'),
+    }) async {
       final overrides = await getBaseOverrides();
 
       await tester.pumpWidget(
@@ -245,11 +250,11 @@ void main() {
             ),
             currentDiverProvider.overrideWith((ref) async => diverWithPriors),
           ].cast(),
-          child: const MaterialApp(
-            locale: Locale('en'),
+          child: MaterialApp(
+            locale: locale,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(body: DiveSummaryWidget()),
+            home: const Scaffold(body: DiveSummaryWidget()),
           ),
         ),
       );
@@ -304,6 +309,20 @@ void main() {
       expect(
         find.text('Filtered: summarizing 34 of 247 dives'),
         findsOneWidget,
+      );
+    });
+
+    testWidgets('the banner mirrors its insets in right-to-left locales', (
+      tester,
+    ) async {
+      await pump(tester, siteFilter, locale: const Locale('he'));
+
+      final banner = tester.getRect(find.byType(DiveSummaryFilterBanner));
+      final icon = tester.getRect(find.byIcon(Icons.filter_list));
+      expect(
+        banner.right - icon.right,
+        16,
+        reason: 'the icon leads the row, so in RTL it takes the start inset',
       );
     });
 
