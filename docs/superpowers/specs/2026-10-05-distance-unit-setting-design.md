@@ -65,12 +65,16 @@ setup wizard can set it. Manage > Units has no Altitude tile.
 
 ### 3. Sync
 
-`SyncDataSerializer._applyDiverSettingDefaults` seeds missing keys for payloads
-from older peers. A flat `'kilometers'` default would flip a feet diver to
-kilometres every time an older peer's record is applied. The default for a
-missing `distanceUnit` is therefore derived from the same payload's
-`depthUnit` (`feet` gives `miles`, otherwise `kilometers`). A present
-`distanceUnit` is never touched.
+A payload from an older peer has no `distanceUnit`. When this device already
+holds the row, `_withLocalForOmitted` (#2553) fills the key from the local
+row, so the diver's choice here survives. When the row is new to this device,
+`_withSchemaDefaults` would fill the column's constant default, `'kilometers'`,
+and a feet diver's settings would arrive in kilometres.
+
+So for `diverSettings`, between `_withLocalForOmitted` and
+`_withSchemaDefaults` (in both `upsertRecord` and the batch path), a missing
+`distanceUnit` is derived from the same payload's `depthUnit`: `feet` gives
+`miles`, otherwise `kilometers`. A present `distanceUnit` is never touched.
 
 ### 4. Formatting
 
