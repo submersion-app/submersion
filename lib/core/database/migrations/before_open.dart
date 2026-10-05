@@ -48,8 +48,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // v217 and v219 backstop: the tag scope flags.
     await _assertTagScopeColumns();
 
-    // v211 backstop: re-assert diver_settings.auto_tag_imports.
+    // v211 and v264 backstops: diver_settings.auto_tag_imports and
+    // default_show_late_gas_switches.
     await _assertAutoTagImportsColumn();
+    await _assertLateGasSwitchSettingColumn();
 
     // v210 backstop: the dive_tanks equipment link sets null on delete.
     // First, while foreign keys are still off: the rebuild it may do
@@ -200,10 +202,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // would resurrect user-deleted schedules.
     await _assertServiceLedgerSchema();
 
-    // v266 backstop: the certification currency tables and their seeded
-    // built-in rules (issue #2267). Sync adopt clears every synced entity
-    // and refills from an export that omits built-ins, so this re-seed is
-    // what keeps the catalog alive across an adopt.
+    // v266 backstop: currency tables and built-in rules, re-seeded (#2267).
     await _assertCertificationCurrencySchema();
 
     // v123 backstop: re-assert safety review tables + settings columns

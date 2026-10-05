@@ -589,4 +589,21 @@ extension DiverMigrations on AppDatabase {
       'auto_tag_imports INTEGER NOT NULL DEFAULT 1',
     );
   }
+
+  /// v264: diver_settings.default_show_late_gas_switches (issue #2939).
+  /// Column only, defaulting on; re-asserted in beforeOpen.
+  Future<void> _assertLateGasSwitchSettingColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('default_show_late_gas_switches')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN default_show_late_gas_switches '
+        'INTEGER NOT NULL DEFAULT 1 '
+        'CHECK (default_show_late_gas_switches IN (0, 1))',
+      );
+    }
+  }
 }

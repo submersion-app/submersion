@@ -18,9 +18,17 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// to an email/password form when there is no cached session or the server
 /// no longer accepts it.
 class SuuntoCloudSignInStep extends ConsumerStatefulWidget {
-  const SuuntoCloudSignInStep({super.key, required this.onSignedIn});
+  const SuuntoCloudSignInStep({
+    super.key,
+    required this.onSignedIn,
+    this.onAccountSignedIn,
+  });
 
   final ValueChanged<SuuntoCloudClient> onSignedIn;
+
+  /// The email the session belongs to, reported with every sign-in so the
+  /// Review step can name the account (issue #161).
+  final ValueChanged<String>? onAccountSignedIn;
 
   @override
   ConsumerState<SuuntoCloudSignInStep> createState() =>
@@ -88,6 +96,7 @@ class _SuuntoCloudSignInStepState extends ConsumerState<SuuntoCloudSignInStep> {
 
   void _markSignedIn(SuuntoCloudClient client, String email) {
     widget.onSignedIn(client);
+    widget.onAccountSignedIn?.call(email);
     setState(() {
       _checkingCachedSession = false;
       _signingIn = false;

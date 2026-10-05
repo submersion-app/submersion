@@ -8,6 +8,9 @@ extension CertificationCurrencyMigrations on AppDatabase {
   /// device that upgraded across a collision can arrive with the rung
   /// recorded and the tables absent. The seed is INSERT OR IGNORE, so it
   /// heals a stranded catalog without rewriting a rule the diver tuned.
+  /// Sync adopt clears every synced entity and refills from an export that
+  /// omits built-ins, so the beforeOpen re-seed is what keeps the catalog
+  /// alive across an adopt.
   ///
   /// Skipped on a partial migration-test fixture that lacks a parent table,
   /// so a fixture written for an older rung does not gain tables whose

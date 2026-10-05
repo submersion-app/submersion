@@ -118,6 +118,15 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
     _client = client;
   }
 
+  /// The account the sign-in step signed in with, shown on the Review step
+  /// (issue #161).
+  String? _account;
+
+  /// Set by the sign-in step alongside [setClient].
+  void setAccount(String? account) {
+    _account = account;
+  }
+
   /// The authenticated client set by the sign-in step. Only meaningful once
   /// the sign-in acquisition step has completed.
   SuuntoCloudClient? get client => _client;
@@ -138,6 +147,7 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
   void resetState() {
     _computersByKey.clear();
     _client = null;
+    _account = null;
     _parsedDives = [];
     final ref = _ref;
     if (ref == null) return;
@@ -180,7 +190,10 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
     WizardStepDef(
       label: 'Sign In',
       icon: Icons.login,
-      builder: (context) => SuuntoCloudSignInStep(onSignedIn: setClient),
+      builder: (context) => SuuntoCloudSignInStep(
+        onSignedIn: setClient,
+        onAccountSignedIn: setAccount,
+      ),
       canAdvance: suuntoCloudSignedInProvider,
       autoAdvance: true,
     ),
@@ -209,6 +222,10 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
       source: ImportSourceInfo(
         type: ImportSourceType.suuntoCloud,
         displayName: displayName,
+        details: ImportSourceDetails(
+          account: _account,
+          deviceModels: _deviceModels(),
+        ),
       ),
       groups: {ImportEntityType.dives: EntityGroup(items: items)},
     );
@@ -465,6 +482,13 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
   // ---------------------------------------------------------------------------
   // Helpers -- dive computer resolution
   // ---------------------------------------------------------------------------
+
+  /// The models of the devices that recorded the fetched dives, each once,
+  /// in the order the dives list them.
+  List<String> _deviceModels() => {
+    for (final parsed in _parsedDives)
+      ?normalizedIdentityPart(parsed.deviceName),
+  }.toList();
 
   Future<void> _ensureComputers() async {
     for (final parsed in _parsedDives) {

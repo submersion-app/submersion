@@ -85,4 +85,92 @@ void main() {
       loggedTtsSeconds(profile: primary, ttsCurve: analysis.ttsCurve),
     );
   });
+
+  // dive.profile interleaves every computer's samples, so its last CNS
+  // reading may be another computer's. The actual CNS is the last reading of
+  // the series the analysis replayed (#2545).
+  test('the source dive CNS is the last reading of the analysed series, not '
+      'of dive.profile', () async {
+    final dive = Dive(
+      id: 'dive-1',
+      dateTime: DateTime(2026, 9, 14),
+      profile: const [
+        DiveProfilePoint(timestamp: 0, depth: 0, cns: 5.0),
+        DiveProfilePoint(timestamp: 60, depth: 20, cns: 18.0),
+        DiveProfilePoint(timestamp: 61, depth: 20, cns: 31.0),
+        DiveProfilePoint(timestamp: 120, depth: 0),
+      ],
+    );
+    final container = ProviderContainer(
+      overrides: [
+        sourceDiveForPlanProvider.overrideWith((ref) async => dive),
+        diveAnalysisSeriesProvider('dive-1').overrideWith(
+          (ref) async => (
+            points: const [
+              DiveProfilePoint(timestamp: 0, depth: 0, cns: 5.0),
+              DiveProfilePoint(timestamp: 60, depth: 20, cns: 18.0),
+              DiveProfilePoint(timestamp: 120, depth: 0),
+            ],
+            sourceProfile: null,
+            source: null,
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    expect(await container.read(sourceDiveCnsEndProvider.future), 18.0);
+  });
+
+  // A null series is an interleaved dive with no one recording to analyse;
+  // dive.profile there mixes the computers' CNS readings.
+  test(
+    'the source dive CNS is null when there is no analysed series',
+    () async {
+      final dive = Dive(
+        id: 'dive-1',
+        dateTime: DateTime(2026, 9, 14),
+        profile: const [
+          DiveProfilePoint(timestamp: 0, depth: 0, cns: 5.0),
+          DiveProfilePoint(timestamp: 1, depth: 0, cns: 6.0),
+          DiveProfilePoint(timestamp: 60, depth: 20, cns: 18.0),
+          DiveProfilePoint(timestamp: 61, depth: 20, cns: 31.0),
+        ],
+      );
+      final container = ProviderContainer(
+        overrides: [
+          sourceDiveForPlanProvider.overrideWith((ref) async => dive),
+          diveAnalysisSeriesProvider(
+            'dive-1',
+          ).overrideWith((ref) async => null),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      expect(await container.read(sourceDiveCnsEndProvider.future), isNull);
+    },
+  );
+
+  test('the source dive CNS is null without a computer CNS series', () async {
+    final dive = Dive(
+      id: 'dive-1',
+      dateTime: DateTime(2026, 9, 14),
+      profile: const [
+        DiveProfilePoint(timestamp: 0, depth: 0, cns: 5.0),
+        DiveProfilePoint(timestamp: 60, depth: 20),
+      ],
+    );
+    final container = ProviderContainer(
+      overrides: [
+        sourceDiveForPlanProvider.overrideWith((ref) async => dive),
+        diveAnalysisSeriesProvider('dive-1').overrideWith(
+          (ref) async =>
+              (points: dive.profile, sourceProfile: null, source: null),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    expect(await container.read(sourceDiveCnsEndProvider.future), isNull);
+  });
 }

@@ -211,9 +211,15 @@ extension RungsFromV231 on AppDatabase {
       await _assertDistanceUnitColumn();
     }
     if (from < 263) await reportProgress();
+    // v264: diver_settings.default_show_late_gas_switches (issue #2939).
+    // Column only, defaulting on. Re-asserted in beforeOpen.
+    if (from < 264) {
+      await _assertLateGasSwitchSettingColumn();
+    }
+    if (from < 264) await reportProgress();
     // v266: certification currency (issue #2267). Three synced tables and
     // the seeded built-in rule catalog, no backfill. Re-asserted in
-    // beforeOpen. 262, 264 and 265 are held by open branches.
+    // beforeOpen. 262 and 265 are held by open branches.
     if (from < 266) {
       await _assertCertificationCurrencySchema();
     }

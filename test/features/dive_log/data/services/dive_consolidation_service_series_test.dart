@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/services/profile_alignment.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -259,5 +260,91 @@ void main() {
       tombstones.any((t) => before.any((r) => r.id == t.recordId)),
       isFalse,
     );
+  });
+
+  List<ProfileSample> reefSamples({int lead = 0}) {
+    const knots = <(int, double)>[
+      (0, 0),
+      (120, 18),
+      (240, 22),
+      (600, 21),
+      (900, 16),
+      (1300, 14),
+      (1700, 10),
+      (2200, 8),
+      (2400, 5),
+      (2580, 5),
+      (2760, 4.8),
+      (2880, 0),
+    ];
+    double at(int t) {
+      for (var i = 1; i < knots.length; i++) {
+        final (t0, d0) = knots[i - 1];
+        final (t1, d1) = knots[i];
+        if (t <= t1) return d0 + (d1 - d0) * (t - t0) / (t1 - t0);
+      }
+      return 0;
+    }
+
+    return [
+      for (var t = 0; t <= 2880 + lead; t += 10)
+        ProfileSample(timestamp: t, depth: t < lead ? 0 : at(t - lead)),
+    ];
+  }
+
+  test('apply with best fit folds a clock-skewed secondary onto the '
+      "primary's timeline (#552)", () async {
+    // 's' recorded the same dive on a clock 66 minutes fast, after 40 s at
+    // the surface, so the two records do not overlap in time.
+    final skewedEntry = DateTime.utc(2026, 7, 1, 10, 6);
+    await (db.update(db.dives)..where((d) => d.id.equals('s'))).write(
+      DivesCompanion(
+        entryTime: Value(skewedEntry.millisecondsSinceEpoch),
+        runtime: const Value(48 * 60),
+      ),
+    );
+    await (db.update(db.dives)..where((d) => d.id.equals('t'))).write(
+      const DivesCompanion(runtime: Value(48 * 60)),
+    );
+    await profileSeries.insertSeries(
+      diveId: 't',
+      computerId: 'comp-t',
+      sourceId: 'src-t',
+      samples: reefSamples(),
+      now: 1000,
+    );
+    await profileSeries.insertSeries(
+      diveId: 's',
+      computerId: 'comp-s',
+      sourceId: 'src-s',
+      samples: reefSamples(lead: 40),
+      now: 1000,
+    );
+
+    await expectLater(
+      service.apply(targetDiveId: 't', secondaryDiveIds: ['s']),
+      throwsArgumentError,
+    );
+
+    final outcome = await service.apply(
+      targetDiveId: 't',
+      secondaryDiveIds: ['s'],
+      alignment: ConsolidationAlignment.bestFit,
+    );
+
+    final source = await copiedSourceId();
+    final sourceRow = await (db.select(
+      db.diveDataSources,
+    )..where((d) => d.id.equals(source))).getSingle();
+    expect(sourceRow.timeOffsetSeconds, -40);
+    final copied = (await profileSeries.getSeriesForDive(
+      't',
+    )).where((r) => r.sourceId == source).single;
+    expect(copied.samples.first.timestamp, -40);
+
+    await service.undo(outcome.snapshot);
+    final restored = await diveRepo.getDivesByIds(['s']);
+    // isAtSameMomentAs, not ==: DateTime.== also compares UTC versus local.
+    expect(restored.single.entryTime!.isAtSameMomentAs(skewedEntry), isTrue);
   });
 }

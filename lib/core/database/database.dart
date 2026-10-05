@@ -1096,12 +1096,15 @@ class AppDatabase extends _$AppDatabase {
     // stays. Inbound, the generated fromJson ignores the legacy key.
     261,
     263,
+    // v264: diver_settings.default_show_late_gas_switches (issue #2939).
+    // Additive column with a default, so the floor stays.
+    264,
     // v266: certification currency (issue #2267): the rule catalog with its
     // built-in seed, per certification overrides and the event ledger. New
     // synced tables only, so the floor stays. Built-in rules are reference
     // data, re-seeded by INSERT OR IGNORE from onCreate, the rung and
     // beforeOpen. Renumbered from 261 and then 262 while this was open;
-    // 262, 264 and 265 are held by open branches.
+    // 262 and 265 are held by open branches; main shipped 264 (#2939).
     266,
   ];
 

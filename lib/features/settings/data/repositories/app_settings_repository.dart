@@ -6,6 +6,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
@@ -97,7 +98,8 @@ class AppSettingsRepository {
     }
   }
 
-  /// Writes a JSON-encoded list of strings and marks it pending for sync.
+  /// Writes a JSON-encoded list of strings and, unless the key is
+  /// device-local, marks it pending for sync.
   ///
   /// Rethrows so a failed save is visible to the caller, which rolls the UI
   /// back rather than leaving the user believing a layout was stored.
@@ -113,6 +115,9 @@ class AppSettingsRepository {
               updatedAt: Value(now),
             ),
           );
+      // A device-local key never syncs (issue #2947); queuing it would only
+      // publish a changeset that carries nothing.
+      if (deviceLocalSettingsKeys.contains(key)) return;
       await _syncRepository.markRecordPending(
         entityType: 'settings',
         recordId: key,
@@ -327,7 +332,8 @@ class AppSettingsRepository {
     }
   }
 
-  /// Writes [value] under [key] and stages the row for sync.
+  /// Writes [value] under [key] and, unless the key is device-local
+  /// ([deviceLocalSettingsKeys]), stages the row for sync.
   ///
   /// Writes rethrow (unlike reads) so a caller can tell the user their change
   /// did not take.
@@ -343,6 +349,9 @@ class AppSettingsRepository {
               updatedAt: Value(now),
             ),
           );
+      // A device-local key never syncs (issue #2947); queuing it would only
+      // publish a changeset that carries nothing.
+      if (deviceLocalSettingsKeys.contains(key)) return;
       await _syncRepository.markRecordPending(
         entityType: 'settings',
         recordId: key,

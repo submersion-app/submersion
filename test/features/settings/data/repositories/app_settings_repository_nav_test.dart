@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
@@ -57,6 +58,36 @@ void main() {
             ),
           );
       expect(await repo.getNavPrimaryIdsRaw(), isNull);
+    });
+  });
+
+  group('device-local keys are not queued for sync', () {
+    Future<Set<String>> pendingSettingsKeys() async => {
+      for (final r in await SyncRepository().getPendingRecords())
+        if (r.entityType == 'settings') r.recordId,
+    };
+
+    test('nav layout writes queue nothing', () async {
+      await repo.setNavPrimaryIds(['dives']);
+      await repo.setNavRailIds(['dives']);
+      await repo.setNavAlwaysHideLabels(true);
+      expect(
+        (await pendingSettingsKeys()).intersection({
+          'nav_primary_ids',
+          'nav_rail_ids',
+          'nav_always_hide_labels',
+        }),
+        isEmpty,
+      );
+      expect(await repo.getNavAlwaysHideLabels(), isTrue);
+    });
+
+    test('a synced key is still queued', () async {
+      await repo.setRawSetting('share_new_records_by_default', 'true');
+      expect(
+        await pendingSettingsKeys(),
+        contains('share_new_records_by_default'),
+      );
     });
   });
 }
