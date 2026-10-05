@@ -36339,6 +36339,24 @@ abstract class AppLocalizations {
   /// **'Tags'**
   String get importWizard_tagsLabel;
 
+  /// Name line of the Review step source card for a batch import: how many files it read
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} file} other{{count} files}}'**
+  String importWizard_source_fileCount(int count);
+
+  /// Review step source card: the firmware version the dive computer reported
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware {version}'**
+  String importWizard_source_firmware(String version);
+
+  /// Review step source card: the application an imported file came from, after its format (e.g. UDDF from Subsurface)
+  ///
+  /// In en, this message translates to:
+  /// **'from {app}'**
+  String importWizard_source_fromApp(String app);
+
   /// Count of photos the imported logbook refers to
   ///
   /// In en, this message translates to:

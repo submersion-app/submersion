@@ -22046,6 +22046,27 @@ class AppLocalizationsHe extends AppLocalizations {
   String get importWizard_tagsLabel => 'Tags';
 
   @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count קבצים',
+      one: 'קובץ אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'קושחה $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'מ-$app';
+  }
+
+  @override
   String importWizard_photos_foundCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

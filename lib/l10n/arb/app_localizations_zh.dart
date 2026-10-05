@@ -21434,6 +21434,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importWizard_tagsLabel => '标签';
 
   @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个文件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return '固件 $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return '来自 $app';
+  }
+
+  @override
   String importWizard_photos_foundCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

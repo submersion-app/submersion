@@ -569,6 +569,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         type: ImportSourceType.diveComputer,
         displayName: _displayName,
         currentComputerId: computer?.id,
+        details: _sourceDetails(),
       ),
       groups: {
         ImportEntityType.dives: EntityGroup(
@@ -578,6 +579,36 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       },
     );
   }
+
+  /// What the Review step shows about this download (issue #161). What this
+  /// session's download reported wins over the stored record, which a quick
+  /// download from a known computer starts from.
+  ImportSourceDetails _sourceDetails() {
+    final pending = _pendingComputerSave;
+    final stored = computer;
+    return ImportSourceDetails(
+      title:
+          _customDeviceName ??
+          stored?.displayName ??
+          pending?.device.displayName,
+      model: stored?.fullName ?? pending?.device.recognizedModel?.fullName,
+      serialNumber: pending?.serialNumber ?? stored?.serialNumber,
+      firmwareVersion: pending?.firmwareVersion ?? stored?.firmwareVersion,
+      connection:
+          pending?.device.connectionType ??
+          _storedConnection(stored?.connectionType),
+    );
+  }
+
+  /// The connection a stored computer was last saved with. Stored as text
+  /// that does not tell Bluetooth LE from Classic, so both read as Bluetooth.
+  static DeviceConnectionType? _storedConnection(String? stored) =>
+      switch (stored) {
+        'bluetooth' => DeviceConnectionType.bluetoothClassic,
+        'usb' => DeviceConnectionType.usb,
+        'infrared' => DeviceConnectionType.infrared,
+        _ => null,
+      };
 
   @override
   Future<ImportBundle> checkDuplicates(ImportBundle bundle) async {

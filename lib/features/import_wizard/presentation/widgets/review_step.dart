@@ -6,6 +6,7 @@ import 'package:submersion/features/import_wizard/domain/models/duplicate_action
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/entity_review_list.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/import_source_card.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/planned_dive_picker_sheet.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -18,9 +19,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The review step of the import wizard.
 ///
-/// Always renders a [TabBar] with one tab per entity type, each with a count
-/// badge. A bottom bar shows aggregate counts and an "Import Selected" button
-/// that calls [onImport].
+/// An [ImportSourceCard] at the top names where the import came from (issue
+/// #161). Below it, always renders a [TabBar] with one tab per entity type,
+/// each with a count badge. A bottom bar shows aggregate counts and an
+/// "Import Selected" button that calls [onImport].
 class ReviewStep extends ConsumerWidget {
   /// Fired when the user taps "Import Selected".
   final VoidCallback onImport;
@@ -268,6 +270,7 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          ImportSourceCard(source: widget.bundle.source),
           Builder(
             builder: (context) {
               final tabController = DefaultTabController.of(context);

@@ -227,6 +227,65 @@ void main() {
       expect(bundle.source.displayName, equals('My Perdix'));
     });
 
+    group('source details (#161)', () {
+      test('known computer: name, model and stored identity', () async {
+        adapter.setDownloadedDives([]);
+
+        final details = (await adapter.buildBundle()).source.details;
+
+        expect(details.title, 'My Perdix');
+        expect(details.model, 'Shearwater Perdix');
+        expect(details.serialNumber, 'SN-12345');
+        expect(details.connection, isNull);
+      });
+
+      test('this download\'s serial, firmware and connection win', () async {
+        await adapter.ensureComputer(
+          device: DiscoveredDevice(
+            id: 'device-1',
+            name: 'Perdix',
+            connectionType: DeviceConnectionType.ble,
+            address: 'AA:BB:CC:DD:EE:FF',
+            discoveredAt: DateTime(2026, 3, 20),
+          ),
+          serialNumber: 'SN-99',
+          firmwareVersion: '92',
+        );
+        adapter.setDownloadedDives([]);
+
+        final details = (await adapter.buildBundle()).source.details;
+
+        expect(details.serialNumber, 'SN-99');
+        expect(details.firmwareVersion, '92');
+        expect(details.connection, DeviceConnectionType.ble);
+      });
+
+      test('the name typed on the confirm step is the title', () async {
+        adapter
+          ..setCustomDeviceName('Backup computer')
+          ..setDownloadedDives([]);
+
+        final details = (await adapter.buildBundle()).source.details;
+
+        expect(details.title, 'Backup computer');
+      });
+
+      test('a stored USB connection is reported when nothing newer', () async {
+        final usbAdapter = DiveComputerAdapter(
+          importService: mockImportService,
+          computerRepository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          consolidationService: mockConsolidationService,
+          diverId: diverId,
+          knownComputer: makeComputer().copyWith(connectionType: 'usb'),
+        )..setDownloadedDives([]);
+
+        final details = (await usbAdapter.buildBundle()).source.details;
+
+        expect(details.connection, DeviceConnectionType.usb);
+      });
+    });
+
     test('handles multiple dives', () async {
       final dive1 = makeDownloadedDive(startTime: DateTime(2026, 3, 15, 10, 0));
       final dive2 = makeDownloadedDive(

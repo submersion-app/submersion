@@ -515,13 +515,77 @@ class UniversalAdapter implements ImportSourceAdapter {
 
     final targets = await _importTargets(payload);
     return ImportBundle(
-      source: ImportSourceInfo(type: sourceType, displayName: _displayName),
+      source: ImportSourceInfo(
+        type: sourceType,
+        displayName: _displayName,
+        details: await sourceDetails(),
+      ),
       // One profile needs no labels; the counts already say where it goes.
       groups: targets.length > 1
           ? _labelTargets(groups, payload, targets)
           : groups,
       nextDiveNumberByTarget: await _nextDiveNumbers(targets.keys),
     );
+  }
+
+  /// What the Review step shows about where this import came from (issue
+  /// #161): the picked file, or how many files a batch read, with the
+  /// formats and app detection found and their total size.
+  ///
+  /// A single file reports the format and app the diver confirmed, which
+  /// may override what detection guessed. Sources that are not files
+  /// override this.
+  @protected
+  Future<ImportSourceDetails> sourceDetails() async {
+    final state = _ref.read(universalImportNotifierProvider);
+    final files = state.files;
+    if (files.isEmpty) return const ImportSourceDetails();
+
+    final confirmed = files.length == 1 ? state.options : null;
+    final formats = {
+      if (confirmed != null)
+        confirmed.format.displayName
+      else
+        for (final file in files) file.detection.format.displayName,
+    };
+    final apps = {
+      if (confirmed != null)
+        confirmed.sourceApp
+      else
+        for (final file in files) file.detection.sourceApp,
+    };
+    final app = apps.length == 1 ? apps.single : null;
+
+    return ImportSourceDetails(
+      title: files.length == 1 ? files.single.name : null,
+      fileCount: files.length,
+      formats: formats.toList(),
+      sourceApp: app == null || app == ui.SourceApp.generic
+          ? null
+          : app.displayName,
+      sizeBytes: await _totalSize(files),
+    );
+  }
+
+  /// The combined size of [files], or null when any of them cannot be read:
+  /// a partial total would understate what is being imported.
+  static Future<int?> _totalSize(List<PickedImportFile> files) async {
+    var total = 0;
+    for (final file in files) {
+      final bytes = file.bytes;
+      if (bytes != null) {
+        total += bytes.length;
+        continue;
+      }
+      final path = file.path;
+      if (path == null) return null;
+      try {
+        total += await File(path).length();
+      } on FileSystemException {
+        return null;
+      }
+    }
+    return total;
   }
 
   /// The profile behind each target key of an expanded payload (#1893).

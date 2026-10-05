@@ -137,6 +137,33 @@ void main() {
   });
 
   group('buildBundle()', () {
+    test('names the account and the devices found (#161)', () async {
+      adapter
+        ..setAccount('diver@example.com')
+        ..setParsedDives([
+          makeParsedDive(deviceName: 'Suunto Ocean', serialNumber: 'SN-1'),
+          makeParsedDive(deviceName: 'Suunto EON Steel', serialNumber: 'SN-2'),
+          makeParsedDive(deviceName: 'Suunto Ocean', serialNumber: 'SN-1'),
+          makeParsedDive(deviceName: '  ', serialNumber: 'SN-3'),
+        ]);
+
+      final details = (await adapter.buildBundle()).source.details;
+
+      expect(details.account, 'diver@example.com');
+      expect(details.deviceModels, ['Suunto Ocean', 'Suunto EON Steel']);
+    });
+
+    test('resetState forgets the account', () async {
+      adapter
+        ..setAccount('diver@example.com')
+        ..resetState()
+        ..setParsedDives([makeParsedDive()]);
+
+      final details = (await adapter.buildBundle()).source.details;
+
+      expect(details.account, isNull);
+    });
+
     test(
       'resolves a computer per dive and returns one entity per dive',
       () async {
