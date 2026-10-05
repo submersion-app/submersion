@@ -439,13 +439,13 @@ class BuddyRepository {
         roleId,
         diveDiverId: row.data['dive_diver_id'] as String?,
       );
-      return domain.BuddyWithRole(buddy: buddy, role: role);
+      return domain.BuddyWithRole(buddy: buddy, roles: [role]);
     }).toList();
     final filled = await _withPrimaryCerts(list.map((w) => w.buddy).toList());
     final byId = {for (final b in filled) b.id: b};
     return [
       for (final w in list)
-        domain.BuddyWithRole(buddy: byId[w.buddy.id]!, role: w.role),
+        domain.BuddyWithRole(buddy: byId[w.buddy.id]!, roles: [w.primaryRole]),
     ];
   }
 
@@ -515,7 +515,7 @@ class BuddyRepository {
       );
       byDive
           .putIfAbsent(link.diveId, () => [])
-          .add(domain.BuddyWithRole(buddy: buddy, role: role));
+          .add(domain.BuddyWithRole(buddy: buddy, roles: [role]));
     }
     return byDive;
   }
@@ -543,7 +543,7 @@ class BuddyRepository {
           for (final row in entry.value)
             domain.BuddyWithRole(
               buddy: hydrated[row.buddy.id]!,
-              role: row.role,
+              roles: [row.primaryRole],
             ),
         ],
     };
@@ -579,7 +579,7 @@ class BuddyRepository {
               id: Value(id),
               diveId: Value(diveId),
               buddyId: Value(buddyWithRole.buddy.id),
-              role: Value(buddyWithRole.role.id),
+              role: Value(buddyWithRole.primaryRole.id),
               createdAt: Value(now),
             ),
           );
@@ -717,7 +717,7 @@ class BuddyRepository {
           await (_db.update(_db.diveBuddies)..where(
                 (t) => t.diveId.equals(diveId) & t.buddyId.equals(bwr.buddy.id),
               ))
-              .write(DiveBuddiesCompanion(role: Value(bwr.role.id)));
+              .write(DiveBuddiesCompanion(role: Value(bwr.primaryRole.id)));
           await _syncRepository.markRecordPending(
             entityType: 'diveBuddies',
             recordId: existing.id,
@@ -732,7 +732,7 @@ class BuddyRepository {
                   id: Value(id),
                   diveId: Value(diveId),
                   buddyId: Value(bwr.buddy.id),
-                  role: Value(bwr.role.id),
+                  role: Value(bwr.primaryRole.id),
                   createdAt: Value(now),
                 ),
               );
@@ -772,7 +772,7 @@ class BuddyRepository {
           ))
           .write(
             DiveBuddiesCompanion(
-              role: Value(bwr.role.id),
+              role: Value(bwr.primaryRole.id),
               // Its own clock, beside the marks below (#2644).
               hlc: Value(await _syncRepository.issueRowClock()),
             ),
@@ -844,7 +844,7 @@ class BuddyRepository {
                 id: Value(id),
                 diveId: Value(diveId),
                 buddyId: Value(bwr.buddy.id),
-                role: Value(bwr.role.id),
+                role: Value(bwr.primaryRole.id),
                 createdAt: Value(now),
               ),
             );

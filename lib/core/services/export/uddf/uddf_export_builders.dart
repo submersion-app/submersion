@@ -740,7 +740,7 @@ class UddfExportBuilders {
   /// `<diveroles>` block of a full backup. Shared by the full and the
   /// dives-only dive builders.
   static void buildDiverRole(XmlBuilder builder, Dive dive) {
-    final roleId = dive.diverRoleId;
+    final roleId = dive.diverRoleIds.firstOrNull;
     if (roleId != null && roleId.isNotEmpty) {
       builder.element('diverrole', nest: roleId);
     }
@@ -800,7 +800,9 @@ class UddfExportBuilders {
     // recorded here to be restored exactly.
     final roleRows = <String, List<BuddyWithRole>>{
       for (final entry in (diveBuddies ?? const {}).entries)
-        if (entry.value.where((b) => b.role.id != DiveRole.buddyId).toList()
+        if (entry.value
+                .where((b) => b.primaryRole.id != DiveRole.buddyId)
+                .toList()
             case final rows when rows.isNotEmpty)
           entry.key: rows,
     };
@@ -1424,7 +1426,7 @@ class UddfExportBuilders {
                             'buddy',
                             attributes: {
                               'ref': 'buddy_${row.buddy.id}',
-                              'role': row.role.id,
+                              'role': row.primaryRole.id,
                             },
                           );
                         }

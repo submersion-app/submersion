@@ -75,7 +75,7 @@ class BuddySignatureCard extends ConsumerWidget {
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
                       Text(
-                        buddyWithRole.role.localizedName(context.l10n),
+                        buddyWithRole.primaryRole.localizedName(context.l10n),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),

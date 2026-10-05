@@ -67,7 +67,7 @@ void main() {
             createdAt: DateTime(2026, 1, 1),
             updatedAt: DateTime(2026, 1, 1),
           ),
-          role: role ?? DiveRole.builtInBuddy(),
+          roles: [role ?? DiveRole.builtInBuddy()],
         );
 
     Future<void> seedTag(String id, String name) => db

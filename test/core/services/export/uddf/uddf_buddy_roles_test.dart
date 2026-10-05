@@ -99,15 +99,15 @@ void main() {
         'd1': [
           BuddyWithRole(
             buddy: _buddy('b1', 'Nicol Sorin'),
-            role: _role(DiveRole.diveMasterId),
+            roles: [_role(DiveRole.diveMasterId)],
           ),
           BuddyWithRole(
             buddy: _buddy('b2', 'Joe Bloggs'),
-            role: _role(DiveRole.buddyId),
+            roles: [_role(DiveRole.buddyId)],
           ),
           BuddyWithRole(
             buddy: _buddy('b3', 'Pat Kim'),
-            role: _role('custom-uuid'),
+            roles: [_role('custom-uuid')],
           ),
         ],
       });
@@ -131,7 +131,7 @@ void main() {
         'd1': [
           BuddyWithRole(
             buddy: _buddy('b2', 'Joe Bloggs'),
-            role: _role(DiveRole.buddyId),
+            roles: [_role(DiveRole.buddyId)],
           ),
         ],
       });

@@ -65,12 +65,12 @@ void main() {
       createdAt: DateTime(2026, 1, 1),
       updatedAt: DateTime(2026, 1, 1),
     ),
-    role: DiveRole.builtInBuddy(),
+    roles: [DiveRole.builtInBuddy()],
   );
   domain.BuddyWithRole bwrRole(String id, String roleId) =>
       domain.BuddyWithRole(
         buddy: bwr(id).buddy,
-        role: DiveRole.synthetic(roleId),
+        roles: [DiveRole.synthetic(roleId)],
       );
   Future<List<String>> buddyRolesOf(String d) async => (await (db.select(
     db.diveBuddies,

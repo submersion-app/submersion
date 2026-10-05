@@ -102,7 +102,7 @@ void main() {
       );
       expect(on('d1', 'bNoCerts').certificationLevel, isNull);
       expect(
-        byDive['d1']!.singleWhere((w) => w.buddy.id == 'b1').role.id,
+        byDive['d1']!.singleWhere((w) => w.buddy.id == 'b1').primaryRole.id,
         DiveRole.diveGuideId,
         reason: 'roles are kept as the lean load returns them',
       );

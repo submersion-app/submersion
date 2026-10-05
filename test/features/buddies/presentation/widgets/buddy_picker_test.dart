@@ -243,7 +243,7 @@ void main() {
     ) async {
       final selectedBuddy = BuddyWithRole(
         buddy: _testBuddies[0],
-        role: DiveRole.builtInBuddy(),
+        roles: [DiveRole.builtInBuddy()],
       );
 
       await tester.pumpWidget(
@@ -317,7 +317,7 @@ void main() {
       _useTallScreen(tester);
       final selectedBuddy = BuddyWithRole(
         buddy: _testBuddies[0],
-        role: DiveRole.builtInBuddy(),
+        roles: [DiveRole.builtInBuddy()],
       );
 
       await tester.pumpWidget(
@@ -511,7 +511,7 @@ void main() {
       expect(result, isNotNull);
       expect(result!.length, equals(1));
       expect(result![0].buddy.name, equals('Alice Smith'));
-      expect(result![0].role.id, equals(DiveRole.instructorId));
+      expect(result![0].primaryRole.id, equals(DiveRole.instructorId));
     });
   });
 

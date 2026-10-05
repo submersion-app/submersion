@@ -28,12 +28,14 @@ import '../../../../helpers/tank_pressure_export_fixtures.dart';
 final _epoch = DateTime(2024, 1, 1);
 final _row = BuddyWithRole(
   buddy: Buddy(id: 'b1', name: 'Joe', createdAt: _epoch, updatedAt: _epoch),
-  role: DiveRole(
-    id: DiveRole.buddyId,
-    name: 'Buddy',
-    createdAt: _epoch,
-    updatedAt: _epoch,
-  ),
+  roles: [
+    DiveRole(
+      id: DiveRole.buddyId,
+      name: 'Buddy',
+      createdAt: _epoch,
+      updatedAt: _epoch,
+    ),
+  ],
 );
 final _role = DiveRole(
   id: 'role-photo',

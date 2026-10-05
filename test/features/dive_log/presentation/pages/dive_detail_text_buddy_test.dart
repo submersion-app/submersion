@@ -65,7 +65,7 @@ BuddyWithRole _linkedBuddy() => BuddyWithRole(
     createdAt: DateTime(2026, 1, 1),
     updatedAt: DateTime(2026, 1, 1),
   ),
-  role: DiveRole.builtInBuddy(),
+  roles: [DiveRole.builtInBuddy()],
 );
 
 Future<void> _pump(
@@ -83,7 +83,7 @@ Future<void> _pump(
     diveMaster: textDiveMaster,
     dateTime: DateTime(2026, 3, 15, 10, 0),
     buddy: textBuddy,
-    diverRoleId: diverRoleId,
+    diverRoleIds: [?diverRoleId],
   );
 
   await tester.pumpWidget(

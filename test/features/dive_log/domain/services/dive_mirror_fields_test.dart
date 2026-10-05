@@ -59,7 +59,7 @@ void main() {
       includeDiveCenter: false,
       diveTypeIds: const ['wreck'],
       tags: const [],
-      diverRoleId: 'buddy',
+      diverRoleIds: ['buddy'],
     );
     expect(mirrored.id, '');
     expect(mirrored.diverId, 'chris');
@@ -70,7 +70,7 @@ void main() {
     expect(mirrored.waterTemp, 18);
     expect(mirrored.airTemp, 25);
     expect(mirrored.diveTypeIds, ['wreck']);
-    expect(mirrored.diverRoleId, 'buddy');
+    expect(mirrored.diverRoleIds.firstOrNull, 'buddy');
     expect(mirrored.name, isNull);
     expect(mirrored.maxDepth, isNull);
     expect(mirrored.notes, '');

@@ -509,7 +509,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
   List<_Field> _teamFields(Dive dive, AppLocalizations l10n) {
     return [
       for (final buddy in dive.buddies)
-        _Field(buddy.role.localizedName(l10n), buddy.buddy.name),
+        _Field(buddy.primaryRole.localizedName(l10n), buddy.buddy.name),
       if (dive.buddies.isEmpty && dive.buddy != null)
         _Field(l10n.pdf_buddy, dive.buddy!),
       if (dive.buddies.isEmpty && dive.diveMaster != null)

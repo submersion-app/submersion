@@ -8,7 +8,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 /// exhaustive: every field is either mirrored or deliberately not.
 const Set<String> kMirroredDiveFields = {
   // identity and ownership (set by the service)
-  'id', 'diverId', 'outingId', 'isPlanned', 'diverRoleId',
+  'id', 'diverId', 'outingId', 'isPlanned', 'diverRoleIds',
   // when
   'dateTime', 'entryTime', 'exitTime',
   // where (resolved per profile by the service)
@@ -98,14 +98,14 @@ Dive mirroredDiveFrom(
   required bool includeDiveCenter,
   required List<String> diveTypeIds,
   required List<Tag> tags,
-  required String? diverRoleId,
+  required List<String> diverRoleIds,
 }) {
   return Dive(
     id: '',
     diverId: targetDiverId,
     outingId: outingId,
     isPlanned: true,
-    diverRoleId: diverRoleId,
+    diverRoleIds: diverRoleIds,
     dateTime: source.dateTime,
     entryTime: source.entryTime,
     exitTime: source.exitTime,

@@ -60,13 +60,13 @@ final _d2 = Dive(
 final _extras = UddfDivesExtras(
   diveBuddies: {
     'd1': [
-      BuddyWithRole(buddy: _guide, role: _builtIn(DiveRole.diveGuideId)),
-      BuddyWithRole(buddy: _plain, role: _builtIn(DiveRole.buddyId)),
-      BuddyWithRole(buddy: _photo, role: _photographer),
+      BuddyWithRole(buddy: _guide, roles: [_builtIn(DiveRole.diveGuideId)]),
+      BuddyWithRole(buddy: _plain, roles: [_builtIn(DiveRole.buddyId)]),
+      BuddyWithRole(buddy: _photo, roles: [_photographer]),
     ],
     // A dive that is not exported must declare nobody.
     'other': [
-      BuddyWithRole(buddy: _stranger, role: _builtIn(DiveRole.buddyId)),
+      BuddyWithRole(buddy: _stranger, roles: [_builtIn(DiveRole.buddyId)]),
     ],
   },
   diveRoles: [_builtIn(DiveRole.buddyId), _photographer],
@@ -184,7 +184,7 @@ void main() {
             'd1': [
               BuddyWithRole(
                 buddy: _photo,
-                role: DiveRole.synthetic('role-foreign'),
+                roles: [DiveRole.synthetic('role-foreign')],
               ),
             ],
           },

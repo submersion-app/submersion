@@ -626,7 +626,7 @@ void main() {
       final dive = Dive(
         id: 'test-dive-role',
         dateTime: DateTime(2026, 3, 15, 10, 0),
-        diverRoleId: DiveRole.rearGuardId,
+        diverRoleIds: [DiveRole.rearGuardId],
       );
       final buddy = Buddy(
         id: 'b1',
@@ -654,7 +654,7 @@ void main() {
             sharedPreferencesProvider.overrideWithValue(prefs),
             buddiesForDiveProvider(dive.id).overrideWith(
               (ref) async => [
-                BuddyWithRole(buddy: buddy, role: DiveRole.builtInBuddy()),
+                BuddyWithRole(buddy: buddy, roles: [DiveRole.builtInBuddy()]),
               ],
             ),
             diveSightingsProvider(
@@ -690,7 +690,7 @@ void main() {
       final dive = Dive(
         id: 'test-dive-role-2',
         dateTime: DateTime(2026, 3, 15, 10, 0),
-        diverRoleId: 'mysterySlug',
+        diverRoleIds: ['mysterySlug'],
       );
       final settings = _settingsWithVisibleSections([
         DiveDetailSectionId.buddies,

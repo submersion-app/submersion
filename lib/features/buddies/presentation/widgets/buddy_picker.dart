@@ -95,7 +95,7 @@ class BuddyPicker extends ConsumerWidget {
                   onRoleChanged: (role) {
                     final updated = selectedBuddies.map((b) {
                       if (b.buddy.id == bwr.buddy.id) {
-                        return BuddyWithRole(buddy: b.buddy, role: role);
+                        return BuddyWithRole(buddy: b.buddy, roles: [role]);
                       }
                       return b;
                     }).toList();
@@ -217,7 +217,7 @@ class _BuddyChip extends StatelessWidget {
         children: [
           Text(buddyWithRole.buddy.name),
           Text(
-            buddyWithRole.role.localizedName(context.l10n),
+            buddyWithRole.primaryRole.localizedName(context.l10n),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -235,7 +235,7 @@ class _BuddyChip extends StatelessWidget {
       context,
       title: context.l10n.buddies_picker_selectRole(buddyWithRole.buddy.name),
       roles: roles,
-      selectedRoleId: buddyWithRole.role.id,
+      selectedRoleId: buddyWithRole.primaryRole.id,
       onCreateCustomRole: onCreateCustomRole,
     );
     if (selection?.role != null) {
@@ -612,7 +612,7 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
         );
         final selectedRole = _localSelectedBuddies
             .where((b) => b.buddy.id == buddy.id)
-            .map((b) => b.role)
+            .map((b) => b.primaryRole)
             .firstOrNull;
         final certLine = buddyCertificationLineL10n(buddy, context.l10n);
 
@@ -717,13 +717,13 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
         // Update role
         _localSelectedBuddies = [
           ..._localSelectedBuddies.sublist(0, existing),
-          BuddyWithRole(buddy: buddy, role: role),
+          BuddyWithRole(buddy: buddy, roles: [role]),
           ..._localSelectedBuddies.sublist(existing + 1),
         ];
       } else {
         _localSelectedBuddies = [
           ..._localSelectedBuddies,
-          BuddyWithRole(buddy: buddy, role: role),
+          BuddyWithRole(buddy: buddy, roles: [role]),
         ];
       }
     });

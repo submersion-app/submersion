@@ -200,13 +200,13 @@ class DiveMirrorService {
     required String outingId,
   }) async {
     final sourceOwner = source.diverId;
-    final sourceRoleId = source.diverRoleId ?? DiveRole.buddyId;
+    final sourceRoleId = source.diverRoleIds.firstOrNull ?? DiveRole.buddyId;
 
     // The target's own role: what its buddy held on the source.
     String? targetRoleId;
     for (final bwr in sourceBuddies) {
       if (bwr.buddy.linkedDiverId == targetDiverId) {
-        targetRoleId = bwr.role.id;
+        targetRoleId = bwr.primaryRole.id;
       }
     }
 
@@ -222,9 +222,9 @@ class DiveMirrorService {
       includeDiveCenter: await _centerIsVisible(source.diveCenter?.id),
       diveTypeIds: await _resolveTypeIds(source.diveTypeIds, targetDiverId),
       tags: await _resolveTags(source.tags, targetDiverId),
-      diverRoleId: targetRoleId == null
-          ? null
-          : (await _roleFor(targetRoleId, targetDiverId)).id,
+      diverRoleIds: targetRoleId == null
+          ? const []
+          : [(await _roleFor(targetRoleId, targetDiverId)).id],
     );
     final created = await _dives.createDive(dive);
 
@@ -237,7 +237,7 @@ class DiveMirrorService {
       members.add(
         BuddyWithRole(
           buddy: me,
-          role: await _roleFor(sourceRoleId, targetDiverId),
+          roles: [await _roleFor(sourceRoleId, targetDiverId)],
         ),
       );
     }
@@ -247,7 +247,7 @@ class DiveMirrorService {
       members.add(
         BuddyWithRole(
           buddy: buddy,
-          role: await _roleFor(bwr.role.id, targetDiverId),
+          roles: [await _roleFor(bwr.primaryRole.id, targetDiverId)],
         ),
       );
     }

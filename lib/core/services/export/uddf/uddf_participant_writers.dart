@@ -17,14 +17,14 @@ abstract final class UddfParticipantWriters {
   /// The rows whose role leads the dive, in row order.
   static List<BuddyWithRole> leaders(List<BuddyWithRole> rows) => [
     for (final row in rows)
-      if (DiveRole.leaderIds.contains(row.role.id)) row,
+      if (DiveRole.leaderIds.contains(row.primaryRole.id)) row,
   ];
 
   /// The rows written inline as plain buddies: neither a leader nor solo.
   static List<BuddyWithRole> plainBuddies(List<BuddyWithRole> rows) => [
     for (final row in rows)
-      if (!DiveRole.leaderIds.contains(row.role.id) &&
-          row.role.id != DiveRole.soloId)
+      if (!DiveRole.leaderIds.contains(row.primaryRole.id) &&
+          row.primaryRole.id != DiveRole.soloId)
         row,
   ];
 

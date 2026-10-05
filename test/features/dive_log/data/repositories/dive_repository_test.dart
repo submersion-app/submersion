@@ -106,17 +106,17 @@ void main() {
         () async {
           final dive = createTestDive(
             diveNumber: 42,
-          ).copyWith(diverRoleId: 'rearGuard');
+          ).copyWith(diverRoleIds: ['rearGuard']);
 
           final created = await repository.createDive(dive);
           var loaded = await repository.getDiveById(created.id);
-          expect(loaded!.diverRoleId, 'rearGuard');
+          expect(loaded!.diverRoleIds.firstOrNull, 'rearGuard');
 
           await repository.updateDive(
-            loaded.copyWith(diverRoleId: 'instructor'),
+            loaded.copyWith(diverRoleIds: ['instructor']),
           );
           loaded = await repository.getDiveById(created.id);
-          expect(loaded!.diverRoleId, 'instructor');
+          expect(loaded!.diverRoleIds.firstOrNull, 'instructor');
         },
       );
 
@@ -341,7 +341,7 @@ void main() {
 
         expect(result.single.buddies, hasLength(1));
         expect(result.single.buddies.single.buddy.name, 'Alice');
-        expect(result.single.buddies.single.role.id, DiveRole.buddyId);
+        expect(result.single.buddies.single.primaryRole.id, DiveRole.buddyId);
       });
 
       test('leaves buddies empty for dives with no junction records', () async {

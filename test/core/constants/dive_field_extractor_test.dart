@@ -19,7 +19,7 @@ BuddyWithRole _person(String name, String roleId) => BuddyWithRole(
     createdAt: DateTime(2024, 1, 1),
     updatedAt: DateTime(2024, 1, 1),
   ),
-  role: DiveRole.synthetic(roleId),
+  roles: [DiveRole.synthetic(roleId)],
 );
 
 /// A minimal dive carrying junction [buddies] plus optional legacy scalars.

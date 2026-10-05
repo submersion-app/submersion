@@ -209,10 +209,19 @@ class Buddy extends Equatable {
 /// [DiveRole.id], never the display name.
 class BuddyWithRole extends Equatable {
   final Buddy buddy;
-  final DiveRole role;
 
-  const BuddyWithRole({required this.buddy, required this.role});
+  /// Every role this person holds on the dive, in DiveRoleSet order; never
+  /// empty (issue #1221). The first is the primary role `dive_buddies.role`
+  /// holds for older app versions.
+  final List<DiveRole> roles;
+
+  BuddyWithRole({required this.buddy, required this.roles})
+    : assert(roles.isNotEmpty, 'a buddy link always carries a role');
+
+  DiveRole get primaryRole => roles.first;
+
+  List<String> get roleIds => [for (final r in roles) r.id];
 
   @override
-  List<Object?> get props => [buddy, role];
+  List<Object?> get props => [buddy, roles];
 }

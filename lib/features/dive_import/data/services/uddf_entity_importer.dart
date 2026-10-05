@@ -2721,7 +2721,7 @@ class UddfEntityImporter {
         // Dive mode and rebreather fields
         diveMode: diveMode,
         isPlanned: isPlanned,
-        diverRoleId: diverRoleId,
+        diverRoleIds: [?diverRoleId],
         isFavorite: isFavorite,
         excludedFromStats: excludedFromStats,
         excludedFromGasStats: excludedFromGasStats,

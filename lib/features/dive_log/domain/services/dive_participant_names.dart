@@ -28,7 +28,7 @@ extension DiveParticipantNames on Dive {
 
   String? _joinedNames({required bool guides}) {
     final names = buddies
-        .where((b) => _guideRoleIds.contains(b.role.id) == guides)
+        .where((b) => _guideRoleIds.contains(b.primaryRole.id) == guides)
         .map((b) => b.buddy.name.trim())
         .where((n) => n.isNotEmpty)
         .toList();

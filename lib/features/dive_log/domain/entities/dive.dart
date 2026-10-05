@@ -86,8 +86,10 @@ class Dive extends Equatable {
   /// path, in which case the [buddy] / [diveMaster] text fields are the source.
   final List<BuddyWithRole> buddies;
 
-  /// The active diver's own role on this dive (dive_roles id, #547).
-  final String? diverRoleId;
+  /// The active diver's own roles on this dive, in DiveRoleSet order (issue
+  /// #1221); empty when none. The first is the primary role
+  /// `dives.diver_role` holds for older app versions (#547).
+  final List<String> diverRoleIds;
   final int? rating; // 1-5 stars
   // Conditions fields
   final CurrentDirection? currentDirection;
@@ -241,7 +243,7 @@ class Dive extends Equatable {
     this.buddy,
     this.diveMaster,
     this.buddies = const [],
-    this.diverRoleId,
+    this.diverRoleIds = const [],
     this.rating,
     this.currentDirection,
     this.currentStrength,
@@ -648,7 +650,7 @@ class Dive extends Equatable {
     String? buddy,
     String? diveMaster,
     List<BuddyWithRole>? buddies,
-    String? diverRoleId,
+    List<String>? diverRoleIds,
     int? rating,
     CurrentDirection? currentDirection,
     CurrentStrength? currentStrength,
@@ -748,7 +750,7 @@ class Dive extends Equatable {
       buddy: buddy ?? this.buddy,
       diveMaster: diveMaster ?? this.diveMaster,
       buddies: buddies ?? this.buddies,
-      diverRoleId: diverRoleId ?? this.diverRoleId,
+      diverRoleIds: diverRoleIds ?? this.diverRoleIds,
       rating: rating ?? this.rating,
       currentDirection: currentDirection ?? this.currentDirection,
       currentStrength: currentStrength ?? this.currentStrength,
@@ -850,7 +852,7 @@ class Dive extends Equatable {
     buddy,
     diveMaster,
     buddies,
-    diverRoleId,
+    diverRoleIds,
     rating,
     currentDirection,
     currentStrength,

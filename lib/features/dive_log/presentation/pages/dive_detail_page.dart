@@ -4816,11 +4816,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   ],
                 ),
                 const Divider(),
-                if (dive.diverRoleId != null)
+                if (dive.diverRoleIds.isNotEmpty)
                   _buildMyRoleTile(context, ref, dive),
                 if (showLegacyText)
                   LegacyBuddyTextSection(dive: dive)
-                else if (buddies.isEmpty && dive.diverRoleId == null)
+                else if (buddies.isEmpty && dive.diverRoleIds.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Text(
@@ -4859,7 +4859,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       ),
       title: Text(bwr.buddy.name),
-      subtitle: Text(bwr.role.localizedName(context.l10n)),
+      subtitle: Text(bwr.primaryRole.localizedName(context.l10n)),
       trailing: const Icon(Icons.chevron_right, size: 20),
       onTap: () => context.push('/buddies/${bwr.buddy.id}'),
     );
@@ -4870,7 +4870,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final rolesById =
         ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
     final role =
-        rolesById[dive.diverRoleId!] ?? DiveRole.synthetic(dive.diverRoleId!);
+        rolesById[dive.diverRoleIds.first] ??
+        DiveRole.synthetic(dive.diverRoleIds.first);
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: CircleAvatar(

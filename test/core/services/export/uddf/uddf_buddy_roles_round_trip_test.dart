@@ -45,7 +45,7 @@ void main() {
     ]..sort((a, b) => a.dateTime.compareTo(b.dateTime))).elementAt(index);
     return {
       for (final b in await BuddyRepository().getBuddiesForDive(dive.id))
-        b.buddy.name: b.role.id,
+        b.buddy.name: b.primaryRole.id,
     };
   }
 

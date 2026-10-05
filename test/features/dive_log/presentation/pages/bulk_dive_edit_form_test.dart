@@ -202,7 +202,7 @@ void main() {
 
         final saved = await BuddyRepository().getBuddiesForDive(d1.id);
         expect(saved, hasLength(1));
-        expect(saved.single.role.id, DiveRole.instructorId);
+        expect(saved.single.primaryRole.id, DiveRole.instructorId);
       },
     );
 
@@ -263,11 +263,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        (await repository.getDiveById(d1.id))!.diverRoleId,
+        (await repository.getDiveById(d1.id))!.diverRoleIds.firstOrNull,
         DiveRole.instructorId,
       );
       expect(
-        (await repository.getDiveById(d2.id))!.diverRoleId,
+        (await repository.getDiveById(d2.id))!.diverRoleIds.firstOrNull,
         DiveRole.instructorId,
       );
     });
@@ -298,7 +298,9 @@ void main() {
       );
       await BuddyRepository().bulkAddBuddies(
         [d1.id, d2.id],
-        [BuddyWithRole(buddy: buddy, role: DiveRole.builtInBuddy())],
+        [
+          BuddyWithRole(buddy: buddy, roles: [DiveRole.builtInBuddy()]),
+        ],
       );
 
       final overrides = await getBaseOverrides();
@@ -342,7 +344,7 @@ void main() {
 
       for (final id in [d1.id, d2.id]) {
         final saved = await BuddyRepository().getBuddiesForDive(id);
-        expect(saved.single.role.id, DiveRole.instructorId);
+        expect(saved.single.primaryRole.id, DiveRole.instructorId);
       }
     });
 
@@ -372,7 +374,9 @@ void main() {
       // Only d1 has the buddy.
       await BuddyRepository().bulkAddBuddies(
         [d1.id],
-        [BuddyWithRole(buddy: buddy, role: DiveRole.builtInBuddy())],
+        [
+          BuddyWithRole(buddy: buddy, roles: [DiveRole.builtInBuddy()]),
+        ],
       );
 
       final overrides = await getBaseOverrides();
@@ -405,7 +409,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final onD1 = await BuddyRepository().getBuddiesForDive(d1.id);
-      expect(onD1.single.role.id, DiveRole.instructorId);
+      expect(onD1.single.primaryRole.id, DiveRole.instructorId);
       // The membership checkbox was left on "some", so d2 stays untouched.
       expect(await BuddyRepository().getBuddiesForDive(d2.id), isEmpty);
     });
@@ -436,7 +440,9 @@ void main() {
       // Both dives already carry the buddy as a plain Buddy.
       await BuddyRepository().bulkAddBuddies(
         [d1.id, d2.id],
-        [BuddyWithRole(buddy: buddy, role: DiveRole.builtInBuddy())],
+        [
+          BuddyWithRole(buddy: buddy, roles: [DiveRole.builtInBuddy()]),
+        ],
       );
 
       final overrides = await getBaseOverrides();
@@ -496,7 +502,7 @@ void main() {
       for (final id in [d1.id, d2.id]) {
         final saved = await BuddyRepository().getBuddiesForDive(id);
         expect(saved, hasLength(1));
-        expect(saved.single.role.id, DiveRole.instructorId);
+        expect(saved.single.primaryRole.id, DiveRole.instructorId);
       }
     });
 

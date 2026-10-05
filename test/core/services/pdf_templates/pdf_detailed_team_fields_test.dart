@@ -21,13 +21,15 @@ void main() {
   BuddyWithRole person(String name, String roleId, String roleName) =>
       BuddyWithRole(
         buddy: Buddy(id: name, name: name, createdAt: epoch, updatedAt: epoch),
-        role: DiveRole(
-          id: roleId,
-          name: roleName,
-          isBuiltIn: true,
-          createdAt: epoch,
-          updatedAt: epoch,
-        ),
+        roles: [
+          DiveRole(
+            id: roleId,
+            name: roleName,
+            isBuiltIn: true,
+            createdAt: epoch,
+            updatedAt: epoch,
+          ),
+        ],
       );
 
   final alice = person('Alice', DiveRole.buddyId, 'Buddy');

@@ -157,7 +157,7 @@ void main() {
 
     final roles = {
       for (final b in await BuddyRepository().getBuddiesForDive(restored.id))
-        b.buddy.name: b.role.id,
+        b.buddy.name: b.primaryRole.id,
     };
     final photographerRole = roles['Pat Kim'];
     final tom = (await BuddyRepository().getBuddiesForDive(

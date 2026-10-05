@@ -270,7 +270,7 @@ final _buddy = BuddyWithRole(
     createdAt: DateTime(2026, 1, 1),
     updatedAt: DateTime(2026, 1, 1),
   ),
-  role: DiveRole.builtInBuddy(),
+  roles: [DiveRole.builtInBuddy()],
 );
 
 void main() {

@@ -159,7 +159,7 @@ class BuddySignaturesSection extends ConsumerWidget {
           diveId: diveId,
           buddyId: bwr.buddy.id,
           buddyName: bwr.buddy.name,
-          role: bwr.role.id,
+          role: bwr.primaryRole.id,
           strokes: strokes,
           width: canvasSize.width,
           height: canvasSize.height,

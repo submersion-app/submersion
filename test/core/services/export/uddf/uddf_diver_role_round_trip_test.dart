@@ -71,7 +71,7 @@ void main() {
   Future<List<String?>> diverRoles() async {
     final dives = [...await DiveRepository().getAllDives()]
       ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
-    return [for (final d in dives) d.diverRoleId];
+    return [for (final d in dives) d.diverRoleIds.firstOrNull];
   }
 
   test('the diver role survives a full export and restore', () async {
@@ -85,14 +85,14 @@ void main() {
       domain.Dive(
         id: 'd1',
         dateTime: DateTime(2026, 3, 1, 9),
-        diverRoleId: DiveRole.instructorId,
+        diverRoleIds: [DiveRole.instructorId],
       ),
     );
     await dives.createDive(
       domain.Dive(
         id: 'd2',
         dateTime: DateTime(2026, 3, 1, 14),
-        diverRoleId: custom.id,
+        diverRoleIds: [custom.id],
       ),
     );
     await dives.createDive(
@@ -268,7 +268,7 @@ void main() {
       domain.Dive(
         id: 'd1',
         dateTime: DateTime(2026, 3, 1, 9),
-        diverRoleId: DiveRole.diveGuideId,
+        diverRoleIds: [DiveRole.diveGuideId],
       ),
     ]);
 
@@ -293,7 +293,7 @@ void main() {
           id: 'd1',
           diverId: diverId,
           dateTime: DateTime(2026, 3, 1, 9),
-          diverRoleId: custom.id,
+          diverRoleIds: [custom.id],
         ),
       );
 
@@ -344,12 +344,12 @@ void main() {
           domain.Dive(
             id: 'd1',
             dateTime: DateTime(2026, 3, 1, 9),
-            diverRoleId: photographer.id,
+            diverRoleIds: [photographer.id],
           ),
           domain.Dive(
             id: 'd2',
             dateTime: DateTime(2026, 3, 1, 14),
-            diverRoleId: photographer.id,
+            diverRoleIds: [photographer.id],
           ),
         ],
         extras: UddfDivesExtras(
@@ -379,7 +379,7 @@ void main() {
       domain.Dive(
         id: 'd1',
         dateTime: DateTime(2026, 3, 1, 9),
-        diverRoleId: 'role-foreign',
+        diverRoleIds: ['role-foreign'],
       ),
     ], extras: UddfDivesExtras(diveRoles: [DiveRole.builtInBuddy()]));
 

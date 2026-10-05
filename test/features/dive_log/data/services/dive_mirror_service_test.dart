@@ -75,14 +75,16 @@ void main() {
         waterTemp: 18,
         notes: 'private',
         rating: 5,
-        diverRoleId: diverRoleId,
+        diverRoleIds: [?diverRoleId],
         diveNumber: 12,
       ),
     );
     await buddies.setBuddiesForDive(
       dive.id,
       members ??
-          [BuddyWithRole(buddy: chrisBuddy, role: DiveRole.builtInBuddy())],
+          [
+            BuddyWithRole(buddy: chrisBuddy, roles: [DiveRole.builtInBuddy()]),
+          ],
     );
     return dive;
   }
@@ -97,7 +99,9 @@ void main() {
   test('candidates ignores unlinked buddies', () async {
     final dave = await buddies.createBuddy(buddy(eric, 'Dave'));
     final dive = await sourceDive(
-      members: [BuddyWithRole(buddy: dave, role: DiveRole.builtInBuddy())],
+      members: [
+        BuddyWithRole(buddy: dave, roles: [DiveRole.builtInBuddy()]),
+      ],
     );
     expect(await service.candidates(dive.id), isEmpty);
   });
@@ -138,7 +142,7 @@ void main() {
     expect(siblingBuddies.single.buddy.linkedDiverId, eric);
     expect(siblingBuddies.single.buddy.diverId, chris);
     expect(siblingBuddies.single.buddy.name, 'Eric');
-    expect(siblingBuddies.single.role.id, DiveRole.buddyId);
+    expect(siblingBuddies.single.primaryRole.id, DiveRole.buddyId);
   });
 
   test('the target takes the role its buddy held on the source', () async {
@@ -146,7 +150,7 @@ void main() {
       members: [
         BuddyWithRole(
           buddy: chrisBuddy,
-          role: DiveRole.synthetic(DiveRole.instructorId),
+          roles: [DiveRole.synthetic(DiveRole.instructorId)],
         ),
       ],
     );
@@ -155,7 +159,7 @@ void main() {
       targetDiverIds: [chris],
     );
     final sibling = await dives.getDiveById(outcome.createdDiveIds.single);
-    expect(sibling?.diverRoleId, DiveRole.instructorId);
+    expect(sibling?.diverRoleIds.firstOrNull, DiveRole.instructorId);
   });
 
   test(
@@ -166,8 +170,8 @@ void main() {
       );
       final dive = await sourceDive(
         members: [
-          BuddyWithRole(buddy: chrisBuddy, role: DiveRole.builtInBuddy()),
-          BuddyWithRole(buddy: dave, role: DiveRole.builtInBuddy()),
+          BuddyWithRole(buddy: chrisBuddy, roles: [DiveRole.builtInBuddy()]),
+          BuddyWithRole(buddy: dave, roles: [DiveRole.builtInBuddy()]),
         ],
       );
       final outcome = await service.mirror(

@@ -31,7 +31,7 @@ const Set<String> kHumanDiveFields = {
   'id',
   'diverId',
   'outingId',
-  'diverRoleId',
+  'diverRoleIds',
   'name',
   'dateTime',
   'site',

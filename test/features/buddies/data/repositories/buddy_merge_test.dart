@@ -90,7 +90,7 @@ void main() {
       final diveBuddies = await repository.getBuddiesForDive('dive1');
       expect(diveBuddies.length, 1);
       expect(diveBuddies.first.buddy.id, buddyA.id);
-      expect(diveBuddies.first.role.id, DiveRole.buddyId);
+      expect(diveBuddies.first.primaryRole.id, DiveRole.buddyId);
     });
 
     test('collision: keeps higher-ranked role (instructor > buddy)', () async {
@@ -140,7 +140,7 @@ void main() {
       final diveBuddies = await repository.getBuddiesForDive('dive1');
       expect(diveBuddies.length, 1);
       expect(diveBuddies.first.buddy.id, buddyA.id);
-      expect(diveBuddies.first.role.id, DiveRole.instructorId);
+      expect(diveBuddies.first.primaryRole.id, DiveRole.instructorId);
 
       expect(result!.snapshot!.modifiedDiveBuddyEntries.length, 1);
       expect(result.snapshot!.modifiedDiveBuddyEntries.first.role, 'buddy');
@@ -207,7 +207,7 @@ void main() {
       final diveBuddies = await repository.getBuddiesForDive('dive1');
       expect(diveBuddies.length, 1);
       expect(diveBuddies.first.buddy.id, buddyA.id);
-      expect(diveBuddies.first.role.id, DiveRole.instructorId);
+      expect(diveBuddies.first.primaryRole.id, DiveRole.instructorId);
     });
 
     test('merges buddy with no dives', () async {

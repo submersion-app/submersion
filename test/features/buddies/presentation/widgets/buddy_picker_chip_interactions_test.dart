@@ -80,7 +80,7 @@ void main() {
   });
 
   BuddyWithRole aliceAs(DiveRole role) =>
-      BuddyWithRole(buddy: _alice, role: role);
+      BuddyWithRole(buddy: _alice, roles: [role]);
 
   testWidgets('tapping a buddy chip opens the role selector and changing '
       'the role calls onChanged with the new role', (tester) async {
@@ -102,7 +102,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(changed, isNotNull);
-    expect(changed!.single.role.id, DiveRole.rearGuardId);
+    expect(changed!.single.primaryRole.id, DiveRole.rearGuardId);
   });
 
   testWidgets('removing a buddy chip calls onChanged without that buddy', (
@@ -152,8 +152,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(changed, isNotNull);
-    expect(changed!.single.role.name, 'Hekkensluiter');
-    expect(changed!.single.role.isBuiltIn, isFalse);
+    expect(changed!.single.primaryRole.name, 'Hekkensluiter');
+    expect(changed!.single.primaryRole.isBuiltIn, isFalse);
   });
 
   testWidgets('custom role creation failure shows an error snackbar and '
@@ -251,6 +251,6 @@ void main() {
 
     expect(changed, isNotNull);
     expect(changed!.single.buddy.id, 'b1');
-    expect(changed!.single.role.name, 'Hekkensluiter');
+    expect(changed!.single.primaryRole.name, 'Hekkensluiter');
   });
 }

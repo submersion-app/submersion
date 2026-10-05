@@ -78,8 +78,8 @@ class UddfExportService {
     final customRoles = <String, DiveRole>{
       for (final id in [
         for (final rows in diveBuddies.values)
-          for (final row in rows) row.role.id,
-        for (final dive in dives) ?dive.diverRoleId,
+          for (final row in rows) row.primaryRole.id,
+        for (final dive in dives) ?dive.diverRoleIds.firstOrNull,
       ])
         if (ownRoles[id] case final role?
             when !DiveRole.builtInIds.contains(id))

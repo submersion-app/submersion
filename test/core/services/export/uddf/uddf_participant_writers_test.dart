@@ -22,12 +22,9 @@ Buddy _buddy(String id, String name) => Buddy(
 
 BuddyWithRole _row(Buddy buddy, String roleId) => BuddyWithRole(
   buddy: buddy,
-  role: DiveRole(
-    id: roleId,
-    name: roleId,
-    createdAt: _epoch,
-    updatedAt: _epoch,
-  ),
+  roles: [
+    DiveRole(id: roleId, name: roleId, createdAt: _epoch, updatedAt: _epoch),
+  ],
 );
 
 XmlElement _write(void Function(XmlBuilder builder) body) {

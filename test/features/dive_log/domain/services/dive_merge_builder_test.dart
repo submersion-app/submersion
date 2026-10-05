@@ -204,9 +204,9 @@ void main() {
       final b = dive(
         'b',
         entry: DateTime.utc(2026, 7, 1, 10),
-      ).copyWith(diverRoleId: 'rearGuard');
+      ).copyWith(diverRoleIds: ['rearGuard']);
       final merged = builder.build([a, b]).mergedDive;
-      expect(merged.diverRoleId, 'rearGuard');
+      expect(merged.diverRoleIds.firstOrNull, 'rearGuard');
     });
 
     test('avgDepth is weighted by sampled time and excludes the gap', () {

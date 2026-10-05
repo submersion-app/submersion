@@ -874,7 +874,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _existingDive = dive;
           _isPlanned = dive.isPlanned;
           _hasPrimarySource = hasPrimarySource;
-          _diverRoleId = dive.diverRoleId;
+          _diverRoleId = dive.diverRoleIds.firstOrNull;
           _diveNumberController.text = dive.diveNumber != null
               ? _seedInt(dive.diveNumber!)
               : '';
@@ -4486,7 +4486,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       final existing = _buddyMembers.map((e) => e.id).toSet();
       for (final bwr in buddies) {
         _buddyById[bwr.buddy.id] = bwr.buddy;
-        _buddyRoleById[bwr.buddy.id] = bwr.role;
+        _buddyRoleById[bwr.buddy.id] = bwr.primaryRole;
       }
       _buddyMembers = [
         ..._buddyMembers,
@@ -4510,7 +4510,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
-    role: _roleForBuddy(id),
+    roles: [_roleForBuddy(id)],
   );
 
   /// A picked role wins; otherwise reuse the role the buddy already has across
@@ -5925,7 +5925,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         weatherCode: _existingDive?.weatherCode,
         importId: _existingDive?.importId,
         surfaceInterval: _existingDive?.surfaceInterval,
-        diverRoleId: _diverRoleId,
+        diverRoleIds: [?_diverRoleId],
         // CCR/SCR rebreather settings
         diveMode: _diveMode,
         setpointLow: _diveMode == DiveMode.ccr ? _setpointLow : null,

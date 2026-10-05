@@ -34,7 +34,7 @@ void main() {
         DiveRole.synthetic(DiveRole.rearGuardId),
       );
       expect(notifier.state, hasLength(2));
-      expect(notifier.state.first.role.id, DiveRole.rearGuardId);
+      expect(notifier.state.first.primaryRole.id, DiveRole.rearGuardId);
     });
 
     test('updateRole changes only the matching buddy and removeBuddy '
@@ -44,8 +44,8 @@ void main() {
       notifier.addBuddy(buddy('b2', 'Bob'), DiveRole.builtInBuddy());
 
       notifier.updateRole('b2', DiveRole.synthetic(DiveRole.instructorId));
-      expect(notifier.state[0].role.id, DiveRole.buddyId);
-      expect(notifier.state[1].role.id, DiveRole.instructorId);
+      expect(notifier.state[0].primaryRole.id, DiveRole.buddyId);
+      expect(notifier.state[1].primaryRole.id, DiveRole.instructorId);
 
       notifier.removeBuddy('b1');
       expect(notifier.state.single.buddy.id, 'b2');

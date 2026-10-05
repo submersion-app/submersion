@@ -87,7 +87,9 @@ class _BuddySignatureRequestSheetState
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      widget.buddyWithRole.role.localizedName(context.l10n),
+                      widget.buddyWithRole.primaryRole.localizedName(
+                        context.l10n,
+                      ),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
