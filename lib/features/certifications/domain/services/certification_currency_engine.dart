@@ -99,6 +99,8 @@ List<CredentialCurrency> evaluateCurrency({
 }
 
 bool _matches(CurrencyRule rule, CertificationCredential c) {
+  // A scope this build cannot read must not decode to "any".
+  if (rule.unreadableScope) return false;
   if (rule.agencies.isNotEmpty && !rule.agencies.contains(c.agency)) {
     return false;
   }

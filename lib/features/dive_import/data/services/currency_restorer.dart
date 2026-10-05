@@ -11,10 +11,12 @@ import 'package:submersion/features/certifications/domain/entities/currency_scop
 /// (issue #2267).
 ///
 /// Custom rules restore with no selection step, as custom dive roles do: a
-/// rule keeps its id unless a row with that id is already here. One the
-/// importing diver already owns (or nobody owns) is reused; another diver's
-/// rule under the same id is left alone and the file's rule lands as a copy
-/// under a new id, with the prefs and events that name it following.
+/// rule keeps its id unless a row with that id is already here. A custom
+/// rule the importing diver already owns (or nobody owns) is reused. A
+/// built-in, or another diver's rule, under the same id is left alone and
+/// the file's rule lands as a copy under a new id, with the prefs and events
+/// that name it following: a file's rules are always custom, so a collision
+/// with a seeded id must not discard the file's definition.
 ///
 /// Prefs and events ride along with the certifications the import created,
 /// as service records ride along with equipment: a row whose
@@ -61,9 +63,8 @@ class CurrencyRestorer {
       if (id == null) continue;
       final existing = here[id];
       if (existing != null &&
-          (existing.isBuiltIn ||
-              existing.diverId == null ||
-              existing.diverId == diverId)) {
+          !existing.isBuiltIn &&
+          (existing.diverId == null || existing.diverId == diverId)) {
         ruleIdMapping[id] = id;
         continue;
       }

@@ -39,6 +39,31 @@ void main() {
       ]);
     });
 
+    test('an array naming nothing this build knows is unreadable', () {
+      // Decoding it to [] would read as "any" and widen the rule to every
+      // card; it must read as unreadable instead.
+      expect(
+        CurrencyScopeCodec.isReadableAgencies('["fromTheFuture"]'),
+        isFalse,
+      );
+      expect(
+        CurrencyScopeCodec.isReadableLevels('["levelFromTheFuture"]'),
+        isFalse,
+      );
+      expect(CurrencyScopeCodec.isReadableModes('["warpDrive"]'), isFalse);
+      expect(CurrencyScopeCodec.isReadableStrings('not json'), isFalse);
+      expect(CurrencyScopeCodec.isReadableStrings('{"not":"a list"}'), isFalse);
+    });
+
+    test('an empty array, or one with a known name, stays readable', () {
+      expect(CurrencyScopeCodec.isReadableLevels('[]'), isTrue);
+      expect(
+        CurrencyScopeCodec.isReadableLevels('["cave","levelFromTheFuture"]'),
+        isTrue,
+      );
+      expect(CurrencyScopeCodec.isReadableStrings('["cave"]'), isTrue);
+    });
+
     test('encode round trips', () {
       expect(
         CurrencyScopeCodec.encode(['cave', 'cavern']),

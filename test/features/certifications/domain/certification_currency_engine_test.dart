@@ -591,6 +591,22 @@ void main() {
       },
     );
 
+    test('a rule whose scope this build cannot read matches nothing', () {
+      final unreadable = rule(
+        'future',
+        agencies: const [],
+      ).copyWith(unreadableScope: true);
+      expect(
+        run(
+          certs: [cert('c')],
+          rules: [unreadable],
+          activity: DiveActivityIndex(lastDiveAt: DateTime(2020, 1, 1)),
+          now: DateTime(2026, 1, 1),
+        ),
+        isEmpty,
+      );
+    });
+
     test('a card expiry event never moves the due date', () {
       // The synthesized card-expiry status follows the printed date alone;
       // a renewed card is a new expiry date on the card.

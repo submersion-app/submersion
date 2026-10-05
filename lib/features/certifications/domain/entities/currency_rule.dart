@@ -51,6 +51,12 @@ class CurrencyRule extends Equatable {
 
   final String? supersedesRuleId;
   final bool isBuiltIn;
+
+  /// True when a stored scope or mapping array names nothing this build
+  /// knows, or is malformed (a rule written by a newer build, or a corrupt
+  /// row). Decoding it would read as "any" and widen the rule, so the
+  /// engine matches such a rule to nothing.
+  final bool unreadableScope;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -69,6 +75,7 @@ class CurrencyRule extends Equatable {
     this.advisoryText,
     this.supersedesRuleId,
     this.isBuiltIn = false,
+    this.unreadableScope = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -88,6 +95,7 @@ class CurrencyRule extends Equatable {
     String? advisoryText,
     String? supersedesRuleId,
     bool? isBuiltIn,
+    bool? unreadableScope,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => CurrencyRule(
@@ -105,6 +113,7 @@ class CurrencyRule extends Equatable {
     advisoryText: advisoryText ?? this.advisoryText,
     supersedesRuleId: supersedesRuleId ?? this.supersedesRuleId,
     isBuiltIn: isBuiltIn ?? this.isBuiltIn,
+    unreadableScope: unreadableScope ?? this.unreadableScope,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -134,6 +143,7 @@ class CurrencyRule extends Equatable {
     advisoryText,
     supersedesRuleId,
     isBuiltIn,
+    unreadableScope,
     createdAt,
     updatedAt,
   ];

@@ -129,6 +129,35 @@ void main() {
       expect(await pendingIds('certificationCurrencyRules'), [created.id]);
     });
 
+    test('a stored scope this build cannot read maps to unreadable', () async {
+      final t = DateTime.now().millisecondsSinceEpoch;
+      for (final (id, levels) in [
+        ('future', '["levelFromTheFuture"]'),
+        ('corrupt', 'not json'),
+        ('known', '["cave","levelFromTheFuture"]'),
+      ]) {
+        await db
+            .into(db.certificationCurrencyRules)
+            .insert(
+              CertificationCurrencyRulesCompanion.insert(
+                id: id,
+                name: id,
+                clockKind: 'activity',
+                applicableLevels: Value(levels),
+                lapseDays: 365,
+                leadDays: 90,
+                createdAt: t,
+                updatedAt: t,
+              ),
+            );
+      }
+      final byId = {for (final r in await repository.getRules()) r.id: r};
+      expect(byId['future']!.unreadableScope, isTrue);
+      expect(byId['corrupt']!.unreadableScope, isTrue);
+      expect(byId['known']!.unreadableScope, isFalse);
+      expect(byId['cave_currency']!.unreadableScope, isFalse);
+    });
+
     test('createRule never writes a built-in row, even when asked', () async {
       final created = await repository.createRule(
         customRule(id: 'sneaky').copyWith(isBuiltIn: true),

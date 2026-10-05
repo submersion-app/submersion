@@ -323,6 +323,11 @@ class CertificationCurrencyRepository {
     advisoryText: row.advisoryText,
     supersedesRuleId: row.supersedesRuleId,
     isBuiltIn: row.isBuiltIn,
+    unreadableScope:
+        !CurrencyScopeCodec.isReadableAgencies(row.applicableAgencies) ||
+        !CurrencyScopeCodec.isReadableLevels(row.applicableLevels) ||
+        !CurrencyScopeCodec.isReadableStrings(row.countedDiveTypeIds) ||
+        !CurrencyScopeCodec.isReadableModes(row.countedDiveModes),
     createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
   );

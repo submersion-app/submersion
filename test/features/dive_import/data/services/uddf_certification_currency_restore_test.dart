@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/models/currency_backup_data.dart';
+import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
@@ -226,6 +227,44 @@ void main() {
     );
   });
 
+  test(
+    'a custom rule colliding with a built-in id lands under a new id',
+    () async {
+      // A file's rules are always custom; a colliding id must not silently
+      // become the seeded rule and lose the file's own definition.
+      final data = await _parse(
+        rules: [_customRule.copyWith(id: 'cave_currency')],
+      );
+      final colliding = {
+        ...(data.currencyPrefs as List<Map<String, dynamic>>).single,
+        'ruleId': 'cave_currency',
+      };
+      final restored = UddfFullImportServiceShim.withPrefs(data, [colliding]);
+      await UddfEntityImporter().import(
+        data: restored,
+        selections: const UddfImportSelections(certifications: {0}),
+        repositories: _repositories(),
+        diverId: _diverId,
+      );
+
+      final custom = (await currency.getRules()).where((r) => !r.isBuiltIn);
+      final copy = custom.single;
+      expect(copy.id, isNot('cave_currency'));
+      expect(copy.name, 'Club cave check-out');
+      expect(copy.lapseDays, 180);
+      final builtIn = (await currency.getRules()).singleWhere(
+        (r) => r.id == 'cave_currency',
+      );
+      expect(builtIn.lapseDays, 365, reason: 'the seeded rule is untouched');
+      final cert = await restoredCert();
+      expect(
+        (await currency.getPrefs(cert.id)).single.ruleId,
+        copy.id,
+        reason: 'the pref follows the file rule, not the built-in',
+      );
+    },
+  );
+
   test('an unselected certification brings nothing', () async {
     final data = await _parse();
     await UddfEntityImporter().import(
@@ -254,4 +293,17 @@ void main() {
     );
     expect(await currency.getAllPrefs(), isEmpty);
   });
+}
+
+/// Swaps the parsed prefs of a full-backup result, keeping everything else.
+abstract final class UddfFullImportServiceShim {
+  static UddfImportResult withPrefs(
+    UddfImportResult data,
+    List<Map<String, dynamic>> prefs,
+  ) => UddfImportResult(
+    certifications: data.certifications,
+    currencyRules: data.currencyRules,
+    currencyPrefs: prefs,
+    currencyEvents: data.currencyEvents,
+  );
 }
