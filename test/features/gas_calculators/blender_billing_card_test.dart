@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -45,6 +46,7 @@ Future<WidgetRef> _pump(
   WidgetTester tester, {
   List<dynamic> overrides = const [],
   List<EquipmentItem>? gear,
+  double textScale = 1,
 }) async {
   late WidgetRef captured;
   await tester.pumpWidget(
@@ -68,6 +70,12 @@ Future<WidgetRef> _pump(
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child!,
+        ),
         home: Scaffold(
           body: SingleChildScrollView(
             child: Consumer(
@@ -199,6 +207,31 @@ void main() {
     );
     expect(ref.read(blenderCylinderLitersProvider), closeTo(11.1, 0.01));
   });
+
+  testWidgets(
+    'on a narrow card at a large text size, Choose cylinder wraps its label '
+    'onto more lines instead of truncating it',
+    (tester) async {
+      // TextButton.icon puts its label in a Flexible, so the label can wrap;
+      // an ellipsis overflow would pin it to one truncated line instead.
+      await tester.binding.setSurfaceSize(const Size(260, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await _pump(tester, textScale: 3);
+
+      final label = tester.renderObject<RenderParagraph>(
+        find.descendant(
+          of: find.byKey(const Key('blender-billing-choose-cylinder')),
+          matching: find.text('Choose cylinder'),
+        ),
+      );
+      final lineHeight = label.getFullHeightForCaret(
+        const TextPosition(offset: 0),
+      );
+      expect(tester.takeException(), isNull);
+      expect(label.didExceedMaxLines, isFalse);
+      expect(label.size.height, greaterThan(lineHeight * 1.5));
+    },
+  );
 
   testWidgets('submitting a typed cylinder volume saves the preferences', (
     tester,

@@ -172,10 +172,7 @@ class _BlenderBillingCardState extends ConsumerState<BlenderBillingCard> {
       trailing: TextButton.icon(
         key: const Key('blender-billing-choose-cylinder'),
         icon: const Icon(Icons.propane_tank_outlined, size: 18),
-        label: Text(
-          context.l10n.gasCalculators_blender_chooseCylinder,
-          overflow: TextOverflow.ellipsis,
-        ),
+        label: Text(context.l10n.gasCalculators_blender_chooseCylinder),
         onPressed: () => _chooseCylinder(context, settings),
       ),
     );
