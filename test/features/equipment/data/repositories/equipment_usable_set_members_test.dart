@@ -48,4 +48,18 @@ void main() {
     ], 'me');
     expect(ids, ['shared', 'missing', 'ownerless', 'mine']);
   });
+
+  test('drops a member that is only on the wishlist (#2025)', () async {
+    await db.customStatement(
+      'INSERT INTO equipment (id, name, type, created_at, updated_at, '
+      "diver_id, status, is_active) VALUES ('wish', 'wish', 'bcd', 0, 0, "
+      "'me', 'wanted', 0)",
+    );
+
+    final ids = await EquipmentRepository().usableSetMemberIds([
+      'mine',
+      'wish',
+    ], 'me');
+    expect(ids, ['mine']);
+  });
 }

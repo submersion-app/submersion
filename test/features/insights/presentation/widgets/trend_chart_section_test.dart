@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
+import 'package:submersion/features/insights/domain/trend_range.dart';
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
@@ -13,6 +14,15 @@ List<TrendDataPoint> series(int n) => List.generate(
   (i) => TrendDataPoint(
     date: DateTime.utc(2024, 1, 1).add(Duration(days: i * 7)),
     value: 10.0 + i,
+  ),
+);
+
+/// Four years of weekly dives from Monday 2022-01-03.
+List<TrendDataPoint> fourYears() => List.generate(
+  209,
+  (i) => TrendDataPoint(
+    date: DateTime.utc(2022, 1, 3).add(Duration(days: i * 7)),
+    value: 10.0 + i % 7,
   ),
 );
 
@@ -139,5 +149,48 @@ void main() {
     expect(chart.rollingColor, isNot(chart.pointColor));
     expect(chart.rateColor, isNot(chart.pointColor));
     expect(chart.rateColor, isNot(chart.rollingColor));
+  });
+
+  testWidgets('picking a preset narrows the chart and stores the range', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(AsyncValue.data(fourYears())));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('trend-range-depth')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('trend-range-depth-year1')));
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(TrendChartSection)),
+    );
+    expect(
+      container.read(trendChartSettingsProvider(TrendChartIds.depth)).range,
+      const TrendRange.preset(TrendRangePreset.year1),
+    );
+    expect(find.text('Last year'), findsOneWidget);
+  });
+
+  testWidgets('Custom range... stores the picked days', (tester) async {
+    await tester.pumpWidget(host(AsyncValue.data(fourYears())));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('trend-range-depth')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('trend-range-depth-custom')));
+    await tester.pumpAndSettle();
+    expect(find.byType(DateRangePickerDialog), findsOneWidget);
+    // The picker opens on the data's whole span; saving keeps it.
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(TrendChartSection)),
+    );
+    final range = container
+        .read(trendChartSettingsProvider(TrendChartIds.depth))
+        .range;
+    expect(range.preset, TrendRangePreset.custom);
+    expect(range.start, DateTime.utc(2022, 1, 3));
+    expect(find.text('Custom'), findsOneWidget);
   });
 }

@@ -117,9 +117,21 @@ class EquipmentSummaryWidget extends ConsumerWidget {
     final status = StatusColors.of(context);
     final serviceSwatch = anyOverdue ? status.alert : status.warn;
 
+    // Wishlist gear (#2025) is not owned: it gets its own count and value
+    // cards and stays out of the kit's totals and recent list.
+    final owned = [
+      for (final e in equipment)
+        if (!e.isWanted) e,
+    ];
+    final wanted = [
+      for (final e in equipment)
+        if (e.isWanted) e,
+    ];
+    final fallbackCurrency = ref.watch(defaultCurrencyProvider);
+
     // Calculate stats
     int activeCount = 0;
-    for (final item in equipment) {
+    for (final item in owned) {
       if (item.isActive) {
         activeCount++;
       }
@@ -128,10 +140,16 @@ class EquipmentSummaryWidget extends ConsumerWidget {
     // Equipment can be priced in different currencies, so totals are kept
     // per currency rather than added into one figure under a single symbol.
     final totalsByCurrency = sumByCurrency<dynamic>(
-      equipment,
+      owned,
       amountOf: (item) => item.purchasePrice as double?,
       currencyOf: (item) => item.purchaseCurrency as String,
-      fallbackCode: ref.watch(defaultCurrencyProvider),
+      fallbackCode: fallbackCurrency,
+    );
+    final wantedByCurrency = sumByCurrency<dynamic>(
+      wanted,
+      amountOf: (item) => item.purchasePrice as double?,
+      currencyOf: (item) => item.purchaseCurrency as String,
+      fallbackCode: fallbackCurrency,
     );
 
     return Column(
@@ -151,7 +169,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
             _buildStatCard(
               context,
               icon: Icons.backpack,
-              value: '${equipment.length}',
+              value: '${owned.length}',
               label: context.l10n.equipment_summary_totalItems,
               color: Colors.blue,
             ),
@@ -183,6 +201,24 @@ class EquipmentSummaryWidget extends ConsumerWidget {
                   label: context.l10n.equipment_summary_totalValue(entry.key),
                   color: Colors.orange,
                 ),
+            if (wanted.isNotEmpty)
+              _buildStatCard(
+                context,
+                icon: Icons.shopping_bag_outlined,
+                value: '${wanted.length}',
+                label: context.l10n.enum_equipmentStatus_wanted,
+                color: Colors.purple,
+              ),
+            for (final entry in wantedByCurrency)
+              if (entry.value > 0)
+                _buildStatCard(
+                  context,
+                  icon: Icons.shopping_bag_outlined,
+                  value:
+                      '${currencySymbol(entry.key)}${entry.value.toStringAsFixed(0)}',
+                  label: context.l10n.equipment_summary_wantedValue(entry.key),
+                  color: Colors.purple,
+                ),
           ],
         ),
         if (serviceDue.isNotEmpty) ...[
@@ -194,9 +230,9 @@ class EquipmentSummaryWidget extends ConsumerWidget {
             clockByItemId,
           ),
         ],
-        if (equipment.isNotEmpty) ...[
+        if (owned.isNotEmpty) ...[
           const SizedBox(height: 24),
-          _buildEquipmentListPreview(context, equipment),
+          _buildEquipmentListPreview(context, owned),
         ],
       ],
     );

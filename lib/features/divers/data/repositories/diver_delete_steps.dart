@@ -250,6 +250,13 @@ const List<DiverDeleteStep> diverLibrarySteps = [
     entityType: 'diverWeightEntries',
     where: 'diver_id = ?1',
   ),
+  // Observation dismissals (#2381) would cascade; deleting them first
+  // tombstones them so peers drop them too.
+  (
+    table: 'insight_observation_dismissals',
+    entityType: 'insightObservationDismissals',
+    where: 'diver_id = ?1',
+  ),
 ];
 
 /// A link a surviving dive holds to a row the diver deletion removes.

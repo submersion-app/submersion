@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
+import 'package:submersion/features/insights/domain/trend_range.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_control_strip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -13,6 +14,8 @@ void main() {
     ValueChanged<TrendAggregation>? onAggregationChanged,
     VoidCallback? onToggleRollingMean,
     VoidCallback? onToggleLinearFit,
+    TrendRange range = TrendRange.all,
+    ValueChanged<TrendRangePreset>? onRangePresetSelected,
   }) {
     return MaterialApp(
       locale: const Locale('en'),
@@ -31,6 +34,8 @@ void main() {
           rollingColor: Colors.blue,
           rateColor: Colors.orange,
           rateLabel: rateLabel,
+          range: range,
+          onRangePresetSelected: onRangePresetSelected,
         ),
       ),
     );
@@ -105,5 +110,40 @@ void main() {
     final decoration = swatch.decoration! as BoxDecoration;
 
     expect(decoration.color, Colors.indigo);
+  });
+
+  testWidgets('shows the range menu with the current range', (tester) async {
+    await tester.pumpWidget(
+      host(
+        range: const TrendRange.preset(TrendRangePreset.year1),
+        onRangePresetSelected: (_) {},
+      ),
+    );
+    expect(find.text('Last year'), findsOneWidget);
+  });
+
+  testWidgets('a custom range is labelled Custom', (tester) async {
+    await tester.pumpWidget(
+      host(
+        range: TrendRange.custom(DateTime.utc(2024), DateTime.utc(2025)),
+        onRangePresetSelected: (_) {},
+      ),
+    );
+    expect(find.text('Custom'), findsOneWidget);
+  });
+
+  testWidgets('picking a preset reports it', (tester) async {
+    TrendRangePreset? picked;
+    await tester.pumpWidget(host(onRangePresetSelected: (p) => picked = p));
+    await tester.tap(find.byKey(const ValueKey('trend-range-depth')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('trend-range-depth-months6')));
+    await tester.pumpAndSettle();
+    expect(picked, TrendRangePreset.months6);
+  });
+
+  testWidgets('no range menu without a handler', (tester) async {
+    await tester.pumpWidget(host());
+    expect(find.byKey(const ValueKey('trend-range-depth')), findsNothing);
   });
 }

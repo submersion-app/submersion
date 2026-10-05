@@ -20,8 +20,8 @@ void main() {
   );
 
   test('v264 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v265 (weight names, #956) landed on top; the newest rung
-    // owns the exact assertions.
+    // Relaxed once v265 (Insights observation dismissals, #2381) landed on
+    // top; the newest rung owns the exact assertions.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(264));
     expect(AppDatabase.migrationVersions, contains(264));
     expect(

@@ -3,12 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v265: dive_weights.label and weight_preset_entries.label, a diver's
+/// Schema v266: dive_weights.label and weight_preset_entries.label, a diver's
 /// own name for a weight such as "Top pocket" (issue #956).
 void main() {
   /// A database at [version] whose weight tables lack the column, each with
   /// one row.
-  NativeDatabase setupDb({int version = 264}) => NativeDatabase.memory(
+  NativeDatabase setupDb({int version = 265}) => NativeDatabase.memory(
     setup: (rawDb) {
       rawDb.execute('PRAGMA user_version = $version');
       rawDb.execute(
@@ -36,19 +36,19 @@ void main() {
     },
   );
 
-  test('v265 is the current schema version and is in the ladder', () {
+  test('v266 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 265);
-    expect(AppDatabase.migrationVersions, contains(265));
-    expect(AppDatabase.migrationStepCount(264), 1);
+    expect(AppDatabase.currentSchemaVersion, 266);
+    expect(AppDatabase.migrationVersions, contains(266));
+    expect(AppDatabase.migrationStepCount(265), 1);
   });
 
   test('the columns are defaulted, so the sync floor does not move', () {
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 
-  test('upgrading from v264 names nothing and keeps notes', () async {
+  test('upgrading from v265 names nothing and keeps notes', () async {
     final db = AppDatabase(setupDb());
     addTearDown(db.close);
     final weight = await db
@@ -63,11 +63,11 @@ void main() {
   });
 
   test(
-    'a database already stamped 265 without the columns gains them on open',
+    'a database already stamped 266 without the columns gains them on open',
     () async {
       // A renumbered rung, or a restore of a file whose tables predate it:
       // the beforeOpen backstop adds what the ladder did not.
-      final db = AppDatabase(setupDb(version: 265));
+      final db = AppDatabase(setupDb(version: 266));
       addTearDown(db.close);
       final weight = await db
           .customSelect('SELECT label FROM dive_weights')

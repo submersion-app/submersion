@@ -40,4 +40,21 @@ void main() {
     );
     expect(kept.map((i) => i.id), ['mine', 'legacy', 'shared']);
   });
+
+  test('setItemsUsableBy drops a member on the wishlist (#2025)', () {
+    const wish = EquipmentItem(
+      id: 'wish',
+      diverId: 'me',
+      name: 'wish',
+      type: EquipmentType.bcd,
+      status: EquipmentStatus.wanted,
+      isActive: false,
+    );
+    final kept = setItemsUsableBy(
+      [item('a'), wish],
+      diverId: 'me',
+      visibleIds: {'a', 'wish'},
+    );
+    expect(kept.map((i) => i.id), ['a']);
+  });
 }

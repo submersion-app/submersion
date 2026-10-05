@@ -67,6 +67,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
 
   EquipmentType _selectedType = EquipmentType.regulator;
   EquipmentStatus _selectedStatus = EquipmentStatus.active;
+
+  /// Wishlist gear (#2025): fields that only make sense for gear in hand
+  /// are hidden, but their values are kept and saved unchanged.
+  bool get _isWanted => _selectedStatus == EquipmentStatus.wanted;
   DateTime? _purchaseDate;
   String? _parentEquipmentId;
   bool _isLoading = false;
@@ -178,9 +182,12 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     // A legacy row can carry isActive=false with a non-terminal status.
     // Show it as Retired so the form states the item's real condition --
     // otherwise saving would silently reactivate it (#636). "Sold" is the
-    // other status that means gone, so keep it rather than overwrite it.
+    // other status that means gone, so keep it rather than overwrite it, and
+    // "Wanted" (#2025) is inactive by design.
     _selectedStatus =
-        !equipment.isActive && equipment.status != EquipmentStatus.sold
+        !equipment.isActive &&
+            equipment.status != EquipmentStatus.sold &&
+            equipment.status != EquipmentStatus.wanted
         ? EquipmentStatus.retired
         : equipment.status;
     _purchaseDate = equipment.purchaseDate;
@@ -395,8 +402,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           ),
           const SizedBox(height: 16),
 
-          // Parent item, for the child types only (v202).
-          if (_parentTypesFor(_selectedType).isNotEmpty) ...[
+          // Parent item, for the child types only (v202). Wishlist gear
+          // (#2025) cannot be fitted into anything yet.
+          if (!_isWanted && _parentTypesFor(_selectedType).isNotEmpty) ...[
             Builder(
               builder: (context) {
                 final candidates =
@@ -526,14 +534,15 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               _hasChanges = true;
             }),
           ),
-          // Serial #
-          TextFormField(
-            controller: _serialController,
-            decoration: InputDecoration(
-              labelText: context.l10n.equipment_edit_serialNumberLabel,
-              prefixIcon: const Icon(Icons.numbers),
+          // Serial #, once the gear is in hand (#2025).
+          if (!_isWanted)
+            TextFormField(
+              controller: _serialController,
+              decoration: InputDecoration(
+                labelText: context.l10n.equipment_edit_serialNumberLabel,
+                prefixIcon: const Icon(Icons.numbers),
+              ),
             ),
-          ),
           const SizedBox(height: 24),
           // Purchase Date
           _buildDateSection(context),
@@ -565,8 +574,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           _buildAdvancedSection(context),
           const SizedBox(height: 24),
 
-          // Notification Overrides
-          _buildNotificationSection(context),
+          // Notification Overrides: service reminders are for owned gear
+          // (#2025).
+          if (!_isWanted) _buildNotificationSection(context),
 
           if (!widget.embedded) ...[
             const SizedBox(height: 32),
@@ -761,38 +771,42 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
-            Text(
-              context.l10n.equipment_edit_purchaseDateLabel,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+            // A purchase date waits for the purchase (#2025); a date already
+            // entered is kept and comes back when the status changes.
+            if (!_isWanted) ...[
+              Text(
+                context.l10n.equipment_edit_purchaseDateLabel,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _selectPurchaseDate,
-              icon: const Icon(Icons.calendar_today),
-              label: Text(
-                // #1512: hand-rolled M/D/YYYY ignored the diver's preference,
-                // which the detail page for the same field already honours.
-                _purchaseDate != null
-                    ? UnitFormatter(
-                        ref.watch(settingsProvider),
-                      ).formatDate(_purchaseDate)
-                    : context.l10n.equipment_edit_selectDate,
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: _selectPurchaseDate,
+                icon: const Icon(Icons.calendar_today),
+                label: Text(
+                  // #1512: hand-rolled M/D/YYYY ignored the diver's preference,
+                  // which the detail page for the same field already honours.
+                  _purchaseDate != null
+                      ? UnitFormatter(
+                          ref.watch(settingsProvider),
+                        ).formatDate(_purchaseDate)
+                      : context.l10n.equipment_edit_selectDate,
+                ),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                ),
               ),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 48),
-              ),
-            ),
-            if (_purchaseDate != null)
-              TextButton(
-                onPressed: () => setState(() {
-                  _purchaseDate = null;
-                  _hasChanges = true;
-                }),
-                child: Text(context.l10n.equipment_edit_clearDate),
-              ),
-            const SizedBox(height: 16),
+              if (_purchaseDate != null)
+                TextButton(
+                  onPressed: () => setState(() {
+                    _purchaseDate = null;
+                    _hasChanges = true;
+                  }),
+                  child: Text(context.l10n.equipment_edit_clearDate),
+                ),
+              const SizedBox(height: 16),
+            ],
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -808,8 +822,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                         key: const ValueKey('equipment-purchase-price'),
                         controller: _purchasePriceController,
                         decoration: InputDecoration(
-                          labelText:
-                              context.l10n.equipment_edit_purchasePriceLabel,
+                          labelText: _isWanted
+                              ? context.l10n.equipment_edit_expectedPriceLabel
+                              : context.l10n.equipment_edit_purchasePriceLabel,
                           prefixText: symbol.isEmpty ? null : '$symbol ',
                         ),
                         keyboardType: const TextInputType.numberWithOptions(
@@ -1080,9 +1095,11 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         notes: _notesController.text.trim(),
         // Retiring or selling via the status dropdown must deactivate the
         // item, or it keeps appearing in active-gear pickers (#636).
+        // Retired, Sold and Wanted (#2025) are all out of the kit.
         isActive:
             _selectedStatus != EquipmentStatus.retired &&
-            _selectedStatus != EquipmentStatus.sold,
+            _selectedStatus != EquipmentStatus.sold &&
+            _selectedStatus != EquipmentStatus.wanted,
         // Only attributes in the SELECTED type's catalog are kept: switching
         // type drops out-of-catalog values at save time (form = source of
         // truth), plus non-empty custom fields with re-packed sort order.

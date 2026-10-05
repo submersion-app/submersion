@@ -6678,8 +6678,8 @@ class DiveRepository {
     ]);
   }
 
-  /// Which of [ids] are active gear (not retired or lost, still flagged
-  /// active): the expander skips the rest.
+  /// Which of [ids] are active gear (not retired, lost or wanted, still
+  /// flagged active): the expander skips the rest.
   Future<Set<String>> _activeIdsAmong(Set<String> ids) async {
     if (ids.isEmpty) return const {};
     final rows =
@@ -6690,6 +6690,7 @@ class DiveRepository {
                   t.status.isNotIn([
                     EquipmentStatus.retired.name,
                     EquipmentStatus.lost.name,
+                    EquipmentStatus.wanted.name,
                   ]),
             ))
             .get();

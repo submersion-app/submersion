@@ -229,4 +229,54 @@ void main() {
       expect(vp.zoom, ChartViewport.minZoom);
     });
   });
+
+  group('window helpers', () {
+    test('forWindow maps a fraction window to zoom and offset', () {
+      final vp = ChartViewport.forWindow(0.25, 0.75);
+      expect(vp.zoom, closeTo(2, 1e-9));
+      expect(vp.windowStart, closeTo(0.25, 1e-9));
+      expect(vp.windowEnd, closeTo(0.75, 1e-9));
+    });
+
+    test('forWindow of the full range is unzoomed', () {
+      final vp = ChartViewport.forWindow(0, 1);
+      expect(vp.isZoomed, isFalse);
+      expect(vp.windowStart, 0);
+    });
+
+    test('forWindow narrower than the limit widens to the limit', () {
+      final vp = ChartViewport.forWindow(0.5, 0.501, zoomLimit: 20);
+      expect(vp.zoom, closeTo(20, 1e-9));
+    });
+
+    test('forWindow ending at 1 keeps its end when widened', () {
+      final vp = ChartViewport.forWindow(0.999, 1, zoomLimit: 10);
+      expect(vp.windowEnd, closeTo(1, 1e-9));
+      expect(vp.windowStart, closeTo(0.9, 1e-9));
+    });
+
+    test(
+      'a raised zoom limit is honoured by zoomedAt and kept by pannedBy',
+      () {
+        final vp = const ChartViewport(zoomLimit: 40).zoomedAt(0.5, 0, 30);
+        expect(vp.zoom, closeTo(30, 1e-9));
+        expect(vp.pannedBy(0.01, 0).zoomLimit, 40);
+      },
+    );
+
+    test('the default limit is unchanged for existing callers', () {
+      final vp = ChartViewport.reset.zoomedAt(0.5, 0, 100);
+      expect(vp.zoom, ChartViewport.maxZoom);
+    });
+
+    test('withZoomLimit clamps a zoom above the new limit', () {
+      final vp = ChartViewport.forWindow(
+        0.5,
+        0.52,
+        zoomLimit: 50,
+      ).withZoomLimit(10);
+      expect(vp.zoom, 10);
+      expect(vp.zoomLimit, 10);
+    });
+  });
 }

@@ -217,13 +217,17 @@ extension RungsFromV231 on AppDatabase {
       await _assertLateGasSwitchSettingColumn();
     }
     if (from < 264) await reportProgress();
-    // v265: dive_weights.label and weight_preset_entries.label, a diver's
+    // v265: Insights observation dismissals (synced) and the muted-rules
+    // column on diver_settings (#2381). Additive; re-asserted in beforeOpen.
+    if (from < 265) await _assertInsightObservationsSchema();
+    if (from < 265) await reportProgress();
+    // v266: dive_weights.label and weight_preset_entries.label, a diver's
     // own name for a weight (issue #956). Defaulted columns, no backfill:
     // existing rows read '' (unnamed). Re-asserted in beforeOpen. 262 is
     // held by an open branch (#2991).
-    if (from < 265) {
+    if (from < 266) {
       await _assertWeightLabelColumns();
     }
-    if (from < 265) await reportProgress();
+    if (from < 266) await reportProgress();
   }
 }
