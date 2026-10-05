@@ -12656,6 +12656,7 @@
   "settings_conflict_remoteDeleted": "{device} deleted this record.",
   "@settings_conflict_remoteDeleted": {"placeholders": {"device": {"type": "String"}}},
   "settings_conflict_resolved": "Resolved {count, plural, =1{1 conflict} other{{count} conflicts}}",
+  "settings_conflict_same": "Same",
   "settings_conflict_sameContent": "Both versions have the same content; only the time they were saved differs. Either choice keeps everything.",
   "settings_conflict_sameFields": "{count, plural, one{{count} field is the same} other{{count} fields are the same}}",
   "@settings_conflict_sameFields": {"placeholders": {"count": {"type": "int"}}},

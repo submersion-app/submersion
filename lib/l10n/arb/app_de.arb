@@ -5625,6 +5625,7 @@
   "settings_conflict_ref_tripCylinder": "Reiseflasche",
   "settings_conflict_resolved": "{count, plural, =1{1 Konflikt} other{{count} Konflikte}} gelöst",
   "settings_conflict_title": "Konflikte lösen",
+  "settings_conflict_same": "Gleich",
   "settings_conflict_finerThanShown": "Der Unterschied ist feiner, als diese Anzeige zeigt.",
   "settings_conflict_moreFields": "{fields} und {count, plural, one{{count} weiteres} other{{count} weitere}}",
   "enum_eventSeverity_info": "Info",

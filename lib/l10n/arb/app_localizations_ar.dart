@@ -21996,6 +21996,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_conflict_same => 'متطابق';
+
+  @override
   String get settings_conflict_sameContent =>
       'للنسختين المحتوى نفسه؛ يختلف وقت الحفظ فقط. أي خيار يحتفظ بكل شيء.';
 

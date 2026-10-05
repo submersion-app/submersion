@@ -21698,6 +21698,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get settings_conflict_same => 'Gelijk';
+
+  @override
   String get settings_conflict_sameContent =>
       'Beide versies hebben dezelfde inhoud; alleen het moment van opslaan verschilt. Bij elke keuze blijft alles behouden.';
 

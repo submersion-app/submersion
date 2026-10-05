@@ -118,6 +118,29 @@ void main() {
     ]);
   });
 
+  test('an unchanged opaque payload reads Same, not Changed', () {
+    final result = compare(
+      conflict(
+        {'name': 'A', 'computerTissueJson': '{"t":1}'},
+        {'name': 'B', 'computerTissueJson': '{"t":1}'},
+      ),
+    );
+    final tissue = result.unchanged.singleWhere(
+      (f) => f.key == 'computerTissueJson',
+    );
+    expect(tissue.display, 'Same');
+  });
+
+  test("a deleted record's values leave out opaque payloads", () {
+    final result = compare(
+      conflict(
+        {'name': 'Blue Hole', 'computerTissueJson': '{"t":1}'},
+        {'id': 'r1', '_deleted': true},
+      ),
+    );
+    expect(result.survivingValues.map((f) => f.key), ['name']);
+  });
+
   test('a foreign key is compared by id and shown by name', () {
     const localSite = ConflictReference(
       field: 'siteId',

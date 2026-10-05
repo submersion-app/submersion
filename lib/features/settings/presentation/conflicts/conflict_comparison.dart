@@ -158,13 +158,18 @@ ConflictComparison buildConflictComparison({
     );
   }
 
+  bool opaque(String key) =>
+      conflictFieldFor(entity, key).kind == FieldKind.opaque;
+
+  // A deleted record's values: an opaque payload has nothing a diver could
+  // read, so it is left out rather than shown as a bare placeholder.
   List<ShownField> shown(
     Map<String, dynamic> data,
     Map<String, ConflictReference> refs,
   ) => _sorted(
     [
       for (final entry in data.entries)
-        if (_compared(entry.key) && entry.value != null)
+        if (_compared(entry.key) && entry.value != null && !opaque(entry.key))
           ShownField(
             key: entry.key,
             label: labelFor(entry.key),
@@ -230,7 +235,11 @@ ConflictComparison buildConflictComparison({
           ShownField(
             key: key,
             label: labelFor(key),
-            display: display(key, entry.value, localRefs),
+            // The formatter says "Changed" for an opaque payload, which is
+            // right in the differences and wrong here.
+            display: opaque(key)
+                ? l10n.settings_conflict_same
+                : display(key, entry.value, localRefs),
           ),
         );
       }

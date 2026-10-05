@@ -5522,6 +5522,7 @@
   "settings_conflict_ref_tripCylinder": "Cilindro da viagem",
   "settings_conflict_resolved": "{count, plural, =1{{count} conflito resolvido} other{{count} conflitos resolvidos}}",
   "settings_conflict_title": "Resolver Conflitos",
+  "settings_conflict_same": "Igual",
   "settings_conflict_finerThanShown": "A diferença é menor do que esta tela mostra.",
   "settings_conflict_moreFields": "{fields} e mais {count, plural, one{{count}} other{{count}}}",
   "enum_eventSeverity_info": "Informação",

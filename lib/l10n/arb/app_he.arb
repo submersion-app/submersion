@@ -5526,6 +5526,7 @@
   "settings_conflict_ref_tripCylinder": "בלון הטיול",
   "settings_conflict_resolved": "נפתרו {count, plural, =1{התנגשות אחת} other{{count} התנגשויות}}",
   "settings_conflict_title": "פתרון התנגשויות",
+  "settings_conflict_same": "זהה",
   "settings_conflict_finerThanShown": "ההבדל עדין יותר ממה שהתצוגה הזו מראה.",
   "settings_conflict_moreFields": "{fields} ועוד {count, plural, one{אחד} two{שניים} other{{count}}}",
   "enum_eventSeverity_info": "מידע",
