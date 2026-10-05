@@ -60,7 +60,11 @@ void main() {
       updatedAt: DateTime(2026, 1, 1),
     );
 
-    Future<List<String>> pumpFull(WidgetTester tester, double width) async {
+    Future<List<String>> pumpFull(
+      WidgetTester tester,
+      double width, {
+      double textScale = 1.0,
+    }) async {
       tester.view.physicalSize = Size(width, 800);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
@@ -70,6 +74,12 @@ void main() {
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: TextScaler.linear(textScale)),
+            child: child!,
+          ),
           home: Scaffold(
             body: Stack(
               children: [
@@ -123,6 +133,17 @@ void main() {
       expect(find.byKey(const ValueKey('viewer_info')), findsOneWidget);
       expect(find.byKey(const ValueKey('viewer_perdix')), findsNothing);
       expect(find.byKey(const ValueKey('viewer_overflow')), findsOneWidget);
+    });
+
+    testWidgets('large text keeps room for the whole page indicator', (
+      tester,
+    ) async {
+      await pumpFull(tester, 412, textScale: 2.0);
+      expect(tester.takeException(), isNull);
+      // At 2x text the indicator needs about twice its 72 px, so one icon
+      // fewer fits than at 1x (where Info still shows).
+      expect(find.byKey(const ValueKey('viewer_share')), findsOneWidget);
+      expect(find.byKey(const ValueKey('viewer_info')), findsNothing);
     });
 
     testWidgets('a desktop width shows every icon and no menu', (tester) async {

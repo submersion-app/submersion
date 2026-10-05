@@ -13,7 +13,8 @@ const double kMediaViewerToolbarHeight = 64;
 /// Width of one toolbar icon button (the default [IconButton] extent).
 const double kToolbarButtonExtent = 48;
 
-/// Room kept for the "12 / 345" page indicator before any action icon.
+/// Room kept for the "12 / 345" page indicator before any action icon, at
+/// 1x text; scaled with the diver's text size so large text is not clipped.
 const double _indicatorMinWidth = 72;
 
 /// One toolbar action, described as data so the toolbar can show it as an
@@ -233,7 +234,9 @@ class MediaViewerToolbar extends StatelessWidget {
                   actions,
                   constraints.maxWidth -
                       2 * kToolbarButtonExtent -
-                      _indicatorMinWidth,
+                      MediaQuery.textScalerOf(
+                        context,
+                      ).scale(_indicatorMinWidth),
                 );
                 return Row(
                   children: [

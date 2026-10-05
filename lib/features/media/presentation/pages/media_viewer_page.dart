@@ -489,8 +489,6 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                     showOverlay: isFullscreen
                         ? fullscreenControlsVisible
                         : _showOverlay,
-                    onToggleOverlay: () =>
-                        setState(() => _showOverlay = !_showOverlay),
                     fullscreen: isFullscreen,
                     onFullscreenTap: toggleFullscreenControls,
                     onSetOverlay: _onSetOverlay,
@@ -862,7 +860,6 @@ class _PhotoGallery extends ConsumerWidget {
   /// A tap on a Lightroom-linked video in fullscreen, which has no player of
   /// its own to report play/pause.
   final VoidCallback onFullscreenTap;
-  final VoidCallback onToggleOverlay;
   final ValueChanged<bool> onSetOverlay;
   final void Function(String mediaId, VideoPlayerController? controller)
   onVideoControllerChanged;
@@ -875,7 +872,6 @@ class _PhotoGallery extends ConsumerWidget {
     required this.showOverlay,
     required this.fullscreen,
     required this.onFullscreenTap,
-    required this.onToggleOverlay,
     required this.onSetOverlay,
     required this.onVideoControllerChanged,
     required this.currentIndex,
