@@ -44,13 +44,16 @@ abstract final class DivelogsReferenceMappers {
     (['bag', 'tasche', 'luggage'], EquipmentType.bag),
   ];
 
+  /// A rebreather counterlung (#2952), in every spelling the MacDive reader
+  /// accepts: a part with no type of its own, which the bag row would
+  /// otherwise file as luggage.
+  static final _breathingBag = RegExp(r'\bbreathing[\s-]*bags?\b');
+
   static EquipmentType equipmentTypeForGeartypeName(String? name) {
     if (name == null) return EquipmentType.other;
     final lower = name.trim().toLowerCase();
     if (lower.isEmpty) return EquipmentType.other;
-    // A rebreather counterlung (#2952): a part with no type of its own,
-    // which the bag row would otherwise file as luggage.
-    if (lower.contains('breathing bag')) return EquipmentType.other;
+    if (_breathingBag.hasMatch(lower)) return EquipmentType.other;
     for (final (keywords, type) in _geartypeKeywords) {
       if (keywords.any(lower.contains)) return type;
     }

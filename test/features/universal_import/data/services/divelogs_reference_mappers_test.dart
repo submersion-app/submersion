@@ -58,6 +58,8 @@ void main() {
         'Hebesack': EquipmentType.smb,
         // A counterlung, not luggage.
         'Breathing bag': EquipmentType.other,
+        'Breathing-bag': EquipmentType.other,
+        'Breathingbag': EquipmentType.other,
       };
       cases.forEach((input, expected) {
         expect(
