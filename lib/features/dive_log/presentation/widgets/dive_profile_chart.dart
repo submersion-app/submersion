@@ -9,9 +9,11 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gtr_format.dart';
 import 'package:submersion/core/theme/app_colors.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
+import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
@@ -445,6 +447,9 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// TTS (Time To Surface) curve in seconds
   final List<int>? ttsCurve;
 
+  /// Late and missed gas switches to shade (#2939); null hides the overlay.
+  final GasSwitchEfficiency? gasSwitchEfficiency;
+
   /// Gas time remaining curve in seconds; a null sample is a blank (the
   /// line breaks there rather than dropping to zero)
   final List<int?>? gtrCurve;
@@ -746,6 +751,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.surfaceGfCurve,
     this.meanDepthCurve,
     this.ttsCurve,
+    this.gasSwitchEfficiency,
     this.gtrCurve,
     this.cnsCurve,
     this.otuCurve,
@@ -813,6 +819,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showMeanDepth = false;
   bool _showTts = false;
   bool _showGtr = false;
+  bool _showLateGasSwitches = true;
   bool _showCns = false;
   bool _showOtu = false;
 
@@ -2508,6 +2515,20 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
+    // Late or missed gas switch under the cursor (#2939).
+    if (_showLateGasSwitches) {
+      final window = widget.gasSwitchEfficiency?.windowAt(point.timestamp);
+      if (window != null) {
+        rows.add(
+          TooltipRow(
+            label: lateSwitchTooltipLabel(window, l10n),
+            value: lateSwitchTooltipValue(window, units, l10n),
+            bulletColor: GasColors.forMixFraction(window.fO2, window.fHe),
+          ),
+        );
+      }
+    }
+
     // Marker info (if touching near a marker)
     if (widget.markers != null && widget.markers!.isNotEmpty) {
       final timestamp = point.timestamp;
@@ -2705,6 +2726,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showMaxDepthMarkerLocal = legendState.showMaxDepthMarker;
     _showPressureMarkersLocal = legendState.showPressureMarkers;
     _showGasSwitchMarkers = legendState.showGasSwitchMarkers;
+    _showLateGasSwitches = legendState.showLateGasSwitches;
     _showPhotoMarkers = legendState.showPhotoMarkers;
     // Must be synced before _metricBand() is read for the cache signatures
     // below, or a mode flip would key bars on the outgoing band.
@@ -2850,6 +2872,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           widget.showPressureThresholdMarkers && _hasPressureMarkers,
       hasGasSwitches:
           widget.gasSwitches != null && widget.gasSwitches!.isNotEmpty,
+      hasLateGasSwitches:
+          widget.gasSwitchEfficiency?.windows.isNotEmpty ?? false,
       hasPhotoMarkers:
           widget.photoMarkers != null && widget.photoMarkers!.isNotEmpty,
       hasMultiTankPressure: _hasMultiTankPressure,
@@ -6694,6 +6718,32 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     required double visibleMaxX,
   }) {
     final annotations = <VerticalRangeAnnotation>[];
+    // Late and missed gas switches (#2939), tinted with the gas the ideal
+    // ascent would have been breathing. Drawn first so a selected finding's
+    // band paints over them.
+    if (_showLateGasSwitches) {
+      for (final window
+          in widget.gasSwitchEfficiency?.windows ?? const <GasSwitchWindow>[]) {
+        final color = GasColors.forMixFraction(window.fO2, window.fHe);
+        final visible = visibleHighlightSpan(
+          ProfileHighlightRange(
+            startTimestamp: window.idealTimestamp,
+            endTimestamp: window.endTimestamp,
+            color: color,
+          ),
+          visibleMinX: visibleMinX,
+          visibleMaxX: visibleMaxX,
+        );
+        if (visible == null) continue;
+        annotations.add(
+          VerticalRangeAnnotation(
+            x1: visible.x1,
+            x2: visible.x2,
+            color: color.withValues(alpha: 0.12),
+          ),
+        );
+      }
+    }
     if (_showO2Cells) {
       for (final range in widget.secondaryRanges) {
         final visible = visibleHighlightSpan(

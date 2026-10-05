@@ -79,6 +79,7 @@ void main() {
         showMaxDepthMarker: false,
         showPressureMarkers: false,
         showGasSwitchMarkers: false,
+        showLateGasSwitches: false,
         showPhotoMarkers: false,
       );
       expect(state.activeSecondaryCount, 1);
