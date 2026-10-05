@@ -8545,6 +8545,8 @@
   "@equipment_edit_locationLabel": {"description": "Label of the optional place picker on the new equipment form"},
   "equipment_edit_locationNone": "Not set",
   "@equipment_edit_locationNone": {"description": "Shown in the new equipment form's location picker when none is chosen"},
+  "equipment_edit_locationFailed": "Saved, but its location could not be set. Use Move on the item to set it.",
+  "@equipment_edit_locationFailed": {"description": "Shown after a new item saved but its chosen first location failed to save"},
   "equipment_locations_title": "Locations",
   "@equipment_locations_title": {"description": "Title of the page listing places where gear is kept"},
   "equipment_locations_empty": "No places yet. Add one to start tracking where your gear is.",

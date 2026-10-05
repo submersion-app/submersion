@@ -4291,6 +4291,7 @@
   "equipment_arrange_groupByLocationSubtitle": "Un encabezado por lugar, solo en esta página",
   "equipment_edit_locationLabel": "Ubicación",
   "equipment_edit_locationNone": "Sin definir",
+  "equipment_edit_locationFailed": "Guardado, pero no se pudo establecer su ubicación. Usa Mover en el elemento para establecerla.",
   "equipment_locations_title": "Ubicaciones",
   "equipment_locations_empty": "Aún no hay lugares. Añade uno para saber dónde está tu equipo.",
   "equipment_locations_add": "Añadir lugar",

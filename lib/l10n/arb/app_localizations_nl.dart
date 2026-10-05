@@ -14624,6 +14624,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_edit_locationNone => 'Niet ingesteld';
 
   @override
+  String get equipment_edit_locationFailed =>
+      'Opgeslagen, maar de locatie kon niet worden ingesteld. Gebruik Verplaatsen bij het item om die in te stellen.';
+
+  @override
   String get equipment_locations_title => 'Locaties';
 
   @override

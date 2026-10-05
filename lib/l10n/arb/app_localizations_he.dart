@@ -14420,6 +14420,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_edit_locationNone => 'לא הוגדר';
 
   @override
+  String get equipment_edit_locationFailed =>
+      'נשמר, אך לא ניתן היה להגדיר את המיקום. השתמש בהעברה בפריט כדי להגדיר אותו.';
+
+  @override
   String get equipment_locations_title => 'מיקומים';
 
   @override

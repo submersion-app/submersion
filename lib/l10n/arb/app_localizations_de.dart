@@ -14718,6 +14718,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_edit_locationNone => 'Nicht festgelegt';
 
   @override
+  String get equipment_edit_locationFailed =>
+      'Gespeichert, aber der Standort konnte nicht festgelegt werden. Legen Sie ihn über „Verschieben“ am Teil fest.';
+
+  @override
   String get equipment_locations_title => 'Standorte';
 
   @override

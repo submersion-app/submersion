@@ -14725,6 +14725,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_edit_locationNone => 'Non impostata';
 
   @override
+  String get equipment_edit_locationFailed =>
+      'Salvato, ma non è stato possibile impostarne la posizione. Usa Sposta sull\'elemento per impostarla.';
+
+  @override
   String get equipment_locations_title => 'Posizioni';
 
   @override

@@ -14718,6 +14718,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_edit_locationNone => 'Sin definir';
 
   @override
+  String get equipment_edit_locationFailed =>
+      'Guardado, pero no se pudo establecer su ubicación. Usa Mover en el elemento para establecerla.';
+
+  @override
   String get equipment_locations_title => 'Ubicaciones';
 
   @override

@@ -4407,6 +4407,7 @@
   "equipment_arrange_groupByLocationSubtitle": "Eine Überschrift pro Ort, nur auf dieser Seite",
   "equipment_edit_locationLabel": "Standort",
   "equipment_edit_locationNone": "Nicht festgelegt",
+  "equipment_edit_locationFailed": "Gespeichert, aber der Standort konnte nicht festgelegt werden. Legen Sie ihn über „Verschieben“ am Teil fest.",
   "equipment_locations_title": "Standorte",
   "equipment_locations_empty": "Noch keine Orte. Legen Sie einen an, um zu verfolgen, wo sich Ihre Ausrüstung befindet.",
   "equipment_locations_add": "Ort hinzufügen",

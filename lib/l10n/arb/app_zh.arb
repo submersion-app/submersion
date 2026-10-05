@@ -4418,6 +4418,7 @@
   "equipment_arrange_groupByLocationSubtitle": "每个地点一个标题，仅限此页",
   "equipment_edit_locationLabel": "位置",
   "equipment_edit_locationNone": "未设置",
+  "equipment_edit_locationFailed": "已保存，但无法设置其位置。请在该物品上使用“移动”进行设置。",
   "equipment_locations_title": "位置",
   "equipment_locations_empty": "还没有地点。添加一个，开始记录你的装备在哪里。",
   "equipment_locations_add": "添加地点",

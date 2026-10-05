@@ -14924,6 +14924,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_edit_locationNone => 'غير محدد';
 
   @override
+  String get equipment_edit_locationFailed =>
+      'تم الحفظ، لكن تعذّر تعيين موقعه. استخدم «نقل» على العنصر لتعيينه.';
+
+  @override
   String get equipment_locations_title => 'المواقع';
 
   @override

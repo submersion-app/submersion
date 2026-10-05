@@ -14066,6 +14066,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_locationNone => '未设置';
 
   @override
+  String get equipment_edit_locationFailed => '已保存，但无法设置其位置。请在该物品上使用“移动”进行设置。';
+
+  @override
   String get equipment_locations_title => '位置';
 
   @override

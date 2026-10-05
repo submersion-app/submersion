@@ -18,9 +18,18 @@ class GroupByLocationSwitch extends ConsumerWidget {
     return SwitchListTile(
       key: const ValueKey('equipment_group_by_location'),
       value: on,
-      onChanged: (value) => ref
-          .read(appSettingsRepositoryProvider)
-          .setEquipmentGroupByLocation(value),
+      onChanged: (value) async {
+        try {
+          await ref
+              .read(appSettingsRepositoryProvider)
+              .setEquipmentGroupByLocation(value);
+        } catch (_) {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.common_error_tryAgain)));
+        }
+      },
       title: Text(l10n.equipment_arrange_groupByLocation),
       subtitle: Text(l10n.equipment_arrange_groupByLocationSubtitle),
     );

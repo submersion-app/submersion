@@ -14678,6 +14678,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_edit_locationNone => 'Nincs megadva';
 
   @override
+  String get equipment_edit_locationFailed =>
+      'Mentve, de a helyét nem sikerült beállítani. Az elemen az Áthelyezés gombbal állíthatod be.';
+
+  @override
   String get equipment_locations_title => 'Helyek';
 
   @override

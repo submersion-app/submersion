@@ -4291,6 +4291,7 @@
   "equipment_arrange_groupByLocationSubtitle": "Um título por local, apenas nesta página",
   "equipment_edit_locationLabel": "Localização",
   "equipment_edit_locationNone": "Não definida",
+  "equipment_edit_locationFailed": "Guardado, mas não foi possível definir a localização. Use Mover no item para a definir.",
   "equipment_locations_title": "Localizações",
   "equipment_locations_empty": "Ainda não há locais. Adicione um para acompanhar onde está o seu equipamento.",
   "equipment_locations_add": "Adicionar local",

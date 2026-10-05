@@ -15,6 +15,7 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/data/services/initial_location.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -1119,6 +1120,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
 
       final notifier = ref.read(equipmentListNotifierProvider.notifier);
       String savedId;
+      // False only when a chosen first location failed to save.
+      var locationSaved = true;
 
       // Tags (issue #1942) are written with the row, in one transaction,
       // only when they differ from what the form loaded; a new item writes
@@ -1143,33 +1146,22 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         savedId = newEquipment.id;
         final place = _initialLocation;
         if (place != null) {
-          // The item is saved by now: a failure here must not read as a
-          // failed save, or a retry would create the item twice. Without
-          // the move it simply has no location yet; Move sets one.
-          try {
-            await ref
-                .read(equipmentLocationMoveRepositoryProvider)
-                .recordMoves(
-                  equipmentIds: [savedId],
-                  locationId: place.id,
-                  movedAt: DateTime.now(),
-                );
-          } catch (e, stackTrace) {
-            _log.error(
-              'Failed to record the first location of $savedId',
-              error: e,
-              stackTrace: stackTrace,
-            );
-          }
+          locationSaved = await recordInitialLocation(
+            moves: ref.read(equipmentLocationMoveRepositoryProvider),
+            equipmentId: savedId,
+            locationId: place.id,
+          );
         }
       }
 
       if (mounted) {
+        final messenger = ScaffoldMessenger.of(context);
+        final locationFailed = context.l10n.equipment_edit_locationFailed;
         if (widget.embedded) {
           widget.onSaved?.call(savedId);
         } else {
           context.pop();
-          ScaffoldMessenger.of(context).showSnackBar(
+          messenger.showSnackBar(
             SnackBar(
               content: Text(
                 widget.isEditing
@@ -1178,6 +1170,11 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               ),
             ),
           );
+        }
+        // The item is saved; only its location is missing. Say so, so the
+        // diver knows to set it with Move rather than retry the save.
+        if (!locationSaved) {
+          messenger.showSnackBar(SnackBar(content: Text(locationFailed)));
         }
       }
     } catch (e) {

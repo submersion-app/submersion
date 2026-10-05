@@ -14722,6 +14722,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_edit_locationNone => 'Não definida';
 
   @override
+  String get equipment_edit_locationFailed =>
+      'Guardado, mas não foi possível definir a localização. Use Mover no item para a definir.';
+
+  @override
   String get equipment_locations_title => 'Localizações';
 
   @override

@@ -4189,6 +4189,7 @@
   "equipment_arrange_groupByLocationSubtitle": "כותרת אחת לכל מקום, רק בעמוד זה",
   "equipment_edit_locationLabel": "מיקום",
   "equipment_edit_locationNone": "לא הוגדר",
+  "equipment_edit_locationFailed": "נשמר, אך לא ניתן היה להגדיר את המיקום. השתמש בהעברה בפריט כדי להגדיר אותו.",
   "equipment_locations_title": "מיקומים",
   "equipment_locations_empty": "עדיין אין מקומות. הוסף אחד כדי לעקוב אחר מיקום הציוד שלך.",
   "equipment_locations_add": "הוספת מקום",

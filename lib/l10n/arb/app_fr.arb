@@ -4189,6 +4189,7 @@
   "equipment_arrange_groupByLocationSubtitle": "Un titre par lieu, sur cette page uniquement",
   "equipment_edit_locationLabel": "Emplacement",
   "equipment_edit_locationNone": "Non défini",
+  "equipment_edit_locationFailed": "Enregistré, mais son emplacement n'a pas pu être défini. Utilisez Déplacer sur l'élément pour le définir.",
   "equipment_locations_title": "Emplacements",
   "equipment_locations_empty": "Aucun lieu pour l'instant. Ajoutez-en un pour suivre où se trouve votre équipement.",
   "equipment_locations_add": "Ajouter un lieu",

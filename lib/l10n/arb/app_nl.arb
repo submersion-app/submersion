@@ -4291,6 +4291,7 @@
   "equipment_arrange_groupByLocationSubtitle": "Eén kop per plek, alleen op deze pagina",
   "equipment_edit_locationLabel": "Locatie",
   "equipment_edit_locationNone": "Niet ingesteld",
+  "equipment_edit_locationFailed": "Opgeslagen, maar de locatie kon niet worden ingesteld. Gebruik Verplaatsen bij het item om die in te stellen.",
   "equipment_locations_title": "Locaties",
   "equipment_locations_empty": "Nog geen plekken. Voeg er een toe om bij te houden waar je uitrusting is.",
   "equipment_locations_add": "Plek toevoegen",

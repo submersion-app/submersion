@@ -4291,6 +4291,7 @@
   "equipment_arrange_groupByLocationSubtitle": "عنوان لكل مكان، في هذه الصفحة فقط",
   "equipment_edit_locationLabel": "الموقع",
   "equipment_edit_locationNone": "غير محدد",
+  "equipment_edit_locationFailed": "تم الحفظ، لكن تعذّر تعيين موقعه. استخدم «نقل» على العنصر لتعيينه.",
   "equipment_locations_title": "المواقع",
   "equipment_locations_empty": "لا توجد أماكن بعد. أضف مكانًا لتتبع مكان معداتك.",
   "equipment_locations_add": "إضافة مكان",

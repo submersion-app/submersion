@@ -23825,6 +23825,12 @@ abstract class AppLocalizations {
   /// **'Not set'**
   String get equipment_edit_locationNone;
 
+  /// Shown after a new item saved but its chosen first location failed to save
+  ///
+  /// In en, this message translates to:
+  /// **'Saved, but its location could not be set. Use Move on the item to set it.'**
+  String get equipment_edit_locationFailed;
+
   /// Title of the page listing places where gear is kept
   ///
   /// In en, this message translates to:

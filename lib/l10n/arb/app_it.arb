@@ -4189,6 +4189,7 @@
   "equipment_arrange_groupByLocationSubtitle": "Un'intestazione per luogo, solo in questa pagina",
   "equipment_edit_locationLabel": "Posizione",
   "equipment_edit_locationNone": "Non impostata",
+  "equipment_edit_locationFailed": "Salvato, ma non è stato possibile impostarne la posizione. Usa Sposta sull'elemento per impostarla.",
   "equipment_locations_title": "Posizioni",
   "equipment_locations_empty": "Ancora nessun luogo. Aggiungine uno per sapere dove si trova la tua attrezzatura.",
   "equipment_locations_add": "Aggiungi luogo",

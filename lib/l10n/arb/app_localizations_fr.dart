@@ -14762,6 +14762,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_edit_locationNone => 'Non défini';
 
   @override
+  String get equipment_edit_locationFailed =>
+      'Enregistré, mais son emplacement n\'a pas pu être défini. Utilisez Déplacer sur l\'élément pour le définir.';
+
+  @override
   String get equipment_locations_title => 'Emplacements';
 
   @override

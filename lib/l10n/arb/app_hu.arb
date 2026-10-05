@@ -4189,6 +4189,7 @@
   "equipment_arrange_groupByLocationSubtitle": "Helyenként egy fejléc, csak ezen az oldalon",
   "equipment_edit_locationLabel": "Hely",
   "equipment_edit_locationNone": "Nincs megadva",
+  "equipment_edit_locationFailed": "Mentve, de a helyét nem sikerült beállítani. Az elemen az Áthelyezés gombbal állíthatod be.",
   "equipment_locations_title": "Helyek",
   "equipment_locations_empty": "Még nincsenek helyek. Adj hozzá egyet, hogy nyomon kövesd, hol van a felszerelésed.",
   "equipment_locations_add": "Hely hozzáadása",

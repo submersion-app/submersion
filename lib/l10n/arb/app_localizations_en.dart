@@ -14512,6 +14512,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_edit_locationNone => 'Not set';
 
   @override
+  String get equipment_edit_locationFailed =>
+      'Saved, but its location could not be set. Use Move on the item to set it.';
+
+  @override
   String get equipment_locations_title => 'Locations';
 
   @override
