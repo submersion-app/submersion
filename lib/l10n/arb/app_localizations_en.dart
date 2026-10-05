@@ -44762,4 +44762,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get query_saveNeedsDiver => 'Create a diver profile to save queries';
+
+  @override
+  String get builtIns_showColumnLabel => 'Show';
+
+  @override
+  String get builtIns_showInPickers => 'Show in pickers';
 }

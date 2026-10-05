@@ -45440,4 +45440,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get query_saveNeedsDiver =>
       'Crie um perfil de mergulhador para salvar consultas';
+
+  @override
+  String get builtIns_showColumnLabel => 'Mostrar';
+
+  @override
+  String get builtIns_showInPickers => 'Mostrar nos seletores';
 }

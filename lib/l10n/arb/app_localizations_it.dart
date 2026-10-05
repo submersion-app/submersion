@@ -45410,4 +45410,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get query_saveNeedsDiver =>
       'Crea un profilo subacqueo per salvare le query';
+
+  @override
+  String get builtIns_showColumnLabel => 'Mostra';
+
+  @override
+  String get builtIns_showInPickers => 'Mostra nei selettori';
 }

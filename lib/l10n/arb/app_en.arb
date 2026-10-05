@@ -27833,5 +27833,9 @@
   "query_editor_needsText": "Enter at least one word",
   "@query_editor_needsText": {"description": "Builder text row left empty: it needs at least one word"},
   "query_saveNeedsDiver": "Create a diver profile to save queries",
-  "@query_saveNeedsDiver": {"description": "Snackbar when Save is tapped with no diver profile"}
+  "@query_saveNeedsDiver": {"description": "Snackbar when Save is tapped with no diver profile"},
+  "builtIns_showColumnLabel": "Show",
+  "@builtIns_showColumnLabel": {"description": "Column header above the switches that hide built-in entries from the pickers on the Manage pages"},
+  "builtIns_showInPickers": "Show in pickers",
+  "@builtIns_showInPickers": {"description": "Tooltip on a built-in entry's show/hide switch on a Manage page"}
 }

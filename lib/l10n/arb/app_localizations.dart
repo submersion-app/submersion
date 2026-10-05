@@ -71993,6 +71993,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create a diver profile to save queries'**
   String get query_saveNeedsDiver;
+
+  /// Column header above the switches that hide built-in entries from the pickers on the Manage pages
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get builtIns_showColumnLabel;
+
+  /// Tooltip on a built-in entry's show/hide switch on a Manage page
+  ///
+  /// In en, this message translates to:
+  /// **'Show in pickers'**
+  String get builtIns_showInPickers;
 }
 
 class _AppLocalizationsDelegate

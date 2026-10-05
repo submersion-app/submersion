@@ -13665,5 +13665,7 @@
   "settings_manage_savedQueries": "Gespeicherte Abfragen",
   "settings_manage_savedQueries_subtitle": "Gespeicherte Abfragen umbenennen, sortieren und löschen",
   "query_editor_needsText": "Mindestens ein Wort eingeben",
-  "query_saveNeedsDiver": "Legen Sie ein Taucherprofil an, um Abfragen zu speichern"
+  "query_saveNeedsDiver": "Legen Sie ein Taucherprofil an, um Abfragen zu speichern",
+  "builtIns_showColumnLabel": "Anzeigen",
+  "builtIns_showInPickers": "In der Auswahl anzeigen"
 }

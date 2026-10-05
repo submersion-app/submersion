@@ -13565,5 +13565,7 @@
   "settings_manage_savedQueries": "已保存的查询",
   "settings_manage_savedQueries_subtitle": "重命名、重新排序和删除已保存的查询",
   "query_editor_needsText": "请至少输入一个词",
-  "query_saveNeedsDiver": "请先创建潜水员档案再保存查询"
+  "query_saveNeedsDiver": "请先创建潜水员档案再保存查询",
+  "builtIns_showColumnLabel": "显示",
+  "builtIns_showInPickers": "在选择列表中显示"
 }

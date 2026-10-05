@@ -13565,5 +13565,7 @@
   "settings_manage_savedQueries": "Consultas guardadas",
   "settings_manage_savedQueries_subtitle": "Renombrar, reordenar y eliminar consultas guardadas",
   "query_editor_needsText": "Escribe al menos una palabra",
-  "query_saveNeedsDiver": "Crea un perfil de buceador para guardar consultas"
+  "query_saveNeedsDiver": "Crea un perfil de buceador para guardar consultas",
+  "builtIns_showColumnLabel": "Mostrar",
+  "builtIns_showInPickers": "Mostrar en los selectores"
 }

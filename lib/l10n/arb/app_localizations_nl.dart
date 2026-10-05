@@ -45135,4 +45135,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get query_saveNeedsDiver =>
       'Maak een duikersprofiel aan om query\'s op te slaan';
+
+  @override
+  String get builtIns_showColumnLabel => 'Tonen';
+
+  @override
+  String get builtIns_showInPickers => 'Tonen in kiezers';
 }

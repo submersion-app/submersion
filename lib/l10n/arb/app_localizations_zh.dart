@@ -42778,4 +42778,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_saveNeedsDiver => '请先创建潜水员档案再保存查询';
+
+  @override
+  String get builtIns_showColumnLabel => '显示';
+
+  @override
+  String get builtIns_showInPickers => '在选择列表中显示';
 }

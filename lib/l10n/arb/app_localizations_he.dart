@@ -44536,4 +44536,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_saveNeedsDiver => 'צור פרופיל צולל כדי לשמור שאילתות';
+
+  @override
+  String get builtIns_showColumnLabel => 'הצג';
+
+  @override
+  String get builtIns_showInPickers => 'הצג בבוררים';
 }

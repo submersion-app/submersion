@@ -45342,4 +45342,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get query_saveNeedsDiver =>
       'Legen Sie ein Taucherprofil an, um Abfragen zu speichern';
+
+  @override
+  String get builtIns_showColumnLabel => 'Anzeigen';
+
+  @override
+  String get builtIns_showInPickers => 'In der Auswahl anzeigen';
 }

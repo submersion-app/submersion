@@ -13565,5 +13565,7 @@
   "settings_manage_savedQueries": "Requêtes enregistrées",
   "settings_manage_savedQueries_subtitle": "Renommer, réorganiser et supprimer les requêtes enregistrées",
   "query_editor_needsText": "Saisissez au moins un mot",
-  "query_saveNeedsDiver": "Créez un profil de plongeur pour enregistrer des requêtes"
+  "query_saveNeedsDiver": "Créez un profil de plongeur pour enregistrer des requêtes",
+  "builtIns_showColumnLabel": "Afficher",
+  "builtIns_showInPickers": "Afficher dans les sélecteurs"
 }
