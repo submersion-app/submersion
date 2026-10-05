@@ -19327,9 +19327,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String settings_conflict_deletedValues(String device) {
+    return 'The record as $device has it:';
+  }
+
+  @override
   String settings_conflict_errorLoading(Object error) {
     return 'Error loading conflicts: $error';
   }
+
+  @override
+  String get settings_conflict_fieldHeader => 'Field';
 
   @override
   String get settings_conflict_keepBoth => 'Keep Both';
@@ -19341,11 +19349,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_keepRemote => 'Keep Remote';
 
   @override
+  String settings_conflict_localDeleted(String device) {
+    return '$device deleted this record.';
+  }
+
+  @override
   String get settings_conflict_localVersion => 'Local Version';
 
   @override
   String settings_conflict_modified(Object time) {
     return 'Modified: $time';
+  }
+
+  @override
+  String settings_conflict_modifiedBy(String device, String time) {
+    return '$device · modified $time';
   }
 
   @override
@@ -19491,6 +19509,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_ref_tripCylinder => 'Trip cylinder';
 
   @override
+  String settings_conflict_remoteDeleted(String device) {
+    return '$device deleted this record.';
+  }
+
+  @override
   String get settings_conflict_remoteVersion => 'Remote Version';
 
   @override
@@ -19508,10 +19531,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_same => 'Same';
 
   @override
+  String get settings_conflict_sameContent =>
+      'Both versions have the same content; only the time they were saved differs. Either choice keeps everything.';
+
+  @override
+  String settings_conflict_sameFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fields are the same',
+      one: '$count field is the same',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_conflict_textDiffHint =>
+      'Highlighted words appear only in that version.';
+
+  @override
   String get settings_conflict_thisDevice => 'This device';
 
   @override
   String get settings_conflict_title => 'Resolve Conflicts';
+
+  @override
+  String settings_conflict_whatDiffers(int count) {
+    return 'What differs ($count)';
+  }
+
+  @override
+  String get settings_conflict_whitespaceOnly =>
+      'Only spacing or line breaks differ.';
 
   @override
   String get settings_data_appDefaultLocation => 'App default location';

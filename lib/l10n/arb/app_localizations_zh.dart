@@ -18659,9 +18659,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String settings_conflict_deletedValues(String device) {
+    return 'The record as $device has it:';
+  }
+
+  @override
   String settings_conflict_errorLoading(Object error) {
     return '加载冲突时出错：$error';
   }
+
+  @override
+  String get settings_conflict_fieldHeader => 'Field';
 
   @override
   String get settings_conflict_keepBoth => '保留两者';
@@ -18673,11 +18681,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_keepRemote => '保留远程';
 
   @override
+  String settings_conflict_localDeleted(String device) {
+    return '$device deleted this record.';
+  }
+
+  @override
   String get settings_conflict_localVersion => '本地版本';
 
   @override
   String settings_conflict_modified(Object time) {
     return '已修改: $time';
+  }
+
+  @override
+  String settings_conflict_modifiedBy(String device, String time) {
+    return '$device · modified $time';
   }
 
   @override
@@ -18821,6 +18839,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_tripCylinder => '行程气瓶';
 
   @override
+  String settings_conflict_remoteDeleted(String device) {
+    return '$device deleted this record.';
+  }
+
+  @override
   String get settings_conflict_remoteVersion => '远程版本';
 
   @override
@@ -18838,10 +18861,38 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_same => 'Same';
 
   @override
+  String get settings_conflict_sameContent =>
+      'Both versions have the same content; only the time they were saved differs. Either choice keeps everything.';
+
+  @override
+  String settings_conflict_sameFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fields are the same',
+      one: '$count field is the same',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_conflict_textDiffHint =>
+      'Highlighted words appear only in that version.';
+
+  @override
   String get settings_conflict_thisDevice => 'This device';
 
   @override
   String get settings_conflict_title => '解决冲突';
+
+  @override
+  String settings_conflict_whatDiffers(int count) {
+    return 'What differs ($count)';
+  }
+
+  @override
+  String get settings_conflict_whitespaceOnly =>
+      'Only spacing or line breaks differ.';
 
   @override
   String get settings_data_appDefaultLocation => '应用默认位置';

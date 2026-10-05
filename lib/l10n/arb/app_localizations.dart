@@ -31384,11 +31384,23 @@ abstract class AppLocalizations {
   /// **'Conflict {current} of {total}'**
   String settings_conflict_counterLabel(Object current, Object total);
 
+  /// No description provided for @settings_conflict_deletedValues.
+  ///
+  /// In en, this message translates to:
+  /// **'The record as {device} has it:'**
+  String settings_conflict_deletedValues(String device);
+
   /// No description provided for @settings_conflict_errorLoading.
   ///
   /// In en, this message translates to:
   /// **'Error loading conflicts: {error}'**
   String settings_conflict_errorLoading(Object error);
+
+  /// No description provided for @settings_conflict_fieldHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Field'**
+  String get settings_conflict_fieldHeader;
 
   /// No description provided for @settings_conflict_keepBoth.
   ///
@@ -31408,6 +31420,12 @@ abstract class AppLocalizations {
   /// **'Keep Remote'**
   String get settings_conflict_keepRemote;
 
+  /// No description provided for @settings_conflict_localDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{device} deleted this record.'**
+  String settings_conflict_localDeleted(String device);
+
   /// No description provided for @settings_conflict_localVersion.
   ///
   /// In en, this message translates to:
@@ -31419,6 +31437,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Modified: {time}'**
   String settings_conflict_modified(Object time);
+
+  /// No description provided for @settings_conflict_modifiedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'{device} · modified {time}'**
+  String settings_conflict_modifiedBy(String device, String time);
 
   /// No description provided for @settings_conflict_next_tooltip.
   ///
@@ -31696,6 +31720,12 @@ abstract class AppLocalizations {
   /// **'Trip cylinder'**
   String get settings_conflict_ref_tripCylinder;
 
+  /// No description provided for @settings_conflict_remoteDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{device} deleted this record.'**
+  String settings_conflict_remoteDeleted(String device);
+
   /// No description provided for @settings_conflict_remoteVersion.
   ///
   /// In en, this message translates to:
@@ -31714,6 +31744,24 @@ abstract class AppLocalizations {
   /// **'Same'**
   String get settings_conflict_same;
 
+  /// No description provided for @settings_conflict_sameContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Both versions have the same content; only the time they were saved differs. Either choice keeps everything.'**
+  String get settings_conflict_sameContent;
+
+  /// No description provided for @settings_conflict_sameFields.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} field is the same} other{{count} fields are the same}}'**
+  String settings_conflict_sameFields(int count);
+
+  /// No description provided for @settings_conflict_textDiffHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlighted words appear only in that version.'**
+  String get settings_conflict_textDiffHint;
+
   /// No description provided for @settings_conflict_thisDevice.
   ///
   /// In en, this message translates to:
@@ -31725,6 +31773,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resolve Conflicts'**
   String get settings_conflict_title;
+
+  /// No description provided for @settings_conflict_whatDiffers.
+  ///
+  /// In en, this message translates to:
+  /// **'What differs ({count})'**
+  String settings_conflict_whatDiffers(int count);
+
+  /// No description provided for @settings_conflict_whitespaceOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only spacing or line breaks differ.'**
+  String get settings_conflict_whitespaceOnly;
 
   /// No description provided for @settings_data_appDefaultLocation.
   ///
