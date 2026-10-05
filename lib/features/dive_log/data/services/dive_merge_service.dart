@@ -18,6 +18,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
     as series;
 import 'package:submersion/features/dive_log/domain/services/dive_merge_builder.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
+import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 
 /// Result of a successful merge: the new dive plus the pre-merge snapshot
@@ -39,6 +41,7 @@ class DiveMergeService {
   final _uuid = const Uuid();
   final _builder = const DiveMergeBuilder();
   final _sync = SyncRepository();
+  final _roleLinks = DiveRoleLinkRepository();
   final _tagRepository = TagRepository();
   final _profileSeries = ProfileSeriesRepository();
   final _tankSeries = TankPressureSeriesRepository();
@@ -565,6 +568,20 @@ class DiveMergeService {
           );
         }
       }
+      // Each person's roles are the union of what they held on every source
+      // (issue #1221); the copied rows above carry only the first primary.
+      final sourceRoles = snapshot.resolvedBuddyRoles();
+      for (final buddyId in seenBuddies) {
+        await _roleLinks.writeBuddyRoles(
+          mergedId,
+          buddyId,
+          DiveRoleSet.union([
+            for (final source in result.sortedSources)
+              ?sourceRoles[(source.id, buddyId)],
+          ]),
+          now: now,
+        );
+      }
 
       // 9. Merged sightings (already unioned by the builder).
       for (final s in result.mergedSightings) {
@@ -647,6 +664,13 @@ class DiveMergeService {
       // series would never leave the other peers.
       await _profileSeries.deleteForDive(mergedId);
       await _tankSeries.deleteForDive(mergedId);
+      // The merge's role rows (#1221): tombstoned and removed so a peer
+      // drops them too.
+      await _roleLinks.restoreRows(
+        diveIds: [mergedId],
+        diverRows: const [],
+        buddyRows: const [],
+      );
       await _db.batch((batch) {
         batch.deleteWhere(_db.diveTanks, (t) => t.diveId.equals(mergedId));
         batch.deleteWhere(_db.diveWeights, (t) => t.diveId.equals(mergedId));
@@ -812,6 +836,11 @@ class DiveMergeService {
           localUpdatedAt: now,
         );
       }
+      await _roleLinks.restoreRows(
+        diveIds: [for (final d in snapshot.diveRows) d.id],
+        diverRows: snapshot.diverRoleRows,
+        buddyRows: snapshot.buddyRoleRows,
+      );
       for (final r in snapshot.sightingRows) {
         await _db
             .into(_db.sightings)

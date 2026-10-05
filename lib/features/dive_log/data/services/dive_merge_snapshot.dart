@@ -2,6 +2,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 
 /// Plain-data capture of every row touched by a dive merge (#449), taken
 /// before mutation so a merge can later be undone.
@@ -26,6 +27,8 @@ class DiveMergeSnapshot {
     required this.dataSourceRows,
     required this.tideRows,
     required this.mediaDiveIds,
+    this.diverRoleRows = const [],
+    this.buddyRoleRows = const [],
     this.profileSeriesRows = const [],
     this.tankSeriesRows = const [],
   });
@@ -46,6 +49,42 @@ class DiveMergeSnapshot {
   final List<GasSwitche> gasSwitchRows;
   final List<DiveDataSourcesData> dataSourceRows;
   final List<TideRecord> tideRows;
+
+  /// The role junction rows of the captured dives (issue #1221).
+  final List<DiveDiverRole> diverRoleRows;
+  final List<DiveBuddyRole> buddyRoleRows;
+
+  /// Each person's resolved role set per captured dive, keyed
+  /// (diveId, buddyId), from [buddyRows] and [buddyRoleRows].
+  Map<(String, String), List<String>> resolvedBuddyRoles() {
+    final junction = <(String, String), List<String>>{};
+    for (final r in buddyRoleRows) {
+      junction.putIfAbsent((r.diveId, r.buddyId), () => []).add(r.roleId);
+    }
+    return {
+      for (final link in buddyRows)
+        (link.diveId, link.buddyId): DiveRoleSet.resolveBuddy(
+          scalar: link.role,
+          junction: junction[(link.diveId, link.buddyId)] ?? const [],
+        ),
+    };
+  }
+
+  /// Each captured dive's resolved diver role set, from [diveRows] and
+  /// [diverRoleRows].
+  Map<String, List<String>> resolvedDiverRoles() {
+    final junction = <String, List<String>>{};
+    for (final r in diverRoleRows) {
+      junction.putIfAbsent(r.diveId, () => []).add(r.roleId);
+    }
+    return {
+      for (final d in diveRows)
+        d.id: DiveRoleSet.resolve(
+          scalar: d.diverRole,
+          junction: junction[d.id] ?? const [],
+        ),
+    };
+  }
 
   /// Media id -> original dive id, so an undo can point media back at its
   /// source dive.
@@ -118,6 +157,12 @@ class DiveMergeSnapshot {
       )..where((t) => t.diveId.isIn(diveIds))).get(),
       tideRows: await (db.select(
         db.tideRecords,
+      )..where((t) => t.diveId.isIn(diveIds))).get(),
+      diverRoleRows: await (db.select(
+        db.diveDiverRoles,
+      )..where((t) => t.diveId.isIn(diveIds))).get(),
+      buddyRoleRows: await (db.select(
+        db.diveBuddyRoles,
       )..where((t) => t.diveId.isIn(diveIds))).get(),
       mediaDiveIds: {for (final m in mediaRows) m.id: m.diveId!},
       profileSeriesRows: await ProfileSeriesRepository(

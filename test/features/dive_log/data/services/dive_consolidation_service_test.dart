@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -898,6 +899,43 @@ void main() {
           'comp-s',
           'comp-u',
         });
+      },
+    );
+
+    test(
+      'unions role sets per person and undo restores them (#1221)',
+      () async {
+        await seedConsolidatableFixture();
+        await seedBuddy('dbud-t1', diveId: 't', buddyId: 'buddy-x');
+        await seedBuddy('dbud-s1', diveId: 's', buddyId: 'buddy-x');
+        final roles = DiveRoleLinkRepository();
+        await roles.writeDiverRoles('t', ['instructor']);
+        await roles.writeDiverRoles('s', ['safetyDiver']);
+        await roles.writeBuddyRoles('t', 'buddy-x', ['diveMaster']);
+        await roles.writeBuddyRoles('s', 'buddy-x', ['diveGuide']);
+        final beforeT = (
+          diver: await roles.diverRoleIdsForDives(['t']),
+          buddy: await roles.buddyRoleIdsForDives(['t']),
+        );
+
+        final outcome = await service.apply(
+          targetDiveId: 't',
+          secondaryDiveIds: ['s'],
+        );
+
+        expect((await roles.diverRoleIdsForDives(['t']))['t'], [
+          'instructor',
+          'safetyDiver',
+        ]);
+        expect((await roles.buddyRoleIdsForDives(['t']))['t']!['buddy-x'], [
+          'diveGuide',
+          'diveMaster',
+        ]);
+
+        await service.undo(outcome.snapshot);
+
+        expect(await roles.diverRoleIdsForDives(['t']), beforeT.diver);
+        expect(await roles.buddyRoleIdsForDives(['t']), beforeT.buddy);
       },
     );
 

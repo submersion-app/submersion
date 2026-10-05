@@ -13,6 +13,8 @@ import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.d
 import 'package:submersion/features/dive_log/domain/services/dive_consolidation_builder.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
+import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 
 /// Result of a successful consolidation: the target dive id plus the
 /// pre-consolidation snapshot needed to undo it.
@@ -43,6 +45,7 @@ class DiveConsolidationService {
   final _uuid = const Uuid();
   final _builder = const DiveConsolidationBuilder();
   final _sync = SyncRepository();
+  final _roleLinks = DiveRoleLinkRepository();
   final _profileSeries = ProfileSeriesRepository();
   final _tankSeries = TankPressureSeriesRepository();
 
@@ -558,6 +561,39 @@ class DiveConsolidationService {
             localUpdatedAt: now,
           );
         }
+
+        // Roles (issue #1221): each person on both dives, and the diver,
+        // ends up holding every role they held on either. Read the target's
+        // current sets, which an earlier secondary may already have widened.
+        final secondaryBuddyRoles = snapshot.resolvedBuddyRoles();
+        final targetBuddyRoles =
+            (await _roleLinks.buddyRoleIdsForDives([
+              targetDiveId,
+            ]))[targetDiveId] ??
+            const <String, List<String>>{};
+        for (final row in snapshot.buddyRows.where(
+          (r) => r.diveId == secondary.id,
+        )) {
+          await _roleLinks.writeBuddyRoles(
+            targetDiveId,
+            row.buddyId,
+            DiveRoleSet.union([
+              ?targetBuddyRoles[row.buddyId],
+              ?secondaryBuddyRoles[(secondary.id, row.buddyId)],
+            ]),
+            now: now,
+          );
+        }
+        await _roleLinks.writeDiverRoles(
+          targetDiveId,
+          DiveRoleSet.union([
+            ?(await _roleLinks.diverRoleIdsForDives([
+              targetDiveId,
+            ]))[targetDiveId],
+            ?snapshot.resolvedDiverRoles()[secondary.id],
+          ]),
+          now: now,
+        );
 
         // Equipment: union by equipmentId. Composite-key junction (no
         // surrogate id) -- diveId+equipmentId is the identity, and
@@ -1116,6 +1152,13 @@ class DiveConsolidationService {
           localUpdatedAt: now,
         );
       }
+      // The role junctions (#1221): back to the captured rows on every
+      // captured dive, the consolidation's own rows tombstoned.
+      await _roleLinks.restoreRows(
+        diveIds: [for (final d in snapshot.diveRows) d.id],
+        diverRows: snapshot.diverRoleRows,
+        buddyRows: snapshot.buddyRoleRows,
+      );
       for (final r in snapshot.sightingRows) {
         await _db
             .into(_db.sightings)

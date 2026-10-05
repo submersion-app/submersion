@@ -209,6 +209,32 @@ void main() {
       expect(merged.diverRoleIds.firstOrNull, 'rearGuard');
     });
 
+    test('the merged dive holds the union of the diver roles (#1221)', () {
+      final a = dive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+      ).copyWith(diverRoleIds: ['diveMaster']);
+      final b = dive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+      ).copyWith(diverRoleIds: ['diveGuide', 'diveMaster']);
+      final merged = builder.build([a, b]).mergedDive;
+      expect(merged.diverRoleIds, ['diveGuide', 'diveMaster']);
+    });
+
+    test('Solo yields to another role in the union (#1221)', () {
+      final a = dive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+      ).copyWith(diverRoleIds: ['solo']);
+      final b = dive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+      ).copyWith(diverRoleIds: ['instructor']);
+      final merged = builder.build([a, b]).mergedDive;
+      expect(merged.diverRoleIds, ['instructor']);
+    });
+
     test('avgDepth is weighted by sampled time and excludes the gap', () {
       // a: 600s at a constant 10m; b: 600s at a constant 20m; 30min gap.
       final a = dive(

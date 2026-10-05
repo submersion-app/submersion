@@ -2,6 +2,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/services/sequential_tank_merge.dart';
@@ -353,7 +354,9 @@ class DiveMergeBuilder {
       tanks: mergedTanks,
       buddy: _firstNonNull(sorted, (d) => d.buddy),
       diveMaster: _firstNonNull(sorted, (d) => d.diveMaster),
-      diverRoleIds: [?_firstNonNull(sorted, (d) => d.diverRoleIds.firstOrNull)],
+      // Every role the diver held on any source (issue #1221), Solo
+      // yielding to another role as DiveRoleSet.normalize has it.
+      diverRoleIds: DiveRoleSet.union([for (final d in sorted) d.diverRoleIds]),
       rating: _firstNonNull(sorted, (d) => d.rating),
       visibility: _firstNonNull(sorted, (d) => d.visibility),
       visibilityMeters: _firstNonNull(sorted, (d) => d.visibilityMeters),
