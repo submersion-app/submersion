@@ -112,4 +112,44 @@ void main() {
     expect(picker.lastSavedDialogTitle, 'Save map image');
     expect(picker.lastSavedFileName, 'submersion-connections-20261005.png');
   });
+  testWidgets('the iPad popover points at the share button, not the page', (
+    tester,
+  ) async {
+    Rect? origin;
+    late BuildContext page;
+    late BuildContext button;
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Builder(
+            builder: (pageContext) {
+              page = pageContext;
+              return Align(
+                alignment: Alignment.topRight,
+                child: Builder(
+                  builder: (buttonContext) {
+                    button = buttonContext;
+                    return const SizedBox(width: 40, height: 40);
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+    final future = shareConnectionsImage(
+      page,
+      anchorContext: button,
+      render: () async => Uint8List(4),
+      share: (bytes, name, o) async => origin = o,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Share'));
+    await tester.pumpAndSettle();
+    await future;
+    expect(origin, tester.getRect(find.byType(SizedBox).last));
+  });
 }

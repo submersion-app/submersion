@@ -22,17 +22,20 @@ String connectionsShareFileName(DateTime now) =>
 
 /// Asks share or save, renders the map image, and delivers it. Nothing is
 /// uploaded. A dismissed sheet renders nothing; a cancelled save is a no-op;
-/// a failure is logged and shown in a snackbar.
+/// a failure is logged and shown in a snackbar. [anchorContext] is the share
+/// button's own context, for the iPad popover.
 Future<void> shareConnectionsImage(
   BuildContext context, {
   required Future<Uint8List> Function() render,
   ConnectionsShareImage? share,
   ConnectionsSaveImage? save,
   DateTime? now,
+  BuildContext? anchorContext,
 }) async {
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
-  final origin = shareAnchorFrom(context);
+  // The iPad popover points at the control that opened it, not the page.
+  final origin = shareAnchorFrom(anchorContext ?? context);
   final destination = await showExportDestinationSheet(
     context,
     title: l10n.connections_share_sheetTitle,

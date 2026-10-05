@@ -213,7 +213,11 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
 
   /// Shares the map in view as an image: the layout as it stands, in the
   /// current highlight mode, captioned with the map's name and range.
-  Future<void> _share(ConnectionGraph graph, ConnectionsViewState view) {
+  Future<void> _share(
+    ConnectionGraph graph,
+    ConnectionsViewState view,
+    BuildContext button,
+  ) {
     final caption = ConnectionsShareCaption.of(
       l10n: context.l10n,
       units: UnitFormatter(ref.read(settingsProvider)),
@@ -233,6 +237,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     final direction = Directionality.of(context);
     return shareConnectionsImage(
       context,
+      anchorContext: button,
       render: () => ConnectionsShareRenderer.renderWithAssets(
         graph: graph,
         frame: frame,
@@ -560,11 +565,14 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
       appBar: AppBar(
         title: Text(l10n.connections_title),
         actions: [
-          IconButton(
-            key: const ValueKey('connections-share'),
-            icon: const Icon(Icons.ios_share),
-            tooltip: l10n.connections_share_tooltip,
-            onPressed: showCanvas ? () => _share(graph, view) : null,
+          // A Builder gives the button its own context for the iPad popover.
+          Builder(
+            builder: (button) => IconButton(
+              key: const ValueKey('connections-share'),
+              icon: const Icon(Icons.ios_share),
+              tooltip: l10n.connections_share_tooltip,
+              onPressed: showCanvas ? () => _share(graph, view, button) : null,
+            ),
           ),
           if (focus != null)
             IconButton(
