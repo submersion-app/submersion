@@ -368,6 +368,73 @@ void main() {
       );
     });
 
+    Future<List<String>> sharedPair(WidgetTester tester) async {
+      final ids = <String>[];
+      for (final id in ['seed-roles-1', 'seed-roles-2']) {
+        ids.add(
+          (await repository.createDive(
+            createTestDiveWithBottomTime().copyWith(
+              id: id,
+              diverRoleIds: const [DiveRole.diveGuideId, DiveRole.diveMasterId],
+            ),
+          )).id,
+        );
+      }
+      await pumpBulkDives(tester, ids);
+      await tester.ensureVisible(myRoleGate());
+      await tester.tap(
+        find.descendant(of: myRoleGate(), matching: find.byType(Checkbox)),
+      );
+      await tester.pumpAndSettle();
+      return ids;
+    }
+
+    Future<void> saveBulk(WidgetTester tester) async {
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a shared role set is the starting value (#1221)', (
+      tester,
+    ) async {
+      final ids = await sharedPair(tester);
+      await tester.tap(
+        find.descendant(of: myRoleGate(), matching: find.byType(FormRow)),
+      );
+      await tester.pumpAndSettle();
+      // The picker opens with the shared set ticked; adding one keeps both.
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Instructor'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Done').last);
+      await tester.pumpAndSettle();
+      await saveBulk(tester);
+
+      for (final id in ids) {
+        expect((await repository.getDiveById(id))!.diverRoleIds, [
+          DiveRole.diveGuideId,
+          DiveRole.instructorId,
+          DiveRole.diveMasterId,
+        ]);
+      }
+    });
+
+    testWidgets('enabling My role and saving keeps a shared set (#1221)', (
+      tester,
+    ) async {
+      final ids = await sharedPair(tester);
+      await saveBulk(tester);
+
+      for (final id in ids) {
+        expect((await repository.getDiveById(id))!.diverRoleIds, [
+          DiveRole.diveGuideId,
+          DiveRole.diveMasterId,
+        ]);
+      }
+    });
+
     testWidgets('My role shows the set every dive shares (#1221)', (
       tester,
     ) async {

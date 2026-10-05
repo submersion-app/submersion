@@ -1557,16 +1557,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     ).joinedLocalizedNames(context.l10n);
   }
 
-  /// What the My role row says before a set is staged: Mixed when the
-  /// selected dives' sets differ, the shared set when they agree.
+  /// What the My role row says when no set is staged: Mixed when the
+  /// selected dives' sets differ, otherwise Not set. A set the dives share is
+  /// the row's value from the start, not a placeholder.
   String _bulkDiverRolePlaceholder() {
     final l10n = context.l10n;
-    if (_diverRolesMixed) return l10n.diveLog_bulkEdit_buddyRoleMixed;
-    final shared = _existingDiverRoleIds;
-    if (shared == null || shared.isEmpty) return l10n.diveLog_edit_row_notSet;
-    final rolesById =
-        ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
-    return rolesForIds(shared, rolesById).joinedLocalizedNames(l10n);
+    return _diverRolesMixed
+        ? l10n.diveLog_bulkEdit_buddyRoleMixed
+        : l10n.diveLog_edit_row_notSet;
   }
 
   Future<void> _showBulkDiverRolePicker() async {
@@ -4297,6 +4295,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       _existingDiverRoleIds = _diverRolesMixed
           ? null
           : diverRoleSets.values.firstOrNull;
+      // A set every dive shares is the row's starting value, so the picker
+      // opens with it ticked and enabling the gate keeps it rather than
+      // replacing it with nothing.
+      if (!_diverRolesMixed) _diverRoleIds = _existingDiverRoleIds ?? const [];
       _buddyById
         ..clear()
         ..addAll(buddyMap);
