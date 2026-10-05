@@ -39,6 +39,10 @@ String formatConflictValue({
       if (clock == null) return value.toString();
       return units.formatDateTime(clock, l10n: l10n);
     case FieldKind.date:
+      final day = _instant(value);
+      if (day == null) return value.toString();
+      return units.formatDate(day);
+    case FieldKind.utcDate:
       final day = _wallClock(value);
       if (day == null) return value.toString();
       return units.formatDate(day);

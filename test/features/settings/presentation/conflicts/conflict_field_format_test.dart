@@ -234,25 +234,24 @@ void main() {
       );
     });
 
-    test('a date is the stored calendar day in every zone', () {
-      // Day-only columns hold UTC midnight. Decoding that as a local instant
-      // shows the previous day anywhere west of UTC.
-      final day = DateTime.utc(2026, 3, 28);
+    test('a date is the local day the app wrote', () {
+      // Trips, certifications and service dates are written from a local
+      // DateTime and read back with a local decode, so late evening stays on
+      // its own day rather than moving to the UTC one.
+      final evening = DateTime(2026, 3, 28, 23, 30);
       expect(
-        fmt(metric, FieldKind.date, day.millisecondsSinceEpoch),
-        metric.formatDate(day),
+        fmt(metric, FieldKind.date, evening.millisecondsSinceEpoch),
+        metric.formatDate(evening),
       );
     });
 
-    test('an epoch in seconds is a moment, not a 1970 date', () {
-      final when = DateTime(2026, 3, 28, 10);
+    test('a UTC day is the stored calendar day in every zone', () {
+      // A few columns (a trip day's weather) hold UTC midnight. Decoding that
+      // as local shows the previous day anywhere west of UTC.
+      final day = DateTime.utc(2026, 3, 28);
       expect(
-        fmt(
-          metric,
-          FieldKind.epochSeconds,
-          when.millisecondsSinceEpoch ~/ 1000,
-        ),
-        metric.formatDateTime(when, l10n: l10n),
+        fmt(metric, FieldKind.utcDate, day.millisecondsSinceEpoch),
+        metric.formatDate(day),
       );
     });
 

@@ -463,4 +463,12 @@ final Map<String, ConflictField> siteTripOverrides = {
     FieldKind.enumValue,
     enumLabel: tripCylinderEventKindLabeler,
   ),
+  'tripCylinderEvents.occurredAt': ConflictField(
+    (l) => l.settings_conflict_field_occurredAt,
+    FieldKind.wallClock,
+  ),
+  'tripDayWeather.date': ConflictField(
+    (l) => l.settings_conflict_field_date,
+    FieldKind.utcDate,
+  ),
 };

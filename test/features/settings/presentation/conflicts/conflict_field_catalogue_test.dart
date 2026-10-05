@@ -197,4 +197,33 @@ void main() {
     expect(guard, isNot(contains('skip:')));
     expect(guard, isNot(contains('_pending')));
   });
+
+  test('day and clock columns use the frame their repository decodes', () {
+    expect(conflictFieldFor('trips', 'startDate').kind, FieldKind.date);
+    expect(
+      conflictFieldFor('certifications', 'expiryDate').kind,
+      FieldKind.date,
+    );
+    expect(
+      conflictFieldFor('tripDayWeather', 'date').kind,
+      FieldKind.utcDate,
+    );
+    expect(conflictFieldFor('itineraryDays', 'date').kind, FieldKind.date);
+    expect(
+      conflictFieldFor('incidents', 'occurredAt').kind,
+      FieldKind.utcDate,
+    );
+    expect(
+      conflictFieldFor('tripCylinderEvents', 'occurredAt').kind,
+      FieldKind.wallClock,
+    );
+    expect(
+      conflictFieldFor('equipmentOwnershipEvents', 'occurredAt').kind,
+      FieldKind.dateTime,
+    );
+  });
+
+  test('an SCR injection rate follows the volume unit', () {
+    expect(conflictFieldFor('dives', 'scrInjectionRate').kind, FieldKind.rmv);
+  });
 }

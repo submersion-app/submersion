@@ -46,8 +46,14 @@ enum FieldKind {
   /// shown as the stored digits, never shifted to the device's zone.
   wallClock,
 
-  /// A calendar day stored as UTC midnight: shown as that day everywhere.
+  /// A calendar day the app wrote from a local DateTime (trips,
+  /// certifications, service dates): decoded in the device's zone, the way
+  /// the repositories read it back.
   date,
+
+  /// A calendar day stored as UTC midnight (a trip day's weather, an
+  /// incident date): shown as that day in every zone.
+  utcDate,
 
   /// Minutes after local midnight (opening hours).
   timeOfDay,

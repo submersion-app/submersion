@@ -474,7 +474,7 @@ final Map<String, ConflictField> diveLogFields = {
   ),
   'scrInjectionRate': ConflictField(
     (l) => l.settings_conflict_field_scrInjectionRate,
-    FieldKind.number,
+    FieldKind.rmv,
   ),
   'scrOrificeSize': ConflictField(
     (l) => l.settings_conflict_field_scrOrificeSize,
@@ -716,6 +716,10 @@ final Map<String, ConflictField> diveLogOverrides = {
     (l) => l.settings_conflict_field_incidents_category,
     FieldKind.enumValue,
     enumLabel: incidentCategoryLabeler,
+  ),
+  'incidents.occurredAt': ConflictField(
+    (l) => l.settings_conflict_field_occurredAt,
+    FieldKind.utcDate,
   ),
   'incidents.severity': ConflictField(
     (l) => l.settings_conflict_field_incidents_severity,
