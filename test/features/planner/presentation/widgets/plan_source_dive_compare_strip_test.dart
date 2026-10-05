@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/source_dive_deco_provider.dart';
@@ -136,6 +137,10 @@ void main() {
           sourceDiveForPlanProvider.overrideWith((ref) async => dive),
           sourceDiveTtsSecondsProvider.overrideWith((ref) async => null),
           sourceDiveDecoSecondsProvider.overrideWith((ref) async => null),
+          diveAnalysisSeriesProvider('d1').overrideWith(
+            (ref) async =>
+                (points: dive.profile, sourceProfile: null, source: null),
+          ),
           activePlanOutcomeProvider.overrideWithValue(_outcome()),
         ],
         child: const PlanSourceDiveCompareStrip(),
