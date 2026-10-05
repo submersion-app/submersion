@@ -397,6 +397,17 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('the choices span the dialog width', (tester) async {
+    await pumpDialog(tester, diveConflict, size: const Size(1280, 900));
+
+    expect(
+      tester
+          .getSize(find.byKey(const Key('conflict-resolution-options')))
+          .width,
+      cardSize(tester).width,
+    );
+  });
+
   testWidgets('a wide window keeps a centred dialog up to 720 wide', (
     tester,
   ) async {

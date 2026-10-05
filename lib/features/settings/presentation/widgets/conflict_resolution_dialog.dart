@@ -258,6 +258,8 @@ class _ConflictResolutionDialogState
     final selected = _resolutions[key];
 
     return Container(
+      key: const Key('conflict-resolution-options'),
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerLow,
