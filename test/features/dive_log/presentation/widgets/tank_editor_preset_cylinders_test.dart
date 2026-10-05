@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,6 +9,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -160,6 +163,7 @@ void main() {
     void Function(DiveTank)? onChanged,
     Future<void> Function(EquipmentItem)? onOwnCylinderUsed,
     DiveTank tank = const DiveTank(id: 'tank-1'),
+    List<dynamic> extra = const [],
   }) async {
     // Tall enough for the whole open menu: a menu opened on a chosen preset
     // scrolls to it, which would push the cylinders above it out of view.
@@ -187,6 +191,7 @@ void main() {
           activeEquipmentProvider.overrideWith(
             (ref) async => [rentalAl80, faber, spare, nameOnly, regulator],
           ),
+          ...extra,
         ].cast(),
         child: MaterialApp(
           locale: const Locale('en'),
@@ -401,6 +406,38 @@ void main() {
       findsWidgets,
     );
     handle.dispose();
+  });
+
+  // A cylinder's fills load before it fills the tank. A preset chosen in
+  // that window is the newer choice, so the cylinder must not overwrite it
+  // when its fills arrive, nor join the dive's gear.
+  testWidgets('a preset chosen while a cylinder loads is not overwritten', (
+    tester,
+  ) async {
+    final fills = Completer<List<CylinderFill>>();
+    DiveTank? changed;
+    EquipmentItem? used;
+    await pump(
+      tester,
+      onChanged: (t) => changed = t,
+      onOwnCylinderUsed: (item) async => used = item,
+      extra: [
+        fillsForEquipmentProvider(faber.id).overrideWith((ref) => fills.future),
+      ],
+    );
+    await openDropdown(tester);
+    await tester.tap(find.text(faber.name).last);
+    await tester.pumpAndSettle();
+    await choose(tester, 'AL80');
+
+    fills.complete(const []);
+    await tester.pumpAndSettle();
+
+    expect(changed!.presetName, 'al80');
+    expect(changed!.volume, closeTo(11.1, 0.01));
+    expect(changed!.workingPressure, 207);
+    expect(used, isNull);
+    expect(shownPreset(tester), 'AL80');
   });
 
   testWidgets('a failing gear add is reported, not left unhandled', (

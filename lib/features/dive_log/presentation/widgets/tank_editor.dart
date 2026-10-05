@@ -115,6 +115,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   late TankMaterial? _material;
   TankPresetEntity? _selectedPreset;
 
+  /// Counts the diver's spec choices: a preset, a cylinder or a scan. A
+  /// cylinder fills the tank only once its fills load, and only if no newer
+  /// choice came in meanwhile, which it would otherwise overwrite.
+  int _specChoice = 0;
+
   /// The regulator breathed from this cylinder (v202). Null until the diver
   /// picks one or a preset prefills it from the last pairing.
   String? _regulatorEquipmentId;
@@ -592,6 +597,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               if (preset != null) {
                 _applyPreset(preset);
               } else {
+                _specChoice++;
                 setState(() => _selectedPreset = null);
                 _notifyChange();
               }
@@ -1134,23 +1140,27 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   Future<void> _chooseOwnCylinder(EquipmentItem item) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
+    final choice = ++_specChoice;
     // Like a scan, the cylinder reaches the dive's gear through database
     // work Save must wait for.
-    final use = _fillFromOwnCylinder(item, messenger, l10n);
+    final use = _fillFromOwnCylinder(item, choice, messenger, l10n);
     widget.onScanPending?.call(use);
     await use;
   }
 
-  /// Fills the tank from a picked [item]. Never throws: a failure is logged
-  /// and reported.
+  /// Fills the tank from a picked [item], unless a newer spec choice than
+  /// [choice] came in while its fills loaded: then the diver changed their
+  /// mind, and the cylinder neither fills the tank nor joins the gear. Never
+  /// throws: a failure is logged and reported.
   Future<void> _fillFromOwnCylinder(
     EquipmentItem item,
+    int choice,
     ScaffoldMessengerState messenger,
     AppLocalizations l10n,
   ) async {
     try {
       final fills = await ref.read(fillsForEquipmentProvider(item.id).future);
-      if (!mounted) return;
+      if (!mounted || choice != _specChoice) return;
       await _useOwnCylinder(item, fills, messenger, l10n);
     } catch (e, stackTrace) {
       _log.error(
@@ -1170,6 +1180,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     final l10n = context.l10n;
     final text = await ref.read(passportScanLauncherProvider)(context);
     if (text == null || !mounted) return;
+    // A scan is the newer choice over a cylinder still loading.
+    _specChoice++;
     // From here the scan is database work the host may need to wait for:
     // Save must not run before the scanned cylinder reaches the dive.
     final scan = _fillFromTag(text, messenger, l10n);
@@ -1343,6 +1355,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   }
 
   void _applyPreset(TankPresetEntity preset) {
+    _specChoice++;
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
     _prefillRegulatorFor(preset.name);
