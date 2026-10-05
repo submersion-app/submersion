@@ -1,0 +1,188 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
+import 'package:submersion/features/media/domain/value_objects/attachment_details_edit.dart';
+import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/attachment_details_sheet.dart';
+
+import '../support/media_widget_harness.dart';
+
+class _StubMediaRepository extends MediaRepository {
+  @override
+  Future<List<MediaItem>> getMediaForSite(String siteId) async => const [];
+}
+
+class _RecordingNotifier extends SiteMediaListNotifier {
+  _RecordingNotifier(Ref ref, this.saves, {this.failWith})
+    : super(_StubMediaRepository(), ref, 's1');
+
+  final List<(String, AttachmentDetailsEdit)> saves;
+  final Object? failWith;
+
+  @override
+  Future<void> setAttachmentDetails(
+    String id,
+    AttachmentDetailsEdit edit,
+  ) async {
+    saves.add((id, edit));
+    if (failWith != null) throw failWith!;
+  }
+}
+
+/// Issue #1039: Edit details renames an attachment (extension fixed), sets
+/// its category, and overrides its display size.
+void main() {
+  late List<(String, AttachmentDetailsEdit)> saves;
+  MediaItem? result;
+
+  setUp(() {
+    saves = [];
+    result = null;
+  });
+
+  Future<void> open(
+    WidgetTester tester,
+    MediaItem item, {
+    Object? failWith,
+  }) async {
+    await tester.pumpWidget(
+      await mediaTestApp(
+        overrides: [
+          siteMediaListNotifierProvider('s1').overrideWith(
+            (ref) => _RecordingNotifier(ref, saves, failWith: failWith),
+          ),
+        ],
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () async => result = await showAttachmentDetailsSheet(
+                context,
+                item: item,
+                siteId: 's1',
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> chooseCategory(WidgetTester tester, String label) async {
+    await tester.tap(find.text('Uncategorized'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(label).last);
+    await tester.pumpAndSettle();
+  }
+
+  final pdf = testMediaItem(
+    id: 'm1',
+    siteId: 's1',
+    mediaType: MediaType.document,
+    originalFilename: 'scan_0042.pdf',
+  );
+
+  testWidgets('shows the stem with the extension as a fixed suffix', (
+    tester,
+  ) async {
+    await open(tester, pdf);
+    expect(find.text('Attachment details'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'scan_0042'), findsOneWidget);
+    expect(find.text('.pdf'), findsOneWidget);
+  });
+
+  testWidgets('saves only what changed and returns the saved item', (
+    tester,
+  ) async {
+    await open(tester, pdf);
+    await tester.enterText(find.byType(TextField), 'North wall');
+    await chooseCategory(tester, 'Site map');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final (id, edit) = saves.single;
+    expect(id, 'm1');
+    expect(edit.filename!.value, 'North wall.pdf');
+    expect(edit.category!.value, SiteAttachmentCategory.siteMap);
+    expect(edit.displaySize, isNull);
+    expect(result!.originalFilename, 'North wall.pdf');
+    expect(find.text('Attachment details'), findsNothing);
+  });
+
+  testWidgets('the default size segment follows the chosen category', (
+    tester,
+  ) async {
+    await open(tester, pdf);
+    expect(find.text('Default (Tile)'), findsOneWidget);
+    await chooseCategory(tester, 'Parking');
+    expect(find.text('Default (Large)'), findsOneWidget);
+  });
+
+  testWidgets('choosing Large stores an override', (tester) async {
+    await open(tester, pdf);
+    await tester.tap(find.text('Large'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(saves.single.$2.displaySize!.value, AttachmentDisplaySize.large);
+  });
+
+  testWidgets('a blank or forbidden name disables Save with a message', (
+    tester,
+  ) async {
+    await open(tester, pdf);
+    await tester.enterText(find.byType(TextField), '  ');
+    await tester.pump();
+    expect(find.text('Enter a name'), findsOneWidget);
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, 'Save'))
+          .onPressed,
+      isNull,
+    );
+    await tester.enterText(find.byType(TextField), 'a/b');
+    await tester.pump();
+    expect(find.textContaining("can't contain"), findsOneWidget);
+  });
+
+  testWidgets('an item with no name can be categorized with the name blank', (
+    tester,
+  ) async {
+    await open(
+      tester,
+      testMediaItem(id: 'm2', siteId: 's1', originalFilename: null),
+    );
+    await chooseCategory(tester, 'General');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(saves.single.$2.filename, isNull);
+    expect(saves.single.$2.category!.value, SiteAttachmentCategory.general);
+  });
+
+  testWidgets('a failed save keeps the sheet open and says why', (
+    tester,
+  ) async {
+    await open(tester, pdf, failWith: StateError('gone'));
+    await tester.enterText(find.byType(TextField), 'Renamed');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining("Couldn't save"), findsOneWidget);
+    expect(find.text('Attachment details'), findsOneWidget);
+    expect(result, isNull);
+  });
+
+  testWidgets('Cancel writes nothing', (tester) async {
+    await open(tester, pdf);
+    await tester.enterText(find.byType(TextField), 'Renamed');
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(saves, isEmpty);
+    expect(result, isNull);
+  });
+}
