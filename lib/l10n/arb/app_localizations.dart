@@ -482,6 +482,12 @@ abstract class AppLocalizations {
   /// **'Share map image'**
   String get connections_share_sheetTitle;
 
+  /// No description provided for @connections_share_saveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save map image'**
+  String get connections_share_saveTitle;
+
   /// No description provided for @connections_share_failed.
   ///
   /// In en, this message translates to:

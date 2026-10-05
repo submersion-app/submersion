@@ -193,4 +193,22 @@ void main() {
       expect(async.pendingTimers, isEmpty);
     });
   });
+  test('a start date inside the first year survives the end of play', () {
+    fakeAsync((async) {
+      final c = container();
+      async.flushMicrotasks();
+      final start = DateTime(2019, 6, 15);
+      c.read(connectionsFilterProvider.notifier).state = DiveFilterState(
+        startDate: start,
+      );
+      final n = c.read(yearPlayProvider.notifier)..play();
+      for (var i = 0; i < 3; i++) {
+        n.loadSettled(failed: false);
+        async.elapse(YearPlayNotifier.beat);
+      }
+      expect(c.read(yearPlayProvider), isNull);
+      expect(filter(c).startDate, start);
+      expect(filter(c).endDate, DateTime(2022, 12, 31));
+    });
+  });
 }

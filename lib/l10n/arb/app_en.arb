@@ -70,6 +70,7 @@
   "connections_yearPlay_pause": "Pause",
   "connections_share_tooltip": "Share image",
   "connections_share_sheetTitle": "Share map image",
+  "connections_share_saveTitle": "Save map image",
   "connections_share_failed": "Couldn't create the image",
   "connections_share_aroundName": "Around {label}",
   "@connections_share_aroundName": {"placeholders": {"label": {"type": "String"}}},

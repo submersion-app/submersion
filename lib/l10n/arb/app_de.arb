@@ -1401,6 +1401,7 @@
   "connections_yearPlay_pause": "Pause",
   "connections_share_tooltip": "Bild teilen",
   "connections_share_sheetTitle": "Kartenbild teilen",
+  "connections_share_saveTitle": "Kartenbild speichern",
   "connections_share_failed": "Das Bild konnte nicht erstellt werden",
   "connections_share_aroundName": "Rund um {label}",
   "connections_share_allDives": "Alle Tauchgänge, {first} bis {last}",

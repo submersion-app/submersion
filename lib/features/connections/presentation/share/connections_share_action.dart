@@ -45,7 +45,10 @@ Future<void> shareConnectionsImage(
       case ExportDestination.share:
         await (share ?? _share)(bytes, name, origin);
       case ExportDestination.saveToFile:
-        await (save ?? saveImageToFile)(bytes, name);
+        await (save ?? _saveTitled(l10n.connections_share_saveTitle))(
+          bytes,
+          name,
+        );
     }
   } catch (e, st) {
     _log.error(
@@ -66,3 +69,7 @@ Future<void> _share(List<int> bytes, String name, Rect? origin) =>
       'image/png',
       sharePositionOrigin: origin,
     );
+
+/// The default save, with the panel titled for the map.
+ConnectionsSaveImage _saveTitled(String title) =>
+    (bytes, name) => saveImageToFile(bytes, name, dialogTitle: title);

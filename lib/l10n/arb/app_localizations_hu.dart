@@ -238,6 +238,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get connections_share_sheetTitle => 'Térképkép megosztása';
 
   @override
+  String get connections_share_saveTitle => 'Térképkép mentése';
+
+  @override
   String get connections_share_failed => 'Nem sikerült létrehozni a képet';
 
   @override

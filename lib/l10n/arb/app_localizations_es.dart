@@ -238,6 +238,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get connections_share_sheetTitle => 'Compartir imagen del mapa';
 
   @override
+  String get connections_share_saveTitle => 'Guardar imagen del mapa';
+
+  @override
   String get connections_share_failed => 'No se pudo crear la imagen';
 
   @override

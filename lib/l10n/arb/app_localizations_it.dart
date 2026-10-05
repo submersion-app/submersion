@@ -239,6 +239,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Condividi l\'immagine della mappa';
 
   @override
+  String get connections_share_saveTitle => 'Salva l\'immagine della mappa';
+
+  @override
   String get connections_share_failed => 'Impossibile creare l\'immagine';
 
   @override

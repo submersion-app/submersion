@@ -250,6 +250,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get connections_share_sheetTitle => 'مشاركة صورة الخريطة';
 
   @override
+  String get connections_share_saveTitle => 'حفظ صورة الخريطة';
+
+  @override
   String get connections_share_failed => 'تعذّر إنشاء الصورة';
 
   @override

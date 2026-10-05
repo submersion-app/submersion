@@ -1390,6 +1390,7 @@
   "connections_yearPlay_pause": "השהיה",
   "connections_share_tooltip": "שיתוף תמונה",
   "connections_share_sheetTitle": "שיתוף תמונת המפה",
+  "connections_share_saveTitle": "שמירת תמונת המפה",
   "connections_share_failed": "לא ניתן ליצור את התמונה",
   "connections_share_aroundName": "סביב {label}",
   "connections_share_allDives": "כל הצלילות, {first} עד {last}",

@@ -1477,6 +1477,7 @@
   "connections_yearPlay_pause": "暂停",
   "connections_share_tooltip": "分享图片",
   "connections_share_sheetTitle": "分享图谱图片",
+  "connections_share_saveTitle": "保存图谱图片",
   "connections_share_failed": "无法生成图片",
   "connections_share_aroundName": "{label} 周边",
   "connections_share_allDives": "全部潜水，{first} 至 {last} 年",

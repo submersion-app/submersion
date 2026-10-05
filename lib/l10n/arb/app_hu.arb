@@ -1390,6 +1390,7 @@
   "connections_yearPlay_pause": "Szünet",
   "connections_share_tooltip": "Kép megosztása",
   "connections_share_sheetTitle": "Térképkép megosztása",
+  "connections_share_saveTitle": "Térképkép mentése",
   "connections_share_failed": "Nem sikerült létrehozni a képet",
   "connections_share_aroundName": "{label} körül",
   "connections_share_allDives": "Minden merülés, {first} és {last} között",

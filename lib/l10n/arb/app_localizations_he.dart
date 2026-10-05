@@ -238,6 +238,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get connections_share_sheetTitle => 'שיתוף תמונת המפה';
 
   @override
+  String get connections_share_saveTitle => 'שמירת תמונת המפה';
+
+  @override
   String get connections_share_failed => 'לא ניתן ליצור את התמונה';
 
   @override

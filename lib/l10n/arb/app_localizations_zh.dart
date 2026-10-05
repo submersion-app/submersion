@@ -236,6 +236,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connections_share_sheetTitle => '分享图谱图片';
 
   @override
+  String get connections_share_saveTitle => '保存图谱图片';
+
+  @override
   String get connections_share_failed => '无法生成图片';
 
   @override

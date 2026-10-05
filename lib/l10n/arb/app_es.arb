@@ -1390,6 +1390,7 @@
   "connections_yearPlay_pause": "Pausa",
   "connections_share_tooltip": "Compartir imagen",
   "connections_share_sheetTitle": "Compartir imagen del mapa",
+  "connections_share_saveTitle": "Guardar imagen del mapa",
   "connections_share_failed": "No se pudo crear la imagen",
   "connections_share_aroundName": "Alrededor de {label}",
   "connections_share_allDives": "Todas las inmersiones, {first} a {last}",

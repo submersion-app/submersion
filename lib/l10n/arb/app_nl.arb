@@ -1390,6 +1390,7 @@
   "connections_yearPlay_pause": "Pauze",
   "connections_share_tooltip": "Afbeelding delen",
   "connections_share_sheetTitle": "Kaartafbeelding delen",
+  "connections_share_saveTitle": "Kaartafbeelding opslaan",
   "connections_share_failed": "Kan de afbeelding niet maken",
   "connections_share_aroundName": "Rond {label}",
   "connections_share_allDives": "Alle duiken, {first} tot {last}",

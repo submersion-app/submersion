@@ -239,6 +239,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get connections_share_sheetTitle => 'Partager l\'image de la carte';
 
   @override
+  String get connections_share_saveTitle => 'Enregistrer l\'image de la carte';
+
+  @override
   String get connections_share_failed => 'Impossible de créer l\'image';
 
   @override

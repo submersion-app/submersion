@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/connections/presentation/share/connections_share_action.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/mock_file_picker_platform.dart';
+
 void main() {
   Future<void> open(
     WidgetTester tester, {
@@ -12,6 +14,7 @@ void main() {
     List<String>? shared,
     List<String>? saved,
     String? saveResult = 'x',
+    bool defaultSave = false,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -25,10 +28,12 @@ void main() {
                 render: render,
                 now: DateTime(2026, 10, 5),
                 share: (bytes, name, origin) async => shared?.add(name),
-                save: (bytes, name) async {
-                  saved?.add(name);
-                  return saveResult;
-                },
+                save: defaultSave
+                    ? null
+                    : (bytes, name) async {
+                        saved?.add(name);
+                        return saveResult;
+                      },
               ),
               child: const Text('go'),
             ),
@@ -93,5 +98,18 @@ void main() {
       connectionsShareFileName(DateTime(2026, 1, 9)),
       'submersion-connections-20260109.png',
     );
+  });
+  testWidgets('the save panel is titled for the map, not a dive profile', (
+    tester,
+  ) async {
+    final original = FilePickerPlatform.instance;
+    final picker = MockFilePickerPlatform()..saveFileResult = null;
+    FilePickerPlatform.instance = picker;
+    addTearDown(() => FilePickerPlatform.instance = original);
+    await open(tester, render: () async => Uint8List(4), defaultSave: true);
+    await tester.tap(find.text('Save to File'));
+    await tester.pumpAndSettle();
+    expect(picker.lastSavedDialogTitle, 'Save map image');
+    expect(picker.lastSavedFileName, 'submersion-connections-20261005.png');
   });
 }

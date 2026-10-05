@@ -1390,6 +1390,7 @@
   "connections_yearPlay_pause": "Pause",
   "connections_share_tooltip": "Partager l'image",
   "connections_share_sheetTitle": "Partager l'image de la carte",
+  "connections_share_saveTitle": "Enregistrer l'image de la carte",
   "connections_share_failed": "Impossible de créer l'image",
   "connections_share_aroundName": "Autour de {label}",
   "connections_share_allDives": "Toutes les plongées, {first} à {last}",

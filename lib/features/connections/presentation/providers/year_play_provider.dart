@@ -27,9 +27,6 @@ class YearPlayNotifier extends Notifier<int?> {
   int _first = 0;
   int _last = 0;
 
-  /// The lower year of the range being played.
-  int _lower = 0;
-
   @override
   int? build() {
     ref.onDispose(_cancel);
@@ -63,7 +60,6 @@ class YearPlayNotifier extends Notifier<int?> {
     );
     _first = span.first;
     _last = span.last;
-    _lower = lower;
     _show(upper >= span.last ? lower : upper + 1);
   }
 
@@ -90,8 +86,12 @@ class YearPlayNotifier extends Notifier<int?> {
   void _show(int year) {
     final filter = ref.read(connectionsFilterProvider);
     final atEnd = year >= _last;
-    // The whole span is no filter at all, as the year slider has it.
-    final next = atEnd && _lower <= _first
+    // The whole span is no filter at all, as the year slider has it; a start
+    // date the diver chose inside the first year is theirs and stays.
+    final start = filter.startDate;
+    final wholeSpan =
+        atEnd && (start == null || !start.isAfter(DateTime(_first)));
+    final next = wholeSpan
         ? filter.copyWith(clearStartDate: true, clearEndDate: true)
         : filter.copyWith(endDate: DateTime(year, 12, 31));
     _cancel();

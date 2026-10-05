@@ -238,6 +238,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get connections_share_sheetTitle => 'Kaartafbeelding delen';
 
   @override
+  String get connections_share_saveTitle => 'Kaartafbeelding opslaan';
+
+  @override
   String get connections_share_failed => 'Kan de afbeelding niet maken';
 
   @override

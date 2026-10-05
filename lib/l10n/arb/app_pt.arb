@@ -1390,6 +1390,7 @@
   "connections_yearPlay_pause": "Pausa",
   "connections_share_tooltip": "Partilhar imagem",
   "connections_share_sheetTitle": "Partilhar imagem do mapa",
+  "connections_share_saveTitle": "Guardar imagem do mapa",
   "connections_share_failed": "Não foi possível criar a imagem",
   "connections_share_aroundName": "Em torno de {label}",
   "connections_share_allDives": "Todos os mergulhos, {first} a {last}",

@@ -1390,6 +1390,7 @@
   "connections_yearPlay_pause": "إيقاف مؤقت",
   "connections_share_tooltip": "مشاركة الصورة",
   "connections_share_sheetTitle": "مشاركة صورة الخريطة",
+  "connections_share_saveTitle": "حفظ صورة الخريطة",
   "connections_share_failed": "تعذّر إنشاء الصورة",
   "connections_share_aroundName": "حول {label}",
   "connections_share_allDives": "كل الغوصات، من {first} إلى {last}",
