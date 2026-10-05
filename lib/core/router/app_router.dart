@@ -93,6 +93,7 @@ import 'package:submersion/features/insights/presentation/pages/insights_marine_
 import 'package:submersion/features/insights/presentation/pages/insights_time_patterns_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_equipment_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_observations_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_focus_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_profile_page.dart';
 import 'package:submersion/features/backup/presentation/pages/backup_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/hidden_items_page.dart';
@@ -957,6 +958,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'observations',
                 name: 'insightsObservations',
                 builder: (context, state) => const InsightsObservationsPage(),
+              ),
+              GoRoute(
+                path: 'focus',
+                name: 'insightsFocus',
+                builder: (context, state) => const InsightsFocusPage(),
               ),
               // Connections opens from Insights as its own full page.
               GoRoute(

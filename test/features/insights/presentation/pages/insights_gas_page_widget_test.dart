@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/focus/focus_metric.dart';
+import 'package:submersion/features/insights/domain/focus/focus_selection.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_focus_providers.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_gas_page.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_gas_lane_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
@@ -96,5 +100,75 @@ void main() {
 
     expect(find.byType(DiveTrendChart), findsOneWidget);
     expect(find.byKey(const ValueKey('trend-aggregation-sac')), findsOneWidget);
+  });
+
+  testWidgets('See top 10 presets Dive focus to the gas lane', (tester) async {
+    final overrides = await getBaseOverrides();
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) =>
+              const Scaffold(body: InsightsGasPage(embedded: true)),
+        ),
+        GoRoute(
+          path: '/insights/focus',
+          builder: (_, _) => const Scaffold(body: Text('focus page')),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          sacRecordsProvider.overrideWith(
+            (ref) async => (
+              best: RankingItem(
+                id: 'd1',
+                name: 'Best',
+                count: 1,
+                value: 12,
+                date: DateTime.utc(2025),
+              ),
+              worst: null,
+            ),
+          ),
+        ],
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(InsightsGasPage)),
+    );
+    final lane = container.read(insightsGasLaneProvider);
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('gas-records-see-top')),
+    );
+    await tester.tap(find.byKey(const ValueKey('gas-records-see-top')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('focus page'), findsOneWidget);
+    expect(
+      container.read(focusSelectionProvider),
+      FocusSelection(
+        metric: lane == GasConsumptionLane.rmv
+            ? FocusMetric.rmv
+            : FocusMetric.sac,
+      ),
+    );
+  });
+
+  testWidgets('no See top 10 link without consumption records', (tester) async {
+    await pumpPage(tester, const AppSettings());
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byKey(const ValueKey('gas-records-see-top')), findsNothing);
   });
 }

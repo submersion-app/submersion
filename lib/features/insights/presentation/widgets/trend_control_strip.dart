@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
+import 'package:submersion/features/insights/domain/trend_range.dart';
+import 'package:submersion/features/insights/presentation/formatters/trend_range_label.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The control row beneath a `DiveTrendChart`: how dives are grouped, and
@@ -27,6 +29,8 @@ class TrendControlStrip extends StatelessWidget {
     required this.rollingColor,
     required this.rateColor,
     this.rateLabel,
+    this.range = TrendRange.all,
+    this.onRangePresetSelected,
   });
 
   /// Stable id from `TrendChartIds`, used to build unique widget keys.
@@ -49,6 +53,13 @@ class TrendControlStrip extends StatelessWidget {
   /// The fitted rate with its unit symbol, for example "+4.4 m". Null when
   /// there are too few dives to fit. Only shown while [showLinearFit] is true.
   final String? rateLabel;
+
+  /// The chart's visible window, named on the Range menu.
+  final TrendRange range;
+
+  /// Called with the picked entry. [TrendRangePreset.custom] asks the caller
+  /// to open a date picker. Null hides the menu.
+  final ValueChanged<TrendRangePreset>? onRangePresetSelected;
 
   String _modeLabel(BuildContext context, TrendAggregation mode) {
     switch (mode) {
@@ -73,6 +84,35 @@ class TrendControlStrip extends StatelessWidget {
         runSpacing: 4,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
+          if (onRangePresetSelected != null)
+            PopupMenuButton<TrendRangePreset>(
+              key: ValueKey('trend-range-$chartId'),
+              tooltip: context.l10n.insights_trend_range_tooltip,
+              initialValue: range.preset,
+              onSelected: onRangePresetSelected,
+              itemBuilder: (context) => [
+                for (final preset in TrendRangePreset.values)
+                  PopupMenuItem<TrendRangePreset>(
+                    key: ValueKey('trend-range-$chartId-${preset.name}'),
+                    value: preset,
+                    child: Text(
+                      trendRangeLabel(preset, context.l10n, menuItem: true),
+                    ),
+                  ),
+              ],
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.date_range, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    trendRangeLabel(range.preset, context.l10n),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                  const Icon(Icons.arrow_drop_down, size: 18),
+                ],
+              ),
+            ),
           PopupMenuButton<TrendAggregation>(
             key: ValueKey('trend-aggregation-$chartId'),
             tooltip: context.l10n.insights_trend_aggregation_tooltip,

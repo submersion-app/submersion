@@ -23,12 +23,15 @@ import 'package:submersion/features/dive_sites/query/site_query_entity.dart'
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/series_profile_aggregates.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
+import 'package:submersion/features/insights/domain/focus/focus_factor_row.dart';
 import 'package:submersion/features/insights/domain/suit_thickness_stats.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/domain/water_temp_bands.dart';
 
 export 'package:submersion/features/insights/domain/trend_aggregation.dart'
     show TrendDataPoint;
+
+part 'insights_repository_focus.dart';
 
 /// Per-dive outcome of the recorded (non-computed) deco classification.
 ///

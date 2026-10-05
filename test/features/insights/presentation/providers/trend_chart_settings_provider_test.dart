@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
+import 'package:submersion/features/insights/domain/trend_range.dart';
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
 
 void main() {
@@ -48,5 +49,19 @@ void main() {
     expect(updated.showLinearFit, isTrue);
     expect(updated.showRollingMean, isTrue);
     expect(updated.aggregation, TrendAggregation.none);
+  });
+
+  test('the range defaults to everything', () {
+    expect(const TrendChartSettings().range, TrendRange.all);
+  });
+
+  test('copyWith replaces the range and keeps the rest', () {
+    const before = TrendChartSettings(aggregation: TrendAggregation.weekly);
+    final after = before.copyWith(
+      range: const TrendRange.preset(TrendRangePreset.year1),
+    );
+    expect(after.range, const TrendRange.preset(TrendRangePreset.year1));
+    expect(after.aggregation, TrendAggregation.weekly);
+    expect(after.copyWith().range, after.range);
   });
 }

@@ -16,6 +16,7 @@ import 'package:submersion/features/insights/presentation/pages/insights_gas_pag
 import 'package:submersion/features/insights/presentation/pages/insights_geographic_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_marine_life_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_observations_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_focus_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_profile_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_progression_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_social_page.dart';
@@ -62,6 +63,8 @@ class InsightsPage extends ConsumerWidget {
         return const InsightsGasPage(embedded: true);
       case 'progression':
         return const InsightsProgressionPage(embedded: true);
+      case 'focus':
+        return const InsightsFocusPage(embedded: true);
       case 'conditions':
         return const InsightsConditionsPage(embedded: true);
       case 'social':

@@ -63,6 +63,23 @@ String diveTypeDistributionLabel(String key, AppLocalizations l10n) =>
     ? l10n.insights_summary_diveTypes_unknown
     : diveTypeLabel(l10n, key);
 
+/// Short localized month names, January first, shared by every Insights
+/// surface that labels months.
+List<String> insightsMonthLabels(AppLocalizations l10n) => [
+  l10n.insights_timePatterns_month_jan,
+  l10n.insights_timePatterns_month_feb,
+  l10n.insights_timePatterns_month_mar,
+  l10n.insights_timePatterns_month_apr,
+  l10n.insights_timePatterns_month_may,
+  l10n.insights_timePatterns_month_jun,
+  l10n.insights_timePatterns_month_jul,
+  l10n.insights_timePatterns_month_aug,
+  l10n.insights_timePatterns_month_sep,
+  l10n.insights_timePatterns_month_oct,
+  l10n.insights_timePatterns_month_nov,
+  l10n.insights_timePatterns_month_dec,
+];
+
 /// [segments] with every label replaced by [label] applied to its key.
 List<DistributionSegment> localizeDistribution(
   List<DistributionSegment> segments,
