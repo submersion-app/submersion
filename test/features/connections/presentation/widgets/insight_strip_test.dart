@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -40,6 +41,7 @@ Future<ProviderContainer> _pump(
   ConnectionGraph? graph,
   ValueChanged<GraphSelection>? onSelect,
   VoidCallback? onGroups,
+  double textScale = 1,
 }) async {
   final overrides = await getBaseOverrides();
   await tester.pumpWidget(
@@ -48,6 +50,12 @@ Future<ProviderContainer> _pump(
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child!,
+        ),
         home: Scaffold(
           body: InsightStrip(
             graph: graph ?? _graph,
@@ -125,5 +133,52 @@ void main() {
   testWidgets('no tiles, no strip', (tester) async {
     await _pump(tester, tiles: const [], graph: ConnectionGraph.empty);
     expect(find.byType(Card), findsNothing);
+  });
+  testWidgets('a pair of full names and a date fit on the tile', (
+    tester,
+  ) async {
+    final long = ConnectionGraph(
+      nodes: [
+        ConnectionNode(ref: _b('ana'), label: 'Ana Reyes', diveCount: 9),
+        ConnectionNode(ref: _b('bo'), label: 'Bo Lindqvist', diveCount: 7),
+      ],
+      edges: [
+        ConnectionEdge(
+          source: _b('ana'),
+          target: _b('bo'),
+          weight: 31,
+          firstDiveAt: DateTime(2016, 3, 4),
+          lastDiveAt: DateTime(2018, 6, 1),
+        ),
+      ],
+    );
+    // The test font draws every glyph one em wide, about twice a real
+    // font, so half scale stands in for real text metrics.
+    await _pump(
+      tester,
+      graph: long,
+      tiles: GraphInsights.of(long, groups: GraphGroups.empty),
+      textScale: 0.5,
+    );
+    for (final kind in ['strongestPair', 'newest', 'driftingApart']) {
+      final value = find.descendant(
+        of: find.byKey(ValueKey('insight-$kind')),
+        matching: find.byType(RichText),
+      );
+      final paragraph = tester.renderObject<RenderParagraph>(value.last);
+      expect(paragraph.didExceedMaxLines, isFalse, reason: kind);
+    }
+    // At full scale the value wraps onto its second line inside the strip.
+    await _pump(
+      tester,
+      graph: long,
+      tiles: GraphInsights.of(long, groups: GraphGroups.empty),
+    );
+    expect(tester.takeException(), isNull);
+    final value = find.descendant(
+      of: find.byKey(const ValueKey('insight-strongestPair')),
+      matching: find.byType(RichText),
+    );
+    expect(tester.widget<RichText>(value.last).maxLines, 2);
   });
 }

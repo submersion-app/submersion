@@ -633,7 +633,17 @@ void main() {
       c.read(connectionsSelectionProvider),
       EdgeSelection(_b('jane'), _b('ken')),
     );
-    await tester.ensureVisible(find.byKey(const ValueKey('insight-groups')));
+    // The strip builds lazily; scroll it until the Groups tile exists.
+    await tester.dragUntilVisible(
+      find.byKey(const ValueKey('insight-groups')),
+      find
+          .descendant(
+            of: find.byKey(const ValueKey('connections-insights')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+      const Offset(-200, 0),
+    );
     await tester.pump();
     await tester.tap(find.byKey(const ValueKey('insight-groups')));
     await tester.pump();
@@ -731,7 +741,11 @@ void main() {
     for (final n in chain.nodes) {
       final p = painter.frame.positions[n.ref]!;
       final top = painter.viewport.toScreen(p).dy - painter.radiusOf(n);
-      expect(top, greaterThanOrEqualTo(stripBottom - canvasTop), reason: n.label);
+      expect(
+        top,
+        greaterThanOrEqualTo(stripBottom - canvasTop),
+        reason: n.label,
+      );
     }
   });
 }

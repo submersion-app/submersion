@@ -28,7 +28,7 @@ class InsightStrip extends ConsumerWidget {
   final VoidCallback onGroups;
 
   /// The strip's height; overlays below it start under this.
-  static const double height = 60;
+  static const double height = 76;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,7 +46,7 @@ class InsightStrip extends ConsumerWidget {
         itemBuilder: (context, i) {
           final t = tiles[i];
           return ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 220),
+            constraints: const BoxConstraints(maxWidth: 300),
             child: Card(
               key: ValueKey('insight-${t.kind.name}'),
               margin: const EdgeInsets.symmetric(vertical: 2),
@@ -75,7 +75,9 @@ class InsightStrip extends ConsumerWidget {
                       ),
                       Text(
                         _value(l10n, units, t),
-                        maxLines: 1,
+                        // Two lines, so long names wrap rather than cut the
+                        // count or date off the end.
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(
                           fontWeight: FontWeight.w600,
