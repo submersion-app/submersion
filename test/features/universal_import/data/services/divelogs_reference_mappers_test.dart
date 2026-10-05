@@ -40,6 +40,26 @@ void main() {
       );
     });
 
+    test('maps bag geartypes, but not a lift bag or a weight pouch', () {
+      // #2952. The German "Tasche" also names a pocket, so the lead pouch's
+      // "Blei" must still win over it.
+      const cases = {
+        'Bag': EquipmentType.bag,
+        'Tasche': EquipmentType.bag,
+        'Tauchtasche': EquipmentType.bag,
+        'Bleitasche': EquipmentType.weights,
+        'Lift bag': EquipmentType.smb,
+        'Hebesack': EquipmentType.smb,
+      };
+      cases.forEach((input, expected) {
+        expect(
+          DivelogsReferenceMappers.equipmentTypeForGeartypeName(input),
+          expected,
+          reason: input,
+        );
+      });
+    });
+
     test('unknown or null names map to other', () {
       expect(
         DivelogsReferenceMappers.equipmentTypeForGeartypeName('Gadget'),

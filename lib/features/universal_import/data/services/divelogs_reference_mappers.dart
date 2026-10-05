@@ -24,7 +24,10 @@ abstract final class DivelogsReferenceMappers {
     (['hood', 'haube'], EquipmentType.hood),
     (['knife', 'messer'], EquipmentType.knife),
     (['reel'], EquipmentType.reel),
-    (['smb', 'boje'], EquipmentType.smb),
+    (['smb', 'boje', 'lift bag', 'liftbag', 'hebesack'], EquipmentType.smb),
+    // Last (#2952): "Tasche" also names a pocket, so a lead pouch
+    // ("Bleitasche") or a light's pouch is claimed by its item word first.
+    (['bag', 'tasche', 'luggage'], EquipmentType.bag),
   ];
 
   static EquipmentType equipmentTypeForGeartypeName(String? name) {
