@@ -8987,12 +8987,10 @@ class SyncDataSerializer {
     final keys = deviceLocalSyncColumns[entityType];
     if (keys == null) return const {};
     // Read through the entity's own table, so a new entry in
-    // deviceLocalSyncColumns needs no code here.
+    // deviceLocalSyncColumns needs no code here. Every listed table is keyed
+    // by a text id; the test that reads every entry fails on one that is not.
     final table = _syncTableFor(entityType);
-    final idColumn = table.columnsByName['id'];
-    if (idColumn is! GeneratedColumn<String>) {
-      throw StateError('$entityType has no text id column to key by');
-    }
+    final idColumn = table.columnsByName['id']! as GeneratedColumn<String>;
     final query = _db.select(table);
     if (ids != null) query.where((_) => idColumn.isIn(ids));
     final rows = [
