@@ -13579,5 +13579,6 @@
   "query_editor_needsText": "Escribe al menos una palabra",
   "query_saveNeedsDiver": "Crea un perfil de buceador para guardar consultas",
   "builtIns_showColumnLabel": "Mostrar",
-  "builtIns_showInPickers": "Mostrar en los selectores"
+  "builtIns_showInPickers": "Mostrar en los selectores",
+  "preDive_start_allTemplatesHidden": "Todas las listas de verificación están ocultas. Vuelve a mostrar una en {path}."
 }

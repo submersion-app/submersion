@@ -45384,4 +45384,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get builtIns_showInPickers => 'In der Auswahl anzeigen';
+
+  @override
+  String preDive_start_allTemplatesHidden(String path) {
+    return 'Alle Checklisten sind ausgeblendet. Unter $path wieder einblenden.';
+  }
 }

@@ -45177,4 +45177,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get builtIns_showInPickers => 'Tonen in kiezers';
+
+  @override
+  String preDive_start_allTemplatesHidden(String path) {
+    return 'Alle checklists zijn verborgen. Toon er weer een via $path.';
+  }
 }

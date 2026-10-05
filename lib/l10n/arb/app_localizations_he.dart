@@ -44578,4 +44578,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get builtIns_showInPickers => 'הצג בבוררים';
+
+  @override
+  String preDive_start_allTemplatesHidden(String path) {
+    return 'כל רשימות הבדיקה מוסתרות. אפשר להציג אחת מחדש ב-$path.';
+  }
 }

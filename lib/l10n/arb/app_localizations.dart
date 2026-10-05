@@ -72077,6 +72077,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show in pickers'**
   String get builtIns_showInPickers;
+
+  /// Helper under the start sheet's checklist field when the diver hid every checklist template; path is the localized Settings > Manage > Pre-Dive Checklists trail
+  ///
+  /// In en, this message translates to:
+  /// **'Every checklist is hidden. Show one again in {path}.'**
+  String preDive_start_allTemplatesHidden(String path);
 }
 
 class _AppLocalizationsDelegate

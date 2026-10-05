@@ -13579,5 +13579,6 @@
   "query_editor_needsText": "Digite pelo menos uma palavra",
   "query_saveNeedsDiver": "Crie um perfil de mergulhador para salvar consultas",
   "builtIns_showColumnLabel": "Mostrar",
-  "builtIns_showInPickers": "Mostrar nos seletores"
+  "builtIns_showInPickers": "Mostrar nos seletores",
+  "preDive_start_allTemplatesHidden": "Todas as listas de verificação estão ocultas. Mostre uma novamente em {path}."
 }

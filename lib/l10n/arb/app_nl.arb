@@ -13579,5 +13579,6 @@
   "query_editor_needsText": "Voer minstens één woord in",
   "query_saveNeedsDiver": "Maak een duikersprofiel aan om query's op te slaan",
   "builtIns_showColumnLabel": "Tonen",
-  "builtIns_showInPickers": "Tonen in kiezers"
+  "builtIns_showInPickers": "Tonen in kiezers",
+  "preDive_start_allTemplatesHidden": "Alle checklists zijn verborgen. Toon er weer een via {path}."
 }

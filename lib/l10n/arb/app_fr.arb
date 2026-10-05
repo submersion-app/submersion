@@ -13579,5 +13579,6 @@
   "query_editor_needsText": "Saisissez au moins un mot",
   "query_saveNeedsDiver": "Créez un profil de plongeur pour enregistrer des requêtes",
   "builtIns_showColumnLabel": "Afficher",
-  "builtIns_showInPickers": "Afficher dans les sélecteurs"
+  "builtIns_showInPickers": "Afficher dans les sélecteurs",
+  "preDive_start_allTemplatesHidden": "Toutes les checklists sont masquées. Réaffichez-en une dans {path}."
 }

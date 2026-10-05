@@ -45274,4 +45274,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get builtIns_showInPickers => 'Megjelenítés a választókban';
+
+  @override
+  String preDive_start_allTemplatesHidden(String path) {
+    return 'Minden ellenőrzőlista el van rejtve. Jelenítsen meg újra egyet itt: $path.';
+  }
 }

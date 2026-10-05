@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -15,6 +14,7 @@ import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/start_session_sheet.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -130,6 +130,7 @@ void main() {
   Future<void> pumpSheet(
     WidgetTester tester, {
     MockSettingsNotifier? settings,
+    List<PreDiveChecklistTemplate>? templates,
   }) async {
     final fakeRepo = _FakeTemplateRepo({
       'plain': [tItem('plain', PreDiveItemType.check)],
@@ -155,11 +156,13 @@ void main() {
           ),
           preDiveTemplateRepositoryProvider.overrideWithValue(fakeRepo),
           preDiveTemplatesProvider.overrideWith(
-            (ref) async => [
-              template('plain', 'BWRAF', builtIn: true),
-              template('packing', 'Gear Packing'),
-              template('computer', 'Computer Check'),
-            ],
+            (ref) async =>
+                templates ??
+                [
+                  template('plain', 'BWRAF', builtIn: true),
+                  template('packing', 'Gear Packing'),
+                  template('computer', 'Computer Check'),
+                ],
           ),
           equipmentSetsProvider.overrideWith((ref) async => [defaultSet]),
           allEquipmentProvider.overrideWith(
@@ -406,5 +409,30 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('BWRAF'), findsNothing);
     expect(find.text('Gear Packing'), findsWidgets);
+  });
+
+  testWidgets('says where to show a checklist when every one is hidden', (
+    tester,
+  ) async {
+    const hint =
+        'Every checklist is hidden. Show one again in '
+        'Settings > Manage > Pre-Dive Checklists.';
+    await pumpSheet(
+      tester,
+      templates: [template('plain', 'BWRAF', builtIn: true)],
+      settings: MockSettingsNotifier(
+        const AppSettings(
+          hiddenBuiltInIds: {
+            'preDiveTemplates': {'plain'},
+          },
+        ),
+      ),
+    );
+    expect(find.text(hint), findsOneWidget);
+  });
+
+  testWidgets('shows no hint while a checklist is offered', (tester) async {
+    await pumpSheet(tester);
+    expect(find.textContaining('Every checklist is hidden'), findsNothing);
   });
 }

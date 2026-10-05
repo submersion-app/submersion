@@ -45566,4 +45566,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get builtIns_showInPickers => 'Afficher dans les sélecteurs';
+
+  @override
+  String preDive_start_allTemplatesHidden(String path) {
+    return 'Toutes les checklists sont masquées. Réaffichez-en une dans $path.';
+  }
 }

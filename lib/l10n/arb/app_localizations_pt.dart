@@ -45482,4 +45482,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get builtIns_showInPickers => 'Mostrar nos seletores';
+
+  @override
+  String preDive_start_allTemplatesHidden(String path) {
+    return 'Todas as listas de verificação estão ocultas. Mostre uma novamente em $path.';
+  }
 }

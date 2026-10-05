@@ -13579,5 +13579,6 @@
   "query_editor_needsText": "Inserisci almeno una parola",
   "query_saveNeedsDiver": "Crea un profilo subacqueo per salvare le query",
   "builtIns_showColumnLabel": "Mostra",
-  "builtIns_showInPickers": "Mostra nei selettori"
+  "builtIns_showInPickers": "Mostra nei selettori",
+  "preDive_start_allTemplatesHidden": "Tutte le checklist sono nascoste. Mostrane di nuovo una in {path}."
 }

@@ -42821,4 +42821,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get builtIns_showInPickers => '在选择列表中显示';
+
+  @override
+  String preDive_start_allTemplatesHidden(String path) {
+    return '所有检查清单都已隐藏。可在 $path 中重新显示。';
+  }
 }

@@ -13579,5 +13579,6 @@
   "query_editor_needsText": "הזן לפחות מילה אחת",
   "query_saveNeedsDiver": "צור פרופיל צולל כדי לשמור שאילתות",
   "builtIns_showColumnLabel": "הצג",
-  "builtIns_showInPickers": "הצג בבוררים"
+  "builtIns_showInPickers": "הצג בבוררים",
+  "preDive_start_allTemplatesHidden": "כל רשימות הבדיקה מוסתרות. אפשר להציג אחת מחדש ב-{path}."
 }

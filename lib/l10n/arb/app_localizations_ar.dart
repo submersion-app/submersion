@@ -46126,4 +46126,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get builtIns_showInPickers => 'إظهار في قوائم الاختيار';
+
+  @override
+  String preDive_start_allTemplatesHidden(String path) {
+    return 'جميع قوائم التحقق مخفية. أظهر واحدة مجددًا من $path.';
+  }
 }

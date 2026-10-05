@@ -13579,5 +13579,6 @@
   "query_editor_needsText": "Adjon meg legalább egy szót",
   "query_saveNeedsDiver": "Hozzon létre merülő profilt a lekérdezések mentéséhez",
   "builtIns_showColumnLabel": "Megjelenítés",
-  "builtIns_showInPickers": "Megjelenítés a választókban"
+  "builtIns_showInPickers": "Megjelenítés a választókban",
+  "preDive_start_allTemplatesHidden": "Minden ellenőrzőlista el van rejtve. Jelenítsen meg újra egyet itt: {path}."
 }
