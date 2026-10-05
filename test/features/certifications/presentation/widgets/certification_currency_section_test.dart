@@ -220,6 +220,59 @@ void main() {
     expect(await currency.getPrefs(aow.id), isEmpty);
   });
 
+  testWidgets('which dives count: any dive, back to default, a selection', (
+    tester,
+  ) async {
+    Future<void> openMapping() async {
+      await openMenu(tester);
+      await tester.tap(find.text('Which dives count').last);
+      await settle(tester);
+    }
+
+    await pump(tester, aow);
+
+    // Cancel writes nothing.
+    await openMapping();
+    expect(find.text('Nothing selected means any dive counts'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await settle(tester);
+    expect(await currency.getPrefs(aow.id), isEmpty);
+
+    // Saving with nothing selected is "any dive counts" ([]), not inherit.
+    await openMapping();
+    await tester.tap(find.text('Save'));
+    await settle(tester);
+    for (final c in [ow, aow]) {
+      final pref = (await currency.getPrefs(c.id)).single;
+      expect(pref.countedDiveModes, isNotNull, reason: c.name);
+      expect(pref.countedDiveModes, isEmpty, reason: c.name);
+      expect(pref.countedDiveTypeIds, isEmpty, reason: c.name);
+    }
+
+    // "Use the rule's default" goes back to inheriting (null).
+    await openMapping();
+    await tester.tap(find.text("Use the rule's default"));
+    await settle(tester);
+    for (final c in [ow, aow]) {
+      final pref = (await currency.getPrefs(c.id)).single;
+      expect(pref.countedDiveModes, isNull, reason: c.name);
+      expect(pref.countedDiveTypeIds, isNull, reason: c.name);
+    }
+
+    // A selection is written for every member of the row.
+    await openMapping();
+    await tester.tap(
+      find.widgetWithText(FilterChip, 'Closed Circuit Rebreather'),
+    );
+    await settle(tester);
+    await tester.tap(find.text('Save'));
+    await settle(tester);
+    for (final c in [ow, aow]) {
+      final pref = (await currency.getPrefs(c.id)).single;
+      expect(pref.countedDiveModes, [DiveMode.ccr], reason: c.name);
+    }
+  });
+
   testWidgets('the mapping action appears only for activity clocks', (
     tester,
   ) async {

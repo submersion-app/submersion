@@ -167,4 +167,57 @@ void main() {
     expect(ids, isNot(contains('custom-1')));
     expect(ids, contains('cave_currency'));
   });
+
+  test('prefs and events fetch, batch fetch and delete by id', () async {
+    await seedCertification();
+    Map<String, dynamic> pref(String id) => {
+      'id': id,
+      'certificationId': 'c1',
+      'ruleId': 'padi_reactivate',
+      'lapseDaysOverride': null,
+      'leadDaysOverride': null,
+      'countedDiveTypeIds': null,
+      'countedDiveModes': null,
+      'muted': false,
+      'createdAt': 1000,
+      'updatedAt': 1000,
+      'hlc': null,
+    };
+    Map<String, dynamic> event(String id) => {
+      'id': id,
+      'certificationId': 'c1',
+      'ruleId': null,
+      'eventType': 'renewal',
+      'eventDate': 1758499200000,
+      'provider': null,
+      'notes': '',
+      'createdAt': 1000,
+      'updatedAt': 1000,
+      'hlc': null,
+    };
+    await serializer.upsertRecords('certificationCurrencyPrefs', [
+      pref('p1'),
+      pref('p2'),
+    ]);
+    await serializer.upsertRecords('certificationCurrencyEvents', [
+      event('e1'),
+      event('e2'),
+    ]);
+
+    for (final (type, a, b) in [
+      ('certificationCurrencyPrefs', 'p1', 'p2'),
+      ('certificationCurrencyEvents', 'e1', 'e2'),
+    ]) {
+      expect((await serializer.fetchRecord(type, a))?['id'], a, reason: type);
+      expect((await serializer.fetchRecords(type, [a, b])).keys.toSet(), {
+        a,
+        b,
+      }, reason: type);
+      expect(await serializer.recordIdsFor(type), {a, b}, reason: type);
+      await serializer.deleteRecord(type, a);
+      expect(await serializer.fetchRecord(type, a), isNull, reason: type);
+      await serializer.deleteAllRecords(type);
+      expect(await serializer.recordIdsFor(type), isEmpty, reason: type);
+    }
+  });
 }
