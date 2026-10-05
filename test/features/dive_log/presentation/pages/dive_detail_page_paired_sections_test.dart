@@ -974,6 +974,55 @@ void main() {
       );
       expect(find.text('Trim Weights'), findsOneWidget);
     });
+
+    testWidgets('a legacy single weight shows its placement', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = _diveWithGasAndWeights('weights-legacy').copyWith(
+        weights: const [],
+        weightAmount: 5.0,
+        weightType: WeightType.ankleWeights,
+      );
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: _settingsWithOrder([DiveDetailSectionId.weights]),
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            _buoyancyOverride(dive, buoyancyOutcome()),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ankle Weights'), findsOneWidget);
+    });
+
+    testWidgets('a legacy weight with no type falls back to "Weight"', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = _diveWithGasAndWeights(
+        'weights-legacy-untyped',
+      ).copyWith(weights: const [], weightAmount: 5.0);
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: _settingsWithOrder([DiveDetailSectionId.weights]),
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            _buoyancyOverride(dive, buoyancyOutcome()),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The card title and the row title.
+      expect(find.text('Weight'), findsNWidgets(2));
+    });
   });
 
   group('Weights + Buoyancy pairing', () {

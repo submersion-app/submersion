@@ -220,4 +220,67 @@ void main() {
     expect(find.text('Integrated Weights'), findsOneWidget);
     expect(find.widgetWithText(TextFormField, '4'), findsOneWidget);
   });
+
+  testWidgets('a name typed in the editor is saved with the dive (#956)', (
+    tester,
+  ) async {
+    final dive = await dives.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime(2026, 3, 4, 10),
+        weights: const [
+          DiveWeight(
+            id: 'w1',
+            diveId: '',
+            weightType: WeightType.trimWeights,
+            amountKg: 2.0,
+          ),
+        ],
+      ),
+    );
+    await pumpEditor(tester, dive.id);
+    final name = find.byWidgetPredicate(
+      (w) => w is TextField && w.decoration?.labelText == 'Name (optional)',
+    );
+    await tester.enterText(name, 'Top pocket');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final reloaded = (await dives.getDiveById(dive.id))!;
+    expect(reloaded.weights.single.label, 'Top pocket');
+    expect(reloaded.weights.single.amountKg, 2.0);
+  });
+
+  testWidgets('removing a weight row deletes it on save', (tester) async {
+    final dive = await dives.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime(2026, 3, 5, 10),
+        weights: const [
+          DiveWeight(
+            id: 'w1',
+            diveId: '',
+            weightType: WeightType.belt,
+            amountKg: 4.0,
+          ),
+          DiveWeight(
+            id: 'w2',
+            diveId: '',
+            weightType: WeightType.trimWeights,
+            amountKg: 1.0,
+          ),
+        ],
+      ),
+    );
+    await pumpEditor(tester, dive.id);
+    await tester.tap(find.byTooltip('Remove').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Weight Belt'), findsNothing);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final reloaded = (await dives.getDiveById(dive.id))!;
+    expect(reloaded.weights.single.weightType, WeightType.trimWeights);
+  });
 }

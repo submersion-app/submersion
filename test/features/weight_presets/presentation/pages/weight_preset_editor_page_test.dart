@@ -312,4 +312,31 @@ void main() {
       expect(find.text('Ankle Weights'), findsNothing);
     });
   });
+
+  testWidgets('edit: a preset with no entries starts with one blank row', (
+    tester,
+  ) async {
+    repo.loadReturns = _preset('p1', 'Empty', entries: const []);
+    await pump(tester, presetId: 'p1');
+
+    expect(find.byType(DropdownButtonFormField<WeightType>), findsOneWidget);
+    expect(_nameField(), findsOneWidget);
+  });
+
+  testWidgets('a row\'s type change is saved', (tester) async {
+    await pump(tester);
+    await tester.enterText(find.byType(TextFormField).first, 'Ankles');
+    await tester.enterText(_amountField().last, '1');
+    await tester.tap(find.text('Weight Belt'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ankle Weights').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(
+      repo.created.single.entries.single.weightType,
+      WeightType.ankleWeights,
+    );
+  });
 }

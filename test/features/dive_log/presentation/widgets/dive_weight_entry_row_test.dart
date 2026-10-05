@@ -137,4 +137,27 @@ void main() {
         tester.getBottomLeft(nameField(0)).dy;
     expect(nextGap, greaterThanOrEqualTo(ownGap * 2));
   });
+
+  testWidgets('changing the type keeps the amount and name', (tester) async {
+    final current = await pumpRows(tester, [w('a', 2, label: 'Top pocket')]);
+    await tester.tap(find.text('Trim Weights'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ankle Weights').last);
+    await tester.pumpAndSettle();
+
+    expect(current().single.weightType, WeightType.ankleWeights);
+    expect(current().single.amountKg, 2);
+    expect(current().single.label, 'Top pocket');
+  });
+
+  testWidgets('a cleared amount is 0 kg; unreadable text keeps the last one', (
+    tester,
+  ) async {
+    final current = await pumpRows(tester, [w('a', 2)]);
+    await tester.enterText(amountField('2'), '');
+    expect(current().single.amountKg, 0);
+    await tester.enterText(amountField(''), '3');
+    await tester.enterText(amountField('3'), '3..');
+    expect(current().single.amountKg, 3);
+  });
 }
