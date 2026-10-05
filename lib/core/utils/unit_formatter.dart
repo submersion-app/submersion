@@ -125,13 +125,12 @@ class UnitFormatter {
   /// Format a geographic distance (meters) for site lists and pickers.
   ///
   /// Unlike [formatDistance] (depth-unit m/ft, for short surface drift), this
-  /// auto-scales across the full range of site distances and respects the
-  /// diver's metric/imperial preference (derived from depth unit): metric -> m
-  /// under 1 km else km; imperial -> ft under 1 mile else mi. Unit symbols are
-  /// latin (m/km/ft/mi), consistent with [formatDepth].
+  /// auto-scales across the full range of site distances in the diver's
+  /// distance unit (issue #2030): kilometres -> m under 1 km else km; miles ->
+  /// ft under 1 mile else mi. Unit symbols are latin (m/km/ft/mi),
+  /// consistent with [formatDepth].
   String formatGeoDistance(double meters) {
-    final isMetric = settings.depthUnit == DepthUnit.meters;
-    if (isMetric) {
+    if (settings.distanceUnit == DistanceUnit.kilometers) {
       if (meters < 1000) return '${meters.round()} m';
       final km = meters / 1000;
       final text = km < 10
@@ -400,7 +399,7 @@ class UnitFormatter {
 
   /// Whether body height should be shown in metric (cm) rather than imperial
   /// (feet/inches). There is no dedicated height unit, so this is derived from
-  /// the depth unit, consistent with [formatGeoDistance].
+  /// the depth unit, like [formatDistance].
   bool get heightIsMetric => settings.depthUnit == DepthUnit.meters;
 
   /// Format a stored height (centimeters) in the diver's preferred units:
