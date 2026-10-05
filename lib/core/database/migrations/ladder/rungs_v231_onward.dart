@@ -211,13 +211,19 @@ extension RungsFromV231 on AppDatabase {
       await _assertDistanceUnitColumn();
     }
     if (from < 263) await reportProgress();
-    // v264: dive_weights.label and weight_preset_entries.label, a diver's
+    // v264: diver_settings.default_show_late_gas_switches (issue #2939).
+    // Column only, defaulting on. Re-asserted in beforeOpen.
+    if (from < 264) {
+      await _assertLateGasSwitchSettingColumn();
+    }
+    if (from < 264) await reportProgress();
+    // v265: dive_weights.label and weight_preset_entries.label, a diver's
     // own name for a weight (issue #956). Defaulted columns, no backfill:
     // existing rows read '' (unnamed). Re-asserted in beforeOpen. 262 is
     // held by an open branch (#2991).
-    if (from < 264) {
+    if (from < 265) {
       await _assertWeightLabelColumns();
     }
-    if (from < 264) await reportProgress();
+    if (from < 265) await reportProgress();
   }
 }

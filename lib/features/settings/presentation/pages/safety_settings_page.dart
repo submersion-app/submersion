@@ -198,6 +198,7 @@ class _SafetySettingsPageState extends ConsumerState<SafetySettingsPage> {
         l10n.safetySettings_rule_omittedSafetyStop,
       SafetyRuleId.sawtoothProfile => l10n.safetySettings_rule_sawtoothProfile,
       SafetyRuleId.highSurfaceGf => l10n.safetySettings_rule_highSurfaceGf,
+      SafetyRuleId.lateGasSwitch => l10n.safetySettings_rule_lateGasSwitch,
     };
   }
 

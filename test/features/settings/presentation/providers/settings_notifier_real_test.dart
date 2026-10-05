@@ -715,6 +715,19 @@ void main() {
       );
     });
 
+    test('the late gas switch overlay default saves and is exposed', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(defaultShowLateGasSwitchesProvider), isTrue);
+      await notifier.setDefaultShowLateGasSwitches(false);
+      expect(
+        container.read(settingsProvider).defaultShowLateGasSwitches,
+        isFalse,
+      );
+      expect(container.read(defaultShowLateGasSwitchesProvider), isFalse);
+    });
+
     test('condition engine toggles persist through the notifier', () async {
       final notifier = container.read(settingsProvider.notifier);
       await waitForInit();

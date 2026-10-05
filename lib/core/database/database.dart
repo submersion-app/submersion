@@ -232,7 +232,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 264;
+  static const int currentSchemaVersion = 265;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1090,12 +1090,15 @@ class AppDatabase extends _$AppDatabase {
     // stays. Inbound, the generated fromJson ignores the legacy key.
     261,
     263,
-    // v264: dive_weights.label and weight_preset_entries.label, a diver's own
+    // v264: diver_settings.default_show_late_gas_switches (issue #2939).
+    // Additive column with a default, so the floor stays.
+    264,
+    // v265: dive_weights.label and weight_preset_entries.label, a diver's own
     // name for a weight (issue #956). Additive defaulted columns, so the
     // floor stays: an older peer's payload omits the key and the row keeps
-    // its local value or the '' default. Renumbered from 261 and then 262:
-    // #767 shipped 261, #2030 shipped 263 and 262 is held by #2991.
-    264,
+    // its local value or the '' default. Renumbered from 261, 262 and 264 as
+    // #767 shipped 261, #2030 263 and #2939 264; 262 is held by #2991.
+    265,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

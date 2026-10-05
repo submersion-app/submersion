@@ -269,4 +269,28 @@ void main() {
       expect(site.locationString, 'Cebu City · Cebu, Philippines');
     });
   });
+
+  group('DiveSite.locality', () {
+    test('prefers the city, then the island, trimmed', () {
+      expect(
+        const DiveSite(
+          id: 'a',
+          name: 'A',
+          city: ' Dahab ',
+          island: 'X',
+        ).locality,
+        'Dahab',
+      );
+      expect(
+        const DiveSite(
+          id: 'a',
+          name: 'A',
+          city: '  ',
+          island: 'Bonaire',
+        ).locality,
+        'Bonaire',
+      );
+      expect(const DiveSite(id: 'a', name: 'A').locality, '');
+    });
+  });
 }

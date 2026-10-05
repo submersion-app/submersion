@@ -14,6 +14,7 @@ import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/entities/saved_connection_map.dart';
 import 'package:submersion/features/connections/domain/views/connection_presets.dart';
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
+import 'package:submersion/features/connections/domain/views/highlight_mode.dart';
 import 'package:submersion/features/connections/presentation/canvas/connections_painter.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/connections/presentation/pages/connections_page.dart';
@@ -22,6 +23,9 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/saved_connection_maps_provider.dart';
+import 'package:submersion/features/connections/presentation/providers/year_play_provider.dart';
+import 'package:submersion/features/connections/presentation/widgets/hidden_nodes_chip.dart';
+import 'package:submersion/features/connections/presentation/widgets/insight_strip.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -618,5 +622,238 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(budgets.toSet(), {ConnectionsPage.compactBudget});
+  });
+  testWidgets('the insight strip selects and switches to groups', (
+    tester,
+  ) async {
+    final c = await _pump(tester);
+    expect(find.byKey(const ValueKey('connections-insights')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('insight-strongestPair')));
+    await tester.pump();
+    expect(
+      c.read(connectionsSelectionProvider),
+      EdgeSelection(_b('jane'), _b('ken')),
+    );
+    // The strip builds lazily; scroll it until the Groups tile exists.
+    await tester.dragUntilVisible(
+      find.byKey(const ValueKey('insight-groups')),
+      find
+          .descendant(
+            of: find.byKey(const ValueKey('connections-insights')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+      const Offset(-200, 0),
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('insight-groups')));
+    await tester.pump();
+    expect(c.read(connectionsViewProvider).highlight, HighlightMode.groups);
+    final paint = tester.widget<CustomPaint>(
+      find.byKey(const ValueKey('connections-canvas-paint')),
+    );
+    final painter = paint.painter! as ConnectionsPainter;
+    expect(painter.highlight, HighlightMode.groups);
+    expect(painter.groupOf.length, 2);
+  });
+
+  testWidgets('the play pill sits on the canvas and a load moves play on', (
+    tester,
+  ) async {
+    final c = await _pump(
+      tester,
+      size: _phone,
+      // Like the real provider, the graph reloads when the filter changes;
+      // play waits for that reload before its next beat.
+      graph: (ref, budget) {
+        ref.watch(connectionsFilterProvider);
+        return _graph;
+      },
+    );
+    expect(find.byKey(const ValueKey('year-play-pill')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('year-play-button')));
+    await tester.pump();
+    expect(c.read(yearPlayProvider), 2019);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(YearPlayNotifier.beat);
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(
+      c.read(yearPlayProvider),
+      2020,
+      reason: 'the reload settled and the beat passed',
+    );
+    c.read(yearPlayProvider.notifier).pause();
+  });
+  testWidgets('the share button opens the share sheet', (tester) async {
+    await _pump(tester);
+    final button = find.byKey(const ValueKey('connections-share'));
+    expect(tester.widget<IconButton>(button).onPressed, isNotNull);
+    await tester.tap(button);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Share map image'), findsOneWidget);
+    expect(find.text('Save to File'), findsOneWidget);
+  });
+
+  testWidgets('no map, no share', (tester) async {
+    await _pump(tester, graph: (ref, budget) => ConnectionGraph.empty);
+    final button = find.byKey(const ValueKey('connections-share'));
+    expect(tester.widget<IconButton>(button).onPressed, isNull);
+  });
+  testWidgets('the camera keeps every node below the insight strip', (
+    tester,
+  ) async {
+    // A tall chain fills the canvas height; a fit that ignores the strip
+    // tucks the top node under it.
+    final chain = ConnectionGraph(
+      nodes: [
+        for (var i = 0; i < 8; i++)
+          ConnectionNode(ref: _b('n$i'), label: 'N$i', diveCount: 8 - i),
+      ],
+      edges: [
+        for (var i = 0; i < 7; i++)
+          ConnectionEdge(
+            source: _b('n$i'),
+            target: _b('n${i + 1}'),
+            weight: 3,
+            firstDiveAt: DateTime.utc(2020),
+            lastDiveAt: DateTime.utc(2024),
+          ),
+      ],
+    );
+    await _pump(tester, size: const Size(1280, 500), graph: (ref, b) => chain);
+    for (var i = 0; i < 300; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    final painter =
+        tester
+                .widget<CustomPaint>(
+                  find.byKey(const ValueKey('connections-canvas-paint')),
+                )
+                .painter!
+            as ConnectionsPainter;
+    final stripBottom = tester
+        .getBottomLeft(find.byKey(const ValueKey('connections-insights')))
+        .dy;
+    final canvasTop = tester
+        .getTopLeft(find.byKey(const ValueKey('connections-canvas-paint')))
+        .dy;
+    expect(stripBottom - canvasTop, greaterThanOrEqualTo(InsightStrip.height));
+    for (final n in chain.nodes) {
+      final p = painter.frame.positions[n.ref]!;
+      final top = painter.viewport.toScreen(p).dy - painter.radiusOf(n);
+      expect(
+        top,
+        greaterThanOrEqualTo(stripBottom - canvasTop),
+        reason: n.label,
+      );
+    }
+  });
+  testWidgets('play carries on through a year with an empty map', (
+    tester,
+  ) async {
+    final c = await _pump(
+      tester,
+      size: _phone,
+      graph: (ref, budget) {
+        final end = ref.watch(connectionsFilterProvider).endDate;
+        return end != null && end.year == 2019 ? ConnectionGraph.empty : _graph;
+      },
+    );
+    await tester.tap(find.byKey(const ValueKey('year-play-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(c.read(yearPlayProvider), 2019);
+    expect(
+      find.byKey(const ValueKey('year-play-pill')),
+      findsOneWidget,
+      reason: 'the pill stays over the empty state so play can be paused',
+    );
+    await tester.pump(YearPlayNotifier.beat);
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(c.read(yearPlayProvider), 2020);
+    c.read(yearPlayProvider.notifier).pause();
+  });
+  testWidgets('beside the tiles, the strip band still reaches the canvas', (
+    tester,
+  ) async {
+    final pair = ConnectionGraph(
+      nodes: [
+        ConnectionNode(ref: _b('a'), label: 'A', diveCount: 2),
+        ConnectionNode(ref: _b('b'), label: 'B', diveCount: 1),
+      ],
+      edges: [
+        ConnectionEdge(
+          source: _b('a'),
+          target: _b('b'),
+          weight: 1,
+          firstDiveAt: DateTime.utc(2024),
+          lastDiveAt: DateTime.utc(2024),
+        ),
+      ],
+    );
+    await _pump(
+      tester,
+      size: const Size(1800, 800),
+      graph: (ref, budget) => pair,
+    );
+    final canvas = find.byKey(const ValueKey('connections-canvas-paint'));
+    final band = tester.getRect(
+      find.byKey(const ValueKey('connections-insights')),
+    );
+    final point = Offset(tester.getRect(canvas).right - 20, band.center.dy);
+    final hit = tester.hitTestOnBinding(point);
+    final target = tester.renderObject(canvas);
+    expect(hit.path.any((e) => e.target == target), isTrue);
+  });
+  testWidgets('sharing brings a moving layout to rest first', (tester) async {
+    final chain = ConnectionGraph(
+      nodes: [
+        for (var i = 0; i < 12; i++)
+          ConnectionNode(ref: _b('n$i'), label: 'N$i', diveCount: 12 - i),
+      ],
+      edges: [
+        for (var i = 0; i < 11; i++)
+          ConnectionEdge(
+            source: _b('n$i'),
+            target: _b('n${i + 1}'),
+            weight: 2,
+            firstDiveAt: DateTime.utc(2020),
+            lastDiveAt: DateTime.utc(2024),
+          ),
+      ],
+    );
+    await _pump(tester, graph: (ref, budget) => chain);
+    ConnectionsPainter painter() =>
+        tester
+                .widget<CustomPaint>(
+                  find.byKey(const ValueKey('connections-canvas-paint')),
+                )
+                .painter!
+            as ConnectionsPainter;
+    expect(painter().frame.settled, isFalse, reason: 'still laying out');
+    await tester.tap(find.byKey(const ValueKey('connections-share')));
+    await tester.pump();
+    expect(painter().frame.settled, isTrue);
+  });
+  testWidgets('with no insight tiles the overlays sit at the top', (
+    tester,
+  ) async {
+    // Entities that share no dives: nothing for the strip to say.
+    final loners = ConnectionGraph(
+      nodes: [
+        ConnectionNode(ref: _b('a'), label: 'A', diveCount: 2),
+        ConnectionNode(ref: _b('b'), label: 'B', diveCount: 1),
+      ],
+      edges: const [],
+      hiddenNodeCount: 3,
+    );
+    await _pump(tester, graph: (ref, budget) => loners);
+    expect(find.byKey(const ValueKey('insight-mostConnected')), findsNothing);
+    final canvasTop = tester
+        .getTopLeft(find.byKey(const ValueKey('connections-canvas-paint')))
+        .dy;
+    final chipTop = tester.getTopLeft(find.byType(HiddenNodesChip)).dy;
+    expect(chipTop - canvasTop, 12);
   });
 }

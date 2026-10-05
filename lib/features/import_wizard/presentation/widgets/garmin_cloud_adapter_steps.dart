@@ -20,9 +20,17 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// MFA challenge, in which case a verification-code sub-form replaces the
 /// password form until the code is accepted.
 class GarminCloudSignInStep extends ConsumerStatefulWidget {
-  const GarminCloudSignInStep({super.key, required this.onSignedIn});
+  const GarminCloudSignInStep({
+    super.key,
+    required this.onSignedIn,
+    this.onAccountSignedIn,
+  });
 
   final ValueChanged<GarminConnectClient> onSignedIn;
+
+  /// The email the session belongs to, reported with every sign-in so the
+  /// Review step can name the account (issue #161).
+  final ValueChanged<String>? onAccountSignedIn;
 
   @override
   ConsumerState<GarminCloudSignInStep> createState() =>
@@ -96,6 +104,7 @@ class _GarminCloudSignInStepState extends ConsumerState<GarminCloudSignInStep> {
 
   void _markSignedIn(GarminConnectClient client, String email) {
     widget.onSignedIn(client);
+    widget.onAccountSignedIn?.call(email);
     setState(() {
       _checkingCachedSession = false;
       _signingIn = false;

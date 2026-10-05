@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_ser
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_consolidation_builder.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_alignment.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 
@@ -52,9 +53,14 @@ class DiveConsolidationService {
   /// sources. Throws [ArgumentError] (with the ConsolidationInvalidReason in
   /// the message) when the selection cannot be consolidated. All-or-nothing:
   /// nothing is written to the DB if validation fails.
+  ///
+  /// [alignment] null requires every secondary to overlap the target in
+  /// time. With a mode, a secondary that does not is placed by that mode
+  /// (#552); see [DiveConsolidationBuilder.build].
   Future<DiveConsolidationOutcome> apply({
     required String targetDiveId,
     required List<String> secondaryDiveIds,
+    ConsolidationAlignment? alignment,
   }) async {
     final allIds = [targetDiveId, ...secondaryDiveIds];
     // Every series this operation will carry across has to decode: it
@@ -77,7 +83,23 @@ class DiveConsolidationService {
       throw ArgumentError('targetDiveId not in selection');
     }
 
-    final plan = _builder.build(dives, primaryDiveId: targetDiveId);
+    // Rejected here with the reason first, like the FK guard below, so
+    // callers can map the message: build() would throw a generic one.
+    final classification = _builder.classify(
+      dives,
+      primaryDiveId: targetDiveId,
+      alignment: alignment,
+    );
+    if (classification is ConsolidationInvalid) {
+      throw ArgumentError(
+        '${classification.reason.name}: selection cannot be consolidated',
+      );
+    }
+    final plan = _builder.build(
+      dives,
+      primaryDiveId: targetDiveId,
+      alignment: alignment,
+    );
     final snapshot = await DiveMergeSnapshot.capture(_db, allIds, targetDiveId);
     final now = DateTime.now().millisecondsSinceEpoch;
     final nowDt = DateTime.now();

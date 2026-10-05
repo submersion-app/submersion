@@ -9,15 +9,18 @@ import 'package:submersion/features/equipment/domain/models/equipment_arrangemen
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
+import 'package:submersion/features/auto_update/presentation/widgets/update_banner.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_recorder.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
+import 'package:submersion/features/gps_log/presentation/widgets/gps_recording_strip.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
 import 'package:submersion/shared/widgets/nav/nav_order_provider.dart';
+import 'package:submersion/shared/widgets/shell_chrome_scope.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 
 Future<Widget> _buildTestApp({
@@ -28,6 +31,9 @@ Future<Widget> _buildTestApp({
   // MainScaffold reads the color-accent toggles, so settings must be stubbed
   // here -- the real SettingsNotifier reaches for the database.
   AppSettings settings = const AppSettings(),
+  // The /dashboard page; a stateful one lets a test see whether the shell
+  // navigator survived a layout change.
+  Widget dashboard = const Text('Dashboard'),
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -38,10 +44,7 @@ Future<Widget> _buildTestApp({
       ShellRoute(
         builder: (context, state, child) => MainScaffold(child: child),
         routes: [
-          GoRoute(
-            path: '/dashboard',
-            builder: (context, state) => const Text('Dashboard'),
-          ),
+          GoRoute(path: '/dashboard', builder: (context, state) => dashboard),
           GoRoute(
             path: '/dives',
             builder: (context, state) => const Text('Dives'),
@@ -144,6 +147,25 @@ class _StubSettingsNotifier extends StateNotifier<AppSettings>
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// A shell page with state of its own, so a test can tell whether hiding the
+/// chrome rebuilt the shell navigator (the count would reset to 0).
+class _CounterPage extends StatefulWidget {
+  const _CounterPage();
+
+  @override
+  State<_CounterPage> createState() => _CounterPageState();
+}
+
+class _CounterPageState extends State<_CounterPage> {
+  int _count = 0;
+
+  @override
+  Widget build(BuildContext context) => TextButton(
+    onPressed: () => setState(() => _count++),
+    child: Text('count $_count'),
+  );
 }
 
 /// Fake AppSettingsRepository used by the nav customization tests.
@@ -1357,6 +1379,87 @@ void main() {
         (tile.leading as Icon).color,
         FeatureAccentColors.light.of('equipment'),
       );
+    });
+  });
+
+  group('MainScaffold chrome hide requests (#1087)', () {
+    ShellChromeController controllerOf(WidgetTester tester) =>
+        ShellChromeScope.maybeOf(tester.element(find.byType(_CounterPage)))!;
+
+    Future<void> pumpAt(WidgetTester tester, Size size) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        await _buildTestApp(dashboard: const _CounterPage()),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a phone hides its bottom bar and strips while requested', (
+      tester,
+    ) async {
+      await pumpAt(tester, const Size(390, 844));
+      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.byType(UpdateBanner), findsOneWidget);
+      expect(find.byType(GpsRecordingStrip), findsOneWidget);
+
+      final token = Object();
+      controllerOf(tester).requestHidden(token);
+      await tester.pumpAndSettle();
+      expect(find.byType(NavigationBar), findsNothing);
+      expect(find.byType(UpdateBanner), findsNothing);
+      expect(find.byType(GpsRecordingStrip), findsNothing);
+
+      controllerOf(tester).releaseHidden(token);
+      await tester.pumpAndSettle();
+      expect(find.byType(NavigationBar), findsOneWidget);
+    });
+
+    testWidgets('a wide screen hides its rail and divider while requested', (
+      tester,
+    ) async {
+      await pumpAt(tester, const Size(1024, 800));
+      expect(find.byType(NavigationRail), findsOneWidget);
+
+      controllerOf(tester).requestHidden(Object());
+      await tester.pumpAndSettle();
+      expect(find.byType(NavigationRail), findsNothing);
+      expect(find.byType(VerticalDivider), findsNothing);
+      expect(find.byType(SafeArea), findsNothing);
+    });
+
+    testWidgets('the page keeps its state across hide and restore', (
+      tester,
+    ) async {
+      await pumpAt(tester, const Size(390, 844));
+      await tester.tap(find.text('count 0'));
+      await tester.pump();
+
+      final token = Object();
+      controllerOf(tester).requestHidden(token);
+      await tester.pumpAndSettle();
+      expect(find.text('count 1'), findsOneWidget);
+
+      controllerOf(tester).releaseHidden(token);
+      await tester.pumpAndSettle();
+      expect(find.text('count 1'), findsOneWidget);
+    });
+
+    testWidgets('crossing the rail breakpoint while hidden stays hidden', (
+      tester,
+    ) async {
+      await pumpAt(tester, const Size(390, 844));
+      await tester.tap(find.text('count 0'));
+      await tester.pump();
+      controllerOf(tester).requestHidden(Object());
+      await tester.pumpAndSettle();
+
+      tester.view.physicalSize = const Size(1024, 800);
+      await tester.pumpAndSettle();
+      expect(find.byType(NavigationRail), findsNothing);
+      expect(find.byType(NavigationBar), findsNothing);
+      expect(find.text('count 1'), findsOneWidget);
     });
   });
 }

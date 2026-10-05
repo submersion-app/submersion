@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
+import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/legend_candidates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readout.dart';
@@ -165,6 +166,12 @@ List<ActiveLegendEntry> activeLegendEntries(
     state.showGasSwitchMarkers,
     l10n.diveLog_legend_label_gasSwitches,
     GasColors.nitrox,
+  );
+  add(
+    config.hasLateGasSwitches,
+    state.showLateGasSwitches,
+    l10n.diveLog_legend_label_lateGasSwitches,
+    lateSwitchLegendColor,
   );
   add(
     config.hasPhotoMarkers,
