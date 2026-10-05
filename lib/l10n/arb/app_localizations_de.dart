@@ -48048,4 +48048,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String preDive_start_allTemplatesHidden(String path) {
     return 'Alle Checklisten sind ausgeblendet. Unter $path wieder einblenden.';
   }
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'Entfernungseinheit';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Späte Gaswechsel';
 }

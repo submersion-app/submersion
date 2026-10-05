@@ -14525,5 +14525,7 @@
   "query_saveNeedsDiver": "Legen Sie ein Taucherprofil an, um Abfragen zu speichern",
   "builtIns_showColumnLabel": "Anzeigen",
   "builtIns_showInPickers": "In der Auswahl anzeigen",
-  "preDive_start_allTemplatesHidden": "Alle Checklisten sind ausgeblendet. Unter {path} wieder einblenden."
+  "preDive_start_allTemplatesHidden": "Alle Checklisten sind ausgeblendet. Unter {path} wieder einblenden.",
+  "settings_conflict_field_distanceUnit": "Entfernungseinheit",
+  "settings_conflict_field_defaultShowLateGasSwitches": "Späte Gaswechsel"
 }

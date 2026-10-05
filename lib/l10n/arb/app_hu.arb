@@ -14404,5 +14404,7 @@
   "query_saveNeedsDiver": "Hozzon létre merülő profilt a lekérdezések mentéséhez",
   "builtIns_showColumnLabel": "Megjelenítés",
   "builtIns_showInPickers": "Megjelenítés a választókban",
-  "preDive_start_allTemplatesHidden": "Minden ellenőrzőlista el van rejtve. Jelenítsen meg újra egyet itt: {path}."
+  "preDive_start_allTemplatesHidden": "Minden ellenőrzőlista el van rejtve. Jelenítsen meg újra egyet itt: {path}.",
+  "settings_conflict_field_distanceUnit": "Távolság mértékegysége",
+  "settings_conflict_field_defaultShowLateGasSwitches": "Késői gázváltások"
 }

@@ -47148,4 +47148,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String preDive_start_allTemplatesHidden(String path) {
     return 'כל רשימות הבדיקה מוסתרות. אפשר להציג אחת מחדש ב-$path.';
   }
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'יחידת מרחק';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'החלפות גז מאוחרות';
 }

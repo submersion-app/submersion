@@ -47838,4 +47838,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String preDive_start_allTemplatesHidden(String path) {
     return 'Alle checklists zijn verborgen. Toon er weer een via $path.';
   }
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'Afstandseenheid';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Late gaswissels';
 }

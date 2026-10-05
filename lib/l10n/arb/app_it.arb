@@ -14404,5 +14404,7 @@
   "query_saveNeedsDiver": "Crea un profilo subacqueo per salvare le query",
   "builtIns_showColumnLabel": "Mostra",
   "builtIns_showInPickers": "Mostra nei selettori",
-  "preDive_start_allTemplatesHidden": "Tutte le checklist sono nascoste. Mostrane di nuovo una in {path}."
+  "preDive_start_allTemplatesHidden": "Tutte le checklist sono nascoste. Mostrane di nuovo una in {path}.",
+  "settings_conflict_field_distanceUnit": "Unità di distanza",
+  "settings_conflict_field_defaultShowLateGasSwitches": "Cambi gas tardivi"
 }

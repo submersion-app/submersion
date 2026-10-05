@@ -28772,5 +28772,9 @@
   "builtIns_showInPickers": "Show in pickers",
   "@builtIns_showInPickers": {"description": "Tooltip on a built-in entry's show/hide switch on a Manage page"},
   "preDive_start_allTemplatesHidden": "Every checklist is hidden. Show one again in {path}.",
-  "@preDive_start_allTemplatesHidden": {"description": "Helper under the start sheet's checklist field when the diver hid every checklist template; path is the localized Settings > Manage > Pre-Dive Checklists trail", "placeholders": {"path": {"type": "String"}}}
+  "@preDive_start_allTemplatesHidden": {"description": "Helper under the start sheet's checklist field when the diver hid every checklist template; path is the localized Settings > Manage > Pre-Dive Checklists trail", "placeholders": {"path": {"type": "String"}}},
+  "settings_conflict_field_distanceUnit": "Distance unit",
+  "@settings_conflict_field_distanceUnit": {"description": "Sync conflict dialog label for the diver setting distanceUnit"},
+  "settings_conflict_field_defaultShowLateGasSwitches": "Late gas switches",
+  "@settings_conflict_field_defaultShowLateGasSwitches": {"description": "Sync conflict dialog label for the diver setting defaultShowLateGasSwitches"}
 }

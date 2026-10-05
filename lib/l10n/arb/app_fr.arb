@@ -14404,5 +14404,7 @@
   "query_saveNeedsDiver": "Créez un profil de plongeur pour enregistrer des requêtes",
   "builtIns_showColumnLabel": "Afficher",
   "builtIns_showInPickers": "Afficher dans les sélecteurs",
-  "preDive_start_allTemplatesHidden": "Toutes les checklists sont masquées. Réaffichez-en une dans {path}."
+  "preDive_start_allTemplatesHidden": "Toutes les checklists sont masquées. Réaffichez-en une dans {path}.",
+  "settings_conflict_field_distanceUnit": "Unité de distance",
+  "settings_conflict_field_defaultShowLateGasSwitches": "Changements de gaz tardifs"
 }

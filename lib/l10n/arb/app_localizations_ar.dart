@@ -48731,4 +48731,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String preDive_start_allTemplatesHidden(String path) {
     return 'جميع قوائم التحقق مخفية. أظهر واحدة مجددًا من $path.';
   }
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'وحدة المسافة';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'تبديلات الغاز المتأخرة';
 }

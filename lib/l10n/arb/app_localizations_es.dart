@@ -48189,4 +48189,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String preDive_start_allTemplatesHidden(String path) {
     return 'Todas las listas de verificación están ocultas. Vuelve a mostrar una en $path.';
   }
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'Unidad de distancia';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Cambios de gas tardíos';
 }

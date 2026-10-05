@@ -47917,4 +47917,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String preDive_start_allTemplatesHidden(String path) {
     return 'Minden ellenőrzőlista el van rejtve. Jelenítsen meg újra egyet itt: $path.';
   }
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'Távolság mértékegysége';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Késői gázváltások';
 }

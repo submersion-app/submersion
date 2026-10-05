@@ -14404,5 +14404,7 @@
   "query_saveNeedsDiver": "أنشئ ملف غواص لحفظ الاستعلامات",
   "builtIns_showColumnLabel": "إظهار",
   "builtIns_showInPickers": "إظهار في قوائم الاختيار",
-  "preDive_start_allTemplatesHidden": "جميع قوائم التحقق مخفية. أظهر واحدة مجددًا من {path}."
+  "preDive_start_allTemplatesHidden": "جميع قوائم التحقق مخفية. أظهر واحدة مجددًا من {path}.",
+  "settings_conflict_field_distanceUnit": "وحدة المسافة",
+  "settings_conflict_field_defaultShowLateGasSwitches": "تبديلات الغاز المتأخرة"
 }

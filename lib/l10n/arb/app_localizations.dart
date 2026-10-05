@@ -76725,6 +76725,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Every checklist is hidden. Show one again in {path}.'**
   String preDive_start_allTemplatesHidden(String path);
+
+  /// Sync conflict dialog label for the diver setting distanceUnit
+  ///
+  /// In en, this message translates to:
+  /// **'Distance unit'**
+  String get settings_conflict_field_distanceUnit;
+
+  /// Sync conflict dialog label for the diver setting defaultShowLateGasSwitches
+  ///
+  /// In en, this message translates to:
+  /// **'Late gas switches'**
+  String get settings_conflict_field_defaultShowLateGasSwitches;
 }
 
 class _AppLocalizationsDelegate

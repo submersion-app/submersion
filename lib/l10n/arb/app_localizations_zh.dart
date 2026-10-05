@@ -45261,4 +45261,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String preDive_start_allTemplatesHidden(String path) {
     return '所有检查清单都已隐藏。可在 $path 中重新显示。';
   }
+
+  @override
+  String get settings_conflict_field_distanceUnit => '距离单位';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches => '延迟换气';
 }
