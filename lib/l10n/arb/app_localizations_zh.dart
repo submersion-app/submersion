@@ -168,6 +168,92 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connections_summary_strongestPair => '最紧密的一对';
 
   @override
+  String get connections_insight_newest => '最新关联';
+
+  @override
+  String get connections_insight_drifting => '渐行渐远';
+
+  @override
+  String get connections_insight_groups => '群组';
+
+  @override
+  String connections_insight_groupsValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个群组',
+      one: '$count 个群组',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_insight_pair(String a, String b) {
+    return '$a 和 $b';
+  }
+
+  @override
+  String connections_insight_since(String label, String date) {
+    return '$label，自 $date 起';
+  }
+
+  @override
+  String connections_insight_last(String label, String date) {
+    return '$label，最近一次 $date';
+  }
+
+  @override
+  String get connections_highlight_title => '着色方式';
+
+  @override
+  String get connections_highlight_byKind => '类型';
+
+  @override
+  String get connections_highlight_groups => '群组';
+
+  @override
+  String get connections_highlight_recency => '新近程度';
+
+  @override
+  String get connections_legend_group => '颜色：群组';
+
+  @override
+  String get connections_legend_recent => '较新';
+
+  @override
+  String get connections_legend_old => '较旧';
+
+  @override
+  String get connections_yearPlay_play => '按年播放';
+
+  @override
+  String get connections_yearPlay_pause => '暂停';
+
+  @override
+  String get connections_share_tooltip => '分享图片';
+
+  @override
+  String get connections_share_sheetTitle => '分享图谱图片';
+
+  @override
+  String get connections_share_failed => '无法生成图片';
+
+  @override
+  String connections_share_aroundName(String label) {
+    return '$label 周边';
+  }
+
+  @override
+  String connections_share_allDives(int first, int last) {
+    return '全部潜水，$first 至 $last 年';
+  }
+
+  @override
+  String connections_share_details(String range, String counts) {
+    return '$range。$counts';
+  }
+
+  @override
   String get connections_summary_title => '摘要';
 
   @override

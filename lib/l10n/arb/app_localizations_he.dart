@@ -170,6 +170,92 @@ class AppLocalizationsHe extends AppLocalizations {
   String get connections_summary_strongestPair => 'הזוג החזק ביותר';
 
   @override
+  String get connections_insight_newest => 'החיבור החדש ביותר';
+
+  @override
+  String get connections_insight_drifting => 'מתרחקים';
+
+  @override
+  String get connections_insight_groups => 'קבוצות';
+
+  @override
+  String connections_insight_groupsValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count קבוצות',
+      one: 'קבוצה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_insight_pair(String a, String b) {
+    return '$a ו$b';
+  }
+
+  @override
+  String connections_insight_since(String label, String date) {
+    return '$label, מאז $date';
+  }
+
+  @override
+  String connections_insight_last(String label, String date) {
+    return '$label, לאחרונה $date';
+  }
+
+  @override
+  String get connections_highlight_title => 'צביעה לפי';
+
+  @override
+  String get connections_highlight_byKind => 'סוג';
+
+  @override
+  String get connections_highlight_groups => 'קבוצות';
+
+  @override
+  String get connections_highlight_recency => 'עדכניות';
+
+  @override
+  String get connections_legend_group => 'צבע: קבוצה';
+
+  @override
+  String get connections_legend_recent => 'עדכני';
+
+  @override
+  String get connections_legend_old => 'ישן';
+
+  @override
+  String get connections_yearPlay_play => 'הפעלת השנים';
+
+  @override
+  String get connections_yearPlay_pause => 'השהיה';
+
+  @override
+  String get connections_share_tooltip => 'שיתוף תמונה';
+
+  @override
+  String get connections_share_sheetTitle => 'שיתוף תמונת המפה';
+
+  @override
+  String get connections_share_failed => 'לא ניתן ליצור את התמונה';
+
+  @override
+  String connections_share_aroundName(String label) {
+    return 'סביב $label';
+  }
+
+  @override
+  String connections_share_allDives(int first, int last) {
+    return 'כל הצלילות, $first עד $last';
+  }
+
+  @override
+  String connections_share_details(String range, String counts) {
+    return '$range. $counts';
+  }
+
+  @override
   String get connections_summary_title => 'סיכום';
 
   @override

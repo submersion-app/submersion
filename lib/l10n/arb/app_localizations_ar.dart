@@ -179,6 +179,95 @@ class AppLocalizationsAr extends AppLocalizations {
   String get connections_summary_strongestPair => 'أقوى ثنائي';
 
   @override
+  String get connections_insight_newest => 'أحدث ارتباط';
+
+  @override
+  String get connections_insight_drifting => 'يتباعدان';
+
+  @override
+  String get connections_insight_groups => 'المجموعات';
+
+  @override
+  String connections_insight_groupsValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مجموعة',
+      many: '$count مجموعة',
+      few: '$count مجموعات',
+      two: 'مجموعتان',
+      one: 'مجموعة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_insight_pair(String a, String b) {
+    return '$a و$b';
+  }
+
+  @override
+  String connections_insight_since(String label, String date) {
+    return '$label، منذ $date';
+  }
+
+  @override
+  String connections_insight_last(String label, String date) {
+    return '$label، آخر مرة $date';
+  }
+
+  @override
+  String get connections_highlight_title => 'التلوين حسب';
+
+  @override
+  String get connections_highlight_byKind => 'النوع';
+
+  @override
+  String get connections_highlight_groups => 'المجموعات';
+
+  @override
+  String get connections_highlight_recency => 'الحداثة';
+
+  @override
+  String get connections_legend_group => 'اللون: المجموعة';
+
+  @override
+  String get connections_legend_recent => 'حديث';
+
+  @override
+  String get connections_legend_old => 'قديم';
+
+  @override
+  String get connections_yearPlay_play => 'تشغيل الأعوام';
+
+  @override
+  String get connections_yearPlay_pause => 'إيقاف مؤقت';
+
+  @override
+  String get connections_share_tooltip => 'مشاركة الصورة';
+
+  @override
+  String get connections_share_sheetTitle => 'مشاركة صورة الخريطة';
+
+  @override
+  String get connections_share_failed => 'تعذّر إنشاء الصورة';
+
+  @override
+  String connections_share_aroundName(String label) {
+    return 'حول $label';
+  }
+
+  @override
+  String connections_share_allDives(int first, int last) {
+    return 'كل الغوصات، من $first إلى $last';
+  }
+
+  @override
+  String connections_share_details(String range, String counts) {
+    return '$range. $counts';
+  }
+
+  @override
   String get connections_summary_title => 'الملخص';
 
   @override

@@ -170,6 +170,93 @@ class AppLocalizationsIt extends AppLocalizations {
   String get connections_summary_strongestPair => 'Coppia più forte';
 
   @override
+  String get connections_insight_newest => 'Connessione più recente';
+
+  @override
+  String get connections_insight_drifting => 'Che si allontanano';
+
+  @override
+  String get connections_insight_groups => 'Gruppi';
+
+  @override
+  String connections_insight_groupsValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gruppi',
+      one: '$count gruppo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_insight_pair(String a, String b) {
+    return '$a e $b';
+  }
+
+  @override
+  String connections_insight_since(String label, String date) {
+    return '$label, dal $date';
+  }
+
+  @override
+  String connections_insight_last(String label, String date) {
+    return '$label, ultima volta $date';
+  }
+
+  @override
+  String get connections_highlight_title => 'Colora per';
+
+  @override
+  String get connections_highlight_byKind => 'Tipo';
+
+  @override
+  String get connections_highlight_groups => 'Gruppi';
+
+  @override
+  String get connections_highlight_recency => 'Recenza';
+
+  @override
+  String get connections_legend_group => 'Colore: gruppo';
+
+  @override
+  String get connections_legend_recent => 'Recente';
+
+  @override
+  String get connections_legend_old => 'Vecchio';
+
+  @override
+  String get connections_yearPlay_play => 'Riproduci gli anni';
+
+  @override
+  String get connections_yearPlay_pause => 'Pausa';
+
+  @override
+  String get connections_share_tooltip => 'Condividi immagine';
+
+  @override
+  String get connections_share_sheetTitle =>
+      'Condividi l\'immagine della mappa';
+
+  @override
+  String get connections_share_failed => 'Impossibile creare l\'immagine';
+
+  @override
+  String connections_share_aroundName(String label) {
+    return 'Intorno a $label';
+  }
+
+  @override
+  String connections_share_allDives(int first, int last) {
+    return 'Tutte le immersioni, dal $first al $last';
+  }
+
+  @override
+  String connections_share_details(String range, String counts) {
+    return '$range. $counts';
+  }
+
+  @override
   String get connections_summary_title => 'Riepilogo';
 
   @override

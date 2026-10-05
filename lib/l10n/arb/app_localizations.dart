@@ -374,6 +374,138 @@ abstract class AppLocalizations {
   /// **'Strongest pair'**
   String get connections_summary_strongestPair;
 
+  /// No description provided for @connections_insight_newest.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest connection'**
+  String get connections_insight_newest;
+
+  /// No description provided for @connections_insight_drifting.
+  ///
+  /// In en, this message translates to:
+  /// **'Drifting apart'**
+  String get connections_insight_drifting;
+
+  /// No description provided for @connections_insight_groups.
+  ///
+  /// In en, this message translates to:
+  /// **'Groups'**
+  String get connections_insight_groups;
+
+  /// No description provided for @connections_insight_groupsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} group} other{{count} groups}}'**
+  String connections_insight_groupsValue(int count);
+
+  /// No description provided for @connections_insight_pair.
+  ///
+  /// In en, this message translates to:
+  /// **'{a} and {b}'**
+  String connections_insight_pair(String a, String b);
+
+  /// No description provided for @connections_insight_since.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}, since {date}'**
+  String connections_insight_since(String label, String date);
+
+  /// No description provided for @connections_insight_last.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}, last {date}'**
+  String connections_insight_last(String label, String date);
+
+  /// No description provided for @connections_highlight_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Color by'**
+  String get connections_highlight_title;
+
+  /// No description provided for @connections_highlight_byKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Kind'**
+  String get connections_highlight_byKind;
+
+  /// No description provided for @connections_highlight_groups.
+  ///
+  /// In en, this message translates to:
+  /// **'Groups'**
+  String get connections_highlight_groups;
+
+  /// No description provided for @connections_highlight_recency.
+  ///
+  /// In en, this message translates to:
+  /// **'Recency'**
+  String get connections_highlight_recency;
+
+  /// No description provided for @connections_legend_group.
+  ///
+  /// In en, this message translates to:
+  /// **'Color: group'**
+  String get connections_legend_group;
+
+  /// No description provided for @connections_legend_recent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get connections_legend_recent;
+
+  /// No description provided for @connections_legend_old.
+  ///
+  /// In en, this message translates to:
+  /// **'Old'**
+  String get connections_legend_old;
+
+  /// No description provided for @connections_yearPlay_play.
+  ///
+  /// In en, this message translates to:
+  /// **'Play years'**
+  String get connections_yearPlay_play;
+
+  /// No description provided for @connections_yearPlay_pause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get connections_yearPlay_pause;
+
+  /// No description provided for @connections_share_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Share image'**
+  String get connections_share_tooltip;
+
+  /// No description provided for @connections_share_sheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share map image'**
+  String get connections_share_sheetTitle;
+
+  /// No description provided for @connections_share_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create the image'**
+  String get connections_share_failed;
+
+  /// No description provided for @connections_share_aroundName.
+  ///
+  /// In en, this message translates to:
+  /// **'Around {label}'**
+  String connections_share_aroundName(String label);
+
+  /// No description provided for @connections_share_allDives.
+  ///
+  /// In en, this message translates to:
+  /// **'All dives, {first} to {last}'**
+  String connections_share_allDives(int first, int last);
+
+  /// No description provided for @connections_share_details.
+  ///
+  /// In en, this message translates to:
+  /// **'{range}. {counts}'**
+  String connections_share_details(String range, String counts);
+
   /// No description provided for @connections_summary_title.
   ///
   /// In en, this message translates to:

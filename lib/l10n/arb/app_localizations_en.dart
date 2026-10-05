@@ -170,6 +170,92 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connections_summary_strongestPair => 'Strongest pair';
 
   @override
+  String get connections_insight_newest => 'Newest connection';
+
+  @override
+  String get connections_insight_drifting => 'Drifting apart';
+
+  @override
+  String get connections_insight_groups => 'Groups';
+
+  @override
+  String connections_insight_groupsValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count groups',
+      one: '$count group',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_insight_pair(String a, String b) {
+    return '$a and $b';
+  }
+
+  @override
+  String connections_insight_since(String label, String date) {
+    return '$label, since $date';
+  }
+
+  @override
+  String connections_insight_last(String label, String date) {
+    return '$label, last $date';
+  }
+
+  @override
+  String get connections_highlight_title => 'Color by';
+
+  @override
+  String get connections_highlight_byKind => 'Kind';
+
+  @override
+  String get connections_highlight_groups => 'Groups';
+
+  @override
+  String get connections_highlight_recency => 'Recency';
+
+  @override
+  String get connections_legend_group => 'Color: group';
+
+  @override
+  String get connections_legend_recent => 'Recent';
+
+  @override
+  String get connections_legend_old => 'Old';
+
+  @override
+  String get connections_yearPlay_play => 'Play years';
+
+  @override
+  String get connections_yearPlay_pause => 'Pause';
+
+  @override
+  String get connections_share_tooltip => 'Share image';
+
+  @override
+  String get connections_share_sheetTitle => 'Share map image';
+
+  @override
+  String get connections_share_failed => 'Couldn\'t create the image';
+
+  @override
+  String connections_share_aroundName(String label) {
+    return 'Around $label';
+  }
+
+  @override
+  String connections_share_allDives(int first, int last) {
+    return 'All dives, $first to $last';
+  }
+
+  @override
+  String connections_share_details(String range, String counts) {
+    return '$range. $counts';
+  }
+
+  @override
   String get connections_summary_title => 'Summary';
 
   @override

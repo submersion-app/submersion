@@ -170,6 +170,92 @@ class AppLocalizationsHu extends AppLocalizations {
   String get connections_summary_strongestPair => 'Legerősebb pár';
 
   @override
+  String get connections_insight_newest => 'Legújabb kapcsolat';
+
+  @override
+  String get connections_insight_drifting => 'Eltávolodók';
+
+  @override
+  String get connections_insight_groups => 'Csoportok';
+
+  @override
+  String connections_insight_groupsValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count csoport',
+      one: '$count csoport',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_insight_pair(String a, String b) {
+    return '$a és $b';
+  }
+
+  @override
+  String connections_insight_since(String label, String date) {
+    return '$label, $date óta';
+  }
+
+  @override
+  String connections_insight_last(String label, String date) {
+    return '$label, utoljára $date';
+  }
+
+  @override
+  String get connections_highlight_title => 'Színezés';
+
+  @override
+  String get connections_highlight_byKind => 'Típus';
+
+  @override
+  String get connections_highlight_groups => 'Csoportok';
+
+  @override
+  String get connections_highlight_recency => 'Frissesség';
+
+  @override
+  String get connections_legend_group => 'Szín: csoport';
+
+  @override
+  String get connections_legend_recent => 'Friss';
+
+  @override
+  String get connections_legend_old => 'Régi';
+
+  @override
+  String get connections_yearPlay_play => 'Évek lejátszása';
+
+  @override
+  String get connections_yearPlay_pause => 'Szünet';
+
+  @override
+  String get connections_share_tooltip => 'Kép megosztása';
+
+  @override
+  String get connections_share_sheetTitle => 'Térképkép megosztása';
+
+  @override
+  String get connections_share_failed => 'Nem sikerült létrehozni a képet';
+
+  @override
+  String connections_share_aroundName(String label) {
+    return '$label körül';
+  }
+
+  @override
+  String connections_share_allDives(int first, int last) {
+    return 'Minden merülés, $first és $last között';
+  }
+
+  @override
+  String connections_share_details(String range, String counts) {
+    return '$range. $counts';
+  }
+
+  @override
   String get connections_summary_title => 'Összegzés';
 
   @override
