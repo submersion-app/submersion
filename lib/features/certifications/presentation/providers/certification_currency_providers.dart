@@ -1,10 +1,18 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 import 'package:submersion/features/certifications/data/repositories/certification_currency_repository.dart';
+import 'package:submersion/features/certifications/data/repositories/dive_activity_repository.dart';
+import 'package:submersion/features/certifications/domain/entities/credential_currency.dart';
+import 'package:submersion/features/certifications/domain/entities/dive_activity_index.dart';
+import 'package:submersion/features/certifications/domain/services/certification_currency_engine.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_event.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_pref.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_rule.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+
+final _log = LoggerService.forClass(CertificationCurrencyRepository);
 
 /// Repository provider for certification currency (issue #2267).
 final certificationCurrencyRepositoryProvider =
@@ -46,4 +54,86 @@ final certificationCurrencyEventsProvider =
       final repository = ref.watch(certificationCurrencyRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchCurrencyChanges());
       return repository.getEvents(certificationId);
+    });
+
+final diveActivityRepositoryProvider = Provider<DiveActivityRepository>(
+  (ref) => DiveActivityRepository(),
+);
+
+final diveActivityIndexProvider = FutureProvider<DiveActivityIndex>((
+  ref,
+) async {
+  final repository = ref.watch(diveActivityRepositoryProvider);
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  ref.invalidateSelfWhen(repository.watchDiveChanges());
+  return repository.buildIndex(diverId: diverId);
+});
+
+/// Every status, uncollapsed. Catches its own failures: the home strip awaits
+/// this inside dashboardGaugesProvider, and an uncaught throw would take the
+/// whole strip, hardened safety chips included, to its retry chip.
+final credentialCurrencyProvider = FutureProvider<List<CredentialCurrency>>((
+  ref,
+) async {
+  try {
+    return evaluateCurrency(
+      certifications: await ref.watch(allCertificationsProvider.future),
+      rules: await ref.watch(currencyRulesProvider.future),
+      prefs: await ref.watch(currencyPrefsProvider.future),
+      events: await ref.watch(currencyEventsProvider.future),
+      activity: await ref.watch(diveActivityIndexProvider.future),
+      now: DateTime.now(),
+    );
+  } catch (e, stackTrace) {
+    _log.error(
+      'Certification currency unavailable; the chip is hidden',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return const [];
+  }
+});
+
+final currencyGroupsProvider = FutureProvider<List<CurrencyGroup>>(
+  (ref) async =>
+      collapseCurrency(await ref.watch(credentialCurrencyProvider.future)),
+);
+
+class CurrencyAttention {
+  final int count;
+  final bool anyLapsed;
+  final bool anyHardened;
+  final Set<String> certificationIds;
+
+  const CurrencyAttention({
+    this.count = 0,
+    this.anyLapsed = false,
+    this.anyHardened = false,
+    this.certificationIds = const {},
+  });
+
+  static const none = CurrencyAttention();
+}
+
+final currencyAttentionProvider = FutureProvider<CurrencyAttention>((
+  ref,
+) async {
+  final groups = [
+    for (final g in await ref.watch(currencyGroupsProvider.future))
+      if (g.needsAttention) g,
+  ];
+  return CurrencyAttention(
+    count: groups.length,
+    anyLapsed: groups.any((g) => g.severity == CurrencySeverity.lapsed),
+    anyHardened: groups.any((g) => g.hardened),
+    certificationIds: {for (final g in groups) ...g.certificationIds},
+  );
+});
+
+final certificationCurrencyGroupsProvider =
+    FutureProvider.family<List<CurrencyGroup>, String>((ref, certId) async {
+      return [
+        for (final g in await ref.watch(currencyGroupsProvider.future))
+          if (g.certificationIds.contains(certId)) g,
+      ];
     });
