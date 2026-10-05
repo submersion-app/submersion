@@ -123,6 +123,37 @@ Under **Settings &rarr; Cloud Sync** you control when syncs happen:
 
 [More about the Settings page &rarr;](guide/settings.md)
 
+## What Syncs and What Stays on Each Device
+
+Most settings follow you to every device. A few describe the device itself
+(its screen, its notification permission, how it connects to things), so each
+device keeps its own.
+
+**Stays on each device:**
+
+| Setting | Where |
+|---------|-------|
+| Service reminders: on or off, reminder days, reminder time, trip lead time | Settings &rarr; Notifications |
+| Theme: Light, Dark or System default | Settings &rarr; Appearance |
+| Navigation layout: the order of destinations and **Always hide labels** | Settings &rarr; Appearance &rarr; Navigation layout |
+| Display size | Settings &rarr; Appearance |
+| The active diver | Settings &rarr; Diver Profile |
+| App lock and database encryption | Settings &rarr; App Security |
+| The Cloud Sync connection and the sync options above | Settings &rarr; Cloud Sync |
+| Automatic backups and where the database is stored | Settings &rarr; Data |
+| The Home layout | Customize Home |
+| Data quality checks you turned off | Data quality settings |
+| Dive computer Bluetooth pairing and clock sync | The dive computer's details |
+| Sign-ins to connected services | Each service's settings |
+
+**Syncs to every device:** everything else in Settings, including units,
+language, the Color Theme and colored icons, map style, decompression and
+safety settings, and the defaults for new dives.
+
+Changing a per-device setting on one device never changes it on another, and
+a sync never overwrites it. A device that joins your library starts with the
+default values for these settings.
+
 ## Switching or Removing a Backend
 
 If you switch a device from one backend to another, Submersion confirms first:
