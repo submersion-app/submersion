@@ -11830,6 +11830,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentStatus_spare => 'احتياطي';
 
   @override
+  String get enum_equipmentStatus_wanted => 'مرغوب';
+
+  @override
   String get enum_equipmentType_backplate => 'لوحة ظهر';
 
   @override
@@ -13619,6 +13622,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_retiredChip => 'متقاعد';
 
   @override
+  String get equipment_detail_markPurchased => 'تحديد كمُشترى';
+
+  @override
   String get equipment_detail_serialNumberLabel => 'الرقم التسلسلي';
 
   @override
@@ -14228,6 +14234,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'سعر الشراء';
+
+  @override
+  String get equipment_edit_expectedPriceLabel => 'السعر المتوقع';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -15037,6 +15046,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_snackbar_reactivated => 'تم إعادة تفعيل المعدات';
 
   @override
+  String get equipment_snackbar_purchased => 'تم النقل إلى معداتك النشطة';
+
+  @override
   String get equipment_snackbar_retired => 'تم إيقاف المعدات';
 
   @override
@@ -15083,6 +15095,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String equipment_summary_totalValue(String currency) {
     return 'القيمة الإجمالية ($currency)';
+  }
+
+  @override
+  String equipment_summary_wantedValue(String currency) {
+    return 'القيمة المرغوبة ($currency)';
   }
 
   @override

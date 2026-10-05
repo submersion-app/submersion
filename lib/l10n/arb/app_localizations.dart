@@ -18883,6 +18883,12 @@ abstract class AppLocalizations {
   /// **'Spare'**
   String get enum_equipmentStatus_spare;
 
+  /// No description provided for @enum_equipmentStatus_wanted.
+  ///
+  /// In en, this message translates to:
+  /// **'Wanted'**
+  String get enum_equipmentStatus_wanted;
+
   /// No description provided for @enum_equipmentType_backplate.
   ///
   /// In en, this message translates to:
@@ -21937,6 +21943,12 @@ abstract class AppLocalizations {
   /// **'Retired'**
   String get equipment_detail_retiredChip;
 
+  /// No description provided for @equipment_detail_markPurchased.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as purchased'**
+  String get equipment_detail_markPurchased;
+
   /// No description provided for @equipment_detail_serialNumberLabel.
   ///
   /// In en, this message translates to:
@@ -22798,6 +22810,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Purchase Price'**
   String get equipment_edit_purchasePriceLabel;
+
+  /// No description provided for @equipment_edit_expectedPriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected Price'**
+  String get equipment_edit_expectedPriceLabel;
 
   /// No description provided for @equipment_edit_remindMeBeforeServiceDue.
   ///
@@ -24074,6 +24092,12 @@ abstract class AppLocalizations {
   /// **'Equipment reactivated'**
   String get equipment_snackbar_reactivated;
 
+  /// No description provided for @equipment_snackbar_purchased.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to your active gear'**
+  String get equipment_snackbar_purchased;
+
   /// No description provided for @equipment_snackbar_retired.
   ///
   /// In en, this message translates to:
@@ -24157,6 +24181,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total Value ({currency})'**
   String equipment_summary_totalValue(String currency);
+
+  /// No description provided for @equipment_summary_wantedValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Wanted Value ({currency})'**
+  String equipment_summary_wantedValue(String currency);
 
   /// No description provided for @equipment_tab_equipment.
   ///
