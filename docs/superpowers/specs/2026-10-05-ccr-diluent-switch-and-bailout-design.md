@@ -47,8 +47,17 @@ machine, starting on the loop:
 | Target tank role | While on the loop | While on open circuit |
 | --- | --- | --- |
 | `diluent` | diluent change | back on the loop with that diluent |
-| `bailout`, `deco`, `stage`, `backGas`, `pony`, `sidemountLeft`, `sidemountRight` | open circuit on that gas | open-circuit gas switch |
+| `bailout`, `deco`, `stage`, `pony`, `sidemountLeft`, `sidemountRight` | open circuit on that gas | open-circuit gas switch |
 | `oxygenSupply` | dropped (it feeds the loop) | open circuit on that O2 |
+| `backGas` (untagged) | read as `oxygenSupply` when 99% O2 or more, else as `diluent` | same |
+
+`backGas` is the role a file import (UDDF, Shearwater Cloud, Subsurface
+without a `use` tag) gives a cylinder it knows nothing about. On a CCR dive it
+is therefore loop gas, never a bailout, which matches the tank
+`resolveCcrDiluentMix` already falls back to. Only a cylinder explicitly
+marked bailout, deco, stage, pony or sidemount starts a bailout. (Revised
+after the final review found that untagged imported diluents turned a return
+to the loop into open circuit on the diluent.)
 
 A switch whose `tankId` is not in `tanks` (the computer-scoped tank list) is
 dropped. Fractions come from the switch's joined tank mix (`o2Fraction`,

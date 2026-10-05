@@ -44,6 +44,12 @@ class CcrGasChange extends Equatable {
 /// O2 supply feeds the loop, so a switch to it while on the loop is dropped;
 /// once bailed out it is open circuit on O2.
 ///
+/// [TankRole.backGas] is the role a file import gives a cylinder it knows
+/// nothing about, so on a CCR dive it is read as loop gas, never as a
+/// bailout: the O2 supply when it holds pure O2, otherwise a diluent (the
+/// same tank [resolveCcrDiluentMix] falls back to). Only a cylinder
+/// explicitly marked bailout, deco, stage, pony or sidemount starts one.
+///
 /// [tanks] is the cylinder set the analysed computer breathed: a switch to a
 /// cylinder outside it is dropped. The result is ordered by timestamp, ties
 /// broken by switch id as the open-circuit schedule does.
@@ -51,7 +57,7 @@ List<CcrGasChange> classifyCcrGasChanges(
   List<GasSwitchWithTank> switches,
   List<DiveTank> tanks,
 ) {
-  final roles = {for (final tank in tanks) tank.id: tank.role};
+  final roles = {for (final tank in tanks) tank.id: _ccrRoleOf(tank)};
   final ordered =
       switches.where((s) => roles.containsKey(s.gasSwitch.tankId)).toList()
         ..sort((a, b) {
@@ -81,6 +87,13 @@ List<CcrGasChange> classifyCcrGasChanges(
     );
   }
   return changes;
+}
+
+/// The role a CCR dive's cylinder plays in [classifyCcrGasChanges]: an
+/// untagged (back gas) cylinder is loop gas, see there.
+TankRole _ccrRoleOf(DiveTank tank) {
+  if (tank.role != TankRole.backGas) return tank.role;
+  return tank.gasMix.o2 >= 99.0 ? TankRole.oxygenSupply : TankRole.diluent;
 }
 
 /// Builds the CCR gas schedule for decompression analysis: the loop ppO2 as

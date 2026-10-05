@@ -67,7 +67,6 @@ void main() {
       TankRole.bailout,
       TankRole.deco,
       TankRole.stage,
-      TankRole.backGas,
       TankRole.pony,
       TankRole.sidemountLeft,
       TankRole.sidemountRight,
@@ -86,6 +85,49 @@ void main() {
         expect(changes.single.fN2, closeTo(0.5, 1e-9));
       });
     }
+
+    group('an untagged (back gas) cylinder on a CCR dive', () {
+      // File imports give a cylinder they know nothing about the Back Gas
+      // role, so on a CCR dive it is read as loop gas, never as a bailout.
+      const untagged = DiveTank(id: 'untagged', gasMix: GasMix(o2: 21, he: 35));
+      const untaggedO2 = DiveTank(id: 'untagged-o2', gasMix: GasMix(o2: 100));
+      const tanks = [..._tanks, untagged, untaggedO2];
+
+      test('is a diluent change on the loop', () {
+        final changes = classifyCcrGasChanges([
+          _switch('a', 600, untagged),
+        ], tanks);
+        expect(changes.single.kind, CcrGasChangeKind.diluent);
+        expect(changes.single.fHe, closeTo(0.35, 1e-9));
+      });
+
+      test('returns the diver to the loop after a bailout', () {
+        final changes = classifyCcrGasChanges([
+          _switch('a', 600, _bail),
+          _switch('b', 900, untagged),
+        ], tanks);
+        expect(changes.map((c) => c.kind), [
+          CcrGasChangeKind.openCircuit,
+          CcrGasChangeKind.diluent,
+        ]);
+      });
+
+      test('of pure O2 is the O2 supply: dropped on the loop', () {
+        expect(
+          classifyCcrGasChanges([_switch('a', 600, untaggedO2)], tanks),
+          isEmpty,
+        );
+      });
+
+      test('of pure O2 is open circuit on O2 after a bailout', () {
+        final changes = classifyCcrGasChanges([
+          _switch('a', 600, _bail),
+          _switch('b', 900, untaggedO2),
+        ], tanks);
+        expect(changes.last.kind, CcrGasChangeKind.openCircuit);
+        expect(changes.last.fN2, closeTo(0.0, 1e-9));
+      });
+    });
 
     test('an O2 supply switch on the loop is dropped', () {
       expect(classifyCcrGasChanges([_switch('a', 300, _o2)], _tanks), isEmpty);
