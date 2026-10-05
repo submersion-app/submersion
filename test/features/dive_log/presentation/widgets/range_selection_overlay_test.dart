@@ -208,11 +208,14 @@ void main() {
     // does through the range provider, so the handles swap roles on screen.
     Future<List<(int, int)>> pumpLiveOverlay(
       WidgetTester tester, {
+      int startSeconds = 900,
+      int endSeconds = 2700,
+      double visibleMaxSeconds = 3600,
       void Function(bool active)? onDragActiveChanged,
     }) async {
       final changes = <(int, int)>[];
-      var start = 900;
-      var end = 2700;
+      var start = startSeconds;
+      var end = endSeconds;
       await tester.pumpWidget(
         MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -227,7 +230,7 @@ void main() {
                   endSeconds: end,
                   maxSeconds: 3600,
                   visibleMinSeconds: 0,
-                  visibleMaxSeconds: 3600,
+                  visibleMaxSeconds: visibleMaxSeconds,
                   insets: insets,
                   onRangeChanged: (newStart, newEnd) {
                     changes.add((newStart, newEnd));
@@ -358,6 +361,41 @@ void main() {
       await gesture.up();
       await tester.pump();
       // The drag ended normally, so the chart got its panning back.
+      expect(active, [true, false]);
+    });
+
+    testWidgets('keeps dragging a handle taken out of the zoomed window', (
+      tester,
+    ) async {
+      final active = <bool>[];
+      // 2x zoom: only 0 to 1800 s is on screen, 6.04 s per pixel.
+      final changes = await pumpLiveOverlay(
+        tester,
+        startSeconds: 900,
+        endSeconds: 1200,
+        visibleMaxSeconds: 1800,
+        onDragActiveChanged: active.add,
+      );
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byKey(RangeSelectionOverlay.endHandleKey)),
+      );
+      // 1200 s + 1350 s = 2550 s, off the right edge of the window. The
+      // handle is no longer drawn, but it must not drop the drag.
+      await gesture.moveBy(const Offset(plotWidth * 0.75, 0));
+      await tester.pump();
+      expect(changes.last.$2, closeTo(2550, 1));
+      expect(find.byKey(RangeSelectionOverlay.endHandleKey), findsNothing);
+
+      // Back on screen at 2550 s - 900 s = 1650 s.
+      await gesture.moveBy(const Offset(-plotWidth * 0.5, 0));
+      await tester.pump();
+      expect(changes.last.$1, 900);
+      expect(changes.last.$2, closeTo(1650, 1));
+
+      await gesture.up();
+      await tester.pump();
+      // The chart must get its panning back once the finger lifts.
       expect(active, [true, false]);
     });
   });

@@ -63,6 +63,11 @@ class _RangeSelectionOverlayState extends State<RangeSelectionOverlay> {
   /// other one, so the highlight stays on the handle under the finger.
   bool? _draggingStart;
 
+  /// Whether the drag belongs to the start handle's slot (the one the finger
+  /// went down on); null while no handle is dragged. Unlike [_draggingStart]
+  /// it never flips, because the gesture stays with the slot it started on.
+  bool? _ownerIsStart;
+
   /// The dragged handle's position in seconds, accumulated across the drag.
   /// Held here (not recomputed from the widget) so a drag stays smooth when
   /// the caller clamps or rounds the value it is handed back.
@@ -164,7 +169,12 @@ class _RangeSelectionOverlayState extends State<RangeSelectionOverlay> {
             // matched by position, so a shade vanishing mid-drag would hand
             // the dragged handle's element to another child and drop the
             // drag.
-            if (axis.isVisible(widget.startSeconds))
+            //
+            // The slot that owns a drag stays mounted, though hidden, while
+            // the drag takes its handle out of the window: unmounting it
+            // would drop the drag without a drag-end and leave the chart
+            // unpannable.
+            if (axis.isVisible(widget.startSeconds) || _ownerIsStart == true)
               _buildHandle(
                 context,
                 axis: axis,
@@ -172,9 +182,10 @@ class _RangeSelectionOverlayState extends State<RangeSelectionOverlay> {
                 plotTop: plotTop,
                 plotHeight: plotHeight,
                 isStart: true,
+                hidden: !axis.isVisible(widget.startSeconds),
                 colorScheme: colorScheme,
               ),
-            if (axis.isVisible(widget.endSeconds))
+            if (axis.isVisible(widget.endSeconds) || _ownerIsStart == false)
               _buildHandle(
                 context,
                 axis: axis,
@@ -182,6 +193,7 @@ class _RangeSelectionOverlayState extends State<RangeSelectionOverlay> {
                 plotTop: plotTop,
                 plotHeight: plotHeight,
                 isStart: false,
+                hidden: !axis.isVisible(widget.endSeconds),
                 colorScheme: colorScheme,
               ),
           ],
@@ -197,6 +209,7 @@ class _RangeSelectionOverlayState extends State<RangeSelectionOverlay> {
     required double plotTop,
     required double plotHeight,
     required bool isStart,
+    required bool hidden,
     required ColorScheme colorScheme,
   }) {
     final isActive = _draggingStart == isStart;
@@ -209,45 +222,50 @@ class _RangeSelectionOverlayState extends State<RangeSelectionOverlay> {
       top: plotTop,
       height: plotHeight,
       width: 32,
-      child: Semantics(
-        key: isStart
-            ? RangeSelectionOverlay.startHandleKey
-            : RangeSelectionOverlay.endHandleKey,
-        label: context.l10n.diveLog_rangeSelection_semantics_adjust,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onHorizontalDragStart: (_) => _startDrag(isStart),
-          onHorizontalDragUpdate: (details) =>
-              _updateDrag(details.delta.dx, axis),
-          onHorizontalDragEnd: (_) => _endDrag(),
-          onHorizontalDragCancel: _endDrag,
-          child: Column(
-            children: [
-              // Top grip circle
-              _HandleGrip(isActive: isActive, color: colorScheme.primary),
-              // Vertical line
-              Expanded(
-                child: Container(
-                  width: 2,
-                  decoration: BoxDecoration(
-                    color: isActive
-                        ? colorScheme.primary
-                        : colorScheme.primary.withValues(alpha: 0.7),
-                    boxShadow: isActive
-                        ? [
-                            BoxShadow(
-                              color: colorScheme.primary.withValues(alpha: 0.4),
-                              blurRadius: 4,
-                              spreadRadius: 1,
-                            ),
-                          ]
-                        : null,
+      child: Offstage(
+        offstage: hidden,
+        child: Semantics(
+          key: isStart
+              ? RangeSelectionOverlay.startHandleKey
+              : RangeSelectionOverlay.endHandleKey,
+          label: context.l10n.diveLog_rangeSelection_semantics_adjust,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onHorizontalDragStart: (_) => _startDrag(isStart),
+            onHorizontalDragUpdate: (details) =>
+                _updateDrag(details.delta.dx, axis),
+            onHorizontalDragEnd: (_) => _endDrag(),
+            onHorizontalDragCancel: _endDrag,
+            child: Column(
+              children: [
+                // Top grip circle
+                _HandleGrip(isActive: isActive, color: colorScheme.primary),
+                // Vertical line
+                Expanded(
+                  child: Container(
+                    width: 2,
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? colorScheme.primary
+                          : colorScheme.primary.withValues(alpha: 0.7),
+                      boxShadow: isActive
+                          ? [
+                              BoxShadow(
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.4,
+                                ),
+                                blurRadius: 4,
+                                spreadRadius: 1,
+                              ),
+                            ]
+                          : null,
+                    ),
                   ),
                 ),
-              ),
-              // Bottom grip circle
-              _HandleGrip(isActive: isActive, color: colorScheme.primary),
-            ],
+                // Bottom grip circle
+                _HandleGrip(isActive: isActive, color: colorScheme.primary),
+              ],
+            ),
           ),
         ),
       ),
@@ -257,6 +275,7 @@ class _RangeSelectionOverlayState extends State<RangeSelectionOverlay> {
   void _startDrag(bool isStart) {
     setState(() {
       _draggingStart = isStart;
+      _ownerIsStart = isStart;
       _dragSeconds = (isStart ? widget.startSeconds : widget.endSeconds)
           .toDouble();
       _anchorSeconds = isStart ? widget.endSeconds : widget.startSeconds;
@@ -288,7 +307,10 @@ class _RangeSelectionOverlayState extends State<RangeSelectionOverlay> {
   }
 
   void _endDrag() {
-    setState(() => _draggingStart = null);
+    setState(() {
+      _draggingStart = null;
+      _ownerIsStart = null;
+    });
     widget.onDragActiveChanged?.call(false);
   }
 }
