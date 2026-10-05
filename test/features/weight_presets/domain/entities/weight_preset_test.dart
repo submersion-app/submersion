@@ -95,4 +95,24 @@ void main() {
     expect(_entry('e1', 4.0), equals(_entry('e1', 4.0)));
     expect(_entry('e1', 4.0), isNot(equals(_entry('e1', 4.5))));
   });
+
+  test('toDiveWeights carries each entry\'s name', () {
+    final named = WeightPreset(
+      id: 'p2',
+      displayName: 'Sidemount',
+      createdAt: now,
+      updatedAt: now,
+      entries: const [
+        WeightPresetEntry(
+          id: 'e1',
+          presetId: 'p2',
+          weightType: WeightType.trimWeights,
+          amountKg: 2,
+          label: 'Top pocket',
+        ),
+      ],
+    );
+    final rows = named.toDiveWeights(diveId: 'dv', newId: () => 'n');
+    expect(rows.single.label, 'Top pocket');
+  });
 }

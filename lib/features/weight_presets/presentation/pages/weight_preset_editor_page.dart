@@ -124,7 +124,12 @@ class _WeightPresetEditorPageState
     final entries = <WeightEntryDraft>[
       for (final r in _rows)
         if (_amount(r) case final amount when amount > 0)
-          (weightType: r.type, amountKg: units.weightToKg(amount), notes: ''),
+          (
+            weightType: r.type,
+            amountKg: units.weightToKg(amount),
+            notes: '',
+            label: '',
+          ),
     ];
     if (entries.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
