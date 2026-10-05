@@ -256,6 +256,11 @@ class DiverSettings extends Table {
   /// v227: built-in tank presets the diver hid from the pickers (issue
   /// #2305), JSON list of preset slugs. Null or absent = none hidden.
   TextColumn get hiddenTankPresetIds => text().nullable()();
+
+  /// v261: built-in catalog entries the diver hid from the pickers (issue
+  /// #401), a JSON object of catalog key to id list. Null or absent = none
+  /// hidden.
+  TextColumn get hiddenBuiltInIds => text().nullable()();
   // Appearance settings
   BoolColumn get showDepthColoredDiveCards =>
       boolean().withDefault(const Constant(false))();
