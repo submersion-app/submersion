@@ -4,7 +4,9 @@
 
 **Goal:** Persist the certification and course list view modes in `diver_settings`, and move the "profile metrics follow viewport" and pSCR ratio preferences from SharedPreferences into `diver_settings` so they sync, adopting each device's existing value.
 
-**Architecture:** One schema rung (v262) adds four `diver_settings` columns. The two view modes follow the six existing view-mode columns end to end. The two moved preferences are nullable columns: null means "never held a value", and on load a null column adopts this device's pref through a dedicated forced write, so the value syncs even when it equals the default.
+**Architecture:** One schema rung (v262) adds four `diver_settings` columns. The two view modes follow the six existing view-mode columns end to end. The two moved preferences are nullable columns: null means "never held a value", and on load a null column adopts this device's pref, when it differs from the default, through a dedicated write that fills only a still-null column.
+
+> **Revised after the final review (PR #2991).** This plan first said a default-valued pref is adopted too. That was dropped: before v262 every save wrote both prefs, so a default-valued one is no sign of a choice, and adopting it stamps a fresh clock on the whole `diver_settings` row, letting the device upgraded last overwrite a value chosen on another device. As shipped: only a non-default pref is adopted; `adoptDeviceLocalValues` updates `WHERE <column> IS NULL`, returns whether it wrote, and queues the row for sync only then; the load re-reads the row whenever it attempted an adoption; and on import an explicit null for either column is treated as omitted (`_withoutUnsetNulls`). The task steps below are updated to match.
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod (StateNotifier), SharedPreferences, flutter_test.
 
@@ -15,7 +17,7 @@
 - Schema version 262; `minimumCompatibleSchemaVersion` stays 240.
 - Columns: `certification_list_view_mode TEXT NOT NULL DEFAULT 'detailed'`, `course_list_view_mode TEXT NOT NULL DEFAULT 'detailed'`, `profile_metrics_follow_viewport INTEGER` (nullable), `pscr_ratio REAL` (nullable).
 - Null `pscr_ratio` reads as `100.0`; null `profile_metrics_follow_viewport` reads as `false`.
-- Rule: a diver row with no value adopts this device's pref if one exists, otherwise reads the default. Prefs are not removed.
+- Rule: a diver row with no value adopts this device's pref if it differs from the default, otherwise reads the default. Prefs are not removed.
 - With a diver, the two prefs are never written; with no diver they remain the store.
 - Home layout, O2 cell unit and Perdix overlay stay device-local.
 - Certification and course lists offer only detailed and table; the in-list overflow menu stays session-only.
@@ -23,7 +25,7 @@
 
 ## Review Focus
 
-1. A pref equal to the default (pSCR 100, viewport off) must still be written into a null column, or the column stays null and a peer's value cannot be told apart from "unset". Pinned in Task 4.
+1. A pref equal to the default (pSCR 100, viewport off) must NOT be adopted: it carries no choice, and writing it would let this device overwrite a value chosen elsewhere. Pinned in Task 4.
 2. A row that already holds a value must win over a stale pref on a second device. Pinned in Task 4.
 3. A payload from an older peer (v240 to v260) omits the new columns: the view modes must land as `detailed` and the nullable columns as null without failing the import. Pinned in Task 5.
 4. A database restored from a backup at v262 that lacks the columns must regain them on open (backstop). Pinned in Task 1.
@@ -625,7 +627,7 @@ git commit -m "feat(settings): save the certification and course list view modes
 - Consumes: Task 1's `DiverSetting.pscrRatio` (double?), `profileMetricsFollowViewport` (bool?).
 - Produces:
   - `Future<({bool pscrRatio, bool profileMetricsFollowViewport})> unsetAdoptableColumns(String diverId)`: true for each column that is null (or when the row is missing).
-  - `Future<void> adoptDeviceLocalValues(String diverId, {double? pscrRatio, bool? profileMetricsFollowViewport})`: writes every non-null argument, forced, marks the row pending for sync; no-op when both are null.
+  - `Future<bool> adoptDeviceLocalValues(String diverId, {double? pscrRatio, bool? profileMetricsFollowViewport})`: writes each non-null argument into its column only while that column is still null (`WHERE ... IS NULL`), marks the row pending for sync only when a column was written, and returns whether one was; no-op returning false when both are null.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -924,14 +926,15 @@ void main() {
     expect(prefs.getDouble(SettingsKeys.pscrRatio), 40.0);
   });
 
-  test('a pref equal to the default is still written', () async {
-    await containerWith({
+  test('a pref equal to the default is not adopted', () async {
+    final container = await containerWith({
       SettingsKeys.pscrRatio: 100.0,
       SettingsKeys.profileMetricsFollowViewport: false,
     });
 
-    expect((await row('d1')).pscrRatio, 100.0);
-    expect((await row('d1')).profileMetricsFollowViewport, isFalse);
+    expect(container.read(settingsProvider).pscrRatio, 100.0);
+    expect((await row('d1')).pscrRatio, isNull);
+    expect((await row('d1')).profileMetricsFollowViewport, isNull);
   });
 
   test('no pref leaves the columns unset and reads the defaults', () async {
@@ -1070,10 +1073,17 @@ In the diver branch, directly before `// Load settings from database`:
 
 ```dart
     // A row with no pSCR ratio or viewport choice yet (pre-v262, or a new
-    // diver) adopts this device's pref, if it has one.
+    // diver) adopts this device's pref, but only one that differs from the
+    // default (a default-valued pref is no sign of a choice).
+    const defaults = AppSettings();
     final unset = await _repository.unsetAdoptableColumns(diverId);
-    final adoptPscrRatio = unset.pscrRatio ? pscrRatioPref : null;
-    final adoptFollowViewport = unset.profileMetricsFollowViewport
+    final adoptPscrRatio =
+        unset.pscrRatio && pscrRatioPref != defaults.pscrRatio
+        ? pscrRatioPref
+        : null;
+    final adoptFollowViewport =
+        unset.profileMetricsFollowViewport &&
+            followViewportPref != defaults.profileMetricsFollowViewport
         ? followViewportPref
         : null;
 ```
@@ -1082,17 +1092,18 @@ Replace `final settings = await _repository.getOrCreateSettingsForDiver(diverId)
 
 ```dart
     final created = await _repository.getOrCreateSettingsForDiver(diverId);
-    // Forced write, not _saveSettings: a pref equal to the default would
-    // look unchanged to its diff and leave the column null.
+    // Not _saveSettings: its diff cannot see a change in a null column. The
+    // write only fills still-null columns, so re-read whenever one was
+    // attempted: a sync may have filled a column since [created] was read.
+    final adopting = adoptPscrRatio != null || adoptFollowViewport != null;
     await _repository.adoptDeviceLocalValues(
       diverId,
       pscrRatio: adoptPscrRatio,
       profileMetricsFollowViewport: adoptFollowViewport,
     );
-    final settings = created.copyWith(
-      pscrRatio: adoptPscrRatio,
-      profileMetricsFollowViewport: adoptFollowViewport,
-    );
+    final settings = adopting
+        ? await _repository.getSettingsForDiver(diverId) ?? created
+        : created;
 ```
 
 In the `state = settings.copyWith(...)` call that follows, delete the `pscrRatio:` and `profileMetricsFollowViewport:` arguments.

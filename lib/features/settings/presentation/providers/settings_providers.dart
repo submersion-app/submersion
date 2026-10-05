@@ -1453,13 +1453,16 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     // Load settings from database
     final created = await _repository.getOrCreateSettingsForDiver(diverId);
     // Not _saveSettings: its diff cannot see a change in a null column. The
-    // write only fills columns still null, so re-read what the row holds.
-    final adopted = await _repository.adoptDeviceLocalValues(
+    // write only fills columns still null, so whenever one was attempted
+    // re-read the row: a sync may have filled a column since [created] was
+    // read, and then the write lands nothing but the row has still moved.
+    final adopting = adoptPscrRatio != null || adoptFollowViewport != null;
+    await _repository.adoptDeviceLocalValues(
       diverId,
       pscrRatio: adoptPscrRatio,
       profileMetricsFollowViewport: adoptFollowViewport,
     );
-    final settings = adopted
+    final settings = adopting
         ? await _repository.getSettingsForDiver(diverId) ?? created
         : created;
     // The notifier can be disposed while this read is in flight -- a

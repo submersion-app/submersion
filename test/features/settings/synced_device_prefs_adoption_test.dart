@@ -34,6 +34,7 @@ void main() {
     String? diverId = 'd1',
     bool createRow = true,
     Future<void> Function(AppDatabase db)? prepareDb,
+    DiverSettingsRepository? repository,
   }) async {
     SharedPreferences.setMockInitialValues({
       currentDiverIdKey: ?diverId,
@@ -49,7 +50,11 @@ void main() {
     }
     await prepareDb?.call(db);
     final container = ProviderContainer(
-      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        if (repository != null)
+          diverSettingsRepositoryProvider.overrideWithValue(repository),
+      ],
     );
     addTearDown(container.dispose);
     await container.read(settingsProvider.notifier).settingsLoaded;
@@ -126,6 +131,23 @@ void main() {
     expect((await row('d1')).profileMetricsFollowViewport, isTrue);
   });
 
+  test('a value a sync stores just before the adoption write is the one '
+      'loaded', () async {
+    final container = await containerWith({
+      SettingsKeys.pscrRatio: 40.0,
+      SettingsKeys.profileMetricsFollowViewport: true,
+    }, repository: _SyncRacesAdoptionRepository());
+
+    // The conditional write lost to the sync, so it wrote nothing; the
+    // load must still show the synced values, not the row it read before.
+    expect(container.read(settingsProvider).pscrRatio, 15.0);
+    expect(
+      container.read(settingsProvider).profileMetricsFollowViewport,
+      isFalse,
+    );
+    expect((await row('d1')).pscrRatio, 15.0);
+  });
+
   test('a new diver with no row yet adopts the pref', () async {
     await containerWith({SettingsKeys.pscrRatio: 40.0}, createRow: false);
 
@@ -173,4 +195,25 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getDouble(SettingsKeys.pscrRatio), 25.0);
   });
+}
+
+/// Simulates a sync that fills both columns after the load read the row but
+/// before its adoption write runs.
+class _SyncRacesAdoptionRepository extends DiverSettingsRepository {
+  @override
+  Future<bool> adoptDeviceLocalValues(
+    String diverId, {
+    double? pscrRatio,
+    bool? profileMetricsFollowViewport,
+  }) async {
+    await DatabaseService.instance.database.customStatement(
+      'UPDATE diver_settings SET pscr_ratio = 15.0, '
+      'profile_metrics_follow_viewport = 0',
+    );
+    return super.adoptDeviceLocalValues(
+      diverId,
+      pscrRatio: pscrRatio,
+      profileMetricsFollowViewport: profileMetricsFollowViewport,
+    );
+  }
 }
