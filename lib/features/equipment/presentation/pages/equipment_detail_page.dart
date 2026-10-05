@@ -53,6 +53,7 @@ import 'package:submersion/features/equipment/presentation/widgets/components_ca
 import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/condition_trend_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_header_status.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_tag_chips.dart';
 import 'package:submersion/features/equipment/presentation/widgets/installed_in_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
@@ -489,20 +490,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      if (!equipment.isActive)
-                        Chip(
-                          label: Text(
-                            context.l10n.equipment_detail_retiredChip,
-                          ),
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerHighest,
-                          labelStyle: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
+                      // Why the item is out of the kit, and the purchase
+                      // action for wishlist gear (#2025).
+                      EquipmentHeaderStatus(item: equipment),
                       // Tags (issue #1942), under the name and type.
                       EquipmentTagChips(equipmentId: equipment.id),
                     ],

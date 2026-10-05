@@ -569,6 +569,13 @@ class EquipmentListNotifier
     await _repository.reactivateEquipment(id);
     await refresh();
   }
+
+  /// Wishlist gear bought (#2025). The detail page's item provider watches
+  /// the equipment table, so it reloads on its own.
+  Future<void> markPurchased(String id) async {
+    await _repository.markEquipmentPurchased(id);
+    await refresh();
+  }
 }
 
 final equipmentListNotifierProvider =
