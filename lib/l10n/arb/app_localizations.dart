@@ -67489,6 +67489,12 @@ abstract class AppLocalizations {
   /// **'Highest'**
   String get insights_trend_tooltip_highest;
 
+  /// No description provided for @insights_trend_overview_semanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Chart overview. Drag the highlighted window to scroll through time.'**
+  String get insights_trend_overview_semanticLabel;
+
   /// Checkbox: exclude this dive from all statistics
   ///
   /// In en, this message translates to:

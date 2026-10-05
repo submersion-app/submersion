@@ -26150,6 +26150,7 @@
   "diveLog_filter_presetLast10Years": "Last 10 years",
   "insights_trend_tooltip_lowest": "Lowest",
   "insights_trend_tooltip_highest": "Highest",
+  "insights_trend_overview_semanticLabel": "Chart overview. Drag the highlighted window to scroll through time.",
   "diveLog_edit_excludeFromStats": "Exclude from statistics",
   "@diveLog_edit_excludeFromStats": {
     "description": "Checkbox: exclude this dive from all statistics"

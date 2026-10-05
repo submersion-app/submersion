@@ -42670,6 +42670,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get insights_trend_tooltip_highest => 'Máximo';
 
   @override
+  String get insights_trend_overview_semanticLabel =>
+      'Chart overview. Drag the highlighted window to scroll through time.';
+
+  @override
   String get diveLog_edit_excludeFromStats => 'Excluir das estatísticas';
 
   @override
