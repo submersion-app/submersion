@@ -361,18 +361,22 @@ List<ProfileGasSegment>? buildRebreatherProfileGasSegments(
 /// it via [O2ToxicityCalculator.calculateMod]. No gases are invented -- only
 /// cylinders recorded on the dive. [gasSet] filters per the diver setting; the
 /// back gas is always retained as the ascent floor.
+///
+/// [forCcrBailout] is the gas set a CCR dive ascends on after a bailout: the
+/// diluent is left out (it is the loop's gas), and the O2 supply is kept under
+/// either [gasSet], since a bailed-out diver can breathe it open circuit
+/// shallow and the analysis already loads tissues on it when they do.
 @visibleForTesting
 List<AvailableGas> buildAvailableGases(
   Dive dive, {
   required double maxPpO2,
   required AscentGasSet gasSet,
-  bool excludeLoopCylinders = false,
+  bool forCcrBailout = false,
 }) {
   bool keep(DiveTank t) {
-    // A bailout ascent cannot breathe the loop's own cylinders.
-    if (excludeLoopCylinders &&
-        (t.role == TankRole.diluent || t.role == TankRole.oxygenSupply)) {
-      return false;
+    if (forCcrBailout) {
+      if (t.role == TankRole.diluent) return false;
+      if (t.role == TankRole.oxygenSupply) return true;
     }
     if (gasSet == AscentGasSet.allCarried) return true;
     return t.role == TankRole.backGas ||
@@ -1332,7 +1336,8 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     };
     final ascentMaxPpO2 = inputs.ppO2MaxDeco;
     // OC ascends on its carried gases; a CCR dive that bailed out ascends
-    // from its bailout samples on the open-circuit cylinders it carried.
+    // from its bailout samples on what it carried, the O2 supply included
+    // and the diluent left out.
     final ascentGases = switch (dive.diveMode) {
       DiveMode.oc => buildAvailableGases(
         dive,
@@ -1344,7 +1349,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
           dive,
           maxPpO2: ascentMaxPpO2,
           gasSet: inputs.ascentGasSet,
-          excludeLoopCylinders: true,
+          forCcrBailout: true,
         ),
       _ => null,
     };

@@ -99,8 +99,10 @@ tanks, and pass the changes to the builder. SCR passes none.
 
 When the resulting schedule contains an open-circuit segment, the provider
 passes ascent gases: `buildAvailableGases` (honouring the diver's ascent-gas
-setting) minus `diluent` and `oxygenSupply` cylinders; null if that leaves
-nothing.
+setting) minus the `diluent` cylinders, with the `oxygenSupply` cylinder kept
+under either setting (a bailed-out diver can breathe it open circuit shallow,
+and the tissues already load on it when a switch to it is logged); null if
+that leaves nothing.
 
 ### 4. Engine ascent precedence
 
