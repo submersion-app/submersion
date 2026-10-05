@@ -4152,6 +4152,7 @@ class SyncDataSerializer {
       entityType,
       withoutDeviceLocalColumns(entityType, data),
     );
+    data = (await _withDeviceLocalFromHere(entityType, [data])).single;
     data = _withSchemaDefaults(
       entityType,
       (await _withLocalForOmitted(entityType, [data])).single,
@@ -4994,13 +4995,16 @@ class SyncDataSerializer {
     List<Map<String, dynamic>> records,
   ) async {
     if (records.isEmpty) return;
-    records = await _withLocalForOmitted(entityType, [
-      for (final record in records)
-        _withRenamedKeys(
-          entityType,
-          withoutDeviceLocalColumns(entityType, record),
-        ),
-    ]);
+    records = await _withLocalForOmitted(
+      entityType,
+      await _withDeviceLocalFromHere(entityType, [
+        for (final record in records)
+          _withRenamedKeys(
+            entityType,
+            withoutDeviceLocalColumns(entityType, record),
+          ),
+      ]),
+    );
     records = [
       for (final record in records) _withSchemaDefaults(entityType, record),
     ];
@@ -6480,7 +6484,15 @@ class SyncDataSerializer {
   /// [_exportDiveTypes], [_exportSpecies] and [_exportFieldPresets] all omit
   /// `isBuiltIn` rows, so the refill that follows this clear cannot put them
   /// back. Deleting them would leave the catalog permanently empty.
+  ///
+  /// Device-local columns ([deviceLocalSyncColumns]) of the cleared rows are
+  /// remembered first, so the refill keeps this device's values.
   Future<void> deleteAllRecords(String entityType) async {
+    if (deviceLocalSyncColumns.containsKey(entityType)) {
+      _adoptKeptDeviceLocal[entityType] = Map.of(
+        await _deviceLocalValuesHere(entityType),
+      );
+    }
     switch (entityType) {
       case 'settings':
         await (_db.delete(
@@ -8950,6 +8962,61 @@ class SyncDataSerializer {
   /// carries, so [_withLocalForOmitted] can tell a full row from a partial
   /// one without a read. Empty for a type with no table here.
   final Map<String, Set<String>> _rowKeys = {};
+
+  /// Device-local columns [deleteAllRecords] read before a replace-adopt
+  /// cleared their table, by entity type and record id. The refill consumes
+  /// an entry when its row comes back, so this device keeps its own values.
+  final Map<String, Map<String, Map<String, dynamic>>> _adoptKeptDeviceLocal =
+      {};
+
+  /// The device-local columns ([deviceLocalSyncColumns]) of [entityType]'s
+  /// rows on this device, by record id; every row when [ids] is null.
+  Future<Map<String, Map<String, dynamic>>> _deviceLocalValuesHere(
+    String entityType, [
+    Iterable<String>? ids,
+  ]) async {
+    final keys = deviceLocalSyncColumns[entityType];
+    if (keys == null) return const {};
+    final List<Map<String, dynamic>> rows;
+    switch (entityType) {
+      case 'diveComputers':
+        final query = _db.select(_db.diveComputers);
+        if (ids != null) query.where((t) => t.id.isIn(ids));
+        rows = [for (final row in await query.get()) row.toJson()];
+      default:
+        throw StateError('No device-local column read for $entityType');
+    }
+    return {
+      for (final row in rows)
+        row['id'] as String: {for (final key in keys) key: row[key]},
+    };
+  }
+
+  /// Fills each device-local column of [records] with this device's value:
+  /// the row it holds, else what a replace-adopt cleared, else nothing (a row
+  /// new here takes the column default). Stripping the wire values is not
+  /// enough on its own: [_buildRowKeys] leaves these columns out, so
+  /// [_withLocalForOmitted] would not refill them and the full-row upsert
+  /// would write their defaults over this device's values.
+  Future<List<Map<String, dynamic>>> _withDeviceLocalFromHere(
+    String entityType,
+    List<Map<String, dynamic>> records,
+  ) async {
+    if (!deviceLocalSyncColumns.containsKey(entityType)) return records;
+    final ids = {
+      for (final record in records) ?syncRecordId(entityType, record),
+    };
+    if (ids.isEmpty) return records;
+    final here = await _deviceLocalValuesHere(entityType, ids);
+    final kept = _adoptKeptDeviceLocal[entityType];
+    final filled = <Map<String, dynamic>>[];
+    for (final record in records) {
+      final id = syncRecordId(entityType, record);
+      final values = id == null ? null : (here[id] ?? kept?.remove(id));
+      filled.add(values == null ? record : {...record, ...values});
+    }
+    return filled;
+  }
 
   /// Fills each key [records] omit from the row this device already holds
   /// for the same record (#2553), before [_withSchemaDefaults] would fill
