@@ -1,4 +1,6 @@
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_location_display.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_enum_labels.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field.dart';
 
@@ -272,6 +274,22 @@ final Map<String, ConflictField> equipmentFields = {
 
 /// Columns whose meaning depends on the entity, keyed `entity.column`.
 final Map<String, ConflictField> equipmentOverrides = {
+  // Equipment locations (v268): a place's kind, whether it is archived, and
+  // when a move happened.
+  'equipmentLocations.kind': ConflictField(
+    (l) => l.equipment_locations_kindLabel,
+    FieldKind.enumValue,
+    enumLabel: (l, stored) =>
+        EquipmentLocationKind.fromName(stored).localizedName(l),
+  ),
+  'equipmentLocations.isArchived': ConflictField(
+    (l) => l.settings_conflict_field_isArchived,
+    FieldKind.boolean,
+  ),
+  'equipmentLocationMoves.movedAt': ConflictField(
+    (l) => l.settings_conflict_field_movedAt,
+    FieldKind.dateTime,
+  ),
   'cylinderFills.source': ConflictField(
     (l) => l.settings_conflict_field_cylinderFills_source,
     FieldKind.enumValue,
