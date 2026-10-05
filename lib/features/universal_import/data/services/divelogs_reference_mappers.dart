@@ -24,7 +24,21 @@ abstract final class DivelogsReferenceMappers {
     (['hood', 'haube'], EquipmentType.hood),
     (['knife', 'messer'], EquipmentType.knife),
     (['reel'], EquipmentType.reel),
-    (['smb', 'boje', 'lift bag', 'liftbag', 'hebesack'], EquipmentType.smb),
+    // Every lift bag spelling the MacDive reader accepts, so none of them
+    // reaches the bag row below.
+    (
+      [
+        'smb',
+        'boje',
+        'lift bag',
+        'lift-bag',
+        'liftbag',
+        'lifting bag',
+        'salvage bag',
+        'hebesack',
+      ],
+      EquipmentType.smb,
+    ),
     // Last (#2952): "Tasche" also names a pocket, so a lead pouch
     // ("Bleitasche") or a light's pouch is claimed by its item word first.
     (['bag', 'tasche', 'luggage'], EquipmentType.bag),

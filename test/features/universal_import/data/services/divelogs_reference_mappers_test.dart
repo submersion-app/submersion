@@ -51,6 +51,10 @@ void main() {
         // German for a flashlight; the light row must stay above the bag's.
         'Taschenlampe': EquipmentType.light,
         'Lift bag': EquipmentType.smb,
+        'Lift-bag': EquipmentType.smb,
+        'Liftbag': EquipmentType.smb,
+        'Lifting bag': EquipmentType.smb,
+        'Salvage bag': EquipmentType.smb,
         'Hebesack': EquipmentType.smb,
       };
       cases.forEach((input, expected) {
