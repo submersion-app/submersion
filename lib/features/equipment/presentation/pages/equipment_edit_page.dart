@@ -267,6 +267,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           EquipmentType.computer,
           EquipmentType.transmitter,
           EquipmentType.light,
+          EquipmentType.videoLight,
           EquipmentType.dpv,
           EquipmentType.rebreather,
         },

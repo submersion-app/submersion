@@ -11201,6 +11201,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentType_strobe => '闪光灯';
 
   @override
+  String get enum_equipmentType_lens => '镜头';
+
+  @override
+  String get enum_equipmentType_port => '镜头罩';
+
+  @override
+  String get enum_equipmentType_trayHandle => '托架 / 手柄';
+
+  @override
+  String get enum_equipmentType_armClamp => '臂 / 夹子';
+
+  @override
+  String get enum_equipmentType_videoLight => '摄像灯';
+
+  @override
+  String get enum_equipmentType_floatArm => '浮力臂 / 浮力块';
+
+  @override
   String get enum_equipmentType_undersuit => '内胆保暖服';
 
   @override
@@ -28408,6 +28426,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_pocket_mount => '佩戴方式';
 
   @override
+  String get attrLabel_lens_type => '镜头类型';
+
+  @override
+  String get attrLabel_focal_length_mm => '焦距 (mm)';
+
+  @override
+  String get attrLabel_port_type => '镜头罩类型';
+
+  @override
+  String get attrLabel_tray_style => '款式';
+
+  @override
+  String get attrLabel_arm_length_m => '臂长';
+
+  @override
+  String get attrLabel_guide_number => '闪光指数';
+
+  @override
   String get attrChoice_plate_material_aluminum => '铝';
 
   @override
@@ -28559,6 +28595,33 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => '大腿';
+
+  @override
+  String get attrChoice_lens_type_camera_lens => '相机镜头';
+
+  @override
+  String get attrChoice_lens_type_wet_lens => '湿镜';
+
+  @override
+  String get attrChoice_lens_type_diopter => '近摄镜 (屈光度)';
+
+  @override
+  String get attrChoice_port_type_dome => '球面罩';
+
+  @override
+  String get attrChoice_port_type_flat => '平面罩';
+
+  @override
+  String get attrChoice_port_type_macro => '微距罩';
+
+  @override
+  String get attrChoice_tray_style_single_handle => '单手柄';
+
+  @override
+  String get attrChoice_tray_style_double_handle => '双手柄';
+
+  @override
+  String get attrChoice_tray_style_pistol_grip => '手枪式握把';
 
   @override
   String get attrChoice_bcd_style_jacket => '夹克式';

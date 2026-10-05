@@ -90,16 +90,21 @@ void main() {
       find.ancestor(of: find.text(label), matching: find.byType(TextField));
 
   /// Opens the gear type menu and picks [label]. The menu opens scrolled to
-  /// the selected type, so an item near the top must be scrolled into view
-  /// before it exists in the tree.
-  Future<void> pickGearType(WidgetTester tester, String label) async {
+  /// the selected type, so an item away from it must be scrolled into view
+  /// before it exists in the tree: pass [below] for an item that sorts after
+  /// the selected type.
+  Future<void> pickGearType(
+    WidgetTester tester,
+    String label, {
+    bool below = false,
+  }) async {
     await tester.tap(find.byType(DropdownButtonFormField<EquipmentType>));
     await tester.pumpAndSettle();
     // With the menu open the closed field still reads the old type, so the
     // label exists once, in the menu.
     await tester.scrollUntilVisible(
       find.text(label),
-      -100,
+      below ? 100 : -100,
       scrollable: find.byType(Scrollable).last,
     );
     await tester.tap(find.text(label));
@@ -142,7 +147,8 @@ void main() {
     tester,
   ) async {
     await pumpAndOpen(tester);
-    await pickGearType(tester, 'Tank');
+    // Tank sorts after the default Other, below where the menu opens.
+    await pickGearType(tester, 'Tank', below: true);
     expect(find.text('Actual capacity (L)'), findsOneWidget);
     await tester.enterText(fieldLabelled('Label or number'), 'AL80');
     await tester.enterText(fieldLabelled('Actual capacity (L)'), '11.1');

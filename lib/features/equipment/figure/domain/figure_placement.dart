@@ -66,6 +66,12 @@ abstract final class FigurePlacement {
   static const Set<EquipmentType> trayTypes = {
     EquipmentType.hose,
     EquipmentType.tankBand,
+    // Camera parts (#1997) the camera and housing artwork already shows.
+    EquipmentType.lens,
+    EquipmentType.port,
+    EquipmentType.trayHandle,
+    EquipmentType.armClamp,
+    EquipmentType.floatArm,
     EquipmentType.tool,
     EquipmentType.o2Cell,
     EquipmentType.battery,
@@ -495,7 +501,10 @@ abstract final class FigurePlacement {
           },
           defaultColor: FigureColors.black,
         );
+      // A video light rides the camera's arm like a strobe (#1997), and is
+      // drawn with the same piece.
       case EquipmentType.strobe:
+      case EquipmentType.videoLight:
         return const FigurePlacementSpec(
           zones: [FigureZone.cameraArm],
           piecesByZone: {
@@ -540,6 +549,11 @@ abstract final class FigurePlacement {
         );
       case EquipmentType.hose:
       case EquipmentType.tankBand:
+      case EquipmentType.lens:
+      case EquipmentType.port:
+      case EquipmentType.trayHandle:
+      case EquipmentType.armClamp:
+      case EquipmentType.floatArm:
         return const FigurePlacementSpec(
           zones: [],
           defaultColor: FigureColors.black,

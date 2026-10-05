@@ -18997,6 +18997,42 @@ abstract class AppLocalizations {
   /// **'Strobe'**
   String get enum_equipmentType_strobe;
 
+  /// No description provided for @enum_equipmentType_lens.
+  ///
+  /// In en, this message translates to:
+  /// **'Lens'**
+  String get enum_equipmentType_lens;
+
+  /// No description provided for @enum_equipmentType_port.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get enum_equipmentType_port;
+
+  /// No description provided for @enum_equipmentType_trayHandle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tray / Handle'**
+  String get enum_equipmentType_trayHandle;
+
+  /// No description provided for @enum_equipmentType_armClamp.
+  ///
+  /// In en, this message translates to:
+  /// **'Arm / Clamp'**
+  String get enum_equipmentType_armClamp;
+
+  /// No description provided for @enum_equipmentType_videoLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Video Light'**
+  String get enum_equipmentType_videoLight;
+
+  /// No description provided for @enum_equipmentType_floatArm.
+  ///
+  /// In en, this message translates to:
+  /// **'Float Arm / Float'**
+  String get enum_equipmentType_floatArm;
+
   /// No description provided for @enum_equipmentType_undersuit.
   ///
   /// In en, this message translates to:
@@ -47202,6 +47238,42 @@ abstract class AppLocalizations {
   /// **'Mount'**
   String get attrLabel_pocket_mount;
 
+  /// No description provided for @attrLabel_lens_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Lens type'**
+  String get attrLabel_lens_type;
+
+  /// No description provided for @attrLabel_focal_length_mm.
+  ///
+  /// In en, this message translates to:
+  /// **'Focal length (mm)'**
+  String get attrLabel_focal_length_mm;
+
+  /// No description provided for @attrLabel_port_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Port type'**
+  String get attrLabel_port_type;
+
+  /// No description provided for @attrLabel_tray_style.
+  ///
+  /// In en, this message translates to:
+  /// **'Style'**
+  String get attrLabel_tray_style;
+
+  /// No description provided for @attrLabel_arm_length_m.
+  ///
+  /// In en, this message translates to:
+  /// **'Arm length'**
+  String get attrLabel_arm_length_m;
+
+  /// No description provided for @attrLabel_guide_number.
+  ///
+  /// In en, this message translates to:
+  /// **'Guide number'**
+  String get attrLabel_guide_number;
+
   /// No description provided for @attrChoice_plate_material_aluminum.
   ///
   /// In en, this message translates to:
@@ -47507,6 +47579,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Thigh'**
   String get attrChoice_pocket_mount_thigh;
+
+  /// No description provided for @attrChoice_lens_type_camera_lens.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera lens'**
+  String get attrChoice_lens_type_camera_lens;
+
+  /// No description provided for @attrChoice_lens_type_wet_lens.
+  ///
+  /// In en, this message translates to:
+  /// **'Wet lens'**
+  String get attrChoice_lens_type_wet_lens;
+
+  /// No description provided for @attrChoice_lens_type_diopter.
+  ///
+  /// In en, this message translates to:
+  /// **'Diopter'**
+  String get attrChoice_lens_type_diopter;
+
+  /// No description provided for @attrChoice_port_type_dome.
+  ///
+  /// In en, this message translates to:
+  /// **'Dome'**
+  String get attrChoice_port_type_dome;
+
+  /// No description provided for @attrChoice_port_type_flat.
+  ///
+  /// In en, this message translates to:
+  /// **'Flat'**
+  String get attrChoice_port_type_flat;
+
+  /// No description provided for @attrChoice_port_type_macro.
+  ///
+  /// In en, this message translates to:
+  /// **'Macro'**
+  String get attrChoice_port_type_macro;
+
+  /// No description provided for @attrChoice_tray_style_single_handle.
+  ///
+  /// In en, this message translates to:
+  /// **'Single handle'**
+  String get attrChoice_tray_style_single_handle;
+
+  /// No description provided for @attrChoice_tray_style_double_handle.
+  ///
+  /// In en, this message translates to:
+  /// **'Double handle'**
+  String get attrChoice_tray_style_double_handle;
+
+  /// No description provided for @attrChoice_tray_style_pistol_grip.
+  ///
+  /// In en, this message translates to:
+  /// **'Pistol grip'**
+  String get attrChoice_tray_style_pistol_grip;
 
   /// No description provided for @attrChoice_bcd_style_jacket.
   ///

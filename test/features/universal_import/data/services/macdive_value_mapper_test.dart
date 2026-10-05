@@ -124,7 +124,9 @@ void main() {
       'Harness': EquipmentType.harness,
       'Backplate and harness': EquipmentType.backplate,
       'Camera housing': EquipmentType.housing,
-      'Strobe arm': EquipmentType.strobe,
+      // An arm is part of the rig in its own right (#1997), whatever it
+      // carries.
+      'Strobe arm': EquipmentType.armClamp,
       'Computer': EquipmentType.computer,
       'Dive Watch': EquipmentType.computer,
       'Transmitter': EquipmentType.transmitter,
@@ -134,6 +136,14 @@ void main() {
       'Dry Suit': EquipmentType.drysuit,
       'Rebreather': EquipmentType.rebreather,
       'CCR unit': EquipmentType.rebreather,
+      'SCR': EquipmentType.rebreather,
+      'JJ-CCR': EquipmentType.rebreather,
+      'mCCR': EquipmentType.rebreather,
+      'eCCR': EquipmentType.rebreather,
+      'pSCR': EquipmentType.rebreather,
+      // "scr" sits inside "prescription", which once made every prescription
+      // mask a rebreather.
+      'Prescription mask': EquipmentType.mask,
       'Tank': EquipmentType.tank,
       'Cylinder': EquipmentType.tank,
       'Weights': EquipmentType.weights,
@@ -199,6 +209,29 @@ void main() {
       'Utility pocket': EquipmentType.gearPocket,
       'Drysuit thigh pocket': EquipmentType.gearPocket,
       'Pocket': EquipmentType.gearPocket,
+      // #1997 camera parts. Compound names win over the light, camera and
+      // strobe words they contain.
+      'Lens': EquipmentType.lens,
+      'Wet lens': EquipmentType.lens,
+      'Macro lens': EquipmentType.lens,
+      'Diopter': EquipmentType.lens,
+      'Port': EquipmentType.port,
+      'Dome port': EquipmentType.port,
+      'Flat ports': EquipmentType.port,
+      'Tray': EquipmentType.trayHandle,
+      'Camera tray': EquipmentType.trayHandle,
+      'Ultralight tray': EquipmentType.trayHandle,
+      'Tray handle': EquipmentType.trayHandle,
+      'Pistol grip': EquipmentType.trayHandle,
+      'Arm': EquipmentType.armClamp,
+      'Arms': EquipmentType.armClamp,
+      'Ball clamp': EquipmentType.armClamp,
+      'Arm clamp': EquipmentType.armClamp,
+      'Video light': EquipmentType.videoLight,
+      'Video lights': EquipmentType.videoLight,
+      'Float arm': EquipmentType.floatArm,
+      'Float': EquipmentType.floatArm,
+      'Buoyancy arm': EquipmentType.floatArm,
     };
 
     cases.forEach((input, expected) {
@@ -226,6 +259,28 @@ void main() {
         MacDiveValueMapper.equipmentType('Compass console'),
         EquipmentType.compass,
       );
+    });
+
+    test('camera words match whole words only (#1997)', () {
+      // "Port" sits inside "transport" and "sport", "arm" inside "alarm" and
+      // "warm", and "float" inside "floating": none of those is a camera part.
+      const notCameraParts = {
+        'Transport bag': EquipmentType.other,
+        'Sport bag': EquipmentType.other,
+        'Alarm tool': EquipmentType.tool,
+        'Floating reel': EquipmentType.reel,
+        // A mask's lens is still the mask, which is checked first.
+        'Prescription lens mask': EquipmentType.mask,
+        // A plain dive light is not a video light.
+        'Pocket light': EquipmentType.light,
+      };
+      notCameraParts.forEach((input, expected) {
+        expect(
+          MacDiveValueMapper.equipmentType(input),
+          expected,
+          reason: input,
+        );
+      });
     });
 
     test('a bare pocket or band word does not steal a whole item (#1877)', () {

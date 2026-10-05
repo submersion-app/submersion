@@ -11487,6 +11487,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentType_strobe => 'פלאש';
 
   @override
+  String get enum_equipmentType_lens => 'עדשה';
+
+  @override
+  String get enum_equipmentType_port => 'פורט';
+
+  @override
+  String get enum_equipmentType_trayHandle => 'מגש / ידית';
+
+  @override
+  String get enum_equipmentType_armClamp => 'זרוע / מהדק';
+
+  @override
+  String get enum_equipmentType_videoLight => 'פנס וידאו';
+
+  @override
+  String get enum_equipmentType_floatArm => 'זרוע ציפה / מצוף';
+
+  @override
   String get enum_equipmentType_undersuit => 'חליפה תחתונה';
 
   @override
@@ -29307,6 +29325,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_pocket_mount => 'התקנה';
 
   @override
+  String get attrLabel_lens_type => 'סוג עדשה';
+
+  @override
+  String get attrLabel_focal_length_mm => 'אורך מוקד (מ״מ)';
+
+  @override
+  String get attrLabel_port_type => 'סוג פורט';
+
+  @override
+  String get attrLabel_tray_style => 'סגנון';
+
+  @override
+  String get attrLabel_arm_length_m => 'אורך זרוע';
+
+  @override
+  String get attrLabel_guide_number => 'מספר מנחה';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'אלומיניום';
 
   @override
@@ -29458,6 +29494,33 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'ירך';
+
+  @override
+  String get attrChoice_lens_type_camera_lens => 'עדשת מצלמה';
+
+  @override
+  String get attrChoice_lens_type_wet_lens => 'עדשה רטובה';
+
+  @override
+  String get attrChoice_lens_type_diopter => 'עדשת קירוב (דיופטר)';
+
+  @override
+  String get attrChoice_port_type_dome => 'כיפה';
+
+  @override
+  String get attrChoice_port_type_flat => 'שטוח';
+
+  @override
+  String get attrChoice_port_type_macro => 'מאקרו';
+
+  @override
+  String get attrChoice_tray_style_single_handle => 'ידית אחת';
+
+  @override
+  String get attrChoice_tray_style_double_handle => 'שתי ידיות';
+
+  @override
+  String get attrChoice_tray_style_pistol_grip => 'אחיזת אקדח';
 
   @override
   String get attrChoice_bcd_style_jacket => 'ז\'קט';

@@ -11561,6 +11561,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentType_strobe => 'Strobe';
 
   @override
+  String get enum_equipmentType_lens => 'Lens';
+
+  @override
+  String get enum_equipmentType_port => 'Port';
+
+  @override
+  String get enum_equipmentType_trayHandle => 'Tray / Handle';
+
+  @override
+  String get enum_equipmentType_armClamp => 'Arm / Clamp';
+
+  @override
+  String get enum_equipmentType_videoLight => 'Video Light';
+
+  @override
+  String get enum_equipmentType_floatArm => 'Float Arm / Float';
+
+  @override
   String get enum_equipmentType_undersuit => 'Undersuit';
 
   @override
@@ -29548,6 +29566,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Mount';
 
   @override
+  String get attrLabel_lens_type => 'Lens type';
+
+  @override
+  String get attrLabel_focal_length_mm => 'Focal length (mm)';
+
+  @override
+  String get attrLabel_port_type => 'Port type';
+
+  @override
+  String get attrLabel_tray_style => 'Style';
+
+  @override
+  String get attrLabel_arm_length_m => 'Arm length';
+
+  @override
+  String get attrLabel_guide_number => 'Guide number';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminum';
 
   @override
@@ -29699,6 +29735,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Thigh';
+
+  @override
+  String get attrChoice_lens_type_camera_lens => 'Camera lens';
+
+  @override
+  String get attrChoice_lens_type_wet_lens => 'Wet lens';
+
+  @override
+  String get attrChoice_lens_type_diopter => 'Diopter';
+
+  @override
+  String get attrChoice_port_type_dome => 'Dome';
+
+  @override
+  String get attrChoice_port_type_flat => 'Flat';
+
+  @override
+  String get attrChoice_port_type_macro => 'Macro';
+
+  @override
+  String get attrChoice_tray_style_single_handle => 'Single handle';
+
+  @override
+  String get attrChoice_tray_style_double_handle => 'Double handle';
+
+  @override
+  String get attrChoice_tray_style_pistol_grip => 'Pistol grip';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

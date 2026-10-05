@@ -11777,6 +11777,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_equipmentType_strobe => 'Flash';
 
   @override
+  String get enum_equipmentType_lens => 'Objectif';
+
+  @override
+  String get enum_equipmentType_port => 'Hublot';
+
+  @override
+  String get enum_equipmentType_trayHandle => 'Platine / Poignée';
+
+  @override
+  String get enum_equipmentType_armClamp => 'Bras / Pince';
+
+  @override
+  String get enum_equipmentType_videoLight => 'Phare vidéo';
+
+  @override
+  String get enum_equipmentType_floatArm => 'Bras flotteur / Flotteur';
+
+  @override
   String get enum_equipmentType_undersuit => 'Sous-combinaison';
 
   @override
@@ -30114,6 +30132,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Fixation';
 
   @override
+  String get attrLabel_lens_type => 'Type d\'objectif';
+
+  @override
+  String get attrLabel_focal_length_mm => 'Focale (mm)';
+
+  @override
+  String get attrLabel_port_type => 'Type de hublot';
+
+  @override
+  String get attrLabel_tray_style => 'Style';
+
+  @override
+  String get attrLabel_arm_length_m => 'Longueur du bras';
+
+  @override
+  String get attrLabel_guide_number => 'Nombre guide';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminium';
 
   @override
@@ -30266,6 +30302,33 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Cuisse';
+
+  @override
+  String get attrChoice_lens_type_camera_lens => 'Objectif d\'appareil';
+
+  @override
+  String get attrChoice_lens_type_wet_lens => 'Optique additionnelle';
+
+  @override
+  String get attrChoice_lens_type_diopter => 'Bonnette (dioptrie)';
+
+  @override
+  String get attrChoice_port_type_dome => 'Dôme';
+
+  @override
+  String get attrChoice_port_type_flat => 'Plan';
+
+  @override
+  String get attrChoice_port_type_macro => 'Macro';
+
+  @override
+  String get attrChoice_tray_style_single_handle => 'Poignée simple';
+
+  @override
+  String get attrChoice_tray_style_double_handle => 'Double poignée';
+
+  @override
+  String get attrChoice_tray_style_pistol_grip => 'Poignée pistolet';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Gilet';

@@ -17,6 +17,17 @@ abstract final class DivelogsReferenceMappers {
     (['computer'], EquipmentType.computer),
     (['tank', 'cylinder', 'flasche'], EquipmentType.tank),
     (['weight', 'blei'], EquipmentType.weights),
+    // The camera's parts (#1997), ahead of the light and camera words their
+    // names contain ("Videolampe", "Blitzarm"). A float arm comes before the
+    // arms and an arm before the strobe it carries.
+    (['float arm', 'auftriebsarm'], EquipmentType.floatArm),
+    (['strobe arm', 'blitzarm', 'clamp', 'klemme'], EquipmentType.armClamp),
+    (['camera tray', 'kameraschiene'], EquipmentType.trayHandle),
+    (['video light', 'videolicht', 'videolampe'], EquipmentType.videoLight),
+    (['dome port', 'flat port', 'domeport'], EquipmentType.port),
+    (['wet lens', 'nasslinse', 'objektiv', 'diopter'], EquipmentType.lens),
+    (['housing', 'gehäuse'], EquipmentType.housing),
+    (['strobe', 'blitz'], EquipmentType.strobe),
     (['light', 'lamp', 'lampe'], EquipmentType.light),
     (['camera', 'kamera'], EquipmentType.camera),
     (['boot', 'füßling', 'fussling'], EquipmentType.boots),

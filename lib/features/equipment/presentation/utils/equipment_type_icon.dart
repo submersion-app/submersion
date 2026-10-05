@@ -104,11 +104,24 @@ IconData equipmentTypeIcon(EquipmentType type) {
       return Icons.flashlight_on;
     case EquipmentType.camera:
       return Icons.camera_alt;
-    // Photo rig parts (issue #1487).
+    // Photo rig parts (issue #1487, #1997). The six #1997 parts have no
+    // shape in any icon font, so they are drawn.
+    case EquipmentType.lens:
+      return SubmersionIcons.lens;
+    case EquipmentType.port:
+      return SubmersionIcons.port;
     case EquipmentType.housing:
       return Icons.photo_camera_back;
+    case EquipmentType.trayHandle:
+      return SubmersionIcons.trayHandle;
+    case EquipmentType.armClamp:
+      return SubmersionIcons.armClamp;
     case EquipmentType.strobe:
       return Icons.flash_on;
+    case EquipmentType.videoLight:
+      return SubmersionIcons.videoLight;
+    case EquipmentType.floatArm:
+      return SubmersionIcons.floatArm;
     case EquipmentType.knife:
       return MdiIcons.knifeMilitary;
     // Crossed screwdriver and wrench: a save-a-dive kit, not one wrench, which

@@ -11718,6 +11718,24 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentType_strobe => 'Vaku';
 
   @override
+  String get enum_equipmentType_lens => 'Objektív';
+
+  @override
+  String get enum_equipmentType_port => 'Port';
+
+  @override
+  String get enum_equipmentType_trayHandle => 'Tálca / Markolat';
+
+  @override
+  String get enum_equipmentType_armClamp => 'Kar / Bilincs';
+
+  @override
+  String get enum_equipmentType_videoLight => 'Videólámpa';
+
+  @override
+  String get enum_equipmentType_floatArm => 'Úszókar / Úszó';
+
+  @override
   String get enum_equipmentType_undersuit => 'Alsóöltözet';
 
   @override
@@ -29890,6 +29908,24 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Rögzítés';
 
   @override
+  String get attrLabel_lens_type => 'Objektív típusa';
+
+  @override
+  String get attrLabel_focal_length_mm => 'Gyújtótávolság (mm)';
+
+  @override
+  String get attrLabel_port_type => 'Port típusa';
+
+  @override
+  String get attrLabel_tray_style => 'Fazon';
+
+  @override
+  String get attrLabel_arm_length_m => 'Kar hossza';
+
+  @override
+  String get attrLabel_guide_number => 'Kulcsszám';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Alumínium';
 
   @override
@@ -30042,6 +30078,33 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Comb';
+
+  @override
+  String get attrChoice_lens_type_camera_lens => 'Fényképezőgép-objektív';
+
+  @override
+  String get attrChoice_lens_type_wet_lens => 'Nedves előtétlencse';
+
+  @override
+  String get attrChoice_lens_type_diopter => 'Közelítő lencse (dioptria)';
+
+  @override
+  String get attrChoice_port_type_dome => 'Dóm';
+
+  @override
+  String get attrChoice_port_type_flat => 'Sík';
+
+  @override
+  String get attrChoice_port_type_macro => 'Makró';
+
+  @override
+  String get attrChoice_tray_style_single_handle => 'Egy markolat';
+
+  @override
+  String get attrChoice_tray_style_double_handle => 'Két markolat';
+
+  @override
+  String get attrChoice_tray_style_pistol_grip => 'Pisztolymarkolat';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Mellény';

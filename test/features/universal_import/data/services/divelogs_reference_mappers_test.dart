@@ -40,6 +40,36 @@ void main() {
       );
     });
 
+    test('maps the camera parts ahead of the light and camera (#1997)', () {
+      const cases = {
+        'Video light': EquipmentType.videoLight,
+        'Videolampe': EquipmentType.videoLight,
+        'Videolicht': EquipmentType.videoLight,
+        'Strobe arm': EquipmentType.armClamp,
+        'Blitzarm': EquipmentType.armClamp,
+        'Clamp': EquipmentType.armClamp,
+        'Float arm': EquipmentType.floatArm,
+        'Auftriebsarm': EquipmentType.floatArm,
+        'Camera tray': EquipmentType.trayHandle,
+        'Dome port': EquipmentType.port,
+        'Wet lens': EquipmentType.lens,
+        'Objektiv': EquipmentType.lens,
+        'Housing': EquipmentType.housing,
+        'Kameragehäuse': EquipmentType.housing,
+        'Strobe': EquipmentType.strobe,
+        'Blitz': EquipmentType.strobe,
+        'Camera': EquipmentType.camera,
+        'Lampe': EquipmentType.light,
+      };
+      cases.forEach((input, expected) {
+        expect(
+          DivelogsReferenceMappers.equipmentTypeForGeartypeName(input),
+          expected,
+          reason: input,
+        );
+      });
+    });
+
     test('unknown or null names map to other', () {
       expect(
         DivelogsReferenceMappers.equipmentTypeForGeartypeName('Gadget'),

@@ -11657,6 +11657,24 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentType_strobe => 'Flitser';
 
   @override
+  String get enum_equipmentType_lens => 'Objectief';
+
+  @override
+  String get enum_equipmentType_port => 'Poort';
+
+  @override
+  String get enum_equipmentType_trayHandle => 'Tray / Handgreep';
+
+  @override
+  String get enum_equipmentType_armClamp => 'Arm / Klem';
+
+  @override
+  String get enum_equipmentType_videoLight => 'Videolamp';
+
+  @override
+  String get enum_equipmentType_floatArm => 'Drijfarm / Drijver';
+
+  @override
   String get enum_equipmentType_undersuit => 'Onderpak';
 
   @override
@@ -29812,6 +29830,24 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Bevestiging';
 
   @override
+  String get attrLabel_lens_type => 'Objectieftype';
+
+  @override
+  String get attrLabel_focal_length_mm => 'Brandpuntsafstand (mm)';
+
+  @override
+  String get attrLabel_port_type => 'Poorttype';
+
+  @override
+  String get attrLabel_tray_style => 'Stijl';
+
+  @override
+  String get attrLabel_arm_length_m => 'Armlengte';
+
+  @override
+  String get attrLabel_guide_number => 'Richtgetal';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminium';
 
   @override
@@ -29964,6 +30000,33 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Dij';
+
+  @override
+  String get attrChoice_lens_type_camera_lens => 'Cameraobjectief';
+
+  @override
+  String get attrChoice_lens_type_wet_lens => 'Natte lens';
+
+  @override
+  String get attrChoice_lens_type_diopter => 'Voorzetlens (dioptrie)';
+
+  @override
+  String get attrChoice_port_type_dome => 'Dome';
+
+  @override
+  String get attrChoice_port_type_flat => 'Vlak';
+
+  @override
+  String get attrChoice_port_type_macro => 'Macro';
+
+  @override
+  String get attrChoice_tray_style_single_handle => 'Enkele handgreep';
+
+  @override
+  String get attrChoice_tray_style_double_handle => 'Dubbele handgreep';
+
+  @override
+  String get attrChoice_tray_style_pistol_grip => 'Pistoolgreep';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

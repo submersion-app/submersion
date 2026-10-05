@@ -11743,6 +11743,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_equipmentType_strobe => 'Flash';
 
   @override
+  String get enum_equipmentType_lens => 'Objetiva';
+
+  @override
+  String get enum_equipmentType_port => 'Porta';
+
+  @override
+  String get enum_equipmentType_trayHandle => 'Bandeja / Alça';
+
+  @override
+  String get enum_equipmentType_armClamp => 'Braço / Grampo';
+
+  @override
+  String get enum_equipmentType_videoLight => 'Luz de vídeo';
+
+  @override
+  String get enum_equipmentType_floatArm => 'Braço flutuador / Flutuador';
+
+  @override
   String get enum_equipmentType_undersuit => 'Fato interior';
 
   @override
@@ -30026,6 +30044,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Fixação';
 
   @override
+  String get attrLabel_lens_type => 'Tipo de objetiva';
+
+  @override
+  String get attrLabel_focal_length_mm => 'Distância focal (mm)';
+
+  @override
+  String get attrLabel_port_type => 'Tipo de porta';
+
+  @override
+  String get attrLabel_tray_style => 'Estilo';
+
+  @override
+  String get attrLabel_arm_length_m => 'Comprimento do braço';
+
+  @override
+  String get attrLabel_guide_number => 'Número guia';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Alumínio';
 
   @override
@@ -30180,6 +30216,33 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Coxa';
+
+  @override
+  String get attrChoice_lens_type_camera_lens => 'Objetiva da câmera';
+
+  @override
+  String get attrChoice_lens_type_wet_lens => 'Lente úmida';
+
+  @override
+  String get attrChoice_lens_type_diopter => 'Lente de aproximação (dioptria)';
+
+  @override
+  String get attrChoice_port_type_dome => 'Domo';
+
+  @override
+  String get attrChoice_port_type_flat => 'Plana';
+
+  @override
+  String get attrChoice_port_type_macro => 'Macro';
+
+  @override
+  String get attrChoice_tray_style_single_handle => 'Alça simples';
+
+  @override
+  String get attrChoice_tray_style_double_handle => 'Alça dupla';
+
+  @override
+  String get attrChoice_tray_style_pistol_grip => 'Empunhadura de pistola';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Colete';
