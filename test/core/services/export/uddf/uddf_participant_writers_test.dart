@@ -157,4 +157,20 @@ void main() {
       expect(root.findElements('buddy'), isEmpty);
     });
   });
+
+  test('a person with any leader role is a leader, never a plain buddy '
+      '(#1221)', () {
+    DiveRole role(String id) =>
+        DiveRole(id: id, name: id, createdAt: _epoch, updatedAt: _epoch);
+    final both = BuddyWithRole(
+      buddy: _buddy('b', 'Ben Ortiz'),
+      roles: [role(DiveRole.buddyId), role(DiveRole.diveMasterId)],
+    );
+    final rows = [both, _row(_plain, DiveRole.buddyId)];
+
+    expect(UddfParticipantWriters.leaders(rows), [both]);
+    expect(UddfParticipantWriters.plainBuddies(rows).map((r) => r.buddy), [
+      _plain,
+    ]);
+  });
 }

@@ -1267,13 +1267,12 @@ class UddfFullImportService {
       // The logbook owner's own role on the dive (custom element). The
       // importer checks the id against the database, since a dives-only
       // file declares no custom roles yet may name one already present.
-      final diverRole = UddfImportParsers.getElementText(
-        beforeElement,
-        'diverrole',
-      );
-      if (diverRole != null && diverRole.isNotEmpty) {
-        diveData['diverRoleId'] = diverRole;
-      }
+      // One element per role since issue #1221, in DiveRoleSet order.
+      final diverRoles = [
+        for (final element in beforeElement.findElements('diverrole'))
+          if (element.innerText.trim() case final id when id.isNotEmpty) id,
+      ];
+      if (diverRoles.isNotEmpty) diveData['diverRoleIds'] = diverRoles;
 
       // Parse entry time
       final entryTime = UddfImportParsers.getElementText(

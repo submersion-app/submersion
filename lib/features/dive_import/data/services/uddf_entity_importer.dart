@@ -31,6 +31,7 @@ import 'package:submersion/core/utils/number_utils.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
@@ -2611,13 +2612,16 @@ class UddfEntityImporter {
       final diveMode =
           _parseEnum(diveData['diveMode'], DiveMode.values) ?? DiveMode.oc;
       final isPlanned = diveData['isPlanned'] as bool? ?? false;
-      // The diver's own role, as this diver's copy of it. A custom role this
-      // diver lacks (its definition never arrived) leaves the dive with no
-      // role rather than one this diver's role list cannot resolve.
-      final diverRoleValue = diveData['diverRoleId'];
-      final diverRoleId = diverRoleValue is String && diverRoleValue.isNotEmpty
-          ? await localRoleId(diverRoleValue)
-          : null;
+      // The diver's own roles (several since #1221), each as this diver's
+      // copy of it. A custom role this diver lacks (its definition never
+      // arrived) is dropped rather than kept as one this diver's role list
+      // cannot resolve.
+      final diverRoleValue = diveData['diverRoleIds'];
+      final diverRoleIds = DiveRoleSet.normalize([
+        if (diverRoleValue is List)
+          for (final id in diverRoleValue.whereType<String>())
+            if (id.isNotEmpty) ?await localRoleId(id),
+      ]);
       final isFavorite = diveData['isFavorite'] as bool? ?? false;
       final excludedFromStats = diveData['excludedFromStats'] as bool? ?? false;
       final excludedFromGasStats =
@@ -2721,7 +2725,7 @@ class UddfEntityImporter {
         // Dive mode and rebreather fields
         diveMode: diveMode,
         isPlanned: isPlanned,
-        diverRoleIds: [?diverRoleId],
+        diverRoleIds: diverRoleIds,
         isFavorite: isFavorite,
         excludedFromStats: excludedFromStats,
         excludedFromGasStats: excludedFromGasStats,
@@ -3404,6 +3408,15 @@ class UddfEntityImporter {
     BuddyRepository repository, {
     required Future<String?> Function(String roleId) localRoleId,
   }) async {
+    // Roles per person, collected from every source before any link is
+    // written (issue #1221): the standard elements infer roles that add up
+    // (DiveRoleSet.accumulate), while Submersion's exact <buddyroles> set,
+    // when present, is the person's whole set.
+    final inferred = <String, List<String>>{};
+    final exact = <String, List<String>>{};
+    void infer(String buddyId, String roleId) =>
+        inferred.putIfAbsent(buddyId, () => []).add(roleId);
+
     // Link referenced buddies (from pre-imported buddy entities)
     final buddyRefsValue = diveData['buddyRefs'];
     final buddyRefs = buddyRefsValue is List
@@ -3412,7 +3425,7 @@ class UddfEntityImporter {
     for (final buddyRef in buddyRefs) {
       final newBuddyId = buddyIdMapping[buddyRef];
       if (newBuddyId != null) {
-        await repository.addBuddyToDive(diveId, newBuddyId, DiveRole.buddyId);
+        infer(newBuddyId, DiveRole.buddyId);
       }
     }
 
@@ -3424,11 +3437,7 @@ class UddfEntityImporter {
     for (final guideRef in guideRefs) {
       final newGuideId = buddyIdMapping[guideRef];
       if (newGuideId != null) {
-        await repository.addBuddyToDive(
-          diveId,
-          newGuideId,
-          DiveRole.diveGuideId,
-        );
+        infer(newGuideId, DiveRole.diveGuideId);
       }
     }
 
@@ -3446,7 +3455,7 @@ class UddfEntityImporter {
       if (buddy.diverId == null) {
         await repository.updateBuddy(buddy.copyWith(diverId: diverId));
       }
-      await repository.addBuddyToDive(diveId, buddy.id, DiveRole.buddyId);
+      infer(buddy.id, DiveRole.buddyId);
       inlineIds.add(buddy.id);
     }
 
@@ -3463,15 +3472,15 @@ class UddfEntityImporter {
       if (guide.diverId == null) {
         await repository.updateBuddy(guide.copyWith(diverId: diverId));
       }
-      await repository.addBuddyToDive(diveId, guide.id, DiveRole.diveGuideId);
+      infer(guide.id, DiveRole.diveGuideId);
       inlineIds.add(guide.id);
     }
 
     // Exact roles from Submersion's private <buddyroles> block (issue
-    // #1737). Applied last: addBuddyToDive keeps one row per person, so
-    // these override any role inferred from the standard elements. A role
-    // this diver lacks can only be a custom role whose definition never
-    // arrived, which the standard elements carried as a plain buddy.
+    // #1737), one entry per role since #1221. They replace whatever the
+    // standard elements inferred for that person. A role this diver lacks
+    // can only be a custom role whose definition never arrived, which the
+    // standard elements carried as a plain buddy.
     final roleRefsValue = diveData['buddyRoleRefs'];
     final roleRefs = roleRefsValue is List ? roleRefsValue : const [];
     for (final entry in roleRefs) {
@@ -3481,10 +3490,18 @@ class UddfEntityImporter {
       if (buddyRef is! String || roleId is! String || roleId.isEmpty) continue;
       final newBuddyId = buddyIdMapping[buddyRef];
       if (newBuddyId == null) continue;
-      await repository.addBuddyToDive(
+      exact
+          .putIfAbsent(newBuddyId, () => [])
+          .add(await localRoleId(roleId) ?? DiveRole.buddyId);
+    }
+
+    for (final buddyId in {...inferred.keys, ...exact.keys}) {
+      await repository.addBuddyToDiveWithRoles(
         diveId,
-        newBuddyId,
-        await localRoleId(roleId) ?? DiveRole.buddyId,
+        buddyId,
+        exact.containsKey(buddyId)
+            ? DiveRoleSet.normalizeBuddy(exact[buddyId]!)
+            : DiveRoleSet.accumulate(inferred[buddyId]!),
       );
     }
 

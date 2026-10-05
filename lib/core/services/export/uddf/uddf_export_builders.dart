@@ -734,15 +734,15 @@ class UddfExportBuilders {
     );
   }
 
-  /// The logbook owner's own role on [dive] as a custom `<diverrole>`
-  /// element inside `informationbeforedive` (not UDDF standard). Holds the
-  /// dive role id verbatim; a custom role's definition travels in the
-  /// `<diveroles>` block of a full backup. Shared by the full and the
-  /// dives-only dive builders.
+  /// The logbook owner's own roles on [dive], one custom `<diverrole>`
+  /// element each inside `informationbeforedive` (not UDDF standard), in
+  /// DiveRoleSet order (issue #1221); an older reader takes the first, the
+  /// primary role. Each holds the dive role id verbatim; a custom role's
+  /// definition travels in the `<diveroles>` block of a full backup. Shared
+  /// by the full and the dives-only dive builders.
   static void buildDiverRole(XmlBuilder builder, Dive dive) {
-    final roleId = dive.diverRoleIds.firstOrNull;
-    if (roleId != null && roleId.isNotEmpty) {
-      builder.element('diverrole', nest: roleId);
+    for (final roleId in dive.diverRoleIds) {
+      if (roleId.isNotEmpty) builder.element('diverrole', nest: roleId);
     }
   }
 
@@ -801,7 +801,11 @@ class UddfExportBuilders {
     final roleRows = <String, List<BuddyWithRole>>{
       for (final entry in (diveBuddies ?? const {}).entries)
         if (entry.value
-                .where((b) => b.primaryRole.id != DiveRole.buddyId)
+                .where(
+                  (b) =>
+                      b.roleIds.length > 1 ||
+                      b.primaryRole.id != DiveRole.buddyId,
+                )
                 .toList()
             case final rows when rows.isNotEmpty)
           entry.key: rows,
@@ -1421,14 +1425,19 @@ class UddfExportBuilders {
                       'dive',
                       attributes: {'ref': 'dive_${entry.key}'},
                       nest: () {
+                        // One entry per role, Buddy included when it is
+                        // one of several, so the set restores exactly
+                        // (issue #1221).
                         for (final row in entry.value) {
-                          builder.element(
-                            'buddy',
-                            attributes: {
-                              'ref': 'buddy_${row.buddy.id}',
-                              'role': row.primaryRole.id,
-                            },
-                          );
+                          for (final roleId in row.roleIds) {
+                            builder.element(
+                              'buddy',
+                              attributes: {
+                                'ref': 'buddy_${row.buddy.id}',
+                                'role': roleId,
+                              },
+                            );
+                          }
                         }
                       },
                     );

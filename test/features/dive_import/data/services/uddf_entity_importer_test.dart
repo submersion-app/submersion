@@ -2106,7 +2106,7 @@ void main() {
         (invocation) async => invocation.positionalArguments[0] as Buddy,
       );
       when(
-        mockBuddyRepo.addBuddyToDive(any, any, any),
+        mockBuddyRepo.addBuddyToDiveWithRoles(any, any, any),
       ).thenAnswer((_) async {});
       when(mockDiveRepo.createDive(any)).thenAnswer(
         (invocation) async => invocation.positionalArguments[0] as Dive,
@@ -2133,14 +2133,96 @@ void main() {
       );
 
       verify(
-        mockBuddyRepo.addBuddyToDive(any, any, DiveRole.buddyId),
+        mockBuddyRepo.addBuddyToDiveWithRoles(any, any, const [
+          DiveRole.buddyId,
+        ]),
+      ).called(1);
+    });
+
+    test('roles inferred from separate fields add up; Buddy drops out '
+        '(#1221)', () async {
+      when(mockBuddyRepo.createBuddy(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Buddy,
+      );
+      when(
+        mockBuddyRepo.addBuddyToDiveWithRoles(any, any, any),
+      ).thenAnswer((_) async {});
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+
+      await importer.import(
+        data: UddfImportResult(
+          buddies: [
+            {'name': 'Alice', 'uddfId': 'buddy-1'},
+          ],
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 25.0,
+              'buddyRefs': ['buddy-1'],
+              'diveGuideRefs': ['buddy-1'],
+            },
+          ],
+        ),
+        selections: const UddfImportSelections(buddies: {0}, dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      verify(
+        mockBuddyRepo.addBuddyToDiveWithRoles(any, any, const [
+          DiveRole.diveGuideId,
+        ]),
+      ).called(1);
+    });
+
+    test('exact roles replace the inferred ones (#1221)', () async {
+      when(mockBuddyRepo.createBuddy(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Buddy,
+      );
+      when(
+        mockBuddyRepo.addBuddyToDiveWithRoles(any, any, any),
+      ).thenAnswer((_) async {});
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+
+      await importer.import(
+        data: UddfImportResult(
+          buddies: [
+            {'name': 'Alice', 'uddfId': 'buddy-1'},
+          ],
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 25.0,
+              'buddyRefs': ['buddy-1'],
+              'diveGuideRefs': ['buddy-1'],
+              'buddyRoleRefs': [
+                {'buddyRef': 'buddy-1', 'roleId': DiveRole.buddyId},
+                {'buddyRef': 'buddy-1', 'roleId': DiveRole.instructorId},
+              ],
+            },
+          ],
+        ),
+        selections: const UddfImportSelections(buddies: {0}, dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      verify(
+        mockBuddyRepo.addBuddyToDiveWithRoles(any, any, const [
+          DiveRole.buddyId,
+          DiveRole.instructorId,
+        ]),
       ).called(1);
     });
 
     test('preResolvedBuddyIds links a skipped duplicate buddy to the existing '
         'record without creating a twin (#756)', () async {
       when(
-        mockBuddyRepo.addBuddyToDive(any, any, any),
+        mockBuddyRepo.addBuddyToDiveWithRoles(any, any, any),
       ).thenAnswer((_) async {});
       when(mockDiveRepo.createDive(any)).thenAnswer(
         (invocation) async => invocation.positionalArguments[0] as Dive,
@@ -2171,7 +2253,9 @@ void main() {
 
       verifyNever(mockBuddyRepo.createBuddy(any));
       verify(
-        mockBuddyRepo.addBuddyToDive(any, 'existing-1', DiveRole.buddyId),
+        mockBuddyRepo.addBuddyToDiveWithRoles(any, 'existing-1', const [
+          DiveRole.buddyId,
+        ]),
       ).called(1);
     });
 
@@ -2264,7 +2348,7 @@ void main() {
         ),
       ).thenAnswer((_) async => inlineBuddy);
       when(
-        mockBuddyRepo.addBuddyToDive(any, any, any),
+        mockBuddyRepo.addBuddyToDiveWithRoles(any, any, any),
       ).thenAnswer((_) async {});
       when(mockDiveRepo.createDive(any)).thenAnswer(
         (invocation) async => invocation.positionalArguments[0] as Dive,

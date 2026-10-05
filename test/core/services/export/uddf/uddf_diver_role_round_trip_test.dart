@@ -130,11 +130,11 @@ void main() {
         dives: [
           {
             'dateTime': DateTime(2026, 3, 1, 9),
-            'diverRoleId': 'role-never-restored',
+            'diverRoleIds': ['role-never-restored'],
           },
           {
             'dateTime': DateTime(2026, 3, 1, 14),
-            'diverRoleId': DiveRole.studentId,
+            'diverRoleIds': [DiveRole.studentId],
           },
         ],
       ),
@@ -158,7 +158,10 @@ void main() {
       await importResult(
         UddfImportResult(
           dives: [
-            {'dateTime': DateTime(2026, 3, 1, 9), 'diverRoleId': custom.id},
+            {
+              'dateTime': DateTime(2026, 3, 1, 9),
+              'diverRoleIds': [custom.id],
+            },
           ],
         ),
         diverId: diverId,
@@ -185,7 +188,10 @@ void main() {
     await importResult(
       UddfImportResult(
         dives: [
-          {'dateTime': DateTime(2026, 3, 1, 9), 'diverRoleId': foreign.id},
+          {
+            'dateTime': DateTime(2026, 3, 1, 9),
+            'diverRoleIds': [foreign.id],
+          },
         ],
         customDiveRoles: [
           {
@@ -217,7 +223,7 @@ void main() {
         dives: [
           {
             'dateTime': DateTime(2026, 3, 1, 9),
-            'diverRoleId': DiveRole.buddyId,
+            'diverRoleIds': [DiveRole.buddyId],
           },
         ],
         customDiveRoles: const [
@@ -254,7 +260,10 @@ void main() {
       await importResult(
         UddfImportResult(
           dives: [
-            {'dateTime': DateTime(2026, 3, 1, 9), 'diverRoleId': foreign.id},
+            {
+              'dateTime': DateTime(2026, 3, 1, 9),
+              'diverRoleIds': [foreign.id],
+            },
           ],
         ),
       );
@@ -274,7 +283,7 @@ void main() {
 
     final parsed = await ExportService().importAllDataFromUddf(xml);
 
-    expect(parsed.dives.single['diverRoleId'], DiveRole.diveGuideId);
+    expect(parsed.dives.single['diverRoleIds'], [DiveRole.diveGuideId]);
   });
 
   test(
@@ -385,7 +394,7 @@ void main() {
 
     final parsed = await ExportService().importAllDataFromUddf(xml);
 
-    expect(parsed.dives.single['diverRoleId'], 'role-foreign');
+    expect(parsed.dives.single['diverRoleIds'], ['role-foreign']);
     expect(parsed.customDiveRoles, isEmpty);
   });
 }
