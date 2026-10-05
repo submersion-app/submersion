@@ -91,4 +91,14 @@ void main() {
     await tester.pump();
     expect(latest.windowStart, closeTo(0.25, 1e-6));
   });
+
+  testWidgets('a narrow window drags as a move, not a resize', (tester) async {
+    // 2% of a 400 px strip is 8 px: every point inside it is within the
+    // 10 px edge slop, which used to turn every drag into a resize.
+    await pump(tester, ChartViewport.forWindow(0.5, 0.52, zoomLimit: 100));
+    await tester.dragFrom(at(tester, 0.51), const Offset(40, 0));
+    await tester.pump();
+    expect(latest.windowStart, closeTo(0.6, 0.01));
+    expect(latest.windowEnd - latest.windowStart, closeTo(0.02, 1e-6));
+  });
 }

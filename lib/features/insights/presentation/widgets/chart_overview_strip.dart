@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -72,9 +74,12 @@ class _ChartOverviewStripState extends State<ChartOverviewStrip> {
     final x = details.localPosition.dx;
     final startPx = _current.windowStart * width;
     final endPx = _current.windowEnd * width;
-    if ((x - startPx).abs() <= _edgeSlop) {
+    // A narrow window would be all edge: shrink the grab zones so its middle
+    // still moves it (a year of a long logbook is a few pixels on a phone).
+    final slop = math.min(_edgeSlop, (endPx - startPx) / 4);
+    if ((x - startPx).abs() <= slop) {
       _drag = _StripDrag.resizeStart;
-    } else if ((x - endPx).abs() <= _edgeSlop) {
+    } else if ((x - endPx).abs() <= slop) {
       _drag = _StripDrag.resizeEnd;
     } else {
       _drag = _StripDrag.move;
