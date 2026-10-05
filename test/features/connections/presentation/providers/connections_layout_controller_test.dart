@@ -131,4 +131,46 @@ void main() {
     c.setGraph(_graph, mode: GraphLayoutMode.ego, focus: _b('b'));
     expect(c.settled, isTrue);
   });
+  group('settleNow', () {
+    test('finishes a running force layout and notifies', () {
+      final c = ConnectionsLayoutController(vsync: const TestVSync());
+      addTearDown(c.dispose);
+      c.setGraph(_graph, mode: GraphLayoutMode.web);
+      expect(c.settled, isFalse);
+      var notified = 0;
+      c.addListener(() => notified++);
+      final frame = c.settleNow();
+      expect(frame.settled, isTrue);
+      expect(c.settled, isTrue);
+      expect(identical(c.frame, frame), isTrue);
+      expect(notified, 1);
+    });
+
+    test('jumps a refocus morph to its target, every node fully grown', () {
+      final c = ConnectionsLayoutController(vsync: const TestVSync());
+      addTearDown(c.dispose);
+      c.setGraph(_graph, mode: GraphLayoutMode.ego, focus: _b('a'));
+      c.setGraph(
+        _graph,
+        mode: GraphLayoutMode.ego,
+        focus: _b('c'),
+        animate: true,
+      );
+      expect(c.settled, isFalse, reason: 'the morph is in flight');
+      final frame = c.settleNow();
+      expect(c.settled, isTrue);
+      expect(frame.positions[_b('c')], GraphPoint.zero);
+      for (final n in _graph.nodes) {
+        expect(frame.appearOf(n.ref), 1);
+      }
+    });
+
+    test('returns the frame as is when already settled', () {
+      final c = ConnectionsLayoutController(vsync: const TestVSync());
+      addTearDown(c.dispose);
+      c.setGraph(_graph, mode: GraphLayoutMode.ego, focus: _b('b'));
+      final before = c.frame;
+      expect(identical(c.settleNow(), before), isTrue);
+    });
+  });
 }

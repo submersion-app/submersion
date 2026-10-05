@@ -18,13 +18,15 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Types whose detail page shows the children card: the parents a cell
-/// or a battery can be installed in (same set as the edit page's parent
-/// picker).
+/// or a battery can be installed in. The edit page's parent picker offers
+/// a battery exactly this set, so a host the picker allows always shows the
+/// battery it holds.
 const childHostTypes = {
   EquipmentType.rebreather,
   EquipmentType.computer,
   EquipmentType.transmitter,
   EquipmentType.light,
+  EquipmentType.videoLight,
   EquipmentType.dpv,
 };
 

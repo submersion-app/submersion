@@ -15,6 +15,7 @@ const Set<EquipmentType> kBatteryPoweredTypes = {
   EquipmentType.rebreather,
   EquipmentType.camera,
   EquipmentType.strobe,
+  EquipmentType.videoLight,
 };
 
 /// Whether an item of [type] counts battery cycles: a powered type always

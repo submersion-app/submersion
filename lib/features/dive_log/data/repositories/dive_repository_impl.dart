@@ -5425,12 +5425,89 @@ class DiveRepository {
     return _mapDiveTimesRow(rows.first);
   }
 
+  /// The most recent EXECUTED dive of [diverId] (excludes planner rows with
+  /// `isPlanned = true`, mirroring [getNextDive]) whose effective start
+  /// (entryTime, falling back to the legacy diveDateTime) is at or before
+  /// [notAfter]. Reverse of [getNextDive]'s predicate and ordering.
+  ///
+  /// Used for "current state" readouts (e.g. live CNS/OTU decay since the
+  /// last dive): without the isPlanned filter, a dive planned for a future
+  /// date would otherwise sort ahead of the diver's actual last dive.
+  ///
+  /// Unlike most lookups in this file, a query failure is rethrown rather
+  /// than mapped to null: callers use null to mean "no executed dive", and
+  /// masking a real error the same way would render as "no load" on a
+  /// safety readout instead of surfacing the failure.
+  Future<domain.DiveTimes?> getMostRecentDiveTimes({
+    required String? diverId,
+    required DateTime notAfter,
+  }) async {
+    try {
+      final cutoffMs = notAfter.millisecondsSinceEpoch;
+      final clauses = <String>[
+        'd.is_planned = 0',
+        '(d.entry_time <= ? OR (d.entry_time IS NULL AND d.dive_date_time <= ?))',
+      ];
+      final args = <Variable<Object>>[
+        Variable<int>(cutoffMs),
+        Variable<int>(cutoffMs),
+      ];
+      if (diverId != null) {
+        clauses.add('d.diver_id = ?');
+        args.add(Variable<String>(diverId));
+      } else {
+        clauses.add('d.diver_id IS NULL');
+      }
+
+      final rows = await _db
+          .customSelect(
+            '$_diveTimesSelect WHERE ${clauses.join(' AND ')} '
+            'ORDER BY COALESCE(d.entry_time, d.dive_date_time) DESC, '
+            'd.dive_number DESC LIMIT 1',
+            variables: args,
+            readsFrom: {_db.dives, _db.diveProfileSeries},
+          )
+          .get();
+      if (rows.isEmpty) return null;
+      return _mapDiveTimesRow(rows.first);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get most recent dive for diver: $diverId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      // Rethrows rather than returning null like most lookups here: this
+      // feeds a safety readout (cnsOtuSnapshotProvider) where null is
+      // overloaded to also mean "no executed dive on record". Swallowing a
+      // real DB failure into that same null would render as "all clear"
+      // instead of the page's explicit error state.
+      rethrow;
+    }
+  }
+
   /// Times-only equivalent of [getDivesInRange] (identical WHERE and
   /// ordering), for same-day and weekly exposure aggregation.
   Future<List<domain.DiveTimes>> getDiveTimesInRange(
     DateTime start,
     DateTime end, {
     String? diverId,
+  }) => _diveTimesInRange(start, end, diverId: diverId);
+
+  /// [getDiveTimesInRange] for [diverId], excluding planner rows
+  /// (`isPlanned = true`), for "current state" totals such as the live
+  /// weekly OTU readout: a saved plan has not been dived, so its exposure
+  /// must not count.
+  Future<List<domain.DiveTimes>> getExecutedDiveTimesInRange(
+    DateTime start,
+    DateTime end, {
+    required String diverId,
+  }) => _diveTimesInRange(start, end, diverId: diverId, executedOnly: true);
+
+  Future<List<domain.DiveTimes>> _diveTimesInRange(
+    DateTime start,
+    DateTime end, {
+    String? diverId,
+    bool executedOnly = false,
   }) async {
     final clauses = <String>['d.dive_date_time >= ?', 'd.dive_date_time <= ?'];
     final args = <Variable<Object>>[
@@ -5441,6 +5518,7 @@ class DiveRepository {
       clauses.add('d.diver_id = ?');
       args.add(Variable<String>(diverId));
     }
+    if (executedOnly) clauses.add('d.is_planned = 0');
     final rows = await _db
         .customSelect(
           '$_diveTimesSelect WHERE ${clauses.join(' AND ')} '

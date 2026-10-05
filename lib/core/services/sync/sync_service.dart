@@ -3800,17 +3800,8 @@ class SyncService {
         break;
 
       case ConflictResolution.keepBoth:
-        if (isDeletion) {
-          await _syncRepository.clearConflict(
-            entityType: entityType,
-            recordId: recordId,
-          );
-          await _markPendingForConflict(entityType, recordId);
-          break;
-        }
-        final newId = _duplicateId(entityType, remoteData);
-        if (newId != null) {
-          remoteData['id'] = newId;
+        if (keepBothMakesCopy(entityType, remoteData)) {
+          remoteData['id'] = _uuid.v4();
           await _serializer.upsertRecord(entityType, remoteData);
           await _serializer.alignLinkedRouteOwners();
         }
@@ -3837,11 +3828,18 @@ class SyncService {
     );
   }
 
-  String? _duplicateId(String entityType, Map<String, dynamic> record) {
-    if (entityType == 'settings') return null;
-    if (record['id'] == null) return null;
-    return _uuid.v4();
-  }
+  /// Whether resolving with [ConflictResolution.keepBoth] copies the remote
+  /// row under a new id. It cannot for a deletion, for a row with no `id` of
+  /// its own (a composite-key junction) or for `settings`; there Keep both
+  /// keeps the local row only. The conflict dialog reads this to decide
+  /// whether to offer Keep both, so the offer and the outcome cannot drift.
+  static bool keepBothMakesCopy(
+    String entityType,
+    Map<String, dynamic> remoteData,
+  ) =>
+      entityType != 'settings' &&
+      remoteData['_deleted'] != true &&
+      remoteData['id'] != null;
 
   /// Reset sync state (for debugging or account changes).
   ///

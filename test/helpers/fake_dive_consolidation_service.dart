@@ -1,6 +1,7 @@
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_alignment.dart';
 
 /// Records calls made to [DiveConsolidationService.apply] and
 /// [DiveConsolidationService.undo] so tests can assert on the wiring contract
@@ -47,6 +48,7 @@ class FakeDiveConsolidationService extends DiveConsolidationService {
 
   String? capturedTargetDiveId;
   List<String>? capturedSecondaryDiveIds;
+  ConsolidationAlignment? capturedAlignment;
 
   /// The snapshot [undo] was last called with, or null if it never completed.
   DiveMergeSnapshot? undoneSnapshot;
@@ -63,9 +65,11 @@ class FakeDiveConsolidationService extends DiveConsolidationService {
   Future<DiveConsolidationOutcome> apply({
     required String targetDiveId,
     required List<String> secondaryDiveIds,
+    ConsolidationAlignment? alignment,
   }) async {
     capturedTargetDiveId = targetDiveId;
     capturedSecondaryDiveIds = secondaryDiveIds;
+    capturedAlignment = alignment;
     final error = applyError;
     if (error != null) throw error;
     return DiveConsolidationOutcome(

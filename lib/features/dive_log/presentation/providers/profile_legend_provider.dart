@@ -47,6 +47,10 @@ class ProfileLegendState {
   final bool showMaxDepthMarker;
   final bool showPressureMarkers;
   final bool showGasSwitchMarkers;
+
+  /// Late and missed deco gas switch bands (#2939). Seeds from
+  /// [AppSettings.defaultShowLateGasSwitches].
+  final bool showLateGasSwitches;
   final bool showPhotoMarkers;
 
   // Advanced decompression/gas toggles
@@ -129,6 +133,7 @@ class ProfileLegendState {
     this.showMaxDepthMarker = true,
     this.showPressureMarkers = true,
     this.showGasSwitchMarkers = true,
+    this.showLateGasSwitches = true,
     this.showPhotoMarkers = true,
     this.showNdl = false,
     this.showPpO2 = false,
@@ -180,6 +185,7 @@ class ProfileLegendState {
     if (showMaxDepthMarker) count++;
     if (showPressureMarkers) count++;
     if (showGasSwitchMarkers) count++;
+    if (showLateGasSwitches) count++;
     if (showPhotoMarkers) count++;
     if (showNdl) count++;
     if (showPpO2) count++;
@@ -225,6 +231,7 @@ class ProfileLegendState {
     bool? showMaxDepthMarker,
     bool? showPressureMarkers,
     bool? showGasSwitchMarkers,
+    bool? showLateGasSwitches,
     bool? showPhotoMarkers,
     bool? showNdl,
     bool? showPpO2,
@@ -270,6 +277,7 @@ class ProfileLegendState {
       showMaxDepthMarker: showMaxDepthMarker ?? this.showMaxDepthMarker,
       showPressureMarkers: showPressureMarkers ?? this.showPressureMarkers,
       showGasSwitchMarkers: showGasSwitchMarkers ?? this.showGasSwitchMarkers,
+      showLateGasSwitches: showLateGasSwitches ?? this.showLateGasSwitches,
       showPhotoMarkers: showPhotoMarkers ?? this.showPhotoMarkers,
       showNdl: showNdl ?? this.showNdl,
       showPpO2: showPpO2 ?? this.showPpO2,
@@ -320,6 +328,7 @@ class ProfileLegendState {
           showMaxDepthMarker == other.showMaxDepthMarker &&
           showPressureMarkers == other.showPressureMarkers &&
           showGasSwitchMarkers == other.showGasSwitchMarkers &&
+          showLateGasSwitches == other.showLateGasSwitches &&
           showPhotoMarkers == other.showPhotoMarkers &&
           showNdl == other.showNdl &&
           showPpO2 == other.showPpO2 &&
@@ -364,6 +373,7 @@ class ProfileLegendState {
     showMaxDepthMarker,
     showPressureMarkers,
     showGasSwitchMarkers,
+    showLateGasSwitches,
     showPhotoMarkers,
     showNdl,
     showPpO2,
@@ -425,6 +435,7 @@ class ProfileLegend extends _$ProfileLegend {
           showMaxDepthMarker: s.showMaxDepthMarker,
           showPressureThresholdMarkers: s.showPressureThresholdMarkers,
           defaultShowGasSwitchMarkers: s.defaultShowGasSwitchMarkers,
+          defaultShowLateGasSwitches: s.defaultShowLateGasSwitches,
           defaultShowPhotoMarkers: s.defaultShowPhotoMarkers,
           defaultShowGasTimeline: s.defaultShowGasTimeline,
           defaultShowO2CellMv: s.defaultShowO2CellMv,
@@ -471,6 +482,7 @@ class ProfileLegend extends _$ProfileLegend {
       showMaxDepthMarker: settings.showMaxDepthMarker,
       showPressureMarkers: settings.showPressureThresholdMarkers,
       showGasSwitchMarkers: settings.defaultShowGasSwitchMarkers,
+      showLateGasSwitches: settings.defaultShowLateGasSwitches,
       showPhotoMarkers: settings.defaultShowPhotoMarkers,
       showGas: settings.defaultShowGasTimeline,
       showO2Cells: settings.defaultShowO2CellMv,
@@ -605,6 +617,10 @@ class ProfileLegend extends _$ProfileLegend {
 
   void toggleGasSwitchMarkers() {
     state = state.copyWith(showGasSwitchMarkers: !state.showGasSwitchMarkers);
+  }
+
+  void toggleLateGasSwitches() {
+    state = state.copyWith(showLateGasSwitches: !state.showLateGasSwitches);
   }
 
   void togglePhotoMarkers() {
