@@ -39,9 +39,14 @@ String safetyFindingTitle(
       // localized template owns every word; no baked-in English "GF" token.
       '${units.settings.gfHigh}%',
     ),
-    SafetyRuleId.lateGasSwitch => l10n.safetyReview_lateGasSwitch_title(
-      value == null ? unknown : _formatSeconds(value.round()),
-    ),
+    // A switch late by time alone can cost no deco; "added 0s of deco"
+    // would contradict itself.
+    SafetyRuleId.lateGasSwitch =>
+      value != null && value.round() == 0
+          ? l10n.safetyReview_lateGasSwitch_noCost_title
+          : l10n.safetyReview_lateGasSwitch_title(
+              value == null ? unknown : _formatSeconds(value.round()),
+            ),
   };
 }
 

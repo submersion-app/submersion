@@ -2127,6 +2127,17 @@
       }
     }
   },
+  "diveLog_gasSwitches_lateRowTime": "تم التبديل بتأخير {delay} عند {actual}",
+  "@diveLog_gasSwitches_lateRowTime": {
+    "placeholders": {
+      "delay": {
+        "type": "String"
+      },
+      "actual": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_section_decoStatus": "حالة الديكو",
   "diveLog_detail_section_details": "التفاصيل",
   "diveLog_detail_section_diveProfile": "ملف الغوصة",
@@ -2895,6 +2906,20 @@
   "@diveLog_tooltip_missedSwitchValue": {
     "placeholders": {
       "gas": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_tooltip_lateSwitchTimeValue": "{gas}، تأخير {delay}، +{extra} تخفيف ضغط",
+  "@diveLog_tooltip_lateSwitchTimeValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "delay": {
         "type": "String"
       },
       "extra": {
@@ -8911,6 +8936,7 @@
       }
     }
   },
+  "safetyReview_lateGasSwitch_noCost_title": "تأخر تبديل الغاز لكنه لم يضف أي تخفيف ضغط",
   "safetyReview_timeRange": "عند {start}–{end}",
   "@safetyReview_timeRange": {
     "placeholders": {

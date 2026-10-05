@@ -6026,6 +6026,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_gasSwitches_lateRowTime(String delay, String actual) {
+    return '在 $actual 换气，延迟 $delay';
+  }
+
+  @override
   String get diveLog_detail_section_decoStatus => '减压状态';
 
   @override
@@ -8848,6 +8853,15 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String diveLog_tooltip_missedSwitchValue(String gas, String extra) {
     return '$gas，减压 +$extra';
+  }
+
+  @override
+  String diveLog_tooltip_lateSwitchTimeValue(
+    String gas,
+    String delay,
+    String extra,
+  ) {
+    return '$gas，延迟 $delay，减压 +$extra';
   }
 
   @override
@@ -17537,6 +17551,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String safetyReview_lateGasSwitch_title(String extra) {
     return '一次延迟或遗漏的换气增加了 $extra 减压';
   }
+
+  @override
+  String get safetyReview_lateGasSwitch_noCost_title => '一次换气延迟，但未增加减压';
 
   @override
   String safetyReview_timeRange(String start, String end) {

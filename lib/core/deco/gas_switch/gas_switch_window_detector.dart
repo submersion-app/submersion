@@ -108,12 +108,20 @@ SwitchWindowDetection detectSwitchWindows({
       }
     }
     final ideal = _idealGasIndex(i, depths[i], gases, idealIndex, maxPpO2);
+    final current = openGas;
+    if (current != null) {
+      // An open window ends only when its gas is breathed or a richer gas
+      // becomes ideal. Depth noise at a stop near the MOD (a 6 m O2 stop
+      // reading 5.9, 6.2, 5.9 m) must not split one late switch into many.
+      final richerIdeal =
+          ideal != null && gases[ideal].fO2 > gases[current].fO2;
+      if (!breathedSinceIdeal.contains(current) && !richerIdeal) continue;
+      close(i);
+    }
     final behind =
         ideal != null &&
         !breathedSinceIdeal.contains(ideal) &&
         gases[ideal].fO2 > segmentFO2(actual[i]) + mixMatchTolerance;
-    if (behind && ideal == openGas) continue;
-    if (openGas != null) close(i);
     if (behind) {
       openGas = ideal;
       openStart = i;

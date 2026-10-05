@@ -45,6 +45,19 @@ void main() {
     expect(lateSwitchTooltipValue(late, imperial, l10n), contains('ft'));
   });
 
+  test('a switch late by time only shows no depth delay', () {
+    final timeOnly = late.copyWith(
+      delaySeconds: 130,
+      depthDelayMeters: 0.2,
+      extraDecoSeconds: 0,
+    );
+    const metric = UnitFormatter(AppSettings());
+    expect(
+      lateSwitchTooltipValue(timeOnly, metric, l10n),
+      'EAN50, 2:10 late, +0:00 deco',
+    );
+  });
+
   test('missed tooltip', () {
     final missed = late.copyWith(kind: GasSwitchWindowKind.missed);
     const metric = UnitFormatter(AppSettings());

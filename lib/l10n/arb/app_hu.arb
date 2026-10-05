@@ -2026,6 +2026,17 @@
       }
     }
   },
+  "diveLog_gasSwitches_lateRowTime": "Váltás {delay} késéssel {actual} mélységben",
+  "@diveLog_gasSwitches_lateRowTime": {
+    "placeholders": {
+      "delay": {
+        "type": "String"
+      },
+      "actual": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_section_decoStatus": "Dekó állapot",
   "diveLog_detail_section_details": "Részletek",
   "diveLog_detail_section_diveProfile": "Merülési profil",
@@ -2794,6 +2805,20 @@
   "@diveLog_tooltip_missedSwitchValue": {
     "placeholders": {
       "gas": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_tooltip_lateSwitchTimeValue": "{gas}, {delay} késés, +{extra} dekó",
+  "@diveLog_tooltip_lateSwitchTimeValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "delay": {
         "type": "String"
       },
       "extra": {
@@ -8911,6 +8936,7 @@
       }
     }
   },
+  "safetyReview_lateGasSwitch_noCost_title": "Egy gázváltás késett, de nem adott hozzá dekót",
   "safetyReview_timeRange": "{start}–{end} időpontban",
   "@safetyReview_timeRange": {
     "placeholders": {

@@ -80,13 +80,13 @@ class _WindowRow extends StatelessWidget {
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
     final ideal = units.formatDepth(window.idealDepth, decimals: 0);
+    final actual = units.formatDepth(window.switchDepth, decimals: 0);
+    final delay = formatMinSec(window.delaySeconds);
     final detail = window.isMissed
         ? l10n.diveLog_gasSwitches_missedRow(ideal)
-        : l10n.diveLog_gasSwitches_lateRow(
-            units.formatDepth(window.switchDepth, decimals: 0),
-            ideal,
-            formatMinSec(window.delaySeconds),
-          );
+        : hasDepthDelay(window)
+        ? l10n.diveLog_gasSwitches_lateRow(actual, ideal, delay)
+        : l10n.diveLog_gasSwitches_lateRowTime(delay, actual);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

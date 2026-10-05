@@ -6309,6 +6309,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_gasSwitches_lateRowTime(String delay, String actual) {
+    return 'Váltás $delay késéssel $actual mélységben';
+  }
+
+  @override
   String get diveLog_detail_section_decoStatus => 'Dekó állapot';
 
   @override
@@ -9274,6 +9279,15 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String diveLog_tooltip_missedSwitchValue(String gas, String extra) {
     return '$gas, +$extra dekó';
+  }
+
+  @override
+  String diveLog_tooltip_lateSwitchTimeValue(
+    String gas,
+    String delay,
+    String extra,
+  ) {
+    return '$gas, $delay késés, +$extra dekó';
   }
 
   @override
@@ -18351,6 +18365,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String safetyReview_lateGasSwitch_title(String extra) {
     return 'Egy késői vagy kihagyott gázváltás $extra dekót adott hozzá';
   }
+
+  @override
+  String get safetyReview_lateGasSwitch_noCost_title =>
+      'Egy gázváltás késett, de nem adott hozzá dekót';
 
   @override
   String safetyReview_timeRange(String start, String end) {

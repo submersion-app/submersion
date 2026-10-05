@@ -10003,6 +10003,12 @@ abstract class AppLocalizations {
   /// **'Total extra deco: {extra}'**
   String diveLog_gasSwitches_total(String extra);
 
+  /// No description provided for @diveLog_gasSwitches_lateRowTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Switched {delay} late at {actual}'**
+  String diveLog_gasSwitches_lateRowTime(String delay, String actual);
+
   /// No description provided for @diveLog_detail_section_decoStatus.
   ///
   /// In en, this message translates to:
@@ -14927,6 +14933,16 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{gas}, +{extra} deco'**
   String diveLog_tooltip_missedSwitchValue(String gas, String extra);
+
+  /// No description provided for @diveLog_tooltip_lateSwitchTimeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{gas}, {delay} late, +{extra} deco'**
+  String diveLog_tooltip_lateSwitchTimeValue(
+    String gas,
+    String delay,
+    String extra,
+  );
 
   /// No description provided for @diveLog_tooltip_gtr.
   ///
@@ -29549,6 +29565,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A late or missed gas switch added {extra} of deco'**
   String safetyReview_lateGasSwitch_title(String extra);
+
+  /// No description provided for @safetyReview_lateGasSwitch_noCost_title.
+  ///
+  /// In en, this message translates to:
+  /// **'A gas switch was late but added no deco'**
+  String get safetyReview_lateGasSwitch_noCost_title;
 
   /// No description provided for @safetyReview_timeRange.
   ///

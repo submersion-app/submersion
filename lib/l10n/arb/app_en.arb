@@ -3775,6 +3775,17 @@
       }
     }
   },
+  "diveLog_gasSwitches_lateRowTime": "Switched {delay} late at {actual}",
+  "@diveLog_gasSwitches_lateRowTime": {
+    "placeholders": {
+      "delay": {
+        "type": "String"
+      },
+      "actual": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_section_decoStatus": "Deco Status",
   "diveLog_detail_section_details": "Details",
   "diveLog_detail_section_diveProfile": "Dive Profile",
@@ -5101,6 +5112,20 @@
   "@diveLog_tooltip_missedSwitchValue": {
     "placeholders": {
       "gas": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_tooltip_lateSwitchTimeValue": "{gas}, {delay} late, +{extra} deco",
+  "@diveLog_tooltip_lateSwitchTimeValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "delay": {
         "type": "String"
       },
       "extra": {
@@ -11499,6 +11524,7 @@
       }
     }
   },
+  "safetyReview_lateGasSwitch_noCost_title": "A gas switch was late but added no deco",
   "safetyReview_timeRange": "At {start}–{end}",
   "@safetyReview_timeRange": {
     "placeholders": {

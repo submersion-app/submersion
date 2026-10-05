@@ -2138,6 +2138,17 @@
       }
     }
   },
+  "diveLog_gasSwitches_lateRowTime": "{delay} zu spät gewechselt bei {actual}",
+  "@diveLog_gasSwitches_lateRowTime": {
+    "placeholders": {
+      "delay": {
+        "type": "String"
+      },
+      "actual": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_section_decoStatus": "Dekostatus",
   "diveLog_detail_section_details": "Details",
   "diveLog_detail_section_diveProfile": "Tauchprofil",
@@ -2906,6 +2917,20 @@
   "@diveLog_tooltip_missedSwitchValue": {
     "placeholders": {
       "gas": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_tooltip_lateSwitchTimeValue": "{gas}, {delay} zu spät, +{extra} Deko",
+  "@diveLog_tooltip_lateSwitchTimeValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "delay": {
         "type": "String"
       },
       "extra": {
@@ -9023,6 +9048,7 @@
       }
     }
   },
+  "safetyReview_lateGasSwitch_noCost_title": "Ein Gaswechsel war zu spät, hat aber keine Deko hinzugefügt",
   "safetyReview_timeRange": "Bei {start}–{end}",
   "@safetyReview_timeRange": {
     "placeholders": {

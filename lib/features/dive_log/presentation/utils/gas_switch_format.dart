@@ -9,6 +9,15 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// take the colour of the gas that should have been breathed.
 const Color lateSwitchLegendColor = Color(0xFFFF8F00);
 
+/// A depth delay below this is noise, not a fact worth showing: a switch
+/// flagged late by time alone happens at (or within a reading of) the
+/// ideal depth.
+const double minShownDepthDelayMeters = 0.5;
+
+/// Whether [window] was late by depth as well as by time.
+bool hasDepthDelay(GasSwitchWindow window) =>
+    (window.depthDelayMeters ?? 0) >= minShownDepthDelayMeters;
+
 /// `m:ss`, the profile tooltip's own time format.
 String formatMinSec(int seconds) {
   final minutes = seconds ~/ 60;
@@ -33,6 +42,13 @@ String lateSwitchTooltipValue(
   final extra = formatMinSec(window.extraDecoSeconds);
   if (window.isMissed) {
     return l10n.diveLog_tooltip_missedSwitchValue(gas, extra);
+  }
+  if (!hasDepthDelay(window)) {
+    return l10n.diveLog_tooltip_lateSwitchTimeValue(
+      gas,
+      formatMinSec(window.delaySeconds),
+      extra,
+    );
   }
   return l10n.diveLog_tooltip_lateSwitchValue(
     gas,

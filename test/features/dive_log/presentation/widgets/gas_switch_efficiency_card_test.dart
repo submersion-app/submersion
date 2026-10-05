@@ -92,6 +92,30 @@ void main() {
     expect(find.text('All gas switches on time'), findsOneWidget);
   });
 
+  testWidgets('a switch late by time only reads as a delay at its depth', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        child: GasSwitchEfficiencyCard(
+          efficiency: GasSwitchEfficiency(
+            evaluated: true,
+            windows: [
+              late.copyWith(
+                switchDepth: 21,
+                depthDelayMeters: 0,
+                delaySeconds: 130,
+              ),
+            ],
+            totalExtraDecoSeconds: 0,
+          ),
+        ),
+      ),
+    );
+    expect(find.textContaining('Switched 2:10 late at 21'), findsOneWidget);
+    expect(find.textContaining('instead of'), findsNothing);
+  });
+
   testWidgets('depths follow imperial units', (tester) async {
     await tester.pumpWidget(
       testApp(

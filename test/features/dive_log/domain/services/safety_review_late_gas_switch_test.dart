@@ -51,6 +51,13 @@ void main() {
     expect(findings[1].severity, SafetySeverity.significant);
   });
 
+  test('a late switch that cost no deco is info, not a caution', () {
+    final findings = review(
+      GasSwitchEfficiency(evaluated: true, windows: [window(0)]),
+    );
+    expect(findings.single.severity, SafetySeverity.info);
+  });
+
   test('no efficiency or not evaluated means no finding', () {
     expect(review(null), isEmpty);
     expect(review(GasSwitchEfficiency.notEvaluated), isEmpty);

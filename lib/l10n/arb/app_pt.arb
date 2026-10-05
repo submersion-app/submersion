@@ -2127,6 +2127,17 @@
       }
     }
   },
+  "diveLog_gasSwitches_lateRowTime": "Trocado com {delay} de atraso a {actual}",
+  "@diveLog_gasSwitches_lateRowTime": {
+    "placeholders": {
+      "delay": {
+        "type": "String"
+      },
+      "actual": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_section_decoStatus": "Status Deco",
   "diveLog_detail_section_details": "Detalhes",
   "diveLog_detail_section_diveProfile": "Perfil do Mergulho",
@@ -2895,6 +2906,20 @@
   "@diveLog_tooltip_missedSwitchValue": {
     "placeholders": {
       "gas": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_tooltip_lateSwitchTimeValue": "{gas}, {delay} de atraso, +{extra} de deco",
+  "@diveLog_tooltip_lateSwitchTimeValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "delay": {
         "type": "String"
       },
       "extra": {
@@ -8911,6 +8936,7 @@
       }
     }
   },
+  "safetyReview_lateGasSwitch_noCost_title": "Uma troca de gás foi tardia mas não acrescentou deco",
   "safetyReview_timeRange": "Em {start}–{end}",
   "@safetyReview_timeRange": {
     "placeholders": {

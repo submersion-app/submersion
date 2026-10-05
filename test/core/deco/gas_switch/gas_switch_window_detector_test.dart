@@ -126,6 +126,36 @@ void main() {
     expect(result.windows.every((w) => w.switchIndex == w.endIndex), isTrue);
   });
 
+  /// The standard dive with real-world noise at the 6 m stop: readings
+  /// alternate 5.9 m and 6.2 m, either side of O2's 6.0 m MOD.
+  SampledProfile noisySixMetreStop() {
+    final depths = [...dive.depths];
+    for (var i = 0; i < dive.timestamps.length; i++) {
+      final t = dive.timestamps[i];
+      if (t >= 2510 && t <= 3110) depths[i] = i.isEven ? 5.9 : 6.2;
+    }
+    return (timestamps: dive.timestamps, depths: depths);
+  }
+
+  test('depth noise at the stop keeps one late O2 window', () {
+    final profile = noisySixMetreStop();
+    final result = detect([
+      seg(0, 0.21),
+      seg(1690, 0.5),
+      seg(2800, 1.0),
+    ], profile: profile);
+    final oxygen = result.windows.where((w) => identical(w.gas, o2)).toList();
+    expect(oxygen, hasLength(1));
+    expect(profile.timestamps[oxygen.single.switchIndex!], 2800);
+    expect(oxygen.single.endIndex, oxygen.single.switchIndex);
+  });
+
+  test('depth noise keeps one window per gas when EAN50 is skipped', () {
+    final result = detect([seg(0, 0.21)], profile: noisySixMetreStop());
+    expect(result.windows.where((w) => identical(w.gas, ean50)), hasLength(1));
+    expect(result.windows.where((w) => identical(w.gas, o2)), hasLength(1));
+  });
+
   test('identical-mix switches (sidemount) open no window', () {
     final result = detectSwitchWindows(
       depths: dive.depths,

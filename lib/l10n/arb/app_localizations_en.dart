@@ -6221,6 +6221,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveLog_gasSwitches_lateRowTime(String delay, String actual) {
+    return 'Switched $delay late at $actual';
+  }
+
+  @override
   String get diveLog_detail_section_decoStatus => 'Deco Status';
 
   @override
@@ -9138,6 +9143,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String diveLog_tooltip_missedSwitchValue(String gas, String extra) {
     return '$gas, +$extra deco';
+  }
+
+  @override
+  String diveLog_tooltip_lateSwitchTimeValue(
+    String gas,
+    String delay,
+    String extra,
+  ) {
+    return '$gas, $delay late, +$extra deco';
   }
 
   @override
@@ -18129,6 +18143,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String safetyReview_lateGasSwitch_title(String extra) {
     return 'A late or missed gas switch added $extra of deco';
   }
+
+  @override
+  String get safetyReview_lateGasSwitch_noCost_title =>
+      'A gas switch was late but added no deco';
 
   @override
   String safetyReview_timeRange(String start, String end) {

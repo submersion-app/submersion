@@ -61,7 +61,8 @@ class SafetyReviewService {
   }
 
   /// Extra deco from one late or missed gas switch at or above which the
-  /// finding is significant rather than a caution.
+  /// finding is significant rather than a caution. A late switch that cost
+  /// no deco at all is only info.
   static const int _significantExtraDecoSeconds = 300;
 
   List<SafetyFinding> _lateGasSwitchFindings(
@@ -80,7 +81,9 @@ class SafetyReviewService {
           ruleId: SafetyRuleId.lateGasSwitch,
           severity: window.extraDecoSeconds >= _significantExtraDecoSeconds
               ? SafetySeverity.significant
-              : SafetySeverity.caution,
+              : window.extraDecoSeconds > 0
+              ? SafetySeverity.caution
+              : SafetySeverity.info,
           startTimestamp: window.idealTimestamp,
           endTimestamp: window.endTimestamp,
           value: window.extraDecoSeconds.toDouble(),

@@ -2026,6 +2026,17 @@
       }
     }
   },
+  "diveLog_gasSwitches_lateRowTime": "הוחלף באיחור {delay} ב-{actual}",
+  "@diveLog_gasSwitches_lateRowTime": {
+    "placeholders": {
+      "delay": {
+        "type": "String"
+      },
+      "actual": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_section_decoStatus": "מצב דקו",
   "diveLog_detail_section_details": "פרטים",
   "diveLog_detail_section_diveProfile": "פרופיל צלילה",
@@ -2794,6 +2805,20 @@
   "@diveLog_tooltip_missedSwitchValue": {
     "placeholders": {
       "gas": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_tooltip_lateSwitchTimeValue": "{gas}, איחור {delay}, +{extra} דקו",
+  "@diveLog_tooltip_lateSwitchTimeValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "delay": {
         "type": "String"
       },
       "extra": {
@@ -8911,6 +8936,7 @@
       }
     }
   },
+  "safetyReview_lateGasSwitch_noCost_title": "החלפת גז אחרה אך לא הוסיפה דקו",
   "safetyReview_timeRange": "ב-{start}–{end}",
   "@safetyReview_timeRange": {
     "placeholders": {
