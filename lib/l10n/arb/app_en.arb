@@ -59,6 +59,8 @@
   "@connections_insight_since": {"placeholders": {"label": {"type": "String"}, "date": {"type": "String"}}},
   "connections_insight_last": "{label}, last {date}",
   "@connections_insight_last": {"placeholders": {"label": {"type": "String"}, "date": {"type": "String"}}},
+  "connections_insight_closestValue": "{label}, {together}",
+  "@connections_insight_closestValue": {"placeholders": {"label": {"type": "String"}, "together": {"type": "String"}}},
   "connections_highlight_title": "Color by",
   "connections_highlight_byKind": "Kind",
   "connections_highlight_groups": "Groups",

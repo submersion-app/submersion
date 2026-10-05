@@ -1379,6 +1379,7 @@
   "connections_insight_pair": "{a} و{b}",
   "connections_insight_since": "{label}، منذ {date}",
   "connections_insight_last": "{label}، آخر مرة {date}",
+  "connections_insight_closestValue": "{label}، {together}",
   "connections_highlight_title": "التلوين حسب",
   "connections_highlight_byKind": "النوع",
   "connections_highlight_groups": "المجموعات",

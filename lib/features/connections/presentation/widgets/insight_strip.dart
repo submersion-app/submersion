@@ -154,8 +154,10 @@ class InsightStrip extends ConsumerWidget {
         _name(e.source),
         _name(e.target),
       ),
-      InsightKind.closest =>
-        '$who, ${l10n.connections_selection_divesTogether(e!.weight)}',
+      InsightKind.closest => l10n.connections_insight_closestValue(
+        who,
+        l10n.connections_selection_divesTogether(e!.weight),
+      ),
       InsightKind.newest => l10n.connections_insight_since(
         who,
         units.formatMonthYear(e!.firstDiveAt),

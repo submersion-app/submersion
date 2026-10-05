@@ -1379,6 +1379,7 @@
   "connections_insight_pair": "{a} ו{b}",
   "connections_insight_since": "{label}, מאז {date}",
   "connections_insight_last": "{label}, לאחרונה {date}",
+  "connections_insight_closestValue": "{label}, {together}",
   "connections_highlight_title": "צביעה לפי",
   "connections_highlight_byKind": "סוג",
   "connections_highlight_groups": "קבוצות",

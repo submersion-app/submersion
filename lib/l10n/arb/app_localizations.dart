@@ -416,6 +416,12 @@ abstract class AppLocalizations {
   /// **'{label}, last {date}'**
   String connections_insight_last(String label, String date);
 
+  /// No description provided for @connections_insight_closestValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}, {together}'**
+  String connections_insight_closestValue(String label, String together);
+
   /// No description provided for @connections_highlight_title.
   ///
   /// In en, this message translates to:

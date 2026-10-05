@@ -1466,6 +1466,7 @@
   "connections_insight_pair": "{a} 和 {b}",
   "connections_insight_since": "{label}，自 {date} 起",
   "connections_insight_last": "{label}，最近一次 {date}",
+  "connections_insight_closestValue": "{label}，{together}",
   "connections_highlight_title": "着色方式",
   "connections_highlight_byKind": "类型",
   "connections_highlight_groups": "群组",

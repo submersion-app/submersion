@@ -1379,6 +1379,7 @@
   "connections_insight_pair": "{a} e {b}",
   "connections_insight_since": "{label}, dal {date}",
   "connections_insight_last": "{label}, ultima volta {date}",
+  "connections_insight_closestValue": "{label}, {together}",
   "connections_highlight_title": "Colora per",
   "connections_highlight_byKind": "Tipo",
   "connections_highlight_groups": "Gruppi",

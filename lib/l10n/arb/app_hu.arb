@@ -1379,6 +1379,7 @@
   "connections_insight_pair": "{a} és {b}",
   "connections_insight_since": "{label}, {date} óta",
   "connections_insight_last": "{label}, utoljára {date}",
+  "connections_insight_closestValue": "{label}, {together}",
   "connections_highlight_title": "Színezés",
   "connections_highlight_byKind": "Típus",
   "connections_highlight_groups": "Csoportok",

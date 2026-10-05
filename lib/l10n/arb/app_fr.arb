@@ -1379,6 +1379,7 @@
   "connections_insight_pair": "{a} et {b}",
   "connections_insight_since": "{label}, depuis {date}",
   "connections_insight_last": "{label}, dernière fois {date}",
+  "connections_insight_closestValue": "{label}, {together}",
   "connections_highlight_title": "Colorer par",
   "connections_highlight_byKind": "Type",
   "connections_highlight_groups": "Groupes",

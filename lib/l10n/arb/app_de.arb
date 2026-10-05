@@ -1390,6 +1390,7 @@
   "connections_insight_pair": "{a} und {b}",
   "connections_insight_since": "{label}, seit {date}",
   "connections_insight_last": "{label}, zuletzt {date}",
+  "connections_insight_closestValue": "{label}, {together}",
   "connections_highlight_title": "Färben nach",
   "connections_highlight_byKind": "Art",
   "connections_highlight_groups": "Gruppen",

@@ -42,6 +42,7 @@ Future<ProviderContainer> _pump(
   ValueChanged<GraphSelection>? onSelect,
   VoidCallback? onGroups,
   double textScale = 1,
+  Locale? locale,
 }) async {
   final overrides = await getBaseOverrides();
   await tester.pumpWidget(
@@ -50,6 +51,7 @@ Future<ProviderContainer> _pump(
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
+        locale: locale,
         builder: (context, child) => MediaQuery(
           data: MediaQuery.of(
             context,
@@ -220,5 +222,19 @@ void main() {
     expect(tester.takeException(), isNull);
     final context = tester.element(find.byType(InsightStrip));
     expect(InsightStrip.heightOf(context), greaterThan(InsightStrip.height));
+  });
+  testWidgets('the Closest value is punctuated for its language', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      tiles: GraphInsights.of(
+        _graph,
+        focus: _b('ana'),
+        groups: GraphGroups.empty,
+      ),
+      locale: const Locale('zh'),
+    );
+    expect(find.text('Bo，共同潜水 7 次'), findsOneWidget);
   });
 }

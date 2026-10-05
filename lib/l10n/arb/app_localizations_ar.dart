@@ -217,6 +217,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String connections_insight_closestValue(String label, String together) {
+    return '$label، $together';
+  }
+
+  @override
   String get connections_highlight_title => 'التلوين حسب';
 
   @override

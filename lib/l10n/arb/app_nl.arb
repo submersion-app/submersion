@@ -1379,6 +1379,7 @@
   "connections_insight_pair": "{a} en {b}",
   "connections_insight_since": "{label}, sinds {date}",
   "connections_insight_last": "{label}, laatst {date}",
+  "connections_insight_closestValue": "{label}, {together}",
   "connections_highlight_title": "Kleur op",
   "connections_highlight_byKind": "Soort",
   "connections_highlight_groups": "Groepen",
