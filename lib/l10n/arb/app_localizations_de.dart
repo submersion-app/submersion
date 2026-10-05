@@ -20471,6 +20471,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_depthUnit => 'Tiefeneinheit';
 
   @override
+  String get settings_conflict_field_distanceUnit => 'Entfernungseinheit';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Profil zeigt verspätete Gaswechsel';
+
+  @override
   String get settings_conflict_field_insightsMutedObservationRules =>
       'Ausgeblendete Beobachtungsarten';
 

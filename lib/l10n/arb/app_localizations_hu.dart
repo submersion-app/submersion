@@ -20440,6 +20440,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_depthUnit => 'Mélység mértékegysége';
 
   @override
+  String get settings_conflict_field_distanceUnit => 'Távolság mértékegysége';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'A profil mutatja a késői gázváltásokat';
+
+  @override
   String get settings_conflict_field_insightsMutedObservationRules =>
       'Elrejtett megfigyelésfajták';
 

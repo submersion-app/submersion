@@ -5801,6 +5801,8 @@
   "settings_conflict_field_depthM": "Diepte",
   "settings_conflict_field_depthMeters": "Diepte",
   "settings_conflict_field_depthUnit": "Eenheid voor diepte",
+  "settings_conflict_field_distanceUnit": "Afstandseenheid",
+  "settings_conflict_field_defaultShowLateGasSwitches": "Profiel toont late gaswissels",
   "settings_conflict_field_insightsMutedObservationRules": "Verborgen soorten waarnemingen",
   "settings_conflict_field_fingerprint": "Vingerafdruk van de waarneming",
   "settings_conflict_field_descentRate": "Afdaalsnelheid",

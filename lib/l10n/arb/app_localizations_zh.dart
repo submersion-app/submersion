@@ -19446,6 +19446,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_depthUnit => '深度单位';
 
   @override
+  String get settings_conflict_field_distanceUnit => '距离单位';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches => '剖面图显示延迟的换气';
+
+  @override
   String get settings_conflict_field_insightsMutedObservationRules =>
       '已隐藏的观察类型';
 

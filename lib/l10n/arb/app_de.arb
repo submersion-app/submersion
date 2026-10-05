@@ -5918,6 +5918,8 @@
   "settings_conflict_field_depthM": "Tiefe",
   "settings_conflict_field_depthMeters": "Tiefe",
   "settings_conflict_field_depthUnit": "Tiefeneinheit",
+  "settings_conflict_field_distanceUnit": "Entfernungseinheit",
+  "settings_conflict_field_defaultShowLateGasSwitches": "Profil zeigt verspätete Gaswechsel",
   "settings_conflict_field_insightsMutedObservationRules": "Ausgeblendete Beobachtungsarten",
   "settings_conflict_field_fingerprint": "Fingerabdruck der Beobachtung",
   "settings_conflict_field_descentRate": "Abstiegsgeschwindigkeit",

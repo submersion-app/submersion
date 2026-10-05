@@ -5801,6 +5801,8 @@
   "settings_conflict_field_depthM": "العمق",
   "settings_conflict_field_depthMeters": "العمق",
   "settings_conflict_field_depthUnit": "وحدة العمق",
+  "settings_conflict_field_distanceUnit": "وحدة المسافة",
+  "settings_conflict_field_defaultShowLateGasSwitches": "الملف يعرض تبديلات الغاز المتأخرة",
   "settings_conflict_field_insightsMutedObservationRules": "أنواع الملاحظات المخفية",
   "settings_conflict_field_fingerprint": "بصمة الملاحظة",
   "settings_conflict_field_descentRate": "سرعة النزول",

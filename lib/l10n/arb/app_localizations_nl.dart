@@ -20360,6 +20360,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_depthUnit => 'Eenheid voor diepte';
 
   @override
+  String get settings_conflict_field_distanceUnit => 'Afstandseenheid';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Profiel toont late gaswissels';
+
+  @override
   String get settings_conflict_field_insightsMutedObservationRules =>
       'Verborgen soorten waarnemingen';
 

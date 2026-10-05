@@ -32810,6 +32810,18 @@ abstract class AppLocalizations {
   /// **'Depth unit'**
   String get settings_conflict_field_depthUnit;
 
+  /// No description provided for @settings_conflict_field_distanceUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance unit'**
+  String get settings_conflict_field_distanceUnit;
+
+  /// No description provided for @settings_conflict_field_defaultShowLateGasSwitches.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile shows late gas switches'**
+  String get settings_conflict_field_defaultShowLateGasSwitches;
+
   /// No description provided for @settings_conflict_field_insightsMutedObservationRules.
   ///
   /// In en, this message translates to:

@@ -20506,6 +20506,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_depthUnit => 'Unidade de profundidade';
 
   @override
+  String get settings_conflict_field_distanceUnit => 'Unidade de distância';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'O perfil mostra trocas de gás tardias';
+
+  @override
   String get settings_conflict_field_insightsMutedObservationRules =>
       'Tipos de observação ocultos';
 

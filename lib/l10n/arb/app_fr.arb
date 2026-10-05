@@ -5699,6 +5699,8 @@
   "settings_conflict_field_depthM": "Profondeur",
   "settings_conflict_field_depthMeters": "Profondeur",
   "settings_conflict_field_depthUnit": "Unité de profondeur",
+  "settings_conflict_field_distanceUnit": "Unité de distance",
+  "settings_conflict_field_defaultShowLateGasSwitches": "Le profil affiche les changements de gaz tardifs",
   "settings_conflict_field_insightsMutedObservationRules": "Types d'observation masqués",
   "settings_conflict_field_fingerprint": "Empreinte de l'observation",
   "settings_conflict_field_descentRate": "Vitesse de descente",

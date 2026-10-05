@@ -5699,6 +5699,8 @@
   "settings_conflict_field_depthM": "Mélység",
   "settings_conflict_field_depthMeters": "Mélység",
   "settings_conflict_field_depthUnit": "Mélység mértékegysége",
+  "settings_conflict_field_distanceUnit": "Távolság mértékegysége",
+  "settings_conflict_field_defaultShowLateGasSwitches": "A profil mutatja a késői gázváltásokat",
   "settings_conflict_field_insightsMutedObservationRules": "Elrejtett megfigyelésfajták",
   "settings_conflict_field_fingerprint": "Megfigyelés ujjlenyomata",
   "settings_conflict_field_descentRate": "Lemerülés sebessége",

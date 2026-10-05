@@ -12342,6 +12342,8 @@
   "settings_conflict_field_depthM": "Depth",
   "settings_conflict_field_depthMeters": "Depth",
   "settings_conflict_field_depthUnit": "Depth unit",
+  "settings_conflict_field_distanceUnit": "Distance unit",
+  "settings_conflict_field_defaultShowLateGasSwitches": "Profile shows late gas switches",
   "settings_conflict_field_insightsMutedObservationRules": "Hidden observation kinds",
   "settings_conflict_field_fingerprint": "Observation fingerprint",
   "settings_conflict_field_descentRate": "Descent rate",

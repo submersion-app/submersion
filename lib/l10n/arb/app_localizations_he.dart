@@ -20013,6 +20013,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_depthUnit => 'יחידת עומק';
 
   @override
+  String get settings_conflict_field_distanceUnit => 'יחידת מרחק';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'הפרופיל מציג החלפות גז מאוחרות';
+
+  @override
   String get settings_conflict_field_insightsMutedObservationRules =>
       'סוגי תצפיות מוסתרים';
 

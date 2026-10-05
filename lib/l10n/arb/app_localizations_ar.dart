@@ -20713,6 +20713,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_depthUnit => 'وحدة العمق';
 
   @override
+  String get settings_conflict_field_distanceUnit => 'وحدة المسافة';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'الملف يعرض تبديلات الغاز المتأخرة';
+
+  @override
   String get settings_conflict_field_insightsMutedObservationRules =>
       'أنواع الملاحظات المخفية';
 

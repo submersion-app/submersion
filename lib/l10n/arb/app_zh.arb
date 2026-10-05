@@ -5953,6 +5953,8 @@
   "settings_conflict_field_depthM": "深度",
   "settings_conflict_field_depthMeters": "深度",
   "settings_conflict_field_depthUnit": "深度单位",
+  "settings_conflict_field_distanceUnit": "距离单位",
+  "settings_conflict_field_defaultShowLateGasSwitches": "剖面图显示延迟的换气",
   "settings_conflict_field_insightsMutedObservationRules": "已隐藏的观察类型",
   "settings_conflict_field_fingerprint": "观察指纹",
   "settings_conflict_field_descentRate": "下潜速度",
