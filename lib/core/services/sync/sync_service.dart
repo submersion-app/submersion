@@ -2362,6 +2362,13 @@ class SyncService {
             );
             continue;
           }
+          // A device-local settings key never syncs (issue #2947), so a
+          // peer's tombstone for one neither deletes this device's value nor
+          // raises a conflict, as the merge treats a live copy.
+          if (entityType == 'settings' &&
+              deviceLocalSettingsKeys.contains(recordId)) {
+            continue;
+          }
           if (pendingByEntity[entityType]?.contains(recordId) == true) {
             continue;
           }

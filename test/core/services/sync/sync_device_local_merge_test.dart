@@ -29,20 +29,32 @@ void main() {
     SyncClock.instance.reset();
   });
 
-  SyncPayload payload(SyncData data, int exportedAt) => SyncPayload(
+  SyncPayload payload(
+    SyncData data,
+    int exportedAt, {
+    Map<String, List<SyncDeletion>> deletions = const {},
+  }) => SyncPayload(
     version: syncFormatVersion,
     exportedAt: exportedAt,
     deviceId: 'older-peer',
     checksum: sha256.convert(utf8.encode(jsonEncode(data.toJson()))).toString(),
     data: data,
-    deletions: const {},
+    deletions: deletions,
   );
 
-  Future<SyncResult> syncWithPeer(SyncData data, {DateTime? lastSync}) async {
+  Future<SyncResult> syncWithPeer(
+    SyncData data, {
+    DateTime? lastSync,
+    Map<String, List<SyncDeletion>> deletions = const {},
+  }) async {
     final cloud = FakeCloudStorageProvider();
     await SyncRepository().resetSyncState();
     if (lastSync != null) await SyncRepository().updateLastSyncTime(lastSync);
-    await seedPeerBaseFromPayload(cloud, 'older-peer', payload(data, 9000));
+    await seedPeerBaseFromPayload(
+      cloud,
+      'older-peer',
+      payload(data, 9000, deletions: deletions),
+    );
     return SyncService(
       syncRepository: SyncRepository(),
       serializer: SyncDataSerializer(),
@@ -189,4 +201,47 @@ void main() {
     expect(conflicts, isEmpty);
     expect(await SyncRepository().getConflictCount(), 0);
   });
+
+  test(
+    'a peer tombstone for a nav layout key leaves the local value',
+    () async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      // Set before the last sync and untouched since, so nothing protects it
+      // from an older peer's tombstone but its being device-local.
+      await db.customStatement(
+        "INSERT INTO settings (key, value, updated_at) "
+        "VALUES ('nav_primary_ids', '[\"dives\"]', ${now - 120000})",
+      );
+
+      final result = await syncWithPeer(
+        const SyncData(),
+        deletions: {
+          'settings': [
+            SyncDeletion(
+              id: 'nav_primary_ids',
+              deletedAt: now + 1000,
+              hlc: Hlc(now + 1000, 0, 'older-peer').toString(),
+            ),
+          ],
+        },
+        lastSync: DateTime.fromMillisecondsSinceEpoch(now - 60000),
+      );
+
+      expect(result.status, isNot(SyncResultStatus.error));
+      final rows = await db
+          .customSelect(
+            "SELECT value FROM settings WHERE key = 'nav_primary_ids'",
+          )
+          .get();
+      expect(rows.single.read<String>('value'), '["dives"]');
+      expect(await SyncRepository().getConflictRecords(), isEmpty);
+      expect(
+        (await SyncRepository().getAllDeletions()).where(
+          (d) => d.entityType == 'settings' && d.recordId == 'nav_primary_ids',
+        ),
+        isEmpty,
+        reason: 'a device-local key must not be tombstoned here either',
+      );
+    },
+  );
 }
