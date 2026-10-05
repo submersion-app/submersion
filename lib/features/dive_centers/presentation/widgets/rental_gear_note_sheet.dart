@@ -6,7 +6,6 @@ import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center_gear_note.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_gear_note_providers.dart';
-import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -249,7 +248,9 @@ class _RentalGearNoteSheetState extends ConsumerState<_RentalGearNoteSheet> {
               ),
               isExpanded: true,
               items: [
-                for (final type in kCanonicalTypeOrder)
+                for (final type in EquipmentType.values.sortedByLocalizedName(
+                  l10n,
+                ))
                   DropdownMenuItem(
                     value: type,
                     child: Text(type.localizedName(l10n)),
