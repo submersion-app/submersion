@@ -30,7 +30,7 @@ extension AppDatabaseMigrationStrategy on AppDatabase {
     // for upgraded databases; beforeOpen re-asserts).
     await customStatement(kSeedBuiltInServiceKindsSql);
 
-    // Seed built-in certification currency rules (the v261 rung seeds
+    // Seed built-in certification currency rules (the v262 rung seeds
     // upgraded databases; beforeOpen re-asserts).
     await customStatement(kSeedBuiltInCurrencyRulesSql);
 

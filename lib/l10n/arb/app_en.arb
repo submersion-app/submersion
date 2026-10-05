@@ -5278,6 +5278,7 @@
   "diveLog_summary_action_importComputer": "Import from Computer",
   "diveLog_summary_action_viewInsights": "View Insights",
   "diveLog_summary_diveCount": "{count} {count, plural, =1{dive} other{dives}}",
+  "diveLog_summary_filteredBanner": "Filtered: summarizing {shown} of {total, plural, =1{{total} dive} other{{total} dives}}",
   "diveLog_summary_overview": "Overview",
   "diveLog_summary_record_coldest": "Coldest Dive",
   "diveLog_summary_record_deepest": "Deepest Dive",
@@ -5909,6 +5910,17 @@
   "@diveLog_summary_diveCount": {
     "placeholders": {
       "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@diveLog_summary_filteredBanner": {
+    "description": "Line under the Dive Log Summary title while the dive list is filtered: the summary covers {shown} of the diver's {total} logged dives.",
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
         "type": "int"
       }
     }
@@ -7191,6 +7203,7 @@
   "enum_diveMode_scr": "Semi-Closed Rebreather",
   "enum_entryMethod_backRoll": "Back Roll",
   "enum_entryMethod_boat": "Boat Entry",
+  "enum_entryMethod_frontRoll": "Front Roll",
   "enum_entryMethod_giantStride": "Giant Stride",
   "enum_entryMethod_jetty": "Jetty/Dock",
   "enum_entryMethod_ladder": "Ladder",
@@ -7221,6 +7234,7 @@
   "enum_equipmentType_tankBand": "Tank Band",
   "enum_equipmentType_weightPocket": "Weight Pocket",
   "enum_equipmentType_gearPocket": "Gear Pocket",
+  "enum_equipmentType_bag": "Bag",
   "enum_equipmentType_hose": "Hose",
   "enum_equipmentType_housing": "Housing",
   "enum_equipmentType_secondStage": "Second Stage",
@@ -11872,9 +11886,13 @@
   "diveDetailSection_tide_description": "Tide cycle graph and timing",
   "diveDetailSection_reefHealth_name": "Water Conditions",
   "diveDetailSection_reefHealth_description": "Satellite water conditions on the dive date",
-  "diveDetailSection_surfaceGps_name": "Surface GPS",
-  "diveDetailSection_surfaceGps_description": "GPS entry/exit points and surface drift",
+  "diveDetailSection_surfaceGps_name": "Location",
+  "diveDetailSection_surfaceGps_description": "Map of the dive site, GPS entry/exit points and surface drift",
   "diveLog_detail_section_surfaceGps": "Surface GPS",
+  "diveLog_detail_section_location": "Location",
+  "@diveLog_detail_section_location": {
+    "description": "Title of the dive detail map card when the dive has no GPS fix and only its dive site has coordinates"
+  },
   "diveLog_detail_surfaceGps_entry": "Entry",
   "diveLog_detail_surfaceGps_exit": "Exit",
   "diveLog_detail_label_drift": "Drift",
@@ -18972,7 +18990,7 @@
   "@settings_cloudSync_duplicateDivers_confirmTitle": {
     "description": "Title of the merge confirmation dialog."
   },
-  "settings_cloudSync_duplicateDivers_confirmBody": "All dives, certifications, gear, and other data from {count} duplicate {count, plural, one{profile} other{profiles}} will be moved onto \"{name}\". This cannot be undone automatically.",
+  "settings_cloudSync_duplicateDivers_confirmBody": "All dives, certifications, gear, and other data from {count} duplicate {count, plural, one{profile} other{profiles}} will be moved onto \"{name}\". You can undo this right after merging.",
   "@settings_cloudSync_duplicateDivers_confirmBody": {
     "description": "Body text of the merge confirmation dialog.",
     "placeholders": {
@@ -19758,6 +19776,8 @@
   "attrLabel_band_style": "Style",
   "attrLabel_pocket_capacity_kg": "Capacity",
   "attrLabel_pocket_mount": "Mount",
+  "attrLabel_bag_style": "Style",
+  "attrLabel_capacity_l": "Capacity",
   "attrChoice_plate_material_aluminum": "Aluminum",
   "attrChoice_plate_material_carbon_fiber": "Carbon fiber",
   "attrChoice_plate_material_steel": "Steel",
@@ -19809,6 +19829,13 @@
   "attrChoice_pocket_mount_harness": "Harness",
   "attrChoice_pocket_mount_waist_belt": "Waist belt",
   "attrChoice_pocket_mount_thigh": "Thigh",
+  "attrChoice_bag_style_duffel": "Duffel",
+  "attrChoice_bag_style_roller": "Roller",
+  "attrChoice_bag_style_backpack": "Backpack",
+  "attrChoice_bag_style_mesh": "Mesh",
+  "attrChoice_bag_style_dry_bag": "Dry bag",
+  "attrChoice_bag_style_regulator_bag": "Regulator bag",
+  "attrChoice_bag_style_catch_bag": "Catch bag",
   "attrChoice_bcd_style_jacket": "Jacket",
   "attrChoice_bcd_style_back_inflate": "Back-inflate",
   "attrChoice_bcd_style_wing": "Wing",

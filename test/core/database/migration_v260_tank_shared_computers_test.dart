@@ -5,7 +5,10 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/tank_shared_computer_backfill.dart';
 
 void main() {
-  test('v260 is the current schema version and is in the ladder', () {
+  test('v260 stays in the schema ladder', () {
+    // Relaxed from the exact-latest tripwire: v261 (dropping
+    // diver_settings.default_ceiling_source, #767) landed on top, so the
+    // exact assertion now lives in migration_v261_drop_ceiling_source_test.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(260));
     expect(AppDatabase.migrationVersions, contains(260));
   });

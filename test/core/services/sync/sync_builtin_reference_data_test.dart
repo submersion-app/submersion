@@ -30,7 +30,7 @@ const _entityForTable = {
   // gated through the parent template).
   'pre_dive_checklist_templates': 'preDiveChecklistTemplates',
   // Built-in certification currency rules (issue #2267) are re-seeded from
-  // onCreate, the v261 rung and beforeOpen; the exporter and
+  // onCreate, the v262 rung and beforeOpen; the exporter and
   // deleteAllRecords both keep them out of the refill.
   'certification_currency_rules': 'certificationCurrencyRules',
 };

@@ -9095,6 +9095,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total dives',
+      one: '$total dive',
+    );
+    return 'Filtered: summarizing $shown of $_temp0';
+  }
+
+  @override
   String get diveLog_summary_overview => 'Overview';
 
   @override
@@ -11718,6 +11729,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_entryMethod_boat => 'Boat Entry';
 
   @override
+  String get enum_entryMethod_frontRoll => 'Front Roll';
+
+  @override
   String get enum_entryMethod_giantStride => 'Giant Stride';
 
   @override
@@ -11806,6 +11820,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_equipmentType_gearPocket => 'Gear Pocket';
+
+  @override
+  String get enum_equipmentType_bag => 'Bag';
 
   @override
   String get enum_equipmentType_hose => 'Hose';
@@ -18531,14 +18548,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Satellite water conditions on the dive date';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Surface GPS';
+  String get diveDetailSection_surfaceGps_name => 'Location';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS entry/exit points and surface drift';
+      'Map of the dive site, GPS entry/exit points and surface drift';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'Surface GPS';
+
+  @override
+  String get diveLog_detail_section_location => 'Location';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'Entry';
@@ -28677,7 +28697,7 @@ class AppLocalizationsEn extends AppLocalizations {
       other: 'profiles',
       one: 'profile',
     );
-    return 'All dives, certifications, gear, and other data from $count duplicate $_temp0 will be moved onto \"$name\". This cannot be undone automatically.';
+    return 'All dives, certifications, gear, and other data from $count duplicate $_temp0 will be moved onto \"$name\". You can undo this right after merging.';
   }
 
   @override
@@ -29909,6 +29929,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Mount';
 
   @override
+  String get attrLabel_bag_style => 'Style';
+
+  @override
+  String get attrLabel_capacity_l => 'Capacity';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminum';
 
   @override
@@ -30060,6 +30086,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Thigh';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'Duffel';
+
+  @override
+  String get attrChoice_bag_style_roller => 'Roller';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'Backpack';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'Mesh';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'Dry bag';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'Regulator bag';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'Catch bag';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

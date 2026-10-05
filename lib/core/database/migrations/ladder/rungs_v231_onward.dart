@@ -197,12 +197,19 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankSharedComputerIds();
     }
     if (from < 260) await reportProgress();
-    // v261: certification currency (issue #2267). Three synced tables and
-    // the seeded built-in rule catalog, no backfill. Re-asserted in
+    // v261: drop diver_settings.default_ceiling_source (issue #767), unread
+    // since the ceiling line lost its source toggle (#755). Re-asserted in
     // beforeOpen.
     if (from < 261) {
-      await _assertCertificationCurrencySchema();
+      await _dropDefaultCeilingSourceColumn();
     }
     if (from < 261) await reportProgress();
+    // v262: certification currency (issue #2267). Three synced tables and
+    // the seeded built-in rule catalog, no backfill. Re-asserted in
+    // beforeOpen. 261 is diver_settings.default_ceiling_source (#767).
+    if (from < 262) {
+      await _assertCertificationCurrencySchema();
+    }
+    if (from < 262) await reportProgress();
   }
 }

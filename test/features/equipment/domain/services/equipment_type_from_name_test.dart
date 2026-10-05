@@ -73,9 +73,15 @@ void main() {
       expect(typeFromName('Backup regulator')?.type, EquipmentType.regulator);
     });
 
+    test('reads a bag, whatever it holds (#2952)', () {
+      expect(typeFromName('Spare parts bag')?.type, EquipmentType.bag);
+      expect(typeFromName('Drysuit bag')?.type, EquipmentType.bag);
+    });
+
     test('proposes nothing when the name does not say what it is', () {
       expect(typeFromName('Hydros Pro'), isNull);
-      expect(typeFromName('Spare parts bag'), isNull);
+      expect(typeFromName('Spare parts'), isNull);
+      expect(typeFromName('Breathing bag'), isNull);
     });
 
     test('proposes nothing for a blank name', () {
