@@ -2,11 +2,14 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_dive_parser.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_file_adapter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+const _log = LoggerService('SuuntoFileStep');
 
 /// Opens the platform picker for Suunto JSON exports. Injected so a widget
 /// test never reaches the platform channel.
@@ -60,30 +63,44 @@ class _SuuntoFileStepState extends ConsumerState<SuuntoFileStep> {
   }
 
   Future<void> _pick() async {
-    final files = await ref.read(suuntoJsonFilePickerProvider)();
+    final List<SuuntoJsonFile> files;
+    try {
+      files = await ref.read(suuntoJsonFilePickerProvider)();
+    } catch (e, st) {
+      // A handle that cannot be read (a revoked SAF grant, say) must not
+      // end in silence; the diver can pick again.
+      _log.warning('Could not read the picked files', error: e, stackTrace: st);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.dropTarget_error_readFailed)),
+      );
+      return;
+    }
     if (!mounted || files.isEmpty) return;
     await _read(files);
   }
 
   Future<void> _read(List<SuuntoJsonFile> files) async {
     setState(() => _reading = true);
-    final results = <SuuntoFileReadResult>[];
-    for (final file in files) {
-      results.add(readSuuntoJsonFile(file));
-      // Let the progress indicator paint between large files.
-      await Future<void>.delayed(Duration.zero);
+    try {
+      final results = <SuuntoFileReadResult>[];
+      for (final file in files) {
+        results.add(readSuuntoJsonFile(file));
+        // Let the progress indicator paint between large files.
+        await Future<void>.delayed(Duration.zero);
+      }
+      if (!mounted) return;
+      final dives = [
+        for (final r in results)
+          if (r.dive != null) r.dive!,
+      ];
+      widget.onDivesRead(dives);
+      ref.read(suuntoFileDivesReadyProvider.notifier).state = dives.isNotEmpty;
+      setState(() => _results = results);
+    } finally {
+      // Never leave "Choose files" disabled behind a failed read.
+      if (mounted) setState(() => _reading = false);
     }
-    if (!mounted) return;
-    final dives = [
-      for (final r in results)
-        if (r.dive != null) r.dive!,
-    ];
-    widget.onDivesRead(dives);
-    ref.read(suuntoFileDivesReadyProvider.notifier).state = dives.isNotEmpty;
-    setState(() {
-      _results = results;
-      _reading = false;
-    });
   }
 
   @override

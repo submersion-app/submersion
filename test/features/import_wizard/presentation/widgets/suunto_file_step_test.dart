@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -111,5 +112,30 @@ void main() {
     expect(picks, 1);
     expect(find.text('Not a dive (another activity type)'), findsOneWidget);
     expect(_ready(tester), isFalse);
+  });
+
+  testWidgets('a picker that fails says so and lets the diver try again', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _host(
+        initialFiles: const [],
+        onDivesRead: (_) {},
+        picker: () async => throw const FileSystemException('denied'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Choose files'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Could not read file'), findsOneWidget);
+    final button = tester.widget<OutlinedButton>(
+      find.ancestor(
+        of: find.text('Choose files'),
+        matching: find.bySubtype<OutlinedButton>(),
+      ),
+    );
+    expect(button.onPressed, isNotNull);
   });
 }

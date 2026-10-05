@@ -1,12 +1,15 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_api_exception.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_dive_parser.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_sml_normalizer.dart';
 
 /// The UTF-8 byte order mark as decoded text (U+FEFF). Written as an escape
 /// because the literal character is invisible in source.
+const _log = LoggerService('SuuntoJsonFileReader');
+
 const _bom = '\u{FEFF}';
 
 /// One file picked, shared or dropped for the Suunto JSON import.
@@ -77,6 +80,19 @@ SuuntoFileReadResult readSuuntoJsonFile(SuuntoJsonFile file) {
     );
   } on TypeError {
     // Keys that match a Suunto export, values of the wrong shape.
+    return SuuntoFileReadResult.rejected(
+      file,
+      SuuntoFileRejection.notSuuntoExport,
+    );
+  } catch (e, st) {
+    // Anything else the parser trips on (an out-of-range number decoded
+    // as Infinity, say) skips this one file rather than escaping and
+    // losing the rest of the diver's pick.
+    _log.warning(
+      'Could not read ${file.name} as a Suunto export',
+      error: e,
+      stackTrace: st,
+    );
     return SuuntoFileReadResult.rejected(
       file,
       SuuntoFileRejection.notSuuntoExport,

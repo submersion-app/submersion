@@ -92,4 +92,16 @@ void main() {
 
     expect(_read(bytes).rejection, SuuntoFileRejection.notSuuntoExport);
   });
+
+  // jsonDecode reads 1e400 as Infinity, and rounding it throws an
+  // UnsupportedError deep in the parser: any unexpected failure must still
+  // come back as a skipped file, never escape and stall the file step.
+  test('turns an unexpected parser failure into a skipped file', () {
+    final bytes = utf8.encode(
+      '{"DeviceLog":{"Header":{"ActivityType":51,"DiveTime":1e400},'
+      '"Samples":[]}}',
+    );
+
+    expect(_read(bytes).rejection, SuuntoFileRejection.notSuuntoExport);
+  });
 }
