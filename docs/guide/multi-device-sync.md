@@ -131,20 +131,17 @@ device keeps its own.
 
 **Stays on each device:**
 
-| Setting | Where |
-|---------|-------|
-| Service reminders: on or off, reminder days, reminder time, trip lead time | Settings &rarr; Notifications |
-| Theme: Light, Dark or System default | Settings &rarr; Appearance |
-| Navigation layout: the order of destinations and **Always hide labels** | Settings &rarr; Appearance &rarr; Navigation layout |
-| Display size | Settings &rarr; Appearance |
-| The active diver | Settings &rarr; Diver Profile |
-| App lock and database encryption | Settings &rarr; App Security |
-| The Cloud Sync connection and the sync options above | Settings &rarr; Cloud Sync |
-| Automatic backups and where the database is stored | Settings &rarr; Data |
-| The Home layout | Customize Home |
-| Data quality checks you turned off | Data quality settings |
-| Dive computer Bluetooth pairing and clock sync | The dive computer's details |
-| Sign-ins to connected services | Each service's settings |
+| Area | Settings |
+|------|----------|
+| **Notifications** | Service reminders on or off, reminder days, reminder time, trip lead time |
+| **Appearance** | Theme (Light, Dark or System default), Navigation layout (the order of destinations and **Always hide labels**), Display size, the Home layout (status chips and home cards), **Keep overlays in view when zooming** |
+| **App Security** | App lock, **Unlock with biometrics**, **Auto-lock**, database encryption |
+| **Cloud Sync** | Which backend you use and its credentials, Auto Sync, Sync on Launch, Sync on Resume |
+| **Data** | Automatic backups, how often and how many to keep, the backup location, cloud backup, where the database is stored |
+| **Updates** | **Automatic updates**, **Update channel** |
+| **Photos & Media** | **Show source badges on thumbnails**, **Upload photos automatically**, **Upload photos on cellular** |
+| **Dive computers** | Bluetooth pairing, **Sync dive computer clocks** |
+| **Other** | Which diver is active, Data quality checks you turned off, the pSCR ratio in the dive planner, the O2 cell unit in chart options, CSV export units, which dive detail sections are expanded, which trips are collapsed in the dive list, Debug mode, your sign-ins to other services (Garmin, Suunto, divelogs.de, Adobe Lightroom and media storage logins) |
 
 **Syncs to every device:** everything else in Settings, including units,
 language, the Color Theme and colored icons, map style, decompression and
