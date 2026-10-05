@@ -895,6 +895,11 @@ class DiveConsolidationService {
         'sightings': {for (final r in snapshot.sightingRows) r.id},
         'diveWeights': {for (final r in snapshot.weightRows) r.id},
         'diveCustomFields': {for (final r in snapshot.customFieldRows) r.id},
+        // The role junctions (#1221): restoreRows below re-inserts the
+        // captured rows, but runs after the dive REPLACE, whose cascade has
+        // already emptied the target, so it cannot see these to tombstone.
+        'diveDiverRoles': {for (final r in snapshot.diverRoleRows) r.id},
+        'diveBuddyRoles': {for (final r in snapshot.buddyRoleRows) r.id},
       };
       final currentChildIds = <String, List<String>>{
         'diveTanks': [
@@ -967,6 +972,18 @@ class DiveConsolidationService {
         'diveCustomFields': [
           for (final r in await (_db.select(
             _db.diveCustomFields,
+          )..where((t) => t.diveId.equals(mergedId))).get())
+            r.id,
+        ],
+        'diveDiverRoles': [
+          for (final r in await (_db.select(
+            _db.diveDiverRoles,
+          )..where((t) => t.diveId.equals(mergedId))).get())
+            r.id,
+        ],
+        'diveBuddyRoles': [
+          for (final r in await (_db.select(
+            _db.diveBuddyRoles,
           )..where((t) => t.diveId.equals(mergedId))).get())
             r.id,
         ],

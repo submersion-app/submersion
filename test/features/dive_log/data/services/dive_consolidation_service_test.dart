@@ -1116,6 +1116,71 @@ void main() {
   });
 
   group('undo', () {
+    test('undo with FK ON tombstones the role rows the consolidation added '
+        '(#1221)', () async {
+      await db.customStatement('PRAGMA foreign_keys = ON');
+      await db
+          .into(db.divers)
+          .insert(
+            const DiversCompanion(
+              id: Value('diver1'),
+              name: Value('diver1'),
+              createdAt: Value(0),
+              updatedAt: Value(0),
+            ),
+          );
+      for (final computerId in ['comp-t', 'comp-s']) {
+        await db
+            .into(db.diveComputers)
+            .insert(
+              DiveComputersCompanion.insert(
+                id: computerId,
+                name: computerId,
+                createdAt: 0,
+                updatedAt: 0,
+              ),
+            );
+      }
+      await seedConsolidatableFixture();
+      await db.customStatement(
+        'INSERT INTO buddies (id, name, created_at, updated_at) '
+        "VALUES ('buddy-x', 'X', 0, 0)",
+      );
+      await seedBuddy('dbud-t1', diveId: 't', buddyId: 'buddy-x');
+      await seedBuddy('dbud-s1', diveId: 's', buddyId: 'buddy-x');
+      final roles = DiveRoleLinkRepository();
+      await roles.writeDiverRoles('t', ['instructor']);
+      await roles.writeDiverRoles('s', ['safetyDiver']);
+      await roles.writeBuddyRoles('t', 'buddy-x', ['diveMaster']);
+      await roles.writeBuddyRoles('s', 'buddy-x', ['diveGuide']);
+
+      final outcome = await service.apply(
+        targetDiveId: 't',
+        secondaryDiveIds: ['s'],
+      );
+      final added = [
+        for (final r in await db.select(db.diveDiverRoles).get())
+          if (r.diveId == 't' && r.roleId == 'safetyDiver') r.id,
+        for (final r in await db.select(db.diveBuddyRoles).get())
+          if (r.diveId == 't' && r.roleId == 'diveGuide') r.id,
+      ];
+      expect(added, hasLength(2));
+
+      await service.undo(outcome.snapshot);
+
+      final tombstoned = {
+        for (final t in await db.select(db.deletionLog).get())
+          if (t.entityType == 'diveDiverRoles' ||
+              t.entityType == 'diveBuddyRoles')
+            t.recordId,
+      };
+      expect(tombstoned, containsAll(added));
+      expect((await roles.diverRoleIdsForDives(['t']))['t'], ['instructor']);
+      expect((await roles.buddyRoleIdsForDives(['t']))['t']!['buddy-x'], [
+        'diveMaster',
+      ]);
+    });
+
     test(
       'scenario 8: restores both dives byte-for-byte, works with FK ON',
       () async {
