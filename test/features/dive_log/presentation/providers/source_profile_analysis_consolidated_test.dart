@@ -41,7 +41,11 @@ class _FakeDiverSettingsRepository extends DiverSettingsRepository {
     AppSettings? defaultSettings,
   }) async => const AppSettings(notificationsEnabled: false);
   @override
-  Future<void> updateSettingsForDiver(String d, AppSettings s) async {}
+  Future<void> updateSettingsForDiver(
+    String d,
+    AppSettings s, {
+    AppSettings? previous,
+  }) async {}
 }
 
 class _SettingsNotifier extends SettingsNotifier {

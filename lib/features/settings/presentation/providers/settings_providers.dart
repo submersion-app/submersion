@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/constants/card_color.dart';
@@ -1163,6 +1165,24 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// right diver's settings in place.
   int _landedGeneration = 0;
 
+  /// What the current diver's row holds, as this notifier last read or
+  /// stored it: null until a load lands for a diver.
+  ///
+  /// A save writes only the columns [state] changed from this, so a copy of
+  /// the settings held since before a sync cannot undo another device's
+  /// change (issue #2946), and a write to the row that leaves it different
+  /// from this came from a sync, which [_reloadFromStorage] adopts.
+  AppSettings? _persisted;
+
+  /// Saves started and not yet finished. While one is out the row still
+  /// lacks its change, so a reload waits for it (see [_reloadDeferred]).
+  int _pendingSaves = 0;
+
+  /// A reload asked for while a save was out, run once the last one ends.
+  bool _reloadDeferred = false;
+
+  StreamSubscription<void>? _storageChanges;
+
   /// Completes once [state] holds the CURRENT diver's settings.
   ///
   /// Unlike [initialLoad], this covers the reload after a diver switch: until
@@ -1226,11 +1246,22 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     // that await it still see them.
     _initialLoad = settingsLoaded..ignore();
 
+    // A sync applying another device's change to the diver's row (issue
+    // #2946). Writes to the row from here notify too, and change nothing.
+    _storageChanges = _repository.watchSettingsChanges().listen(
+      (_) => logFailure(
+        _reloadFromStorage(),
+        SettingsNotifier,
+        'reload settings changed in storage',
+      ),
+    );
+
     // Listen for diver changes and reload settings
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
       if (previous != next) {
         // Reset diver ID immediately to prevent saving to wrong diver during switch
         _validatedDiverId = null;
+        _persisted = null;
         // Starting a new load supersedes any still in flight: its reads may
         // return after this one's, and must not overwrite the new diver's
         // settings when they do.
@@ -1260,6 +1291,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     } catch (_) {
       if (_isCurrentLoad(generation) && _landedGeneration != generation) {
         _validatedDiverId = null;
+        _persisted = null;
         // Only an EARLIER load's settings need replacing. When none has
         // landed (a failed startup load) state already holds the defaults.
         if (_landedGeneration != 0) {
@@ -1361,6 +1393,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     final diverId = _validatedDiverId;
     if (diverId == null) {
       // No diver selected, use defaults
+      _persisted = null;
       state = AppSettings(
         hiddenHomeChips: hiddenHomeChips,
         homeCardOrder: homeCardOrder,
@@ -1394,6 +1427,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     // first, and this one must not then overwrite it with the previous
     // diver's settings (issue #2564).
     if (!_isCurrentLoad(generation)) return;
+    _persisted = settings;
     state = settings.copyWith(
       hiddenHomeChips: hiddenHomeChips,
       homeCardOrder: homeCardOrder,
@@ -1409,7 +1443,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     _landedGeneration = generation;
     if (adoptLegacySeascape) {
       // Write through immediately so the adopted value syncs.
-      await _repository.updateSettingsForDiver(diverId, state);
+      await _saveSettings();
     }
     if (legacySeascapeRaw != null) {
       // Retire the pref: the diver row is the source of truth now, and a
@@ -1452,50 +1486,135 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   Future<void> _saveSettings() async {
-    // Device-local preferences are always persisted to SharedPreferences,
-    // independent of whether a diver is currently selected.
-    final prefs = _ref.read(sharedPreferencesProvider);
-    await prefs.setStringList(
-      SettingsKeys.hiddenHomeChips,
-      state.hiddenHomeChips.toList()..sort(),
-    );
-    await prefs.setStringList(SettingsKeys.homeCardOrder, state.homeCardOrder);
-    await prefs.setStringList(
-      SettingsKeys.hiddenHomeCards,
-      state.hiddenHomeCards.toList()..sort(),
-    );
-    await prefs.setDouble(SettingsKeys.pscrRatio, state.pscrRatio);
-    await prefs.setBool(
-      SettingsKeys.profileMetricsFollowViewport,
-      state.profileMetricsFollowViewport,
-    );
-    await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
-    await prefs.setBool(
-      SettingsKeys.perdixOverlayEnabled,
-      state.perdixOverlayEnabled,
-    );
-    final perdixX = state.perdixOverlayX;
-    if (perdixX != null) {
-      await prefs.setDouble(SettingsKeys.perdixOverlayX, perdixX);
-    }
-    final perdixY = state.perdixOverlayY;
-    if (perdixY != null) {
-      await prefs.setDouble(SettingsKeys.perdixOverlayY, perdixY);
-    }
-    await _writeCachedTheme(prefs);
-
-    final diverId = _validatedDiverId;
-    if (diverId == null) {
-      // No diver yet: the device-local pref is the seascape knobs' only
-      // store; it is adopted into the diver row and retired on the first
-      // load with a diver (see _loadSettings).
-      await prefs.setString(
-        SettingsKeys.seascapeAppearance,
-        state.seascapeAppearance.encode(),
+    // Taken before the first await: [state] can move on while the writes
+    // below are out, and the row write carries exactly this change.
+    final generation = _loadGeneration;
+    final previous = _persisted;
+    final next = state;
+    if (previous != null) _persisted = next;
+    _pendingSaves++;
+    try {
+      // Device-local preferences are always persisted to SharedPreferences,
+      // independent of whether a diver is currently selected.
+      final prefs = _ref.read(sharedPreferencesProvider);
+      await prefs.setStringList(
+        SettingsKeys.hiddenHomeChips,
+        state.hiddenHomeChips.toList()..sort(),
       );
+      await prefs.setStringList(
+        SettingsKeys.homeCardOrder,
+        state.homeCardOrder,
+      );
+      await prefs.setStringList(
+        SettingsKeys.hiddenHomeCards,
+        state.hiddenHomeCards.toList()..sort(),
+      );
+      await prefs.setDouble(SettingsKeys.pscrRatio, state.pscrRatio);
+      await prefs.setBool(
+        SettingsKeys.profileMetricsFollowViewport,
+        state.profileMetricsFollowViewport,
+      );
+      await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
+      await prefs.setBool(
+        SettingsKeys.perdixOverlayEnabled,
+        state.perdixOverlayEnabled,
+      );
+      final perdixX = state.perdixOverlayX;
+      if (perdixX != null) {
+        await prefs.setDouble(SettingsKeys.perdixOverlayX, perdixX);
+      }
+      final perdixY = state.perdixOverlayY;
+      if (perdixY != null) {
+        await prefs.setDouble(SettingsKeys.perdixOverlayY, perdixY);
+      }
+      await _writeCachedTheme(prefs);
+
+      final diverId = _validatedDiverId;
+      if (diverId == null) {
+        // No diver yet: the device-local pref is the seascape knobs' only
+        // store; it is adopted into the diver row and retired on the first
+        // load with a diver (see _loadSettings).
+        await prefs.setString(
+          SettingsKeys.seascapeAppearance,
+          state.seascapeAppearance.encode(),
+        );
+        return;
+      }
+      if (generation != _loadGeneration) {
+        // A diver switch started a load while the preferences were written,
+        // so the snapshot may be the previous diver's. Store what [state]
+        // holds now, as a change from what is known of this diver's row.
+        await _repository.updateSettingsForDiver(
+          diverId,
+          state,
+          previous: _persisted,
+        );
+        return;
+      }
+      // With no load landed yet [previous] is null and every column is
+      // written; the load then reads them back.
+      await _repository.updateSettingsForDiver(
+        diverId,
+        next,
+        previous: previous,
+      );
+    } catch (_) {
+      // The row still holds what [previous] describes.
+      if (identical(_persisted, next)) _persisted = previous;
+      rethrow;
+    } finally {
+      _pendingSaves--;
+      _runDeferredReload();
+    }
+  }
+
+  /// Adopts the current diver's row when it no longer holds what this
+  /// notifier last read or stored there, which means a sync applied another
+  /// device's change (issue #2946). This notifier's own writes leave the row
+  /// matching [_persisted] and change nothing.
+  ///
+  /// Waits for local saves in flight: until one lands the row lacks its
+  /// change, and adopting the row would undo the edit [state] holds.
+  Future<void> _reloadFromStorage() async {
+    if (_pendingSaves > 0) {
+      _reloadDeferred = true;
       return;
     }
-    await _repository.updateSettingsForDiver(diverId, state);
+    final diverId = _validatedDiverId;
+    final base = _persisted;
+    // Until a load lands there is nothing to compare, and that load reads
+    // the row itself.
+    if (diverId == null || base == null) return;
+    final generation = _loadGeneration;
+    final stored = await _repository.getSettingsForDiver(diverId);
+    if (stored == null || !_isCurrentLoad(generation)) return;
+    if (_pendingSaves > 0 || !identical(_persisted, base)) {
+      // A save started during the read, and the row read may predate it.
+      _reloadDeferred = true;
+      _runDeferredReload();
+      return;
+    }
+    if (DiverSettingsRepository.storesSameSettings(stored, base)) return;
+    _persisted = stored;
+    state = _withDeviceLocalPrefs(stored);
+    await _writeCachedTheme(_ref.read(sharedPreferencesProvider));
+    _scheduleNotificationsIfNeeded();
+  }
+
+  void _runDeferredReload() {
+    if (_pendingSaves > 0 || !_reloadDeferred || !mounted) return;
+    _reloadDeferred = false;
+    logFailure(
+      _reloadFromStorage(),
+      SettingsNotifier,
+      'reload settings changed in storage',
+    );
+  }
+
+  @override
+  void dispose() {
+    _storageChanges?.cancel();
+    super.dispose();
   }
 
   /// Mirrors the effective theme into SharedPreferences so the startup splash
