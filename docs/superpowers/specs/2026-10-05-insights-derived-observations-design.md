@@ -7,7 +7,7 @@ Issue: #2381 (umbrella, phase 4 of 4). This PR uses `Refs #2381`.
 ## 1. Problem
 
 Insights shows numbers: charts, rankings and totals across ten categories.
-It does not tell a diver what those numbers say. A diver whose SAC dropped
+It does not tell a diver what those numbers say. A diver whose gas consumption dropped
 over the last year, who just logged their 200th dive, or whose ascents are
 getting faster has to find that out by reading charts.
 
@@ -50,7 +50,8 @@ Insights turns the diver's log into short, ranked, dismissible sentences.
 Every rule reads the whole log of the active diver through queries the
 Insights repository already runs, without the view filter. Rules therefore
 inherit the existing persistent exclusions (`DiveStatsScope`: dives excluded
-from statistics; for SAC also per-dive gas exclusions and gauge mode). All
+from statistics and planned dives; for RMV also per-dive gas exclusions and
+gauge mode). All
 values print in the diver's units.
 
 "Last 12 months" is the window ending now; "the year before" is the 12
@@ -74,7 +75,7 @@ minimum.
 
 | Kind | Rule id | Fires when | Fingerprint | Tap opens |
 | --- | --- | --- | --- | --- |
-| Trend | `sacTrend` | SAC (L/min, volume) changes by 8% or more | direction + 10% band | Gas |
+| Trend | `rmvTrend` | RMV (surface gas consumption, L/min) changes by 8% or more | direction + 10% band | Gas |
 | Trend | `maxDepthTrend` | average max depth changes by 15% or more | direction + 10% band | Progression |
 | Trend | `diveTimeTrend` | average runtime changes by 15% or more | direction + 10% band | Progression |
 | Trend | `weightTrend` | average weight carried changes by 1 kg or more | direction + 1 kg band | Equipment |
@@ -94,7 +95,7 @@ minimum.
 Notes:
 
 - The "band" of a trend is `floor(|percent change| / 10)`, so a dismissed
-  "SAC 12% lower" returns as "SAC 23% lower" but not as "SAC 14% lower". A
+  "RMV 12% lower" returns as "RMV 23% lower" but not as "RMV 14% lower". A
   change of direction always returns.
 - Career counts and hours include the diver's prior experience
   (`priorDiveCount`, `priorDiveTimeSeconds`) when set, the way the Overview
@@ -113,8 +114,9 @@ Notes:
 
 - Trends and patterns state neutral facts: "Over the last 12 months your
   average max depth was 18% deeper than the year before."
-- Only SAC uses "improved" and "rose", because lower SAC is better on every
-  reading.
+- Only RMV uses "improved" and "rose", because lower consumption is better
+  on every reading. The sentence says "RMV", the term the Gas page uses for
+  the litres-per-minute lane ("SAC" is the pressure lane in this app).
 - `ascentRate` states the number and the common guidance, "9 to 10 m/min or
   slower", converted to the diver's depth unit. It never praises a rate
   below the guidance; below the threshold the rule does not fire.
@@ -160,22 +162,37 @@ the diver's dismissals and mutes persist.
 - `observation_inputs_loader.dart`: builds `ObservationInputs` for the
   current diver from `InsightsRepository` (and the diver for prior
   experience) with an empty `DiveFilterState`. New repository queries are
-  added only where no existing one returns the data (for example first-seen
-  date per country and per species).
+  added only where no existing one returns the data. Per-dive rows (date,
+  max depth, effective runtime, weight, site and country) and per-dive
+  buddies come from a new `observation_inputs_queries.dart`, so the
+  3,000-line repository does not grow. RMV per dive reuses
+  `getSacVolumePerDive`, ascent rates reuse `getAscentDescentRates` with a
+  date-range filter per window, and species first sightings reuse
+  `SeenSpeciesRepository.getSeenSpecies`.
 - `repositories/observation_dismissals_repository.dart`: `dismiss`,
-  `undismiss` (for Undo), `watchDismissals(diverId)`; marks rows pending for
-  sync.
+  `undismiss` (for Undo), `watchDismissedKeys(diverId)`; marks rows pending
+  for sync.
 
 ### 5.3 Storage (schema 261)
 
 One rung, following the split layout (tables in
 `lib/core/database/tables/`, the rung in `migrations/`):
 
-- New synced table `insight_observation_dismissals`: `id` (uuid),
-  `diver_id` (FK to divers, cascade), `rule_id`, `fingerprint`,
-  `dismissed_at`, plus the sync bookkeeping columns synced tables carry.
-  Unique on (`diver_id`, `rule_id`, `fingerprint`). Registered with the sync
-  serializer and service, and with the diver delete steps.
+- New synced table `insight_observation_dismissals`: `id`, `diver_id` (FK
+  to divers, cascade), `rule_id`, `fingerprint`, `dismissed_at` (nullable),
+  `created_at`, `updated_at`, `hlc`. Modelled on `saved_queries` (a
+  diver-scoped synced table with its own clock).
+- The id is deterministic: `od_` plus the SHA-1 of
+  `diverId|ruleId|fingerprint`, the way condition findings derive theirs.
+  Two devices that dismiss the same observation write the same row, so sync
+  merges it with a plain upsert (last writer wins on `updated_at`) and no
+  unique key or rival-row reconciliation is needed. That also keeps diver
+  merge safe: it repoints `diver_id` on every diver-owned table, and a
+  repointed row can at worst duplicate a dismissal, which is harmless.
+- Dismiss sets `dismissed_at`; Undo sets it back to null. Rows are never
+  deleted by the feature, so no tombstone can race a later re-dismissal.
+  Deleting a diver removes their rows (cascade, plus a delete step that
+  tombstones them).
 - New nullable column `diver_settings.insights_muted_observation_rules`: a
   JSON list of `ObservationRuleId.dbValue`. Null means none muted. Synced
   with the rest of diver settings. No existing row is rewritten.
