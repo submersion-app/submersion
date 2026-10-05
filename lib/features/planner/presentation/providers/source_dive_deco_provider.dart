@@ -32,10 +32,15 @@ final sourceDiveTtsSecondsProvider = FutureProvider<int?>((ref) async {
 /// The last reading rather than the last sample's, since many computers log
 /// CNS only every few samples, and of the analysed samples rather than
 /// `dive.profile`, whose last reading may be another computer's (#2545).
+/// Unlike [_analysedSamples] there is no `dive.profile` fallback: the series
+/// is null only for an interleaved dive with no one recording to analyse,
+/// where that fallback is exactly the mix of computers to avoid.
 final sourceDiveCnsEndProvider = FutureProvider<double?>((ref) async {
   final dive = await ref.watch(sourceDiveForPlanProvider.future);
   if (dive == null || dive.profile.isEmpty) return null;
-  return extractComputerCns(await _analysedSamples(ref, dive))?.cnsEnd;
+  final series = await ref.watch(diveAnalysisSeriesProvider(dive.id).future);
+  if (series == null) return null;
+  return extractComputerCns(series.points)?.cnsEnd;
 });
 
 /// Seconds the source dive spent holding deco stops, for the plan-vs-actual

@@ -27,7 +27,8 @@ class PlanSourceDiveCompareStrip extends ConsumerWidget {
     final actualDecoSeconds = ref
         .watch(sourceDiveDecoSecondsProvider)
         .valueOrNull;
-    final actualCnsEnd = ref.watch(sourceDiveCnsEndProvider).valueOrNull;
+    // .value keeps the last reading through a reload of the source dive.
+    final actualCnsEnd = ref.watch(sourceDiveCnsEndProvider).value;
     final units = UnitFormatter(ref.watch(settingsProvider));
     final theme = Theme.of(context);
 
