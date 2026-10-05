@@ -217,9 +217,13 @@ extension RungsFromV231 on AppDatabase {
       await _assertLateGasSwitchSettingColumn();
     }
     if (from < 264) await reportProgress();
+    // v265: Insights observation dismissals (synced) and the muted-rules
+    // column on diver_settings (#2381). Additive; re-asserted in beforeOpen.
+    if (from < 265) await _assertInsightObservationsSchema();
+    if (from < 265) await reportProgress();
     // v266: certification currency (issue #2267). Three synced tables and
     // the seeded built-in rule catalog, no backfill. Re-asserted in
-    // beforeOpen. 262 and 265 are held by open branches.
+    // beforeOpen. 262 is held by an open branch.
     if (from < 266) {
       await _assertCertificationCurrencySchema();
     }

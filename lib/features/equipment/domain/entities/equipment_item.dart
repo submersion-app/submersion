@@ -133,10 +133,16 @@ class EquipmentItem extends Equatable {
   /// Still in service: active, and not carrying a terminal status. Older
   /// rows can be retired or sold with isActive left true, and the
   /// repository's own active-gear queries treat both statuses as gone.
+  /// Wanted gear (#2025) is not owned yet, so it is never fitted either,
+  /// even on a row whose isActive was left true.
   bool get isFitted =>
       isActive &&
       status != EquipmentStatus.retired &&
-      status != EquipmentStatus.sold;
+      status != EquipmentStatus.sold &&
+      status != EquipmentStatus.wanted;
+
+  /// On the diver's wishlist rather than in the kit (#2025).
+  bool get isWanted => status == EquipmentStatus.wanted;
 
   /// Wing/BCD rated lift capacity in kg (curated attribute; see the BCD entry
   /// in [EquipmentAttributeCatalog]). Feeds the buoyancy twin's peak-lift

@@ -236,7 +236,7 @@ Two rules for later releases:
 
 The rung number is the next free one at implementation time. When this
 spec was written main was at 222; when implementation started it was at
-260; main then shipped 261 (#767), 263 (#3004) and 264 (#2939) while this was open, and open branches hold 262 and 265, so the rung is 266. Either way
+260; main then shipped 261 (#767), 263 (#3004), 264 (#2939) and 265 (#2381) while this was open, and an open branch holds 262, so the rung is 266. Either way
 the self-heal matters: parallel branches have collided on this ladder
 before. Adding tables never raises `minimumCompatibleSchemaVersion`.
 

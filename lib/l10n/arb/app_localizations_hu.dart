@@ -12168,6 +12168,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentStatus_spare => 'Tartalék';
 
   @override
+  String get enum_equipmentStatus_wanted => 'Kívánt';
+
+  @override
   String get enum_equipmentType_backplate => 'Hátlemez';
 
   @override
@@ -13960,6 +13963,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_detail_retiredChip => 'Kivont';
 
   @override
+  String get equipment_detail_markPurchased => 'Megjelölés megvásároltként';
+
+  @override
   String get equipment_detail_serialNumberLabel => 'Sorozatszám';
 
   @override
@@ -14543,6 +14549,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'Vásárlási ár';
+
+  @override
+  String get equipment_edit_expectedPriceLabel => 'Várható ár';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -15354,6 +15363,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_snackbar_reactivated => 'Felszerelés újraaktiválva';
 
   @override
+  String get equipment_snackbar_purchased =>
+      'Áthelyezve az aktív felszerelésed közé';
+
+  @override
   String get equipment_snackbar_retired => 'Felszerelés kivonva';
 
   @override
@@ -15400,6 +15413,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String equipment_summary_totalValue(String currency) {
     return 'Összes érték ($currency)';
+  }
+
+  @override
+  String equipment_summary_wantedValue(String currency) {
+    return 'Kívánt érték ($currency)';
   }
 
   @override
@@ -20711,6 +20729,20 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_depthUnit => 'Mélység mértékegysége';
 
   @override
+  String get settings_conflict_field_distanceUnit => 'Távolság mértékegysége';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'A profil mutatja a késői gázváltásokat';
+
+  @override
+  String get settings_conflict_field_insightsMutedObservationRules =>
+      'Elrejtett megfigyelésfajták';
+
+  @override
+  String get settings_conflict_field_fingerprint => 'Megfigyelés ujjlenyomata';
+
+  @override
   String get settings_conflict_field_descentRate => 'Lemerülés sebessége';
 
   @override
@@ -24194,6 +24226,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_category_progression_subtitle => 'Mélység és idő trendek';
 
   @override
+  String get insights_category_focus_subtitle =>
+      'Legjobb, legrosszabb és küszöbérték szerinti csoportok';
+
+  @override
   String get insights_category_progression_title => 'Fejlődés';
 
   @override
@@ -24529,6 +24565,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_gas_sacRecords_title => 'Gázfogyasztási rekordok';
 
   @override
+  String get insights_gas_sacRecords_seeTop => 'Top 10 megtekintése';
+
+  @override
   String get insights_gas_sacTrend_error =>
       'Nem sikerült a fogyasztási trend betöltése';
 
@@ -24537,6 +24576,204 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_gas_sacTrend_title => 'Gázfogyasztási trend';
+
+  @override
+  String get insights_focus_title => 'Merülésfókusz';
+
+  @override
+  String get insights_focus_error => 'A merülésfókusz betöltése sikertelen';
+
+  @override
+  String get insights_focus_empty => 'Még nincs merülés ezzel az értékkel';
+
+  @override
+  String insights_focus_summary(
+    int count,
+    int total,
+    String group,
+    String overall,
+  ) {
+    return '$count / $total merülés, csoportátlag $group, összesen $overall';
+  }
+
+  @override
+  String insights_focus_summary_allShown(int total) {
+    return 'Csak $total merülésnek van ilyen értéke, ezért mind megjelenik';
+  }
+
+  @override
+  String insights_focus_noMatch_above(String value, String min, String max) {
+    return 'Nincs merülés $value felett. A merüléseid $min és $max között vannak.';
+  }
+
+  @override
+  String insights_focus_noMatch_below(String value, String min, String max) {
+    return 'Nincs merülés $value alatt. A merüléseid $min és $max között vannak.';
+  }
+
+  @override
+  String get insights_focus_enterValue =>
+      'Adj meg egy értéket a felette vagy alatta lévő merülések megtekintéséhez';
+
+  @override
+  String get insights_focus_chart_title => 'A csoport az idő függvényében';
+
+  @override
+  String get insights_focus_chart_group => 'A csoportban';
+
+  @override
+  String get insights_focus_list_title => 'A csoport merülései';
+
+  @override
+  String get insights_focus_list_unknownSite => 'Nincs merülőhely';
+
+  @override
+  String get insights_focus_unit_minutes => 'perc';
+
+  @override
+  String get insights_focus_metric_rmv => 'RMV';
+
+  @override
+  String get insights_focus_metric_sac => 'SAC';
+
+  @override
+  String get insights_focus_metric_maxDepth => 'Maximális mélység';
+
+  @override
+  String get insights_focus_metric_bottomTime => 'Fenékidő';
+
+  @override
+  String get insights_focus_metric_weight => 'Ólom';
+
+  @override
+  String get insights_focus_metric_waterTemp => 'Vízhőmérséklet';
+
+  @override
+  String get insights_focus_mode_best => 'Legjobb';
+
+  @override
+  String get insights_focus_mode_worst => 'Legrosszabb';
+
+  @override
+  String get insights_focus_mode_lowest => 'Legalacsonyabb';
+
+  @override
+  String get insights_focus_mode_highest => 'Legmagasabb';
+
+  @override
+  String get insights_focus_mode_above => 'Felett';
+
+  @override
+  String get insights_focus_mode_below => 'Alatt';
+
+  @override
+  String get insights_focus_count_label => 'Merülések';
+
+  @override
+  String get insights_focus_count_error =>
+      'Adj meg egy egész számot 1 és 999 között';
+
+  @override
+  String get insights_focus_threshold_label => 'Érték';
+
+  @override
+  String get insights_focus_threshold_error => 'Adj meg egy számot';
+
+  @override
+  String get insights_focus_threshold_negativeError =>
+      'Adj meg nullát vagy többet';
+
+  @override
+  String get insights_focus_factors_title => 'Közös tényezők';
+
+  @override
+  String get insights_focus_factors_subtitle =>
+      'Ez a csoport az összes olyan merüléshez képest, amelynek van ilyen értéke';
+
+  @override
+  String get insights_focus_factors_tooFew =>
+      'Válassz legalább 3 merülést a közös tényezők összehasonlításához';
+
+  @override
+  String get insights_focus_factors_standsOut => 'Kiemelkedik';
+
+  @override
+  String insights_focus_factors_standoutsSummary(String factors) {
+    return 'Kiemelkedik: $factors';
+  }
+
+  @override
+  String insights_focus_factors_versus(String group, String baseline) {
+    return '$group vs. $baseline';
+  }
+
+  @override
+  String insights_focus_factors_coverage(int covered, int total) {
+    return '$covered / $total merülés';
+  }
+
+  @override
+  String get insights_focus_factorGroup_diveShape => 'Merülési profil';
+
+  @override
+  String get insights_focus_factorGroup_conditions => 'Körülmények';
+
+  @override
+  String get insights_focus_factorGroup_whenWhere => 'Mikor és hol';
+
+  @override
+  String get insights_focus_factorGroup_kitGas => 'Felszerelés és gáz';
+
+  @override
+  String get insights_focus_factor_avgDepth => 'Átlagmélység';
+
+  @override
+  String get insights_focus_factor_duration => 'Időtartam';
+
+  @override
+  String get insights_focus_factor_visibility => 'Látótávolság';
+
+  @override
+  String get insights_focus_factor_current => 'Áramlás';
+
+  @override
+  String get insights_focus_factor_waterType => 'Víztípus';
+
+  @override
+  String get insights_focus_factor_entryMethod => 'Beszállás';
+
+  @override
+  String get insights_focus_factor_month => 'Hónap';
+
+  @override
+  String get insights_focus_factor_timeOfDay => 'Napszak';
+
+  @override
+  String get insights_focus_factor_site => 'Merülőhely';
+
+  @override
+  String get insights_focus_factor_diveType => 'Merüléstípus';
+
+  @override
+  String get insights_focus_factor_gas => 'Gáz';
+
+  @override
+  String get insights_focus_factor_tankVolume => 'Palackméret';
+
+  @override
+  String get insights_focus_factor_suit => 'Ruha';
+
+  @override
+  String get insights_focus_factor_buddy => 'Egyedül vagy társsal';
+
+  @override
+  String get insights_focus_gas_air => 'Levegő';
+
+  @override
+  String get insights_focus_gas_nitrox => 'Nitrox';
+
+  @override
+  String get insights_focus_gas_trimix => 'Trimix';
 
   @override
   String get insights_gas_tankRole_backGas => 'Háttérgáz';
@@ -24916,6 +25153,300 @@ class AppLocalizationsHu extends AppLocalizations {
     Object siteName,
   ) {
     return '$title: $siteName';
+  }
+
+  @override
+  String get insights_observations_title => 'Megfigyelések';
+
+  @override
+  String get insights_observations_seeAll => 'Összes';
+
+  @override
+  String get insights_observations_filterNote =>
+      'A megfigyelések a teljes naplót használják, ezért a szűrő nem vonatkozik rájuk';
+
+  @override
+  String get insights_observations_empty =>
+      'A megfigyelések a napló bővülésével jelennek meg';
+
+  @override
+  String get insights_observations_error => 'A megfigyelések nem tölthetők be';
+
+  @override
+  String get insights_observations_actions => 'Megfigyelés műveletei';
+
+  @override
+  String get insights_observations_dismiss => 'Elvetés';
+
+  @override
+  String get insights_observations_dismissed => 'Megfigyelés elvetve';
+
+  @override
+  String get insights_observations_dismissFailed =>
+      'A megfigyelés nem vethető el';
+
+  @override
+  String get insights_observations_mute => 'Ez a fajta ne jelenjen meg';
+
+  @override
+  String get insights_observations_muted =>
+      'Az ilyen megfigyelések el vannak rejtve';
+
+  @override
+  String get insights_observations_undo => 'Visszavonás';
+
+  @override
+  String get insights_observations_mutedKinds => 'Elrejtett fajták';
+
+  @override
+  String get insights_observations_mutedKinds_empty => 'Nincs elrejtett fajta';
+
+  @override
+  String get insights_observations_unmute => 'Megjelenítés újra';
+
+  @override
+  String get insights_observations_rule_rmvTrend => 'RMV-trend';
+
+  @override
+  String get insights_observations_rule_maxDepthTrend =>
+      'Maximális mélység trendje';
+
+  @override
+  String get insights_observations_rule_diveTimeTrend => 'Merülési idő trendje';
+
+  @override
+  String get insights_observations_rule_weightTrend => 'Ólomsúly trendje';
+
+  @override
+  String get insights_observations_rule_frequencyTrend => 'Merülési gyakoriság';
+
+  @override
+  String get insights_observations_rule_diveCountMilestone =>
+      'Merülésszám mérföldkövei';
+
+  @override
+  String get insights_observations_rule_diveHoursMilestone =>
+      'Merülési órák mérföldkövei';
+
+  @override
+  String get insights_observations_rule_deepestDive => 'Új legmélyebb merülés';
+
+  @override
+  String get insights_observations_rule_longestDive => 'Új leghosszabb merülés';
+
+  @override
+  String get insights_observations_rule_newCountry => 'Új országok';
+
+  @override
+  String get insights_observations_rule_newSpecies => 'Új fajok';
+
+  @override
+  String get insights_observations_rule_diveGap => 'Idő az utolsó merülés óta';
+
+  @override
+  String get insights_observations_rule_favouriteSite => 'Kedvenc merülőhely';
+
+  @override
+  String get insights_observations_rule_regularBuddy => 'Állandó búvártárs';
+
+  @override
+  String get insights_observations_rule_busiestMonth => 'Legaktívabb hónap';
+
+  @override
+  String get insights_observations_rule_ascentRate => 'Emelkedési sebesség';
+
+  @override
+  String insights_observations_rmvTrend_improved(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Az RMV-je javult: $recent az elmúlt 12 hónapban, $percent%-kal alacsonyabb, mint az előző évben ($previous)';
+  }
+
+  @override
+  String insights_observations_rmvTrend_rose(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Az RMV-je nőtt: $recent az elmúlt 12 hónapban, $percent%-kal magasabb, mint az előző évben ($previous)';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_deeper(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Az elmúlt 12 hónapban az átlagos maximális mélysége $recent volt, $percent%-kal mélyebb, mint az előző évben ($previous)';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_shallower(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Az elmúlt 12 hónapban az átlagos maximális mélysége $recent volt, $percent%-kal sekélyebb, mint az előző évben ($previous)';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_longer(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Az elmúlt 12 hónapban az átlagos merülési ideje $recent volt, $percent%-kal hosszabb, mint az előző évben ($previous)';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_shorter(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Az elmúlt 12 hónapban az átlagos merülési ideje $recent volt, $percent%-kal rövidebb, mint az előző évben ($previous)';
+  }
+
+  @override
+  String insights_observations_weightTrend_more(String amount) {
+    return 'Az elmúlt 12 hónapban átlagosan $amount értékkel több ólmot vitt, mint az előző évben';
+  }
+
+  @override
+  String insights_observations_weightTrend_less(String amount) {
+    return 'Az elmúlt 12 hónapban átlagosan $amount értékkel kevesebb ólmot vitt, mint az előző évben';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_more(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Az elmúlt 12 hónapban $count merülést rögzített, $percent%-kal többet, mint az előző évben',
+      one:
+          'Az elmúlt 12 hónapban 1 merülést rögzített, $percent%-kal többet, mint az előző évben',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_fewer(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Az elmúlt 12 hónapban $count merülést rögzített, $percent%-kal kevesebbet, mint az előző évben',
+      one:
+          'Az elmúlt 12 hónapban 1 merülést rögzített, $percent%-kal kevesebbet, mint az előző évben',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone(String count, String date) {
+    return 'Elérte a(z) $count merülést: $date';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone_logged(
+    String count,
+    String date,
+  ) {
+    return 'Elérte a(z) $count rögzített merülést: $date';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone(String hours, String date) {
+    return 'Túllépte a(z) $hours órát a víz alatt: $date';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone_logged(
+    String hours,
+    String date,
+  ) {
+    return 'Túllépte a(z) $hours rögzített órát a víz alatt: $date';
+  }
+
+  @override
+  String insights_observations_deepestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return 'Új legmélyebb merülés: $value, $date, túllépve a korábbi $previous rekordot';
+  }
+
+  @override
+  String insights_observations_longestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return 'Új leghosszabb merülés: $value, $date, túllépve a korábbi $previous rekordot';
+  }
+
+  @override
+  String insights_observations_newCountry(String country, String date) {
+    return 'Első merülése itt: $country, $date';
+  }
+
+  @override
+  String insights_observations_newSpecies(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count új faj az elmúlt 90 napban, legutóbb $name',
+      one: 'Egy új faj az elmúlt 90 napban: $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveGap(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Az utolsó merülése $count napja volt',
+      one: 'Az utolsó merülése 1 napja volt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_favouriteSite(
+    String site,
+    String dives,
+    String total,
+  ) {
+    return '$site: $dives a(z) $total merüléséből az elmúlt 12 hónapban';
+  }
+
+  @override
+  String insights_observations_regularBuddy(
+    String buddyName,
+    String dives,
+    String total,
+  ) {
+    return '$buddyName társaságában merült $dives alkalommal a(z) $total merüléséből az elmúlt 12 hónapban';
+  }
+
+  @override
+  String insights_observations_busiestMonth(String month, String years) {
+    return '$month $years különböző évben volt a legaktívabb hónapja';
+  }
+
+  @override
+  String insights_observations_ascentRate(
+    String rate,
+    String dives,
+    String low,
+    String high,
+  ) {
+    return 'Az átlagos emelkedési sebessége az elmúlt 12 hónapban $rate volt, $dives merülés alapján. Az általános ajánlás $low és $high között vagy lassabb';
   }
 
   @override
@@ -45511,6 +46042,37 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_trend_tooltip_highest => 'Legmagasabb';
+
+  @override
+  String get insights_trend_overview_semanticLabel =>
+      'Diagram áttekintő. Húzd a kiemelt ablakot az időben való görgetéshez.';
+
+  @override
+  String get insights_trend_range_tooltip => 'Látható időszak';
+
+  @override
+  String get insights_trend_range_all => 'Összes';
+
+  @override
+  String get insights_trend_range_years5 => 'Elmúlt 5 év';
+
+  @override
+  String get insights_trend_range_years2 => 'Elmúlt 2 év';
+
+  @override
+  String get insights_trend_range_year1 => 'Elmúlt év';
+
+  @override
+  String get insights_trend_range_months6 => 'Elmúlt 6 hónap';
+
+  @override
+  String get insights_trend_range_months3 => 'Elmúlt 3 hónap';
+
+  @override
+  String get insights_trend_range_custom => 'Egyéni';
+
+  @override
+  String get insights_trend_range_customPick => 'Egyéni időszak...';
 
   @override
   String get diveLog_edit_excludeFromStats => 'Kizárás a statisztikákból';

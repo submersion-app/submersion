@@ -16,19 +16,20 @@ List<EquipmentItem> usableSetItems(
 /// The set members [diverId] gets when a set is applied, from items already
 /// in hand: every member except one another profile owns that is not in
 /// [visibleIds] (issue #2046). Ownerless items apply as they always have.
-/// The same rule ([isSetMemberUsableBy]) as
-/// `EquipmentRepository.usableSetMemberIds`, for callers that already hold
-/// the visible list.
+/// A member on the wishlist (#2025) is never applied either. The same rule
+/// as `EquipmentRepository.usableSetMemberIds`, for callers that already
+/// hold the visible list.
 List<EquipmentItem> setItemsUsableBy(
   Iterable<EquipmentItem> items, {
   required String? diverId,
   required Set<String> visibleIds,
 }) => [
   for (final item in items)
-    if (isSetMemberUsableBy(
-      ownerId: item.diverId,
-      diverId: diverId,
-      sharedWithDiver: visibleIds.contains(item.id),
-    ))
+    if (!item.isWanted &&
+        isSetMemberUsableBy(
+          ownerId: item.diverId,
+          diverId: diverId,
+          sharedWithDiver: visibleIds.contains(item.id),
+        ))
       item,
 ];

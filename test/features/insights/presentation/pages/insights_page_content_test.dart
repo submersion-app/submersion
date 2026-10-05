@@ -97,4 +97,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(selected, isNotNull);
   });
+
+  testWidgets('the category list offers Dive focus', (tester) async {
+    tester.view.physicalSize = const Size(1200, 4000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(await wrap(const InsightsMobileContent()));
+    await tester.pumpAndSettle();
+    expect(find.text('Dive focus'), findsOneWidget);
+    expect(find.text('Best, worst and threshold groups'), findsOneWidget);
+  });
 }
