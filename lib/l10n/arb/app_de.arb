@@ -13510,6 +13510,7 @@
   "query_equipment_diveCount": "Tauchgänge im Einsatz",
   "query_equipment_dives": "Tauchgänge",
   "query_equipment_lastDived": "Zuletzt verwendet",
+  "query_equipment_location": "Standort",
   "query_equipment_model": "Modell",
   "query_equipment_name": "Name",
   "query_equipment_nextServiceDue": "Nächste Wartung fällig",

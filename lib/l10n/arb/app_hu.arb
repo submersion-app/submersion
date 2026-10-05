@@ -13410,6 +13410,7 @@
   "query_equipment_diveCount": "Merülések használatban",
   "query_equipment_dives": "Merülések",
   "query_equipment_lastDived": "Utoljára használva",
+  "query_equipment_location": "Hely",
   "query_equipment_model": "Modell",
   "query_equipment_name": "Név",
   "query_equipment_nextServiceDue": "Következő szerviz",

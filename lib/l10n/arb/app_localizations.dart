@@ -71397,6 +71397,12 @@ abstract class AppLocalizations {
   /// **'Last used'**
   String get query_equipment_lastDived;
 
+  /// Field label in the query builder: the place an item is now
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get query_equipment_location;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:

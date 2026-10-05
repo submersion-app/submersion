@@ -331,6 +331,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_equipment_dives;
     case 'query_equipment_lastDived':
       return l10n.query_equipment_lastDived;
+    case 'query_equipment_location':
+      return l10n.query_equipment_location;
     case 'query_equipment_model':
       return l10n.query_equipment_model;
     case 'query_equipment_name':

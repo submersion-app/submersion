@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/domain/constants/equipment_type_or
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_sort_sheet_layout.dart';
+import 'package:submersion/features/equipment/presentation/widgets/group_by_location_switch.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Opens the Equipment page's sort sheet.
@@ -80,6 +81,7 @@ class EquipmentListSortSheet extends ConsumerWidget {
       fieldIcon: (field) => field.icon,
       onFieldSelected: (field) => updateSort(field: field),
       showGrouping: showGrouping,
+      pageGrouping: const GroupByLocationSwitch(),
     );
   }
 }

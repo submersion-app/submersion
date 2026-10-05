@@ -70,6 +70,21 @@ extension EquipmentFilterQuery on EquipmentFilterState {
         ),
       );
     }
+    if (locationIds.isNotEmpty || noLocation) {
+      // Any of the chosen places, or none at all.
+      final options = <QueryNode>[
+        if (locationIds.isNotEmpty)
+          c(
+            'location',
+            QueryOp.inList,
+            ListValue([
+              for (final id in locationIds.toList()..sort()) StringValue(id),
+            ]),
+          ),
+        if (noLocation) c('location', QueryOp.isEmpty, null),
+      ];
+      parts.add(options.length == 1 ? options.single : OrNode(options));
+    }
     if (query != null) parts.add(query!);
     return switch (parts) {
       [] => null,

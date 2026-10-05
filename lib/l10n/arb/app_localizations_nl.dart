@@ -44797,6 +44797,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_equipment_lastDived => 'Laatst gebruikt';
 
   @override
+  String get query_equipment_location => 'Locatie';
+
+  @override
   String get query_equipment_model => 'Model';
 
   @override

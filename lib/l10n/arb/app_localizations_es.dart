@@ -45121,6 +45121,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get query_equipment_lastDived => 'Último uso';
 
   @override
+  String get query_equipment_location => 'Ubicación';
+
+  @override
   String get query_equipment_model => 'Modelo';
 
   @override

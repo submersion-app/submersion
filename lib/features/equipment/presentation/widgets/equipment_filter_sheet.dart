@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_cho
 import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_sheet_section.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_location_filter_section.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -62,6 +63,8 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
   EquipmentType? _type;
   List<EquipmentAttrCondition> _attrConditions = const [];
   Set<String> _tagIds = const {};
+  Set<String> _locationIds = const {};
+  bool _noLocation = false;
   EquipmentOwnerFilter _owner = EquipmentOwnerFilter.all;
 
   /// The advanced part (#2365): typed, built or applied from a saved query.
@@ -77,6 +80,8 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
     _type = filter.type;
     _attrConditions = filter.attrConditions;
     _tagIds = filter.tagIds;
+    _locationIds = filter.locationIds;
+    _noLocation = filter.noLocation;
     _owner = filter.owner;
     _query = filter.query;
   }
@@ -152,6 +157,14 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                         _buildOwnerSection(),
                         _buildCategorySection(),
                         _buildTagSection(),
+                        EquipmentLocationFilterSection(
+                          locationIds: _locationIds,
+                          noLocation: _noLocation,
+                          onChanged: (ids, none) => setState(() {
+                            _locationIds = ids;
+                            _noLocation = none;
+                          }),
+                        ),
                       ],
                     ),
                   ),
@@ -375,6 +388,8 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
       _type = null;
       _attrConditions = const [];
       _tagIds = const {};
+      _locationIds = const {};
+      _noLocation = false;
       _owner = EquipmentOwnerFilter.all;
       _query = null;
     });
@@ -390,6 +405,8 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
       type: _type,
       attrConditions: _attrConditions,
       tagIds: _tagIds,
+      locationIds: _locationIds,
+      noLocation: _noLocation,
       owner: _owner,
       query: _query,
     );

@@ -42448,6 +42448,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_equipment_lastDived => '最近使用';
 
   @override
+  String get query_equipment_location => '位置';
+
+  @override
   String get query_equipment_model => '型号';
 
   @override

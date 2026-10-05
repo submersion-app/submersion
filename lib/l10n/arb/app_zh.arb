@@ -13410,6 +13410,7 @@
   "query_equipment_diveCount": "使用潜水次数",
   "query_equipment_dives": "潜水",
   "query_equipment_lastDived": "最近使用",
+  "query_equipment_location": "位置",
   "query_equipment_model": "型号",
   "query_equipment_name": "名称",
   "query_equipment_nextServiceDue": "下次保养到期",

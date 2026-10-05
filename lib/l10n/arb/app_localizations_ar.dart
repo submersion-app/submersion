@@ -45751,6 +45751,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_equipment_lastDived => 'آخر استخدام';
 
   @override
+  String get query_equipment_location => 'الموقع';
+
+  @override
   String get query_equipment_model => 'الطراز';
 
   @override

@@ -27627,6 +27627,8 @@
   "@query_equipment_dives": {"description": "Relation label in the query builder: the dives an item was used on"},
   "query_equipment_lastDived": "Last used",
   "@query_equipment_lastDived": {"description": "Field label in the query builder: the date of the newest counted dive the item was used on"},
+  "query_equipment_location": "Location",
+  "@query_equipment_location": {"description": "Field label in the query builder: the place an item is now"},
   "query_equipment_model": "Model",
   "@query_equipment_model": {"description": "Field label in the query builder"},
   "query_equipment_name": "Name",

@@ -13410,6 +13410,7 @@
   "query_equipment_diveCount": "غطسات الاستخدام",
   "query_equipment_dives": "الغطسات",
   "query_equipment_lastDived": "آخر استخدام",
+  "query_equipment_location": "الموقع",
   "query_equipment_model": "الطراز",
   "query_equipment_name": "الاسم",
   "query_equipment_nextServiceDue": "موعد الصيانة التالية",

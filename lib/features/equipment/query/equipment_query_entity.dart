@@ -4,6 +4,7 @@ import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/features/dive_log/query/dive_aggregate_fields.dart';
+import 'package:submersion/features/equipment/data/equipment_location_sql.dart';
 
 /// Minimal in PR 1 (enough for `gear.type` and the suit-thickness lowering
 /// through `gear[attributes[...]]`); PR 3 of #2365 completes it.
@@ -114,6 +115,16 @@ final equipmentQueryEntity = QueryEntity(
           'WHERE s.equipment_id = {r}.id AND s.due_date IS NOT NULL)',
       labelKey: 'query_equipment_nextServiceDue',
       tables: [serviceStatusTable],
+    ),
+    // Where the item is now (v267): its newest move's place. Reads the move
+    // log, so a move refreshes any list this field narrows.
+    QueryField(
+      key: 'location',
+      type: FieldType.id,
+      sql: currentLocationIdSql('{r}.id'),
+      emptySql: '${currentLocationIdSql('{r}.id')} IS NULL',
+      labelKey: 'query_equipment_location',
+      tables: const ['equipment_location_moves'],
     ),
   ],
   relations: const [

@@ -13410,6 +13410,7 @@
   "query_equipment_diveCount": "Immersioni in uso",
   "query_equipment_dives": "Immersioni",
   "query_equipment_lastDived": "Ultimo utilizzo",
+  "query_equipment_location": "Posizione",
   "query_equipment_model": "Modello",
   "query_equipment_name": "Nome",
   "query_equipment_nextServiceDue": "Prossima manutenzione",

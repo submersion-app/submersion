@@ -45103,6 +45103,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get query_equipment_lastDived => 'Último uso';
 
   @override
+  String get query_equipment_location => 'Localização';
+
+  @override
   String get query_equipment_model => 'Modelo';
 
   @override

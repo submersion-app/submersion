@@ -13410,6 +13410,7 @@
   "query_equipment_diveCount": "Duiken gebruikt",
   "query_equipment_dives": "Duiken",
   "query_equipment_lastDived": "Laatst gebruikt",
+  "query_equipment_location": "Locatie",
   "query_equipment_model": "Model",
   "query_equipment_name": "Naam",
   "query_equipment_nextServiceDue": "Volgend onderhoud",

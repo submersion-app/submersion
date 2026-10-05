@@ -45003,6 +45003,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_equipment_lastDived => 'Zuletzt verwendet';
 
   @override
+  String get query_equipment_location => 'Standort';
+
+  @override
   String get query_equipment_model => 'Modell';
 
   @override

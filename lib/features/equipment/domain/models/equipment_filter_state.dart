@@ -68,6 +68,12 @@ class EquipmentFilterState {
   /// Tag ids, any-of (issue #1942). Empty means no tag narrowing.
   final Set<String> tagIds;
 
+  /// Current places, any-of (v267). Empty means no place narrowing.
+  final Set<String> locationIds;
+
+  /// Include gear with no current location, ORed with [locationIds].
+  final bool noLocation;
+
   /// Whose gear to show (issue #2046). [EquipmentOwnerFilter.all] narrows
   /// nothing.
   final EquipmentOwnerFilter owner;
@@ -83,6 +89,8 @@ class EquipmentFilterState {
     this.type,
     this.attrConditions = const [],
     this.tagIds = const {},
+    this.locationIds = const {},
+    this.noLocation = false,
     this.owner = EquipmentOwnerFilter.all,
     this.query,
   }) : assert(
@@ -103,6 +111,8 @@ class EquipmentFilterState {
       type != null ||
       attrConditions.isNotEmpty ||
       tagIds.isNotEmpty ||
+      locationIds.isNotEmpty ||
+      noLocation ||
       owner != EquipmentOwnerFilter.all ||
       query != null;
 
@@ -123,12 +133,15 @@ class EquipmentFilterState {
     EquipmentType? type,
     List<EquipmentAttrCondition>? attrConditions,
     Set<String>? tagIds,
+    Set<String>? locationIds,
+    bool? noLocation,
     EquipmentOwnerFilter? owner,
     QueryNode? query,
     bool clearStatus = false,
     bool clearType = false,
     bool clearAttrConditions = false,
     bool clearTagIds = false,
+    bool clearLocation = false,
     bool clearQuery = false,
   }) {
     final nextType = clearType ? null : (type ?? this.type);
@@ -150,6 +163,8 @@ class EquipmentFilterState {
                 (categoryChanged ? const [] : this.attrConditions)),
       // Tags do not belong to the category, so a new one keeps them.
       tagIds: clearTagIds ? const {} : (tagIds ?? this.tagIds),
+      locationIds: clearLocation ? const {} : (locationIds ?? this.locationIds),
+      noLocation: !clearLocation && (noLocation ?? this.noLocation),
       owner: owner ?? this.owner,
       query: clearQuery ? null : (query ?? this.query),
     );
@@ -165,6 +180,8 @@ class EquipmentFilterState {
           other.type == type &&
           listEquals(other.attrConditions, attrConditions) &&
           setEquals(other.tagIds, tagIds) &&
+          setEquals(other.locationIds, locationIds) &&
+          other.noLocation == noLocation &&
           other.owner == owner &&
           other.query == query;
 
@@ -176,6 +193,8 @@ class EquipmentFilterState {
     type,
     Object.hashAll(attrConditions),
     Object.hashAllUnordered(tagIds),
+    Object.hashAllUnordered(locationIds),
+    noLocation,
     owner,
     query,
   );
@@ -185,5 +204,6 @@ class EquipmentFilterState {
       'EquipmentFilterState(status: $status, allStatuses: $allStatuses, '
       'serviceDue: $serviceDue, '
       'type: $type, attrConditions: $attrConditions, tagIds: $tagIds, '
+      'locationIds: $locationIds, noLocation: $noLocation, '
       'owner: $owner, query: $query)';
 }

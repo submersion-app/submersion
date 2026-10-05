@@ -44893,6 +44893,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_equipment_lastDived => 'Utoljára használva';
 
   @override
+  String get query_equipment_location => 'Hely';
+
+  @override
   String get query_equipment_model => 'Modell';
 
   @override

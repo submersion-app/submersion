@@ -44426,6 +44426,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_equipment_lastDived => 'Last used';
 
   @override
+  String get query_equipment_location => 'Location';
+
+  @override
   String get query_equipment_model => 'Model';
 
   @override

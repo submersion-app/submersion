@@ -73,6 +73,10 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/widgets/move_equipment_sheet.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_location_arranger.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_location_group_header.dart';
 
 /// Content widget for the equipment list, used in master-detail layout.
 class EquipmentListContent extends ConsumerStatefulWidget {
@@ -237,7 +241,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     final viewportHeight = _scrollController.position.viewportDimension;
     var rowTop = 0.0;
     for (final row in rows.take(index)) {
-      rowTop += row is _EquipmentHeadingRow
+      rowTop +=
+          row is _EquipmentHeadingRow || row is _EquipmentLocationHeadingRow
           ? estimatedHeadingHeight
           : estimatedItemHeight;
     }
@@ -341,12 +346,30 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // is rebuilt inside the selection listener on every check toggle, and
     // re-sorting the whole inventory there made bulk selection cost a full
     // sort per tap.
-    final visibleGroups = arrangeEquipment(
-      equipmentAsync.value ?? const <EquipmentItem>[],
-      arrangement,
-      typeLabel: (t) => t.localizedName(context.l10n),
-      compareItems: compareItems,
-    );
+    // Group by location (v267) is this page's own switch, layered over the
+    // shared arrangement: one section per place, the type groups inside it.
+    final groupByLocation =
+        _honoursArrangement(viewMode) &&
+        (ref.watch(equipmentGroupByLocationProvider).value ?? false);
+    final locationSections = groupByLocation
+        ? arrangeEquipmentByLocation(
+            equipmentAsync.value ?? const <EquipmentItem>[],
+            arrangement,
+            locationOf:
+                ref.watch(currentEquipmentLocationsProvider).value ??
+                const <String, EquipmentLocation>{},
+            typeLabel: (t) => t.localizedName(context.l10n),
+            compareItems: compareItems,
+          )
+        : null;
+    final visibleGroups = locationSections != null
+        ? [for (final section in locationSections) ...section.groups]
+        : arrangeEquipment(
+            equipmentAsync.value ?? const <EquipmentItem>[],
+            arrangement,
+            typeLabel: (t) => t.localizedName(context.l10n),
+            compareItems: compareItems,
+          );
     final sortedVisible = [for (final group in visibleGroups) ...group.items];
     final visibleIds = sortedVisible.map((e) => e.id).toList();
     // Labelled once per build, like the arrangement above and for the same
@@ -371,6 +394,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 arrangement,
                 tagsByEquipment: tagsByEquipment,
                 labels: rowLabels,
+                locationSections: locationSections,
               ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => _buildErrorState(context, error),
@@ -1049,6 +1073,13 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                     ),
                 icon: Icons.sell_outlined,
               ),
+            if (filter.locationIds.isNotEmpty || filter.noLocation)
+              _buildActiveFilterChip(
+                context.l10n.equipment_location_activeFilter,
+                () => ref.read(equipmentFilterProvider.notifier).state = filter
+                    .copyWith(clearLocation: true),
+                icon: Icons.place_outlined,
+              ),
             // One chip per top-level condition of the advanced query
             // (#2365), printed in the diver's units.
             for (final chip in entityQueryChips(
@@ -1090,14 +1121,29 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     EquipmentArrangement arrangement, {
     required Map<String, List<Tag>> tagsByEquipment,
     required Map<String, EquipmentRowLabel> labels,
+    List<EquipmentLocationSection>? locationSections,
   }) {
     // One flat run of rows for the lazy builder: a heading before each group
-    // when the arrangement groups, then that group's gear.
+    // when the arrangement groups, then that group's gear. Grouped by
+    // location, each place's heading comes first, its type groups inside.
     final rows = <_EquipmentListRow>[
-      for (final group in groups) ...[
-        if (group.type != null) _EquipmentHeadingRow(group.type!),
-        for (final item in group.items) _EquipmentItemRow(item),
-      ],
+      if (locationSections != null)
+        for (final section in locationSections) ...[
+          _EquipmentLocationHeadingRow(section.location, section.itemCount),
+          for (final group in section.groups) ...[
+            if (group.type != null)
+              _EquipmentHeadingRow(
+                group.type!,
+                sectionKey: section.location?.id ?? 'none',
+              ),
+            for (final item in group.items) _EquipmentItemRow(item),
+          ],
+        ]
+      else
+        for (final group in groups) ...[
+          if (group.type != null) _EquipmentHeadingRow(group.type!),
+          for (final item in group.items) _EquipmentItemRow(item),
+        ],
     ];
 
     // Scroll to selected item when data is available but we haven't
@@ -1106,7 +1152,12 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // after the first frame, or the diver regrouping). The index counts
     // heading rows too, since they take space above the item.
     final selectedId = widget.selectedId;
-    final typeAxis = _typeAxisOf(arrangement, Localizations.localeOf(context));
+    // Regrouping by location moves rows as much as regrouping by type, so
+    // it re-scrolls to the selected item the same way.
+    final typeAxis = (
+      _typeAxisOf(arrangement, Localizations.localeOf(context)),
+      locationSections != null,
+    );
     _currentTypeAxis = typeAxis;
     if (selectedId != null &&
         (selectedId != _lastScrolledToId || typeAxis != _scrolledTypeAxis) &&
@@ -1135,11 +1186,26 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         itemBuilder: (context, index) {
           final EquipmentItem item;
           switch (rows[index]) {
-            case _EquipmentHeadingRow(:final type):
+            case _EquipmentLocationHeadingRow(:final location, :final count):
               return Padding(
-                // Level with the card edges below it.
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: EquipmentGroupHeader(type: type),
+                child: EquipmentLocationGroupHeader(
+                  location: location,
+                  count: count,
+                ),
+              );
+            case _EquipmentHeadingRow(:final type, :final sectionKey):
+              // Keyed by place and type: grouped by location, one type can
+              // head a run under several places.
+              return KeyedSubtree(
+                key: ValueKey(
+                  'equipment-type-${sectionKey ?? ''}-${type.name}',
+                ),
+                child: Padding(
+                  // Level with the card edges below it.
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: EquipmentGroupHeader(type: type),
+                ),
               );
             case _EquipmentItemRow(item: final rowItem):
               item = rowItem;
@@ -1633,9 +1699,20 @@ sealed class _EquipmentListRow {
 }
 
 class _EquipmentHeadingRow extends _EquipmentListRow {
-  const _EquipmentHeadingRow(this.type);
+  const _EquipmentHeadingRow(this.type, {this.sectionKey});
 
   final EquipmentType type;
+
+  /// The place this type heading sits under when grouping by location.
+  final String? sectionKey;
+}
+
+/// A place's heading when the page groups by location (v267).
+class _EquipmentLocationHeadingRow extends _EquipmentListRow {
+  const _EquipmentLocationHeadingRow(this.location, this.count);
+
+  final EquipmentLocation? location;
+  final int count;
 }
 
 class _EquipmentItemRow extends _EquipmentListRow {
