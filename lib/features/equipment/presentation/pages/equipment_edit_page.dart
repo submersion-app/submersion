@@ -1143,13 +1143,24 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         savedId = newEquipment.id;
         final place = _initialLocation;
         if (place != null) {
-          await ref
-              .read(equipmentLocationMoveRepositoryProvider)
-              .recordMoves(
-                equipmentIds: [savedId],
-                locationId: place.id,
-                movedAt: DateTime.now(),
-              );
+          // The item is saved by now: a failure here must not read as a
+          // failed save, or a retry would create the item twice. Without
+          // the move it simply has no location yet; Move sets one.
+          try {
+            await ref
+                .read(equipmentLocationMoveRepositoryProvider)
+                .recordMoves(
+                  equipmentIds: [savedId],
+                  locationId: place.id,
+                  movedAt: DateTime.now(),
+                );
+          } catch (e, stackTrace) {
+            _log.error(
+              'Failed to record the first location of $savedId',
+              error: e,
+              stackTrace: stackTrace,
+            );
+          }
         }
       }
 

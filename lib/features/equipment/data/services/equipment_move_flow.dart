@@ -14,6 +14,7 @@ class EquipmentMoveFlow {
     required this.askMoveParts,
     required this.askStatus,
     required this.setStatus,
+    this.onStatusFailed,
   });
 
   final EquipmentLocationMoveRepository moves;
@@ -26,6 +27,10 @@ class EquipmentMoveFlow {
 
   final Future<void> Function(List<String> ids, EquipmentStatus status)
   setStatus;
+
+  /// Told when the status write fails. The moves are already recorded by
+  /// then, so the move itself still succeeded and is not reported failed.
+  final void Function()? onStatusFailed;
 
   /// Moves [items] (and their parts, if the diver agrees) to [target], null
   /// for "No location". Returns how many items moved, parts included.
@@ -58,7 +63,11 @@ class EquipmentMoveFlow {
       eligible.add(entry.key);
     }
     if (offered != null && await askStatus(offered, eligible.length)) {
-      await setStatus(eligible, offered);
+      try {
+        await setStatus(eligible, offered);
+      } catch (_) {
+        onStatusFailed?.call();
+      }
     }
     return statuses.length;
   }

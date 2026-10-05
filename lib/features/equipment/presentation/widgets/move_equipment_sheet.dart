@@ -74,6 +74,9 @@ Future<int?> showMoveEquipmentFlow(
       l10n.equipment_location_status_no,
     ),
     setStatus: notifier.setStatusForMany,
+    onStatusFailed: () => messenger.showSnackBar(
+      SnackBar(content: Text(l10n.common_error_tryAgain)),
+    ),
   );
   final int moved;
   try {
@@ -87,8 +90,8 @@ Future<int?> showMoveEquipmentFlow(
       note: draft.note,
     );
   } catch (_) {
-    // Nothing is written on a failure before the moves land, so the diver
-    // can simply try again.
+    // The flow fails only before or while the moves are written (a failed
+    // status write is reported apart), so the diver can simply try again.
     messenger.showSnackBar(SnackBar(content: Text(l10n.common_error_tryAgain)));
     return null;
   }

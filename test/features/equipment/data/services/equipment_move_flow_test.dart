@@ -145,4 +145,28 @@ void main() {
     expect(partsAsked, isFalse);
     expect(statusWritten, isFalse);
   });
+
+  test(
+    'a failed status write is reported apart; the moves still count',
+    () async {
+      var reported = false;
+      final flow = EquipmentMoveFlow(
+        moves: EquipmentLocationMoveRepository(),
+        askMoveParts: (_) async => false,
+        askStatus: (_, _) async => true,
+        setStatus: (_, _) async => throw StateError('disk full'),
+        onStatusFailed: () => reported = true,
+      );
+      final moved = await flow.run(
+        items: [item('bcd', EquipmentStatus.active)],
+        target: shop,
+        movedAt: DateTime(2026, 9, 3),
+      );
+      expect(moved, 1);
+      expect(reported, isTrue);
+      expect(await EquipmentLocationMoveRepository().getCurrentLocationIds(), {
+        'bcd': 'shop',
+      });
+    },
+  );
 }
