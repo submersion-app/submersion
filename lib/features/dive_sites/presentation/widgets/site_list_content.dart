@@ -29,7 +29,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/utils/site_grouping.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_grouping_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_group_by_selector.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/grouped_site_list_view.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_active_filters_bar.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/compact_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/dense_site_list_tile.dart';
@@ -121,6 +125,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   List<String> _hiddenSiteIds = const [];
   MergeSnapshot? _mergeSnapshot;
 
+  /// Countries closed by hand while a filter is active; reset when the
+  /// filter changes, since a new filter opens every match again.
+  Set<String> _filterCollapsed = const {};
+
   @override
   void initState() {
     super.initState();
@@ -158,7 +166,17 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
 
     final sitesAsync = ref.read(sortedSitesWithCountsProvider);
     sitesAsync.whenData((sites) {
-      final index = sites.indexWhere((s) => s.site.id == widget.selectedId);
+      // Grouped, the selected site's offset is its row among the visible
+      // headers and sites, not its position in the flat list.
+      final rows = _groupedView(sites, listen: false)?.rows;
+      final index = rows == null
+          ? sites.indexWhere((s) => s.site.id == widget.selectedId)
+          : rows.indexWhere(
+              (row) =>
+                  row is SiteRow<SiteWithDiveCount> &&
+                  row.item.site.id == widget.selectedId,
+            );
+      final rowCount = rows?.length ?? sites.length;
       if (index >= 0 && _scrollController.hasClients) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!_scrollController.hasClients || sites.isEmpty) return;
@@ -166,7 +184,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           final maxScroll = _scrollController.position.maxScrollExtent;
           final viewportHeight = _scrollController.position.viewportDimension;
           final totalContentHeight = maxScroll + viewportHeight - 80;
-          final avgItemHeight = totalContentHeight / sites.length;
+          final avgItemHeight = totalContentHeight / rowCount;
           final targetOffset = (index * avgItemHeight) - (viewportHeight / 3);
           final clampedOffset = targetOffset.clamp(0.0, maxScroll);
 
@@ -583,7 +601,65 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           direction: direction,
         );
       },
+      // Table mode keeps a flat grid; headers would cut across its columns.
+      footer: ref.read(siteListViewModeProvider) == ListViewMode.table
+          ? null
+          : const SiteGroupBySelector(),
     );
+  }
+
+  /// The grouped list for [sites], or null when the list is not grouped.
+  /// [listen] is false outside build, where watching is not allowed.
+  _GroupedSites? _groupedView(
+    List<SiteWithDiveCount> sites, {
+    bool listen = true,
+  }) {
+    final groupBy = listen
+        ? ref.watch(siteGroupByProvider)
+        : ref.read(siteGroupByProvider);
+    if (groupBy != SiteGroupBy.location) return null;
+    final groups = groupSitesByLocation(sites, (s) => s.site);
+    final expanded = _groupedExpansion(groups, sites, listen: listen);
+    return (
+      groups: groups,
+      expanded: expanded,
+      rows: flattenSiteGroups(groups, expanded: expanded),
+    );
+  }
+
+  /// The open countries for [groups]: everything while a filter narrows the
+  /// list, else the diver's own choice, seeded with the detail pane's site.
+  Set<String> _groupedExpansion(
+    List<SiteCountryGroup<SiteWithDiveCount>> groups,
+    List<SiteWithDiveCount> sites, {
+    bool listen = true,
+  }) {
+    final filter = listen
+        ? ref.watch(siteFilterProvider)
+        : ref.read(siteFilterProvider);
+    if (filter.hasActiveFilters) {
+      return allCountryKeys(groups).difference(_filterCollapsed);
+    }
+    final stored = listen
+        ? ref.watch(siteListExpandedCountriesProvider)
+        : ref.read(siteListExpandedCountriesProvider);
+    if (stored != null) return stored;
+    final selected = sites
+        .where((s) => s.site.id == widget.selectedId)
+        .firstOrNull;
+    return initialExpandedCountries(groups, selected: selected?.site);
+  }
+
+  void _toggleCountry(String key, Set<String> current) {
+    final next = current.contains(key)
+        ? (current.toSet()..remove(key))
+        : {...current, key};
+    if (ref.read(siteFilterProvider).hasActiveFilters) {
+      final keys = current.union(_filterCollapsed);
+      setState(() => _filterCollapsed = keys.difference(next));
+      return;
+    }
+    ref.read(siteListExpandedCountriesProvider.notifier).state = next;
   }
 
   @override
@@ -591,6 +667,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     final sitesAsync = ref.watch(sortedSitesWithCountsProvider);
     final filter = ref.watch(siteFilterProvider);
     final viewMode = ref.watch(siteListViewModeProvider);
+    ref.listen(siteFilterProvider, (_, _) {
+      if (_filterCollapsed.isNotEmpty) {
+        setState(() => _filterCollapsed = const {});
+      }
+    });
 
     // Table mode uses a dedicated scaffold with column configuration support.
     if (viewMode == ListViewMode.table) {
@@ -1107,6 +1188,15 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         .watch(allDiversProvider)
         .when(data: (d) => d.length, loading: () => 0, error: (_, _) => 0);
 
+    final grouped = _groupedView(sites);
+    final rows = grouped?.rows;
+    final expanded = grouped?.expanded ?? const <String>{};
+    // Range selection follows what the diver sees, so grouped it walks the
+    // sites in group order.
+    final orderedSites = grouped == null
+        ? sites
+        : [for (final g in grouped.groups) ...g.allItems];
+
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(sortedSitesWithCountsProvider);
@@ -1114,51 +1204,78 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       child: ListView.builder(
         controller: _scrollController,
         padding: const EdgeInsets.only(bottom: 80),
-        itemCount: sites.length,
+        itemCount: rows?.length ?? sites.length,
         itemBuilder: (context, index) {
-          final siteData = sites[index];
-          final site = siteData.site;
-          final isSelected =
-              widget.selectedId == site.id ||
-              ref.watch(highlightedSiteIdProvider) == site.id;
-          final isChecked = _selectedIds.contains(site.id);
-          final showSharedBadge = site.isShared && diversCount >= 2;
-
-          final viewMode = ref.watch(siteListViewModeProvider);
-          final locationString = site.locationString.isNotEmpty
-              ? site.locationString
-              : null;
-          return switch (viewMode) {
-            ListViewMode.detailed => SiteListTile(
-              entry: siteData,
-              isSelectionMode: _isSelectionMode,
-              isSelected: isSelected,
-              isChecked: isChecked,
-              showSharedBadge: showSharedBadge,
-              onTap: () => _handleRowTap(site.id, sites),
+          if (rows == null) {
+            return _buildSiteTile(sites[index], orderedSites, diversCount);
+          }
+          return switch (rows[index]) {
+            CountryHeaderRow(:final group, :final isExpanded) =>
+              SiteCountryHeader(
+                label: countryGroupLabel(context.l10n, group),
+                siteCount: group.siteCount,
+                isExpanded: isExpanded,
+                onTap: () => _toggleCountry(group.key, expanded),
+              ),
+            RegionHeaderRow(:final label) => SiteSectionLabel(
+              label,
+              indent: 32,
             ),
-            ListViewMode.compact => CompactSiteListTile(
-              entry: siteData,
-              isSelectionMode: _isSelectionMode,
-              isSelected: isChecked,
-              isHighlighted: !_isSelectionMode && isSelected,
-              showSharedBadge: showSharedBadge,
-              onTap: () => _handleRowTap(site.id, sites),
-            ),
-            ListViewMode.dense || ListViewMode.table => DenseSiteListTile(
-              name: site.name,
-              location: locationString,
-              diveCount: siteData.diveCount,
-              isSelectionMode: _isSelectionMode,
-              isSelected: isChecked,
-              isHighlighted: !_isSelectionMode && isSelected,
-              showSharedBadge: showSharedBadge,
-              onTap: () => _handleRowTap(site.id, sites),
+            SiteRow(:final item) => _buildSiteTile(
+              item,
+              orderedSites,
+              diversCount,
             ),
           };
         },
       ),
     );
+  }
+
+  Widget _buildSiteTile(
+    SiteWithDiveCount siteData,
+    List<SiteWithDiveCount> orderedSites,
+    int diversCount,
+  ) {
+    final site = siteData.site;
+    final isSelected =
+        widget.selectedId == site.id ||
+        ref.watch(highlightedSiteIdProvider) == site.id;
+    final isChecked = _selectedIds.contains(site.id);
+    final showSharedBadge = site.isShared && diversCount >= 2;
+
+    final viewMode = ref.watch(siteListViewModeProvider);
+    final locationString = site.locationString.isNotEmpty
+        ? site.locationString
+        : null;
+    return switch (viewMode) {
+      ListViewMode.detailed => SiteListTile(
+        entry: siteData,
+        isSelectionMode: _isSelectionMode,
+        isSelected: isSelected,
+        isChecked: isChecked,
+        showSharedBadge: showSharedBadge,
+        onTap: () => _handleRowTap(site.id, orderedSites),
+      ),
+      ListViewMode.compact => CompactSiteListTile(
+        entry: siteData,
+        isSelectionMode: _isSelectionMode,
+        isSelected: isChecked,
+        isHighlighted: !_isSelectionMode && isSelected,
+        showSharedBadge: showSharedBadge,
+        onTap: () => _handleRowTap(site.id, orderedSites),
+      ),
+      ListViewMode.dense || ListViewMode.table => DenseSiteListTile(
+        name: site.name,
+        location: locationString,
+        diveCount: siteData.diveCount,
+        isSelectionMode: _isSelectionMode,
+        isSelected: isChecked,
+        isHighlighted: !_isSelectionMode && isSelected,
+        showSharedBadge: showSharedBadge,
+        onTap: () => _handleRowTap(site.id, orderedSites),
+      ),
+    };
   }
 
   Widget _buildEmptyState(BuildContext context, bool hasActiveFilters) {
@@ -1381,3 +1498,11 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
     );
   }
 }
+
+/// The grouped Dive Sites list for one build: its groups, the countries
+/// open, and the flattened rows those give.
+typedef _GroupedSites = ({
+  List<SiteCountryGroup<SiteWithDiveCount>> groups,
+  Set<String> expanded,
+  List<SiteListRow<SiteWithDiveCount>> rows,
+});
