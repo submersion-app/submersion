@@ -16,9 +16,7 @@ EquipmentStatus? headerStatusOf(EquipmentItem item) {
   if (item.isWanted) return EquipmentStatus.wanted;
   if (item.isActive) return null;
   return switch (item.status) {
-    EquipmentStatus.sold ||
-    EquipmentStatus.lost ||
-    EquipmentStatus.wanted => item.status,
+    EquipmentStatus.sold || EquipmentStatus.lost => item.status,
     _ => EquipmentStatus.retired,
   };
 }
