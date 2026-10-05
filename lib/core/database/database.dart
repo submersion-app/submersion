@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/raw_dive_data_codec.dart';
 import 'package:submersion/core/database/tables/app_tables.dart';
 import 'package:submersion/core/database/tables/buddy_tables.dart';
+import 'package:submersion/core/database/tables/certification_currency_tables.dart';
 import 'package:submersion/core/database/tables/cylinder_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_tables.dart';
 import 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
@@ -30,6 +31,7 @@ import 'package:submersion/core/database/migrations/app_database_migrations.dart
 
 export 'package:submersion/core/database/tables/app_tables.dart';
 export 'package:submersion/core/database/tables/buddy_tables.dart';
+export 'package:submersion/core/database/tables/certification_currency_tables.dart';
 export 'package:submersion/core/database/tables/cylinder_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_tables.dart';
 export 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
@@ -223,6 +225,10 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // A profile's hidden shared trips and sites (v250, issue #2594)
     TripHides,
     SiteHides,
+    // Certification currency (v261, issue #2267)
+    CertificationCurrencyRules,
+    CertificationCurrencyPrefs,
+    CertificationCurrencyEvents,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -232,7 +238,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 260;
+  static const int currentSchemaVersion = 261;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1082,6 +1088,11 @@ class AppDatabase extends _$AppDatabase {
     // from 241, 248, 250 and 251 while this was open; gas_switches.computer_id,
     // which the analysis also reads, is v258 (#2582).
     260,
+    // v261: certification currency (issue #2267): the rule catalog with its
+    // built-in seed, per certification overrides and the event ledger. New
+    // synced tables only, so the floor stays. Built-in rules are reference
+    // data, re-seeded by INSERT OR IGNORE from the rung and beforeOpen.
+    261,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

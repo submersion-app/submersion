@@ -206,6 +206,12 @@ extension BeforeOpenBackstops on AppDatabase {
     // would resurrect user-deleted schedules.
     await _assertServiceLedgerSchema();
 
+    // v261 backstop: the certification currency tables and their seeded
+    // built-in rules (issue #2267). Sync adopt clears every synced entity
+    // and refills from an export that omits built-ins, so this re-seed is
+    // what keeps the catalog alive across an adopt.
+    await _assertCertificationCurrencySchema();
+
     // v123 backstop: re-assert safety review tables + settings columns
     // (parallel-branch collision self-heal).
     await _assertSafetyReviewSchema();

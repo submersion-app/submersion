@@ -197,5 +197,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankSharedComputerIds();
     }
     if (from < 260) await reportProgress();
+    // v261: certification currency (issue #2267). Three synced tables and
+    // the seeded built-in rule catalog, no backfill. Re-asserted in
+    // beforeOpen.
+    if (from < 261) {
+      await _assertCertificationCurrencySchema();
+    }
+    if (from < 261) await reportProgress();
   }
 }

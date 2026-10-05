@@ -29,6 +29,7 @@ import 'package:submersion/core/constants/enums.dart';
 
 part 'before_open.dart';
 part 'helpers/buddy_migrations.dart';
+part 'helpers/certification_currency_migrations.dart';
 part 'helpers/connection_migrations.dart';
 part 'helpers/cylinder_migrations.dart';
 part 'helpers/data_source_migrations.dart';
