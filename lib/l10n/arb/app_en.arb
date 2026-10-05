@@ -15540,6 +15540,14 @@
   "universalImport_triage_readyCount": "{count, plural, =1{1 file ready to import} other{{count} files ready to import}}",
   "universalImport_label_filesSelected": "{count, plural, =1{1 file selected} other{{count} files selected}}",
   "universalImport_triage_excludedCsv": "Import individually (CSV)",
+  "universalImport_triage_excludedHandoff": "Import individually ({format})",
+  "@universalImport_triage_excludedHandoff": {
+    "placeholders": {
+      "format": {
+        "type": "String"
+      }
+    }
+  },
   "universalImport_triage_unsupported": "Unsupported format",
   "universalImport_triage_parseFailed": "Could not be read",
   "universalImport_triage_parsing": "Parsing file {current} of {total}…",

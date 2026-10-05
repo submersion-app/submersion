@@ -7520,6 +7520,7 @@
   "universalImport_triage_readyCount": "{count} 个文件已准备好导入",
   "universalImport_label_filesSelected": "已选择 {count} 个文件",
   "universalImport_triage_excludedCsv": "单独导入（CSV）",
+  "universalImport_triage_excludedHandoff": "单独导入（{format}）",
   "universalImport_triage_unsupported": "不支持的格式",
   "universalImport_triage_parseFailed": "无法读取",
   "universalImport_triage_parsing": "正在解析第 {current}/{total} 个文件…",

@@ -25002,6 +25002,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get universalImport_triage_excludedCsv => 'Import individually (CSV)';
 
   @override
+  String universalImport_triage_excludedHandoff(String format) {
+    return 'Import individually ($format)';
+  }
+
+  @override
   String get universalImport_triage_unsupported => 'Unsupported format';
 
   @override

@@ -25315,6 +25315,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Egyenkénti importálás (CSV)';
 
   @override
+  String universalImport_triage_excludedHandoff(String format) {
+    return 'Egyenkénti importálás ($format)';
+  }
+
+  @override
   String get universalImport_triage_unsupported => 'Nem támogatott formátum';
 
   @override

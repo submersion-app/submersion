@@ -7459,6 +7459,7 @@
   "universalImport_triage_readyCount": "{count, plural, =1{1 Datei bereit zum Import} other{{count} Dateien bereit zum Import}}",
   "universalImport_label_filesSelected": "{count, plural, =1{1 Datei ausgewählt} other{{count} Dateien ausgewählt}}",
   "universalImport_triage_excludedCsv": "Einzeln importieren (CSV)",
+  "universalImport_triage_excludedHandoff": "Einzeln importieren ({format})",
   "universalImport_triage_unsupported": "Nicht unterstütztes Format",
   "universalImport_triage_parseFailed": "Konnte nicht gelesen werden",
   "universalImport_triage_parsing": "Datei {current} von {total} wird gelesen…",

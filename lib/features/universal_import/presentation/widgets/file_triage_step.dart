@@ -135,9 +135,15 @@ class _FileTriageTile extends StatelessWidget {
         Icons.error_outline,
         l10n.universalImport_triage_parseFailed,
       ),
+      // A hand-off file (#1445) is excluded like a CSV, but names its own
+      // format rather than claiming to be one.
       ImportFileStatus.excludedCsv => (
         Icons.block,
-        l10n.universalImport_triage_excludedCsv,
+        file.detection.format.isHandoff
+            ? l10n.universalImport_triage_excludedHandoff(
+                file.detection.format.displayName,
+              )
+            : l10n.universalImport_triage_excludedCsv,
       ),
       ImportFileStatus.unsupported => (
         Icons.help_outline,

@@ -7356,6 +7356,7 @@
   "universalImport_triage_readyCount": "{count, plural, =1{קובץ אחד מוכן לייבוא} other{{count} קבצים מוכנים לייבוא}}",
   "universalImport_label_filesSelected": "{count, plural, =1{נבחר קובץ אחד} other{נבחרו {count} קבצים}}",
   "universalImport_triage_excludedCsv": "ייבוא נפרד (CSV)",
+  "universalImport_triage_excludedHandoff": "ייבוא נפרד ({format})",
   "universalImport_triage_unsupported": "פורמט לא נתמך",
   "universalImport_triage_parseFailed": "לא ניתן לקרוא",
   "universalImport_triage_parsing": "מנתח קובץ {current} מתוך {total}…",

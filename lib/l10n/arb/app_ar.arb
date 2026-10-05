@@ -7356,6 +7356,7 @@
   "universalImport_triage_readyCount": "{count, plural, =1{ملف واحد جاهز للاستيراد} two{ملفان جاهزان للاستيراد} few{{count} ملفات جاهزة للاستيراد} many{{count} ملفًا جاهزًا للاستيراد} other{{count} ملف جاهز للاستيراد}}",
   "universalImport_label_filesSelected": "{count, plural, =1{تم تحديد ملف واحد} two{تم تحديد ملفين} few{تم تحديد {count} ملفات} many{تم تحديد {count} ملفًا} other{تم تحديد {count} ملف}}",
   "universalImport_triage_excludedCsv": "استيراد فردي (CSV)",
+  "universalImport_triage_excludedHandoff": "استيراد فردي ({format})",
   "universalImport_triage_unsupported": "تنسيق غير مدعوم",
   "universalImport_triage_parseFailed": "تعذرت القراءة",
   "universalImport_triage_parsing": "جارٍ تحليل الملف {current} من {total}…",

@@ -25218,6 +25218,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'Afzonderlijk importeren (CSV)';
 
   @override
+  String universalImport_triage_excludedHandoff(String format) {
+    return 'Afzonderlijk importeren ($format)';
+  }
+
+  @override
   String get universalImport_triage_unsupported => 'Niet-ondersteund formaat';
 
   @override

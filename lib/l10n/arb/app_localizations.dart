@@ -40081,6 +40081,12 @@ abstract class AppLocalizations {
   /// **'Import individually (CSV)'**
   String get universalImport_triage_excludedCsv;
 
+  /// No description provided for @universalImport_triage_excludedHandoff.
+  ///
+  /// In en, this message translates to:
+  /// **'Import individually ({format})'**
+  String universalImport_triage_excludedHandoff(String format);
+
   /// Triage status for files whose format has no parser
   ///
   /// In en, this message translates to:

@@ -24801,6 +24801,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_triage_excludedCsv => 'ייבוא נפרד (CSV)';
 
   @override
+  String universalImport_triage_excludedHandoff(String format) {
+    return 'ייבוא נפרד ($format)';
+  }
+
+  @override
   String get universalImport_triage_unsupported => 'פורמט לא נתמך';
 
   @override

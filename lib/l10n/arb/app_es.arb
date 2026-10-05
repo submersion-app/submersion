@@ -7356,6 +7356,7 @@
   "universalImport_triage_readyCount": "{count, plural, =1{1 archivo listo para importar} other{{count} archivos listos para importar}}",
   "universalImport_label_filesSelected": "{count, plural, =1{1 archivo seleccionado} other{{count} archivos seleccionados}}",
   "universalImport_triage_excludedCsv": "Importar individualmente (CSV)",
+  "universalImport_triage_excludedHandoff": "Importar individualmente ({format})",
   "universalImport_triage_unsupported": "Formato no compatible",
   "universalImport_triage_parseFailed": "No se pudo leer",
   "universalImport_triage_parsing": "Analizando archivo {current} de {total}…",

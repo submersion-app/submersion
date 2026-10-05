@@ -7255,6 +7255,7 @@
   "universalImport_triage_readyCount": "{count, plural, =1{1 fájl importálásra kész} other{{count} fájl importálásra kész}}",
   "universalImport_label_filesSelected": "{count, plural, =1{1 fájl kiválasztva} other{{count} fájl kiválasztva}}",
   "universalImport_triage_excludedCsv": "Egyenkénti importálás (CSV)",
+  "universalImport_triage_excludedHandoff": "Egyenkénti importálás ({format})",
   "universalImport_triage_unsupported": "Nem támogatott formátum",
   "universalImport_triage_parseFailed": "Nem sikerült beolvasni",
   "universalImport_triage_parsing": "Fájl feldolgozása: {current}/{total}…",

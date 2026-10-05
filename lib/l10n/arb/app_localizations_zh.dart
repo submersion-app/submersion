@@ -24078,6 +24078,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_triage_excludedCsv => '单独导入（CSV）';
 
   @override
+  String universalImport_triage_excludedHandoff(String format) {
+    return '单独导入（$format）';
+  }
+
+  @override
   String get universalImport_triage_unsupported => '不支持的格式';
 
   @override

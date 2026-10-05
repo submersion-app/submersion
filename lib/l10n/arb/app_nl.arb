@@ -7356,6 +7356,7 @@
   "universalImport_triage_readyCount": "{count, plural, =1{1 bestand klaar voor import} other{{count} bestanden klaar voor import}}",
   "universalImport_label_filesSelected": "{count, plural, =1{1 bestand geselecteerd} other{{count} bestanden geselecteerd}}",
   "universalImport_triage_excludedCsv": "Afzonderlijk importeren (CSV)",
+  "universalImport_triage_excludedHandoff": "Afzonderlijk importeren ({format})",
   "universalImport_triage_unsupported": "Niet-ondersteund formaat",
   "universalImport_triage_parseFailed": "Kon niet worden gelezen",
   "universalImport_triage_parsing": "Bestand {current} van {total} wordt verwerkt…",

@@ -25818,6 +25818,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_triage_excludedCsv => 'استيراد فردي (CSV)';
 
   @override
+  String universalImport_triage_excludedHandoff(String format) {
+    return 'استيراد فردي ($format)';
+  }
+
+  @override
   String get universalImport_triage_unsupported => 'تنسيق غير مدعوم';
 
   @override
