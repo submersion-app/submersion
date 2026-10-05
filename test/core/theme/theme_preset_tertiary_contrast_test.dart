@@ -1,18 +1,11 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 
+import '../../helpers/contrast_ratio.dart';
 import '../../helpers/google_fonts_settle.dart';
-
-/// WCAG relative contrast ratio between two opaque colours.
-double _contrast(Color a, Color b) {
-  final la = a.computeLuminance();
-  final lb = b.computeLuminance();
-  return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
-}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -60,17 +53,17 @@ void main() {
         );
         final mode = theme.brightness.name;
         expect(
-          _contrast(scheme.tertiary, card),
+          contrastRatio(scheme.tertiary, card),
           greaterThanOrEqualTo(floor),
           reason: '${preset.id} $mode: tertiary on card is unreadable',
         );
         expect(
-          _contrast(scheme.tertiary, scheme.surface),
+          contrastRatio(scheme.tertiary, scheme.surface),
           greaterThanOrEqualTo(floor),
           reason: '${preset.id} $mode: tertiary on surface is unreadable',
         );
         expect(
-          _contrast(scheme.onTertiary, scheme.tertiary),
+          contrastRatio(scheme.onTertiary, scheme.tertiary),
           greaterThanOrEqualTo(floor),
           reason: '${preset.id} $mode: onTertiary on tertiary is unreadable',
         );
@@ -86,11 +79,11 @@ void main() {
     final theme = AppThemeRegistry.findById('console').darkTheme;
     final scheme = theme.colorScheme;
     expect(
-      _contrast(scheme.tertiary, theme.cardTheme.color!),
+      contrastRatio(scheme.tertiary, theme.cardTheme.color!),
       greaterThanOrEqualTo(4.5),
     );
     expect(
-      _contrast(scheme.onTertiary, scheme.tertiary),
+      contrastRatio(scheme.onTertiary, scheme.tertiary),
       greaterThanOrEqualTo(4.5),
     );
   });
