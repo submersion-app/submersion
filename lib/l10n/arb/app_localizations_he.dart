@@ -11785,6 +11785,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentStatus_spare => 'רזרבי';
 
   @override
+  String get enum_equipmentStatus_wanted => 'רצוי';
+
+  @override
   String get enum_equipmentType_backplate => 'פלטת גב';
 
   @override
@@ -13561,6 +13564,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_detail_retiredChip => 'הוצא משימוש';
 
   @override
+  String get equipment_detail_markPurchased => 'סמן כנרכש';
+
+  @override
   String get equipment_detail_serialNumberLabel => 'מספר סידורי';
 
   @override
@@ -14139,6 +14145,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'מחיר רכישה';
+
+  @override
+  String get equipment_edit_expectedPriceLabel => 'מחיר צפוי';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -14917,6 +14926,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_snackbar_reactivated => 'הציוד הופעל מחדש';
 
   @override
+  String get equipment_snackbar_purchased => 'הועבר לציוד הפעיל שלך';
+
+  @override
   String get equipment_snackbar_retired => 'הציוד הוצא משימוש';
 
   @override
@@ -14963,6 +14975,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String equipment_summary_totalValue(String currency) {
     return 'ערך כולל ($currency)';
+  }
+
+  @override
+  String equipment_summary_wantedValue(String currency) {
+    return 'שווי רצוי ($currency)';
   }
 
   @override
@@ -20054,10 +20071,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'הפרופיל מציג דופק';
 
   @override
-  String get settings_conflict_field_defaultShowLateGasSwitches =>
-      'הפרופיל מציג החלפות גז מאוחרות';
-
-  @override
   String get settings_conflict_field_defaultShowMeanDepth =>
       'הפרופיל מציג עומק ממוצע';
 
@@ -20132,6 +20145,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_depthUnit => 'יחידת עומק';
 
   @override
+  String get settings_conflict_field_distanceUnit => 'יחידת מרחק';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'הפרופיל מציג החלפות גז מאוחרות';
+
+  @override
+  String get settings_conflict_field_insightsMutedObservationRules =>
+      'סוגי תצפיות מוסתרים';
+
+  @override
+  String get settings_conflict_field_fingerprint => 'טביעת אצבע של התצפית';
+
+  @override
   String get settings_conflict_field_descentRate => 'קצב ירידה';
 
   @override
@@ -20192,9 +20219,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_distanceM => 'מרחק';
-
-  @override
-  String get settings_conflict_field_distanceUnit => 'יחידת מרחק';
 
   @override
   String get settings_conflict_field_diveCenterListViewMode =>
@@ -23433,6 +23457,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_category_progression_subtitle => 'מגמות עומק וזמן';
 
   @override
+  String get insights_category_focus_subtitle =>
+      'קבוצות הטובות, הגרועות ולפי סף';
+
+  @override
   String get insights_category_progression_title => 'התקדמות';
 
   @override
@@ -23747,6 +23775,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_sacRecords_title => 'שיאי צריכת גז';
 
   @override
+  String get insights_gas_sacRecords_seeTop => 'הצג את 10 המובילות';
+
+  @override
   String get insights_gas_sacTrend_error => 'שגיאה בטעינת מגמת הצריכה';
 
   @override
@@ -23754,6 +23785,202 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_gas_sacTrend_title => 'מגמת צריכת גז';
+
+  @override
+  String get insights_focus_title => 'מיקוד צלילות';
+
+  @override
+  String get insights_focus_error => 'טעינת מיקוד הצלילות נכשלה';
+
+  @override
+  String get insights_focus_empty => 'עדיין אין צלילות עם ערך זה';
+
+  @override
+  String insights_focus_summary(
+    int count,
+    int total,
+    String group,
+    String overall,
+  ) {
+    return '$count מתוך $total צלילות, ממוצע הקבוצה $group לעומת $overall בסך הכול';
+  }
+
+  @override
+  String insights_focus_summary_allShown(int total) {
+    return 'רק ל־$total צלילות יש ערך זה, ולכן כולן מוצגות';
+  }
+
+  @override
+  String insights_focus_noMatch_above(String value, String min, String max) {
+    return 'אין צלילות מעל $value. הצלילות שלך נעות בין $min ל־$max.';
+  }
+
+  @override
+  String insights_focus_noMatch_below(String value, String min, String max) {
+    return 'אין צלילות מתחת ל־$value. הצלילות שלך נעות בין $min ל־$max.';
+  }
+
+  @override
+  String get insights_focus_enterValue =>
+      'הזן ערך כדי לראות את הצלילות שמעליו או מתחתיו';
+
+  @override
+  String get insights_focus_chart_title => 'הקבוצה לאורך זמן';
+
+  @override
+  String get insights_focus_chart_group => 'בקבוצה';
+
+  @override
+  String get insights_focus_list_title => 'צלילות בקבוצה';
+
+  @override
+  String get insights_focus_list_unknownSite => 'אין אתר';
+
+  @override
+  String get insights_focus_unit_minutes => 'דק׳';
+
+  @override
+  String get insights_focus_metric_rmv => 'RMV';
+
+  @override
+  String get insights_focus_metric_sac => 'SAC';
+
+  @override
+  String get insights_focus_metric_maxDepth => 'עומק מרבי';
+
+  @override
+  String get insights_focus_metric_bottomTime => 'זמן תחתית';
+
+  @override
+  String get insights_focus_metric_weight => 'משקולות';
+
+  @override
+  String get insights_focus_metric_waterTemp => 'טמפרטורת מים';
+
+  @override
+  String get insights_focus_mode_best => 'הטובות ביותר';
+
+  @override
+  String get insights_focus_mode_worst => 'הגרועות ביותר';
+
+  @override
+  String get insights_focus_mode_lowest => 'הנמוכות ביותר';
+
+  @override
+  String get insights_focus_mode_highest => 'הגבוהות ביותר';
+
+  @override
+  String get insights_focus_mode_above => 'מעל';
+
+  @override
+  String get insights_focus_mode_below => 'מתחת';
+
+  @override
+  String get insights_focus_count_label => 'צלילות';
+
+  @override
+  String get insights_focus_count_error => 'הזן מספר שלם בין 1 ל־999';
+
+  @override
+  String get insights_focus_threshold_label => 'ערך';
+
+  @override
+  String get insights_focus_threshold_error => 'הזן מספר';
+
+  @override
+  String get insights_focus_threshold_negativeError => 'הזן אפס או יותר';
+
+  @override
+  String get insights_focus_factors_title => 'גורמים משותפים';
+
+  @override
+  String get insights_focus_factors_subtitle =>
+      'קבוצה זו בהשוואה לכל הצלילות שיש להן את הערך';
+
+  @override
+  String get insights_focus_factors_tooFew =>
+      'בחר לפחות 3 צלילות כדי להשוות גורמים משותפים';
+
+  @override
+  String get insights_focus_factors_standsOut => 'בולט';
+
+  @override
+  String insights_focus_factors_standoutsSummary(String factors) {
+    return 'בולט: $factors';
+  }
+
+  @override
+  String insights_focus_factors_versus(String group, String baseline) {
+    return '$group לעומת $baseline';
+  }
+
+  @override
+  String insights_focus_factors_coverage(int covered, int total) {
+    return '$covered מתוך $total צלילות';
+  }
+
+  @override
+  String get insights_focus_factorGroup_diveShape => 'פרופיל הצלילה';
+
+  @override
+  String get insights_focus_factorGroup_conditions => 'תנאים';
+
+  @override
+  String get insights_focus_factorGroup_whenWhere => 'מתי ואיפה';
+
+  @override
+  String get insights_focus_factorGroup_kitGas => 'ציוד וגז';
+
+  @override
+  String get insights_focus_factor_avgDepth => 'עומק ממוצע';
+
+  @override
+  String get insights_focus_factor_duration => 'משך';
+
+  @override
+  String get insights_focus_factor_visibility => 'ראות';
+
+  @override
+  String get insights_focus_factor_current => 'זרם';
+
+  @override
+  String get insights_focus_factor_waterType => 'סוג מים';
+
+  @override
+  String get insights_focus_factor_entryMethod => 'כניסה';
+
+  @override
+  String get insights_focus_factor_month => 'חודש';
+
+  @override
+  String get insights_focus_factor_timeOfDay => 'שעה ביום';
+
+  @override
+  String get insights_focus_factor_site => 'אתר';
+
+  @override
+  String get insights_focus_factor_diveType => 'סוג צלילה';
+
+  @override
+  String get insights_focus_factor_gas => 'גז';
+
+  @override
+  String get insights_focus_factor_tankVolume => 'גודל מיכל';
+
+  @override
+  String get insights_focus_factor_suit => 'חליפה';
+
+  @override
+  String get insights_focus_factor_buddy => 'סולו או עם בן זוג';
+
+  @override
+  String get insights_focus_gas_air => 'אוויר';
+
+  @override
+  String get insights_focus_gas_nitrox => 'נייטרוקס';
+
+  @override
+  String get insights_focus_gas_trimix => 'טרימיקס';
 
   @override
   String get insights_gas_tankRole_backGas => 'גז ראשי';
@@ -24117,6 +24344,304 @@ class AppLocalizationsHe extends AppLocalizations {
     Object siteName,
   ) {
     return '$title: $siteName';
+  }
+
+  @override
+  String get insights_observations_title => 'תצפיות';
+
+  @override
+  String get insights_observations_seeAll => 'הצג הכול';
+
+  @override
+  String get insights_observations_filterNote =>
+      'התצפיות משתמשות ביומן המלא שלך, ולכן המסנן לא חל עליהן';
+
+  @override
+  String get insights_observations_empty => 'תצפיות יופיעו ככל שהיומן שלך יגדל';
+
+  @override
+  String get insights_observations_error => 'לא ניתן לטעון את התצפיות';
+
+  @override
+  String get insights_observations_actions => 'פעולות לתצפית';
+
+  @override
+  String get insights_observations_dismiss => 'התעלם';
+
+  @override
+  String get insights_observations_dismissed => 'התצפית נדחתה';
+
+  @override
+  String get insights_observations_dismissFailed => 'לא ניתן לדחות את התצפית';
+
+  @override
+  String get insights_observations_mute => 'אל תציג סוג זה';
+
+  @override
+  String get insights_observations_muted => 'תצפיות מסוג זה מוסתרות';
+
+  @override
+  String get insights_observations_undo => 'בטל';
+
+  @override
+  String get insights_observations_mutedKinds => 'סוגים מושתקים';
+
+  @override
+  String get insights_observations_mutedKinds_empty => 'אין סוגים מושתקים';
+
+  @override
+  String get insights_observations_unmute => 'הצג שוב';
+
+  @override
+  String get insights_observations_rule_rmvTrend => 'מגמת RMV';
+
+  @override
+  String get insights_observations_rule_maxDepthTrend => 'מגמת עומק מרבי';
+
+  @override
+  String get insights_observations_rule_diveTimeTrend => 'מגמת זמן צלילה';
+
+  @override
+  String get insights_observations_rule_weightTrend => 'מגמת משקולות';
+
+  @override
+  String get insights_observations_rule_frequencyTrend => 'תדירות צלילה';
+
+  @override
+  String get insights_observations_rule_diveCountMilestone =>
+      'אבני דרך במספר הצלילות';
+
+  @override
+  String get insights_observations_rule_diveHoursMilestone =>
+      'אבני דרך בשעות צלילה';
+
+  @override
+  String get insights_observations_rule_deepestDive => 'צלילה עמוקה ביותר חדשה';
+
+  @override
+  String get insights_observations_rule_longestDive => 'צלילה ארוכה ביותר חדשה';
+
+  @override
+  String get insights_observations_rule_newCountry => 'מדינות חדשות';
+
+  @override
+  String get insights_observations_rule_newSpecies => 'מינים חדשים';
+
+  @override
+  String get insights_observations_rule_diveGap => 'זמן מאז הצלילה האחרונה';
+
+  @override
+  String get insights_observations_rule_favouriteSite => 'אתר מועדף';
+
+  @override
+  String get insights_observations_rule_regularBuddy => 'שותף קבוע';
+
+  @override
+  String get insights_observations_rule_busiestMonth => 'החודש העמוס ביותר';
+
+  @override
+  String get insights_observations_rule_ascentRate => 'מהירות עלייה';
+
+  @override
+  String insights_observations_rmvTrend_improved(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'ה-RMV שלך השתפר: $recent ב-12 החודשים האחרונים, נמוך ב-$percent% מהשנה הקודמת ($previous)';
+  }
+
+  @override
+  String insights_observations_rmvTrend_rose(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'ה-RMV שלך עלה: $recent ב-12 החודשים האחרונים, גבוה ב-$percent% מהשנה הקודמת ($previous)';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_deeper(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'ב-12 החודשים האחרונים העומק המרבי הממוצע שלך היה $recent, עמוק ב-$percent% מהשנה הקודמת ($previous)';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_shallower(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'ב-12 החודשים האחרונים העומק המרבי הממוצע שלך היה $recent, רדוד ב-$percent% מהשנה הקודמת ($previous)';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_longer(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'ב-12 החודשים האחרונים זמן הצלילה הממוצע שלך היה $recent, ארוך ב-$percent% מהשנה הקודמת ($previous)';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_shorter(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'ב-12 החודשים האחרונים זמן הצלילה הממוצע שלך היה $recent, קצר ב-$percent% מהשנה הקודמת ($previous)';
+  }
+
+  @override
+  String insights_observations_weightTrend_more(String amount) {
+    return 'ב-12 החודשים האחרונים נשאת בממוצע $amount יותר משקולות מאשר בשנה הקודמת';
+  }
+
+  @override
+  String insights_observations_weightTrend_less(String amount) {
+    return 'ב-12 החודשים האחרונים נשאת בממוצע $amount פחות משקולות מאשר בשנה הקודמת';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_more(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'רשמת $count צלילות ב-12 החודשים האחרונים, $percent% יותר מהשנה הקודמת',
+      many:
+          'רשמת $count צלילות ב-12 החודשים האחרונים, $percent% יותר מהשנה הקודמת',
+      two: 'רשמת שתי צלילות ב-12 החודשים האחרונים, $percent% יותר מהשנה הקודמת',
+      one: 'רשמת צלילה אחת ב-12 החודשים האחרונים, $percent% יותר מהשנה הקודמת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_fewer(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'רשמת $count צלילות ב-12 החודשים האחרונים, $percent% פחות מהשנה הקודמת',
+      many:
+          'רשמת $count צלילות ב-12 החודשים האחרונים, $percent% פחות מהשנה הקודמת',
+      two: 'רשמת שתי צלילות ב-12 החודשים האחרונים, $percent% פחות מהשנה הקודמת',
+      one: 'רשמת צלילה אחת ב-12 החודשים האחרונים, $percent% פחות מהשנה הקודמת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone(String count, String date) {
+    return 'הגעת ל-$count צלילות ב-$date';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone_logged(
+    String count,
+    String date,
+  ) {
+    return 'הגעת ל-$count צלילות רשומות ב-$date';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone(String hours, String date) {
+    return 'עברת $hours שעות מתחת למים ב-$date';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone_logged(
+    String hours,
+    String date,
+  ) {
+    return 'עברת $hours שעות רשומות מתחת למים ב-$date';
+  }
+
+  @override
+  String insights_observations_deepestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return 'צלילה עמוקה ביותר חדשה: $value ב-$date, מעבר לשיא הקודם שלך של $previous';
+  }
+
+  @override
+  String insights_observations_longestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return 'צלילה ארוכה ביותר חדשה: $value ב-$date, מעבר לשיא הקודם שלך של $previous';
+  }
+
+  @override
+  String insights_observations_newCountry(String country, String date) {
+    return 'הצלילה הראשונה שלך ב$country, ב-$date';
+  }
+
+  @override
+  String insights_observations_newSpecies(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מינים חדשים ב-90 הימים האחרונים, האחרון $name',
+      many: '$count מינים חדשים ב-90 הימים האחרונים, האחרון $name',
+      two: 'שני מינים חדשים ב-90 הימים האחרונים, האחרון $name',
+      one: 'מין חדש אחד ב-90 הימים האחרונים: $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveGap(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הצלילה האחרונה שלך הייתה לפני $count ימים',
+      many: 'הצלילה האחרונה שלך הייתה לפני $count ימים',
+      two: 'הצלילה האחרונה שלך הייתה לפני יומיים',
+      one: 'הצלילה האחרונה שלך הייתה לפני יום אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_favouriteSite(
+    String site,
+    String dives,
+    String total,
+  ) {
+    return '$site אירח $dives מתוך $total הצלילות שלך ב-12 החודשים האחרונים';
+  }
+
+  @override
+  String insights_observations_regularBuddy(
+    String buddyName,
+    String dives,
+    String total,
+  ) {
+    return 'צללת עם $buddyName ב-$dives מתוך $total הצלילות שלך ב-12 החודשים האחרונים';
+  }
+
+  @override
+  String insights_observations_busiestMonth(String month, String years) {
+    return '$month היה החודש העמוס ביותר שלך ב-$years שנים שונות';
+  }
+
+  @override
+  String insights_observations_ascentRate(
+    String rate,
+    String dives,
+    String low,
+    String high,
+  ) {
+    return 'מהירות העלייה הממוצעת שלך ב-12 החודשים האחרונים הייתה $rate, על פני $dives צלילות. ההמלצה המקובלת היא $low עד $high או לאט יותר';
   }
 
   @override
@@ -44527,6 +45052,37 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_trend_tooltip_highest => 'הגבוה ביותר';
+
+  @override
+  String get insights_trend_overview_semanticLabel =>
+      'סקירת התרשים. גרור את החלון המודגש כדי לגלול לאורך הזמן.';
+
+  @override
+  String get insights_trend_range_tooltip => 'טווח גלוי';
+
+  @override
+  String get insights_trend_range_all => 'הכול';
+
+  @override
+  String get insights_trend_range_years5 => '5 השנים האחרונות';
+
+  @override
+  String get insights_trend_range_years2 => 'השנתיים האחרונות';
+
+  @override
+  String get insights_trend_range_year1 => 'השנה האחרונה';
+
+  @override
+  String get insights_trend_range_months6 => '6 החודשים האחרונים';
+
+  @override
+  String get insights_trend_range_months3 => '3 החודשים האחרונים';
+
+  @override
+  String get insights_trend_range_custom => 'מותאם אישית';
+
+  @override
+  String get insights_trend_range_customPick => 'טווח מותאם אישית...';
 
   @override
   String get diveLog_edit_excludeFromStats => 'החרג מהסטטיסטיקות';

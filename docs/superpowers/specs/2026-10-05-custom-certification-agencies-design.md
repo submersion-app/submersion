@@ -116,10 +116,10 @@ trainer values of both agencies.
 
 ## Data model
 
-### Tables (schema v265)
+### Tables (schema v266)
 
-Planned as v261; main shipped its own v261 and open branches hold 262 to
-264, so the rung is v265.
+Planned as v261; main shipped its own v261, v263, v264 and v265 while this
+was open, and an open branch holds 262, so the rung is v266.
 
 Both tables go in `lib/core/database/tables/buddy_tables.dart` beside
 `Certifications`, and the rung goes in `lib/core/database/migrations/`, never
@@ -158,7 +158,7 @@ existing `certifications.agency`, `certifications.level`,
 `certifications.additional_credentials` and `courses.agency` values are
 built-in enum names, which stay valid ids. `beforeOpen` re-asserts both tables
 (`CREATE TABLE IF NOT EXISTS`, guarded on `sqlite_master`) for databases that
-reached v265 by another path, following the existing backstop pattern.
+reached v266 by another path, following the existing backstop pattern.
 
 ### Visibility and ownership
 
@@ -421,7 +421,7 @@ like the other agency-specific ratings.
 
 TDD throughout:
 
-- **Migration:** v265 creates both tables and the index on a v261 database,
+- **Migration:** v266 creates both tables and the index on a v261 database,
   existing certification and course rows are unchanged, and the `beforeOpen`
   backstop creates the tables when missing.
 - **Catalog:** built-in resolution, custom resolution, slug fallback, UUID

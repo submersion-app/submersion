@@ -3,7 +3,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v265: custom certification agencies and levels (issue #690).
+/// Schema v266: custom certification agencies and levels (issue #690).
 /// Table-and-index rung with no data migration: stored agency and level text
 /// are built-in enum names, which stay valid ids.
 void main() {
@@ -73,13 +73,13 @@ void main() {
     'hlc',
   };
 
-  test('v265 is the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 265);
-    expect(AppDatabase.migrationVersions, contains(265));
-    expect(AppDatabase.migrationVersions.last, 265);
-    expect(AppDatabase.migrationStepCount(264), 1);
+  test('v266 is the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, 266);
+    expect(AppDatabase.migrationVersions, contains(266));
+    expect(AppDatabase.migrationVersions.last, 266);
+    expect(AppDatabase.migrationStepCount(265), 1);
     // Additive rung: new synced tables never raise the floor.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(265));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(266));
   });
 
   test('a v261 database gains both tables and the index', () async {
@@ -118,8 +118,8 @@ void main() {
     }
   });
 
-  test('the beforeOpen backstop heals a database already at 265', () async {
-    final db = AppDatabase(setupDb(userVersion: 265));
+  test('the beforeOpen backstop heals a database already at 266', () async {
+    final db = AppDatabase(setupDb(userVersion: 266));
     addTearDown(db.close);
     expect(await columnsOf(db, 'custom_certification_agencies'), agencyColumns);
     expect(await columnsOf(db, 'custom_certification_levels'), levelColumns);

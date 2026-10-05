@@ -143,6 +143,34 @@ void main() {
     expect(find.text('JJ-CCR'), findsOneWidget);
   });
 
+  testWidgets('a wanted rebreather is not offered as the owning unit (#2025)', (
+    tester,
+  ) async {
+    final t = now.millisecondsSinceEpoch;
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'rb-wish',
+            name: 'Dream CCR',
+            type: 'rebreather',
+            diverId: const Value('d1'),
+            status: const Value('wanted'),
+            isActive: const Value(false),
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Generic gas plan'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('JJ-CCR'), findsOneWidget);
+    expect(find.text('Dream CCR'), findsNothing);
+  });
+
   testWidgets('saving persists the configuration and its cylinders', (
     tester,
   ) async {

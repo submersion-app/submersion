@@ -22,6 +22,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/insights/domain/observations/observation_rule_id.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
@@ -273,6 +274,11 @@ class AppSettings {
   /// ConditionRuleId.dbValue strings whose findings are hidden in the UI.
   /// Display-time only: the engine always runs every rule.
   final Set<String> conditionDisabledRules;
+
+  /// Insights observation rules the diver muted (#2381), as
+  /// ObservationRuleId.dbValue strings. Unknown ids (a newer build's rules)
+  /// are kept so a save never drops them.
+  final Set<String> insightsMutedObservationRules;
 
   /// Bundled chamber ids hidden from the emergency card
   final Set<String> hiddenChamberIds;
@@ -619,6 +625,7 @@ class AppSettings {
     this.highO2ThresholdPercent = 40.0,
     this.conditionEngineEnabled = true,
     this.conditionDisabledRules = const {},
+    this.insightsMutedObservationRules = const {},
     this.hiddenChamberIds = const {},
     this.emergencyRegion,
     this.showAscentRateColors = false,
@@ -805,6 +812,7 @@ class AppSettings {
     double? highO2ThresholdPercent,
     bool? conditionEngineEnabled,
     Set<String>? conditionDisabledRules,
+    Set<String>? insightsMutedObservationRules,
     Set<String>? hiddenChamberIds,
     String? emergencyRegion,
     bool clearEmergencyRegion = false,
@@ -967,6 +975,8 @@ class AppSettings {
           conditionEngineEnabled ?? this.conditionEngineEnabled,
       conditionDisabledRules:
           conditionDisabledRules ?? this.conditionDisabledRules,
+      insightsMutedObservationRules:
+          insightsMutedObservationRules ?? this.insightsMutedObservationRules,
       hiddenChamberIds: hiddenChamberIds ?? this.hiddenChamberIds,
       emergencyRegion: clearEmergencyRegion
           ? null
@@ -2054,6 +2064,22 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       rules.add(rule.dbValue);
     }
     state = state.copyWith(conditionDisabledRules: rules);
+    await _saveSettings();
+  }
+
+  /// Mutes or unmutes one Insights observation rule (#2381), keeping any
+  /// rule ids this build does not know.
+  Future<void> setObservationRuleMuted(
+    ObservationRuleId rule,
+    bool muted,
+  ) async {
+    final rules = {...state.insightsMutedObservationRules};
+    if (muted) {
+      rules.add(rule.dbValue);
+    } else {
+      rules.remove(rule.dbValue);
+    }
+    state = state.copyWith(insightsMutedObservationRules: rules);
     await _saveSettings();
   }
 

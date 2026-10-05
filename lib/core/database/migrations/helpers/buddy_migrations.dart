@@ -244,8 +244,8 @@ extension BuddyMigrations on AppDatabase {
     );
   }
 
-  /// Idempotent creation of the v265 custom certification tables (issue
-  /// #690) and the level-by-agency index. Called from the v265 rung and the
+  /// Idempotent creation of the v266 custom certification tables (issue
+  /// #690) and the level-by-agency index. Called from the v266 rung and the
   /// beforeOpen backstop. Skipped on a partial migration fixture without
   /// `divers`, so an older fixture does not gain tables whose foreign keys
   /// point nowhere.

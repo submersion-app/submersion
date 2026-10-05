@@ -52,7 +52,10 @@ extension TableBackstopsFromV217 on AppDatabase {
     await _assertTripHidesSchema();
     await _assertSiteHidesSchema();
 
-    // v265 backstop: the custom certification tables (parallel-branch
+    // v265 backstop: Insights observation dismissals and muted rules.
+    await _assertInsightObservationsSchema();
+
+    // v266 backstop: the custom certification tables (parallel-branch
     // version-collision self-heal; idempotent).
     await _assertCustomCertificationSchema();
   }

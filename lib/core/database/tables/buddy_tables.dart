@@ -142,7 +142,7 @@ class DiveRoles extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// A diver's own certification agency (v265, issue #690). Built-in agencies
+/// A diver's own certification agency (v266, issue #690). Built-in agencies
 /// are code constants and never have a row; custom ids are UUIDs, stored in
 /// the same agency text columns as the built-in enum names.
 @DataClassName('CustomCertificationAgencyRow')
@@ -167,7 +167,7 @@ class CustomCertificationAgencies extends Table {
 }
 
 /// A diver's own certification (level) under any agency, built-in or custom
-/// (v265, issue #690). [agencyId] is a built-in enum name or a custom agency
+/// (v266, issue #690). [agencyId] is a built-in enum name or a custom agency
 /// UUID, so it carries no foreign key.
 @DataClassName('CustomCertificationLevelRow')
 class CustomCertificationLevels extends Table {

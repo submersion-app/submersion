@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -16,8 +17,8 @@ class EquipmentVisibilityQueries {
   static const int _chunk = 450;
 
   /// The members of a set, in [ids] order, that applying it gives
-  /// [diverId]'s dive ([isSetMemberUsableBy]). Missing rows apply as they
-  /// always have.
+  /// [diverId]'s dive ([isSetMemberUsableBy]), less any member on the
+  /// wishlist (#2025). Missing rows apply as they always have.
   Future<List<String>> usableSetMemberIds(
     List<String> ids,
     String diverId,
@@ -31,16 +32,25 @@ class EquipmentVisibilityQueries {
       );
       final rows =
           await (_db.selectOnly(_db.equipment)
-                ..addColumns([_db.equipment.id, _db.equipment.diverId, shared])
+                ..addColumns([
+                  _db.equipment.id,
+                  _db.equipment.diverId,
+                  _db.equipment.status,
+                  shared,
+                ])
                 ..where(_db.equipment.id.isIn(chunk)))
               .get();
       for (final r in rows) {
+        // Gear on the wishlist is not owned yet (#2025), so applying a set
+        // never puts it on a dive, even if a member was later set to Wanted.
+        final wanted =
+            r.read(_db.equipment.status) == EquipmentStatus.wanted.name;
         final usable = isSetMemberUsableBy(
           ownerId: r.read(_db.equipment.diverId),
           diverId: diverId,
           sharedWithDiver: r.read(shared) ?? false,
         );
-        if (!usable) hidden.add(r.read(_db.equipment.id)!);
+        if (wanted || !usable) hidden.add(r.read(_db.equipment.id)!);
       }
     }
     return [

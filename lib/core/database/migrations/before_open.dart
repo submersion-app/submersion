@@ -152,12 +152,11 @@ extension BeforeOpenBackstops on AppDatabase {
     // version-collision self-heal; createTable is idempotent).
     await Migrator(this).createTable(siteFeatures);
 
-    // v217 to v265 table backstops (before_open_table_backstops.dart).
+    // v217 to v266 table backstops (before_open_table_backstops.dart).
     await _tableBackstopsFromV217();
 
-    // v122 backstop: re-assert service ledger schema + built-in kinds.
-    // The legacy backfill is NOT here (onUpgrade only) -- re-running it
-    // would resurrect user-deleted schedules.
+    // v122 backstop: service ledger schema + built-in kinds. The legacy
+    // backfill is onUpgrade only: re-running it resurrects deleted schedules.
     await _assertServiceLedgerSchema();
 
     // v123 backstop: re-assert safety review tables + settings columns
@@ -166,9 +165,8 @@ extension BeforeOpenBackstops on AppDatabase {
     // v253 backstop: the review's inputs fingerprint, after the table above.
     await _assertSafetyReviewInputsHashColumn();
 
-    // v124 backstop: re-assert the equipment_attributes table (schema
-    // only -- the legacy-column copy must NOT run here, it would
-    // resurrect attribute rows the user has cleared).
+    // v124 backstop: equipment_attributes schema only. The legacy copy must
+    // NOT run here: it would resurrect attribute rows the user cleared.
     await _assertEquipmentAttributesSchema();
 
     // v125 backstop: re-assert diver_settings.no_fly_preset.

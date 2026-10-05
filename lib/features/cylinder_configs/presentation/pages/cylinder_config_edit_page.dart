@@ -131,8 +131,14 @@ class _CylinderConfigEditPageState
     final l10n = context.l10n;
     final units = UnitFormatter(ref.watch(settingsProvider));
     final equipment = ref.watch(allEquipmentProvider).valueOrNull ?? const [];
+    // Wishlist rebreathers (#2025) are not units a configuration can belong
+    // to, except the one this configuration already names.
     final rebreathers = equipment
-        .where((e) => e.type == EquipmentType.rebreather)
+        .where(
+          (e) =>
+              e.type == EquipmentType.rebreather &&
+              (!e.isWanted || e.id == _equipmentId),
+        )
         .toList();
 
     return Scaffold(

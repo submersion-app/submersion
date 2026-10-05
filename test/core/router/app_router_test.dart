@@ -421,6 +421,15 @@ void main() {
       expect(match.fullPath, '/insights/connections');
     });
 
+    test('observations live under Insights (#2381)', () {
+      final routes = router.configuration.routes;
+      expect(_findRouteByName(routes, 'insightsObservations'), isNotNull);
+      final match = router.configuration.findMatch(
+        Uri.parse('/insights/observations'),
+      );
+      expect(match.fullPath, '/insights/observations');
+    });
+
     test('the cylinder passport nests under equipment detail', () {
       final names = _collectRouteNames(router.configuration.routes);
       expect(names, contains('equipmentPassport'));

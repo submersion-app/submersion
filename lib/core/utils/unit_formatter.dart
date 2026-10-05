@@ -174,6 +174,21 @@ class UnitFormatter {
     return '$text°${settings.temperatureUnit.symbol}';
   }
 
+  /// A temperature DIFFERENCE in the diver's unit, from a Celsius delta.
+  ///
+  /// Not [formatTemperature]: a difference scales by 9/5 without the 32-degree
+  /// offset a reading's conversion adds, so 2 C warmer is 3.6 F warmer, never
+  /// 35.6 F. Unsigned; the caller adds the sign it needs.
+  String formatTemperatureDelta(double celsiusDelta, {int decimals = 1}) {
+    final scaled = settings.temperatureUnit == TemperatureUnit.fahrenheit
+        ? celsiusDelta * 9 / 5
+        : celsiusDelta;
+    final text = localiseDecimalText(
+      _trimTrailingZeros(scaled.toStringAsFixed(decimals)),
+    );
+    return '$text°${settings.temperatureUnit.symbol}';
+  }
+
   /// Strips a fractional part that is all zeros, along with the separator.
   /// "26.0" -> "26", "25.60" -> "25.6", "26" -> "26".
   ///

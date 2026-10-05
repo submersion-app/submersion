@@ -76,6 +76,13 @@ List<InsightsCategory> insightsCategoriesOf(BuildContext context) => [
     color: Colors.green,
   ),
   InsightsCategory(
+    id: 'focus',
+    icon: Icons.filter_center_focus,
+    title: context.l10n.insights_focus_title,
+    subtitle: context.l10n.insights_category_focus_subtitle,
+    color: Colors.deepOrange,
+  ),
+  InsightsCategory(
     id: 'conditions',
     icon: Icons.thermostat,
     title: context.l10n.insights_category_conditions_title,
