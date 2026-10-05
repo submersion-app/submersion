@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/services/ccr_gas_schedule.dart';
@@ -138,6 +139,179 @@ void main() {
         CcrGasChangeKind.openCircuit,
         CcrGasChangeKind.diluent,
       ]);
+    });
+  });
+
+  group('buildCcrProfileGasSegments with gas changes', () {
+    const times = [0, 60, 120, 180, 240];
+    const flat = [1.3, 1.3, 1.3, 1.3, 1.3];
+    const air = GasMix();
+
+    ({int t, double fN2, double fHe, double? sp}) view(ProfileGasSegment s) =>
+        (t: s.startTimestamp, fN2: s.fN2, fHe: s.fHe, sp: s.setpoint);
+
+    CcrGasChange bailout(int t, {double fN2 = 0.5, double fHe = 0.0}) =>
+        CcrGasChange(
+          timestamp: t,
+          kind: CcrGasChangeKind.openCircuit,
+          fN2: fN2,
+          fHe: fHe,
+        );
+    CcrGasChange diluent(int t, {double fN2 = airN2Fraction, double fHe = 0}) =>
+        CcrGasChange(
+          timestamp: t,
+          kind: CcrGasChangeKind.diluent,
+          fN2: fN2,
+          fHe: fHe,
+        );
+
+    test('no changes keeps the single-diluent schedule', () {
+      final segments = buildCcrProfileGasSegments(
+        timestamps: times,
+        loopPpO2Curve: flat,
+        diluentMix: air,
+      )!;
+      expect(segments.map(view), [
+        (t: 0, fN2: airN2Fraction, fHe: 0.0, sp: 1.3),
+      ]);
+    });
+
+    test('a diluent change switches the loop inert split', () {
+      final segments = buildCcrProfileGasSegments(
+        timestamps: times,
+        loopPpO2Curve: flat,
+        diluentMix: air,
+        gasChanges: [diluent(120, fN2: 0.4, fHe: 0.5)],
+      )!;
+      expect(segments.map(view), [
+        (t: 0, fN2: airN2Fraction, fHe: 0.0, sp: 1.3),
+        (t: 120, fN2: 0.4, fHe: 0.5, sp: 1.3),
+      ]);
+    });
+
+    test('a bailout is open circuit and ignores loop ppO2 noise', () {
+      final segments = buildCcrProfileGasSegments(
+        timestamps: times,
+        loopPpO2Curve: const [1.3, 1.3, 0.9, 1.6, 1.3],
+        diluentMix: air,
+        gasChanges: [bailout(120)],
+      )!;
+      expect(segments.map(view), [
+        (t: 0, fN2: airN2Fraction, fHe: 0.0, sp: 1.3),
+        (t: 120, fN2: 0.5, fHe: 0.0, sp: null),
+      ]);
+    });
+
+    test('returning to the loop re-seeds the setpoint from the curve', () {
+      final segments = buildCcrProfileGasSegments(
+        timestamps: times,
+        loopPpO2Curve: const [1.3, 1.3, 1.3, 1.0, 1.0],
+        diluentMix: air,
+        gasChanges: [bailout(120), diluent(180)],
+      )!;
+      expect(segments.map(view), [
+        (t: 0, fN2: airN2Fraction, fHe: 0.0, sp: 1.3),
+        (t: 120, fN2: 0.5, fHe: 0.0, sp: null),
+        (t: 180, fN2: airN2Fraction, fHe: 0.0, sp: 1.0),
+      ]);
+    });
+
+    test('a change between samples takes the loop ppO2 seen before it', () {
+      final segments = buildCcrProfileGasSegments(
+        timestamps: times,
+        loopPpO2Curve: const [1.3, 1.3, 1.2, 1.0, 1.0],
+        diluentMix: air,
+        gasChanges: [bailout(90), diluent(150)],
+      )!;
+      expect(segments.map(view), [
+        (t: 0, fN2: airN2Fraction, fHe: 0.0, sp: 1.3),
+        (t: 90, fN2: 0.5, fHe: 0.0, sp: null),
+        (t: 150, fN2: airN2Fraction, fHe: 0.0, sp: 1.2),
+        (t: 180, fN2: airN2Fraction, fHe: 0.0, sp: 1.0),
+      ]);
+    });
+
+    test('with only a fallback setpoint the loop resumes on it', () {
+      final segments = buildCcrProfileGasSegments(
+        timestamps: times,
+        loopPpO2Curve: null,
+        diluentMix: air,
+        fallbackSetpoint: 1.2,
+        gasChanges: [bailout(60), diluent(180)],
+      )!;
+      expect(segments.map(view), [
+        (t: 0, fN2: airN2Fraction, fHe: 0.0, sp: 1.2),
+        (t: 60, fN2: 0.5, fHe: 0.0, sp: null),
+        (t: 180, fN2: airN2Fraction, fHe: 0.0, sp: 1.2),
+      ]);
+    });
+
+    test('a change at the first sample replaces the seed', () {
+      final segments = buildCcrProfileGasSegments(
+        timestamps: times,
+        loopPpO2Curve: flat,
+        diluentMix: air,
+        gasChanges: [bailout(0)],
+      )!;
+      expect(segments.map(view), [(t: 0, fN2: 0.5, fHe: 0.0, sp: null)]);
+    });
+
+    test('the seed sits at the first sample, before zero if need be', () {
+      final segments = buildCcrProfileGasSegments(
+        timestamps: const [-30, 30, 90],
+        loopPpO2Curve: const [1.3, 1.3, 1.3],
+        diluentMix: air,
+        gasChanges: [bailout(-60)],
+      )!;
+      expect(segments.map(view), [
+        (t: -30, fN2: airN2Fraction, fHe: 0.0, sp: 1.3),
+      ]);
+    });
+
+    test('same-timestamp bailout and return leaves no redundant segment', () {
+      final segments = buildCcrProfileGasSegments(
+        timestamps: times,
+        loopPpO2Curve: flat,
+        diluentMix: air,
+        gasChanges: [bailout(120), diluent(120)],
+      )!;
+      expect(segments.map(view), [
+        (t: 0, fN2: airN2Fraction, fHe: 0.0, sp: 1.3),
+      ]);
+    });
+
+    test('no loop ppO2 information still returns null', () {
+      expect(
+        buildCcrProfileGasSegments(
+          timestamps: times,
+          loopPpO2Curve: null,
+          diluentMix: air,
+          gasChanges: [bailout(60)],
+        ),
+        isNull,
+      );
+    });
+  });
+
+  group('hasOpenCircuitBailout', () {
+    test('false for no schedule and for a loop-only schedule', () {
+      expect(hasOpenCircuitBailout(null), isFalse);
+      expect(
+        hasOpenCircuitBailout(const [
+          ProfileGasSegment(startTimestamp: 0, fN2: 0.79, setpoint: 1.3),
+        ]),
+        isFalse,
+      );
+    });
+
+    test('true once a segment is open circuit', () {
+      expect(
+        hasOpenCircuitBailout(const [
+          ProfileGasSegment(startTimestamp: 0, fN2: 0.79, setpoint: 1.3),
+          ProfileGasSegment(startTimestamp: 600, fN2: 0.5),
+        ]),
+        isTrue,
+      );
     });
   });
 }

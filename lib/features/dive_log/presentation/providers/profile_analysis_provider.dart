@@ -24,6 +24,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/ccr_gas_schedule.dart';
 import 'package:submersion/features/dive_log/domain/services/computer_cns_extractor.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_time_remaining.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
@@ -279,73 +280,6 @@ GasMix resolveCcrDiluentMix(Dive dive) {
     return tank.gasMix;
   }
   return const GasMix();
-}
-
-/// Builds the CCR gas schedule for decompression analysis: the diluent's
-/// inert fractions with the loop ppO2 as each segment's setpoint, so the
-/// engine loads tissues at constant ppO2 (inspired inert = ambient - loop
-/// ppO2, split by the diluent's He:N2 ratio) and holds the setpoint through
-/// the TTS ascent.
-///
-/// [loopPpO2Curve] is the per-sample resolved loop ppO2
-/// ([resolveRebreatherPpO2]: measured cells / dc-supplied ppO2, falling back
-/// to recorded setpoint samples), aligned with [timestamps]. A new segment
-/// starts when the value moves more than [setpointTolerance] bar from the
-/// active segment's setpoint -- tracking real setpoint switches without
-/// emitting a segment per noisy cell sample. [fallbackSetpoint] (the
-/// dive-level setpoint) is used as a constant when no curve exists. Returns
-/// null when neither exists: with no loop ppO2 information the loop cannot
-/// be modeled and callers keep the legacy path.
-@visibleForTesting
-List<ProfileGasSegment>? buildCcrProfileGasSegments({
-  required List<int> timestamps,
-  required List<double>? loopPpO2Curve,
-  required GasMix diluentMix,
-  double? fallbackSetpoint,
-  double setpointTolerance = 0.05,
-}) {
-  final fN2 = diluentMix.isAir
-      ? airN2Fraction
-      : (100.0 - diluentMix.o2 - diluentMix.he) / 100.0;
-  final fHe = diluentMix.he / 100.0;
-
-  final curve =
-      loopPpO2Curve != null && loopPpO2Curve.length == timestamps.length
-      ? loopPpO2Curve
-      : null;
-  if (curve == null) {
-    if (fallbackSetpoint == null) return null;
-    return [
-      ProfileGasSegment(
-        startTimestamp: 0,
-        fN2: fN2,
-        fHe: fHe,
-        setpoint: fallbackSetpoint,
-      ),
-    ];
-  }
-
-  final segments = <ProfileGasSegment>[
-    ProfileGasSegment(
-      startTimestamp: 0,
-      fN2: fN2,
-      fHe: fHe,
-      setpoint: curve[0],
-    ),
-  ];
-  for (int i = 1; i < timestamps.length; i++) {
-    if ((curve[i] - segments.last.setpoint!).abs() > setpointTolerance) {
-      segments.add(
-        ProfileGasSegment(
-          startTimestamp: timestamps[i],
-          fN2: fN2,
-          fHe: fHe,
-          setpoint: curve[i],
-        ),
-      );
-    }
-  }
-  return segments;
 }
 
 /// The gas schedule a rebreather dive's tissues load from, or null when the
