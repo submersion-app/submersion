@@ -27,6 +27,21 @@ void main() {
     );
   });
 
+  test('a finding with no stored value reads a neutral placeholder', () {
+    final unknown = SafetyFinding(
+      id: 'f2',
+      diveId: 'd1',
+      ruleId: SafetyRuleId.lateGasSwitch,
+      severity: SafetySeverity.caution,
+      engineVersion: 6,
+      createdAt: DateTime.utc(2026, 10, 5),
+    );
+    expect(
+      safetyFindingTitle(unknown, l10n, units),
+      'A late or missed gas switch added -- of deco',
+    );
+  });
+
   test('does not claim "0s of deco" for a switch that cost nothing', () {
     expect(
       safetyFindingTitle(finding(0), l10n, units),
