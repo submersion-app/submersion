@@ -3364,7 +3364,7 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count certifications',
-      one: '1 certification',
+      one: '$count certification',
     );
     return '$_temp0';
   }
@@ -3375,7 +3375,7 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count formations',
-      one: '1 formation',
+      one: '$count formation',
     );
     return '$_temp0';
   }
