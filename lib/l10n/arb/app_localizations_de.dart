@@ -30151,7 +30151,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrChoice_bag_style_mesh => 'Netztasche';
 
   @override
-  String get attrChoice_bag_style_dry_bag => 'Packsack';
+  String get attrChoice_bag_style_dry_bag => 'Wasserdichter Packsack';
 
   @override
   String get attrChoice_bag_style_regulator_bag => 'Atemreglertasche';
