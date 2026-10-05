@@ -28,9 +28,10 @@ const _cardDark = Color(0xFF1A2230);
 // Dark mode needs its own tertiary. Left unset, ColorScheme falls back to
 // secondary, which here is the app-bar navy, the same colour as _cardDark, so
 // every tertiary label on a card was invisible (issue #2956). Light mode's
-// fallback (_appBarLight on white) already reads, so it stays unset.
-const _tertiaryDark = Color(0xFF7FB8F0);
-const _onTertiaryDark = Color(0xFF0A1018);
+// fallback (_appBarLight on white) already reads, so it stays unset. The mid
+// blue reads as text on cards (4.7:1) and as a fill under the white labels
+// the import action buttons hard-code (3.4:1).
+const _tertiaryDark = Color(0xFF4A90D0);
 
 const _cardBorderLight = Color(0xFFD0D8E0);
 const _cardBorderDark = Color(0xFF2A3A4A);
@@ -136,7 +137,7 @@ final ThemeData consoleDark = ThemeData(
     secondary: _appBarDark,
     onSecondary: _onPrimaryLight,
     tertiary: _tertiaryDark,
-    onTertiary: _onTertiaryDark,
+    onTertiary: _onPrimaryLight,
     // Pinned to what the secondary fallback gave before, so tertiary
     // containers look as they always have.
     tertiaryContainer: _appBarDark,
