@@ -8987,6 +8987,9 @@
   "safetyHub_cnsOtu_clear_title": "Nincs aktív terhelés",
   "safetyHub_cnsOtu_clear_subtitle": "A CNS és az OTU lecsengett az utolsó merülés óta",
   "safetyHub_cnsOtu_sinceLastDive": "Az utolsó merülés {duration} ezelőtt ért véget",
+  "safetyHub_cnsOtu_elapsedDaysHours": "{days}n {hours}ó",
+  "safetyHub_cnsOtu_noProfile_title": "Az utolsó merülésnek nincs profilja",
+  "safetyHub_cnsOtu_noProfile_body": "Mélységprofil nélkül a CNS% és az OTU nem számítható ki. Az alábbi összesítések nem tartalmazzák.",
   "safetyHub_noFly_category_single": "Egyetlen nullidős merülés után: {hours} ó irányelv",
   "@safetyHub_noFly_category_single": {
     "placeholders": {

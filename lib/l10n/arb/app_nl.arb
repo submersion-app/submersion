@@ -8987,6 +8987,9 @@
   "safetyHub_cnsOtu_clear_title": "Geen actieve belasting",
   "safetyHub_cnsOtu_clear_subtitle": "CNS en OTU zijn afgenomen sinds je laatste duik",
   "safetyHub_cnsOtu_sinceLastDive": "Laatste duik eindigde {duration} geleden",
+  "safetyHub_cnsOtu_elapsedDaysHours": "{days}d {hours}u",
+  "safetyHub_cnsOtu_noProfile_title": "Laatste duik zonder profiel",
+  "safetyHub_cnsOtu_noProfile_body": "Zonder diepteprofiel kunnen CNS% en OTU ervan niet worden berekend. De totalen hieronder laten hem buiten beschouwing.",
   "safetyHub_noFly_category_single": "Na een enkele duik zonder deco: richtlijn van {hours} u",
   "@safetyHub_noFly_category_single": {
     "placeholders": {

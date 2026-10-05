@@ -8987,6 +8987,9 @@
   "safetyHub_cnsOtu_clear_title": "Sem carga ativa",
   "safetyHub_cnsOtu_clear_subtitle": "O CNS e a OTU se dissiparam desde o seu último mergulho",
   "safetyHub_cnsOtu_sinceLastDive": "Último mergulho terminou há {duration}",
+  "safetyHub_cnsOtu_elapsedDaysHours": "{days}d {hours}h",
+  "safetyHub_cnsOtu_noProfile_title": "Último mergulho sem perfil",
+  "safetyHub_cnsOtu_noProfile_body": "Sem perfil de profundidade, não é possível calcular o CNS% e as OTU dele. Os totais abaixo não o incluem.",
   "safetyHub_noFly_category_single": "Após um único mergulho sem deco: orientação de {hours} h",
   "@safetyHub_noFly_category_single": {
     "placeholders": {

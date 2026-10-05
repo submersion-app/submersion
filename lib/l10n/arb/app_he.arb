@@ -8987,6 +8987,9 @@
   "safetyHub_cnsOtu_clear_title": "אין עומס פעיל",
   "safetyHub_cnsOtu_clear_subtitle": "ה-CNS וה-OTU דעכו מאז הצלילה האחרונה שלך",
   "safetyHub_cnsOtu_sinceLastDive": "הצלילה האחרונה הסתיימה לפני {duration}",
+  "safetyHub_cnsOtu_elapsedDaysHours": "{days}d {hours}h",
+  "safetyHub_cnsOtu_noProfile_title": "לצלילה האחרונה אין פרופיל",
+  "safetyHub_cnsOtu_noProfile_body": "ללא פרופיל עומק לא ניתן לחשב את ה-CNS% וה-OTU שלה. הסיכומים שלהלן אינם כוללים אותה.",
   "safetyHub_noFly_category_single": "אחרי צלילה בודדת ללא דקו: הנחיה של {hours} שעות",
   "@safetyHub_noFly_category_single": {
     "placeholders": {

@@ -9120,6 +9120,9 @@
       }
     }
   },
+  "safetyHub_cnsOtu_elapsedDaysHours": "{days}T {hours}h",
+  "safetyHub_cnsOtu_noProfile_title": "Letzter Tauchgang ohne Profil",
+  "safetyHub_cnsOtu_noProfile_body": "Ohne Tiefenprofil lassen sich CNS% und OTU dafür nicht berechnen. Die Summen unten enthalten ihn nicht.",
   "safetyHub_noFly_category_single": "Nach einem einzelnen Nullzeit-Tauchgang: {hours} h Richtwert",
   "@safetyHub_noFly_category_single": {
     "placeholders": {

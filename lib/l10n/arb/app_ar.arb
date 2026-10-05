@@ -8987,6 +8987,9 @@
   "safetyHub_cnsOtu_clear_title": "لا يوجد حمل نشط",
   "safetyHub_cnsOtu_clear_subtitle": "تلاشى كل من CNS وOTU منذ غطستك الأخيرة",
   "safetyHub_cnsOtu_sinceLastDive": "انتهت الغطسة الأخيرة منذ {duration}",
+  "safetyHub_cnsOtu_elapsedDaysHours": "{days}d {hours}h",
+  "safetyHub_cnsOtu_noProfile_title": "آخر غطسة بلا بيانات مخطط",
+  "safetyHub_cnsOtu_noProfile_body": "لا يمكن حساب CNS% و OTU لها بدون بيانات العمق. المجاميع أدناه لا تشملها.",
   "safetyHub_noFly_category_single": "بعد غطسة واحدة بلا توقفات: إرشاد {hours} ساعة",
   "@safetyHub_noFly_category_single": {
     "placeholders": {

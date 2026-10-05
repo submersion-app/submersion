@@ -48186,6 +48186,24 @@ abstract class AppLocalizations {
   /// **'Last dive ended {duration} ago'**
   String safetyHub_cnsOtu_sinceLastDive(String duration);
 
+  /// No description provided for @safetyHub_cnsOtu_elapsedDaysHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d {hours}h'**
+  String safetyHub_cnsOtu_elapsedDaysHours(int days, int hours);
+
+  /// No description provided for @safetyHub_cnsOtu_noProfile_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive has no profile'**
+  String get safetyHub_cnsOtu_noProfile_title;
+
+  /// No description provided for @safetyHub_cnsOtu_noProfile_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Its CNS% and OTU can\'t be calculated without depth samples. The totals below leave it out.'**
+  String get safetyHub_cnsOtu_noProfile_body;
+
   /// No description provided for @safetyHub_noFly_category_single.
   ///
   /// In en, this message translates to:

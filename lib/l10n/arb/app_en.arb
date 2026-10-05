@@ -19516,6 +19516,19 @@
       }
     }
   },
+  "safetyHub_cnsOtu_elapsedDaysHours": "{days}d {hours}h",
+  "@safetyHub_cnsOtu_elapsedDaysHours": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_cnsOtu_noProfile_title": "Last dive has no profile",
+  "safetyHub_cnsOtu_noProfile_body": "Its CNS% and OTU can't be calculated without depth samples. The totals below leave it out.",
   "safetyHub_noFly_category_single": "After a single no-deco dive: {hours} h guideline",
   "@safetyHub_noFly_category_single": {
     "placeholders": {

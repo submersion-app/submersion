@@ -8987,6 +8987,9 @@
   "safetyHub_cnsOtu_clear_title": "无活跃负荷",
   "safetyHub_cnsOtu_clear_subtitle": "自上次潜水以来CNS和OTU已消退",
   "safetyHub_cnsOtu_sinceLastDive": "上次潜水结束于{duration}前",
+  "safetyHub_cnsOtu_elapsedDaysHours": "{days}天{hours}小时",
+  "safetyHub_cnsOtu_noProfile_title": "上次潜水没有剖面",
+  "safetyHub_cnsOtu_noProfile_body": "没有深度剖面，无法计算其 CNS% 和 OTU。下方合计不包含此次潜水。",
   "safetyHub_noFly_category_single": "单次免减压潜水后:{hours} 小时指导值",
   "@safetyHub_noFly_category_single": {
     "placeholders": {

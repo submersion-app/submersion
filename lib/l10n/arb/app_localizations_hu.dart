@@ -30410,6 +30410,19 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String safetyHub_cnsOtu_elapsedDaysHours(int days, int hours) {
+    return '${days}n $hoursó';
+  }
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_title =>
+      'Az utolsó merülésnek nincs profilja';
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_body =>
+      'Mélységprofil nélkül a CNS% és az OTU nem számítható ki. Az alábbi összesítések nem tartalmazzák.';
+
+  @override
   String safetyHub_noFly_category_single(int hours) {
     return 'Egyetlen nullidős merülés után: $hours ó irányelv';
   }

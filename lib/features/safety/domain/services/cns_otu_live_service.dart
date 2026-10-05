@@ -8,10 +8,10 @@ import 'package:submersion/core/deco/entities/o2_exposure.dart';
 /// UI tick (see `CnsOtuPage`'s minute timer) rather than caching a stale
 /// result from the moment the data was fetched.
 ///
-/// OTU has no equivalent decay -- it is tracked purely as a daily/weekly
-/// cumulative total against NOAA/REPEX limits, which the existing
-/// `profileAnalysisProvider`/`weeklyOtuProvider` already compute correctly
-/// for the most recent dive.
+/// OTU has no equivalent decay: it is tracked as daily and weekly totals
+/// against NOAA/REPEX limits, summed by `sumOtuInWindow` when the snapshot
+/// is fetched. This service only keeps the daily total from outliving its
+/// calendar day.
 class CnsOtuLiveService {
   const CnsOtuLiveService._();
 
@@ -35,26 +35,26 @@ class CnsOtuLiveService {
     return CnsTable.cnsAfterSurfaceInterval(cnsAtDiveEnd, elapsed.inMinutes);
   }
 
-  /// Today's OTU daily total, or [otuDailyAtDiveEnd] unchanged if [now] is
-  /// still the same calendar day as [lastDiveEnd].
+  /// [dailyOtu] while [now] is still the calendar day it was computed on
+  /// ([computedAt]), else 0.
   ///
-  /// Unlike CNS, OTU does not decay -- but [otuDailyAtDiveEnd] (the dive's
-  /// own `O2Exposure.otuDaily`) is fixed to THAT dive's calendar day. Once
-  /// "now" rolls into a later day, that total no longer describes today's
-  /// exposure and must read as 0, not as a stale near-limit figure.
+  /// Unlike CNS, OTU does not decay, but a daily total belongs to one
+  /// calendar day. The snapshot refetches itself at midnight; this keeps the
+  /// readout from showing yesterday's total as today's in the moments before
+  /// that refetch lands (or while a suspended app catches up).
   ///
-  /// Both [lastDiveEnd] and [now] are wall-clock-as-UTC (the dive-time
-  /// frame; see `NoFlyService.wallClockNowUtc`), so comparing their calendar
+  /// Both [computedAt] and [now] are wall-clock-as-UTC (the dive-time frame;
+  /// see `NoFlyService.wallClockNowUtc`), so comparing their calendar
   /// components directly is correct.
   static double currentOtuDaily({
-    required double otuDailyAtDiveEnd,
-    required DateTime lastDiveEnd,
+    required double dailyOtu,
+    required DateTime computedAt,
     required DateTime now,
   }) {
     final sameDay =
-        now.year == lastDiveEnd.year &&
-        now.month == lastDiveEnd.month &&
-        now.day == lastDiveEnd.day;
-    return sameDay ? otuDailyAtDiveEnd : 0.0;
+        now.year == computedAt.year &&
+        now.month == computedAt.month &&
+        now.day == computedAt.day;
+    return sameDay ? dailyOtu : 0.0;
   }
 }

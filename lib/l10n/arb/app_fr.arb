@@ -8987,6 +8987,9 @@
   "safetyHub_cnsOtu_clear_title": "Aucune charge active",
   "safetyHub_cnsOtu_clear_subtitle": "Le CNS et l'OTU se sont dissipés depuis votre dernière plongée",
   "safetyHub_cnsOtu_sinceLastDive": "Dernière plongée terminée il y a {duration}",
+  "safetyHub_cnsOtu_elapsedDaysHours": "{days}j {hours}h",
+  "safetyHub_cnsOtu_noProfile_title": "Dernière plongée sans profil",
+  "safetyHub_cnsOtu_noProfile_body": "Sans profil de profondeur, son CNS% et ses OTU ne peuvent pas être calculés. Les totaux ci-dessous l'excluent.",
   "safetyHub_noFly_category_single": "Après une plongée unique sans déco : recommandation de {hours} h",
   "@safetyHub_noFly_category_single": {
     "placeholders": {

@@ -31015,6 +31015,18 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String safetyHub_cnsOtu_elapsedDaysHours(int days, int hours) {
+    return '${days}d ${hours}h';
+  }
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_title => 'آخر غطسة بلا بيانات مخطط';
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_body =>
+      'لا يمكن حساب CNS% و OTU لها بدون بيانات العمق. المجاميع أدناه لا تشملها.';
+
+  @override
   String safetyHub_noFly_category_single(int hours) {
     return 'بعد غطسة واحدة بلا توقفات: إرشاد $hours ساعة';
   }

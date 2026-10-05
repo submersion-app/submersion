@@ -30495,6 +30495,19 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String safetyHub_cnsOtu_elapsedDaysHours(int days, int hours) {
+    return '${days}T ${hours}h';
+  }
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_title =>
+      'Letzter Tauchgang ohne Profil';
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_body =>
+      'Ohne Tiefenprofil lassen sich CNS% und OTU dafür nicht berechnen. Die Summen unten enthalten ihn nicht.';
+
+  @override
   String safetyHub_noFly_category_single(int hours) {
     return 'Nach einem einzelnen Nullzeit-Tauchgang: $hours h Richtwert';
   }

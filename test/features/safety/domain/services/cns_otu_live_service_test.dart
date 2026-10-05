@@ -74,29 +74,32 @@ void main() {
   });
 
   group('currentOtuDaily', () {
-    test('same calendar day as the dive: total unchanged', () {
+    // Totals computed at 22:00; the dive itself is irrelevant to this guard.
+    final computedAt = DateTime.utc(2026, 7, 17, 22);
+
+    test('same calendar day as the totals: total unchanged', () {
       final result = CnsOtuLiveService.currentOtuDaily(
-        otuDailyAtDiveEnd: 250.0,
-        lastDiveEnd: diveEnd,
-        now: diveEnd.add(const Duration(hours: 10)),
+        dailyOtu: 250.0,
+        computedAt: computedAt,
+        now: computedAt.add(const Duration(hours: 1, minutes: 59)),
       );
       expect(result, 250.0);
     });
 
     test('now has rolled into the next calendar day: resets to 0', () {
       final result = CnsOtuLiveService.currentOtuDaily(
-        otuDailyAtDiveEnd: 250.0,
-        lastDiveEnd: diveEnd,
-        now: DateTime.utc(2026, 7, 18, 1),
+        dailyOtu: 250.0,
+        computedAt: computedAt,
+        now: DateTime.utc(2026, 7, 18, 0, 1),
       );
       expect(result, 0.0);
     });
 
     test('several days later: still 0, not negative or stale', () {
       final result = CnsOtuLiveService.currentOtuDaily(
-        otuDailyAtDiveEnd: 250.0,
-        lastDiveEnd: diveEnd,
-        now: diveEnd.add(const Duration(days: 3)),
+        dailyOtu: 250.0,
+        computedAt: computedAt,
+        now: computedAt.add(const Duration(days: 3)),
       );
       expect(result, 0.0);
     });

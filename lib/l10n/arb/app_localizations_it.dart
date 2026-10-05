@@ -30532,6 +30532,19 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String safetyHub_cnsOtu_elapsedDaysHours(int days, int hours) {
+    return '${days}g ${hours}h';
+  }
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_title =>
+      'Ultima immersione senza profilo';
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_body =>
+      'Senza profilo di profondità non è possibile calcolarne CNS% e OTU. I totali qui sotto la escludono.';
+
+  @override
   String safetyHub_noFly_category_single(int hours) {
     return 'Dopo una singola immersione senza deco: linea guida di $hours h';
   }

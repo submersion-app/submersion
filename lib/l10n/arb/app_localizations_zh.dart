@@ -28917,6 +28917,18 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String safetyHub_cnsOtu_elapsedDaysHours(int days, int hours) {
+    return '$days天$hours小时';
+  }
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_title => '上次潜水没有剖面';
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_body =>
+      '没有深度剖面，无法计算其 CNS% 和 OTU。下方合计不包含此次潜水。';
+
+  @override
   String safetyHub_noFly_category_single(int hours) {
     return '单次免减压潜水后:$hours 小时指导值';
   }

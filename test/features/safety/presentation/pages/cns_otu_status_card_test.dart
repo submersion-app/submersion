@@ -51,6 +51,21 @@ void main() {
     await tester.pump();
   }
 
+  CnsOtuSnapshot snapshotOf({
+    required DateTime lastDiveEnd,
+    required O2Exposure? exposure,
+    double dailyOtu = 0.0,
+    double weeklyOtu = 0.0,
+    DateTime? computedAt,
+  }) => CnsOtuSnapshot(
+    lastDiveId: 'dive-1',
+    lastDiveEnd: lastDiveEnd,
+    exposure: exposure,
+    dailyOtu: dailyOtu,
+    weeklyOtu: weeklyOtu,
+    computedAt: computedAt ?? NoFlyService.wallClockNowUtc(),
+  );
+
   testWidgets('shows no active load without a snapshot', (tester) async {
     await pumpCard(tester, null);
     expect(find.text('No active load'), findsOneWidget);
@@ -64,8 +79,7 @@ void main() {
     );
     await pumpCard(
       tester,
-      CnsOtuSnapshot(
-        lastDiveId: 'dive-1',
+      snapshotOf(
         lastDiveEnd: lastDiveEnd,
         exposure: const O2Exposure(cnsEnd: 40.0),
         weeklyOtu: 0.0,
@@ -80,8 +94,7 @@ void main() {
     );
     await pumpCard(
       tester,
-      CnsOtuSnapshot(
-        lastDiveId: 'dive-1',
+      snapshotOf(
         lastDiveEnd: lastDiveEnd,
         exposure: const O2Exposure(cnsEnd: 40.0, otu: 20.0),
         weeklyOtu: 50.0,
@@ -113,8 +126,7 @@ void main() {
       );
       await pumpCard(
         tester,
-        CnsOtuSnapshot(
-          lastDiveId: 'dive-1',
+        snapshotOf(
           lastDiveEnd: lastDiveEnd,
           exposure: const O2Exposure(cnsStart: 10.0, cnsEnd: 50.0),
           weeklyOtu: 0.0,
@@ -126,27 +138,27 @@ void main() {
   );
 
   testWidgets(
-    'daily OTU resets to 0 once "now" is a later calendar day than the last '
-    'dive, instead of showing a stale near-limit total',
+    'daily OTU resets to 0 once "now" is a later calendar day than the '
+    'totals, instead of showing yesterday\'s near-limit total',
     (tester) async {
       final now = NoFlyService.wallClockNowUtc();
-      // Yesterday, just before midnight: guaranteed a different calendar
-      // day from "now" regardless of the time this test happens to run.
-      final lastDiveEnd = DateTime.utc(
+      // Yesterday: guaranteed a different calendar day from "now"
+      // regardless of the time this test happens to run.
+      final yesterday = DateTime.utc(
         now.year,
         now.month,
         now.day,
       ).subtract(const Duration(hours: 1));
       await pumpCard(
         tester,
-        CnsOtuSnapshot(
-          lastDiveId: 'dive-1',
-          lastDiveEnd: lastDiveEnd,
-          // otuStart carries a near-limit daily total from the dive's own
-          // (now past) day; weeklyOtu alone keeps the card in its active
-          // state so the daily row is actually rendered to check.
-          exposure: const O2Exposure(cnsEnd: 0.0, otuStart: 250.0, otu: 0.0),
+        snapshotOf(
+          lastDiveEnd: yesterday,
+          exposure: const O2Exposure(otuStart: 230.0, otu: 20.0),
+          dailyOtu: 250.0,
+          // weeklyOtu alone keeps the card in its active state so the daily
+          // row is actually rendered to check.
           weeklyOtu: 250.0,
+          computedAt: yesterday,
         ),
       );
 
@@ -154,6 +166,95 @@ void main() {
       expect(find.textContaining('250 / 300 OTU'), findsNothing);
     },
   );
+
+  testWidgets('the daily row shows today\'s total from the snapshot', (
+    tester,
+  ) async {
+    await pumpCard(
+      tester,
+      snapshotOf(
+        lastDiveEnd: NoFlyService.wallClockNowUtc().subtract(
+          const Duration(minutes: 30),
+        ),
+        // The dive's own-day total (otuStart + otu) is not today's.
+        exposure: const O2Exposure(otuStart: 200.0, otu: 20.0),
+        dailyOtu: 45.0,
+        weeklyOtu: 220.0,
+      ),
+    );
+
+    expect(find.textContaining('45 / 300 OTU (15%)'), findsOneWidget);
+  });
+
+  testWidgets('a multi-day gap reads in days and hours', (tester) async {
+    await pumpCard(
+      tester,
+      snapshotOf(
+        lastDiveEnd: NoFlyService.wallClockNowUtc().subtract(
+          const Duration(days: 3, hours: 4, minutes: 30),
+        ),
+        exposure: const O2Exposure(otu: 20.0),
+        weeklyOtu: 200.0,
+      ),
+    );
+
+    expect(find.text('Last dive ended 3d 4h ago'), findsOneWidget);
+  });
+
+  group('last dive without a profile', () {
+    testWidgets('warns and shows the known OTU totals', (tester) async {
+      await pumpCard(
+        tester,
+        snapshotOf(
+          lastDiveEnd: NoFlyService.wallClockNowUtc().subtract(
+            const Duration(hours: 2),
+          ),
+          exposure: null,
+          dailyOtu: 30.0,
+          weeklyOtu: 120.0,
+        ),
+      );
+
+      expect(find.text('Last dive has no profile'), findsOneWidget);
+      expect(find.text('No active load'), findsNothing);
+      expect(find.textContaining('30 / 300 OTU'), findsOneWidget);
+      expect(find.textContaining('120 / 850 OTU'), findsOneWidget);
+      // CNS is unknown, so no CNS reading is offered at all.
+      expect(find.text('CNS Oxygen Clock'), findsNothing);
+      expect(find.text('#42'), findsOneWidget);
+    });
+
+    testWidgets('warns even with zero known totals', (tester) async {
+      await pumpCard(
+        tester,
+        snapshotOf(
+          lastDiveEnd: NoFlyService.wallClockNowUtc().subtract(
+            const Duration(days: 6),
+          ),
+          exposure: null,
+        ),
+      );
+
+      expect(find.text('Last dive has no profile'), findsOneWidget);
+    });
+
+    testWidgets('reads as clear once the dive is out of the weekly window', (
+      tester,
+    ) async {
+      await pumpCard(
+        tester,
+        snapshotOf(
+          lastDiveEnd: NoFlyService.wallClockNowUtc().subtract(
+            const Duration(days: 7, minutes: 1),
+          ),
+          exposure: null,
+        ),
+      );
+
+      expect(find.text('Last dive has no profile'), findsNothing);
+      expect(find.text('No active load'), findsOneWidget);
+    });
+  });
 
   testWidgets('a weekly OTU carryover alone counts as an active load', (
     tester,
@@ -165,8 +266,7 @@ void main() {
     );
     await pumpCard(
       tester,
-      CnsOtuSnapshot(
-        lastDiveId: 'dive-1',
+      snapshotOf(
         lastDiveEnd: lastDiveEnd,
         exposure: const O2Exposure(cnsEnd: 0.0, otu: 0.0),
         weeklyOtu: 200.0,
