@@ -1165,8 +1165,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// right diver's settings in place.
   int _landedGeneration = 0;
 
-  /// What the current diver's row holds, as this notifier last read or
-  /// stored it: null until a load lands for a diver.
+  /// What the current diver's row holds, as this notifier last read,
+  /// stored or adopted it: null until a load lands for a diver.
   ///
   /// A save writes only the columns [state] changed from this, so a copy of
   /// the settings held since before a sync cannot undo another device's
@@ -1174,12 +1174,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// from this came from a sync, which [_reloadFromStorage] adopts.
   AppSettings? _persisted;
 
-  /// Saves started and not yet finished. While one is out the row still
-  /// lacks its change, so a reload waits for it (see [_reloadDeferred]).
-  int _pendingSaves = 0;
-
-  /// A reload asked for while a save was out, run once the last one ends.
-  bool _reloadDeferred = false;
+  /// Bumped whenever [_persisted] is replaced from storage rather than by a
+  /// save: a load landing, a sync adopted, a diver switch. A save whose
+  /// change was made before such a replacement built it on the earlier base.
+  int _baseEpoch = 0;
 
   /// Completes when the last save started has finished with the row. Each
   /// save waits for the one before it, so row writes land in the order the
@@ -1237,6 +1235,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     required String? diverId,
   }) : super(settings) {
     _validatedDiverId = diverId;
+    _persisted = diverId == null ? null : settings;
     _initialLoad = Future<void>.value();
     _currentLoad = _initialLoad;
   }
@@ -1267,7 +1266,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       if (previous != next) {
         // Reset diver ID immediately to prevent saving to wrong diver during switch
         _validatedDiverId = null;
-        _persisted = null;
+        _replaceBase(null);
         // Starting a new load supersedes any still in flight: its reads may
         // return after this one's, and must not overwrite the new diver's
         // settings when they do.
@@ -1297,7 +1296,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     } catch (_) {
       if (_isCurrentLoad(generation) && _landedGeneration != generation) {
         _validatedDiverId = null;
-        _persisted = null;
+        _replaceBase(null);
         // Only an EARLIER load's settings need replacing. When none has
         // landed (a failed startup load) state already holds the defaults.
         if (_landedGeneration != 0) {
@@ -1399,7 +1398,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     final diverId = _validatedDiverId;
     if (diverId == null) {
       // No diver selected, use defaults
-      _persisted = null;
+      _replaceBase(null);
       state = AppSettings(
         hiddenHomeChips: hiddenHomeChips,
         homeCardOrder: homeCardOrder,
@@ -1433,7 +1432,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     // first, and this one must not then overwrite it with the previous
     // diver's settings (issue #2564).
     if (!_isCurrentLoad(generation)) return;
-    _persisted = settings;
+    _replaceBase(settings);
     state = settings.copyWith(
       hiddenHomeChips: hiddenHomeChips,
       homeCardOrder: homeCardOrder,
@@ -1496,13 +1495,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     // can start, while the writes below are out. The row write carries
     // exactly this change, to the diver it was made for.
     final diverId = _validatedDiverId;
-    final previous = _persisted;
     final next = state;
-    if (previous != null) _persisted = next;
+    final epoch = _baseEpoch;
+    final baseAtStart = _persisted;
     final turn = _rowWriteTurn;
     final turnDone = Completer<void>();
     _rowWriteTurn = turnDone.future;
-    _pendingSaves++;
     try {
       // Device-local preferences are always persisted to SharedPreferences,
       // independent of whether a diver is currently selected.
@@ -1549,68 +1547,65 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         );
         return;
       }
-      // No load has landed for this diver: [state] holds the defaults, or
-      // the previous diver's settings mid-switch, and the load is about to
-      // replace them. Writing them would overwrite the diver's stored row.
-      if (previous == null) return;
       await turn;
+      // Earlier saves have finished, so [_persisted] is what the row holds,
+      // and diffing against it also retries a change whose write failed.
+      // When a load or sync replaced it since this change was made, [next]
+      // was built on [baseAtStart] instead.
+      final sameBase = epoch == _baseEpoch;
+      final previous = sameBase ? _persisted : baseAtStart;
+      // No load had landed for this diver: [state] held the defaults, or
+      // the previous diver's settings mid-switch, and the load replaces
+      // them. Writing them would overwrite the diver's stored row.
+      if (previous == null) return;
       await _repository.updateSettingsForDiver(
         diverId,
         next,
         previous: previous,
       );
-    } catch (_) {
-      // The row still holds what [previous] describes.
-      if (identical(_persisted, next)) _persisted = previous;
-      rethrow;
+      if (sameBase && epoch == _baseEpoch) _persisted = next;
     } finally {
-      turnDone.complete();
-      _pendingSaves--;
-      _runDeferredReload();
+      // Never before the saves ahead of this one, even when this one
+      // returned or failed before its turn: a later save must not overtake
+      // an earlier write still out.
+      unawaited(turn.then((_) => turnDone.complete()));
     }
+  }
+
+  void _replaceBase(AppSettings? row) {
+    _persisted = row;
+    _baseEpoch++;
   }
 
   /// Adopts the current diver's row when it no longer holds what this
   /// notifier last read or stored there, which means a sync applied another
   /// device's change (issue #2946). This notifier's own writes leave the row
   /// matching [_persisted] and change nothing.
-  ///
-  /// Waits for local saves in flight: until one lands the row lacks its
-  /// change, and adopting the row would undo the edit [state] holds.
   Future<void> _reloadFromStorage() async {
-    if (_pendingSaves > 0) {
-      _reloadDeferred = true;
-      return;
-    }
-    final diverId = _validatedDiverId;
-    final base = _persisted;
-    // Until a load lands there is nothing to compare, and that load reads
-    // the row itself.
-    if (diverId == null || base == null) return;
-    final generation = _loadGeneration;
-    final stored = await _repository.getSettingsForDiver(diverId);
-    if (stored == null || !_isCurrentLoad(generation)) return;
-    if (_pendingSaves > 0 || !identical(_persisted, base)) {
+    while (true) {
+      // Waits for the saves started so far: until one lands the row lacks
+      // its change, and adopting the row would undo the edit [state] holds.
+      final turn = _rowWriteTurn;
+      await turn;
+      final diverId = _validatedDiverId;
+      final base = _persisted;
+      // Until a load lands there is nothing to compare, and that load reads
+      // the row itself.
+      if (!mounted || diverId == null || base == null) return;
+      final generation = _loadGeneration;
+      final stored = await _repository.getSettingsForDiver(diverId);
+      if (stored == null || !_isCurrentLoad(generation)) return;
       // A save started during the read, and the row read may predate it.
-      _reloadDeferred = true;
-      _runDeferredReload();
+      if (!identical(turn, _rowWriteTurn) || !identical(base, _persisted)) {
+        continue;
+      }
+      if (DiverSettingsRepository.storesSameSettings(stored, base)) return;
+      _replaceBase(stored);
+      state = _withDeviceLocalPrefs(stored);
+      await _writeCachedTheme(_ref.read(sharedPreferencesProvider));
+      _scheduleNotificationsIfNeeded();
       return;
     }
-    if (DiverSettingsRepository.storesSameSettings(stored, base)) return;
-    _persisted = stored;
-    state = _withDeviceLocalPrefs(stored);
-    await _writeCachedTheme(_ref.read(sharedPreferencesProvider));
-    _scheduleNotificationsIfNeeded();
-  }
-
-  void _runDeferredReload() {
-    if (_pendingSaves > 0 || !_reloadDeferred || !mounted) return;
-    _reloadDeferred = false;
-    logFailure(
-      _reloadFromStorage(),
-      SettingsNotifier,
-      'reload settings changed in storage',
-    );
   }
 
   @override

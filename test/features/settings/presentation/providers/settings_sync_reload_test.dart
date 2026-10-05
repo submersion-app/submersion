@@ -23,6 +23,9 @@ class _GatedRepository extends DiverSettingsRepository {
   /// A diver's settings read waits on that diver's gate, if any.
   final readGates = <String, Completer<void>>{};
 
+  /// How many of the next writes throw instead of writing.
+  int failingWrites = 0;
+
   @override
   Future<void> updateSettingsForDiver(
     String diverId,
@@ -30,6 +33,10 @@ class _GatedRepository extends DiverSettingsRepository {
     AppSettings? previous,
   }) async {
     if (writeGates.isNotEmpty) await writeGates.removeAt(0).future;
+    if (failingWrites > 0) {
+      failingWrites--;
+      throw StateError('settings write failed');
+    }
     return super.updateSettingsForDiver(diverId, settings, previous: previous);
   }
 
@@ -228,4 +235,25 @@ void main() {
       expect(container.read(settingsProvider).gfHigh, 70);
     },
   );
+
+  test('a save after a failed one stores the change that failed', () async {
+    final notifier = container.read(settingsProvider.notifier);
+    final slowWrite = Completer<void>();
+    settingsRepository.writeGates.add(slowWrite);
+    settingsRepository.failingWrites = 1;
+
+    final failed = expectLater(notifier.setGfHigh(70), throwsStateError);
+    final second = notifier.setDepthUnit(DepthUnit.feet);
+    await pumpEventQueue();
+    slowWrite.complete();
+    await failed;
+    await second;
+    await pumpEventQueue();
+
+    // [state] still shows the change, so the row must hold it too.
+    expect(container.read(settingsProvider).gfHigh, 70);
+    final stored = await storedSettings(diverA);
+    expect(stored!.gfHigh, 70, reason: 'the change that failed was dropped');
+    expect(stored.depthUnit, DepthUnit.feet);
+  });
 }
