@@ -16,7 +16,6 @@ import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
-import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 
 /// Section widget displaying a site's media: direct attachments (maps,
 /// entry-point photos, documents) plus a collapsed group of photos from
@@ -45,9 +44,10 @@ class SiteMediaSection extends ConsumerStatefulWidget {
 class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
   /// Owns the bulk-selection state machine for this section.
   ///
-  /// Id-based, unlike the positional [DragSelectGridView] it drives. Indices
-  /// are derived from ids on every build, so reordering the media list can no
-  /// longer repoint the selection at different files.
+  /// Id-based, unlike the positional per-category grids it drives (see
+  /// [SiteAttachmentGroups]). Each grid derives its indices from ids on every
+  /// build, so reordering or regrouping the media can never repoint the
+  /// selection at different files.
   final SelectionController _selection = SelectionController();
 
   bool get _isSelectionMode => _selection.value.isActive;

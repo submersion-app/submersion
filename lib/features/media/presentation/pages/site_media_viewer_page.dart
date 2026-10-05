@@ -215,8 +215,8 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage> {
                     totalCount: mediaList.length,
                     onClose: () => Navigator.of(context).pop(),
                     onShare: (anchor) => _shareCurrentItem(currentItem, anchor),
-                    // Only an attachment is the site's to rename or
-                    // recategorize; a dive photo belongs to its dive. The
+                    // Only an attachment is the site's to categorize; a
+                    // dive photo belongs to its dive. The
                     // pager keeps capture-time order, so an edit never
                     // moves the photo out from under the diver.
                     onEditDetails: widget.scope == SiteViewerScope.attachments
