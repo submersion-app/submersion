@@ -53,6 +53,10 @@ extension AppDatabaseMigrationStrategy on AppDatabase {
     // Equipment share pair unique index (v234, issue #2046), for the
     // same reason.
     await assertEquipmentShareUniqueness(this);
+
+    // Role junction unique indexes (v262, issue #1221), for the same
+    // reason: createAll() never builds raw-SQL indexes.
+    await assertDiveRoleLinkUniqueness(this);
   }
 
   /// Runs every rung above [from], oldest first. The rungs are split

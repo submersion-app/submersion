@@ -13,6 +13,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_computer_gear_backfill.dart';
+import 'package:submersion/core/database/dive_role_link_uniqueness.dart';
 import 'package:submersion/core/database/dive_type_uniqueness.dart';
 import 'package:submersion/core/database/imported_computer_backfill.dart';
 import 'package:submersion/core/database/performance_indexes.dart';

@@ -685,25 +685,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // arrives by restore or sync-adopt never runs onUpgrade.
     await _assertDivePlanMissionSchema();
 
-    // v103 backstop: dive_roles table + built-in seed + dives.diver_role
-    // column (same collision disease; all DDL idempotent). The seed is
-    // guarded on the divers FK parent existing, which only matters for
-    // minimal test-fixture databases.
-    await Migrator(this).createTable(diveRoles);
-    final diversParent = await customSelect(
-      "SELECT name FROM sqlite_master "
-      "WHERE type='table' AND name='divers'",
-    ).get();
-    if (diversParent.isNotEmpty) {
-      await customStatement(kSeedBuiltInDiveRolesSql);
-    }
-    final divesCols = await customSelect("PRAGMA table_info('dives')").get();
-    final hasDiverRoleCol = divesCols.any(
-      (c) => c.read<String>('name') == 'diver_role',
-    );
-    if (divesCols.isNotEmpty && !hasDiverRoleCol) {
-      await customStatement('ALTER TABLE dives ADD COLUMN diver_role TEXT');
-    }
+    // v103 and v262 backstops: the dive role vocabulary and
+    // dives.diver_role, then the role junctions (issue #1221).
+    await _assertDiveRoleVocabularySchema();
+    await _assertDiveRoleLinkSchema();
 
     // v104 backstop: weight prediction tables + columns (same collision
     // disease; all DDL idempotent). Indexes for the new tables are in the

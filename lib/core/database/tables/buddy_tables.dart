@@ -246,3 +246,45 @@ class CourseRequirementDives extends Table {
   /// (SyncDataSerializer.parentGatedChildEntities).
   TextColumn get hlc => text().nullable()();
 }
+
+/// The diver's own roles on a dive (v262, issue #1221). `dives.diver_role`
+/// stays as the primary role for older app versions (see DiveRoleSet).
+/// Surrogate uuid key, as `dive_dive_types`; `roleId` has no foreign key
+/// because a custom role can arrive by sync after a row naming it.
+@DataClassName('DiveDiverRole')
+class DiveDiverRoles extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get roleId => text()();
+  IntColumn get createdAt => integer()();
+
+  /// This child's own clock, stamped when it is marked pending
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Each buddy's roles on a dive (v262, issue #1221). Keyed on the
+/// (dive, buddy) pair rather than on `dive_buddies.id`: older app versions
+/// save a dive's buddies by deleting and re-inserting every `dive_buddies`
+/// row under fresh ids, which would orphan rows hung off the row id.
+/// `dive_buddies.role` stays as the primary role.
+@DataClassName('DiveBuddyRole')
+class DiveBuddyRoles extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get buddyId =>
+      text().references(Buddies, #id, onDelete: KeyAction.cascade)();
+  TextColumn get roleId => text()();
+  IntColumn get createdAt => integer()();
+
+  /// This child's own clock (see [DiveDiverRoles.hlc]).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}

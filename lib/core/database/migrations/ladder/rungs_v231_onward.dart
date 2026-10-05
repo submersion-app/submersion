@@ -197,5 +197,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankSharedComputerIds();
     }
     if (from < 260) await reportProgress();
+    // v262: the role junctions (issue #1221), several roles per person on a
+    // dive. Table-only rung, no backfill; re-asserted in beforeOpen. 261 is
+    // held by #2985.
+    if (from < 262) {
+      await _assertDiveRoleLinkSchema();
+    }
+    if (from < 262) await reportProgress();
   }
 }
