@@ -23189,6 +23189,348 @@ abstract class AppLocalizations {
   /// **'Category'**
   String get equipment_filter_section_category;
 
+  /// Kind of place where gear is kept: a shelf, bin, locker or room
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get equipment_location_kind_storage;
+
+  /// Kind of place: a shop or technician servicing gear
+  ///
+  /// In en, this message translates to:
+  /// **'Service shop'**
+  String get equipment_location_kind_serviceShop;
+
+  /// Kind of place: a person the gear is lent to
+  ///
+  /// In en, this message translates to:
+  /// **'Person'**
+  String get equipment_location_kind_person;
+
+  /// Kind of place that is none of the others
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get equipment_location_kind_other;
+
+  /// Choice and heading for gear with no recorded location
+  ///
+  /// In en, this message translates to:
+  /// **'No location'**
+  String get equipment_location_noLocation;
+
+  /// Title of the sheet that picks where gear is
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a place'**
+  String get equipment_location_picker_title;
+
+  /// Hint of the search field in the place picker
+  ///
+  /// In en, this message translates to:
+  /// **'Search places'**
+  String get equipment_location_picker_search;
+
+  /// Row in the place picker that creates a new place
+  ///
+  /// In en, this message translates to:
+  /// **'New place'**
+  String get equipment_location_picker_newPlace;
+
+  /// Title of the sheet that moves gear to a place
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Move {count} item} other{Move {count} items}}'**
+  String equipment_location_move_title(int count);
+
+  /// Label of the destination place in the move sheet
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get equipment_location_move_to;
+
+  /// Shown in the move sheet before a destination is chosen
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a place'**
+  String get equipment_location_move_choose;
+
+  /// Label of the move date in the move sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get equipment_location_move_date;
+
+  /// Label of the optional note on a move
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get equipment_location_move_note;
+
+  /// Hint of the note field on a move
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. annual regulator service'**
+  String get equipment_location_move_noteHint;
+
+  /// Button that records the move
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get equipment_location_move_confirm;
+
+  /// Title of the prompt offering to move an assembly's parts with it
+  ///
+  /// In en, this message translates to:
+  /// **'Move parts too?'**
+  String get equipment_location_parts_title;
+
+  /// Body of the parts prompt
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Also move its {count} part to the same place?} other{Also move its {count} parts to the same place?}}'**
+  String equipment_location_parts_body(int count);
+
+  /// Accepts moving the parts too
+  ///
+  /// In en, this message translates to:
+  /// **'Move parts'**
+  String get equipment_location_parts_yes;
+
+  /// Declines moving the parts
+  ///
+  /// In en, this message translates to:
+  /// **'Just this'**
+  String get equipment_location_parts_no;
+
+  /// Title of the prompt offering a status change after a move
+  ///
+  /// In en, this message translates to:
+  /// **'Update status?'**
+  String get equipment_location_status_title;
+
+  /// Body of the status offer; status is a status name such as In Service
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Also mark {count} item as {status}?} other{Also mark {count} items as {status}?}}'**
+  String equipment_location_status_body(int count, String status);
+
+  /// Accepts the status change
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get equipment_location_status_yes;
+
+  /// Declines the status change
+  ///
+  /// In en, this message translates to:
+  /// **'Keep status'**
+  String get equipment_location_status_no;
+
+  /// Snackbar after a move
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Moved {count} item} other{Moved {count} items}}'**
+  String equipment_location_moved(int count);
+
+  /// Title of the card showing where an item is
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get equipment_location_card_title;
+
+  /// Shown when an item has no recorded location
+  ///
+  /// In en, this message translates to:
+  /// **'No location set'**
+  String get equipment_location_none;
+
+  /// When the item arrived at its current place
+  ///
+  /// In en, this message translates to:
+  /// **'Since {date}'**
+  String equipment_location_since(String date);
+
+  /// Button on the location card that moves the item
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get equipment_location_moveButton;
+
+  /// Expands the location history to every move
+  ///
+  /// In en, this message translates to:
+  /// **'Show all'**
+  String get equipment_location_showAll;
+
+  /// A history entry recording that the location was cleared
+  ///
+  /// In en, this message translates to:
+  /// **'Location cleared'**
+  String get equipment_location_history_cleared;
+
+  /// Title of the dialog editing one history entry
+  ///
+  /// In en, this message translates to:
+  /// **'Edit move'**
+  String get equipment_location_editMove_title;
+
+  /// Deletes one history entry
+  ///
+  /// In en, this message translates to:
+  /// **'Delete move'**
+  String get equipment_location_editMove_delete;
+
+  /// Bulk action moving the selected gear to a place
+  ///
+  /// In en, this message translates to:
+  /// **'Move to location'**
+  String get equipment_location_bulkAction;
+
+  /// Item count beside a location heading and on the Locations page
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item} other{{count} items}}'**
+  String equipment_location_groupCount(int count);
+
+  /// Chip in the active filters bar when the list is filtered by location
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get equipment_location_activeFilter;
+
+  /// Heading of the location section in the equipment filter
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get equipment_filter_section_location;
+
+  /// Switch on the Equipment page's sort sheet grouping the list under one heading per place
+  ///
+  /// In en, this message translates to:
+  /// **'Group by location'**
+  String get equipment_arrange_groupByLocation;
+
+  /// Subtitle of the group by location switch
+  ///
+  /// In en, this message translates to:
+  /// **'One heading per place, on this page only'**
+  String get equipment_arrange_groupByLocationSubtitle;
+
+  /// Label of the optional place picker on the new equipment form
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get equipment_edit_locationLabel;
+
+  /// Shown in the new equipment form's location picker when none is chosen
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get equipment_edit_locationNone;
+
+  /// Title of the page listing places where gear is kept
+  ///
+  /// In en, this message translates to:
+  /// **'Locations'**
+  String get equipment_locations_title;
+
+  /// Empty state of the Locations page
+  ///
+  /// In en, this message translates to:
+  /// **'No places yet. Add one to start tracking where your gear is.'**
+  String get equipment_locations_empty;
+
+  /// Button adding a place on the Locations page
+  ///
+  /// In en, this message translates to:
+  /// **'Add place'**
+  String get equipment_locations_add;
+
+  /// Collapsed section of archived places
+  ///
+  /// In en, this message translates to:
+  /// **'Archived ({count})'**
+  String equipment_locations_archivedSection(int count);
+
+  /// Archives a place that history still names
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get equipment_locations_archive;
+
+  /// Restores an archived place
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get equipment_locations_restore;
+
+  /// Deletes a place no item has ever been at
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get equipment_locations_delete;
+
+  /// Heading of the list of items currently at a place
+  ///
+  /// In en, this message translates to:
+  /// **'Items here'**
+  String get equipment_locations_itemsHere;
+
+  /// Shown when no item is currently at a place
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is here right now.'**
+  String get equipment_locations_noItemsHere;
+
+  /// Title of the dialog creating a place where gear is kept
+  ///
+  /// In en, this message translates to:
+  /// **'New place'**
+  String get equipment_locations_newTitle;
+
+  /// Title of the dialog editing a place where gear is kept
+  ///
+  /// In en, this message translates to:
+  /// **'Edit place'**
+  String get equipment_locations_editTitle;
+
+  /// Label of a place's name field
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get equipment_locations_nameLabel;
+
+  /// Validation error when a place has no name
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get equipment_locations_nameRequired;
+
+  /// Warning under a place name that matches another of the diver's places; saving is still allowed
+  ///
+  /// In en, this message translates to:
+  /// **'You already have a place with this name'**
+  String get equipment_locations_duplicateWarning;
+
+  /// Label of a place's kind selector
+  ///
+  /// In en, this message translates to:
+  /// **'Kind'**
+  String get equipment_locations_kindLabel;
+
+  /// Label of a place's notes field
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get equipment_locations_notesLabel;
+
+  /// Hint of a place's notes field
+  ///
+  /// In en, this message translates to:
+  /// **'Address, phone, locker number'**
+  String get equipment_locations_notesHint;
+
   /// No description provided for @equipment_list_retryButton.
   ///
   /// In en, this message translates to:
