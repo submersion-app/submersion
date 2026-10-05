@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/core/text/fuzzy_match.dart';
 
 import '../../../../helpers/bulk_delete_contract.dart';
 import '../../../../helpers/fab_clearance.dart';
@@ -573,7 +574,7 @@ void main() {
           data,
     ];
     final alphabetical = [...shown]
-      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      ..sort((a, b) => normalize(a).compareTo(normalize(b)));
     expect(shown, hasLength(EquipmentType.values.length));
     expect(shown, alphabetical);
   });

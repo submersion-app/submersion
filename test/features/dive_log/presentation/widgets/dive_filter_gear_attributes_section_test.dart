@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_choice_attribute_filter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/core/text/fuzzy_match.dart';
 
 void main() {
   testWidgets('lists the gear categories by their label (#2937)', (
@@ -45,7 +46,7 @@ void main() {
         if (item.value case final type?) type.localizedName(l10n),
     ];
     final alphabetical = [...shown]
-      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      ..sort((a, b) => normalize(a).compareTo(normalize(b)));
     expect(shown, hasLength(withChoices.length));
     expect(shown, alphabetical);
     expect(
