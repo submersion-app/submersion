@@ -175,4 +175,161 @@ void main() {
     expect(s, contains('25 %'));
     expect(s, isNot(contains('improved')));
   });
+
+  group('every rule renders in every locale', () {
+    final date = DateTime.utc(2026, 9, 20);
+    // Frequency facts carry the counts themselves, so the counts follow
+    // the values; the per-dive means ignore them.
+    TrendFacts trend(double recent, double previous) => TrendFacts(
+      recent: recent,
+      previous: previous,
+      recentDives: recent.round(),
+      previousDives: previous.round(),
+    );
+    final cases = <(ObservationRuleId, ObservationFacts, String)>[
+      (ObservationRuleId.rmvTrend, trend(15, 20), '25'),
+      (ObservationRuleId.rmvTrend, trend(20, 16), '25'),
+      (ObservationRuleId.maxDepthTrend, trend(24, 20), '20'),
+      (ObservationRuleId.maxDepthTrend, trend(16, 20), '20'),
+      (ObservationRuleId.diveTimeTrend, trend(50, 40), '25'),
+      (ObservationRuleId.diveTimeTrend, trend(30, 40), '25'),
+      (ObservationRuleId.weightTrend, trend(9, 8), '1'),
+      (ObservationRuleId.weightTrend, trend(6, 8), '2'),
+      (ObservationRuleId.frequencyTrend, trend(26, 20), '26'),
+      (ObservationRuleId.frequencyTrend, trend(14, 20), '14'),
+      (
+        ObservationRuleId.diveCountMilestone,
+        MilestoneFacts(
+          milestone: 250,
+          includesPrior: true,
+          diveId: 'd',
+          date: date,
+        ),
+        '250',
+      ),
+      (
+        ObservationRuleId.diveCountMilestone,
+        MilestoneFacts(
+          milestone: 250,
+          includesPrior: false,
+          diveId: 'd',
+          date: date,
+        ),
+        '250',
+      ),
+      (
+        ObservationRuleId.diveHoursMilestone,
+        MilestoneFacts(
+          milestone: 300,
+          includesPrior: true,
+          diveId: 'd',
+          date: date,
+        ),
+        '300',
+      ),
+      (
+        ObservationRuleId.diveHoursMilestone,
+        MilestoneFacts(
+          milestone: 300,
+          includesPrior: false,
+          diveId: 'd',
+          date: date,
+        ),
+        '300',
+      ),
+      (
+        ObservationRuleId.deepestDive,
+        DiveRecordFacts(diveId: 'd', date: date, value: 41, previousBest: 38),
+        '41',
+      ),
+      (
+        ObservationRuleId.longestDive,
+        DiveRecordFacts(
+          diveId: 'd',
+          date: date,
+          value: 4500,
+          previousBest: 3900,
+        ),
+        '75',
+      ),
+      (
+        ObservationRuleId.newCountry,
+        NewCountryFacts(country: 'Egypt', diveId: 'd', date: date),
+        'Egypt',
+      ),
+      (
+        ObservationRuleId.newSpecies,
+        NewSpeciesFacts(
+          count: 1,
+          newestSpeciesId: 's',
+          newestSpeciesName: 'Mola',
+          newestDate: date,
+        ),
+        'Mola',
+      ),
+      (
+        ObservationRuleId.newSpecies,
+        NewSpeciesFacts(
+          count: 3,
+          newestSpeciesId: 's',
+          newestSpeciesName: 'Mola',
+          newestDate: date,
+        ),
+        'Mola',
+      ),
+      (
+        ObservationRuleId.diveGap,
+        DiveGapFacts(days: 1, lastDiveId: 'd', lastDiveDate: date),
+        '',
+      ),
+      (
+        ObservationRuleId.diveGap,
+        DiveGapFacts(days: 123, lastDiveId: 'd', lastDiveDate: date),
+        '123',
+      ),
+      (
+        ObservationRuleId.favouriteSite,
+        const ShareFacts(
+          subjectId: 's',
+          subjectName: 'Blue Hole',
+          dives: 7,
+          totalDives: 21,
+        ),
+        'Blue Hole',
+      ),
+      (
+        ObservationRuleId.regularBuddy,
+        const ShareFacts(
+          subjectId: 'b',
+          subjectName: 'Sam Rivera',
+          dives: 9,
+          totalDives: 21,
+        ),
+        'Sam Rivera',
+      ),
+      (
+        ObservationRuleId.busiestMonth,
+        const MonthFacts(month: 8, years: 3),
+        '3',
+      ),
+      (
+        ObservationRuleId.ascentRate,
+        const RateFacts(metersPerMin: 11.4, dives: 6),
+        '6',
+      ),
+    ];
+
+    for (final locale in AppLocalizations.supportedLocales) {
+      test('$locale', () {
+        final l10n = lookupAppLocalizations(locale);
+        for (final (rule, facts, expected) in cases) {
+          final s = observationSentence(_o(rule, facts), l10n, metric);
+          final label = observationRuleLabel(rule, l10n);
+          expect(s, isNot(label), reason: '$locale $rule fell back');
+          expect(s, isNot(contains('{')), reason: '$locale $rule: $s');
+          expect(s, contains(expected), reason: '$locale $rule: $s');
+        }
+      });
+    }
+  });
 }
