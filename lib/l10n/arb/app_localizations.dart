@@ -34893,6 +34893,12 @@ abstract class AppLocalizations {
   /// **'Gas consumption trend'**
   String get insights_gas_sacTrend_title;
 
+  /// No description provided for @insights_focus_unit_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get insights_focus_unit_minutes;
+
   /// No description provided for @insights_gas_tankRole_backGas.
   ///
   /// In en, this message translates to:

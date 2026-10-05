@@ -21335,6 +21335,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_gas_sacTrend_title => 'Gas consumption trend';
 
   @override
+  String get insights_focus_unit_minutes => 'min';
+
+  @override
   String get insights_gas_tankRole_backGas => 'Back Gas';
 
   @override

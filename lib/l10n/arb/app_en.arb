@@ -13127,6 +13127,7 @@
   "insights_gas_sacTrend_error": "Failed to load consumption trend",
   "insights_gas_sacTrend_subtitle": "Every dive in range",
   "insights_gas_sacTrend_title": "Gas consumption trend",
+  "insights_focus_unit_minutes": "min",
   "insights_gas_tankRole_backGas": "Back Gas",
   "insights_gas_tankRole_bailout": "Bailout",
   "insights_gas_tankRole_deco": "Deco",
