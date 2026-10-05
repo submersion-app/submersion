@@ -98,19 +98,18 @@ List<T> visibleBuiltIns<T>(
 
 ### Providers
 
-Each catalog gets a picker-facing provider that filters its existing
-full-list provider:
+One provider family, `hiddenBuiltInIdsProvider(BuiltInCatalog)`, yields the
+active diver's hidden set for one catalog. It watches only that catalog's
+slice of settings through `select` with a sorted, joined key (as
+`tankPresetsProvider` does), so toggling one catalog does not rebuild the
+others' pickers.
 
-- `visibleDiveTypesProvider`
-- `visibleDiveRolesProvider`
-- `visibleSiteTypesProvider`
-- `visibleServiceKindsProvider`
-- `visiblePreDiveTemplatesProvider`
-
-Each watches only its own catalog's slice of settings through `select` with a
-sorted, joined key (as `tankPresetsProvider` does), so toggling one catalog
-does not rebuild the others' pickers. Pickers that must keep a selected value
-apply `keep` themselves from the full list.
+Each picker reads its full list plus that hidden set and applies
+`visibleBuiltIns` itself, because most pickers must keep a selected value and
+only the picker knows it. Where the picker is a reusable widget
+(`DiveTypeMultiSelectField`, `TypeTagsSection`, `showDiveRoleSelector`,
+`LegacyBuddyReviewRow`), the filtering lives inside it, behind a hidden-ids
+parameter, so its own widget tests cover it.
 
 The existing full-list providers do not change. Labels, exports, UDDF import
 and export, import vocabulary matching, list filters, insights, connections
@@ -140,7 +139,7 @@ matches the Tank Presets page.
 | Dive Types | Switch on built-in rows, after the short-name badge preview. Recreational is switchable. |
 | Dive Roles | Switch on built-in rows. Buddy is switchable. |
 | Site Types | Switch on built-in rows, next to the site count. |
-| Service Types | Switch replaces the lock icon on built-in rows. |
+| Service Types | Switch in the trailing slot of built-in rows, hidden in selection mode like the custom rows' delete button. The leading lock icon stays. |
 | Pre-dive checklist templates | Switch before the View/Clone menu. The "Built-in" chip stays. |
 
 Custom rows get no switch.
@@ -184,7 +183,7 @@ in pickers" tooltip. Tank Presets keeps its existing tooltip string.
   unknown keys, sorted output, and malformed input.
 - Data: v261 migration test (column present, null reads as empty); diver
   settings repository round trip; `setBuiltInHidden` on the real notifier.
-- Providers: each `visible*Provider` filters by its own catalog only.
+- Providers: `hiddenBuiltInIdsProvider` yields only its own catalog's set.
 - Widgets: each Manage page shows the "Show" header and switches on built-in
   rows only, and toggling hides and dims the row. Each picker excludes hidden
   entries and keeps a selected one.
