@@ -12,15 +12,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
   AppLocalizations l10n,
 ) => (name: weight.label.trim(), type: weight.weightType.localizedName(l10n));
 
-/// A weight row's title as plain text: `Top pocket · Trim Weights` when the
-/// diver named it, otherwise its placement alone.
-String weightDisplayName(DiveWeight weight, AppLocalizations l10n) {
-  final (:name, :type) = weightNameParts(weight, l10n);
-  return name.isEmpty ? type : '$name · $type';
-}
-
-/// [weightDisplayName] with the placement muted, for lists where the name
-/// leads. An unnamed weight renders exactly as its placement did before.
+/// A weight row's title, `Top pocket · Trim Weights`, with the placement
+/// muted, for lists where the name leads. An unnamed weight renders exactly
+/// as its placement did before.
 class WeightNameText extends StatelessWidget {
   final DiveWeight weight;
 

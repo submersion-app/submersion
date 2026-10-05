@@ -22,10 +22,16 @@ void main() {
     amountKg: 4,
   );
 
-  test('weightDisplayName leads with the name', () {
+  test('weightNameParts splits the trimmed name from the placement', () {
     final en = l10nForLocaleTag('en');
-    expect(weightDisplayName(named, en), 'Top pocket · Trim Weights');
-    expect(weightDisplayName(unnamed, en), 'Weight Belt');
+    expect(weightNameParts(named, en), (
+      name: 'Top pocket',
+      type: 'Trim Weights',
+    ));
+    expect(weightNameParts(unnamed.copyWith(label: '  '), en), (
+      name: '',
+      type: 'Weight Belt',
+    ));
   });
 
   testWidgets('mutes the placement after a name', (tester) async {
