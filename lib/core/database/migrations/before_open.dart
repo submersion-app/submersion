@@ -616,6 +616,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // Column only, no backfill.
     await _assertTankUsageDurationColumn();
 
+    // v261 backstop: re-assert the weight name columns (issue #956).
+    // Defaulted columns only, no backfill.
+    await _assertWeightLabelColumns();
+
     // v145 backstop: re-assert the gps_tracks provenance and trim columns.
     await _assertGpsTrackColumns();
 

@@ -341,6 +341,10 @@ class DiveWeights extends Table {
       text()(); // Integrated, Belt, Trim, Ankle, Backplate, Other
   RealColumn get amountKg => real()(); // kg
   TextColumn get notes => text().withDefault(const Constant(''))();
+
+  /// The diver's own name for this weight, e.g. "Top pocket" (issue #956).
+  /// Empty when unnamed; the placement stays in [weightType].
+  TextColumn get label => text().withDefault(const Constant(''))();
   IntColumn get createdAt => integer()();
 
   @override

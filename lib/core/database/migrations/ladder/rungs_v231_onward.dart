@@ -197,5 +197,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankSharedComputerIds();
     }
     if (from < 260) await reportProgress();
+    // v261: dive_weights.label and weight_preset_entries.label, a diver's
+    // own name for a weight (issue #956). Defaulted columns, no backfill:
+    // existing rows read '' (unnamed). Re-asserted in beforeOpen.
+    if (from < 261) {
+      await _assertWeightLabelColumns();
+    }
+    if (from < 261) await reportProgress();
   }
 }

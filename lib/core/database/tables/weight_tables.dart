@@ -61,6 +61,10 @@ class WeightPresetEntries extends Table {
   TextColumn get weightType => text()();
   RealColumn get amountKg => real()();
   TextColumn get notes => text().withDefault(const Constant(''))();
+
+  /// The diver's own name for this entry, copied to and from a dive's
+  /// weights (issue #956). Empty when unnamed.
+  TextColumn get label => text().withDefault(const Constant(''))();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   IntColumn get createdAt => integer()();
 
