@@ -1,0 +1,46 @@
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
+
+/// Reports [child]'s laid-out size whenever it changes, once the frame is
+/// done, so a widget in a different part of the tree can lay itself out
+/// around it.
+///
+/// Built for the terrain pane: its docked control card sits in the pane's
+/// outer Stack while the source caption sits in the scene's inner Stack, and
+/// the caption has to stop short of a card whose width depends on how many
+/// actions the host seats in it.
+class SizeReporter extends SingleChildRenderObjectWidget {
+  const SizeReporter({super.key, required this.onChange, super.child});
+
+  final ValueChanged<Size> onChange;
+
+  @override
+  RenderSizeReporter createRenderObject(BuildContext context) =>
+      RenderSizeReporter(onChange);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    RenderSizeReporter renderObject,
+  ) {
+    renderObject.onChange = onChange;
+  }
+}
+
+/// The render object behind [SizeReporter].
+class RenderSizeReporter extends RenderProxyBox {
+  RenderSizeReporter(this.onChange);
+
+  ValueChanged<Size> onChange;
+  Size? _reported;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    final laidOut = size;
+    if (laidOut == _reported) return;
+    _reported = laidOut;
+    // After the frame: the listener may rebuild, which layout must not do.
+    WidgetsBinding.instance.addPostFrameCallback((_) => onChange(laidOut));
+  }
+}

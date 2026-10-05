@@ -108,6 +108,7 @@ Widget page(
   List<SiteFeature> features = const [],
   List<Override> extraOverrides = const [],
   SeascapePlaybackContext? playbackContext,
+  List<Widget> leadingActions = const [],
 }) => ProviderScope(
   overrides: [
     settingsProvider.overrideWith((ref) => TestSettingsNotifier(settings)),
@@ -120,7 +121,11 @@ Widget page(
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(
-      body: SiteTerrainPane(siteId: 'site-1', playbackContext: playbackContext),
+      body: SiteTerrainPane(
+        siteId: 'site-1',
+        playbackContext: playbackContext,
+        leadingActions: leadingActions,
+      ),
     ),
   ),
 );
