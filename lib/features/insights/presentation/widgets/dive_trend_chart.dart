@@ -1,20 +1,16 @@
-import 'dart:math' as math;
-
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/presentation/widgets/chart_zoom_controls.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
-import 'package:submersion/core/ui/trackpad_zoom_recognizer.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/chart_touch_recognizer.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/presentation/widgets/chart_axis.dart';
 import 'package:submersion/features/insights/presentation/widgets/date_axis.dart';
+import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart_input.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A per-dive trend chart on a real date axis.
@@ -116,8 +112,6 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   /// grid readable while panning.
   ChartViewport _viewport = ChartViewport.reset;
 
-  ChartViewport _gestureStartViewport = ChartViewport.reset;
-
   /// Buckets as last drawn, so a tap on the data series can resolve which
   /// dive it landed on.
   List<TrendBucket> _drawnBuckets = const [];
@@ -127,76 +121,12 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
 
   /// Index of the first secondary bar in the drawn bars, or -1.
   int _secondaryBarStart = -1;
-  PointerDeviceKind _activePointerKind = PointerDeviceKind.mouse;
-  int _activePointerCount = 0;
-  Offset? _lastPointerLocal;
-  bool _touchDragClaimed = false;
-  final Map<int, Offset> _touchPositions = {};
-  List<int> _pinchPointers = const [];
-  double _pinchStartDistance = 1;
-  Offset _pinchStartFocal = Offset.zero;
-
-  /// Axis gutters reserved by `_titles`. The focal fraction has to be taken
-  /// against the inner plot rect, not the whole widget.
-  static const _insets = (left: 50.0, right: 0.0, top: 0.0, bottom: 30.0);
 
   /// Column widths for the monospace tooltip rows, as on the profile chart.
   static const _tooltipLabelWidth = 16;
   static const _tooltipValueWidth = 12;
 
   static double _x(DateTime date) => date.millisecondsSinceEpoch.toDouble();
-
-  double _focalX(Offset localPos, Size box) => chartFocalFraction(
-    localPos,
-    box,
-    left: _insets.left,
-    right: _insets.right,
-    top: _insets.top,
-    bottom: _insets.bottom,
-  ).fx;
-
-  double _plotWidth(Size box) =>
-      (box.width - _insets.left - _insets.right).clamp(1.0, double.infinity);
-
-  void _zoomAt(Offset localPosition, double zoomDelta, Size box) {
-    if (zoomDelta == 0) return;
-    setState(() {
-      _activePointerKind = PointerDeviceKind.trackpad;
-      _viewport = _viewport.zoomedAt(
-        _focalX(localPosition, box),
-        0,
-        math.pow(2, zoomDelta).toDouble(),
-      );
-    });
-  }
-
-  void _beginPinch() {
-    _pinchPointers = _touchPositions.keys.take(2).toList(growable: false);
-    final p0 = _touchPositions[_pinchPointers[0]]!;
-    final p1 = _touchPositions[_pinchPointers[1]]!;
-    _pinchStartDistance = (p0 - p1).distance.clamp(1.0, double.infinity);
-    _pinchStartFocal = (p0 + p1) / 2;
-    _gestureStartViewport = _viewport;
-  }
-
-  void _updatePinch(Size box) {
-    if (_pinchPointers.length < 2) return;
-    final p0 = _touchPositions[_pinchPointers[0]];
-    final p1 = _touchPositions[_pinchPointers[1]];
-    if (p0 == null || p1 == null) return;
-    setState(() {
-      final scale =
-          (p0 - p1).distance.clamp(1.0, double.infinity) / _pinchStartDistance;
-      var vp = _gestureStartViewport.zoomedAt(
-        _focalX(_pinchStartFocal, box),
-        0,
-        scale,
-      );
-      final panPx = (p0 + p1) / 2 - _pinchStartFocal;
-      vp = vp.pannedBy(-panPx.dx / _plotWidth(box) / vp.zoom, 0);
-      _viewport = vp;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -238,117 +168,14 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   }
 
   Widget _interactiveChart(BuildContext context, Size box) {
-    return RawGestureDetector(
-      gestures: {
-        TrackpadZoomGestureRecognizer:
-            GestureRecognizerFactoryWithHandlers<TrackpadZoomGestureRecognizer>(
-              () => TrackpadZoomGestureRecognizer(debugOwner: this),
-              (recognizer) =>
-                  recognizer.onZoom = (pos, delta) => _zoomAt(pos, delta, box),
-            ),
-      },
-      child: Listener(
-        onPointerDown: (event) {
-          _activePointerCount++;
-          _activePointerKind = event.kind;
-          _lastPointerLocal = event.localPosition;
-          if (event.kind == PointerDeviceKind.touch) {
-            _touchPositions[event.pointer] = event.localPosition;
-            if (_touchPositions.length == 2) _beginPinch();
-          }
-        },
-        onPointerMove: (event) {
-          final prev = _lastPointerLocal;
-          _lastPointerLocal = event.localPosition;
-          if (event.kind == PointerDeviceKind.touch) {
-            _touchPositions[event.pointer] = event.localPosition;
-          }
-          if (prev == null) return;
-          final intent = chartDragIntent(
-            kind: _activePointerKind,
-            pointerCount: _activePointerCount,
-            isZoomed: _viewport.isZoomed,
-          );
-          if (intent == ChartDragIntent.zoomPan &&
-              _activePointerKind == PointerDeviceKind.touch) {
-            _updatePinch(box);
-            return;
-          }
-          if (intent != ChartDragIntent.pan) return;
-          // A touch drag only pans once the claim recognizer has won the
-          // arena, so a scrub is never fought by a pan.
-          if (_activePointerKind == PointerDeviceKind.touch &&
-              !_touchDragClaimed) {
-            return;
-          }
-          setState(() {
-            final d = event.localPosition - prev;
-            _viewport = _viewport.pannedBy(
-              -d.dx / _plotWidth(box) / _viewport.zoom,
-              0,
-            );
-          });
-        },
-        onPointerUp: (event) {
-          if (_activePointerCount > 0) _activePointerCount--;
-          _lastPointerLocal = null;
-          _touchPositions.remove(event.pointer);
-          if (_pinchPointers.contains(event.pointer)) {
-            _touchPositions.length >= 2
-                ? _beginPinch()
-                : _pinchPointers = const [];
-          }
-        },
-        onPointerCancel: (event) {
-          if (_activePointerCount > 0) _activePointerCount--;
-          _lastPointerLocal = null;
-          _touchPositions.remove(event.pointer);
-          _pinchPointers = const [];
-        },
-        // Trackpad pan-zoom is claimed by the recognizer above so it does
-        // not also scroll the enclosing page.
-        onPointerSignal: (event) {
-          if (event is! PointerScrollEvent) return;
-          setState(() {
-            _activePointerKind = PointerDeviceKind.mouse;
-            final factor = event.scrollDelta.dy < 0 ? 1.1 : 1 / 1.1;
-            _viewport = _viewport.zoomedAt(
-              _focalX(event.localPosition, box),
-              0,
-              factor,
-            );
-          });
-        },
-        child: Stack(
-          children: [
-            _buildChart(context),
-            Positioned.fill(
-              child: RawGestureDetector(
-                behavior: HitTestBehavior.translucent,
-                gestures: {
-                  ChartTouchClaimRecognizer:
-                      GestureRecognizerFactoryWithHandlers<
-                        ChartTouchClaimRecognizer
-                      >(
-                        () => ChartTouchClaimRecognizer(
-                          isZoomed: () => _viewport.isZoomed,
-                          debugOwner: this,
-                        ),
-                        (recognizer) {
-                          recognizer.onClaimed = () {
-                            _touchDragClaimed = true;
-                          };
-                          recognizer.onReleased = () {
-                            _touchDragClaimed = false;
-                          };
-                        },
-                      ),
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+    // Built before the layer is handed the viewport: building the chart can
+    // re-seat the viewport (a new range or a new data span).
+    final chart = _buildChart(context);
+    return TrendChartInputLayer(
+      box: box,
+      viewport: _viewport,
+      onViewportChanged: (vp) => setState(() => _viewport = vp),
+      child: chart,
     );
   }
 
