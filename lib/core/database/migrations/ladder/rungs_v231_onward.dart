@@ -204,11 +204,18 @@ extension RungsFromV231 on AppDatabase {
       await _dropDefaultCeilingSourceColumn();
     }
     if (from < 261) await reportProgress();
-    // v262: diver_settings.hidden_built_in_ids (issue #401). Column-only
+    // v263: diver_settings.distance_unit (issue #2030), backfilled from each
+    // diver's depth unit as the column is added. Re-asserted in beforeOpen.
+    // 262 is held by an open branch (#2991).
+    if (from < 263) {
+      await _assertDistanceUnitColumn();
+    }
+    if (from < 263) await reportProgress();
+    // v264: diver_settings.hidden_built_in_ids (issue #401). Column-only
     // rung, no backfill: null reads back as "nothing hidden".
-    if (from < 262) {
+    if (from < 264) {
       await _assertHiddenBuiltInIdsColumn();
     }
-    if (from < 262) await reportProgress();
+    if (from < 264) await reportProgress();
   }
 }

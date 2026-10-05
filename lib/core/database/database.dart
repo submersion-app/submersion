@@ -232,7 +232,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 262;
+  static const int currentSchemaVersion = 264;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1089,11 +1089,13 @@ class AppDatabase extends _$AppDatabase {
     // column default, so nothing it applies is lost or misread and the floor
     // stays. Inbound, the generated fromJson ignores the legacy key.
     261,
-    // v262: diver_settings.hidden_built_in_ids, the built-in dive types,
+    263,
+    // v264: diver_settings.hidden_built_in_ids, the built-in dive types,
     // roles, site types, service types and pre-dive templates each diver hid
     // from the pickers (issue #401). Additive nullable column, no backfill,
-    // so the floor stays. Renumbered from 261, which main took first (#767).
-    262,
+    // so the floor stays. Renumbered from 261 and then 262 (#767 took 261,
+    // #2991 holds 262) while this was open.
+    264,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

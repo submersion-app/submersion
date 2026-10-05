@@ -2,6 +2,38 @@ part of '../app_database_migrations.dart';
 
 /// Diver profiles and diver settings.
 extension DiverMigrations on AppDatabase {
+  /// v263: diver_settings.distance_unit (issue #2030). Not null, default
+  /// 'kilometers'. As the column is added, a diver who logs depth in feet
+  /// gets miles, so nobody's site distances change unit on upgrade. The
+  /// backfill runs only on the open that adds the column, so a choice made
+  /// afterwards is never rewritten, which makes this safe to call from both
+  /// onUpgrade and the beforeOpen backstop.
+  Future<void> _assertDistanceUnitColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return; // partial fixture database: table absent
+    final names = {for (final c in cols) c.read<String>('name')};
+    if (names.contains('distance_unit')) return;
+    await customStatement(
+      'ALTER TABLE diver_settings ADD COLUMN distance_unit TEXT NOT NULL '
+      "DEFAULT 'kilometers'",
+    );
+    if (!names.contains('depth_unit')) return;
+    await customStatement(
+      "UPDATE diver_settings SET distance_unit = 'miles' "
+      "WHERE depth_unit = 'feet'",
+    );
+  }
+
+  /// The beforeOpen backstop for diver_settings display columns: v263's
+  /// distance unit and v237's dive figure switch. Grouped so the backstop
+  /// list in before_open.dart does not grow past its size cap.
+  Future<void> _assertDiverSettingsDisplayColumns() async {
+    await _assertDistanceUnitColumn();
+    await _assertShowDiveFigureColumn();
+  }
+
   /// v261: drops diver_settings.default_ceiling_source (issue #767). The
   /// ceiling line lost its source toggle at v137 (#755), and nothing has
   /// read the column since. No index, trigger or view names it, so SQLite's
@@ -142,14 +174,14 @@ extension DiverMigrations on AppDatabase {
   }
 
   /// The beforeOpen backstop for both hidden-picker-entry columns: v227's
-  /// tank presets (#2305) and v262's built-in catalog entries (#401). One
+  /// tank presets (#2305) and v264's built-in catalog entries (#401). One
   /// call keeps before_open.dart inside its line budget.
   Future<void> _assertHiddenPickerEntryColumns() async {
     await _assertHiddenTankPresetIdsColumn();
     await _assertHiddenBuiltInIdsColumn();
   }
 
-  /// v262: diver_settings.hidden_built_in_ids (issue #401). PRAGMA-guarded
+  /// v264: diver_settings.hidden_built_in_ids (issue #401). PRAGMA-guarded
   /// and idempotent so both onUpgrade and the beforeOpen backstop can call it.
   Future<void> _assertHiddenBuiltInIdsColumn() =>
       _addColumnIfMissing('diver_settings', 'hidden_built_in_ids', 'TEXT');

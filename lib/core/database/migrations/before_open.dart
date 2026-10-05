@@ -30,13 +30,13 @@ extension BeforeOpenBackstops on AppDatabase {
     // consolidated dive that arrived since with nothing recorded.
     await _assertTankSharedComputerIds();
 
-    // v237 backstop: the dive figure switch.
-    await _assertShowDiveFigureColumn();
+    // v263 and v237 backstops: the distance unit and the dive figure switch.
+    await _assertDiverSettingsDisplayColumns();
 
     // v229 backstop: the per-set diver figure switch.
     await _assertEquipmentSetShowFigureColumn();
 
-    // v227 and v262 backstops: hidden tank presets and built-in entries.
+    // v227 and v264 backstops: hidden tank presets and built-in entries.
     await _assertHiddenPickerEntryColumns();
 
     // v222 backstop: the per-site vertical exaggeration overrides.
