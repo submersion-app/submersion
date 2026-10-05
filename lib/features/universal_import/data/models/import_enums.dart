@@ -29,6 +29,12 @@ enum ImportFormat {
   /// it to `NavTrackImportReviewPage` instead of the universal import
   /// pipeline.
   navTrack,
+
+  /// A Suunto app "export as JSON" (or a saved cloud sml export). Like
+  /// [navTrack] it is a hand-off: the Suunto importer reads it into a dive
+  /// the way the Suunto Cloud import does (so its DiveRoute arrives too,
+  /// issue #1445), not the universal parser registry.
+  suuntoJson,
   unknown;
 
   String get displayName => switch (this) {
@@ -52,6 +58,7 @@ enum ImportFormat {
     ratioXml => 'Ratio XML',
     sqlite => 'SQLite Database',
     navTrack => 'Seacraft ENC log',
+    suuntoJson => 'Suunto JSON',
     unknown => 'Unknown',
   };
 
@@ -59,6 +66,13 @@ enum ImportFormat {
   /// A self-describing format has no Map Fields step to send them back to,
   /// so a message about the file's columns cannot point at one (#2152).
   bool get mapsColumns => this == csv;
+
+  /// Recognised, but imported by a dedicated flow rather than the universal
+  /// pipeline: the wizard keeps the file on the file-selection step and
+  /// shows that flow's hand-off card, a batch lists it as needing
+  /// individual import, and a shared or dropped file opens the flow
+  /// directly.
+  bool get isHandoff => this == navTrack || this == suuntoJson;
 
   /// Whether this format has a parser implemented in v1.5.
   bool get isSupported => switch (this) {

@@ -4,7 +4,7 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 void main() {
   group('ImportFormat', () {
     test('has all expected values', () {
-      expect(ImportFormat.values, hasLength(21));
+      expect(ImportFormat.values, hasLength(22));
     });
 
     test('displayName for each format', () {
@@ -41,6 +41,20 @@ void main() {
       expect(ImportFormat.sqlite.displayName, 'SQLite Database');
       expect(ImportFormat.navTrack.displayName, 'Seacraft ENC log');
       expect(ImportFormat.unknown.displayName, 'Unknown');
+    });
+
+    test('suuntoJson is a hand-off, not a universal parse (#1445)', () {
+      expect(ImportFormat.suuntoJson.displayName, 'Suunto JSON');
+      expect(ImportFormat.suuntoJson.isSupported, isFalse);
+      expect(ImportFormat.suuntoJson.isHandoff, isTrue);
+    });
+
+    test('isHandoff covers exactly the formats with their own import flow', () {
+      expect(ImportFormat.navTrack.isHandoff, isTrue);
+      expect(
+        ImportFormat.values.where((f) => f.isHandoff),
+        unorderedEquals([ImportFormat.navTrack, ImportFormat.suuntoJson]),
+      );
     });
 
     test('navTrack is deliberately unsupported by the dive pipeline', () {

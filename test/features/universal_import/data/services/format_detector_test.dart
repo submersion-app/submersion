@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/services/format_detector.dart';
 
@@ -471,6 +472,61 @@ void main() {
       const xml = '<?xml version="1.0"?><uddf><profiledata/></uddf>';
       final result = detector.detect(_toBytes(xml));
       expect(result.format, isNot(ImportFormat.ratioXml));
+    });
+  });
+
+  // #1445: a Suunto app JSON export is handed to the Suunto importer, so it
+  // must be recognised, and nothing else may be mistaken for it.
+  group('Suunto JSON export detection', () {
+    test('detects the app DeviceLog export', () {
+      final result = detector.detect(
+        _toBytes('{"DeviceLog":{"Header":{"ActivityType":51}}}'),
+      );
+      expect(result.format, ImportFormat.suuntoJson);
+      expect(result.sourceApp, SourceApp.suunto);
+    });
+
+    test('detects it behind a byte order mark and whitespace', () {
+      final bytes = Uint8List.fromList([
+        0xEF,
+        0xBB,
+        0xBF,
+        ...utf8.encode('\n  {"DeviceLog":{}}'),
+      ]);
+      expect(detector.detect(bytes).format, ImportFormat.suuntoJson);
+    });
+
+    test('detects a saved cloud sml export', () {
+      final result = detector.detect(
+        _toBytes(
+          '{"Summary":{"Samples":[{"Attributes":{"suunto/sml":{}}}]},'
+          '"Data":{}}',
+        ),
+      );
+      expect(result.format, ImportFormat.suuntoJson);
+    });
+
+    test('leaves JSON from another app unknown', () {
+      final result = detector.detect(_toBytes('{"type":"FeatureCollection"}'));
+      expect(result.format, ImportFormat.unknown);
+    });
+
+    test('does not false-positive on any pinned fixture', () {
+      for (final root in [
+        p.join('test', 'fixtures', 'universal_import'),
+        p.join('test', 'fixtures', 'gps_tracks'),
+      ]) {
+        final dir = Directory(root);
+        if (!dir.existsSync()) continue;
+        for (final entity in dir.listSync(recursive: true)) {
+          if (entity is! File) continue;
+          expect(
+            detector.detect(entity.readAsBytesSync()).format,
+            isNot(ImportFormat.suuntoJson),
+            reason: 'false positive on fixture: ${entity.path}',
+          );
+        }
+      }
     });
   });
 }
