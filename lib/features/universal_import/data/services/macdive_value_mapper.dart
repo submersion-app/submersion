@@ -87,11 +87,13 @@ class MacDiveValueMapper {
   static final _accessoryJoin = RegExp(r'\b(?:with|and)\b|w/|&|\+');
 
   /// A bag that lifts rather than carries, for [equipmentType] (#2952).
-  /// Spelled as one word ("Liftbag") or hyphenated as often as not.
-  static final _liftBag = RegExp(r'\b(?:lift|lifting|salvage)[\s-]*bags?\b');
+  /// Spelled as one word ("Liftbag") or hyphenated as often as not. Shared
+  /// with the divelogs.de geartype table so the two readers agree.
+  static final liftBag = RegExp(r'\b(?:lift|lifting|salvage)[\s-]*bags?\b');
 
-  /// A rebreather counterlung, for [equipmentType] (#2952).
-  static final _breathingBag = RegExp(r'\bbreathing[\s-]*bags?\b');
+  /// A rebreather counterlung, for [equipmentType] (#2952). Shared with the
+  /// divelogs.de geartype table so the two readers agree.
+  static final breathingBag = RegExp(r'\bbreathing[\s-]*bags?\b');
 
   /// Maps MacDive's free-text equipment type onto [EquipmentType].
   ///
@@ -111,8 +113,8 @@ class MacDiveValueMapper {
     // is a rebreather's counterlung, a part with no type of its own, so it
     // stays Other rather than reading as luggage or as the whole unit. A
     // bare "bag" anywhere else in a name is weaker and waits at the bottom.
-    if (_liftBag.hasMatch(s)) return EquipmentType.smb;
-    if (_breathingBag.hasMatch(s)) return EquipmentType.other;
+    if (liftBag.hasMatch(s)) return EquipmentType.smb;
+    if (breathingBag.hasMatch(s)) return EquipmentType.other;
     final head = s.replaceFirst(_trailingNote, '');
     if (_bagHeadNoun.hasMatch(head) && !_accessoryJoin.hasMatch(head)) {
       return EquipmentType.bag;

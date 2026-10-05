@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/universal_import/data/services/macdive_value_mapper.dart';
 
 /// Pure lookup tables between divelogs.de reference data (geartype names,
 /// certification orgs) and Submersion's domain enums. Geartype names carry
@@ -24,36 +25,23 @@ abstract final class DivelogsReferenceMappers {
     (['hood', 'haube'], EquipmentType.hood),
     (['knife', 'messer'], EquipmentType.knife),
     (['reel'], EquipmentType.reel),
-    // Every lift bag spelling the MacDive reader accepts, so none of them
-    // reaches the bag row below.
-    (
-      [
-        'smb',
-        'boje',
-        'lift bag',
-        'lift-bag',
-        'liftbag',
-        'lifting bag',
-        'salvage bag',
-        'hebesack',
-      ],
-      EquipmentType.smb,
-    ),
+    (['smb', 'boje', 'hebesack'], EquipmentType.smb),
     // Last (#2952): "Tasche" also names a pocket, so a lead pouch
     // ("Bleitasche") or a light's pouch is claimed by its item word first.
     (['bag', 'tasche', 'luggage'], EquipmentType.bag),
   ];
 
-  /// A rebreather counterlung (#2952), in every spelling the MacDive reader
-  /// accepts: a part with no type of its own, which the bag row would
-  /// otherwise file as luggage.
-  static final _breathingBag = RegExp(r'\bbreathing[\s-]*bags?\b');
-
   static EquipmentType equipmentTypeForGeartypeName(String? name) {
     if (name == null) return EquipmentType.other;
     final lower = name.trim().toLowerCase();
     if (lower.isEmpty) return EquipmentType.other;
-    if (_breathingBag.hasMatch(lower)) return EquipmentType.other;
+    // Lift and breathing bags (#2952) are read by the MacDive reader's own
+    // patterns, ahead of the bag row, so every spelling it accepts agrees
+    // here: a lift device and a rebreather counterlung, not luggage.
+    if (MacDiveValueMapper.liftBag.hasMatch(lower)) return EquipmentType.smb;
+    if (MacDiveValueMapper.breathingBag.hasMatch(lower)) {
+      return EquipmentType.other;
+    }
     for (final (keywords, type) in _geartypeKeywords) {
       if (keywords.any(lower.contains)) return type;
     }
