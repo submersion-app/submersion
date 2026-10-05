@@ -22071,6 +22071,306 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get insights_observations_title => 'Observações';
+
+  @override
+  String get insights_observations_seeAll => 'Ver tudo';
+
+  @override
+  String get insights_observations_filterNote =>
+      'As observações usam todo o seu registro, então o filtro não se aplica a elas';
+
+  @override
+  String get insights_observations_empty =>
+      'As observações aparecem à medida que seu registro cresce';
+
+  @override
+  String get insights_observations_error =>
+      'Não foi possível carregar as observações';
+
+  @override
+  String get insights_observations_actions => 'Ações da observação';
+
+  @override
+  String get insights_observations_dismiss => 'Dispensar';
+
+  @override
+  String get insights_observations_dismissed => 'Observação dispensada';
+
+  @override
+  String get insights_observations_dismissFailed =>
+      'Não foi possível dispensar a observação';
+
+  @override
+  String get insights_observations_mute => 'Não mostrar este tipo';
+
+  @override
+  String get insights_observations_muted =>
+      'As observações deste tipo estão ocultas';
+
+  @override
+  String get insights_observations_undo => 'Desfazer';
+
+  @override
+  String get insights_observations_mutedKinds => 'Tipos ocultos';
+
+  @override
+  String get insights_observations_mutedKinds_empty => 'Nenhum tipo oculto';
+
+  @override
+  String get insights_observations_unmute => 'Mostrar novamente';
+
+  @override
+  String get insights_observations_rule_rmvTrend => 'Tendência do RMV';
+
+  @override
+  String get insights_observations_rule_maxDepthTrend =>
+      'Tendência da profundidade máxima';
+
+  @override
+  String get insights_observations_rule_diveTimeTrend =>
+      'Tendência do tempo de mergulho';
+
+  @override
+  String get insights_observations_rule_weightTrend => 'Tendência do lastro';
+
+  @override
+  String get insights_observations_rule_frequencyTrend =>
+      'Frequência de mergulhos';
+
+  @override
+  String get insights_observations_rule_diveCountMilestone =>
+      'Marcos do número de mergulhos';
+
+  @override
+  String get insights_observations_rule_diveHoursMilestone =>
+      'Marcos de horas de mergulho';
+
+  @override
+  String get insights_observations_rule_deepestDive =>
+      'Novo mergulho mais profundo';
+
+  @override
+  String get insights_observations_rule_longestDive =>
+      'Novo mergulho mais longo';
+
+  @override
+  String get insights_observations_rule_newCountry => 'Novos países';
+
+  @override
+  String get insights_observations_rule_newSpecies => 'Novas espécies';
+
+  @override
+  String get insights_observations_rule_diveGap =>
+      'Tempo desde o último mergulho';
+
+  @override
+  String get insights_observations_rule_favouriteSite => 'Local favorito';
+
+  @override
+  String get insights_observations_rule_regularBuddy => 'Dupla habitual';
+
+  @override
+  String get insights_observations_rule_busiestMonth => 'Mês mais ativo';
+
+  @override
+  String get insights_observations_rule_ascentRate => 'Velocidade de subida';
+
+  @override
+  String insights_observations_rmvTrend_improved(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Seu RMV melhorou: $recent nos últimos 12 meses, $percent% menor que no ano anterior ($previous)';
+  }
+
+  @override
+  String insights_observations_rmvTrend_rose(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Seu RMV aumentou: $recent nos últimos 12 meses, $percent% maior que no ano anterior ($previous)';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_deeper(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Nos últimos 12 meses sua profundidade máxima média foi $recent, $percent% mais profunda que no ano anterior ($previous)';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_shallower(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Nos últimos 12 meses sua profundidade máxima média foi $recent, $percent% mais rasa que no ano anterior ($previous)';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_longer(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Nos últimos 12 meses seu tempo médio de mergulho foi $recent, $percent% mais longo que no ano anterior ($previous)';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_shorter(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Nos últimos 12 meses seu tempo médio de mergulho foi $recent, $percent% mais curto que no ano anterior ($previous)';
+  }
+
+  @override
+  String insights_observations_weightTrend_more(String amount) {
+    return 'Nos últimos 12 meses você levou em média $amount a mais de lastro que no ano anterior';
+  }
+
+  @override
+  String insights_observations_weightTrend_less(String amount) {
+    return 'Nos últimos 12 meses você levou em média $amount a menos de lastro que no ano anterior';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_more(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Você registrou $count mergulhos nos últimos 12 meses, $percent% a mais que no ano anterior',
+      one:
+          'Você registrou $count mergulho nos últimos 12 meses, $percent% a mais que no ano anterior',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_fewer(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Você registrou $count mergulhos nos últimos 12 meses, $percent% a menos que no ano anterior',
+      one:
+          'Você registrou $count mergulho nos últimos 12 meses, $percent% a menos que no ano anterior',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone(String count, String date) {
+    return 'Você chegou a $count mergulhos em $date';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone_logged(
+    String count,
+    String date,
+  ) {
+    return 'Você chegou a $count mergulhos registrados em $date';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone(String hours, String date) {
+    return 'Você passou de $hours horas debaixo d\'água em $date';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone_logged(
+    String hours,
+    String date,
+  ) {
+    return 'Você passou de $hours horas registradas debaixo d\'água em $date';
+  }
+
+  @override
+  String insights_observations_deepestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return 'Novo mergulho mais profundo: $value em $date, além do seu recorde anterior de $previous';
+  }
+
+  @override
+  String insights_observations_longestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return 'Novo mergulho mais longo: $value em $date, além do seu recorde anterior de $previous';
+  }
+
+  @override
+  String insights_observations_newCountry(String country, String date) {
+    return 'Seu primeiro mergulho em $country, em $date';
+  }
+
+  @override
+  String insights_observations_newSpecies(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count espécies novas nos últimos 90 dias, a mais recente $name',
+      one: '$count espécie nova nos últimos 90 dias: $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveGap(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Seu último mergulho foi há $count dias',
+      one: 'Seu último mergulho foi há $count dia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_favouriteSite(
+    String site,
+    String dives,
+    String total,
+  ) {
+    return '$site recebeu $dives dos seus $total mergulhos nos últimos 12 meses';
+  }
+
+  @override
+  String insights_observations_regularBuddy(
+    String buddyName,
+    String dives,
+    String total,
+  ) {
+    return 'Você mergulhou com $buddyName em $dives dos seus $total mergulhos nos últimos 12 meses';
+  }
+
+  @override
+  String insights_observations_busiestMonth(String month, String years) {
+    return '$month foi seu mês mais ativo em $years anos diferentes';
+  }
+
+  @override
+  String insights_observations_ascentRate(
+    String rate,
+    String dives,
+    String low,
+    String high,
+  ) {
+    return 'Sua velocidade média de subida nos últimos 12 meses foi $rate, em $dives mergulhos. A recomendação comum é de $low a $high ou mais devagar';
+  }
+
+  @override
   String get insights_records_milestones => 'Marcos';
 
   @override
