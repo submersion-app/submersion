@@ -971,6 +971,10 @@ CREATE TABLE settings (
 );
 ```
 
+**Sync:** every key syncs, and each key merges on its own clock, except the
+keys in `_deviceLocalSettingsKeys` in `sync_data_serializer.dart` (today only
+`active_diver_id`). A new key syncs unless you add it there.
+
 ### DiverSettings
 
 Per-diver settings with unit preferences, decompression parameters, and UI configuration:
@@ -1058,6 +1062,16 @@ CREATE TABLE diver_settings (
   updated_at INTEGER NOT NULL
 );
 ```
+
+**Sync:** the table syncs as a whole row. Every column is sent, nothing is
+excluded, and the row with the later clock wins, so a new column syncs unless
+it is explicitly excluded. Settings that should stay on one device belong in
+SharedPreferences instead (see `settings_providers.dart`).
+
+When a change moves a setting between synced and device-local, in this table,
+the `settings` table, or SharedPreferences, update the
+[What Syncs Between Devices](guide/multi-device-sync.md?id=what-syncs-between-devices) section of the user
+guide in the same PR.
 
 ## Sync Tables
 
