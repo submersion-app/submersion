@@ -18272,14 +18272,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Satellite water conditions on the dive date';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Surface GPS';
+  String get diveDetailSection_surfaceGps_name => 'Location';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS entry/exit points and surface drift';
+      'Map of the dive site, GPS entry/exit points and surface drift';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'Surface GPS';
+
+  @override
+  String get diveLog_detail_section_location => 'Location';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'Entry';

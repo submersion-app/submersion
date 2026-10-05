@@ -18560,14 +18560,17 @@ class AppLocalizationsPt extends AppLocalizations {
       'Condições da água por satélite na data do mergulho';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'GPS de superfície';
+  String get diveDetailSection_surfaceGps_name => 'Localização';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'Pontos de entrada/saída por GPS e deriva na superfície';
+      'Mapa do ponto de mergulho, dos pontos de entrada/saída por GPS e da deriva na superfície';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'GPS de superfície';
+
+  @override
+  String get diveLog_detail_section_location => 'Localização';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'Entrada';

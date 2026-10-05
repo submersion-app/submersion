@@ -17665,13 +17665,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveDetailSection_reefHealth_description => '潜水日期的卫星水况';
 
   @override
-  String get diveDetailSection_surfaceGps_name => '水面 GPS';
+  String get diveDetailSection_surfaceGps_name => '位置';
 
   @override
-  String get diveDetailSection_surfaceGps_description => 'GPS 入水/出水点及水面漂移';
+  String get diveDetailSection_surfaceGps_description =>
+      '潜点、GPS 入水/出水点及水面漂移的地图';
 
   @override
   String get diveLog_detail_section_surfaceGps => '水面 GPS';
+
+  @override
+  String get diveLog_detail_section_location => '位置';
 
   @override
   String get diveLog_detail_surfaceGps_entry => '入水';

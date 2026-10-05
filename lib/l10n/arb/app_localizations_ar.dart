@@ -18778,14 +18778,17 @@ class AppLocalizationsAr extends AppLocalizations {
       'أحوال المياه عبر الأقمار الصناعية في تاريخ الغطسة';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'GPS السطح';
+  String get diveDetailSection_surfaceGps_name => 'الموقع الجغرافي';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'نقاط الدخول/الخروج عبر GPS وانجراف السطح';
+      'خريطة موقع الغوص ونقاط الدخول/الخروج عبر GPS وانجراف السطح';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'GPS السطح';
+
+  @override
+  String get diveLog_detail_section_location => 'الموقع الجغرافي';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'الدخول';

@@ -18535,14 +18535,17 @@ class AppLocalizationsDe extends AppLocalizations {
       'Satellitengestützte Wasserbedingungen am Tauchdatum';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Oberflächen-GPS';
+  String get diveDetailSection_surfaceGps_name => 'Standort';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS-Ein-/Ausstiegspunkte und Oberflächendrift';
+      'Karte des Tauchplatzes, der GPS-Ein-/Ausstiegspunkte und der Oberflächendrift';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'Oberflächen-GPS';
+
+  @override
+  String get diveLog_detail_section_location => 'Standort';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'Einstieg';

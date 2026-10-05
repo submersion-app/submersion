@@ -11539,9 +11539,13 @@
   "diveDetailSection_tide_description": "Tide cycle graph and timing",
   "diveDetailSection_reefHealth_name": "Water Conditions",
   "diveDetailSection_reefHealth_description": "Satellite water conditions on the dive date",
-  "diveDetailSection_surfaceGps_name": "Surface GPS",
-  "diveDetailSection_surfaceGps_description": "GPS entry/exit points and surface drift",
+  "diveDetailSection_surfaceGps_name": "Location",
+  "diveDetailSection_surfaceGps_description": "Map of the dive site, GPS entry/exit points and surface drift",
   "diveLog_detail_section_surfaceGps": "Surface GPS",
+  "diveLog_detail_section_location": "Location",
+  "@diveLog_detail_section_location": {
+    "description": "Title of the dive detail map card when the dive has no GPS fix and only its dive site has coordinates"
+  },
   "diveLog_detail_surfaceGps_entry": "Entry",
   "diveLog_detail_surfaceGps_exit": "Exit",
   "diveLog_detail_label_drift": "Drift",

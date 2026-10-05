@@ -381,7 +381,12 @@ class _DataSourceCard extends StatelessWidget {
       );
     }
 
-    final hasOverflowMenu = onSetPrimary != null || onSplit != null;
+    // The icon shows only when the menu would have an entry: a lone
+    // primary source has none, and an icon over an empty menu opens
+    // nothing (#2974).
+    final canSetPrimary = !source.isPrimary && onSetPrimary != null;
+    final canSplit = onSplit != null;
+    final hasOverflowMenu = canSetPrimary || canSplit;
 
     return GestureDetector(
       onTap: onTap,
@@ -462,7 +467,7 @@ class _DataSourceCard extends StatelessWidget {
                         }
                       },
                       itemBuilder: (context) => [
-                        if (!source.isPrimary && onSetPrimary != null)
+                        if (canSetPrimary)
                           PopupMenuItem(
                             value: _SourceMenuAction.setPrimary,
                             child: ListTile(
@@ -473,7 +478,7 @@ class _DataSourceCard extends StatelessWidget {
                               contentPadding: EdgeInsets.zero,
                             ),
                           ),
-                        if (onSplit != null)
+                        if (canSplit)
                           PopupMenuItem(
                             value: _SourceMenuAction.split,
                             child: ListTile(

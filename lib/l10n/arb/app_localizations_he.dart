@@ -18134,14 +18134,17 @@ class AppLocalizationsHe extends AppLocalizations {
       'תנאי מים לווייניים בתאריך הצלילה';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'GPS פני המים';
+  String get diveDetailSection_surfaceGps_name => 'מיקום';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'נקודות כניסה/יציאה ב-GPS וסחף פני המים';
+      'מפת אתר הצלילה, נקודות כניסה/יציאה ב-GPS וסחף פני המים';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'GPS פני המים';
+
+  @override
+  String get diveLog_detail_section_location => 'מיקום';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'כניסה';

@@ -18428,14 +18428,17 @@ class AppLocalizationsNl extends AppLocalizations {
       'Satellietwateromstandigheden op de duikdatum';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Oppervlakte-GPS';
+  String get diveDetailSection_surfaceGps_name => 'Locatie';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS in-/uitstappunten en oppervlaktedrift';
+      'Kaart van de duikstek, GPS in-/uitstappunten en oppervlaktedrift';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'Oppervlakte-GPS';
+
+  @override
+  String get diveLog_detail_section_location => 'Locatie';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'Te water';

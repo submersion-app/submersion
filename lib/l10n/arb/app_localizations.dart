@@ -29740,13 +29740,13 @@ abstract class AppLocalizations {
   /// No description provided for @diveDetailSection_surfaceGps_name.
   ///
   /// In en, this message translates to:
-  /// **'Surface GPS'**
+  /// **'Location'**
   String get diveDetailSection_surfaceGps_name;
 
   /// No description provided for @diveDetailSection_surfaceGps_description.
   ///
   /// In en, this message translates to:
-  /// **'GPS entry/exit points and surface drift'**
+  /// **'Map of the dive site, GPS entry/exit points and surface drift'**
   String get diveDetailSection_surfaceGps_description;
 
   /// No description provided for @diveLog_detail_section_surfaceGps.
@@ -29754,6 +29754,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Surface GPS'**
   String get diveLog_detail_section_surfaceGps;
+
+  /// Title of the dive detail map card when the dive has no GPS fix and only its dive site has coordinates
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get diveLog_detail_section_location;
 
   /// No description provided for @diveLog_detail_surfaceGps_entry.
   ///
