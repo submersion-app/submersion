@@ -19068,6 +19068,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'الدولة، المنطقة، المسطح المائي، إحداثيات GPS';
 
   @override
+  String get siteDetailSection_seascape_description =>
+      'عرض ثلاثي الأبعاد للتضاريس تحت الماء حول الموقع';
+
+  @override
   String get siteDetailSection_depth_description =>
       'نطاق العمق المصنف والأعماق التي تم بلوغها في الغوصات';
 
@@ -23150,6 +23154,30 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملف',
+      many: '$count ملفًا',
+      few: '$count ملفات',
+      two: 'ملفان',
+      one: 'ملف واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'البرنامج الثابت $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'من $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {

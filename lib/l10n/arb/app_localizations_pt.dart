@@ -18847,6 +18847,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'País, região, corpo de água, coordenadas GPS';
 
   @override
+  String get siteDetailSection_seascape_description =>
+      'Vista 3D do relevo subaquático em torno do local';
+
+  @override
   String get siteDetailSection_depth_description =>
       'Faixa de profundidade indicada e profundidades alcançadas nos mergulhos';
 
@@ -22961,6 +22965,27 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count arquivos',
+      one: '$count arquivo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'de $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {

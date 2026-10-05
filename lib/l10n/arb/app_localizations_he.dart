@@ -18417,6 +18417,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'מדינה, אזור, מקווה מים, קואורדינטות GPS';
 
   @override
+  String get siteDetailSection_seascape_description =>
+      'תצוגת תלת־ממד של פני השטח התת־ימיים סביב האתר';
+
+  @override
   String get siteDetailSection_depth_description =>
       'טווח עומק מדורג ועומקים שהושגו בצלילות';
 
@@ -22395,6 +22399,27 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count קבצים',
+      one: 'קובץ אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'קושחה $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'מ-$app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {

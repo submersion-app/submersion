@@ -507,6 +507,14 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
                     ..onStart = _onScaleStart
                     ..onUpdate = (details) => _onScaleUpdate(size, details),
                 ),
+            // Trackpad pan-zoom is handled on the Listener below; this only
+            // claims it in the arena, so a scrolling ancestor cannot take
+            // the same swipe.
+            _TrackpadPanZoomClaim:
+                GestureRecognizerFactoryWithHandlers<_TrackpadPanZoomClaim>(
+                  () => _TrackpadPanZoomClaim(),
+                  (_) {},
+                ),
             TapGestureRecognizer:
                 GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
                   () => TapGestureRecognizer(),
@@ -533,9 +541,21 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
         );
 
         final interactive = Listener(
+          // Claimed through the resolver, not handled outright: inside a
+          // scrolling page (the Site Details card) the page's Scrollable
+          // would otherwise take the same wheel tick, so the page would
+          // scroll and the terrain zoom at once. The innermost claim wins,
+          // as it does for the 2D map.
           onPointerSignal: (signal) {
             if (signal is PointerScrollEvent) {
-              _zoomBy(signal.scrollDelta.dy < 0 ? 1.1 : 1 / 1.1);
+              GestureBinding.instance.pointerSignalResolver.register(
+                signal,
+                (event) => _zoomBy(
+                  (event as PointerScrollEvent).scrollDelta.dy < 0
+                      ? 1.1
+                      : 1 / 1.1,
+                ),
+              );
             }
           },
           onPointerPanZoomStart: _onPanZoomStart,
@@ -660,6 +680,33 @@ class _TouchScaleGestureRecognizer extends ScaleGestureRecognizer {
 
   @override
   bool isPointerPanZoomAllowed(PointerPanZoomStartEvent event) => false;
+}
+
+/// Claims trackpad pan/zoom pointers for the viewport in the gesture arena,
+/// and does nothing else with them: the viewport's [Listener] moves the
+/// camera. Without a claim, a scrolling ancestor (the Site Details page)
+/// wins the arena uncontested, and one two-finger swipe over the viewport
+/// both scrolls the page and pans the camera.
+class _TrackpadPanZoomClaim extends OneSequenceGestureRecognizer {
+  @override
+  bool isPointerAllowed(PointerDownEvent event) => false;
+
+  @override
+  void addAllowedPointerPanZoom(PointerPanZoomStartEvent event) {
+    startTrackingPointer(event.pointer, event.transform);
+    resolve(GestureDisposition.accepted);
+  }
+
+  @override
+  void handleEvent(PointerEvent event) {
+    if (event is PointerPanZoomEndEvent) stopTrackingPointer(event.pointer);
+  }
+
+  @override
+  void didStopTrackingLastPointer(int pointer) {}
+
+  @override
+  String get debugDescription => 'trackpad pan-zoom claim';
 }
 
 /// Foreground layer: only the scrub cursor. Repaints on every scrub tick

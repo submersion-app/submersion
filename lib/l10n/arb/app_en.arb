@@ -11682,6 +11682,7 @@
   "siteDetailSection_diveStatistics_description": "Dive count, depths reached, longest and latest dives",
   "siteDetailSection_description_description": "Your description of the site",
   "siteDetailSection_location_description": "Country, region, body of water, GPS coordinates",
+  "siteDetailSection_seascape_description": "3D view of the underwater terrain around the site",
   "siteDetailSection_depth_description": "Rated depth range and depths reached on dives",
   "siteDetailSection_altitude_description": "Altitude and altitude dive category",
   "siteDetailSection_features_description": "Features marked on the site map",
@@ -14098,6 +14099,33 @@
   },
   "tags_hint_addMoreTags": "Add more tags...",
   "importWizard_tagsLabel": "Tags",
+  "importWizard_source_fileCount": "{count, plural, one{{count} file} other{{count} files}}",
+  "@importWizard_source_fileCount": {
+    "description": "Name line of the Review step source card for a batch import: how many files it read",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importWizard_source_firmware": "Firmware {version}",
+  "@importWizard_source_firmware": {
+    "description": "Review step source card: the firmware version the dive computer reported",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "importWizard_source_fromApp": "from {app}",
+  "@importWizard_source_fromApp": {
+    "description": "Review step source card: the application an imported file came from, after its format (e.g. UDDF from Subsurface)",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
   "importWizard_photos_foundCount": "{count, plural, one{1 photo referenced in this logbook} other{{count} photos referenced in this logbook}}",
   "@importWizard_photos_foundCount": {
     "description": "Count of photos the imported logbook refers to",
