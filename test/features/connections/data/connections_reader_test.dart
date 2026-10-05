@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/connections/data/connections_reader.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
@@ -166,4 +167,51 @@ void main() {
     const e = FocusNotFoundException(NodeRef(ConnectionKind.buddy, 'ghost'));
     expect(e.toString(), 'FocusNotFoundException(buddy:ghost)');
   });
+
+  test(
+    'a buddy subtitle names the one role held on every dive (#1221)',
+    () async {
+      final d = DatabaseService.instance.database;
+      await d.customStatement(
+        "INSERT INTO divers (id, name, created_at, updated_at) "
+        "VALUES ('me', 'me', $_ms, $_ms)",
+      );
+      await d.customStatement(
+        'INSERT INTO dives (id, diver_id, dive_date_time, created_at, '
+        "updated_at) VALUES ('d1', 'me', $_ms, $_ms, $_ms), "
+        "('d2', 'me', $_ms, $_ms, $_ms)",
+      );
+      await d.customStatement(
+        'INSERT INTO buddies (id, diver_id, name, created_at, updated_at) '
+        "VALUES ('ana', 'me', 'Ana', $_ms, $_ms), "
+        "('ben', 'me', 'Ben', $_ms, $_ms), ('cy', 'me', 'Cy', $_ms, $_ms)",
+      );
+      for (final dive in ['d1', 'd2']) {
+        for (final buddy in ['ana', 'ben', 'cy']) {
+          await d.customStatement(
+            'INSERT INTO dive_buddies (id, dive_id, buddy_id, role, '
+            "created_at) VALUES ('$dive-$buddy', '$dive', '$buddy', 'buddy', "
+            '$_ms)',
+          );
+        }
+      }
+      final roles = DiveRoleLinkRepository();
+      await roles.writeBuddyRoles('d1', 'ana', ['diveGuide', 'diveMaster']);
+      await roles.writeBuddyRoles('d2', 'ana', ['diveMaster']);
+      await roles.writeBuddyRoles('d1', 'ben', ['diveGuide', 'diveMaster']);
+      await roles.writeBuddyRoles('d2', 'ben', ['diveGuide', 'diveMaster']);
+      await roles.writeBuddyRoles('d1', 'cy', ['instructor']);
+      await roles.writeBuddyRoles('d2', 'cy', ['student']);
+
+      final nodes = await ConnectionsReader(d).nodes(
+        ConnectionKind.buddy,
+        diverId: 'me',
+        filter: const DiveFilterState(),
+      );
+      final byId = {for (final n in nodes) n.ref.id: n.subtitle};
+      expect(byId['ana'], const RoleSubtitle('diveMaster'));
+      expect(byId['ben'], isNot(isA<RoleSubtitle>()));
+      expect(byId['cy'], isNot(isA<RoleSubtitle>()));
+    },
+  );
 }

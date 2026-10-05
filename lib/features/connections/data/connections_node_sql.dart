@@ -112,8 +112,10 @@ JOIN ${t.table} t ON t.id = c.entity_id''';
   return (sql: sql, params: scope.params);
 }
 
-/// One row per buddy in [buddyIds] whose dives in scope all carry the same
-/// role: `id`, `role`.
+/// Every in-scope link of the buddies in [buddyIds]: `id` (the buddy),
+/// `dive_id` and the link's primary `role`. The reader resolves each link's
+/// whole role set and keeps a subtitle only for a buddy who holds one role
+/// on every one of their dives (issue #1221).
 ({String sql, List<Object?> params}) buildBuddyRoleSql({
   required String? diverId,
   required DiveFilterState filter,
@@ -125,13 +127,10 @@ JOIN ${t.table} t ON t.id = c.entity_id''';
     ...scope.clauses,
     'db.buddy_id IN (${placeholders(ids.length)})',
   ];
-  final sql =
-      '''
-SELECT db.buddy_id AS id, MIN(db.role) AS role
+  final sql = '''
+SELECT db.buddy_id AS id, db.dive_id AS dive_id, db.role AS role
 FROM dive_buddies db
 JOIN dives d ON d.id = db.dive_id
-WHERE ${where.join(' AND ')}
-GROUP BY db.buddy_id
-HAVING COUNT(DISTINCT db.role) = 1''';
+WHERE ${where.join(' AND ')}''';
   return (sql: sql, params: [...scope.params, ...ids]);
 }

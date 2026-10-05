@@ -288,6 +288,27 @@ void main() {
         expect(byId['rare'], equals(1));
       });
 
+      test('usual role counts every role a buddy held (#1221)', () async {
+        await insertDive('d1');
+        await insertDive('d2');
+        final ana = await repository.createBuddy(
+          createTestBuddy(id: 'ana', name: 'Ana'),
+        );
+        await repository.addBuddyToDiveWithRoles('d1', ana.id, const [
+          DiveRole.diveGuideId,
+          DiveRole.diveMasterId,
+        ]);
+        await repository.addBuddyToDiveWithRoles('d2', ana.id, const [
+          DiveRole.diveMasterId,
+        ]);
+
+        final results = await repository.getAllBuddiesWithDiveCount();
+        final row = results.firstWhere((r) => r.buddy.id == 'ana');
+
+        expect(row.usualRoleId, DiveRole.diveMasterId);
+        expect(row.diveCount, 2);
+      });
+
       test('carries the isFavorite flag through', () async {
         await repository.createBuddy(
           createTestBuddy(id: 'fav', name: 'Favorite Buddy'),

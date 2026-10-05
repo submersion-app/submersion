@@ -925,19 +925,17 @@ class BuddyRepository {
         ORDER BY b.name COLLATE NOCASE ASC
       ''', variables: variables).get();
 
-      // Second whole-table query: how often each buddy held each role. The
-      // per-buddy winner is picked in Dart by usualRoleFor.
-      final roleRows = await _db.customSelect('''
-        SELECT buddy_id, role, COUNT(*) AS role_count
-        FROM dive_buddies
-        GROUP BY buddy_id, role
-      ''').get();
+      // How often each buddy held each role, every role of every dive
+      // counted (several per dive since #1221). The per-buddy winner is
+      // picked in Dart by usualRoleFor.
       final roleCountsByBuddy = <String, Map<String, int>>{};
-      for (final r in roleRows) {
-        roleCountsByBuddy.putIfAbsent(
-          r.data['buddy_id'] as String,
-          () => {},
-        )[r.data['role'] as String] = r.data['role_count'] as int;
+      for (final perDive in (await _roleLinks.allBuddyRoleIds()).values) {
+        for (final entry in perDive.entries) {
+          final counts = roleCountsByBuddy.putIfAbsent(entry.key, () => {});
+          for (final roleId in entry.value) {
+            counts.update(roleId, (n) => n + 1, ifAbsent: () => 1);
+          }
+        }
       }
 
       final list = sortedByText(results, (r) => r.data['name'] as String).map((

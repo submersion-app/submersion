@@ -182,13 +182,16 @@ void main() {
       expect(escapeLike('plain'), 'plain');
     });
 
-    test('the buddy role query keeps only unanimous roles', () {
+    test('the buddy role query returns every in-scope link (#1221)', () {
+      // The reader resolves each link's role set; the SQL no longer decides
+      // unanimity on the primary role alone.
       final r = buildBuddyRoleSql(
         diverId: 'me',
         filter: const DiveFilterState(),
         buddyIds: ['a'],
       );
-      expect(r.sql, contains('HAVING COUNT(DISTINCT db.role) = 1'));
+      expect(r.sql, contains('db.dive_id AS dive_id'));
+      expect(r.sql, isNot(contains('HAVING')));
       expect(r.params, ['me', 'a']);
     });
   });

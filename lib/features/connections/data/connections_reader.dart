@@ -2,11 +2,13 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/connections/data/connections_edge_sql.dart';
 import 'package:submersion/features/connections/data/connections_node_sql.dart';
+import 'package:submersion/features/connections/data/connections_scope_sql.dart';
 import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 
 /// The focus of an around view has no row in its label table.
 class FocusNotFoundException implements Exception {
@@ -176,10 +178,52 @@ class ConnectionsReader {
       filter: filter,
       buddyIds: buddyIds,
     );
-    final rows = await _db
+    final links = await _db
         .customSelect(q.sql, variables: q.params.map(Variable.new).toList())
         .get();
-    return {for (final r in rows) r.read<String>('id'): r.read<String>('role')};
+    if (links.isEmpty) return const {};
+    final diveIds = {for (final r in links) r.read<String>('dive_id')}.toList();
+    final junction = <(String, String), List<String>>{};
+    const chunk = 900;
+    for (var i = 0; i < diveIds.length; i += chunk) {
+      final ids = diveIds.sublist(i, (i + chunk).clamp(0, diveIds.length));
+      final rows = await _db
+          .customSelect(
+            'SELECT dive_id, buddy_id, role_id FROM dive_buddy_roles '
+            'WHERE dive_id IN (${placeholders(ids.length)})',
+            variables: ids.map(Variable.new).toList(),
+          )
+          .get();
+      for (final row in rows) {
+        junction
+            .putIfAbsent((
+              row.read<String>('dive_id'),
+              row.read<String>('buddy_id'),
+            ), () => [])
+            .add(row.read<String>('role_id'));
+      }
+    }
+    // Each buddy's roles on each of their dives (#1221); a role held on all
+    // of them, and the only such role, becomes the subtitle.
+    final setsByBuddy = <String, List<Set<String>>>{};
+    for (final r in links) {
+      final buddyId = r.read<String>('id');
+      final diveId = r.read<String>('dive_id');
+      setsByBuddy
+          .putIfAbsent(buddyId, () => [])
+          .add(
+            DiveRoleSet.resolveBuddy(
+              scalar: r.read<String>('role'),
+              junction: junction[(diveId, buddyId)] ?? const [],
+            ).toSet(),
+          );
+    }
+    return {
+      for (final entry in setsByBuddy.entries)
+        if (entry.value.reduce((a, b) => a.intersection(b)) case final common
+            when common.length == 1)
+          entry.key: common.single,
+    };
   }
 }
 

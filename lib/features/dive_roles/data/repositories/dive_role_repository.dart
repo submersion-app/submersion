@@ -251,7 +251,9 @@ class DiveRoleRepository {
     }
   }
 
-  /// True when any dive_buddies row or dives.diver_role references [id].
+  /// True when any dive_buddies row, dive_buddy_roles row, dives.diver_role
+  /// or dive_diver_roles row references [id] (the junctions since #1221; a
+  /// stale junction row still counts, the safe side of a deletion guard).
   ///
   /// A reference from another diver's dive does not count (#1806): custom
   /// roles are diver-scoped, so that dive cannot show the role anyway, and
@@ -270,7 +272,13 @@ class DiveRoleRepository {
             '(SELECT COUNT(*) FROM dive_buddies WHERE role = ?1 '
             'AND (?2 IS NULL OR dive_id NOT IN ($otherDiversDives))) + '
             '(SELECT COUNT(*) FROM dives WHERE diver_role = ?1 '
-            'AND (?2 IS NULL OR diver_id IS NULL OR diver_id = ?2)) AS uses',
+            'AND (?2 IS NULL OR diver_id IS NULL OR diver_id = ?2)) + '
+            '(SELECT COUNT(*) FROM dive_buddy_roles WHERE role_id = ?1 '
+            'AND (?2 IS NULL OR dive_id NOT IN ($otherDiversDives))) + '
+            '(SELECT COUNT(*) FROM dive_diver_roles r JOIN dives d '
+            'ON d.id = r.dive_id WHERE r.role_id = ?1 '
+            'AND (?2 IS NULL OR d.diver_id IS NULL OR d.diver_id = ?2)) '
+            'AS uses',
             variables: [Variable.withString(id), Variable<String>(owner)],
           )
           .getSingle();
