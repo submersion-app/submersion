@@ -176,6 +176,9 @@ them.
 - **Gear arrangement**
 - **Photos & Media:** **Upload quality** for photos and video, the media library
   view and sort order, and **Automatically re-link exact matches**
+- **Adobe Lightroom:** **Albums to scan** and **Check for new photos
+  automatically**, for each connected Adobe account. Signing in to Adobe still
+  happens on each device.
 
 ### Synced as Part of Your Library
 
@@ -202,7 +205,7 @@ them.
 | **Appearance** | Display size, the Home screen layout (status chips and home cards), Keep overlays in view when zooming |
 | **Photos & Media** | Show source badges on thumbnails, Upload photos automatically, uploading on cellular |
 | **Dive computers** | Sync dive computer clocks |
-| **Other** | Which diver is active, Data quality checks, the pSCR ratio in the dive planner, the O2 cell unit in chart options, CSV export units, accounts you have signed in to (Garmin, Suunto, divelogs.de, Lightroom, and media storage logins), which dive detail sections are expanded, which trips are collapsed in the dive list, Debug mode |
+| **Other** | Which diver is active, Data quality checks, the pSCR ratio in the dive planner, the O2 cell unit in chart options, CSV export units, your sign-ins to other services (Garmin, Suunto, divelogs.de, Adobe Lightroom, and media storage logins), which dive detail sections are expanded, which trips are collapsed in the dive list, Debug mode |
 
 <div class="tip">
 <strong>Upload quality syncs, uploading does not.</strong> Each device decides for

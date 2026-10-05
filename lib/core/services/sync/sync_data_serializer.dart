@@ -8437,8 +8437,10 @@ class SyncDataSerializer {
   /// `gas_blender_prefs`, `equipment_arrangement`, `gas_mod_calculator_prefs`,
   /// `media_upload_quality_photo`, `media_upload_quality_video`,
   /// `media_library_view_mode`, `media_library_sort` and
-  /// `media_watcher_auto_apply`. `active_diver_id` is FILTERED: which diver a
-  /// device has open is that device's choice.
+  /// `media_watcher_auto_apply`, plus two keys per connected Lightroom account,
+  /// `lightroom_<account>_album_ids` and `lightroom_<account>_auto_poll`
+  /// (written by `LightroomConnectorState`). `active_diver_id` is FILTERED:
+  /// which diver a device has open is that device's choice.
   ///
   /// New keys should be assessed against the rule: "is this answer the same
   /// across all of one user's devices?" If no, add it here. Either way, update
