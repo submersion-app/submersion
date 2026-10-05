@@ -140,17 +140,24 @@ class ConflictDifferenceList extends StatelessWidget {
     final style = Theme.of(context).textTheme.bodySmall;
     if (diff == null) {
       final text = Text(local ? d.localDisplay : d.remoteDisplay, style: style);
-      // The stored values differ but round to the same text (30.04 m and
-      // 30.0 m); say why the row is listed. Shown once, under the local side.
-      if (!local || d.localDisplay != d.remoteDisplay) return text;
+      // The stored values differ but read the same: they round to the same
+      // text (30.04 m and 30.0 m), or differ only in spacing ('Blue Hole '
+      // against 'Blue Hole'). Say why the row is listed, once, under the
+      // local side.
+      final String? note;
+      if (d.localDisplay == d.remoteDisplay) {
+        note = context.l10n.settings_conflict_finerThanShown;
+      } else if (_collapsed(d.localDisplay) == _collapsed(d.remoteDisplay)) {
+        note = context.l10n.settings_conflict_whitespaceOnly;
+      } else {
+        note = null;
+      }
+      if (!local || note == null) return text;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           text,
-          Text(
-            context.l10n.settings_conflict_finerThanShown,
-            style: style?.copyWith(fontStyle: FontStyle.italic),
-          ),
+          Text(note, style: style?.copyWith(fontStyle: FontStyle.italic)),
         ],
       );
     }
@@ -177,6 +184,8 @@ class ConflictDifferenceList extends StatelessWidget {
     );
   }
 }
+
+String _collapsed(String text) => text.trim().replaceAll(RegExp(r'\s+'), ' ');
 
 bool _isText(FieldDifference d) =>
     d.kind == FieldKind.longText &&

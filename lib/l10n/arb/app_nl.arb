@@ -6127,7 +6127,6 @@
   "settings_conflict_ref_weightPreset": "Loodsjabloon",
   "settings_conflict_ref_yourRole": "Jouw rol",
   "settings_conflict_remoteDeleted": "{device} heeft dit record verwijderd.",
-  "settings_conflict_same": "Gelijk",
   "settings_conflict_sameContent": "Beide versies hebben dezelfde inhoud; alleen het moment van opslaan verschilt. Bij elke keuze blijft alles behouden.",
   "settings_conflict_sameFields": "{count, plural, one{{count} veld is gelijk} other{{count} velden zijn gelijk}}",
   "settings_conflict_textDiffHint": "Gemarkeerde woorden staan alleen in die versie.",

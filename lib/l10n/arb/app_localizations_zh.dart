@@ -20650,9 +20650,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_conflict_same => '相同';
-
-  @override
   String get settings_conflict_sameContent =>
       '两个版本内容相同，仅保存时间不同。无论选择哪个都不会丢失任何内容。';
 

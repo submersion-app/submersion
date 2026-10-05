@@ -6026,7 +6026,6 @@
   "settings_conflict_ref_weightPreset": "Ólomsablon",
   "settings_conflict_ref_yourRole": "A te szereped",
   "settings_conflict_remoteDeleted": "Törölve ezen: {device}",
-  "settings_conflict_same": "Egyező",
   "settings_conflict_sameContent": "A két verzió tartalma azonos; csak a mentés időpontja tér el. Bármelyiket választod, minden megmarad.",
   "settings_conflict_sameFields": "{count, plural, one{{count} mező egyezik} other{{count} mező egyezik}}",
   "settings_conflict_textDiffHint": "A kiemelt szavak csak abban a verzióban szerepelnek.",

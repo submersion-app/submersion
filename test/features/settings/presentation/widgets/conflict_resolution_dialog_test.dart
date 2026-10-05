@@ -397,6 +397,48 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('the next conflict opens collapsed and at the top', (
+    tester,
+  ) async {
+    SyncConflict site(String id, String name) => SyncConflict(
+      entityType: 'diveSites',
+      recordId: id,
+      localData: {'id': id, 'name': name, 'country': 'Belize', 'notes': 'a'},
+      remoteData: {'id': id, 'name': name, 'country': 'Belize', 'notes': 'b'},
+      localModified: DateTime(2026, 3, 28),
+      remoteModified: DateTime(2026, 3, 29),
+    );
+    final base = await getBaseOverrides();
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1280, 900);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          conflictsProvider.overrideWith(
+            (ref) async => [site('s-1', 'Reef'), site('s-2', 'Wall')],
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: ConflictResolutionDialog()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await expandUnchanged(tester);
+    expect(find.text('Belize'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.chevron_right));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Wall'), findsWidgets);
+    expect(find.text('Belize'), findsNothing);
+  });
+
   testWidgets('the choices span the dialog width', (tester) async {
     await pumpDialog(tester, diveConflict, size: const Size(1280, 900));
 

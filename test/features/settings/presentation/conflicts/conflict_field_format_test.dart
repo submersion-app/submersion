@@ -263,6 +263,22 @@ void main() {
     });
   });
 
+  test('an epoch beyond what DateTime holds prints as stored', () {
+    // A corrupt or unit-confused timestamp must not take the dialog down.
+    expect(
+      fmt(metric, FieldKind.dateTime, 9000000000000000),
+      '9000000000000000',
+    );
+    expect(
+      fmt(metric, FieldKind.wallClock, -9000000000000000),
+      '-9000000000000000',
+    );
+    expect(
+      fmt(metric, FieldKind.epochSeconds, 10000000000000),
+      '10000000000000',
+    );
+  });
+
   test('unknown kind formats by runtime type', () {
     expect(fmt(metric, FieldKind.unknown, true), 'Yes');
     expect(fmt(metric, FieldKind.unknown, 12), '12');

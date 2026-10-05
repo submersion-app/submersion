@@ -113,6 +113,9 @@ class _ConflictResolutionDialogState
         _buildHeader(context, conflicts, narrow: narrow),
         Expanded(
           child: SingleChildScrollView(
+            // Keyed by conflict so the next one opens at the top, with its
+            // unchanged fields collapsed.
+            key: ValueKey(_conflictKey(conflict)),
             padding: const EdgeInsets.all(16),
             child: _buildConflictDetails(
               context,

@@ -6026,7 +6026,6 @@
   "settings_conflict_ref_weightPreset": "Modèle de lest",
   "settings_conflict_ref_yourRole": "Votre rôle",
   "settings_conflict_remoteDeleted": "{device} a supprimé cet enregistrement.",
-  "settings_conflict_same": "Identique",
   "settings_conflict_sameContent": "Les deux versions ont le même contenu ; seul le moment de l'enregistrement diffère. Quel que soit votre choix, rien n'est perdu.",
   "settings_conflict_sameFields": "{count, plural, one{{count} champ est identique} other{{count} champs sont identiques}}",
   "settings_conflict_textDiffHint": "Les mots en surbrillance n'apparaissent que dans cette version.",

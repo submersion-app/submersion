@@ -6230,7 +6230,6 @@
   "settings_conflict_ref_weightPreset": "Bleivorlage",
   "settings_conflict_ref_yourRole": "Deine Rolle",
   "settings_conflict_remoteDeleted": "{device} hat diesen Eintrag gelöscht.",
-  "settings_conflict_same": "Gleich",
   "settings_conflict_sameContent": "Beide Versionen haben denselben Inhalt; nur der Zeitpunkt des Speicherns unterscheidet sich. Bei jeder Wahl bleibt alles erhalten.",
   "settings_conflict_sameFields": "{count, plural, one{{count} Feld ist gleich} other{{count} Felder sind gleich}}",
   "settings_conflict_textDiffHint": "Hervorgehobene Wörter gibt es nur in dieser Version.",

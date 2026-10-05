@@ -6131,7 +6131,6 @@
   "settings_conflict_ref_weightPreset": "תבנית משקולות",
   "settings_conflict_ref_yourRole": "התפקיד שלך",
   "settings_conflict_remoteDeleted": "{device} מחק את הרשומה הזו.",
-  "settings_conflict_same": "זהה",
   "settings_conflict_sameContent": "לשתי הגרסאות אותו תוכן; רק מועד השמירה שונה. כל בחירה שומרת על הכול.",
   "settings_conflict_sameFields": "{count, plural, one{שדה אחד זהה} two{שני שדות זהים} other{{count} שדות זהים}}",
   "settings_conflict_textDiffHint": "מילים מודגשות מופיעות רק בגרסה ההיא.",

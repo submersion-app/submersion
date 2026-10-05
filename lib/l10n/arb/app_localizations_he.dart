@@ -21285,9 +21285,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_conflict_same => 'זהה';
-
-  @override
   String get settings_conflict_sameContent =>
       'לשתי הגרסאות אותו תוכן; רק מועד השמירה שונה. כל בחירה שומרת על הכול.';
 

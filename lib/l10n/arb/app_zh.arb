@@ -6276,7 +6276,6 @@
   "settings_conflict_ref_weightPreset": "配重预设",
   "settings_conflict_ref_yourRole": "您的角色",
   "settings_conflict_remoteDeleted": "{device} 已删除此记录。",
-  "settings_conflict_same": "相同",
   "settings_conflict_sameContent": "两个版本内容相同，仅保存时间不同。无论选择哪个都不会丢失任何内容。",
   "settings_conflict_sameFields": "{count, plural, other{{count} 个字段相同}}",
   "settings_conflict_textDiffHint": "突出显示的词语只出现在该版本中。",

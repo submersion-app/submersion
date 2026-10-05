@@ -35282,12 +35282,6 @@ abstract class AppLocalizations {
   /// **'Resolved {count, plural, =1{1 conflict} other{{count} conflicts}}'**
   String settings_conflict_resolved(int count);
 
-  /// No description provided for @settings_conflict_same.
-  ///
-  /// In en, this message translates to:
-  /// **'Same'**
-  String get settings_conflict_same;
-
   /// No description provided for @settings_conflict_sameContent.
   ///
   /// In en, this message translates to:

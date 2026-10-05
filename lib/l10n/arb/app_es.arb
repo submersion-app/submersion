@@ -6127,7 +6127,6 @@
   "settings_conflict_ref_weightPreset": "Plantilla de lastre",
   "settings_conflict_ref_yourRole": "Tu función",
   "settings_conflict_remoteDeleted": "{device} eliminó este registro.",
-  "settings_conflict_same": "Igual",
   "settings_conflict_sameContent": "Las dos versiones tienen el mismo contenido; solo difiere el momento en que se guardaron. Cualquier opción lo conserva todo.",
   "settings_conflict_sameFields": "{count, plural, one{{count} campo es igual} other{{count} campos son iguales}}",
   "settings_conflict_textDiffHint": "Las palabras resaltadas solo aparecen en esa versión.",

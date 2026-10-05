@@ -6127,7 +6127,6 @@
   "settings_conflict_ref_weightPreset": "قالب الرصاص",
   "settings_conflict_ref_yourRole": "دورك",
   "settings_conflict_remoteDeleted": "حذف {device} هذا السجل.",
-  "settings_conflict_same": "متطابق",
   "settings_conflict_sameContent": "للنسختين المحتوى نفسه؛ يختلف وقت الحفظ فقط. أي خيار يحتفظ بكل شيء.",
   "settings_conflict_sameFields": "{count, plural, zero{لا توجد حقول متطابقة} one{حقل واحد متطابق} two{حقلان متطابقان} few{{count} حقول متطابقة} many{{count} حقلًا متطابقًا} other{{count} حقل متطابق}}",
   "settings_conflict_textDiffHint": "الكلمات المميزة موجودة في تلك النسخة فقط.",

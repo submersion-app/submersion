@@ -13,7 +13,21 @@ String formatConflictValue({
   required Object? value,
 }) {
   if (value == null) return l10n.settings_conflict_notSet;
+  try {
+    return _format(l10n, units, field, value);
+  } on ArgumentError {
+    // DateTime refuses epochs beyond +/-8.64e15 ms, which a corrupt or
+    // seconds-for-millis value can reach.
+    return value.toString();
+  }
+}
 
+String _format(
+  AppLocalizations l10n,
+  UnitFormatter units,
+  ConflictField field,
+  Object value,
+) {
   switch (field.kind) {
     case FieldKind.opaque:
       return l10n.settings_conflict_changed;

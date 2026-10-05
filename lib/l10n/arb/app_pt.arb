@@ -6127,7 +6127,6 @@
   "settings_conflict_ref_weightPreset": "Modelo de lastro",
   "settings_conflict_ref_yourRole": "Sua função",
   "settings_conflict_remoteDeleted": "{device} excluiu este registro.",
-  "settings_conflict_same": "Igual",
   "settings_conflict_sameContent": "As duas versões têm o mesmo conteúdo; só o momento em que foram salvas é diferente. Qualquer escolha mantém tudo.",
   "settings_conflict_sameFields": "{count, plural, one{{count} campo é igual} other{{count} campos são iguais}}",
   "settings_conflict_textDiffHint": "As palavras destacadas só aparecem nessa versão.",

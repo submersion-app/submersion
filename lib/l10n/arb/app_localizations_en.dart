@@ -21468,9 +21468,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settings_conflict_same => 'Same';
-
-  @override
   String get settings_conflict_sameContent =>
       'Both versions have the same content; only the time they were saved differs. Either choice keeps everything.';
 

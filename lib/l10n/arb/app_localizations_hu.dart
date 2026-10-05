@@ -21757,9 +21757,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get settings_conflict_same => 'Egyező';
-
-  @override
   String get settings_conflict_sameContent =>
       'A két verzió tartalma azonos; csak a mentés időpontja tér el. Bármelyiket választod, minden megmarad.';
 

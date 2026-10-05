@@ -155,6 +155,17 @@ void main() {
     );
   });
 
+  testWidgets('a short text differing only in spacing says so', (tester) async {
+    await _pump(
+      tester,
+      ConflictComparison(
+        state: ConflictComparisonState.differing,
+        differences: [_diff('Name', 'Blue Hole', 'Blue Hole ')],
+      ),
+    );
+    expect(find.text('Only spacing or line breaks differ.'), findsOneWidget);
+  });
+
   testWidgets('a remote deletion is a banner over the local values', (
     tester,
   ) async {

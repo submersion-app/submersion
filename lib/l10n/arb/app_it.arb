@@ -6026,7 +6026,6 @@
   "settings_conflict_ref_weightPreset": "Modello di zavorra",
   "settings_conflict_ref_yourRole": "Il tuo ruolo",
   "settings_conflict_remoteDeleted": "{device} ha eliminato questo record.",
-  "settings_conflict_same": "Uguale",
   "settings_conflict_sameContent": "Le due versioni hanno lo stesso contenuto; cambia solo il momento in cui sono state salvate. Qualunque scelta conserva tutto.",
   "settings_conflict_sameFields": "{count, plural, one{{count} campo è uguale} other{{count} campi sono uguali}}",
   "settings_conflict_textDiffHint": "Le parole evidenziate compaiono solo in quella versione.",

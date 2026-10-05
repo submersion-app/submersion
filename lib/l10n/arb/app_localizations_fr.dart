@@ -21917,9 +21917,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get settings_conflict_same => 'Identique';
-
-  @override
   String get settings_conflict_sameContent =>
       'Les deux versions ont le même contenu ; seul le moment de l\'enregistrement diffère. Quel que soit votre choix, rien n\'est perdu.';
 
