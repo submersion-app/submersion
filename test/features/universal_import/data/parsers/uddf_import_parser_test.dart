@@ -43,4 +43,51 @@ void main() {
     expect((roles.single as Map)['id'], 'custom-uuid');
     expect((roles.single as Map)['name'], 'Photographer');
   });
+
+  test('carries certification currency rows in the metadata', () async {
+    // Issue #2267: currency rows have no review step, so they cross the
+    // wizard as metadata, each pref and event naming its <cert>.
+    const uddf = '''
+<?xml version="1.0" encoding="UTF-8"?>
+<uddf version="3.2.0">
+  <applicationdata>
+    <submersion>
+      <certifications>
+        <cert id="cert_c1"><name>Full Cave</name><agency>tdi</agency></cert>
+      </certifications>
+      <currencyrules>
+        <currencyrule id="custom-1">
+          <name>Club check-out</name>
+          <clockkind>activity</clockkind>
+          <lapsedays>180</lapsedays>
+          <leaddays>30</leaddays>
+        </currencyrule>
+      </currencyrules>
+      <currencyprefs>
+        <currencypref id="p1" certref="cert_c1" rule="custom-1">
+          <muted>true</muted>
+        </currencypref>
+      </currencyprefs>
+      <currencyevents>
+        <currencyevent id="e1" certref="cert_c1" rule="custom-1">
+          <type>refresher</type>
+          <date>2026-05-01T00:00:00.000</date>
+        </currencyevent>
+      </currencyevents>
+    </submersion>
+  </applicationdata>
+</uddf>
+''';
+
+    final payload = await UddfImportParser().parse(
+      Uint8List.fromList(utf8.encode(uddf)),
+    );
+
+    final rules = payload.metadata[ImportPayload.currencyRulesKey] as List;
+    final prefs = payload.metadata[ImportPayload.currencyPrefsKey] as List;
+    final events = payload.metadata[ImportPayload.currencyEventsKey] as List;
+    expect((rules.single as Map)['id'], 'custom-1');
+    expect((prefs.single as Map)['certificationRef'], 'cert_c1');
+    expect((events.single as Map)['eventType'], 'refresher');
+  });
 }

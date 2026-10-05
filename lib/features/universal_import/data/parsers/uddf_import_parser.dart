@@ -82,6 +82,12 @@ class UddfImportParser implements ImportParser {
             ImportPayload.customDiveRolesKey: result.customDiveRoles,
           if (result.customSiteTypes.isNotEmpty)
             ImportPayload.customSiteTypesKey: result.customSiteTypes,
+          if (result.currencyRules.isNotEmpty)
+            ImportPayload.currencyRulesKey: result.currencyRules,
+          if (result.currencyPrefs.isNotEmpty)
+            ImportPayload.currencyPrefsKey: result.currencyPrefs,
+          if (result.currencyEvents.isNotEmpty)
+            ImportPayload.currencyEventsKey: result.currencyEvents,
         },
       );
     } on FormatException catch (e) {

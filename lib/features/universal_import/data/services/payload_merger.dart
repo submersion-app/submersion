@@ -140,6 +140,13 @@ class PayloadMerger {
     // across files by design, like dive type slugs, so the same id in two
     // files is the same type and is not namespaced.
     final customSiteTypes = <String, Map<String, dynamic>>{};
+    // Certification currency (issue #2267). Rules key on their own id, like
+    // dive roles. Prefs and events name a certification by its uddfId, which
+    // is namespaced per file below, so their certificationRef is namespaced
+    // the same way or no restored certification would ever match it.
+    final currencyRules = <String, Map<String, dynamic>>{};
+    final currencyPrefs = <Map<String, dynamic>>[];
+    final currencyEvents = <Map<String, dynamic>>[];
 
     for (final input in inputs) {
       warnings.addAll(input.payload.warnings);
@@ -167,6 +174,27 @@ class PayloadMerger {
       for (final type in siteTypes is List ? siteTypes : const []) {
         if (type is Map<String, dynamic> && type['id'] is String) {
           customSiteTypes.putIfAbsent(type['id'] as String, () => type);
+        }
+      }
+      final rules = input.payload.metadata[ImportPayload.currencyRulesKey];
+      for (final rule in rules is List ? rules : const []) {
+        if (rule is Map<String, dynamic> && rule['id'] is String) {
+          currencyRules.putIfAbsent(rule['id'] as String, () => rule);
+        }
+      }
+      for (final (key, out) in [
+        (ImportPayload.currencyPrefsKey, currencyPrefs),
+        (ImportPayload.currencyEventsKey, currencyEvents),
+      ]) {
+        final rows = input.payload.metadata[key];
+        for (final row in rows is List ? rows : const []) {
+          if (row is! Map<String, dynamic>) continue;
+          final ref = row['certificationRef'];
+          out.add({
+            ...row,
+            if (ref is String && ref.isNotEmpty)
+              'certificationRef': '${input.fileId}:$ref',
+          });
         }
       }
 
@@ -233,6 +261,12 @@ class PayloadMerger {
           ImportPayload.customDiveRolesKey: customDiveRoles.values.toList(),
         if (customSiteTypes.isNotEmpty)
           ImportPayload.customSiteTypesKey: customSiteTypes.values.toList(),
+        if (currencyRules.isNotEmpty)
+          ImportPayload.currencyRulesKey: currencyRules.values.toList(),
+        if (currencyPrefs.isNotEmpty)
+          ImportPayload.currencyPrefsKey: currencyPrefs,
+        if (currencyEvents.isNotEmpty)
+          ImportPayload.currencyEventsKey: currencyEvents,
       },
     );
   }
