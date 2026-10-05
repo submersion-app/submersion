@@ -41,6 +41,19 @@ class RenderSizeReporter extends RenderProxyBox {
     if (laidOut == _reported) return;
     _reported = laidOut;
     // After the frame: the listener may rebuild, which layout must not do.
-    WidgetsBinding.instance.addPostFrameCallback((_) => onChange(laidOut));
+    // Skipped if this left the tree in the meantime: a subtree can be
+    // removed after its layout (a LayoutBuilder rebuilding during layout),
+    // and its owner's State is disposed before post-frame callbacks run.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (attached) onChange(laidOut);
+    });
+  }
+
+  @override
+  void detach() {
+    // A report may have been skipped above, so one that comes back to the
+    // tree reports its size again rather than assuming it was delivered.
+    _reported = null;
+    super.detach();
   }
 }
