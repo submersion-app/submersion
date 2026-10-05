@@ -211,5 +211,11 @@ extension RungsFromV231 on AppDatabase {
       await _assertDistanceUnitColumn();
     }
     if (from < 263) await reportProgress();
+    // v267: equipment locations and their move log. Re-asserted in
+    // beforeOpen. 264 to 266 are held by open branches.
+    if (from < 267) {
+      await _assertEquipmentLocationSchema();
+    }
+    if (from < 267) await reportProgress();
   }
 }

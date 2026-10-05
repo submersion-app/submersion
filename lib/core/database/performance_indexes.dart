@@ -215,6 +215,21 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_equipment_ownership_events_equipment '
         'ON equipment_ownership_events(equipment_id, occurred_at)',
   ),
+  // An item's location history, newest first, and its current location
+  // (v267).
+  (
+    name: 'idx_equipment_location_moves_equipment',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_equipment_location_moves_equipment '
+        'ON equipment_location_moves(equipment_id, moved_at)',
+  ),
+  // "Is this place used anywhere", for archive versus delete (v267).
+  (
+    name: 'idx_equipment_location_moves_location',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_equipment_location_moves_location '
+        'ON equipment_location_moves(location_id)',
+  ),
   (
     name: 'idx_equipment_components_component',
     ddl:

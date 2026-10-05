@@ -88,6 +88,7 @@ extension SyncMigrations on AppDatabase {
       'equipment_tags',
       'equipment_shares',
       'equipment_ownership_events',
+      'equipment_location_moves',
       'dive_profile_events',
       'dive_safety_reviews',
       'dive_safety_findings',

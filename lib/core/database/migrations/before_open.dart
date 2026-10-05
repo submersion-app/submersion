@@ -166,10 +166,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // (parallel-branch version-collision self-heal; all idempotent).
     await _assertTripCylindersSchema();
 
-    // v234 backstop: the equipment sharing tables and the share pair
-    // index (parallel-branch version-collision self-heal; all
-    // idempotent).
-    await _assertEquipmentSharingSchema();
+    // v234 and v267 backstops: the equipment sharing tables and share pair
+    // index, and the equipment location tables (parallel-branch
+    // version-collision self-heal; all idempotent).
+    await _assertEquipmentSchemaBackstops();
 
     // v235 backstop: connection_maps and idx_sightings_dive_id
     // (parallel-branch version-collision self-heal; idempotent).

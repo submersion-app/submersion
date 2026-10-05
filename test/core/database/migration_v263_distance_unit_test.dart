@@ -47,14 +47,12 @@ void main() {
     };
   }
 
-  test('v263 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands. 262 is held by an open
-    // branch (#2991), so from 261 this is one step.
-    expect(AppDatabase.currentSchemaVersion, 263);
+  test('v263 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v267 landed on top; the newest rung owns the exact
+    // assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(263));
     expect(AppDatabase.migrationVersions, contains(263));
-    expect(AppDatabase.migrationVersions.last, 263);
-    expect(AppDatabase.migrationStepCount(261), 1);
+    expect(AppDatabase.migrationStepCount(261), greaterThanOrEqualTo(1));
   });
 
   test('the column is additive and did not move the sync floor', () {

@@ -1,0 +1,95 @@
+import 'package:drift/native.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
+
+/// Schema v267: equipment locations and their move log.
+void main() {
+  Future<Set<String>> columnsOf(AppDatabase db, String table) async {
+    final cols = await db.customSelect("PRAGMA table_info('$table')").get();
+    return cols.map((c) => c.read<String>('name')).toSet();
+  }
+
+  Future<Set<String>> indexesOf(AppDatabase db, String table) async {
+    final rows = await db.customSelect("PRAGMA index_list('$table')").get();
+    return rows.map((r) => r.read<String>('name')).toSet();
+  }
+
+  test('v267 is the current schema version and in the ladder', () {
+    // The newest rung owns the exact assertion; relax it to
+    // greaterThanOrEqualTo when the next one lands. 264 to 266 are held by
+    // open branches, so from 263 this is one step.
+    expect(AppDatabase.currentSchemaVersion, 267);
+    expect(AppDatabase.migrationVersions.last, 267);
+    expect(AppDatabase.migrationStepCount(263), 1);
+  });
+
+  test('a fresh database has both tables and their indexes', () async {
+    final db = AppDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    expect(await columnsOf(db, 'equipment_locations'), {
+      'id',
+      'diver_id',
+      'name',
+      'kind',
+      'notes',
+      'is_archived',
+      'created_at',
+      'updated_at',
+      'hlc',
+    });
+    expect(await columnsOf(db, 'equipment_location_moves'), {
+      'id',
+      'equipment_id',
+      'location_id',
+      'moved_at',
+      'note',
+      'created_at',
+      'hlc',
+    });
+    expect(
+      await indexesOf(db, 'equipment_location_moves'),
+      containsAll([
+        'idx_equipment_location_moves_equipment',
+        'idx_equipment_location_moves_location',
+      ]),
+    );
+  });
+
+  test('beforeOpen creates the tables on a file already at 267 without '
+      'them', () async {
+    // A database that reached 267 through a parallel branch's rung, or by
+    // restore, never runs this rung: the backstop must heal it.
+    final db = AppDatabase(
+      NativeDatabase.memory(
+        setup: (rawDb) {
+          rawDb.execute('PRAGMA user_version = 267');
+          rawDb.execute('CREATE TABLE divers (id TEXT PRIMARY KEY)');
+          rawDb.execute('CREATE TABLE dive_sites (id TEXT PRIMARY KEY)');
+          rawDb.execute('CREATE TABLE dives (id TEXT PRIMARY KEY)');
+          rawDb.execute(
+            'CREATE TABLE equipment (id TEXT NOT NULL PRIMARY KEY)',
+          );
+        },
+      ),
+    );
+    addTearDown(db.close);
+    expect(await columnsOf(db, 'equipment_locations'), contains('kind'));
+    expect(
+      await columnsOf(db, 'equipment_location_moves'),
+      contains('moved_at'),
+    );
+  });
+
+  test('the rung skips a partial fixture without the parent tables', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(
+        setup: (rawDb) {
+          rawDb.execute('PRAGMA user_version = 267');
+          rawDb.execute('CREATE TABLE dives (id TEXT PRIMARY KEY)');
+        },
+      ),
+    );
+    addTearDown(db.close);
+    expect(await columnsOf(db, 'equipment_locations'), isEmpty);
+  });
+}
