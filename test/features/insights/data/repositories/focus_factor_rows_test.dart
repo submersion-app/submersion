@@ -225,4 +225,61 @@ void main() {
     );
     expect(result.map((r) => r.diveId), ['deep']);
   });
+
+  test(
+    'weight sums the dive weight rows and falls back to the legacy column',
+    () async {
+      await dive('rows');
+      for (final (id, kg) in [('w1', 4.0), ('w2', 3.0)]) {
+        await db
+            .into(db.diveWeights)
+            .insert(
+              DiveWeightsCompanion(
+                id: Value(id),
+                diveId: const Value('rows'),
+                weightType: const Value('belt'),
+                amountKg: Value(kg),
+                createdAt: const Value(0),
+              ),
+            );
+      }
+      await dive('legacy', day: 2);
+      final byId = {
+        for (final r in await repository.getFocusFactorRows(
+          visibilityScale: scale,
+        ))
+          r.diveId: r,
+      };
+      expect(byId['rows']!.weight, 7);
+      // The helper sets the retired weight_amount column to 6 kg.
+      expect(byId['legacy']!.weight, 6);
+    },
+  );
+
+  test(
+    'duration falls back to entry and exit times like the dive page',
+    () async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final entry = DateTime.utc(2025, 3, 9, 9).millisecondsSinceEpoch;
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion(
+              id: const Value('timed'),
+              diveDateTime: Value(entry),
+              entryTime: Value(entry),
+              exitTime: Value(entry + 52 * 60 * 1000),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+      final byId = {
+        for (final r in await repository.getFocusFactorRows(
+          visibilityScale: scale,
+        ))
+          r.diveId: r,
+      };
+      expect(byId['timed']!.durationMinutes, 52);
+    },
+  );
 }
