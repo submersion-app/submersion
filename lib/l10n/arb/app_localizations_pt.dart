@@ -10656,7 +10656,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count pontos',
-      one: '1 ponto',
+      one: '$count ponto',
     );
     return '$_temp0';
   }

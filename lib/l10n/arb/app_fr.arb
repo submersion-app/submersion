@@ -3107,7 +3107,7 @@
   "diveSites_list_selection_mergeTooltip": "Fusionner la sélection",
   "diveSites_list_sort_title": "Trier les sites",
   "diveSites_group_noCountry": "Sans pays",
-  "diveSites_group_siteCount": "{count, plural, =1{1 site} other{{count} sites}}",
+  "diveSites_group_siteCount": "{count, plural, =1{{count} site} other{{count} sites}}",
   "diveSites_picker_nearby": "À proximité",
   "diveSites_list_groupBy": "Grouper par",
   "diveSites_list_groupBy_location": "Pays et région",

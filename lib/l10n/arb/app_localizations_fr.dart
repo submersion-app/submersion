@@ -10689,7 +10689,7 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count sites',
-      one: '1 site',
+      one: '$count site',
     );
     return '$_temp0';
   }

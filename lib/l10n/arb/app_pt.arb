@@ -3208,7 +3208,7 @@
   "diveSites_list_selection_mergeTooltip": "Mesclar selecionados",
   "diveSites_list_sort_title": "Ordenar Pontos",
   "diveSites_group_noCountry": "Sem país",
-  "diveSites_group_siteCount": "{count, plural, =1{1 ponto} other{{count} pontos}}",
+  "diveSites_group_siteCount": "{count, plural, =1{{count} ponto} other{{count} pontos}}",
   "diveSites_picker_nearby": "Por perto",
   "diveSites_list_groupBy": "Agrupar por",
   "diveSites_list_groupBy_location": "País e região",
