@@ -10,6 +10,7 @@ import 'package:submersion/features/media/domain/services/media_source_resolver.
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
+import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -17,8 +18,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/test_database.dart';
 
 class _UnavailableResolver implements MediaSourceResolver {
+  _UnavailableResolver([this.sourceType = MediaSourceType.platformGallery]);
   @override
-  MediaSourceType get sourceType => MediaSourceType.platformGallery;
+  final MediaSourceType sourceType;
   @override
   bool canResolveOnThisDevice(MediaItem item) => true;
   @override
@@ -66,8 +68,12 @@ void main() {
           mediaSourceResolverRegistryProvider.overrideWithValue(
             MediaSourceResolverRegistry({
               MediaSourceType.platformGallery: _UnavailableResolver(),
+              MediaSourceType.serviceConnector: _UnavailableResolver(
+                MediaSourceType.serviceConnector,
+              ),
             }),
           ),
+          lightroomAccountProvider.overrideWith((ref) async => null),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -246,5 +252,27 @@ void main() {
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
     expect(find.byType(MediaViewerPage), findsNothing);
+  });
+
+  testWidgets('a Lightroom-linked video hides its badge and reveals the '
+      'exit button on tap', (tester) async {
+    final connectorVideo = MediaItem(
+      id: 'lr1',
+      mediaType: MediaType.video,
+      sourceType: MediaSourceType.serviceConnector,
+      remoteAssetId: 'asset-1',
+      takenAt: DateTime.utc(2026, 7, 1, 10),
+      createdAt: DateTime.utc(2026, 7, 1),
+      updatedAt: DateTime.utc(2026, 7, 1),
+    );
+    await pumpViewer(tester, media: [connectorVideo]);
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+
+    await enterFullscreen(tester);
+    // The poster's play badge is chrome too.
+    expect(find.byIcon(Icons.play_arrow), findsNothing);
+
+    await tapPhoto(tester);
+    expect(exitButton, findsOneWidget);
   });
 }

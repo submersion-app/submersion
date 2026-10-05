@@ -492,6 +492,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                     onToggleOverlay: () =>
                         setState(() => _showOverlay = !_showOverlay),
                     fullscreen: isFullscreen,
+                    onFullscreenTap: toggleFullscreenControls,
                     onSetOverlay: _onSetOverlay,
                     onVideoControllerChanged: _onVideoControllerChanged,
                     currentIndex: currentIndex,
@@ -857,6 +858,10 @@ class _PhotoGallery extends ConsumerWidget {
 
   /// The viewer's fullscreen mode, passed on to video pages.
   final bool fullscreen;
+
+  /// A tap on a Lightroom-linked video in fullscreen, which has no player of
+  /// its own to report play/pause.
+  final VoidCallback onFullscreenTap;
   final VoidCallback onToggleOverlay;
   final ValueChanged<bool> onSetOverlay;
   final void Function(String mediaId, VideoPlayerController? controller)
@@ -869,6 +874,7 @@ class _PhotoGallery extends ConsumerWidget {
     required this.onPageChanged,
     required this.showOverlay,
     required this.fullscreen,
+    required this.onFullscreenTap,
     required this.onToggleOverlay,
     required this.onSetOverlay,
     required this.onVideoControllerChanged,
@@ -896,7 +902,12 @@ class _PhotoGallery extends ConsumerWidget {
             return PhotoViewGalleryPageOptions.customChild(
               minScale: PhotoViewComputedScale.contained,
               maxScale: PhotoViewComputedScale.contained,
-              child: _ConnectorVideoItem(item: item),
+              child: _ConnectorVideoItem(
+                item: item,
+                fullscreen: fullscreen,
+                showControls: showOverlay,
+                onFullscreenTap: onFullscreenTap,
+              ),
             );
           }
           return PhotoViewGalleryPageOptions.customChild(
@@ -946,7 +957,19 @@ class _PhotoItem extends StatelessWidget {
 class _ConnectorVideoItem extends ConsumerWidget {
   final MediaItem item;
 
-  const _ConnectorVideoItem({required this.item});
+  /// In the viewer's fullscreen mode a tap reveals the exit control rather
+  /// than opening Lightroom, and the play badge shows only with the revealed
+  /// controls ([showControls]); the badge itself still opens Lightroom.
+  final bool fullscreen;
+  final bool showControls;
+  final VoidCallback? onFullscreenTap;
+
+  const _ConnectorVideoItem({
+    required this.item,
+    this.fullscreen = false,
+    this.showControls = true,
+    this.onFullscreenTap,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -965,48 +988,46 @@ class _ConnectorVideoItem extends ConsumerWidget {
         : () => unawaited(
             launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
           );
+    final badge = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Semantics(
+          button: url != null,
+          label: context.l10n.media_lightroom_openInLightroom,
+          onTap: onOpen,
+          child: Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.play_arrow, color: Colors.white, size: 48),
+          ),
+        ),
+        if (url != null) ...[
+          const SizedBox(height: 12),
+          // Label already voiced by the Semantics button above.
+          ExcludeSemantics(
+            child: Text(
+              context.l10n.media_lightroom_openInLightroom,
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.85)),
+            ),
+          ),
+        ],
+      ],
+    );
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: onOpen,
+      onTap: fullscreen ? onFullscreenTap : onOpen,
       child: Stack(
         alignment: Alignment.center,
         children: [
           MediaItemView(item: item, fit: BoxFit.contain),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Semantics(
-                button: url != null,
-                label: context.l10n.media_lightroom_openInLightroom,
-                onTap: onOpen,
-                child: Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.play_arrow,
-                    color: Colors.white,
-                    size: 48,
-                  ),
-                ),
-              ),
-              if (url != null) ...[
-                const SizedBox(height: 12),
-                // Label already voiced by the Semantics button above.
-                ExcludeSemantics(
-                  child: Text(
-                    context.l10n.media_lightroom_openInLightroom,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.85),
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
+          if (!fullscreen)
+            badge
+          else if (showControls)
+            GestureDetector(onTap: onOpen, child: badge),
         ],
       ),
     );

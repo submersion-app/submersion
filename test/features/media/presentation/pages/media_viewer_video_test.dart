@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
@@ -99,12 +101,17 @@ class _FakeVideoPlatform extends VideoPlayerPlatform {
   }
 }
 
+/// A clip path under the platform's temp directory. The fake platform never
+/// opens it; it only has to be a valid path on every OS (issue #2279).
+String _tempVideoPath(String id) =>
+    p.join(Directory.systemTemp.path, '$id.mp4');
+
 MediaItem video(String id) => MediaItem(
   id: id,
   mediaType: MediaType.video,
   sourceType: MediaSourceType.localFile,
-  filePath: '/tmp/$id.mp4',
-  localPath: '/tmp/$id.mp4',
+  filePath: _tempVideoPath(id),
+  localPath: _tempVideoPath(id),
   takenAt: DateTime.utc(2026, 7, 1, 10),
   createdAt: DateTime.utc(2026, 7, 1),
   updatedAt: DateTime.utc(2026, 7, 1),
@@ -189,7 +196,7 @@ void main() {
               }),
             ),
             resolvedFilePathProvider.overrideWith(
-              (ref, MediaItem arg) async => '/tmp/v1.mp4',
+              (ref, MediaItem arg) async => _tempVideoPath('v1'),
             ),
           ],
           child: MaterialApp(
@@ -236,7 +243,7 @@ void main() {
               }),
             ),
             resolvedFilePathProvider.overrideWith(
-              (ref, MediaItem arg) async => '/tmp/v1.mp4',
+              (ref, MediaItem arg) async => _tempVideoPath('v1'),
             ),
           ],
           child: MaterialApp(
@@ -333,7 +340,7 @@ void main() {
               }),
             ),
             resolvedFilePathProvider.overrideWith(
-              (ref, MediaItem arg) async => '/tmp/v1.mp4',
+              (ref, MediaItem arg) async => _tempVideoPath('v1'),
             ),
           ],
           child: MaterialApp(

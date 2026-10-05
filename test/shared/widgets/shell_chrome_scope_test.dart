@@ -70,6 +70,16 @@ class _HostState extends State<_Host> {
   );
 }
 
+/// Every instance equals every other, the way two holders using the same
+/// string or value object as a token would.
+class _EqualToken {
+  @override
+  bool operator ==(Object other) => other is _EqualToken;
+
+  @override
+  int get hashCode => 0;
+}
+
 void main() {
   late ShellChromeController controller;
 
@@ -112,6 +122,22 @@ void main() {
     controller.releaseHidden(b);
     await tester.pump();
     expect(find.text('shown'), findsOneWidget);
+  });
+
+  testWidgets('equal but distinct tokens are still separate holders', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app(const SizedBox()));
+    final a = _EqualToken();
+    final b = _EqualToken();
+    controller
+      ..requestHidden(a)
+      ..requestHidden(b);
+    await tester.pump();
+
+    controller.releaseHidden(a);
+    await tester.pump();
+    expect(find.text('hidden'), findsOneWidget);
   });
 
   testWidgets('releasing a token that was never requested is a no-op', (

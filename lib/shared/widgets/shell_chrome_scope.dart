@@ -8,7 +8,9 @@ import 'package:flutter/widgets.dart';
 /// chrome stays hidden until every token is released, so two pages can never
 /// cancel each other's request. The shell knows nothing about who asks.
 class ShellChromeController extends ChangeNotifier {
-  final Set<Object> _tokens = {};
+  // Identity, not ==: two holders that happen to use equal tokens (the same
+  // string, say) must still release independently.
+  final Set<Object> _tokens = Set.identity();
   bool _disposed = false;
 
   bool get isHidden => _tokens.isNotEmpty;
