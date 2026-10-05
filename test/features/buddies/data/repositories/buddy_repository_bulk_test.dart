@@ -168,7 +168,7 @@ void main() {
     await repository.bulkAddBuddies(['d2'], [bwrRole('mixed', 'student')]);
 
     final roles = await repository.unanimousBuddyRolesForDives(['d1', 'd2']);
-    expect(roles['same'], 'student');
+    expect(roles['same'], ['student']);
     expect(roles.containsKey('mixed'), isFalse);
     expect(await repository.unanimousBuddyRolesForDives(const []), isEmpty);
   });

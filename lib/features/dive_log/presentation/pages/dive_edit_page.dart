@@ -1322,7 +1322,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// Role id each buddy already carries on every selected dive that has them,
   /// so filling in the missing links reuses it instead of the default Buddy.
   /// Buddies with a mix of roles across the selection are absent.
-  final Map<String, String> _existingBuddyRoleIds = {};
+  final Map<String, List<String>> _existingBuddyRoleIds = {};
   List<BulkMembershipItem> _buddyMembers = [];
   MembershipDelta _buddyDelta = MembershipDelta.empty;
 
@@ -1575,7 +1575,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final picked = _buddyRoleById[id];
     if (picked != null) return picked.id;
     final existing = _existingBuddyRoleIds[id];
-    if (existing != null) return existing;
+    if (existing != null) return existing.first;
     // Not on any selected dive yet (a fresh picker add): the link the save
     // will create defaults to Buddy, so say so rather than "Mixed".
     return (_buddyCounts[id] ?? 0) == 0 ? DiveRole.buddyId : null;
@@ -4522,7 +4522,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final existing = _existingBuddyRoleIds[id];
     return existing == null
         ? DiveRole.builtInBuddy()
-        : DiveRole.synthetic(existing);
+        : DiveRole.synthetic(existing.first);
   }
 
   void _saveEquipmentAsSet() {
