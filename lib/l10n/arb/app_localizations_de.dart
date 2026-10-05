@@ -20641,6 +20641,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Welche Wartung deine Ausrüstung braucht und wie oft';
 
   @override
+  String get settings_manage_locations => 'Locations';
+
+  @override
+  String get settings_manage_locations_subtitle =>
+      'Where your gear is kept, serviced or lent';
+
+  @override
   String get settings_migrationProgress_doNotClose =>
       'Bitte schließen Sie die App nicht';
 

@@ -20345,6 +20345,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Maintenance your gear needs, and how often';
 
   @override
+  String get settings_manage_locations => 'Locations';
+
+  @override
+  String get settings_manage_locations_subtitle =>
+      'Where your gear is kept, serviced or lent';
+
+  @override
   String get settings_migrationProgress_doNotClose =>
       'Please do not close the app';
 

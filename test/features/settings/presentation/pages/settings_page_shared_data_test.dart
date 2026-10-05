@@ -171,6 +171,11 @@ class _FakeAppSettingsRepository implements AppSettingsRepository {
   Future<bool> getNavAlwaysHideLabels() async => false;
   @override
   Future<void> setNavAlwaysHideLabels(bool value) async {}
+
+  @override
+  Future<bool> getEquipmentGroupByLocation() async => false;
+  @override
+  Future<void> setEquipmentGroupByLocation(bool value) async {}
 }
 
 /// Mock SettingsNotifier that doesn't access the database.

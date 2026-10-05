@@ -69,6 +69,8 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_edit_
 import 'package:submersion/features/cylinder_configs/presentation/pages/cylinder_config_edit_page.dart';
 import 'package:submersion/features/cylinder_configs/presentation/pages/cylinder_config_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_list_page.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_location_detail_page.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_location_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/service_kind_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
@@ -597,6 +599,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 // nested navigator this page would open behind that dialog.
                 parentNavigatorKey: rootNavigatorKey,
                 builder: (context, state) => const ServiceKindListPage(),
+              ),
+              // Settings > Manage > Locations (v267). Before the
+              // ':equipmentId' catch-all, like service-types.
+              GoRoute(
+                path: 'locations',
+                name: 'manageEquipmentLocations',
+                parentNavigatorKey: rootNavigatorKey,
+                builder: (context, state) => const EquipmentLocationListPage(),
+                routes: [
+                  GoRoute(
+                    path: ':locationId',
+                    name: 'equipmentLocationDetail',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => EquipmentLocationDetailPage(
+                      locationId: state.pathParameters['locationId']!,
+                    ),
+                  ),
+                ],
               ),
               // Must precede the ':equipmentId' catch-all below, which would
               // otherwise swallow 'cylinder-configs' as an equipment id.

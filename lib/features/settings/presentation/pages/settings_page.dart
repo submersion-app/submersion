@@ -2527,6 +2527,17 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  key: const ValueKey('settings_manage_locations'),
+                  leading: const Icon(Icons.place_outlined),
+                  title: Text(context.l10n.settings_manage_locations),
+                  subtitle: Text(
+                    context.l10n.settings_manage_locations_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/equipment/locations'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.auto_fix_high),
                   title: Text(context.l10n.settings_manage_setupAssistant),
                   subtitle: Text(

@@ -20663,6 +20663,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'La manutenzione che serve alla tua attrezzatura, e ogni quanto';
 
   @override
+  String get settings_manage_locations => 'Locations';
+
+  @override
+  String get settings_manage_locations_subtitle =>
+      'Where your gear is kept, serviced or lent';
+
+  @override
   String get settings_migrationProgress_doNotClose => 'Non chiudere l\'app';
 
   @override

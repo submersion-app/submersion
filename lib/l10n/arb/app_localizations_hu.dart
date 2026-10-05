@@ -20605,6 +20605,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Milyen karbantartást igényel a felszerelésed, és milyen gyakran';
 
   @override
+  String get settings_manage_locations => 'Locations';
+
+  @override
+  String get settings_manage_locations_subtitle =>
+      'Where your gear is kept, serviced or lent';
+
+  @override
   String get settings_migrationProgress_doNotClose =>
       'Kérem, ne zárja be az alkalmazást';
 

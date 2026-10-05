@@ -20893,6 +20893,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'الصيانة التي تحتاجها معداتك، وعدد مراتها';
 
   @override
+  String get settings_manage_locations => 'Locations';
+
+  @override
+  String get settings_manage_locations_subtitle =>
+      'Where your gear is kept, serviced or lent';
+
+  @override
   String get settings_migrationProgress_doNotClose => 'يرجى عدم إغلاق التطبيق';
 
   @override

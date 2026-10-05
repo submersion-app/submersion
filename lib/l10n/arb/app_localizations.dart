@@ -33114,6 +33114,18 @@ abstract class AppLocalizations {
   /// **'Maintenance your gear needs, and how often'**
   String get settings_manage_serviceTypes_subtitle;
 
+  /// Settings > Manage tile opening the list of places where gear is kept
+  ///
+  /// In en, this message translates to:
+  /// **'Locations'**
+  String get settings_manage_locations;
+
+  /// Subtitle of the Locations tile in Settings > Manage
+  ///
+  /// In en, this message translates to:
+  /// **'Where your gear is kept, serviced or lent'**
+  String get settings_manage_locations_subtitle;
+
   /// No description provided for @settings_migrationProgress_doNotClose.
   ///
   /// In en, this message translates to:

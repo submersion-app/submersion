@@ -19649,6 +19649,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_manage_serviceTypes_subtitle => '装备需要的保养项目及其频率';
 
   @override
+  String get settings_manage_locations => 'Locations';
+
+  @override
+  String get settings_manage_locations_subtitle =>
+      'Where your gear is kept, serviced or lent';
+
+  @override
   String get settings_migrationProgress_doNotClose => '请不要关闭应用';
 
   @override

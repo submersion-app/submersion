@@ -1702,6 +1702,10 @@ void main() {
             builder: (context, state) => const Text('Service Types Stub'),
           ),
           GoRoute(
+            path: '/equipment/locations',
+            builder: (context, state) => const Text('Locations Stub'),
+          ),
+          GoRoute(
             path: '/site-types',
             builder: (context, state) => const Text('Site Types Stub'),
           ),
@@ -1762,6 +1766,27 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Service Types Stub'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('renders the locations tile and navigates on tap', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildManageWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      final tile = find.byKey(const ValueKey('settings_manage_locations'));
+      expect(tile, findsOneWidget);
+      expect(
+        find.text('Where your gear is kept, serviced or lent'),
+        findsOneWidget,
+      );
+
+      await tester.ensureVisible(tile);
+      await tester.tap(tile);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Locations Stub'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 

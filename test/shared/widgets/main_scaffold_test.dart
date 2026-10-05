@@ -210,6 +210,11 @@ class _FakeRepo implements AppSettingsRepository {
   }
 
   @override
+  Future<bool> getEquipmentGroupByLocation() async => false;
+  @override
+  Future<void> setEquipmentGroupByLocation(bool value) async {}
+
+  @override
   Future<BlenderPreferences?> getBlenderPreferences() async => null;
   @override
   Future<void> setBlenderPreferences(BlenderPreferences prefs) async {}
