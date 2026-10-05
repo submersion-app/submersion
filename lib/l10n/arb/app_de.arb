@@ -2098,6 +2098,46 @@
   "diveLog_detail_section_altitudeDive": "Höhentauchgang",
   "diveLog_detail_section_buddies": "Tauchpartner",
   "diveLog_detail_section_customFields": "Custom Fields",
+  "diveLog_gasSwitches_title": "Gaswechsel",
+  "diveLog_gasSwitches_onTime": "Alle Gaswechsel rechtzeitig",
+  "diveLog_gasSwitches_lateRow": "Gewechselt bei {actual} statt {ideal}, {delay} zu spät",
+  "@diveLog_gasSwitches_lateRow": {
+    "placeholders": {
+      "actual": {
+        "type": "String"
+      },
+      "ideal": {
+        "type": "String"
+      },
+      "delay": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_missedRow": "Nicht gewechselt (ideal bei {ideal})",
+  "@diveLog_gasSwitches_missedRow": {
+    "placeholders": {
+      "ideal": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_extraDeco": "+{extra} Deko",
+  "@diveLog_gasSwitches_extraDeco": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_total": "Zusätzliche Deko gesamt: {extra}",
+  "@diveLog_gasSwitches_total": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_section_decoStatus": "Dekostatus",
   "diveLog_detail_section_details": "Details",
   "diveLog_detail_section_diveProfile": "Tauchprofil",
@@ -2389,6 +2429,7 @@
   "diveLog_legend_label_events": "Ereignisse",
   "diveLog_legend_label_computedEvents": "Berechnete Ereignisse",
   "diveLog_legend_label_gasDensity": "Gasdichte",
+  "diveLog_legend_label_lateGasSwitches": "Späte Gaswechsel",
   "diveLog_legend_label_gasSwitches": "Gaswechsel",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "Herzfrequenz",
@@ -2842,6 +2883,36 @@
   "diveLog_tooltip_temp": "Temp",
   "diveLog_tooltip_time": "Zeit",
   "diveLog_tooltip_tts": "TTS",
+  "diveLog_tooltip_lateSwitch": "Später Wechsel",
+  "diveLog_tooltip_missedSwitch": "Verpasster Wechsel",
+  "diveLog_tooltip_lateSwitchValue": "{gas}, {delay} / {depth} zu spät, +{extra} Deko",
+  "@diveLog_tooltip_lateSwitchValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "delay": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_tooltip_missedSwitchValue": "{gas}, +{extra} Deko",
+  "@diveLog_tooltip_missedSwitchValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_tooltip_gtr": "GTR",
   "diveLog_sources_row_metric": "Messwert",
   "diveLog_sources_row_maxDepth": "Max. Tiefe",
@@ -8228,6 +8299,8 @@
   "divers_edit_priorInvalidNumber": "Gib eine gültige Zahl ein",
   "insights_priorBreakdown": "{logged} erfasst + {prior} früher",
   "insights_divingSince": "Taucht seit {year}",
+  "settings_appearance_lateGasSwitches": "Späte Gaswechsel",
+  "settings_appearance_lateGasSwitches_subtitle": "Späte und verpasste Deko-Gaswechsel im Profil hervorheben",
   "settings_appearance_gasTimeline": "Gas-Zeitleiste",
   "settings_appearance_gasTimeline_subtitle": "Gasverbrauchsleiste standardmäßig unter dem Tauchprofil anzeigen",
   "diveDetailSection_surfaceGps_name": "Oberflächen-GPS",
@@ -8942,6 +9015,14 @@
       }
     }
   },
+  "safetyReview_lateGasSwitch_title": "Ein später oder verpasster Gaswechsel hat {extra} Deko hinzugefügt",
+  "@safetyReview_lateGasSwitch_title": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_timeRange": "Bei {start}–{end}",
   "@safetyReview_timeRange": {
     "placeholders": {
@@ -9021,6 +9102,7 @@
   "safetySettings_rule_missedDecoStop": "Ausgelassene oder verkürzte Deko-Stopps",
   "safetySettings_rule_omittedSafetyStop": "Ausgelassene Sicherheitsstopps",
   "safetySettings_rule_sawtoothProfile": "Sägezahnprofile",
+  "safetySettings_rule_lateGasSwitch": "Später Gaswechsel",
   "safetySettings_rule_highSurfaceGf": "Hoher Gradientenfaktor beim Auftauchen",
   "safetySettings_analyzeAll": "Alle Tauchgänge analysieren",
   "safetySettings_analyzeAll_subtitle": "Sicherheitsüberprüfung für alle noch nicht analysierten Tauchgänge mit Profil ausführen",

@@ -1986,6 +1986,46 @@
   "diveLog_detail_section_altitudeDive": "Magassági merülés",
   "diveLog_detail_section_buddies": "Búvártársak",
   "diveLog_detail_section_customFields": "Custom Fields",
+  "diveLog_gasSwitches_title": "Gázváltások",
+  "diveLog_gasSwitches_onTime": "Minden gázváltás időben",
+  "diveLog_gasSwitches_lateRow": "Váltás {actual} mélységben {ideal} helyett, {delay} késés",
+  "@diveLog_gasSwitches_lateRow": {
+    "placeholders": {
+      "actual": {
+        "type": "String"
+      },
+      "ideal": {
+        "type": "String"
+      },
+      "delay": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_missedRow": "Nincs váltás (ideális: {ideal})",
+  "@diveLog_gasSwitches_missedRow": {
+    "placeholders": {
+      "ideal": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_extraDeco": "+{extra} dekó",
+  "@diveLog_gasSwitches_extraDeco": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_total": "Összes többlet dekó: {extra}",
+  "@diveLog_gasSwitches_total": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_section_decoStatus": "Dekó állapot",
   "diveLog_detail_section_details": "Részletek",
   "diveLog_detail_section_diveProfile": "Merülési profil",
@@ -2277,6 +2317,7 @@
   "diveLog_legend_label_events": "Események",
   "diveLog_legend_label_computedEvents": "Számított események",
   "diveLog_legend_label_gasDensity": "Gáz sűrűség",
+  "diveLog_legend_label_lateGasSwitches": "Késői gázváltások",
   "diveLog_legend_label_gasSwitches": "Gázcserélések",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "Pulzus",
@@ -2730,6 +2771,36 @@
   "diveLog_tooltip_temp": "Hőm.",
   "diveLog_tooltip_time": "Idő",
   "diveLog_tooltip_tts": "TTS",
+  "diveLog_tooltip_lateSwitch": "Késői váltás",
+  "diveLog_tooltip_missedSwitch": "Kihagyott váltás",
+  "diveLog_tooltip_lateSwitchValue": "{gas}, {delay} / {depth} késés, +{extra} dekó",
+  "@diveLog_tooltip_lateSwitchValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "delay": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_tooltip_missedSwitchValue": "{gas}, +{extra} dekó",
+  "@diveLog_tooltip_missedSwitchValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_tooltip_gtr": "GTR",
   "diveLog_sources_row_metric": "Adat",
   "diveLog_sources_row_maxDepth": "Max mélység",
@@ -8125,6 +8196,8 @@
   "divers_edit_priorInvalidNumber": "Adjon meg egy érvényes számot",
   "insights_priorBreakdown": "{logged} naplózva + {prior} korábbi",
   "insights_divingSince": "{year} óta merül",
+  "settings_appearance_lateGasSwitches": "Késői gázváltások",
+  "settings_appearance_lateGasSwitches_subtitle": "A késői és kihagyott dekó gázváltások jelölése a profilon",
   "settings_appearance_gasTimeline": "Gáz idővonal",
   "settings_appearance_gasTimeline_subtitle": "Gázfogyasztási sáv megjelenítése a merülési profil alatt alapértelmezetten",
   "diveDetailSection_surfaceGps_name": "Felszíni GPS",
@@ -8830,6 +8903,14 @@
       }
     }
   },
+  "safetyReview_lateGasSwitch_title": "Egy késői vagy kihagyott gázváltás {extra} dekót adott hozzá",
+  "@safetyReview_lateGasSwitch_title": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_timeRange": "{start}–{end} időpontban",
   "@safetyReview_timeRange": {
     "placeholders": {
@@ -8909,6 +8990,7 @@
   "safetySettings_rule_missedDecoStop": "Kihagyott vagy lerövidített dekó megállók",
   "safetySettings_rule_omittedSafetyStop": "Kihagyott biztonsági megállók",
   "safetySettings_rule_sawtoothProfile": "Fűrészfog-profilok",
+  "safetySettings_rule_lateGasSwitch": "Késői gázváltás",
   "safetySettings_rule_highSurfaceGf": "Magas gradiens faktor felszínre érkezéskor",
   "safetySettings_analyzeAll": "Összes merülés elemzése",
   "safetySettings_analyzeAll_subtitle": "A biztonsági áttekintés futtatása minden olyan profillal rendelkező merülésen, amely még nincs elemezve",

@@ -1986,6 +1986,46 @@
   "diveLog_detail_section_altitudeDive": "צלילת גובה",
   "diveLog_detail_section_buddies": "שותפים",
   "diveLog_detail_section_customFields": "Custom Fields",
+  "diveLog_gasSwitches_title": "החלפות גז",
+  "diveLog_gasSwitches_onTime": "כל החלפות הגז בזמן",
+  "diveLog_gasSwitches_lateRow": "הוחלף ב-{actual} במקום {ideal}, איחור {delay}",
+  "@diveLog_gasSwitches_lateRow": {
+    "placeholders": {
+      "actual": {
+        "type": "String"
+      },
+      "ideal": {
+        "type": "String"
+      },
+      "delay": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_missedRow": "לא הוחלף (אידיאלי ב-{ideal})",
+  "@diveLog_gasSwitches_missedRow": {
+    "placeholders": {
+      "ideal": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_extraDeco": "+{extra} דקו",
+  "@diveLog_gasSwitches_extraDeco": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_total": "סך דקו נוסף: {extra}",
+  "@diveLog_gasSwitches_total": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_section_decoStatus": "מצב דקו",
   "diveLog_detail_section_details": "פרטים",
   "diveLog_detail_section_diveProfile": "פרופיל צלילה",
@@ -2277,6 +2317,7 @@
   "diveLog_legend_label_events": "אירועים",
   "diveLog_legend_label_computedEvents": "אירועים מחושבים",
   "diveLog_legend_label_gasDensity": "צפיפות גז",
+  "diveLog_legend_label_lateGasSwitches": "החלפות גז מאוחרות",
   "diveLog_legend_label_gasSwitches": "החלפות גז",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "קצב לב",
@@ -2730,6 +2771,36 @@
   "diveLog_tooltip_temp": "טמפ'",
   "diveLog_tooltip_time": "זמן",
   "diveLog_tooltip_tts": "TTS",
+  "diveLog_tooltip_lateSwitch": "החלפה מאוחרת",
+  "diveLog_tooltip_missedSwitch": "החלפה שהוחמצה",
+  "diveLog_tooltip_lateSwitchValue": "{gas}, איחור {delay} / {depth}, +{extra} דקו",
+  "@diveLog_tooltip_lateSwitchValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "delay": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_tooltip_missedSwitchValue": "{gas}, +{extra} דקו",
+  "@diveLog_tooltip_missedSwitchValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_tooltip_gtr": "GTR",
   "diveLog_sources_row_metric": "מדד",
   "diveLog_sources_row_maxDepth": "עומק מקסימלי",
@@ -8125,6 +8196,8 @@
   "divers_edit_priorInvalidNumber": "הזן מספר תקין",
   "insights_priorBreakdown": "{logged} מתועדות + {prior} קודמות",
   "insights_divingSince": "צולל מאז {year}",
+  "settings_appearance_lateGasSwitches": "החלפות גז מאוחרות",
+  "settings_appearance_lateGasSwitches_subtitle": "הצללת החלפות גז דקו מאוחרות ושהוחמצו בפרופיל",
   "settings_appearance_gasTimeline": "ציר זמן של הגז",
   "settings_appearance_gasTimeline_subtitle": "הצג את רצועת צריכת הגז מתחת לפרופיל הצלילה כברירת מחדל",
   "diveDetailSection_surfaceGps_name": "GPS פני המים",
@@ -8830,6 +8903,14 @@
       }
     }
   },
+  "safetyReview_lateGasSwitch_title": "החלפת גז מאוחרת או שהוחמצה הוסיפה {extra} דקו",
+  "@safetyReview_lateGasSwitch_title": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_timeRange": "ב-{start}–{end}",
   "@safetyReview_timeRange": {
     "placeholders": {
@@ -8909,6 +8990,7 @@
   "safetySettings_rule_missedDecoStop": "עצירות דקו שהוחמצו או קוצרו",
   "safetySettings_rule_omittedSafetyStop": "עצירות בטיחות שהושמטו",
   "safetySettings_rule_sawtoothProfile": "פרופילי שן מסור",
+  "safetySettings_rule_lateGasSwitch": "החלפת גז מאוחרת",
   "safetySettings_rule_highSurfaceGf": "פקטור גרדיאנט גבוה בעלייה לפני השטח",
   "safetySettings_analyzeAll": "נתח את כל הצלילות",
   "safetySettings_analyzeAll_subtitle": "הרצת סקירת הבטיחות על כל צלילה עם פרופיל שטרם נותחה",

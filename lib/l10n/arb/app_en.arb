@@ -3735,6 +3735,46 @@
   "diveLog_detail_section_altitudeDive": "Altitude Dive",
   "diveLog_detail_section_buddies": "Buddies",
   "diveLog_detail_section_customFields": "Custom Fields",
+  "diveLog_gasSwitches_title": "Gas switches",
+  "diveLog_gasSwitches_onTime": "All gas switches on time",
+  "diveLog_gasSwitches_lateRow": "Switched at {actual} instead of {ideal}, {delay} late",
+  "@diveLog_gasSwitches_lateRow": {
+    "placeholders": {
+      "actual": {
+        "type": "String"
+      },
+      "ideal": {
+        "type": "String"
+      },
+      "delay": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_missedRow": "Not switched (ideal at {ideal})",
+  "@diveLog_gasSwitches_missedRow": {
+    "placeholders": {
+      "ideal": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_extraDeco": "+{extra} deco",
+  "@diveLog_gasSwitches_extraDeco": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_total": "Total extra deco: {extra}",
+  "@diveLog_gasSwitches_total": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_section_decoStatus": "Deco Status",
   "diveLog_detail_section_details": "Details",
   "diveLog_detail_section_diveProfile": "Dive Profile",
@@ -4175,6 +4215,7 @@
   "diveLog_legend_label_events": "Events",
   "diveLog_legend_label_computedEvents": "Computed events",
   "diveLog_legend_label_gasDensity": "Gas Density",
+  "diveLog_legend_label_lateGasSwitches": "Late gas switches",
   "diveLog_legend_label_gasSwitches": "Gas Switches",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "Heart Rate",
@@ -5037,6 +5078,36 @@
   "diveLog_tooltip_temp": "Temp",
   "diveLog_tooltip_time": "Time",
   "diveLog_tooltip_tts": "TTS",
+  "diveLog_tooltip_lateSwitch": "Late switch",
+  "diveLog_tooltip_missedSwitch": "Missed switch",
+  "diveLog_tooltip_lateSwitchValue": "{gas}, {delay} / {depth} late, +{extra} deco",
+  "@diveLog_tooltip_lateSwitchValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "delay": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_tooltip_missedSwitchValue": "{gas}, +{extra} deco",
+  "@diveLog_tooltip_missedSwitchValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_tooltip_gtr": "GTR",
   "diveLog_sources_row_metric": "Metric",
   "diveLog_sources_row_maxDepth": "Max Depth",
@@ -11335,6 +11406,8 @@
   "settings_appearance_colorGradient_custom": "Custom",
   "settings_appearance_gasSwitchMarkers": "Gas switch markers",
   "settings_appearance_gasSwitchMarkers_subtitle": "Show markers for gas switches",
+  "settings_appearance_lateGasSwitches": "Late gas switches",
+  "settings_appearance_lateGasSwitches_subtitle": "Shade late and missed deco gas switches on the profile",
   "settings_appearance_gasTimeline": "Gas timeline",
   "settings_appearance_gasTimeline_subtitle": "Show the gas-usage strip below the dive profile by default",
   "settings_appearance_header_diveDetails": "Dive Details",
@@ -11418,6 +11491,14 @@
       }
     }
   },
+  "safetyReview_lateGasSwitch_title": "A late or missed gas switch added {extra} of deco",
+  "@safetyReview_lateGasSwitch_title": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_timeRange": "At {start}–{end}",
   "@safetyReview_timeRange": {
     "placeholders": {
@@ -11496,6 +11577,7 @@
   "safetySettings_rule_missedDecoStop": "Missed or shortened deco stops",
   "safetySettings_rule_omittedSafetyStop": "Omitted safety stops",
   "safetySettings_rule_sawtoothProfile": "Sawtooth profiles",
+  "safetySettings_rule_lateGasSwitch": "Late gas switch",
   "safetySettings_rule_highSurfaceGf": "High surfacing gradient factor",
   "safetySettings_analyzeAll": "Analyze all dives",
   "safetySettings_analyzeAll_subtitle": "Run the safety review over every dive with a profile that has not been analyzed yet",

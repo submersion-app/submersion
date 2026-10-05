@@ -6279,6 +6279,36 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_detail_section_customFields => 'Custom Fields';
 
   @override
+  String get diveLog_gasSwitches_title => 'Gázváltások';
+
+  @override
+  String get diveLog_gasSwitches_onTime => 'Minden gázváltás időben';
+
+  @override
+  String diveLog_gasSwitches_lateRow(
+    String actual,
+    String ideal,
+    String delay,
+  ) {
+    return 'Váltás $actual mélységben $ideal helyett, $delay késés';
+  }
+
+  @override
+  String diveLog_gasSwitches_missedRow(String ideal) {
+    return 'Nincs váltás (ideális: $ideal)';
+  }
+
+  @override
+  String diveLog_gasSwitches_extraDeco(String extra) {
+    return '+$extra dekó';
+  }
+
+  @override
+  String diveLog_gasSwitches_total(String extra) {
+    return 'Összes többlet dekó: $extra';
+  }
+
+  @override
   String get diveLog_detail_section_decoStatus => 'Dekó állapot';
 
   @override
@@ -7358,6 +7388,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_gasDensity => 'Gáz sűrűség';
+
+  @override
+  String get diveLog_legend_label_lateGasSwitches => 'Késői gázváltások';
 
   @override
   String get diveLog_legend_label_gasSwitches => 'Gázcserélések';
@@ -9221,6 +9254,27 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_tts => 'TTS';
+
+  @override
+  String get diveLog_tooltip_lateSwitch => 'Késői váltás';
+
+  @override
+  String get diveLog_tooltip_missedSwitch => 'Kihagyott váltás';
+
+  @override
+  String diveLog_tooltip_lateSwitchValue(
+    String gas,
+    String delay,
+    String depth,
+    String extra,
+  ) {
+    return '$gas, $delay / $depth késés, +$extra dekó';
+  }
+
+  @override
+  String diveLog_tooltip_missedSwitchValue(String gas, String extra) {
+    return '$gas, +$extra dekó';
+  }
 
   @override
   String get diveLog_tooltip_gtr => 'GTR';
@@ -18160,6 +18214,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Gázváltás jelölők megjelenítés';
 
   @override
+  String get settings_appearance_lateGasSwitches => 'Késői gázváltások';
+
+  @override
+  String get settings_appearance_lateGasSwitches_subtitle =>
+      'A késői és kihagyott dekó gázváltások jelölése a profilon';
+
+  @override
   String get settings_appearance_gasTimeline => 'Gáz idővonal';
 
   @override
@@ -18287,6 +18348,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String safetyReview_lateGasSwitch_title(String extra) {
+    return 'Egy késői vagy kihagyott gázváltás $extra dekót adott hozzá';
+  }
+
+  @override
   String safetyReview_timeRange(String start, String end) {
     return '$start–$end időpontban';
   }
@@ -18411,6 +18477,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get safetySettings_rule_sawtoothProfile => 'Fűrészfog-profilok';
+
+  @override
+  String get safetySettings_rule_lateGasSwitch => 'Késői gázváltás';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>

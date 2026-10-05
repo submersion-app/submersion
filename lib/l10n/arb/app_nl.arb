@@ -2087,6 +2087,46 @@
   "diveLog_detail_section_altitudeDive": "Hoogteduik",
   "diveLog_detail_section_buddies": "Buddy's",
   "diveLog_detail_section_customFields": "Custom Fields",
+  "diveLog_gasSwitches_title": "Gaswissels",
+  "diveLog_gasSwitches_onTime": "Alle gaswissels op tijd",
+  "diveLog_gasSwitches_lateRow": "Gewisseld op {actual} in plaats van {ideal}, {delay} te laat",
+  "@diveLog_gasSwitches_lateRow": {
+    "placeholders": {
+      "actual": {
+        "type": "String"
+      },
+      "ideal": {
+        "type": "String"
+      },
+      "delay": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_missedRow": "Niet gewisseld (ideaal op {ideal})",
+  "@diveLog_gasSwitches_missedRow": {
+    "placeholders": {
+      "ideal": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_extraDeco": "+{extra} deco",
+  "@diveLog_gasSwitches_extraDeco": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_total": "Totale extra deco: {extra}",
+  "@diveLog_gasSwitches_total": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_section_decoStatus": "Decostatus",
   "diveLog_detail_section_details": "Details",
   "diveLog_detail_section_diveProfile": "Duikprofiel",
@@ -2378,6 +2418,7 @@
   "diveLog_legend_label_events": "Gebeurtenissen",
   "diveLog_legend_label_computedEvents": "Berekende gebeurtenissen",
   "diveLog_legend_label_gasDensity": "Gasdichtheid",
+  "diveLog_legend_label_lateGasSwitches": "Late gaswissels",
   "diveLog_legend_label_gasSwitches": "Gaswisselingen",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "Hartslag",
@@ -2831,6 +2872,36 @@
   "diveLog_tooltip_temp": "Temp",
   "diveLog_tooltip_time": "Tijd",
   "diveLog_tooltip_tts": "TTS",
+  "diveLog_tooltip_lateSwitch": "Late wissel",
+  "diveLog_tooltip_missedSwitch": "Gemiste wissel",
+  "diveLog_tooltip_lateSwitchValue": "{gas}, {delay} / {depth} te laat, +{extra} deco",
+  "@diveLog_tooltip_lateSwitchValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "delay": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_tooltip_missedSwitchValue": "{gas}, +{extra} deco",
+  "@diveLog_tooltip_missedSwitchValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_tooltip_gtr": "GTR",
   "diveLog_sources_row_metric": "Meting",
   "diveLog_sources_row_maxDepth": "Max diepte",
@@ -8125,6 +8196,8 @@
   "divers_edit_priorInvalidNumber": "Voer een geldig getal in",
   "insights_priorBreakdown": "{logged} gelogd + {prior} eerder",
   "insights_divingSince": "Duikt sinds {year}",
+  "settings_appearance_lateGasSwitches": "Late gaswissels",
+  "settings_appearance_lateGasSwitches_subtitle": "Late en gemiste decogaswissels op het profiel arceren",
   "settings_appearance_gasTimeline": "Gastijdlijn",
   "settings_appearance_gasTimeline_subtitle": "Gasverbruiksstrook standaard onder het duikprofiel weergeven",
   "diveDetailSection_surfaceGps_name": "Oppervlakte-GPS",
@@ -8830,6 +8903,14 @@
       }
     }
   },
+  "safetyReview_lateGasSwitch_title": "Een late of gemiste gaswissel voegde {extra} deco toe",
+  "@safetyReview_lateGasSwitch_title": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_timeRange": "Op {start}–{end}",
   "@safetyReview_timeRange": {
     "placeholders": {
@@ -8909,6 +8990,7 @@
   "safetySettings_rule_missedDecoStop": "Gemiste of ingekorte decostops",
   "safetySettings_rule_omittedSafetyStop": "Overgeslagen veiligheidsstops",
   "safetySettings_rule_sawtoothProfile": "Zaagtandprofielen",
+  "safetySettings_rule_lateGasSwitch": "Late gaswissel",
   "safetySettings_rule_highSurfaceGf": "Hoge gradiëntfactor bij opduiken",
   "safetySettings_analyzeAll": "Alle duiken analyseren",
   "safetySettings_analyzeAll_subtitle": "Voer de veiligheidscontrole uit op alle duiken met een profiel die nog niet geanalyseerd zijn",

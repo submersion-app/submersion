@@ -6158,6 +6158,36 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_section_customFields => 'Custom Fields';
 
   @override
+  String get diveLog_gasSwitches_title => 'החלפות גז';
+
+  @override
+  String get diveLog_gasSwitches_onTime => 'כל החלפות הגז בזמן';
+
+  @override
+  String diveLog_gasSwitches_lateRow(
+    String actual,
+    String ideal,
+    String delay,
+  ) {
+    return 'הוחלף ב-$actual במקום $ideal, איחור $delay';
+  }
+
+  @override
+  String diveLog_gasSwitches_missedRow(String ideal) {
+    return 'לא הוחלף (אידיאלי ב-$ideal)';
+  }
+
+  @override
+  String diveLog_gasSwitches_extraDeco(String extra) {
+    return '+$extra דקו';
+  }
+
+  @override
+  String diveLog_gasSwitches_total(String extra) {
+    return 'סך דקו נוסף: $extra';
+  }
+
+  @override
   String get diveLog_detail_section_decoStatus => 'מצב דקו';
 
   @override
@@ -7199,6 +7229,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_gasDensity => 'צפיפות גז';
+
+  @override
+  String get diveLog_legend_label_lateGasSwitches => 'החלפות גז מאוחרות';
 
   @override
   String get diveLog_legend_label_gasSwitches => 'החלפות גז';
@@ -9025,6 +9058,27 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_tts => 'TTS';
+
+  @override
+  String get diveLog_tooltip_lateSwitch => 'החלפה מאוחרת';
+
+  @override
+  String get diveLog_tooltip_missedSwitch => 'החלפה שהוחמצה';
+
+  @override
+  String diveLog_tooltip_lateSwitchValue(
+    String gas,
+    String delay,
+    String depth,
+    String extra,
+  ) {
+    return '$gas, איחור $delay / $depth, +$extra דקו';
+  }
+
+  @override
+  String diveLog_tooltip_missedSwitchValue(String gas, String extra) {
+    return '$gas, +$extra דקו';
+  }
 
   @override
   String get diveLog_tooltip_gtr => 'GTR';
@@ -17808,6 +17862,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'הצג סמנים להחלפות גז';
 
   @override
+  String get settings_appearance_lateGasSwitches => 'החלפות גז מאוחרות';
+
+  @override
+  String get settings_appearance_lateGasSwitches_subtitle =>
+      'הצללת החלפות גז דקו מאוחרות ושהוחמצו בפרופיל';
+
+  @override
   String get settings_appearance_gasTimeline => 'ציר זמן של הגז';
 
   @override
@@ -17927,6 +17988,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String safetyReview_highSurfaceGf_title(String gf, String gfHigh) {
     return 'עלייה לפני השטח עם פקטור גרדיאנט $gf, מעל $gfHigh שהוגדר';
+  }
+
+  @override
+  String safetyReview_lateGasSwitch_title(String extra) {
+    return 'החלפת גז מאוחרת או שהוחמצה הוסיפה $extra דקו';
   }
 
   @override
@@ -18050,6 +18116,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get safetySettings_rule_sawtoothProfile => 'פרופילי שן מסור';
+
+  @override
+  String get safetySettings_rule_lateGasSwitch => 'החלפת גז מאוחרת';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>

@@ -1986,6 +1986,46 @@
   "diveLog_detail_section_altitudeDive": "Plongée en altitude",
   "diveLog_detail_section_buddies": "Binômes",
   "diveLog_detail_section_customFields": "Custom Fields",
+  "diveLog_gasSwitches_title": "Changements de gaz",
+  "diveLog_gasSwitches_onTime": "Tous les changements de gaz à temps",
+  "diveLog_gasSwitches_lateRow": "Changé à {actual} au lieu de {ideal}, {delay} de retard",
+  "@diveLog_gasSwitches_lateRow": {
+    "placeholders": {
+      "actual": {
+        "type": "String"
+      },
+      "ideal": {
+        "type": "String"
+      },
+      "delay": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_missedRow": "Non changé (idéal à {ideal})",
+  "@diveLog_gasSwitches_missedRow": {
+    "placeholders": {
+      "ideal": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_extraDeco": "+{extra} de déco",
+  "@diveLog_gasSwitches_extraDeco": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_total": "Déco supplémentaire totale : {extra}",
+  "@diveLog_gasSwitches_total": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_section_decoStatus": "Statut déco",
   "diveLog_detail_section_details": "Détails",
   "diveLog_detail_section_diveProfile": "Profil de plongée",
@@ -2277,6 +2317,7 @@
   "diveLog_legend_label_events": "Événements",
   "diveLog_legend_label_computedEvents": "Événements calculés",
   "diveLog_legend_label_gasDensity": "Densité du gaz",
+  "diveLog_legend_label_lateGasSwitches": "Changements de gaz tardifs",
   "diveLog_legend_label_gasSwitches": "Changements de gaz",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "Fréquence cardiaque",
@@ -2730,6 +2771,36 @@
   "diveLog_tooltip_temp": "Temp",
   "diveLog_tooltip_time": "Temps",
   "diveLog_tooltip_tts": "TTS",
+  "diveLog_tooltip_lateSwitch": "Changement tardif",
+  "diveLog_tooltip_missedSwitch": "Changement manqué",
+  "diveLog_tooltip_lateSwitchValue": "{gas}, {delay} / {depth} de retard, +{extra} de déco",
+  "@diveLog_tooltip_lateSwitchValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "delay": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_tooltip_missedSwitchValue": "{gas}, +{extra} de déco",
+  "@diveLog_tooltip_missedSwitchValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_tooltip_gtr": "GTR",
   "diveLog_sources_row_metric": "Mesure",
   "diveLog_sources_row_maxDepth": "Prof. max",
@@ -8125,6 +8196,8 @@
   "divers_edit_priorInvalidNumber": "Saisissez un nombre valide",
   "insights_priorBreakdown": "{logged} enregistrées + {prior} antérieures",
   "insights_divingSince": "Plonge depuis {year}",
+  "settings_appearance_lateGasSwitches": "Changements de gaz tardifs",
+  "settings_appearance_lateGasSwitches_subtitle": "Ombrer sur le profil les changements de gaz de déco tardifs et manqués",
   "settings_appearance_gasTimeline": "Chronologie du gaz",
   "settings_appearance_gasTimeline_subtitle": "Afficher la bande de consommation de gaz sous le profil de plongée par défaut",
   "diveDetailSection_surfaceGps_name": "GPS de surface",
@@ -8830,6 +8903,14 @@
       }
     }
   },
+  "safetyReview_lateGasSwitch_title": "Un changement de gaz tardif ou manqué a ajouté {extra} de déco",
+  "@safetyReview_lateGasSwitch_title": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_timeRange": "À {start}–{end}",
   "@safetyReview_timeRange": {
     "placeholders": {
@@ -8909,6 +8990,7 @@
   "safetySettings_rule_missedDecoStop": "Paliers de déco manqués ou écourtés",
   "safetySettings_rule_omittedSafetyStop": "Paliers de sécurité omis",
   "safetySettings_rule_sawtoothProfile": "Profils en dents de scie",
+  "safetySettings_rule_lateGasSwitch": "Changement de gaz tardif",
   "safetySettings_rule_highSurfaceGf": "Facteur de gradient élevé en surface",
   "safetySettings_analyzeAll": "Analyser toutes les plongées",
   "safetySettings_analyzeAll_subtitle": "Exécuter le bilan de sécurité sur toutes les plongées avec profil pas encore analysées",

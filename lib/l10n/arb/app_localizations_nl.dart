@@ -6247,6 +6247,36 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_detail_section_customFields => 'Custom Fields';
 
   @override
+  String get diveLog_gasSwitches_title => 'Gaswissels';
+
+  @override
+  String get diveLog_gasSwitches_onTime => 'Alle gaswissels op tijd';
+
+  @override
+  String diveLog_gasSwitches_lateRow(
+    String actual,
+    String ideal,
+    String delay,
+  ) {
+    return 'Gewisseld op $actual in plaats van $ideal, $delay te laat';
+  }
+
+  @override
+  String diveLog_gasSwitches_missedRow(String ideal) {
+    return 'Niet gewisseld (ideaal op $ideal)';
+  }
+
+  @override
+  String diveLog_gasSwitches_extraDeco(String extra) {
+    return '+$extra deco';
+  }
+
+  @override
+  String diveLog_gasSwitches_total(String extra) {
+    return 'Totale extra deco: $extra';
+  }
+
+  @override
   String get diveLog_detail_section_decoStatus => 'Decostatus';
 
   @override
@@ -7317,6 +7347,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_gasDensity => 'Gasdichtheid';
+
+  @override
+  String get diveLog_legend_label_lateGasSwitches => 'Late gaswissels';
 
   @override
   String get diveLog_legend_label_gasSwitches => 'Gaswisselingen';
@@ -9171,6 +9204,27 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_tts => 'TTS';
+
+  @override
+  String get diveLog_tooltip_lateSwitch => 'Late wissel';
+
+  @override
+  String get diveLog_tooltip_missedSwitch => 'Gemiste wissel';
+
+  @override
+  String diveLog_tooltip_lateSwitchValue(
+    String gas,
+    String delay,
+    String depth,
+    String extra,
+  ) {
+    return '$gas, $delay / $depth te laat, +$extra deco';
+  }
+
+  @override
+  String diveLog_tooltip_missedSwitchValue(String gas, String extra) {
+    return '$gas, +$extra deco';
+  }
 
   @override
   String get diveLog_tooltip_gtr => 'GTR';
@@ -18095,6 +18149,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Toon markeringen voor gaswisselingen';
 
   @override
+  String get settings_appearance_lateGasSwitches => 'Late gaswissels';
+
+  @override
+  String get settings_appearance_lateGasSwitches_subtitle =>
+      'Late en gemiste decogaswissels op het profiel arceren';
+
+  @override
   String get settings_appearance_gasTimeline => 'Gastijdlijn';
 
   @override
@@ -18217,6 +18278,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String safetyReview_highSurfaceGf_title(String gf, String gfHigh) {
     return 'Aan de oppervlakte gekomen met gradiëntfactor $gf, boven de ingestelde $gfHigh';
+  }
+
+  @override
+  String safetyReview_lateGasSwitch_title(String extra) {
+    return 'Een late of gemiste gaswissel voegde $extra deco toe';
   }
 
   @override
@@ -18343,6 +18409,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get safetySettings_rule_sawtoothProfile => 'Zaagtandprofielen';
+
+  @override
+  String get safetySettings_rule_lateGasSwitch => 'Late gaswissel';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>

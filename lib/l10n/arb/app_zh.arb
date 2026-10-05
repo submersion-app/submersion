@@ -2184,6 +2184,46 @@
   "diveLog_detail_section_altitudeDive": "高海拔潜水",
   "diveLog_detail_section_buddies": "潜伴",
   "diveLog_detail_section_customFields": "自定义字段",
+  "diveLog_gasSwitches_title": "换气",
+  "diveLog_gasSwitches_onTime": "所有换气均按时",
+  "diveLog_gasSwitches_lateRow": "在 {actual} 换气，而非 {ideal}，延迟 {delay}",
+  "@diveLog_gasSwitches_lateRow": {
+    "placeholders": {
+      "actual": {
+        "type": "String"
+      },
+      "ideal": {
+        "type": "String"
+      },
+      "delay": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_missedRow": "未换气（理想深度 {ideal}）",
+  "@diveLog_gasSwitches_missedRow": {
+    "placeholders": {
+      "ideal": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_extraDeco": "减压 +{extra}",
+  "@diveLog_gasSwitches_extraDeco": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_gasSwitches_total": "额外减压总计：{extra}",
+  "@diveLog_gasSwitches_total": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_section_decoStatus": "减压状态",
   "diveLog_detail_section_details": "详情",
   "diveLog_detail_section_diveProfile": "潜水轮廓",
@@ -2491,6 +2531,7 @@
   "diveLog_legend_label_events": "事件",
   "diveLog_legend_label_computedEvents": "计算的事件",
   "diveLog_legend_label_gasDensity": "气体密度",
+  "diveLog_legend_label_lateGasSwitches": "延迟换气",
   "diveLog_legend_label_gasSwitches": "气体切换",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "心率",
@@ -2946,6 +2987,36 @@
   "diveLog_tooltip_temp": "温度",
   "diveLog_tooltip_time": "时间",
   "diveLog_tooltip_tts": "TTS",
+  "diveLog_tooltip_lateSwitch": "延迟换气",
+  "diveLog_tooltip_missedSwitch": "漏换气",
+  "diveLog_tooltip_lateSwitchValue": "{gas}，延迟 {delay} / {depth}，减压 +{extra}",
+  "@diveLog_tooltip_lateSwitchValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "delay": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_tooltip_missedSwitchValue": "{gas}，减压 +{extra}",
+  "@diveLog_tooltip_missedSwitchValue": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_tooltip_gtr": "GTR",
   "diveLog_sources_row_metric": "指标",
   "diveLog_sources_row_maxDepth": "最大深度",
@@ -8125,6 +8196,8 @@
   "divers_edit_priorInvalidNumber": "请输入有效数字",
   "insights_priorBreakdown": "{logged} 已记录 + {prior} 既往",
   "insights_divingSince": "自 {year} 年起潜水",
+  "settings_appearance_lateGasSwitches": "延迟换气",
+  "settings_appearance_lateGasSwitches_subtitle": "在剖面图上标出延迟和遗漏的减压换气",
   "settings_appearance_gasTimeline": "气体时间线",
   "settings_appearance_gasTimeline_subtitle": "默认在潜水剖面下方显示气体消耗条",
   "diveDetailSection_surfaceGps_name": "水面 GPS",
@@ -8830,6 +8903,14 @@
       }
     }
   },
+  "safetyReview_lateGasSwitch_title": "一次延迟或遗漏的换气增加了 {extra} 减压",
+  "@safetyReview_lateGasSwitch_title": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_timeRange": "于 {start}–{end}",
   "@safetyReview_timeRange": {
     "placeholders": {
@@ -8909,6 +8990,7 @@
   "safetySettings_rule_missedDecoStop": "错过或缩短的减压停留",
   "safetySettings_rule_omittedSafetyStop": "省略的安全停留",
   "safetySettings_rule_sawtoothProfile": "锯齿形剖面",
+  "safetySettings_rule_lateGasSwitch": "延迟换气",
   "safetySettings_rule_highSurfaceGf": "出水时梯度因子过高",
   "safetySettings_analyzeAll": "分析所有潜水",
   "safetySettings_analyzeAll_subtitle": "对所有具有剖面且尚未分析的潜水运行安全回顾",

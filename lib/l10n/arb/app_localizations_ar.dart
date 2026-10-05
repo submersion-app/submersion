@@ -6383,6 +6383,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_section_customFields => 'Custom Fields';
 
   @override
+  String get diveLog_gasSwitches_title => 'تبديلات الغاز';
+
+  @override
+  String get diveLog_gasSwitches_onTime => 'جميع تبديلات الغاز في وقتها';
+
+  @override
+  String diveLog_gasSwitches_lateRow(
+    String actual,
+    String ideal,
+    String delay,
+  ) {
+    return 'تم التبديل عند $actual بدلاً من $ideal، بتأخير $delay';
+  }
+
+  @override
+  String diveLog_gasSwitches_missedRow(String ideal) {
+    return 'لم يتم التبديل (المثالي عند $ideal)';
+  }
+
+  @override
+  String diveLog_gasSwitches_extraDeco(String extra) {
+    return '+$extra تخفيف ضغط';
+  }
+
+  @override
+  String diveLog_gasSwitches_total(String extra) {
+    return 'إجمالي تخفيف الضغط الإضافي: $extra';
+  }
+
+  @override
   String get diveLog_detail_section_decoStatus => 'حالة الديكو';
 
   @override
@@ -7459,6 +7489,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_gasDensity => 'كثافة الغاز';
+
+  @override
+  String get diveLog_legend_label_lateGasSwitches => 'تبديلات الغاز المتأخرة';
 
   @override
   String get diveLog_legend_label_gasSwitches => 'تبديلات الغاز';
@@ -9344,6 +9377,27 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_tts => 'TTS';
+
+  @override
+  String get diveLog_tooltip_lateSwitch => 'تبديل متأخر';
+
+  @override
+  String get diveLog_tooltip_missedSwitch => 'تبديل فائت';
+
+  @override
+  String diveLog_tooltip_lateSwitchValue(
+    String gas,
+    String delay,
+    String depth,
+    String extra,
+  ) {
+    return '$gas، تأخير $delay / $depth، +$extra تخفيف ضغط';
+  }
+
+  @override
+  String diveLog_tooltip_missedSwitchValue(String gas, String extra) {
+    return '$gas، +$extra تخفيف ضغط';
+  }
 
   @override
   String get diveLog_tooltip_gtr => 'GTR';
@@ -18430,6 +18484,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'عرض علامات لتبديل الغازات';
 
   @override
+  String get settings_appearance_lateGasSwitches => 'تبديلات الغاز المتأخرة';
+
+  @override
+  String get settings_appearance_lateGasSwitches_subtitle =>
+      'تظليل تبديلات غاز تخفيف الضغط المتأخرة والفائتة على المخطط';
+
+  @override
   String get settings_appearance_gasTimeline => 'الجدول الزمني للغاز';
 
   @override
@@ -18553,6 +18614,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String safetyReview_highSurfaceGf_title(String gf, String gfHigh) {
     return 'الصعود إلى السطح بعامل تدرج $gf، أعلى من $gfHigh المُعد';
+  }
+
+  @override
+  String safetyReview_lateGasSwitch_title(String extra) {
+    return 'أضاف تبديل غاز متأخر أو فائت $extra من تخفيف الضغط';
   }
 
   @override
@@ -18688,6 +18754,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get safetySettings_rule_sawtoothProfile => 'ملفات بنمط سن المنشار';
+
+  @override
+  String get safetySettings_rule_lateGasSwitch => 'تبديل غاز متأخر';
 
   @override
   String get safetySettings_rule_highSurfaceGf => 'عامل تدرج مرتفع عند الصعود';
