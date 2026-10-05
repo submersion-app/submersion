@@ -108,6 +108,20 @@ extension EquipmentFilterQuery on EquipmentFilterState {
   }
 }
 
+/// Whether [node] constrains the gear's own status (`status` or `active`
+/// at the root, not through a relation). A saved query that does takes
+/// over the sheet's status axis on load (#2989): a picked status is saved
+/// as conditions, and the default view ANDed back in would contradict it.
+bool constrainsEquipmentStatus(QueryNode node) => switch (node) {
+  AndNode(:final children) ||
+  OrNode(:final children) => children.any(constrainsEquipmentStatus),
+  NotNode(:final child) => constrainsEquipmentStatus(child),
+  ConditionNode(:final path) =>
+    path.segments.length == 1 &&
+        (path.segments.single == 'status' || path.segments.single == 'active'),
+  ScopedNode() || TextNode() => false,
+};
+
 /// The one compile call the equipment list shares. Root alias `r0`, which
 /// [EquipmentFilterQuery.ownerScope] assumes. [diverId] reads shared gear's
 /// dives as that diver's alone.

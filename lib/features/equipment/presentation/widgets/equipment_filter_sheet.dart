@@ -147,6 +147,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                           value: _query,
                           onChanged: (node) => setState(() => _query = node),
                           saveNode: _draft().toSavedQuery(),
+                          onLoad: _loadSaved,
                         ),
                         const SizedBox(height: 24),
                         _buildStatusSection(),
@@ -381,6 +382,17 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
       _query = null;
     });
   }
+
+  /// A saved query naming the status is the whole status axis (#2989): the
+  /// sheet shows every status so its conditions decide.
+  void _loadSaved(QueryNode? node) => setState(() {
+    _query = node;
+    if (node != null && constrainsEquipmentStatus(node)) {
+      _status = null;
+      _serviceDue = null;
+      _allStatuses = true;
+    }
+  });
 
   /// The filter as the sheet shows it: what Apply writes and Save stores.
   EquipmentFilterState _draft() => EquipmentFilterState(

@@ -23,6 +23,7 @@ class QuerySheetSection extends ConsumerWidget {
     required this.value,
     required this.onChanged,
     required this.saveNode,
+    this.onLoad,
   });
 
   final QuerySubject subject;
@@ -34,6 +35,11 @@ class QuerySheetSection extends ConsumerWidget {
   /// as Apply would filter. Null while the sheet narrows nothing, which
   /// disables Save.
   final QueryNode? saveNode;
+
+  /// Applies a saved query from the Saved row; [onChanged] when null. A
+  /// sheet whose own controls a saved query can contradict adjusts them
+  /// here.
+  final ValueChanged<QueryNode?>? onLoad;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -47,7 +53,7 @@ class QuerySheetSection extends ConsumerWidget {
         const SizedBox(height: 12),
         SavedQueryChipRow(
           subject: subject,
-          onApply: (load) => onChanged(load.node),
+          onApply: (load) => (onLoad ?? onChanged)(load.node),
         ),
         const SizedBox(height: 8),
         EntityQueryEditor(

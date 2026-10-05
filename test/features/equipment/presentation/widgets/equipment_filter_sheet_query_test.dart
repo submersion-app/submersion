@@ -247,6 +247,62 @@ void main() {
     expect(c.read(equipmentFilterProvider).query, bcd);
   });
 
+  // #2989: a saved status is the whole status axis; the default view
+  // ANDed in would leave a saved Sold query with no rows.
+  testWidgets('a saved query naming a status takes over the status axis', (
+    tester,
+  ) async {
+    final sold = ConditionNode(
+      FieldPath(['status']),
+      QueryOp.eq,
+      const EnumValue('sold'),
+    );
+    await tester.runAsync(
+      () => SavedQueryRepository().create(
+        subject: QuerySubject.equipment,
+        name: 'Sold',
+        node: sold,
+        diverId: 'me',
+      ),
+    );
+    final c = await container(
+      filter: const EquipmentFilterState(serviceDue: ServiceDueFilter.any),
+    );
+    await open(tester, c);
+    await tester.tap(find.widgetWithText(ActionChip, 'Sold'));
+    await tester.pumpAndSettle();
+    await apply(tester);
+    final state = c.read(equipmentFilterProvider);
+    expect(state.query, sold);
+    expect(state.allStatuses, isTrue);
+    expect(state.status, isNull);
+    expect(state.serviceDue, isNull);
+  });
+
+  testWidgets('a saved query without a status keeps the status axis', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => SavedQueryRepository().create(
+        subject: QuerySubject.equipment,
+        name: 'Wings',
+        node: bcd,
+        diverId: 'me',
+      ),
+    );
+    final c = await container(
+      filter: const EquipmentFilterState(status: EquipmentStatus.retired),
+    );
+    await open(tester, c);
+    await tester.tap(find.widgetWithText(ActionChip, 'Wings'));
+    await tester.pumpAndSettle();
+    await apply(tester);
+    final state = c.read(equipmentFilterProvider);
+    expect(state.query, bcd);
+    expect(state.status, EquipmentStatus.retired);
+    expect(state.allStatuses, isFalse);
+  });
+
   testWidgets('Apply keeps the query the sheet opened with', (tester) async {
     final c = await container(filter: EquipmentFilterState(query: bcd));
     await open(tester, c);
