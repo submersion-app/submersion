@@ -18510,7 +18510,7 @@
   "@settings_cloudSync_duplicateDivers_confirmTitle": {
     "description": "Title of the merge confirmation dialog."
   },
-  "settings_cloudSync_duplicateDivers_confirmBody": "All dives, certifications, gear, and other data from {count} duplicate {count, plural, one{profile} other{profiles}} will be moved onto \"{name}\". This cannot be undone automatically.",
+  "settings_cloudSync_duplicateDivers_confirmBody": "All dives, certifications, gear, and other data from {count} duplicate {count, plural, one{profile} other{profiles}} will be moved onto \"{name}\". You can undo this right after merging.",
   "@settings_cloudSync_duplicateDivers_confirmBody": {
     "description": "Body text of the merge confirmation dialog.",
     "placeholders": {

@@ -8108,7 +8108,7 @@
   "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} ملفات)",
   "settings_cloudSync_duplicateDivers_mergeButton": "دمج",
   "settings_cloudSync_duplicateDivers_confirmTitle": "دمج ملفات الغواصين؟",
-  "settings_cloudSync_duplicateDivers_confirmBody": "سيتم نقل جميع الغطسات والشهادات والمعدات والبيانات الأخرى من {count, plural, =1{ملف مكرر} two{ملفين مكررين} few{{count} ملفات مكررة} many{{count} ملفًا مكررًا} other{{count} ملف مكرر}} إلى \"{name}\". لا يمكن التراجع عن هذا تلقائيًا.",
+  "settings_cloudSync_duplicateDivers_confirmBody": "سيتم نقل جميع الغطسات والشهادات والمعدات والبيانات الأخرى من {count, plural, =1{ملف مكرر} two{ملفين مكررين} few{{count} ملفات مكررة} many{{count} ملفًا مكررًا} other{{count} ملف مكرر}} إلى \"{name}\". يمكن التراجع عن هذا مباشرةً بعد الدمج.",
   "settings_cloudSync_duplicateDivers_confirmCancel": "إلغاء",
   "settings_cloudSync_duplicateDivers_confirmAction": "دمج",
   "settings_cloudSync_duplicateDivers_successSnack": "تم الدمج في {name}",

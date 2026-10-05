@@ -45025,7 +45025,7 @@ abstract class AppLocalizations {
   /// Body text of the merge confirmation dialog.
   ///
   /// In en, this message translates to:
-  /// **'All dives, certifications, gear, and other data from {count} duplicate {count, plural, one{profile} other{profiles}} will be moved onto \"{name}\". This cannot be undone automatically.'**
+  /// **'All dives, certifications, gear, and other data from {count} duplicate {count, plural, one{profile} other{profiles}} will be moved onto \"{name}\". You can undo this right after merging.'**
   String settings_cloudSync_duplicateDivers_confirmBody(int count, String name);
 
   /// Cancel button on the merge confirmation dialog.

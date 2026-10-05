@@ -8108,7 +8108,7 @@
   "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} profils)",
   "settings_cloudSync_duplicateDivers_mergeButton": "Fusionner",
   "settings_cloudSync_duplicateDivers_confirmTitle": "Fusionner les profils de plongeur ?",
-  "settings_cloudSync_duplicateDivers_confirmBody": "Toutes les plongées, certifications, équipements et autres données de {count, plural, =1{un profil en double} other{{count} profils en double}} seront déplacés vers \"{name}\". Cette action ne peut pas être annulée automatiquement.",
+  "settings_cloudSync_duplicateDivers_confirmBody": "Toutes les plongées, certifications, équipements et autres données de {count, plural, =1{un profil en double} other{{count} profils en double}} seront déplacés vers \"{name}\". Cette action peut être annulée juste après la fusion.",
   "settings_cloudSync_duplicateDivers_confirmCancel": "Annuler",
   "settings_cloudSync_duplicateDivers_confirmAction": "Fusionner",
   "settings_cloudSync_duplicateDivers_successSnack": "Fusionné dans {name}",

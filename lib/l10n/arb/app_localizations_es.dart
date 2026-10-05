@@ -28794,7 +28794,7 @@ class AppLocalizationsEs extends AppLocalizations {
       other: '$count perfiles duplicados',
       one: 'un perfil duplicado',
     );
-    return 'Todos los buceos, certificaciones, equipo y otros datos de $_temp0 se moverán a \"$name\". Esto no se puede deshacer automáticamente.';
+    return 'Todos los buceos, certificaciones, equipo y otros datos de $_temp0 se moverán a \"$name\". Se puede deshacer justo después de fusionar.';
   }
 
   @override

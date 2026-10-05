@@ -22,10 +22,19 @@ const Map<String, Set<String>> deviceLocalSyncColumns = {
 /// Keys of the key/value `settings` table that stay on this device: export
 /// filters them, import skips them, and a replace-adopt keeps them.
 ///
+/// Audit (last reviewed for issues #2949 and #2947): every other key written
+/// to the `settings` table syncs. Today those are
+/// `share_new_records_by_default`, `gas_blender_prefs`,
+/// `equipment_arrangement`, `gas_mod_calculator_prefs`,
+/// `media_upload_quality_photo`, `media_upload_quality_video`,
+/// `media_library_view_mode`, `media_library_sort` and
+/// `media_watcher_auto_apply`, plus two keys per connected Lightroom account,
+/// `lightroom_<account>_album_ids` and `lightroom_<account>_auto_poll`
+/// (written by `LightroomConnectorState`).
+///
 /// Rule for a new key: "is this answer the same across all of one user's
-/// devices?" If not, add it here. Keys that sync on purpose include
-/// `share_new_records_by_default`, the media upload quality keys,
-/// `gas_blender_prefs` and `equipment_arrangement`.
+/// devices?" If not, add it here. Either way, update the "What Syncs Between
+/// Devices" section of docs/guide/multi-device-sync.md.
 const Set<String> deviceLocalSettingsKeys = {
   // Each device auto-creates its own owner diver at first launch.
   'active_diver_id',

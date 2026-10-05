@@ -8108,7 +8108,7 @@
   "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} profil)",
   "settings_cloudSync_duplicateDivers_mergeButton": "Összevon",
   "settings_cloudSync_duplicateDivers_confirmTitle": "Búvárprofilok összevonása?",
-  "settings_cloudSync_duplicateDivers_confirmBody": "Az összes merülés, tanúsítvány, felszerelés és egyéb adat {count, plural, =1{egy duplikált profilból} other{{count} duplikált profilból}} áthelyezésre kerül ide: \"{name}\". Ez nem vonható vissza automatikusan.",
+  "settings_cloudSync_duplicateDivers_confirmBody": "Az összes merülés, tanúsítvány, felszerelés és egyéb adat {count, plural, =1{egy duplikált profilból} other{{count} duplikált profilból}} áthelyezésre kerül ide: \"{name}\". Ez az összevonás után azonnal visszavonható.",
   "settings_cloudSync_duplicateDivers_confirmCancel": "Mégse",
   "settings_cloudSync_duplicateDivers_confirmAction": "Összevon",
   "settings_cloudSync_duplicateDivers_successSnack": "Összevonva ide: {name}",

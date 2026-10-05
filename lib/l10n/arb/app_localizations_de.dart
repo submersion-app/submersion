@@ -28726,7 +28726,7 @@ class AppLocalizationsDe extends AppLocalizations {
       other: '$count doppelten Profilen',
       one: 'einem doppelten Profil',
     );
-    return 'Alle Tauchgänge, Zertifizierungen, Ausrüstung und andere Daten aus $_temp0 werden auf \"$name\" verschoben. Dies kann nicht automatisch rückgängig gemacht werden.';
+    return 'Alle Tauchgänge, Zertifizierungen, Ausrüstung und andere Daten aus $_temp0 werden auf \"$name\" verschoben. Dies kann direkt nach dem Zusammenführen rückgängig gemacht werden.';
   }
 
   @override

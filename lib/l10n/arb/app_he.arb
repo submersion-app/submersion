@@ -8108,7 +8108,7 @@
   "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} פרופילים)",
   "settings_cloudSync_duplicateDivers_mergeButton": "מזג",
   "settings_cloudSync_duplicateDivers_confirmTitle": "למזג פרופילי צוללים?",
-  "settings_cloudSync_duplicateDivers_confirmBody": "כל הצלילות, הסמכות, הציוד ושאר הנתונים מ-{count, plural, =1{פרופיל כפול אחד} other{{count} פרופילים כפולים}} יועברו אל \"{name}\". לא ניתן לבטל פעולה זו באופן אוטומטי.",
+  "settings_cloudSync_duplicateDivers_confirmBody": "כל הצלילות, הסמכות, הציוד ושאר הנתונים מ-{count, plural, =1{פרופיל כפול אחד} other{{count} פרופילים כפולים}} יועברו אל \"{name}\". ניתן לבטל פעולה זו מיד לאחר המיזוג.",
   "settings_cloudSync_duplicateDivers_confirmCancel": "ביטול",
   "settings_cloudSync_duplicateDivers_confirmAction": "מזג",
   "settings_cloudSync_duplicateDivers_successSnack": "מוזג אל {name}",

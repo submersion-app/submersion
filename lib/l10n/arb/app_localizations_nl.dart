@@ -28568,7 +28568,7 @@ class AppLocalizationsNl extends AppLocalizations {
       other: '$count dubbele profielen',
       one: 'één dubbel profiel',
     );
-    return 'Alle duiken, certificeringen, uitrusting en andere gegevens van $_temp0 worden verplaatst naar \"$name\". Dit kan niet automatisch ongedaan worden gemaakt.';
+    return 'Alle duiken, certificeringen, uitrusting en andere gegevens van $_temp0 worden verplaatst naar \"$name\". Dit kan direct na het samenvoegen ongedaan worden gemaakt.';
   }
 
   @override

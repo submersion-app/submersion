@@ -28316,7 +28316,7 @@ class AppLocalizationsEn extends AppLocalizations {
       other: 'profiles',
       one: 'profile',
     );
-    return 'All dives, certifications, gear, and other data from $count duplicate $_temp0 will be moved onto \"$name\". This cannot be undone automatically.';
+    return 'All dives, certifications, gear, and other data from $count duplicate $_temp0 will be moved onto \"$name\". You can undo this right after merging.';
   }
 
   @override

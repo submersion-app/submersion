@@ -28779,7 +28779,7 @@ class AppLocalizationsPt extends AppLocalizations {
       other: '$count perfis duplicados',
       one: 'um perfil duplicado',
     );
-    return 'Todos os mergulhos, certificações, equipamento e outros dados de $_temp0 serão movidos para \"$name\". Esta ação não pode ser desfeita automaticamente.';
+    return 'Todos os mergulhos, certificações, equipamento e outros dados de $_temp0 serão movidos para \"$name\". Esta ação pode ser desfeita logo após a mesclagem.';
   }
 
   @override

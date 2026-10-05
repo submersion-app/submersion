@@ -8108,7 +8108,7 @@
   "settings_cloudSync_duplicateDivers_groupLabel": "{name} ({count} perfiles)",
   "settings_cloudSync_duplicateDivers_mergeButton": "Fusionar",
   "settings_cloudSync_duplicateDivers_confirmTitle": "¿Fusionar perfiles de buceador?",
-  "settings_cloudSync_duplicateDivers_confirmBody": "Todos los buceos, certificaciones, equipo y otros datos de {count, plural, =1{un perfil duplicado} other{{count} perfiles duplicados}} se moverán a \"{name}\". Esto no se puede deshacer automáticamente.",
+  "settings_cloudSync_duplicateDivers_confirmBody": "Todos los buceos, certificaciones, equipo y otros datos de {count, plural, =1{un perfil duplicado} other{{count} perfiles duplicados}} se moverán a \"{name}\". Se puede deshacer justo después de fusionar.",
   "settings_cloudSync_duplicateDivers_confirmCancel": "Cancelar",
   "settings_cloudSync_duplicateDivers_confirmAction": "Fusionar",
   "settings_cloudSync_duplicateDivers_successSnack": "Fusionado en {name}",
