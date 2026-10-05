@@ -1994,7 +1994,8 @@ void main() {
                 formatName: 'Suunto JSON',
                 status: ImportFileOutcomeStatus.needsIndividualImport,
                 isSuuntoJson: true,
-                filePath: '/tmp/nautic.json',
+                // Only needs to be non-null; never read.
+                filePath: 'nautic.json',
               ),
             ],
           ),
