@@ -163,6 +163,25 @@ void main() {
       expect(find.byKey(const ValueKey('viewer_overflow')), findsNothing);
     });
 
+    testWidgets('every visible icon fires its own callback', (tester) async {
+      final calls = await pumpFull(tester, 1024);
+      const ids = [
+        'go_to_dive',
+        'write_metadata',
+        'perdix',
+        'lightroom',
+        'species',
+        'info',
+        'share',
+        'reupload',
+      ];
+      for (final id in ids) {
+        await tester.tap(find.byKey(ValueKey('viewer_$id')));
+        await tester.pump();
+      }
+      expect(calls, ids);
+    });
+
     testWidgets('actions in the menu still fire, in toolbar order', (
       tester,
     ) async {
