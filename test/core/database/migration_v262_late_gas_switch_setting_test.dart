@@ -3,12 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v261: diver_settings.default_show_late_gas_switches (issue #2939).
+/// Schema v262: diver_settings.default_show_late_gas_switches (issue #2939).
 void main() {
-  /// A v260 database whose diver_settings lacks the column.
+  /// A v261 database whose diver_settings lacks the column.
   NativeDatabase setupDb() => NativeDatabase.memory(
     setup: (rawDb) {
-      rawDb.execute('PRAGMA user_version = 260');
+      rawDb.execute('PRAGMA user_version = 261');
       rawDb.execute(
         'CREATE TABLE diver_settings (id TEXT NOT NULL PRIMARY KEY, '
         'diver_id TEXT NOT NULL)',
@@ -19,12 +19,12 @@ void main() {
     },
   );
 
-  test('v261 is the current schema version and is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 261);
-    expect(AppDatabase.migrationVersions, contains(261));
+  test('v262 is the current schema version and is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, 262);
+    expect(AppDatabase.migrationVersions, contains(262));
     expect(
-      AppDatabase.migrationStepCount(260),
-      AppDatabase.migrationStepCount(261) + 1,
+      AppDatabase.migrationStepCount(261),
+      AppDatabase.migrationStepCount(262) + 1,
     );
   });
 
@@ -32,7 +32,7 @@ void main() {
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 
-  test('upgrading from v260 defaults the overlay on', () async {
+  test('upgrading from v261 defaults the overlay on', () async {
     final db = AppDatabase(setupDb());
     addTearDown(db.close);
     final rows = await db

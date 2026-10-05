@@ -208,10 +208,9 @@ class DiverSettings extends Table {
   // every settings row is written from. Sync fills a key missing from an
   // older peer's payload with this column default and writes it over the
   // local row, so a 0 here would move existing libraries to computer.
-  // Applies to the GTR and deco stop sources below too.
+  // Applies to the GTR and deco stop sources below too. The ceiling line has
+  // no source (#755); its column was dropped in v261 (#767).
   IntColumn get defaultNdlSource => integer().withDefault(const Constant(1))();
-  IntColumn get defaultCeilingSource =>
-      integer().withDefault(const Constant(1))();
   IntColumn get defaultTtsSource => integer().withDefault(const Constant(1))();
   IntColumn get defaultCnsSource => integer().withDefault(const Constant(1))();
   // Gas time remaining on the profile chart (v177). Source is a
@@ -357,7 +356,7 @@ class DiverSettings extends Table {
   BoolColumn get defaultShowGasSwitchMarkers =>
       boolean().withDefault(const Constant(true))();
 
-  /// v261: shade late and missed deco gas switches on the profile (#2939).
+  /// v262: shade late and missed deco gas switches on the profile (#2939).
   BoolColumn get defaultShowLateGasSwitches =>
       boolean().withDefault(const Constant(true))();
   BoolColumn get defaultShowGasTimeline =>

@@ -197,11 +197,18 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankSharedComputerIds();
     }
     if (from < 260) await reportProgress();
-    // v261: diver_settings.default_show_late_gas_switches (issue #2939).
-    // Column only, defaulting on. Re-asserted in beforeOpen.
+    // v261: drop diver_settings.default_ceiling_source (issue #767), unread
+    // since the ceiling line lost its source toggle (#755). Re-asserted in
+    // beforeOpen.
     if (from < 261) {
-      await _assertLateGasSwitchSettingColumn();
+      await _dropDefaultCeilingSourceColumn();
     }
     if (from < 261) await reportProgress();
+    // v262: diver_settings.default_show_late_gas_switches (issue #2939).
+    // Column only, defaulting on. Re-asserted in beforeOpen.
+    if (from < 262) {
+      await _assertLateGasSwitchSettingColumn();
+    }
+    if (from < 262) await reportProgress();
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -53,6 +55,35 @@ class _BrokenImporter extends TagFillImporter {
 class _MissingEquipment extends EquipmentRepository {
   @override
   Future<EquipmentItem?> getEquipmentById(String id) async => null;
+}
+
+/// Holds the scanned cylinder's lookup until [gate] completes.
+class _HeldEquipment extends EquipmentRepository {
+  _HeldEquipment(this.gate);
+
+  final Future<void> gate;
+
+  @override
+  Future<EquipmentItem?> getEquipmentById(String id) async {
+    await gate;
+    return super.getEquipmentById(id);
+  }
+}
+
+/// Holds the tag's passport lookup until [gate] completes.
+class _HeldPassports extends CylinderPassportRepository {
+  _HeldPassports(this.gate);
+
+  final Future<void> gate;
+
+  @override
+  Future<String?> findEquipmentIdByPassportId(
+    String passportId, {
+    String? diverId,
+  }) async {
+    await gate;
+    return super.findEquipmentIdByPassportId(passportId, diverId: diverId);
+  }
 }
 
 void main() {
@@ -440,6 +471,75 @@ void main() {
       );
       expect(changed!.volume, closeTo(10, 0.05));
       expect(changed.workingPressure, closeTo(232, 0.5));
+    });
+  });
+
+  // A scan resolves through database work before it fills the tank. A
+  // preset chosen in that window is the newer choice, so the scan must not
+  // overwrite it when it resolves, nor add its cylinder to the dive's gear.
+  group('a preset chosen while a scan resolves', () {
+    Future<void> choosePreset(WidgetTester tester, String label) async {
+      await tester.tap(find.byKey(const Key('tank-preset-dropdown')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(label).last);
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> release(WidgetTester tester, Completer<void> gate) async {
+      gate.complete();
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 300)),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('is not overwritten by an own cylinder', (tester) async {
+      final gate = Completer<void>();
+      DiveTank? changed;
+      EquipmentItem? scannedItem;
+      await pump(
+        tester,
+        scanned: 'https://submersion.app/c#f=1&p=$own',
+        onChanged: (t) => changed = t,
+        onOwnCylinderUsed: (item) async => scannedItem = item,
+        extra: [
+          equipmentRepositoryProvider.overrideWithValue(
+            _HeldEquipment(gate.future),
+          ),
+        ],
+      );
+      await scan(tester);
+      await choosePreset(tester, 'AL80');
+      await release(tester, gate);
+
+      expect(changed!.presetName, 'al80');
+      expect(changed!.volume, closeTo(11.1, 0.01));
+      expect(changed!.material, TankMaterial.aluminum);
+      expect(changed!.gasMix.o2, 21);
+      expect(scannedItem, isNull);
+    });
+
+    testWidgets('is not overwritten by a foreign cylinder', (tester) async {
+      final gate = Completer<void>();
+      DiveTank? changed;
+      await pump(
+        tester,
+        scanned: 'https://submersion.app/c#f=1&p=$stranger&v=10&wp=300&m=st',
+        onChanged: (t) => changed = t,
+        extra: [
+          cylinderPassportRepositoryProvider.overrideWithValue(
+            _HeldPassports(gate.future),
+          ),
+        ],
+      );
+      await scan(tester);
+      await choosePreset(tester, 'AL80');
+      await release(tester, gate);
+
+      expect(changed!.presetName, 'al80');
+      expect(changed!.volume, closeTo(11.1, 0.01));
+      expect(changed!.workingPressure, closeTo(207, 0.5));
+      expect(changed!.material, TankMaterial.aluminum);
     });
   });
 }

@@ -4,7 +4,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 
 import '../../../helpers/test_database.dart';
 
-/// A peer still on v260 exports no default_show_late_gas_switches. The column
+/// A peer still on v261 exports no default_show_late_gas_switches. The column
 /// is NOT NULL, so an unseeded import would throw in DiverSetting.fromJson.
 void main() {
   late SyncDataSerializer serializer;
@@ -19,7 +19,7 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  test('applies a pre-v261 payload missing the late switch default', () async {
+  test('applies a pre-v262 payload missing the late switch default', () async {
     await db.customStatement('PRAGMA foreign_keys = OFF');
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
