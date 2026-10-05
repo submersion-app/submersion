@@ -151,18 +151,8 @@ extension DiverMigrations on AppDatabase {
 
   /// v262: diver_settings.hidden_built_in_ids (issue #401). PRAGMA-guarded
   /// and idempotent so both onUpgrade and the beforeOpen backstop can call it.
-  Future<void> _assertHiddenBuiltInIdsColumn() async {
-    final cols = await customSelect(
-      "PRAGMA table_info('diver_settings')",
-    ).get();
-    if (cols.isEmpty) return;
-    final names = cols.map((c) => c.read<String>('name')).toSet();
-    if (!names.contains('hidden_built_in_ids')) {
-      await customStatement(
-        'ALTER TABLE diver_settings ADD COLUMN hidden_built_in_ids TEXT',
-      );
-    }
-  }
+  Future<void> _assertHiddenBuiltInIdsColumn() =>
+      _addColumnIfMissing('diver_settings', 'hidden_built_in_ids', 'TEXT');
 
   /// v133: diver_settings deco stop band columns. PRAGMA-guarded and
   /// idempotent so it is safe to call from both onUpgrade and the beforeOpen
