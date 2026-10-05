@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/query/domain/query_json.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -150,6 +153,66 @@ void main() {
     );
   });
 
+  /// Names the query in the save dialog and returns what was stored.
+  Future<QueryNode> saveAs(WidgetTester tester, String name) async {
+    await tester.tap(find.text('Save query'));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pumpAndSettle();
+    // The dialog's field: the sheet has text fields of its own.
+    final dialog = find.byType(AlertDialog);
+    await tester.enterText(
+      find.descendant(of: dialog, matching: find.byType(TextFormField)),
+      name,
+    );
+    await tester.tap(find.descendant(of: dialog, matching: find.text('Save')));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pumpAndSettle();
+    final rows = await tester.runAsync(() => db.select(db.savedQueries).get());
+    return queryNodeFromJson(
+      (jsonDecode(rows!.single.queryJson) as Map).cast<String, Object?>(),
+    );
+  }
+
+  // #2989: the sheet's own controls, with nothing typed, save as a query.
+  testWidgets('Save stores the sheet axes without a typed query', (
+    tester,
+  ) async {
+    final c = await container(
+      filter: const EquipmentFilterState(type: EquipmentType.bcd),
+    );
+    await open(tester, c);
+    // The default status view is what every unfiltered list shows, so it
+    // is not stored; the category the diver picked is.
+    expect(await saveAs(tester, 'BCDs'), bcd);
+  });
+
+  testWidgets('a status the diver picked is stored', (tester) async {
+    final c = await container(
+      filter: const EquipmentFilterState(status: EquipmentStatus.sold),
+    );
+    await open(tester, c);
+    expect(
+      await saveAs(tester, 'Sold'),
+      ConditionNode(FieldPath(['status']), QueryOp.eq, const EnumValue('sold')),
+    );
+  });
+
+  testWidgets('Save is disabled while the sheet sets nothing', (tester) async {
+    final c = await container();
+    await open(tester, c);
+    final save = tester.widget<ButtonStyleButton>(
+      find.ancestor(
+        of: find.text('Save query'),
+        matching: find.bySubtype<ButtonStyleButton>(),
+      ),
+    );
+    expect(save.enabled, isFalse);
+  });
+
   testWidgets('a typed query is applied with the other axes', (tester) async {
     final c = await container(
       filter: const EquipmentFilterState(status: EquipmentStatus.retired),
@@ -182,6 +245,69 @@ void main() {
     await tester.pumpAndSettle();
     await apply(tester);
     expect(c.read(equipmentFilterProvider).query, bcd);
+  });
+
+  // #2989: a saved status is the whole status axis; the default view
+  // ANDed in would leave a saved Sold query with no rows.
+  testWidgets('a saved query naming a status takes over the status axis', (
+    tester,
+  ) async {
+    final sold = ConditionNode(
+      FieldPath(['status']),
+      QueryOp.eq,
+      const EnumValue('sold'),
+    );
+    await tester.runAsync(
+      () => SavedQueryRepository().create(
+        subject: QuerySubject.equipment,
+        name: 'Sold',
+        node: sold,
+        diverId: 'me',
+      ),
+    );
+    final c = await container(
+      filter: const EquipmentFilterState(serviceDue: ServiceDueFilter.any),
+    );
+    await open(tester, c);
+    await tester.tap(find.widgetWithText(ActionChip, 'Sold'));
+    await tester.pumpAndSettle();
+    await apply(tester);
+    final state = c.read(equipmentFilterProvider);
+    expect(state.query, sold);
+    expect(state.allStatuses, isTrue);
+    expect(state.status, isNull);
+    expect(state.serviceDue, isNull);
+  });
+
+  testWidgets('a saved query without a status resets the sheet controls', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => SavedQueryRepository().create(
+        subject: QuerySubject.equipment,
+        name: 'Wings',
+        node: bcd,
+        diverId: 'me',
+      ),
+    );
+    final c = await container(
+      filter: const EquipmentFilterState(
+        status: EquipmentStatus.retired,
+        type: EquipmentType.regulator,
+        tagIds: {'t1'},
+        owner: EquipmentOwnerFilter.mine,
+      ),
+    );
+    await open(tester, c);
+    await tester.tap(find.widgetWithText(ActionChip, 'Wings'));
+    await tester.pumpAndSettle();
+    await apply(tester);
+    // The whole saved search on the default status view; whose gear to
+    // show is the diver's view, not part of a saved search, so it stays.
+    expect(
+      c.read(equipmentFilterProvider),
+      EquipmentFilterState(query: bcd, owner: EquipmentOwnerFilter.mine),
+    );
   });
 
   testWidgets('Apply keeps the query the sheet opened with', (tester) async {

@@ -125,13 +125,12 @@ class UnitFormatter {
   /// Format a geographic distance (meters) for site lists and pickers.
   ///
   /// Unlike [formatDistance] (depth-unit m/ft, for short surface drift), this
-  /// auto-scales across the full range of site distances and respects the
-  /// diver's metric/imperial preference (derived from depth unit): metric -> m
-  /// under 1 km else km; imperial -> ft under 1 mile else mi. Unit symbols are
-  /// latin (m/km/ft/mi), consistent with [formatDepth].
+  /// auto-scales across the full range of site distances in the diver's
+  /// distance unit (issue #2030): kilometres -> m under 1 km else km; miles ->
+  /// ft under 1 mile else mi. Unit symbols are latin (m/km/ft/mi),
+  /// consistent with [formatDepth].
   String formatGeoDistance(double meters) {
-    final isMetric = settings.depthUnit == DepthUnit.meters;
-    if (isMetric) {
+    if (settings.distanceUnit == DistanceUnit.kilometers) {
       if (meters < 1000) return '${meters.round()} m';
       final km = meters / 1000;
       final text = km < 10
@@ -139,10 +138,14 @@ class UnitFormatter {
           : km.round().toString();
       return '$text km';
     }
-    final feet = meters * 3.28084;
-    const feetPerMile = 5280.0;
-    if (feet < feetPerMile) return '${feet.round()} ft';
-    final miles = feet / feetPerMile;
+    final miles = DistanceUnit.kilometers.convert(
+      meters / 1000,
+      DistanceUnit.miles,
+    );
+    if (miles < 1) {
+      final feet = DepthUnit.meters.convert(meters, DepthUnit.feet);
+      return '${feet.round()} ft';
+    }
     final text = miles < 10
         ? formatFixedForDisplay(miles, 1)
         : miles.round().toString();
@@ -167,6 +170,21 @@ class UnitFormatter {
     );
     final text = localiseDecimalText(
       _trimTrailingZeros(converted.toStringAsFixed(decimals)),
+    );
+    return '$text°${settings.temperatureUnit.symbol}';
+  }
+
+  /// A temperature DIFFERENCE in the diver's unit, from a Celsius delta.
+  ///
+  /// Not [formatTemperature]: a difference scales by 9/5 without the 32-degree
+  /// offset a reading's conversion adds, so 2 C warmer is 3.6 F warmer, never
+  /// 35.6 F. Unsigned; the caller adds the sign it needs.
+  String formatTemperatureDelta(double celsiusDelta, {int decimals = 1}) {
+    final scaled = settings.temperatureUnit == TemperatureUnit.fahrenheit
+        ? celsiusDelta * 9 / 5
+        : celsiusDelta;
+    final text = localiseDecimalText(
+      _trimTrailingZeros(scaled.toStringAsFixed(decimals)),
     );
     return '$text°${settings.temperatureUnit.symbol}';
   }
@@ -400,7 +418,7 @@ class UnitFormatter {
 
   /// Whether body height should be shown in metric (cm) rather than imperial
   /// (feet/inches). There is no dedicated height unit, so this is derived from
-  /// the depth unit, consistent with [formatGeoDistance].
+  /// the depth unit, like [formatDistance].
   bool get heightIsMetric => settings.depthUnit == DepthUnit.meters;
 
   /// Format a stored height (centimeters) in the diver's preferred units:

@@ -69,6 +69,12 @@ enum _SlotAction { fill, adjust, logDive, edit, delete }
 class TripCylinderSlotCard extends ConsumerWidget {
   final TripCylinderState state;
 
+  /// The card's place in a ReorderableListView, which then draws no drag
+  /// handles of its own: they would sit on the list item's edge, past the
+  /// card's margin (#2957). The card carries the drag instead, as a handle
+  /// inside it on desktop and a long press on a phone.
+  final int reorderIndex;
+
   /// Every slot on the trip, so a fill started here can default its
   /// station from the trip's last fill.
   final List<TripCylinderState> allStates;
@@ -79,6 +85,7 @@ class TripCylinderSlotCard extends ConsumerWidget {
     required this.state,
     required this.allStates,
     required this.centerNames,
+    required this.reorderIndex,
   });
 
   Future<void> _act(BuildContext context, WidgetRef ref, _SlotAction action) {
@@ -108,12 +115,6 @@ class TripCylinderSlotCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));
     final c = state.cylinder;
-    final mix = state.mix == null
-        ? '--'
-        : tripCylinderMixLabel(l10n, state.mix!);
-    final pressure = state.pressure == null
-        ? '--'
-        : units.formatPressure(state.pressure);
     final status = tripCylinderStatusLabel(l10n, state.status);
     final last = tripCylinderLastItemText(
       l10n,
@@ -122,7 +123,8 @@ class TripCylinderSlotCard extends ConsumerWidget {
       centerNames: centerNames,
     );
     final small = theme.textTheme.bodySmall;
-    return Card(
+    final handle = _dragsByHandle(theme.platform);
+    final card = Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
         leading: Icon(
@@ -136,7 +138,9 @@ class TripCylinderSlotCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('$mix · $pressure · $status'),
+            Text(
+              [...tripCylinderGasParts(l10n, units, state), status].join(' · '),
+            ),
             if (state.bottleLabel != c.label)
               Text(l10n.trips_cylinders_bottle(state.bottleLabel)),
             if (c.volume != null)
@@ -152,33 +156,69 @@ class TripCylinderSlotCard extends ConsumerWidget {
               ),
           ],
         ),
-        trailing: PopupMenuButton<_SlotAction>(
-          key: Key('slot-menu-${c.id}'),
-          onSelected: (action) => _act(context, ref, action),
-          itemBuilder: (_) => [
-            PopupMenuItem(
-              value: _SlotAction.fill,
-              child: Text(l10n.trips_cylinders_action_fill),
-            ),
-            PopupMenuItem(
-              value: _SlotAction.adjust,
-              child: Text(l10n.trips_cylinders_action_adjust),
-            ),
-            PopupMenuItem(
-              value: _SlotAction.logDive,
-              child: Text(l10n.trips_cylinders_action_logDive),
-            ),
-            PopupMenuItem(
-              value: _SlotAction.edit,
-              child: Text(l10n.common_action_edit),
-            ),
-            PopupMenuItem(
-              value: _SlotAction.delete,
-              child: Text(l10n.common_action_delete),
-            ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _menu(context, ref),
+            if (handle)
+              ReorderableDragStartListener(
+                key: Key('slot-drag-${c.id}'),
+                index: reorderIndex,
+                child: const Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Icon(Icons.drag_handle),
+                ),
+              ),
           ],
         ),
       ),
+    );
+    if (handle) return card;
+    return ReorderableDelayedDragStartListener(
+      index: reorderIndex,
+      child: card,
+    );
+  }
+
+  /// Desktop drags by a handle and a phone by a long press, as
+  /// ReorderableListView's own handles do.
+  static bool _dragsByHandle(TargetPlatform platform) => switch (platform) {
+    TargetPlatform.linux ||
+    TargetPlatform.macOS ||
+    TargetPlatform.windows => true,
+    TargetPlatform.android ||
+    TargetPlatform.fuchsia ||
+    TargetPlatform.iOS => false,
+  };
+
+  Widget _menu(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final c = state.cylinder;
+    return PopupMenuButton<_SlotAction>(
+      key: Key('slot-menu-${c.id}'),
+      onSelected: (action) => _act(context, ref, action),
+      itemBuilder: (_) => [
+        PopupMenuItem(
+          value: _SlotAction.fill,
+          child: Text(l10n.trips_cylinders_action_fill),
+        ),
+        PopupMenuItem(
+          value: _SlotAction.adjust,
+          child: Text(l10n.trips_cylinders_action_adjust),
+        ),
+        PopupMenuItem(
+          value: _SlotAction.logDive,
+          child: Text(l10n.trips_cylinders_action_logDive),
+        ),
+        PopupMenuItem(
+          value: _SlotAction.edit,
+          child: Text(l10n.common_action_edit),
+        ),
+        PopupMenuItem(
+          value: _SlotAction.delete,
+          child: Text(l10n.common_action_delete),
+        ),
+      ],
     );
   }
 }

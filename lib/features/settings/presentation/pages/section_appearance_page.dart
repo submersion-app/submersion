@@ -573,6 +573,19 @@ class SectionAppearancePage extends ConsumerWidget {
         },
       ),
       SwitchListTile(
+        title: Text(context.l10n.settings_appearance_lateGasSwitches),
+        subtitle: Text(
+          context.l10n.settings_appearance_lateGasSwitches_subtitle,
+        ),
+        secondary: const Icon(Icons.timer_off_outlined),
+        value: settings.defaultShowLateGasSwitches,
+        onChanged: (value) {
+          ref
+              .read(settingsProvider.notifier)
+              .setDefaultShowLateGasSwitches(value);
+        },
+      ),
+      SwitchListTile(
         title: Text(context.l10n.settings_appearance_gasTimeline),
         subtitle: Text(context.l10n.settings_appearance_gasTimeline_subtitle),
         secondary: const Icon(Icons.timeline),

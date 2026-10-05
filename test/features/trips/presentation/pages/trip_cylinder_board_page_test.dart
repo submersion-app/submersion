@@ -205,8 +205,73 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Truck 2'), findsOneWidget);
-    expect(find.textContaining('Not filled yet'), findsOneWidget);
+    // An unfilled slot has no mix or pressure to show; its status says so
+    // alone, with no dashed placeholders in front (#2957).
+    expect(find.text('Not filled yet'), findsOneWidget);
+    expect(find.textContaining('--'), findsNothing);
   });
+
+  testWidgets(
+    'on desktop each card carries its own drag handle inside it (#2957)',
+    (tester) async {
+      final a = await slot('Truck 1', 0);
+      final b = await slot('Truck 2', 1);
+      await pumpBoard(tester);
+
+      // One handle per card: the list draws none of its own on top.
+      expect(find.byIcon(Icons.drag_handle), findsNWidgets(2));
+      for (final c in [a, b]) {
+        final card = tester.getRect(
+          find.ancestor(of: find.text(c.label), matching: find.byType(Card)),
+        );
+        final handle = tester.getRect(find.byKey(Key('slot-drag-${c.id}')));
+        expect(card.contains(handle.topLeft), isTrue);
+        expect(card.contains(handle.bottomRight), isTrue);
+        final menu = tester.getRect(find.byKey(Key('slot-menu-${c.id}')));
+        expect(card.contains(menu.topLeft), isTrue);
+        expect(card.contains(menu.bottomRight), isTrue);
+      }
+    },
+    variant: TargetPlatformVariant.desktop(),
+  );
+
+  testWidgets('on desktop dragging a card by its handle reorders the board', (
+    tester,
+  ) async {
+    await slot('Truck 1', 0);
+    final b = await slot('Truck 2', 1);
+    await pumpBoard(tester);
+
+    final handle = find.byKey(Key('slot-drag-${b.id}'));
+    final gesture = await tester.startGesture(tester.getCenter(handle));
+    await tester.pump();
+    await gesture.moveBy(const Offset(0, -200));
+    await tester.pump(const Duration(milliseconds: 500));
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    final saved = await repo.getCylindersForTrip(tripId);
+    expect([for (final c in saved) c.label], ['Truck 2', 'Truck 1']);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
+
+  testWidgets(
+    'on a phone a card is dragged by a long press and shows no handle',
+    (tester) async {
+      await slot('Truck 1', 0);
+      await slot('Truck 2', 1);
+      await pumpBoard(tester);
+
+      expect(find.byIcon(Icons.drag_handle), findsNothing);
+      expect(
+        find.ancestor(
+          of: find.byType(Card),
+          matching: find.byType(ReorderableDelayedDragStartListener),
+        ),
+        findsNWidgets(2),
+      );
+    },
+    variant: TargetPlatformVariant.mobile(),
+  );
 
   testWidgets('deleting a used slot names the dive count and keeps the dive', (
     tester,

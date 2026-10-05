@@ -29,6 +29,11 @@ class TrackpadZoomGestureRecognizer extends OneSequenceGestureRecognizer {
   /// `camera.zoom`; the dive profile chart applies `pow(2, delta)` as a factor.
   void Function(Offset localPosition, double zoomDelta)? onZoom;
 
+  /// Called per update with the pointer's local position and the swipe's
+  /// horizontal movement in logical pixels. Null leaves a sideways swipe
+  /// inert, which is what the maps and the dive profile chart want.
+  void Function(Offset localPosition, double dx)? onPan;
+
   double _lastScale = 1.0;
 
   @override
@@ -55,6 +60,8 @@ class TrackpadZoomGestureRecognizer extends OneSequenceGestureRecognizer {
       _lastScale = event.scale;
       final pinchDelta = math.log(scaleRatio) / math.ln2;
       onZoom?.call(event.localPosition, scrollDelta + pinchDelta);
+      final dx = event.panDelta.dx;
+      if (dx != 0) onPan?.call(event.localPosition, dx);
     } else if (event is PointerPanZoomEndEvent) {
       stopTrackingPointer(event.pointer);
     }

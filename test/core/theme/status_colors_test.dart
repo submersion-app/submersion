@@ -1,19 +1,12 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 
+import '../../helpers/contrast_ratio.dart';
 import '../../helpers/google_fonts_settle.dart';
-
-/// WCAG 2.1 contrast ratio between two opaque colors.
-double _contrast(Color a, Color b) {
-  final la = a.computeLuminance();
-  final lb = b.computeLuminance();
-  return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
-}
 
 /// WCAG AA minimum for normal-size text; chip labels and the equipment
 /// list's due labels are 11-12sp, well under the large-text threshold.
@@ -61,7 +54,7 @@ void main() {
       ).entries) {
         test('$mode $tone label is AA legible on its container', () {
           expect(
-            _contrast(swatch.onContainer, swatch.container),
+            contrastRatio(swatch.onContainer, swatch.container),
             greaterThanOrEqualTo(_aaText),
           );
         });
@@ -75,7 +68,7 @@ void main() {
           // light on a dark one, so the color that reads on top of it is
           // white in one mode and near-black in the other.
           expect(
-            _contrast(swatch.onAccent, swatch.accent),
+            contrastRatio(swatch.onAccent, swatch.accent),
             greaterThanOrEqualTo(3.0),
           );
         });
@@ -116,9 +109,9 @@ void main() {
       // alert fill must separate from the page by more than the pastel
       // tones do, or red stops reading as the one chip to act on.
       const page = Color(0xFFFFFFFF);
-      final alert = _contrast(StatusColors.light.alert.container, page);
-      final warn = _contrast(StatusColors.light.warn.container, page);
-      final ok = _contrast(StatusColors.light.ok.container, page);
+      final alert = contrastRatio(StatusColors.light.alert.container, page);
+      final warn = contrastRatio(StatusColors.light.warn.container, page);
+      final ok = contrastRatio(StatusColors.light.ok.container, page);
       expect(alert, greaterThan(warn * 2));
       expect(alert, greaterThan(ok * 2));
     });
@@ -166,7 +159,7 @@ void main() {
               palette,
             ).entries) {
               expect(
-                _contrast(swatch.accent, surface),
+                contrastRatio(swatch.accent, surface),
                 greaterThanOrEqualTo(_aaText),
                 reason:
                     '${preset.id} ${theme.brightness.name} $tone accent '

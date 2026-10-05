@@ -97,6 +97,12 @@ class DivelogsImportAdapter extends UniversalAdapter {
   @override
   ImportSourceType get sourceType => ImportSourceType.divelogs;
 
+  /// The account the dives were fetched from, in place of the file details
+  /// a file import shows (issue #161).
+  @override
+  Future<ImportSourceDetails> sourceDetails() async =>
+      ImportSourceDetails(account: _session?.auth?.username ?? _lastUsername);
+
   @override
   void resetState() {
     super.resetState();

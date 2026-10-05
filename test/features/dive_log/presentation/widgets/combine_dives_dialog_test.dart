@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/data/services/dive_merge_service.da
 import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/services/profile_alignment.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -28,6 +29,7 @@ domain.Dive diveAt(
   List<domain.DiveProfilePoint> profile = const [],
   String? diveComputerModel,
   String? diveComputerSerial,
+  String? computerId,
 }) => domain.Dive(
   id: id,
   diverId: diverId,
@@ -37,6 +39,7 @@ domain.Dive diveAt(
   profile: profile,
   diveComputerModel: diveComputerModel,
   diveComputerSerial: diveComputerSerial,
+  computerId: computerId,
 );
 
 /// A short descend-bottom-ascend profile for the given [runtimeMin].
@@ -48,6 +51,76 @@ List<domain.DiveProfilePoint> _profile(int runtimeMin) {
     domain.DiveProfilePoint(timestamp: end, depth: 0),
   ];
 }
+
+/// A multilevel reef dive sampled every 10 s; [lead] seconds at the surface
+/// first, depths multiplied by [scale].
+List<domain.DiveProfilePoint> _reef({int lead = 0, double scale = 1.0}) {
+  const knots = <(int, double)>[
+    (0, 0),
+    (120, 18),
+    (240, 22),
+    (600, 21),
+    (900, 16),
+    (1300, 14),
+    (1700, 10),
+    (2200, 8),
+    (2400, 5),
+    (2580, 5),
+    (2760, 4.8),
+    (2880, 0),
+  ];
+  double at(int t) {
+    for (var i = 1; i < knots.length; i++) {
+      final (t0, d0) = knots[i - 1];
+      final (t1, d1) = knots[i];
+      if (t <= t1) return d0 + (d1 - d0) * (t - t0) / (t1 - t0);
+    }
+    return 0;
+  }
+
+  return [
+    for (var t = 0; t <= 2880 + lead; t += 10)
+      domain.DiveProfilePoint(
+        timestamp: t,
+        depth: t < lead ? 0 : at(t - lead) * scale,
+      ),
+  ];
+}
+
+/// A 35 m square dive, nothing like [_reef].
+List<domain.DiveProfilePoint> _square() => [
+  for (var t = 0; t <= 2040; t += 10)
+    domain.DiveProfilePoint(
+      timestamp: t,
+      depth: t < 90 ? t * 35 / 90 : (t < 1800 ? 35 : 6),
+    ),
+];
+
+/// One dive on two computers, the second's clock 66 minutes fast.
+List<domain.Dive> _skewedPair({String? serialB = 'serial-b'}) => [
+  diveAt(
+    'a',
+    DateTime.utc(2026, 7, 1, 9),
+    runtimeMin: 48,
+    diveComputerModel: 'Perdix',
+    diveComputerSerial: 'serial-a',
+    profile: _reef(),
+  ),
+  diveAt(
+    'b',
+    DateTime.utc(2026, 7, 1, 10, 6),
+    runtimeMin: 48,
+    diveComputerModel: 'Teric',
+    diveComputerSerial: serialB,
+    profile: _reef(lead: 40, scale: 1.03),
+  ),
+];
+
+const _sameDiveHint =
+    'These profiles look like the same dive recorded by two computers.';
+const _notOverlapping =
+    "These dives don't overlap in time, so they can't be merged as the same "
+    'dive.';
 
 /// Fake [DiveRepository] whose `getDivesByIds` returns canned dives.
 class _FakeDiveRepository implements DiveRepository {
@@ -136,8 +209,9 @@ Future<void> pumpCombineDialog(
   List<String>? requestIds,
   DiveRepository? repository,
   bool consolidateOnly = false,
+  Size size = const Size(1024, 768),
 }) async {
-  tester.view.physicalSize = const Size(1024, 768);
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(() {
     tester.view.resetPhysicalSize();
@@ -370,6 +444,8 @@ void main() {
 
         expect(service.capturedTargetDiveId, 'a');
         expect(service.capturedSecondaryDiveIds, ['b']);
+        // A fully overlapping selection keeps the strict overlap check.
+        expect(service.capturedAlignment, isNull);
 
         // The dialog itself is gone.
         expect(find.text('Combine dives'), findsNothing);
@@ -444,31 +520,6 @@ void main() {
     // the sequential combine, so a pair that does not overlap is rejected the
     // way the consolidation service would reject it.
     testWidgets(
-      'a non-overlapping pair shows the not-overlapping error instead of a '
-      'sequential combine preview',
-      (tester) async {
-        await pumpCombineDialog(
-          tester,
-          dives: [
-            diveAt('a', DateTime.utc(2026, 7, 1, 9)),
-            diveAt('b', DateTime.utc(2026, 7, 1, 10)),
-          ],
-          consolidateOnly: true,
-        );
-
-        expect(
-          find.text(
-            "These dives don't overlap in time, so they can't be merged as "
-            'the same dive.',
-          ),
-          findsOneWidget,
-        );
-        expect(find.text('Combine into one dive'), findsNothing);
-        expect(find.text('Keep as one dive with both computers'), findsNothing);
-      },
-    );
-
-    testWidgets(
       'an overlapping pair still shows the primary selector and confirm',
       (tester) async {
         await pumpCombineDialog(
@@ -495,6 +546,285 @@ void main() {
         );
       },
     );
+  });
+
+  group('non-overlapping dives from different computers (#552)', () {
+    testWidgets('preselects Merge with the hint when the profiles match', (
+      tester,
+    ) async {
+      await pumpCombineDialog(tester, dives: _skewedPair());
+
+      expect(find.text('Join into one dive'), findsOneWidget);
+      expect(find.text('Merge as another computer'), findsOneWidget);
+      expect(find.text(_sameDiveHint), findsOneWidget);
+      expect(find.text('Best fit'), findsOneWidget);
+      expect(
+        find.textContaining("don't overlap in time, so one"),
+        findsOneWidget,
+      );
+      expect(find.text('Keep as one dive with both computers'), findsOneWidget);
+      expect(find.text('Combine into one dive'), findsNothing);
+    });
+
+    testWidgets('Join stays selected when the profiles differ', (tester) async {
+      final dives = _skewedPair();
+      await pumpCombineDialog(
+        tester,
+        dives: [
+          dives.first,
+          diveAt(
+            'b',
+            DateTime.utc(2026, 7, 1, 10, 6),
+            runtimeMin: 34,
+            diveComputerSerial: 'serial-b',
+            profile: _square(),
+          ),
+        ],
+      );
+
+      expect(find.text('Merge as another computer'), findsOneWidget);
+      expect(find.text(_sameDiveHint), findsNothing);
+      expect(find.text('Combine into one dive'), findsOneWidget);
+    });
+
+    testWidgets('no preselect when a dive has no computer serial', (
+      tester,
+    ) async {
+      await pumpCombineDialog(tester, dives: _skewedPair(serialB: null));
+
+      expect(find.text('Merge as another computer'), findsOneWidget);
+      expect(find.text(_sameDiveHint), findsNothing);
+      expect(find.text('Combine into one dive'), findsOneWidget);
+    });
+
+    testWidgets('no Merge choice when both dives come from one computer', (
+      tester,
+    ) async {
+      await pumpCombineDialog(tester, dives: _skewedPair(serialB: 'serial-a'));
+
+      expect(find.text('Merge as another computer'), findsNothing);
+      expect(find.text('Combine into one dive'), findsOneWidget);
+    });
+
+    testWidgets('no Merge choice when both dives share a computer id but '
+        'carry no serial', (tester) async {
+      final dives = _skewedPair(serialB: null);
+      await pumpCombineDialog(
+        tester,
+        dives: [
+          dives.first.copyWith(diveComputerSerial: '', computerId: 'comp-1'),
+          dives.last.copyWith(computerId: 'comp-1'),
+        ],
+      );
+
+      expect(find.text('Merge as another computer'), findsNothing);
+      expect(find.text('Combine into one dive'), findsOneWidget);
+    });
+
+    testWidgets('the same-dive hint follows the chosen primary', (
+      tester,
+    ) async {
+      // 'a' matches both others within tolerance, but 'b' and 'c' carry
+      // opposite depth-sensor offsets, so they do not match each other.
+      List<domain.DiveProfilePoint> biased(double bias) => [
+        for (final p in _reef())
+          domain.DiveProfilePoint(
+            timestamp: p.timestamp,
+            depth: p.depth > 1 ? p.depth + bias : p.depth,
+          ),
+      ];
+      await pumpCombineDialog(
+        tester,
+        dives: [
+          diveAt(
+            'a',
+            DateTime.utc(2026, 7, 1, 9),
+            runtimeMin: 48,
+            diveComputerModel: 'Perdix',
+            diveComputerSerial: 'serial-a',
+            profile: _reef(),
+          ),
+          diveAt(
+            'b',
+            DateTime.utc(2026, 7, 1, 10, 6),
+            runtimeMin: 48,
+            diveComputerModel: 'Teric',
+            diveComputerSerial: 'serial-b',
+            profile: biased(0.9),
+          ),
+          diveAt(
+            'c',
+            DateTime.utc(2026, 7, 1, 11, 30),
+            runtimeMin: 48,
+            diveComputerModel: 'Suunto',
+            diveComputerSerial: 'serial-c',
+            profile: biased(-0.9),
+          ),
+        ],
+      );
+      expect(find.text(_sameDiveHint), findsOneWidget);
+
+      // Three radio tiles plus the alignment controls run past the
+      // dialog's scroll viewport; an off-screen tap would hit the barrier
+      // and dismiss the dialog, passing this test for the wrong reason.
+      await tester.ensureVisible(find.textContaining('Teric'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('Teric'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<RadioGroup<String>>(find.byType(RadioGroup<String>))
+            .groupValue,
+        'b',
+      );
+      expect(find.text(_sameDiveHint), findsNothing);
+    });
+
+    testWidgets('switching to Join shows the sequential preview', (
+      tester,
+    ) async {
+      await pumpCombineDialog(tester, dives: _skewedPair());
+
+      await tester.tap(find.text('Join into one dive'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Combine into one dive'), findsOneWidget);
+      expect(find.text('Best fit'), findsNothing);
+    });
+
+    testWidgets('Align starts redraws the preview at offset 0', (tester) async {
+      await pumpCombineDialog(tester, dives: _skewedPair());
+      int secondStart() => tester
+          .widget<DiveSparkline>(find.byType(DiveSparkline))
+          .extraSeries
+          .single
+          .profile
+          .first
+          .timestamp;
+
+      expect(secondStart(), closeTo(-40, 2));
+      await tester.tap(find.text('Align starts'));
+      await tester.pumpAndSettle();
+      expect(secondStart(), 0);
+    });
+
+    testWidgets('confirming Merge passes the alignment to apply', (
+      tester,
+    ) async {
+      final service = FakeDiveConsolidationService(mergedDiveId: 'a');
+      await pumpCombineDialog(
+        tester,
+        dives: _skewedPair(),
+        consolidationService: service,
+      );
+
+      await tester.tap(find.text('Align starts'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Keep as one dive with both computers'));
+      await tester.pumpAndSettle();
+
+      expect(service.capturedTargetDiveId, 'a');
+      expect(service.capturedSecondaryDiveIds, ['b']);
+      expect(service.capturedAlignment, ConsolidationAlignment.starts);
+    });
+
+    testWidgets('a mixed selection shows the alignment toggle instead of the '
+        'not-overlapping error', (tester) async {
+      final service = FakeDiveConsolidationService(mergedDiveId: 'a');
+      await pumpCombineDialog(
+        tester,
+        dives: [
+          diveAt(
+            'a',
+            DateTime.utc(2026, 7, 1, 9),
+            runtimeMin: 48,
+            diveComputerSerial: 'serial-a',
+            profile: _reef(),
+          ),
+          diveAt(
+            'b',
+            DateTime.utc(2026, 7, 1, 9, 5),
+            runtimeMin: 48,
+            diveComputerSerial: 'serial-b',
+            profile: _reef(),
+          ),
+          diveAt(
+            'c',
+            DateTime.utc(2026, 7, 1, 10, 30),
+            runtimeMin: 48,
+            diveComputerSerial: 'serial-c',
+            profile: _reef(lead: 40),
+          ),
+        ],
+        consolidationService: service,
+      );
+
+      expect(find.text(_notOverlapping), findsNothing);
+      expect(find.text('Best fit'), findsOneWidget);
+      expect(find.byType(RadioListTile<String>), findsNWidgets(3));
+      expect(find.text('Join into one dive'), findsNothing);
+
+      await tester.tap(find.text('Keep as one dive with both computers'));
+      await tester.pumpAndSettle();
+      expect(service.capturedAlignment, ConsolidationAlignment.bestFit);
+    });
+
+    testWidgets('consolidateOnly: a non-overlapping pair opens the Merge '
+        'panel with the toggle and no Join choice', (tester) async {
+      await pumpCombineDialog(
+        tester,
+        dives: [
+          diveAt('a', DateTime.utc(2026, 7, 1, 9)),
+          diveAt('b', DateTime.utc(2026, 7, 1, 10)),
+        ],
+        consolidateOnly: true,
+      );
+
+      expect(find.text(_notOverlapping), findsNothing);
+      expect(find.text('Best fit'), findsOneWidget);
+      expect(find.text('Keep as one dive with both computers'), findsOneWidget);
+      expect(find.text('Join into one dive'), findsNothing);
+      expect(find.text('Combine into one dive'), findsNothing);
+    });
+
+    testWidgets('consolidateOnly: one computer still shows the '
+        'same-computer error', (tester) async {
+      await pumpCombineDialog(
+        tester,
+        dives: [
+          diveAt('a', DateTime.utc(2026, 7, 1, 9), diveComputerSerial: 'x'),
+          diveAt('b', DateTime.utc(2026, 7, 1, 10), diveComputerSerial: 'x'),
+        ],
+        consolidateOnly: true,
+      );
+
+      expect(find.textContaining('same dive computer'), findsOneWidget);
+    });
+
+    testWidgets('the sequential preview fits a phone-width dialog', (
+      tester,
+    ) async {
+      await pumpCombineDialog(
+        tester,
+        dives: _skewedPair(serialB: 'serial-a'),
+        size: const Size(390, 844),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Combine into one dive'), findsOneWidget);
+    });
+
+    testWidgets('the Merge panel fits a phone-width dialog', (tester) async {
+      await pumpCombineDialog(
+        tester,
+        dives: _skewedPair(),
+        size: const Size(390, 844),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Best fit'), findsOneWidget);
+    });
   });
 
   testWidgets('a combine rebuilds the sensor summaries it changed', (

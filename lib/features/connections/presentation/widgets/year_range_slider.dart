@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
+import 'package:submersion/features/connections/presentation/providers/year_play_provider.dart';
+import 'package:submersion/features/connections/presentation/widgets/year_play_pill.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// First-to-last dive year of the log; dragging writes a whole-year date
@@ -24,11 +26,7 @@ class _YearRangeSliderState extends ConsumerState<YearRangeSlider> {
       return const SizedBox.shrink();
     }
     final filter = ref.watch(connectionsFilterProvider);
-    final lo = (filter.startDate?.year ?? span.first).clamp(
-      span.first,
-      span.last,
-    );
-    final hi = (filter.endDate?.year ?? span.last).clamp(span.first, span.last);
+    final (lower: lo, upper: hi) = filteredYears(filter, span);
     final values = _dragging ?? RangeValues(lo.toDouble(), hi.toDouble());
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -36,12 +34,19 @@ class _YearRangeSliderState extends ConsumerState<YearRangeSlider> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            context.l10n.connections_yearRange_label(
-              values.start.round(),
-              values.end.round(),
-            ),
-            style: Theme.of(context).textTheme.labelMedium,
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  context.l10n.connections_yearRange_label(
+                    values.start.round(),
+                    values.end.round(),
+                  ),
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+              ),
+              const YearPlayButton(),
+            ],
           ),
           RangeSlider(
             min: span.first.toDouble(),
@@ -52,6 +57,8 @@ class _YearRangeSliderState extends ConsumerState<YearRangeSlider> {
               '${values.start.round()}',
               '${values.end.round()}',
             ),
+            // Grabbing a thumb takes the range back from year play.
+            onChangeStart: (_) => ref.read(yearPlayProvider.notifier).pause(),
             onChanged: (v) => setState(() => _dragging = v),
             onChangeEnd: (v) {
               setState(() => _dragging = null);

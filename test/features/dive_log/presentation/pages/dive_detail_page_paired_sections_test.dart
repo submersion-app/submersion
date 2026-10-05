@@ -639,7 +639,12 @@ void main() {
       expect(find.text('Tide'), findsNothing);
     });
 
-    testWidgets('no pairing when the dive has no GPS fixes', (tester) async {
+    // Tide needs site coordinates, and those alone now give the location
+    // card a map (issue #402), so a dive with no GPS fix still pairs: the
+    // card is titled Location rather than Surface GPS.
+    testWidgets('a dive with no GPS fix pairs its Location card with Tide', (
+      tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(1000, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -663,9 +668,24 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(ResponsiveSectionPair), findsNothing);
-      expect(find.byType(SurfaceGpsSection), findsNothing);
-      expect(find.text('Tide'), findsOneWidget);
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+      expect(
+        find.ancestor(
+          of: find.byType(SurfaceGpsSection),
+          matching: find.byType(ResponsiveSectionPair),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Surface GPS'), findsNothing);
+      final locationPos = tester.getTopLeft(
+        find.descendant(
+          of: find.byType(SurfaceGpsSection),
+          matching: find.text('Location'),
+        ),
+      );
+      final tidePos = tester.getTopLeft(find.text('Tide'));
+      expect(locationPos.dx, lessThan(tidePos.dx));
+      expect((locationPos.dy - tidePos.dy).abs(), lessThan(4));
     });
   });
 

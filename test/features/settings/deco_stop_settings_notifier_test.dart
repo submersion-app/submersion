@@ -84,21 +84,17 @@ void main() {
       expect(stored!.defaultDecoStopSource, MetricDataSource.calculated);
     });
 
-    test('the deco stop setters leave the ceiling settings alone', () async {
+    test('the deco stop setters leave the ceiling setting alone', () async {
       final notifier = container.read(settingsProvider.notifier);
       final ceilingVisibleBefore = container
           .read(settingsProvider)
           .showCeilingOnProfile;
-      final ceilingSourceBefore = container
-          .read(settingsProvider)
-          .defaultCeilingSource;
 
       await notifier.setShowDecoStopsOnProfile(false);
       await notifier.setDefaultDecoStopSource(MetricDataSource.calculated);
 
       final after = container.read(settingsProvider);
       expect(after.showCeilingOnProfile, ceilingVisibleBefore);
-      expect(after.defaultCeilingSource, ceilingSourceBefore);
     });
 
     test('showDecoStopsOnProfileProvider tracks the setting', () async {

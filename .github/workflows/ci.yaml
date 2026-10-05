@@ -29,11 +29,18 @@ jobs:
   # inability to compute the diff, yields code=true (run the full pipeline).
   # Escape hatch: put [full-ci] in the PR title or a commit message to force the
   # full pipeline even for a docs/CI-only change (e.g. to validate a ci.yaml edit).
+  #
+  # A second output, macos_native, gates the macOS integration tests (#2940): it
+  # is true only when a change can affect the AVFoundation transcoder, the
+  # macOS keychain path of the database key, or the macOS runner they are
+  # tested in. It follows the same fail-safe rules: an unknown base or a
+  # [full-ci] marker sets it too.
   changes:
     name: Detect code changes
     runs-on: ubuntu-latest
     outputs:
       code: ${{ steps.detect.outputs.code }}
+      macos_native: ${{ steps.detect.outputs.macos_native }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -60,6 +67,7 @@ jobs:
           if [ -z "$base" ] || ! git rev-parse --verify --quiet "${base}^{commit}" >/dev/null; then
             echo "Base commit unavailable ('$base'); running the full pipeline."
             echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "macos_native=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           # Two ranges with different semantics:
@@ -85,9 +93,13 @@ jobs:
                | grep -qiF '[full-ci]'; then
             echo "[full-ci] override found; running the full pipeline."
             echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "macos_native=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          files="$(git diff --name-only "$diff_range")"
+          # --no-renames: rename detection lists only a moved file's new path,
+          # so moving lib/a.dart to docs/ would read as a docs-only change.
+          # Listing both sides keeps every gate below fail-safe.
+          files="$(git diff --no-renames --name-only "$diff_range")"
           echo "Changed files:"
           printf '%s\n' "$files"
           # code=true unless EVERY changed file matches an inert pattern below.
@@ -95,6 +107,7 @@ jobs:
           # matches `/` too, so `docs/*` and `.github/*` DO match nested paths
           # (docs/img/x.png, .github/workflows/ci.yaml). No globstar/`**` needed.
           code=false
+          macos_native=false
           while IFS= read -r f; do
             [ -n "$f" ] || continue
             case "$f" in
@@ -104,9 +117,50 @@ jobs:
               *.png|*.jpg|*.jpeg|*.gif|*.svg|*.webp|*.ico) ;;
               *) code=true ;;
             esac
+            # What the macOS integration tests can see change: the transcoder
+            # package (Swift and its Dart channel), the secure-storage and
+            # database-security code whose keychain fallback only macOS takes,
+            # the two tests, the macOS runner project they are built into, and
+            # the Flutter SDK. An edit to the job in this file is not listed:
+            # use [full-ci] for that. The test files here must match the run
+            # loop in integration-test-macos.
+            case "$f" in
+              .github/flutter-version.txt|macos/*|packages/submersion_transcoder/*) macos_native=true ;;
+              lib/core/services/secure_storage/*|lib/core/services/security/*) macos_native=true ;;
+              integration_test/darwin_transcode_test.dart|integration_test/db_security_test.dart) macos_native=true ;;
+            esac
           done <<< "$files"
-          echo "Result: code=$code"
+          # A version change of a native package that db_security_test runs on
+          # macOS also counts: sqlite3 (whose build hook, selected by the
+          # pubspec `hooks:` block, supplies the macOS SQLCipher binary) and
+          # the flutter_secure_storage Keychain plugin. Only those entries are
+          # compared, so an unrelated dependency bump takes no macOS runner. A
+          # merge base that cannot be found counts as a change (fail-safe).
+          if [ "$macos_native" = false ] && printf '%s\n' "$files" | grep -qxE 'pubspec\.(yaml|lock)'; then
+            if [ "$EVENT" = "pull_request" ]; then
+              cmp_base="$(git merge-base "$base" "$head")" || cmp_base=""
+            else
+              cmp_base="$base"
+            fi
+            macos_deps() {
+              {
+                git show "$1:pubspec.lock" 2>/dev/null | awk '
+                  /^[^ ]/ { keep = 0 }
+                  /^  [^ ]/ { keep = ($1 ~ /^(sqlite3|flutter_secure_storage|flutter_secure_storage_darwin):$/) }
+                  keep'
+                git show "$1:pubspec.yaml" 2>/dev/null | awk '
+                  /^[^ #]/ { keep = ($1 == "hooks:") }
+                  keep'
+              } || true
+            }
+            if [ -z "$cmp_base" ] || [ "$(macos_deps "$cmp_base")" != "$(macos_deps "$head")" ]; then
+              echo "A macOS native dependency changed (sqlite3, flutter_secure_storage or pubspec hooks)."
+              macos_native=true
+            fi
+          fi
+          echo "Result: code=$code macos_native=$macos_native"
           echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "macos_native=$macos_native" >> "$GITHUB_OUTPUT"
 
   # Producer job: runs build_runner ONCE and publishes the generated sources as
   # an artifact. Everything else (analyze, test, builds) gates on this ~3 min
@@ -555,7 +609,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -588,6 +642,8 @@ jobs:
             scripts/report_inherited_failures_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/export_support_matrix_catalog_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/check_no_skipped_tests_test.py
           python3 -m coverage report -m --include="$guards"
           python3 -m coverage xml --include="$guards" \
             -o coverage/scripts.xml
@@ -732,15 +788,147 @@ jobs:
           flags: scripts
           fail_ci_if_error: false
 
+  # Platform-agnostic integration tests (#2940). They exercise Dart code, the
+  # bundled SQLCipher and the desktop UI, none of which needs macOS, so they
+  # run on Linux instead of holding one of the organization's 5 concurrent
+  # macOS runners on every PR. Tests of another platform's native code
+  # (android_*, darwin_*, windows_*) are left out rather than built and
+  # launched only to skip; the darwin one runs in integration-test-macos.
   integration-test:
-    name: Integration Test (macOS)
+    name: Integration Test (Linux)
     needs: codegen
+    runs-on: ubuntu-latest
+    # Bounded for the same reason as the macOS job: a hung UI test (perpetual
+    # pump, platform-channel wait) would otherwise hold the runner for 6 hours.
+    timeout-minutes: 25
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@v2
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: 'stable'
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.pub-cache
+            ${{ github.workspace }}/.dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      # The build packages match build-linux. The rest are runtime needs of a
+      # headless runner: xvfb gives the app a display, and dbus-x11 plus
+      # gnome-keyring provide the Secret Service that flutter_secure_storage
+      # (libsecret) stores the database key in during db_security_test.
+      # libsecret-tools supplies secret-tool for the keyring check below.
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            cmake \
+            ninja-build \
+            pkg-config \
+            libgtk-3-dev \
+            liblzma-dev \
+            libstdc++-12-dev \
+            libsecret-1-dev \
+            libwebkit2gtk-4.1-dev \
+            libssl-dev \
+            xvfb \
+            dbus-x11 \
+            gnome-keyring \
+            libsecret-tools
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Download generated code
+        uses: actions/download-artifact@v8
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
+
+      - name: Run integration tests
+        run: |
+          # dbus-launch starts a session bus and exports its address to the
+          # rest of this shell, so every app launched below shares it. Given a
+          # password on stdin, the keyring daemon creates and unlocks a login
+          # keyring on that bus, so a libsecret write never waits on an unlock
+          # prompt that nobody can answer. With an empty password and no
+          # keyrings directory, the daemon started but no login collection was
+          # created, and the first write failed with "Object does not exist at
+          # path /org/freedesktop/secrets/collection/login" (run 37220591254).
+          # The password guards nothing on a throwaway runner.
+          eval "$(dbus-launch --sh-syntax)"
+          mkdir -p "$HOME/.local/share/keyrings"
+          echo 'ci-keyring' | gnome-keyring-daemon --unlock --components=secrets > /dev/null
+          # Prove the keyring takes a write before any app build, so a broken
+          # setup fails here in one line instead of minutes later inside a test.
+          echo 'probe' | secret-tool store --label='CI keyring probe' ci probe
+          if [ "$(secret-tool lookup ci probe)" != 'probe' ]; then
+            echo "::error::the Secret Service keyring did not return a stored secret"
+            exit 1
+          fi
+          # One `flutter test` process per file, as the macOS job always did:
+          # a second sequential desktop launch in one invocation failed to
+          # attach on macOS, and one process per file also gives each file its
+          # own JSON report.
+          # nullglob: an empty directory runs the loop zero times, and the
+          # check below then fails on the missing reports.
+          shopt -s nullglob
+          reports=()
+          for test in integration_test/*_test.dart; do
+            name="$(basename "$test" .dart)"
+            case "$name" in
+              android_*|darwin_*|windows_*)
+                echo "== Not run on Linux: $test (another platform's native code) =="
+                continue ;;
+            esac
+            echo "== Running $test =="
+            report="$RUNNER_TEMP/$name.json"
+            xvfb-run -a flutter test "$test" \
+              -d linux \
+              --dart-define=SCREENSHOT_MODE=false \
+              --file-reporter "json:$report"
+            reports+=("$report")
+          done
+          # A skipped test exits 0, so without this a test that quietly stopped
+          # running (a missing tool, a platform check) would still pass.
+          python3 scripts/check_no_skipped_tests.py "${reports[@]}"
+
+  # The integration tests whose behaviour is macOS-specific (#2940): the
+  # AVFoundation transcoder behind its platform channel, and db_security_test,
+  # whose key write goes through FallbackSecureStorage. Its probe picks the
+  # data-protection or the legacy file-based keychain (the -34018 fallback),
+  # a decision only macOS makes; Linux stores the key with libsecret.
+  # Gated on changes.macos_native so a PR that cannot affect them does not
+  # take a macOS runner; Build iOS and Build macOS already use two of the
+  # organization's 5 per PR.
+  integration-test-macos:
+    name: Integration Test (macOS)
+    needs: [changes, codegen]
     runs-on: macos-26
     # This job normally finishes in ~10 min; without a bound a hung UI test
     # (perpetual pumpAndSettle, window focus, platform-channel wait) would hold
     # a macOS runner for GitHub's 6-hour default. Fail fast instead.
     timeout-minutes: 25
-    if: github.event_name == 'pull_request'
+    if: >
+      github.event_name == 'pull_request' &&
+      needs.changes.outputs.macos_native == 'true'
     steps:
       - uses: actions/checkout@v7
         with:
@@ -771,6 +959,15 @@ jobs:
           restore-keys: |
             pub-${{ runner.os }}-
 
+      # darwin_transcode_test synthesizes its input clip with ffmpeg and skips
+      # without it. The runner image does not ship ffmpeg, so until #2940 the
+      # test skipped on every run while this job stayed green.
+      - name: Install ffmpeg
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+          HOMEBREW_NO_INSTALL_CLEANUP: '1'
+        run: brew install ffmpeg
+
       - name: Disable code signing for CI
         run: |
           echo 'CODE_SIGNING_ALLOWED = NO' >> macos/Runner/Configs/Debug.xcconfig
@@ -791,23 +988,24 @@ jobs:
       - name: Unpack generated code
         run: tar -xzf generated-code.tar.gz
 
-      - name: Run integration tests
+      - name: Run the macOS integration tests
         run: |
-          # Run each file in its own `flutter test` process: a single
-          # `flutter test integration_test/` invocation relaunches the macOS
-          # app once per file, and the second sequential desktop relaunch
-          # deterministically fails to attach ("log reader stopped
-          # unexpectedly"). One launch per invocation avoids that.
-          # nullglob: if the dir has no *_test.dart the loop runs zero times
-          # (matching the old "No tests ran" success) instead of passing the
-          # literal glob to `flutter test`.
-          shopt -s nullglob
-          for test in integration_test/*_test.dart; do
-            echo "== Running $test =="
-            flutter test "$test" \
+          # One `flutter test` process per file: a second sequential desktop
+          # launch in one invocation fails to attach on macOS ("log reader
+          # stopped unexpectedly"). Keep this list in step with the test files
+          # in the changes job's macos_native pattern.
+          reports=()
+          for name in darwin_transcode_test db_security_test; do
+            echo "== Running integration_test/$name.dart =="
+            report="$RUNNER_TEMP/$name.json"
+            flutter test "integration_test/$name.dart" \
               -d macos \
-              --dart-define=SCREENSHOT_MODE=false
+              --file-reporter "json:$report"
+            reports+=("$report")
           done
+          # The transcoder test skips rather than fails when ffmpeg is
+          # missing; a skip here means the job checked nothing, so it fails.
+          python3 scripts/check_no_skipped_tests.py "${reports[@]}"
 
   build-ios:
     name: Build iOS
@@ -1467,6 +1665,7 @@ jobs:
       - timezone-tests
       - script-tests
       - integration-test
+      - integration-test-macos
       - build-ios
       - build-macos
       - build-android

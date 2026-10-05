@@ -9,6 +9,8 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center_gea
 import 'package:submersion/features/dive_centers/presentation/widgets/rental_gear_note_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/core/text/fuzzy_match.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -88,16 +90,21 @@ void main() {
       find.ancestor(of: find.text(label), matching: find.byType(TextField));
 
   /// Opens the gear type menu and picks [label]. The menu opens scrolled to
-  /// the selected type, so an item near the top must be scrolled into view
-  /// before it exists in the tree.
-  Future<void> pickGearType(WidgetTester tester, String label) async {
+  /// the selected type, so an item away from it must be scrolled into view
+  /// before it exists in the tree: pass [below] for an item that sorts after
+  /// the selected type.
+  Future<void> pickGearType(
+    WidgetTester tester,
+    String label, {
+    bool below = false,
+  }) async {
     await tester.tap(find.byType(DropdownButtonFormField<EquipmentType>));
     await tester.pumpAndSettle();
     // With the menu open the closed field still reads the old type, so the
     // label exists once, in the menu.
     await tester.scrollUntilVisible(
       find.text(label),
-      -100,
+      below ? 100 : -100,
       scrollable: find.byType(Scrollable).last,
     );
     await tester.tap(find.text(label));
@@ -140,7 +147,8 @@ void main() {
     tester,
   ) async {
     await pumpAndOpen(tester);
-    await pickGearType(tester, 'Tank');
+    // Tank sorts after the default Other, below where the menu opens.
+    await pickGearType(tester, 'Tank', below: true);
     expect(find.text('Actual capacity (L)'), findsOneWidget);
     await tester.enterText(fieldLabelled('Label or number'), 'AL80');
     await tester.enterText(fieldLabelled('Actual capacity (L)'), '11.1');
@@ -290,5 +298,23 @@ void main() {
 
     expect(await repo.getForCenter('c1'), hasLength(1));
     expect(find.text('Edit rental note'), findsOneWidget);
+  });
+
+  testWidgets('offers every gear type alphabetically by label (#2937)', (
+    tester,
+  ) async {
+    await pumpAndOpen(tester);
+
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    final dropdown = tester.widget<DropdownButton<EquipmentType>>(
+      find.byType(DropdownButton<EquipmentType>),
+    );
+    final shown = [
+      for (final item in dropdown.items!) item.value!.localizedName(l10n),
+    ];
+    final alphabetical = [...shown]
+      ..sort((a, b) => normalize(a).compareTo(normalize(b)));
+    expect(shown, hasLength(EquipmentType.values.length));
+    expect(shown, alphabetical);
   });
 }

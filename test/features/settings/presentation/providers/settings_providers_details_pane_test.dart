@@ -208,8 +208,38 @@ void main() {
         volumeUnit: VolumeUnit.cubicFeet,
         weightUnit: WeightUnit.pounds,
         altitudeUnit: AltitudeUnit.feet,
+        distanceUnit: DistanceUnit.miles,
       );
       expect(settings.unitPreset, UnitPreset.imperial);
+    });
+
+    test('defaults distance to kilometres', () {
+      expect(const AppSettings().distanceUnit, DistanceUnit.kilometers);
+    });
+
+    test('unitPreset is custom when only distance differs from metric', () {
+      const settings = AppSettings(distanceUnit: DistanceUnit.miles);
+      expect(settings.unitPreset, UnitPreset.custom);
+    });
+
+    test('unitPreset is custom when only distance differs from imperial', () {
+      const settings = AppSettings(
+        depthUnit: DepthUnit.feet,
+        temperatureUnit: TemperatureUnit.fahrenheit,
+        pressureUnit: PressureUnit.psi,
+        volumeUnit: VolumeUnit.cubicFeet,
+        weightUnit: WeightUnit.pounds,
+        altitudeUnit: AltitudeUnit.feet,
+      );
+      expect(settings.unitPreset, UnitPreset.custom);
+    });
+
+    test('copyWith carries the distance unit', () {
+      final updated = const AppSettings().copyWith(
+        distanceUnit: DistanceUnit.miles,
+      );
+      expect(updated.distanceUnit, DistanceUnit.miles);
+      expect(updated.depthUnit, DepthUnit.meters);
     });
 
     test('unitPreset returns custom when units are mixed', () {

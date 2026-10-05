@@ -138,7 +138,8 @@ class _EquipmentPickerFilterSheetState
                   allSelected: _type == null,
                   onAll: () => setState(() => _type = null),
                   children: [
-                    for (final type in widget.availableTypes)
+                    for (final type
+                        in widget.availableTypes.sortedByLocalizedName(l10n))
                       ChoiceChip(
                         key: ValueKey('picker_filter_type_${type.name}'),
                         avatar: Icon(equipmentTypeIcon(type), size: 18),

@@ -13,6 +13,7 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
+import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/media_resolution_hints.dart';
@@ -423,7 +424,12 @@ class SyncService {
     for (final record in conflictRecords) {
       if (record.conflictData != null) {
         try {
-          final remoteData = _parseConflictData(record.conflictData!);
+          // A conflict stored before a column became device-local may still
+          // carry it; fetchRecord strips the local side the same way.
+          final remoteData = withoutDeviceLocalColumns(
+            record.entityType,
+            _parseConflictData(record.conflictData!),
+          );
           final localData = await _serializer.fetchRecord(
             record.entityType,
             record.recordId,
@@ -1762,38 +1768,31 @@ class SyncService {
           ),
         ];
 
-    // Precompute the locally-tombstoned parents this payload will REVIVE (a
-    // remote edit strictly newer than our deletion). A child must not be
+    // Precompute the locally-tombstoned parents this payload will REVIVE
+    // (_revivedParents). A child must not be
     // dropped/cleared for a parent that is coming back. The merge order does
     // not guarantee a parent is processed before its children, and a revival
     // only clears the tombstone in the DB (not the in-memory snapshot used by
     // the guard below), so this is computed up front to stay order-independent.
-    final recordsByType = {for (final e in mergeOrder) e.type: e};
-    final revivedParents = <String, Set<String>>{};
     final parentTypes = <String>{
       for (final refs in parentRefs.values)
         for (final ref in refs) ref.parent,
     };
-    for (final parentType in parentTypes) {
-      final tombs = tombstonesByEntity[parentType];
-      final entry = recordsByType[parentType];
-      if (tombs == null ||
-          tombs.isEmpty ||
-          entry == null ||
-          !entry.hasUpdatedAt) {
-        continue;
-      }
-      for (final rec in entry.records) {
-        final id = recordIdForEntity(parentType, rec);
-        if (id == null) continue;
-        final deletedAt = tombs[id];
-        if (deletedAt == null) continue;
-        final remoteUpdatedAt = _extractUpdatedAtMillis(rec);
-        if (remoteUpdatedAt != null && remoteUpdatedAt > deletedAt) {
-          revivedParents.putIfAbsent(parentType, () => <String>{}).add(id);
-        }
-      }
-    }
+    final revivedParents = _revivedParents(
+      parentTypes: parentTypes,
+      stamps: {
+        for (final e in mergeOrder)
+          if (parentTypes.contains(e.type) &&
+              tombstonesByEntity[e.type]?.isNotEmpty == true)
+            e.type: {
+              for (final rec in e.records)
+                ?recordIdForEntity(e.type, rec): _parentStamp(e.type, rec),
+            },
+      },
+      tombstones: tombstonesByEntity,
+      tombstoneClocks: tombstoneClocks,
+      contradicted: contradictedByEntity,
+    );
 
     for (final entry in mergeOrder) {
       final result = await _mergeEntity(
@@ -1979,7 +1978,8 @@ class SyncService {
     final deletionIds = <String, Set<String>>{
       for (final e in deletions.entries) e.key: {for (final d in e.value) d.id},
     };
-    final parentUpdatedAt = <String, Map<String, int>>{};
+    // Each parent row's stamps, for the revived-parent check.
+    final parentStamps = <String, Map<String, _ParentStamp>>{};
     final contradictedByEntity = <String, Set<String>>{};
     final payloadScopes = _payloadEventScopes(deletions, baseExportedAt);
     final pass2Tables = <String>{
@@ -1998,10 +1998,9 @@ class SyncService {
         final rec = r.row;
         final id = recordIdForEntity(table, rec);
         if (id == null) continue;
-        if (parentTypes.contains(table) &&
-            _baseApplyEntityFlags[table] == true) {
-          final u = _extractUpdatedAtMillis(rec);
-          if (u != null) (parentUpdatedAt[table] ??= {})[id] = u;
+        // Every parent, whatever its merge flag, as in the payload apply.
+        if (parentTypes.contains(table)) {
+          (parentStamps[table] ??= {})[id] = _parentStamp(table, rec);
         }
         if (deletionIds[table]?.contains(id) == true) {
           (contradictedByEntity[table] ??= {}).add(id);
@@ -2032,18 +2031,13 @@ class SyncService {
       final (deletedAt: tombstonesByEntity, clocks: tombstoneClocks) =
           await _deletionMaps();
 
-      final revivedParents = <String, Set<String>>{};
-      for (final parentType in parentTypes) {
-        final tombs = tombstonesByEntity[parentType];
-        final ups = parentUpdatedAt[parentType];
-        if (tombs == null || tombs.isEmpty || ups == null) continue;
-        ups.forEach((id, updatedAt) {
-          final deletedAt = tombs[id];
-          if (deletedAt != null && updatedAt > deletedAt) {
-            (revivedParents[parentType] ??= {}).add(id);
-          }
-        });
-      }
+      final revivedParents = _revivedParents(
+        parentTypes: parentTypes,
+        stamps: parentStamps,
+        tombstones: tombstonesByEntity,
+        tombstoneClocks: tombstoneClocks,
+        contradicted: contradictedByEntity,
+      );
 
       // ---- Pass 3: batched apply ----
       const batchSize = 500;
@@ -2163,7 +2157,8 @@ class SyncService {
     final deletionIds = <String, Set<String>>{
       for (final e in deletions.entries) e.key: {for (final d in e.value) d.id},
     };
-    final parentUpdatedAt = <String, Map<String, int>>{};
+    // Each parent row's stamps, for the revived-parent check.
+    final parentStamps = <String, Map<String, _ParentStamp>>{};
     final contradictedByEntity = <String, Set<String>>{};
     final payloadScopes = _payloadEventScopes(deletions, baseExportedAt);
     progress.beginPass(1);
@@ -2179,10 +2174,9 @@ class SyncService {
         final rec = jsonDecode(utf8.decode(rowBytes)) as Map<String, dynamic>;
         final id = recordIdForEntity(table, rec);
         if (id == null) return;
-        if (parentTypes.contains(table) &&
-            _baseApplyEntityFlags[table] == true) {
-          final u = _extractUpdatedAtMillis(rec);
-          if (u != null) (parentUpdatedAt[table] ??= {})[id] = u;
+        // Every parent, whatever its merge flag, as in the payload apply.
+        if (parentTypes.contains(table)) {
+          (parentStamps[table] ??= {})[id] = _parentStamp(table, rec);
         }
         if (deletionIds[table]?.contains(id) == true) {
           (contradictedByEntity[table] ??= {}).add(id);
@@ -2215,22 +2209,16 @@ class SyncService {
       final (deletedAt: tombstonesByEntity, clocks: tombstoneClocks) =
           await _deletionMaps();
 
-      // Revived parents: a parent row whose remote updatedAt is newer than our
-      // local tombstone. Combines pass-2 file data with post-deletion
-      // tombstones, so it is complete before any row is merged (a child may
-      // precede its parent in file order).
-      final revivedParents = <String, Set<String>>{};
-      for (final parentType in parentTypes) {
-        final tombs = tombstonesByEntity[parentType];
-        final ups = parentUpdatedAt[parentType];
-        if (tombs == null || tombs.isEmpty || ups == null) continue;
-        ups.forEach((id, updatedAt) {
-          final deletedAt = tombs[id];
-          if (deletedAt != null && updatedAt > deletedAt) {
-            (revivedParents[parentType] ??= {}).add(id);
-          }
-        });
-      }
+      // Revived parents (_revivedParents). Combines pass-2 file data with
+      // post-deletion tombstones, so it is complete before any row is merged
+      // (a child may precede its parent in file order).
+      final revivedParents = _revivedParents(
+        parentTypes: parentTypes,
+        stamps: parentStamps,
+        tombstones: tombstonesByEntity,
+        tombstoneClocks: tombstoneClocks,
+        contradicted: contradictedByEntity,
+      );
 
       // ---- Pass 3: batched apply ----
       const batchSize = 500;
@@ -2374,6 +2362,10 @@ class SyncService {
             );
             continue;
           }
+          // A device-local settings key never syncs (issue #2947), so a
+          // peer's tombstone for one neither deletes this device's value nor
+          // raises a conflict, as the merge treats a live copy.
+          if (isDeviceLocalRecord(entityType, recordId)) continue;
           if (pendingByEntity[entityType]?.contains(recordId) == true) {
             continue;
           }
@@ -2387,28 +2379,36 @@ class SyncService {
           final deletionTimestamp = deletion.deletedAt > 0
               ? deletion.deletedAt
               : remoteExportedAt;
-          // A child with its own clock, against a tombstone carrying the
-          // clock of the delete: the later event wins, with no conflict
-          // card (children resolve per row, as their upserts do). A child
-          // edited after the peer deleted it, which reached us before the
-          // delete did, is kept. Either clock missing: the rules below.
-          final localHlc =
-              SyncDataSerializer.ownClockEntities.contains(entityType)
-              ? _ownClock(entityType, local)
-              : null;
+          // A local row against a tombstone carrying the clock of the
+          // delete: the clocks order them, for every entity, as they order
+          // two live copies in _mergeEntity. A row not later than the delete
+          // is deleted with no conflict, whatever the wall clocks say: its
+          // updatedAt is the stamp of whichever device wrote it, so reading
+          // it against this device's own lastSync made a row nobody touched
+          // here look edited whenever that writer's clock ran ahead (#2943).
+          // A later row was edited after the delete: a child with its own
+          // clock keeps it with no card (children resolve per row, as their
+          // upserts do), anything else raises the deletion conflict below.
+          // Either clock missing: the wall-clock rules below.
+          final localHlc = _ownClock(entityType, local);
           final deletionHlc = _parseHlc(deletion.hlc);
           if (deletionHlc != null) SyncClock.instance.receive(deletionHlc);
-          if (localHlc != null && deletionHlc != null) {
-            if (localHlc.compareTo(deletionHlc) > 0) continue;
-            await _serializer.deleteRecord(entityType, recordId);
-            await _syncRepository.logDeletionIfMissing(
-              entityType: entityType,
-              recordId: recordId,
-              deletedAt: deletionTimestamp,
-              originHlc: deletion.hlc,
-            );
-            applied += 1;
-            continue;
+          final clockOrdered = localHlc != null && deletionHlc != null;
+          if (clockOrdered) {
+            if (localHlc.compareTo(deletionHlc) <= 0) {
+              await _serializer.deleteRecord(entityType, recordId);
+              await _syncRepository.logDeletionIfMissing(
+                entityType: entityType,
+                recordId: recordId,
+                deletedAt: deletionTimestamp,
+                originHlc: deletion.hlc,
+              );
+              applied += 1;
+              continue;
+            }
+            if (SyncDataSerializer.ownClockEntities.contains(entityType)) {
+              continue;
+            }
           }
           // _extractUpdatedAtMillis falls back to createdAt, so a row created
           // locally after our last sync (or after the tombstone itself) is
@@ -2423,7 +2423,10 @@ class SyncService {
           // already drops a tombstone whose key the same payload re-inserts.
           final localUpdatedAt = _extractUpdatedAtMillis(local);
 
-          // Two independent guards; either one routes to a conflict:
+          // Reached with clockOrdered only for a row later than the delete,
+          // which is a conflict on its own. Otherwise, for a row or
+          // tombstone with no clock (a pre-HLC peer), two independent
+          // guards; either one routes to a conflict:
           //  * edited since our last sync (three-way; needs a horizon), and
           //  * the tombstone's own age: a local row edited AFTER the peer
           //    deleted it is newer than the deletion. This mirrors the
@@ -2448,7 +2451,8 @@ class SyncService {
               local != null &&
               isTagFillCopy(local);
           final hasConflict =
-              !tagCopy && (editedSinceLastSync || newerThanTombstone);
+              !tagCopy &&
+              (clockOrdered || editedSinceLastSync || newerThanTombstone);
 
           if (hasConflict) {
             conflicts += 1;
@@ -2461,7 +2465,9 @@ class SyncService {
                 'hlc': ?deletion.hlc,
                 'recordId': recordId,
               }),
-              localUpdatedAt: localUpdatedAt,
+              // Only a row ordered by its clock can conflict with no
+              // timestamp, and its clock says when it was last written.
+              localUpdatedAt: localUpdatedAt ?? localHlc!.physicalTime,
             );
             continue;
           }
@@ -3095,6 +3101,11 @@ class SyncService {
           continue;
         }
 
+        // A device-local settings key never syncs (issue #2947). A peer on
+        // an older build may still send one; it neither applies nor raises
+        // a conflict for a value that stays on each device.
+        if (isDeviceLocalRecord(entityType, recordId)) continue;
+
         // A locally pending row used to skip the peer's copy outright, and
         // the changeset cursor still advanced past it, so the peer's update
         // was lost for good: a newer edit made elsewhere never landed here,
@@ -3129,7 +3140,7 @@ class SyncService {
         // or resurrect an orphan. A NOT NULL (cascade) child is skipped; a
         // nullable (set-null) reference is cleared so the row survives detached
         // (e.g. a photo whose dive was deleted keeps the photo, sans dive link).
-        var recordToApply = _withoutDeviceLocalFields(entityType, record);
+        var recordToApply = withoutDeviceLocalColumns(entityType, record);
         var droppedByParent = false;
         for (final ref in entityParentRefs) {
           final parentId = record[ref.field];
@@ -3185,23 +3196,17 @@ class SyncService {
             // gear junctions, so a link lost anywhere could never be revived
             // by a live copy from a peer (issue #1728). A genuinely clockless
             // entity still yields null here and is unaffected.
-            // A child with its own clock, against the clock of our delete:
-            // only an edit made after the delete revives it. Either clock
-            // missing: the timestamps below.
-            final deleteClock = ownClocked
-                ? selfTombstoneClocks[recordId]
-                : null;
-            final remoteClock = deleteClock == null
-                ? null
-                : _ownClock(entityType, record);
-            if (deleteClock != null && remoteClock != null) {
-              if (remoteClock.compareTo(deleteClock) <= 0) continue;
-            } else {
-              final remoteUpdatedAt = _extractUpdatedAtMillis(record);
-              if (remoteUpdatedAt == null || remoteUpdatedAt <= deletedAt) {
-                // No newer remote edit -- the deletion wins; stay deleted.
-                continue;
-              }
+            // Against the clock of our delete, when both carry one: only an
+            // edit made after the delete revives it. Either clock missing:
+            // the timestamps.
+            if (!_outlivesDelete(
+              copyClock: _ownClock(entityType, record),
+              copyUpdatedAt: _extractUpdatedAtMillis(record),
+              deleteClock: selfTombstoneClocks[recordId],
+              deletedAt: deletedAt,
+            )) {
+              // No newer remote edit -- the deletion wins; stay deleted.
+              continue;
             }
             // Remote edit is newer than the deletion: revive the record and
             // drop the now-obsolete tombstone so it stops re-deleting it.
@@ -3510,20 +3515,6 @@ class SyncService {
     );
   }
 
-  /// BLE identifiers are host-specific and must never cross the sync boundary.
-  static Map<String, dynamic> _withoutDeviceLocalFields(
-    String entityType,
-    Map<String, dynamic> data,
-  ) {
-    if (entityType != 'diveComputers' ||
-        !data.containsKey('bluetoothAddress')) {
-      return data;
-    }
-    final copy = Map<String, dynamic>.from(data);
-    copy.remove('bluetoothAddress');
-    return copy;
-  }
-
   Future<Map<String, Set<String>>> _pendingRecordMap() async {
     final records = await _syncRepository.getPendingRecords();
     final map = <String, Set<String>>{};
@@ -3634,6 +3625,72 @@ class SyncService {
     return newest;
   }
 
+  /// Whether a peer's live copy of a row this device deleted is newer than
+  /// the delete, and so revives the row. The two clocks decide when both
+  /// exist ([copyClock] is the copy's [_ownClock], [deleteClock] the
+  /// tombstone's origin clock), for every entity: the copy's updatedAt was
+  /// stamped by another device's wall clock and [deletedAt] by this one's,
+  /// so comparing them let a stale copy from a fast clock revive the row,
+  /// or a later edit from a slow one stay deleted (#2943). Either clock
+  /// missing: the wall-clock comparison.
+  static bool _outlivesDelete({
+    required Hlc? copyClock,
+    required int? copyUpdatedAt,
+    required Hlc? deleteClock,
+    required int deletedAt,
+  }) {
+    if (copyClock != null && deleteClock != null) {
+      return copyClock.compareTo(deleteClock) > 0;
+    }
+    return copyUpdatedAt != null && copyUpdatedAt > deletedAt;
+  }
+
+  /// What [_revivedParents] reads of a peer's copy of a parent row.
+  _ParentStamp _parentStamp(String entityType, Map<String, dynamic> row) => (
+    updatedAt: _extractUpdatedAtMillis(row),
+    clock: _ownClock(entityType, row),
+  );
+
+  /// The locally tombstoned parents a payload brings back, by type, decided
+  /// as [_mergeEntity]'s local-deletion guard decides them: a copy newer
+  /// than our delete ([_outlivesDelete]), or one the same payload both
+  /// deletes and sends live ([contradicted]), which the merge applies over
+  /// our tombstone. Every parent counts, whatever its merge flag (species,
+  /// media and diveTanks resolve by their clock alone). Computed before any
+  /// row merges, so a child keeps its link to a parent that is coming back
+  /// whichever of the two merges first.
+  static Map<String, Set<String>> _revivedParents({
+    required Set<String> parentTypes,
+    required Map<String, Map<String, _ParentStamp>> stamps,
+    required Map<String, Map<String, int>> tombstones,
+    required Map<String, Map<String, Hlc>> tombstoneClocks,
+    required Map<String, Set<String>> contradicted,
+  }) {
+    final revived = <String, Set<String>>{};
+    for (final parentType in parentTypes) {
+      final tombs = tombstones[parentType];
+      if (tombs == null || tombs.isEmpty) continue;
+      final ids = <String>{
+        for (final id in contradicted[parentType] ?? const <String>{})
+          if (tombs.containsKey(id)) id,
+      };
+      stamps[parentType]?.forEach((id, stamp) {
+        final deletedAt = tombs[id];
+        if (deletedAt != null &&
+            _outlivesDelete(
+              copyClock: stamp.clock,
+              copyUpdatedAt: stamp.updatedAt,
+              deleteClock: tombstoneClocks[parentType]?[id],
+              deletedAt: deletedAt,
+            )) {
+          ids.add(id);
+        }
+      });
+      if (ids.isNotEmpty) revived[parentType] = ids;
+    }
+    return revived;
+  }
+
   /// Whether a local row and a peer's copy can be ordered: both carry a
   /// clock. A pending local row is protected from the peer's copy only when
   /// they cannot be.
@@ -3677,7 +3734,7 @@ class SyncService {
       return;
     }
 
-    final remoteData = _withoutDeviceLocalFields(
+    final remoteData = withoutDeviceLocalColumns(
       entityType,
       _parseConflictData(match.conflictData!),
     );
@@ -3743,17 +3800,8 @@ class SyncService {
         break;
 
       case ConflictResolution.keepBoth:
-        if (isDeletion) {
-          await _syncRepository.clearConflict(
-            entityType: entityType,
-            recordId: recordId,
-          );
-          await _markPendingForConflict(entityType, recordId);
-          break;
-        }
-        final newId = _duplicateId(entityType, remoteData);
-        if (newId != null) {
-          remoteData['id'] = newId;
+        if (keepBothMakesCopy(entityType, remoteData)) {
+          remoteData['id'] = _uuid.v4();
           await _serializer.upsertRecord(entityType, remoteData);
           await _serializer.alignLinkedRouteOwners();
         }
@@ -3780,11 +3828,18 @@ class SyncService {
     );
   }
 
-  String? _duplicateId(String entityType, Map<String, dynamic> record) {
-    if (entityType == 'settings') return null;
-    if (record['id'] == null) return null;
-    return _uuid.v4();
-  }
+  /// Whether resolving with [ConflictResolution.keepBoth] copies the remote
+  /// row under a new id. It cannot for a deletion, for a row with no `id` of
+  /// its own (a composite-key junction) or for `settings`; there Keep both
+  /// keeps the local row only. The conflict dialog reads this to decide
+  /// whether to offer Keep both, so the offer and the outcome cannot drift.
+  static bool keepBothMakesCopy(
+    String entityType,
+    Map<String, dynamic> remoteData,
+  ) =>
+      entityType != 'settings' &&
+      remoteData['_deleted'] != true &&
+      remoteData['id'] != null;
 
   /// Reset sync state (for debugging or account changes).
   ///
@@ -4671,6 +4726,24 @@ class SyncService {
     required List<int> baseExportedAt,
     required List<SyncPayload> changesets,
   }) async {
+    try {
+      await _adoptApplyStreamingRows(
+        baseFilePaths: baseFilePaths,
+        baseExportedAt: baseExportedAt,
+        changesets: changesets,
+      );
+    } finally {
+      // The device-local values the table clears remembered belong to this
+      // adopt's refill only (issue #2947).
+      _serializer.endAdoptRefill();
+    }
+  }
+
+  Future<void> _adoptApplyStreamingRows({
+    required List<String> baseFilePaths,
+    required List<int> baseExportedAt,
+    required List<SyncPayload> changesets,
+  }) async {
     // Replace semantics: clear every synced table, then insert the cloud union
     // (latest export wins). Equivalent to the old upsert-then-delete-not-in-
     // cloud, but needs no in-RAM id set to diff against, so adopt memory stays
@@ -5148,3 +5221,7 @@ class _MergeResult {
     this.recordsFailed = 0,
   });
 }
+
+/// A peer copy's stamps for the revived-parent check: its updatedAt and its
+/// own clock.
+typedef _ParentStamp = ({int? updatedAt, Hlc? clock});

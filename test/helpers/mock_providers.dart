@@ -107,6 +107,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setAltitudeUnit(AltitudeUnit unit) async =>
       state = state.copyWith(altitudeUnit: unit);
   @override
+  Future<void> setDistanceUnit(DistanceUnit unit) async =>
+      state = state.copyWith(distanceUnit: unit);
+  @override
   Future<void> setSeascapeAppearance(SeascapeAppearance appearance) async =>
       state = state.copyWith(seascapeAppearance: appearance);
   @override
@@ -350,9 +353,6 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDefaultNdlSource(MetricDataSource value) async =>
       state = state.copyWith(defaultNdlSource: value);
   @override
-  Future<void> setDefaultCeilingSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultCeilingSource: value);
-  @override
   Future<void> setDefaultDecoStopSource(MetricDataSource value) async =>
       state = state.copyWith(defaultDecoStopSource: value);
   @override
@@ -430,6 +430,8 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
     pressureUnit: PressureUnit.bar,
     volumeUnit: VolumeUnit.liters,
     weightUnit: WeightUnit.kilograms,
+    altitudeUnit: AltitudeUnit.meters,
+    distanceUnit: DistanceUnit.kilometers,
   );
   @override
   Future<void> setImperial() async => state = state.copyWith(
@@ -438,6 +440,8 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
     pressureUnit: PressureUnit.psi,
     volumeUnit: VolumeUnit.cubicFeet,
     weightUnit: WeightUnit.pounds,
+    altitudeUnit: AltitudeUnit.feet,
+    distanceUnit: DistanceUnit.miles,
   );
   @override
   Future<void> setNotificationsEnabled(bool value) async =>
@@ -483,6 +487,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDefaultShowGasSwitchMarkers(bool value) async =>
       state = state.copyWith(defaultShowGasSwitchMarkers: value);
+  @override
+  Future<void> setDefaultShowLateGasSwitches(bool value) async =>
+      state = state.copyWith(defaultShowLateGasSwitches: value);
   @override
   Future<void> setDefaultShowPhotoMarkers(bool value) async =>
       state = state.copyWith(defaultShowPhotoMarkers: value);

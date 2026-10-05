@@ -309,6 +309,66 @@ class TripCylinderRepository {
     }
   }
 
+  /// As [createCylinders], with the slots placed after [tripId]'s last one
+  /// in their given order, whatever sort order they carry, and a slot for a
+  /// tank already on that board (or earlier in [cylinders]) left out.
+  /// Returns the slots written. The board is read inside the write, and
+  /// writes run one at a time, so appends made from the same view of the
+  /// board (taps before it refreshes, #2873) land one after the other, and
+  /// a repeated one for the same tank adds nothing instead of a second
+  /// slot.
+  Future<List<domain.TripCylinder>> appendCylinders(
+    String tripId,
+    List<domain.TripCylinder> cylinders,
+  ) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final t = _db.tripCylinders;
+      final created = await _db.transaction(() async {
+        final board =
+            await (_db.selectOnly(t)
+                  ..addColumns([t.equipmentId, t.sortOrder])
+                  ..where(t.tripId.equals(tripId)))
+                .get();
+        final start =
+            board.fold(-1, (end, r) {
+              final order = r.read(t.sortOrder) ?? 0;
+              return order > end ? order : end;
+            }) +
+            1;
+        final onBoard = {for (final r in board) ?r.read(t.equipmentId)};
+        // A tank already on the board is left out, as is a second draft
+        // for one tank in this batch.
+        final fresh = [
+          for (final (i, c) in cylinders.indexed)
+            if (c.equipmentId == null ||
+                (!onBoard.contains(c.equipmentId) &&
+                    cylinders.indexWhere(
+                          (o) => o.equipmentId == c.equipmentId,
+                        ) ==
+                        i))
+              c,
+        ];
+        return [
+          for (final (i, c) in fresh.indexed)
+            await _insertCylinder(
+              c.copyWith(tripId: tripId, sortOrder: start + i),
+              now,
+            ),
+        ];
+      });
+      if (created.isNotEmpty) SyncEventBus.notifyLocalChange();
+      return created;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to append cylinders',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Inserts every event in [events] in one transaction, so one save of
   /// several fills commits once (one refresh) and a failure adds none. They
   /// share one creation time, so the ledger can order them by the board.

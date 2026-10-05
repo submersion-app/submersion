@@ -3,7 +3,9 @@ import 'package:submersion/features/connections/domain/entities/connection_kind.
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/views/connection_presets.dart';
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
+import 'package:submersion/features/connections/domain/views/highlight_mode.dart';
 import 'package:submersion/features/connections/domain/views/kind_link.dart';
+import 'package:submersion/features/connections/domain/views/map_spec.dart';
 
 const _jane = NodeRef(ConnectionKind.buddy, 'jane');
 
@@ -162,4 +164,60 @@ void main() {
       expect(identical(base.withHopsParam(null), base), isTrue);
     },
   );
+  group('highlight', () {
+    test('defaults to by kind and round-trips through JSON', () {
+      expect(ConnectionsViewState.initial.highlight, HighlightMode.byKind);
+      final v = ConnectionsViewState.initial.withHighlight(
+        HighlightMode.recency,
+      );
+      expect(v.toJson()['highlight'], 'recency');
+      expect(
+        ConnectionsViewState.fromJson(v.toJson())!.highlight,
+        HighlightMode.recency,
+      );
+    });
+
+    test('JSON stored before the field reads as by kind', () {
+      final json = ConnectionsViewState.initial.toJson()..remove('highlight');
+      expect(
+        ConnectionsViewState.fromJson(json)!.highlight,
+        HighlightMode.byKind,
+      );
+      json['highlight'] = 'sparkles';
+      expect(
+        ConnectionsViewState.fromJson(json)!.highlight,
+        HighlightMode.byKind,
+      );
+    });
+
+    test('every transition keeps the highlight', () {
+      final v = ConnectionsViewState.initial.withHighlight(
+        HighlightMode.groups,
+      );
+      final preset = ConnectionPresets.byId('where')!;
+      final spec = MapSpec.of({ConnectionKind.site}, const {});
+      for (final next in [
+        v.applyPreset(preset),
+        v.applySavedMap('m1', spec),
+        v.applySavedMap('m1', spec).withSavedMaps(const {}),
+        v.applySavedMap('m1', preset.spec).withSavedMaps({'m1': spec}),
+        v.showMap(spec),
+        v.editMap(spec),
+        v.centreOn(_jane),
+        v.withMode(ConnectionsMode.around),
+        v.withAroundKinds({ConnectionKind.site}),
+        v.withHops(2),
+        v.copyWith(clearFocus: true),
+      ]) {
+        expect(next.highlight, HighlightMode.groups);
+      }
+    });
+
+    test('a highlight change is a different view', () {
+      expect(
+        ConnectionsViewState.initial.withHighlight(HighlightMode.groups),
+        isNot(ConnectionsViewState.initial),
+      );
+    });
+  });
 }

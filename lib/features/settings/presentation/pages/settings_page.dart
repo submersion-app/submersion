@@ -16,6 +16,7 @@ import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
+import 'package:submersion/features/settings/presentation/widgets/altitude_distance_unit_pickers.dart';
 import 'package:submersion/features/settings/presentation/widgets/notification_permission_card.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
@@ -520,6 +521,28 @@ class _UnitsSectionContent extends ConsumerWidget {
                   value: settings.weightUnit.symbol,
                   onTap: () =>
                       _showWeightUnitPicker(context, ref, settings.weightUnit),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: context.l10n.settings_units_altitude,
+                  value: settings.altitudeUnit.symbol,
+                  onTap: () => showAltitudeUnitPicker(
+                    context,
+                    ref,
+                    settings.altitudeUnit,
+                  ),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: context.l10n.settings_units_distance,
+                  value: settings.distanceUnit.symbol,
+                  onTap: () => showDistanceUnitPicker(
+                    context,
+                    ref,
+                    settings.distanceUnit,
+                  ),
                 ),
                 const Divider(height: 1),
                 _buildUnitTile(
@@ -1579,6 +1602,14 @@ class _DecompressionSectionContent extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isSelected = settings.cnsCalculationMethod == method;
+    // Foregrounds must pair with the fill: on primaryContainer only
+    // onPrimaryContainer is guaranteed to read (#2959).
+    final labelColor = isSelected
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.onSurface;
+    final descriptionColor = isSelected
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.onSurfaceVariant;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -1612,19 +1643,24 @@ class _DecompressionSectionContent extends ConsumerWidget {
                         _cnsMethodLabel(context, method),
                         style: textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
+                          color: labelColor,
                         ),
                       ),
                       Text(
                         _cnsMethodDescription(context, method),
                         style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                          color: descriptionColor,
                         ),
                       ),
                     ],
                   ),
                 ),
                 if (isSelected)
-                  Icon(Icons.check, color: colorScheme.primary, size: 20),
+                  Icon(
+                    Icons.check,
+                    color: colorScheme.onPrimaryContainer,
+                    size: 20,
+                  ),
               ],
             ),
           ),

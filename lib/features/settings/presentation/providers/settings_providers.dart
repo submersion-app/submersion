@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/constants/card_color.dart';
@@ -132,6 +134,10 @@ class AppSettings {
   final VolumeUnit volumeUnit;
   final WeightUnit weightUnit;
   final AltitudeUnit altitudeUnit;
+
+  /// Unit for geographic distances (site distances, track length, tide
+  /// station distance, chamber distance, geofence radius). Issue #2030.
+  final DistanceUnit distanceUnit;
 
   /// Which gas-consumption lanes the single-value surfaces show: SAC
   /// (tank-pressure rate), RMV (surface volume rate), or both. Replaces the
@@ -303,9 +309,6 @@ class AppSettings {
   /// Default data source for NDL metric (computer or calculated)
   final MetricDataSource defaultNdlSource;
 
-  /// Default data source for ceiling metric (computer or calculated)
-  final MetricDataSource defaultCeilingSource;
-
   /// Default data source for deco stop band (computer or calculated)
   final MetricDataSource defaultDecoStopSource;
 
@@ -459,6 +462,9 @@ class AppSettings {
   /// Default visibility for gas switch markers on dive profile
   final bool defaultShowGasSwitchMarkers;
 
+  /// Shade late and missed deco gas switches on the profile (#2939).
+  final bool defaultShowLateGasSwitches;
+
   /// Default visibility for photo markers on dive profile
   final bool defaultShowPhotoMarkers;
 
@@ -567,6 +573,7 @@ class AppSettings {
     this.volumeUnit = VolumeUnit.liters,
     this.weightUnit = WeightUnit.kilograms,
     this.altitudeUnit = AltitudeUnit.meters,
+    this.distanceUnit = DistanceUnit.kilometers,
     this.gasConsumptionDisplay = GasConsumptionDisplay.both,
     this.gasModel = GasModel.real,
     this.defaultPlannerWaterType = PlannerWaterType.salt,
@@ -623,7 +630,6 @@ class AppSettings {
     this.o2Narcotic = true,
     this.endLimit = 30.0,
     this.defaultNdlSource = MetricDataSource.computer,
-    this.defaultCeilingSource = MetricDataSource.computer,
     this.defaultDecoStopSource = MetricDataSource.computer,
     this.defaultTtsSource = MetricDataSource.computer,
     this.defaultCnsSource = MetricDataSource.computer,
@@ -673,6 +679,7 @@ class AppSettings {
     this.defaultShowCns = false,
     this.defaultShowOtu = false,
     this.defaultShowGasSwitchMarkers = true,
+    this.defaultShowLateGasSwitches = true,
     this.defaultShowPhotoMarkers = true,
     this.defaultShowGasTimeline = false,
     this.defaultShowO2CellMv = false,
@@ -718,7 +725,8 @@ class AppSettings {
         pressureUnit == PressureUnit.bar &&
         volumeUnit == VolumeUnit.liters &&
         weightUnit == WeightUnit.kilograms &&
-        altitudeUnit == AltitudeUnit.meters;
+        altitudeUnit == AltitudeUnit.meters &&
+        distanceUnit == DistanceUnit.kilometers;
 
     final isAllImperial =
         depthUnit == DepthUnit.feet &&
@@ -726,7 +734,8 @@ class AppSettings {
         pressureUnit == PressureUnit.psi &&
         volumeUnit == VolumeUnit.cubicFeet &&
         weightUnit == WeightUnit.pounds &&
-        altitudeUnit == AltitudeUnit.feet;
+        altitudeUnit == AltitudeUnit.feet &&
+        distanceUnit == DistanceUnit.miles;
 
     if (isAllMetric) return UnitPreset.metric;
     if (isAllImperial) return UnitPreset.imperial;
@@ -750,6 +759,7 @@ class AppSettings {
     VolumeUnit? volumeUnit,
     WeightUnit? weightUnit,
     AltitudeUnit? altitudeUnit,
+    DistanceUnit? distanceUnit,
     GasConsumptionDisplay? gasConsumptionDisplay,
     GasModel? gasModel,
     PlannerWaterType? defaultPlannerWaterType,
@@ -807,7 +817,6 @@ class AppSettings {
     bool? o2Narcotic,
     double? endLimit,
     MetricDataSource? defaultNdlSource,
-    MetricDataSource? defaultCeilingSource,
     MetricDataSource? defaultDecoStopSource,
     MetricDataSource? defaultTtsSource,
     MetricDataSource? defaultCnsSource,
@@ -855,6 +864,7 @@ class AppSettings {
     bool? defaultShowCns,
     bool? defaultShowOtu,
     bool? defaultShowGasSwitchMarkers,
+    bool? defaultShowLateGasSwitches,
     bool? defaultShowPhotoMarkers,
     bool? defaultShowGasTimeline,
     bool? defaultShowO2CellMv,
@@ -899,6 +909,7 @@ class AppSettings {
       volumeUnit: volumeUnit ?? this.volumeUnit,
       weightUnit: weightUnit ?? this.weightUnit,
       altitudeUnit: altitudeUnit ?? this.altitudeUnit,
+      distanceUnit: distanceUnit ?? this.distanceUnit,
       gasConsumptionDisplay:
           gasConsumptionDisplay ?? this.gasConsumptionDisplay,
       gasModel: gasModel ?? this.gasModel,
@@ -969,7 +980,6 @@ class AppSettings {
       o2Narcotic: o2Narcotic ?? this.o2Narcotic,
       endLimit: endLimit ?? this.endLimit,
       defaultNdlSource: defaultNdlSource ?? this.defaultNdlSource,
-      defaultCeilingSource: defaultCeilingSource ?? this.defaultCeilingSource,
       defaultDecoStopSource:
           defaultDecoStopSource ?? this.defaultDecoStopSource,
       defaultTtsSource: defaultTtsSource ?? this.defaultTtsSource,
@@ -1031,6 +1041,8 @@ class AppSettings {
       defaultShowOtu: defaultShowOtu ?? this.defaultShowOtu,
       defaultShowGasSwitchMarkers:
           defaultShowGasSwitchMarkers ?? this.defaultShowGasSwitchMarkers,
+      defaultShowLateGasSwitches:
+          defaultShowLateGasSwitches ?? this.defaultShowLateGasSwitches,
       defaultShowPhotoMarkers:
           defaultShowPhotoMarkers ?? this.defaultShowPhotoMarkers,
       defaultShowGasTimeline:
@@ -1163,6 +1175,28 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// right diver's settings in place.
   int _landedGeneration = 0;
 
+  /// What the current diver's row holds, as this notifier last read,
+  /// stored or adopted it: null until a load lands for a diver.
+  ///
+  /// A save writes only the columns [state] changed from this, so a copy of
+  /// the settings held since before a sync cannot undo another device's
+  /// change (issue #2946), and a write to the row that leaves it different
+  /// from this came from a sync, which [_reloadFromStorage] adopts.
+  AppSettings? _persisted;
+
+  /// Bumped whenever [_persisted] is replaced from storage rather than by a
+  /// save: a load landing, a sync adopted, a diver switch. A save whose
+  /// change was made before such a replacement built it on the earlier base.
+  int _baseEpoch = 0;
+
+  /// Completes when the last save started has finished with the row. Each
+  /// save waits for the one before it, so row writes land in the order the
+  /// changes were made: setters need not be awaited, and an earlier change
+  /// landing last would revert a later one to the same column.
+  Future<void> _rowWriteTurn = Future<void>.value();
+
+  StreamSubscription<void>? _storageChanges;
+
   /// Completes once [state] holds the CURRENT diver's settings.
   ///
   /// Unlike [initialLoad], this covers the reload after a diver switch: until
@@ -1211,6 +1245,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     required String? diverId,
   }) : super(settings) {
     _validatedDiverId = diverId;
+    _persisted = diverId == null ? null : settings;
     _initialLoad = Future<void>.value();
     _currentLoad = _initialLoad;
   }
@@ -1226,11 +1261,22 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     // that await it still see them.
     _initialLoad = settingsLoaded..ignore();
 
+    // A sync applying another device's change to the diver's row (issue
+    // #2946). Writes to the row from here notify too, and change nothing.
+    _storageChanges = _repository.watchSettingsChanges().listen(
+      (_) => logFailure(
+        _reloadFromStorage(),
+        SettingsNotifier,
+        'reload settings changed in storage',
+      ),
+    );
+
     // Listen for diver changes and reload settings
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
       if (previous != next) {
         // Reset diver ID immediately to prevent saving to wrong diver during switch
         _validatedDiverId = null;
+        _replaceBase(null);
         // Starting a new load supersedes any still in flight: its reads may
         // return after this one's, and must not overwrite the new diver's
         // settings when they do.
@@ -1260,6 +1306,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     } catch (_) {
       if (_isCurrentLoad(generation) && _landedGeneration != generation) {
         _validatedDiverId = null;
+        _replaceBase(null);
         // Only an EARLIER load's settings need replacing. When none has
         // landed (a failed startup load) state already holds the defaults.
         if (_landedGeneration != 0) {
@@ -1361,6 +1408,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     final diverId = _validatedDiverId;
     if (diverId == null) {
       // No diver selected, use defaults
+      _replaceBase(null);
       state = AppSettings(
         hiddenHomeChips: hiddenHomeChips,
         homeCardOrder: homeCardOrder,
@@ -1394,6 +1442,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     // first, and this one must not then overwrite it with the previous
     // diver's settings (issue #2564).
     if (!_isCurrentLoad(generation)) return;
+    _replaceBase(settings);
     state = settings.copyWith(
       hiddenHomeChips: hiddenHomeChips,
       homeCardOrder: homeCardOrder,
@@ -1409,7 +1458,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     _landedGeneration = generation;
     if (adoptLegacySeascape) {
       // Write through immediately so the adopted value syncs.
-      await _repository.updateSettingsForDiver(diverId, state);
+      await _saveSettings();
     }
     if (legacySeascapeRaw != null) {
       // Retire the pref: the diver row is the source of truth now, and a
@@ -1452,50 +1501,127 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   Future<void> _saveSettings() async {
-    // Device-local preferences are always persisted to SharedPreferences,
-    // independent of whether a diver is currently selected.
-    final prefs = _ref.read(sharedPreferencesProvider);
-    await prefs.setStringList(
-      SettingsKeys.hiddenHomeChips,
-      state.hiddenHomeChips.toList()..sort(),
-    );
-    await prefs.setStringList(SettingsKeys.homeCardOrder, state.homeCardOrder);
-    await prefs.setStringList(
-      SettingsKeys.hiddenHomeCards,
-      state.hiddenHomeCards.toList()..sort(),
-    );
-    await prefs.setDouble(SettingsKeys.pscrRatio, state.pscrRatio);
-    await prefs.setBool(
-      SettingsKeys.profileMetricsFollowViewport,
-      state.profileMetricsFollowViewport,
-    );
-    await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
-    await prefs.setBool(
-      SettingsKeys.perdixOverlayEnabled,
-      state.perdixOverlayEnabled,
-    );
-    final perdixX = state.perdixOverlayX;
-    if (perdixX != null) {
-      await prefs.setDouble(SettingsKeys.perdixOverlayX, perdixX);
-    }
-    final perdixY = state.perdixOverlayY;
-    if (perdixY != null) {
-      await prefs.setDouble(SettingsKeys.perdixOverlayY, perdixY);
-    }
-    await _writeCachedTheme(prefs);
-
+    // Taken before the first await: [state] can move on, and a diver switch
+    // can start, while the writes below are out. The row write carries
+    // exactly this change, to the diver it was made for.
     final diverId = _validatedDiverId;
-    if (diverId == null) {
-      // No diver yet: the device-local pref is the seascape knobs' only
-      // store; it is adopted into the diver row and retired on the first
-      // load with a diver (see _loadSettings).
-      await prefs.setString(
-        SettingsKeys.seascapeAppearance,
-        state.seascapeAppearance.encode(),
+    final next = state;
+    final epoch = _baseEpoch;
+    final baseAtStart = _persisted;
+    final turn = _rowWriteTurn;
+    final turnDone = Completer<void>();
+    _rowWriteTurn = turnDone.future;
+    try {
+      // Device-local preferences are always persisted to SharedPreferences,
+      // independent of whether a diver is currently selected.
+      final prefs = _ref.read(sharedPreferencesProvider);
+      await prefs.setStringList(
+        SettingsKeys.hiddenHomeChips,
+        state.hiddenHomeChips.toList()..sort(),
       );
+      await prefs.setStringList(
+        SettingsKeys.homeCardOrder,
+        state.homeCardOrder,
+      );
+      await prefs.setStringList(
+        SettingsKeys.hiddenHomeCards,
+        state.hiddenHomeCards.toList()..sort(),
+      );
+      await prefs.setDouble(SettingsKeys.pscrRatio, state.pscrRatio);
+      await prefs.setBool(
+        SettingsKeys.profileMetricsFollowViewport,
+        state.profileMetricsFollowViewport,
+      );
+      await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
+      await prefs.setBool(
+        SettingsKeys.perdixOverlayEnabled,
+        state.perdixOverlayEnabled,
+      );
+      final perdixX = state.perdixOverlayX;
+      if (perdixX != null) {
+        await prefs.setDouble(SettingsKeys.perdixOverlayX, perdixX);
+      }
+      final perdixY = state.perdixOverlayY;
+      if (perdixY != null) {
+        await prefs.setDouble(SettingsKeys.perdixOverlayY, perdixY);
+      }
+      await _writeCachedTheme(prefs);
+
+      if (diverId == null) {
+        // No diver yet: the device-local pref is the seascape knobs' only
+        // store; it is adopted into the diver row and retired on the first
+        // load with a diver (see _loadSettings).
+        await prefs.setString(
+          SettingsKeys.seascapeAppearance,
+          state.seascapeAppearance.encode(),
+        );
+        return;
+      }
+      await turn;
+      // Earlier saves have finished, so [_persisted] is what the row holds,
+      // and diffing against it also retries a change whose write failed.
+      // When a load or sync replaced it since this change was made, [next]
+      // was built on [baseAtStart] instead.
+      final sameBase = epoch == _baseEpoch;
+      final previous = sameBase ? _persisted : baseAtStart;
+      // No load had landed for this diver: [state] held the defaults, or
+      // the previous diver's settings mid-switch, and the load replaces
+      // them. Writing them would overwrite the diver's stored row.
+      if (previous == null) return;
+      await _repository.updateSettingsForDiver(
+        diverId,
+        next,
+        previous: previous,
+      );
+      if (sameBase && epoch == _baseEpoch) _persisted = next;
+    } finally {
+      // Never before the saves ahead of this one, even when this one
+      // returned or failed before its turn: a later save must not overtake
+      // an earlier write still out.
+      unawaited(turn.then((_) => turnDone.complete()));
+    }
+  }
+
+  void _replaceBase(AppSettings? row) {
+    _persisted = row;
+    _baseEpoch++;
+  }
+
+  /// Adopts the current diver's row when it no longer holds what this
+  /// notifier last read or stored there, which means a sync applied another
+  /// device's change (issue #2946). This notifier's own writes leave the row
+  /// matching [_persisted] and change nothing.
+  Future<void> _reloadFromStorage() async {
+    while (true) {
+      // Waits for the saves started so far: until one lands the row lacks
+      // its change, and adopting the row would undo the edit [state] holds.
+      final turn = _rowWriteTurn;
+      await turn;
+      final diverId = _validatedDiverId;
+      final base = _persisted;
+      // Until a load lands there is nothing to compare, and that load reads
+      // the row itself.
+      if (!mounted || diverId == null || base == null) return;
+      final generation = _loadGeneration;
+      final stored = await _repository.getSettingsForDiver(diverId);
+      if (stored == null || !_isCurrentLoad(generation)) return;
+      // A save started during the read, and the row read may predate it.
+      if (!identical(turn, _rowWriteTurn) || !identical(base, _persisted)) {
+        continue;
+      }
+      if (DiverSettingsRepository.storesSameSettings(stored, base)) return;
+      _replaceBase(stored);
+      state = _withDeviceLocalPrefs(stored);
+      await _writeCachedTheme(_ref.read(sharedPreferencesProvider));
+      _scheduleNotificationsIfNeeded();
       return;
     }
-    await _repository.updateSettingsForDiver(diverId, state);
+  }
+
+  @override
+  void dispose() {
+    _storageChanges?.cancel();
+    super.dispose();
   }
 
   /// Mirrors the effective theme into SharedPreferences so the startup splash
@@ -1588,6 +1714,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setAltitudeUnit(AltitudeUnit unit) async {
     state = state.copyWith(altitudeUnit: unit);
+    await _saveSettings();
+  }
+
+  Future<void> setDistanceUnit(DistanceUnit unit) async {
+    state = state.copyWith(distanceUnit: unit);
     await _saveSettings();
   }
 
@@ -1998,11 +2129,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  Future<void> setDefaultCeilingSource(MetricDataSource value) async {
-    state = state.copyWith(defaultCeilingSource: value);
-    await _saveSettings();
-  }
-
   Future<void> setDefaultDecoStopSource(MetricDataSource value) async {
     state = state.copyWith(defaultDecoStopSource: value);
     await _saveSettings();
@@ -2270,6 +2396,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  Future<void> setDefaultShowLateGasSwitches(bool value) async {
+    state = state.copyWith(defaultShowLateGasSwitches: value);
+    await _saveSettings();
+  }
+
   Future<void> setDefaultShowPhotoMarkers(bool value) async {
     state = state.copyWith(defaultShowPhotoMarkers: value);
     await _saveSettings();
@@ -2457,6 +2588,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       volumeUnit: VolumeUnit.liters,
       weightUnit: WeightUnit.kilograms,
       altitudeUnit: AltitudeUnit.meters,
+      distanceUnit: DistanceUnit.kilometers,
     );
     await _saveSettings();
   }
@@ -2470,6 +2602,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       volumeUnit: VolumeUnit.cubicFeet,
       weightUnit: WeightUnit.pounds,
       altitudeUnit: AltitudeUnit.feet,
+      distanceUnit: DistanceUnit.miles,
     );
     await _saveSettings();
   }
@@ -2824,6 +2957,12 @@ final defaultShowOtuProvider = Provider<bool>((ref) {
 final defaultShowGasSwitchMarkersProvider = Provider<bool>((ref) {
   return ref.watch(
     settingsProvider.select((s) => s.defaultShowGasSwitchMarkers),
+  );
+});
+
+final defaultShowLateGasSwitchesProvider = Provider<bool>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.defaultShowLateGasSwitches),
   );
 });
 

@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_panel.dart';
 import 'package:submersion/features/query/domain/entities/saved_query.dart';
 import 'package:submersion/features/query/domain/saved_query_load.dart';
@@ -119,6 +120,51 @@ void main() {
     await tester.pumpAndSettle();
     expect(c.read(t), DiveFilterState(query: depth));
     expect(find.byType(RefinePanel), findsNothing);
+  });
+
+  // #2989: a search built only in the GUI groups saves, its axes lowered
+  // into the query as Show would apply them (All dives lifted).
+  testWidgets('Save stores the whole draft, GUI axes and no rule', (
+    tester,
+  ) async {
+    final saved = <QueryNode>[];
+    final t = StateProvider<DiveFilterState>(
+      (ref) => const DiveFilterState(minDepth: 30, axesSuspended: true),
+    );
+    await openRefinePanel(
+      tester,
+      target: t,
+      extra: [
+        diveSearchSaverProvider.overrideWithValue(
+          (context, ref, node) async => saved.add(node),
+        ),
+      ],
+    );
+    await tester.tap(find.text('Rules'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save query'));
+    await tester.pumpAndSettle();
+    expect(saved, [
+      ConditionNode(
+        FieldPath(['depth']),
+        QueryOp.gte,
+        const NumberValue(30, null),
+      ),
+    ]);
+  });
+
+  testWidgets('Save is disabled while the draft sets nothing', (tester) async {
+    final t = StateProvider<DiveFilterState>((ref) => const DiveFilterState());
+    await openRefinePanel(tester, target: t);
+    await tester.tap(find.text('Rules'));
+    await tester.pumpAndSettle();
+    final save = tester.widget<ButtonStyleButton>(
+      find.ancestor(
+        of: find.text('Save query'),
+        matching: find.bySubtype<ButtonStyleButton>(),
+      ),
+    );
+    expect(save.enabled, isFalse);
   });
 
   // Code review (#989): desktop draws no scroll thumb until a scroll starts,

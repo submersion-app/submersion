@@ -523,6 +523,15 @@ final peerDeviceNamesProvider = StreamProvider<Map<String, String>>((ref) {
   return out.stream;
 });
 
+/// This device's id and display name, for labelling the local side of a
+/// sync conflict. Same resolver the manifests use, so a peer sees this
+/// device under the same name.
+final conflictLocalDeviceProvider =
+    FutureProvider<({String? id, String? name})>((ref) async {
+      final identity = await SyncDeviceMetadata(SyncRepository()).resolve();
+      return (id: identity.id, name: identity.name);
+    });
+
 /// Sync service provider
 // no-tick: the value is a SERVICE, not a query result. Its one repository
 // call (applyResolutionHints) is a write made inside a callback at merge
@@ -1777,8 +1786,13 @@ final syncMessageProvider = Provider<String?>((ref) {
   return ref.watch(syncStateProvider).message;
 });
 
-/// Get conflicts provider
-final conflictsProvider = FutureProvider<List<SyncConflict>>((ref) async {
+/// The unresolved sync conflicts, read fresh each time the Resolve Conflicts
+/// dialog opens. Nothing invalidates this after a sync or a resolution, so a
+/// cached list outlived the conflicts it showed: a reopened dialog offered
+/// conflicts already resolved and hid ones raised since (#2943).
+final conflictsProvider = FutureProvider.autoDispose<List<SyncConflict>>((
+  ref,
+) async {
   final syncService = ref.watch(syncServiceProvider);
   return syncService.getConflicts();
 });

@@ -14,8 +14,12 @@ import 'package:submersion/features/dive_computer/presentation/providers/discove
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/download_step_widget.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
 
 // ---------------------------------------------------------------------------
 // Fake service -- avoids platform channels entirely
@@ -167,9 +171,13 @@ Widget _buildWidget({
   VoidCallback? onComplete,
   void Function(String)? onError,
   VoidCallback? onImportPartial,
+  ThemeData? theme,
+  AppSettings? settings,
 }) {
   return ProviderScope(
     overrides: [
+      if (settings != null)
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier(settings)),
       diveComputerServiceProvider.overrideWithValue(_FakeDiveComputerService()),
       diveComputerRepositoryProvider.overrideWithValue(
         _FakeDiveComputerRepository(),
@@ -181,6 +189,7 @@ Widget _buildWidget({
       }),
     ],
     child: MaterialApp(
+      theme: theme,
       // Pinned because every assertion below matches an English literal.
       // flutter_test forwards the HOST machine's locale list rather than a
       // fixed en_US, and this app supports eleven locales, so on a developer
@@ -536,7 +545,7 @@ void main() {
       expect(find.text('25.5m'), findsOneWidget);
       expect(find.text('45min'), findsOneWidget);
       expect(find.text('avg 15.3m'), findsOneWidget);
-      expect(find.text('20C'), findsOneWidget);
+      expect(find.text('20°C'), findsOneWidget);
     });
 
     testWidgets('shows deco algorithm and gradient factors', (tester) async {
@@ -584,6 +593,104 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('EAN32'), findsOneWidget);
+    });
+
+    // Issue #2956: under Console dark, tertiary fell back to secondary, the
+    // same navy as the card, so the gas label painted invisibly and pushed the
+    // deco text sideways by its width.
+    testWidgets('gas mix label stays visible when tertiary matches the card', (
+      tester,
+    ) async {
+      const card = Color(0xFF1A2230);
+      final theme = ThemeData(
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFF4AE0C0),
+          tertiary: card,
+        ),
+        cardTheme: const CardThemeData(color: card),
+      );
+      final dives = [
+        _makeDive(
+          diveNumber: 1,
+          tanks: const [DownloadedTank(index: 0, o2Percent: 100.0)],
+        ),
+      ];
+
+      await tester.pumpWidget(
+        _buildWidget(
+          theme: theme,
+          initialState: DownloadState(
+            phase: DownloadPhase.complete,
+            progress: DownloadProgress.complete(1),
+            downloadedDives: dives,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final label = tester.widget<Text>(find.text('O2'));
+      expect(label.style?.color, theme.colorScheme.primary);
+    });
+
+    testWidgets('formats depth and temperature in the diver\'s units', (
+      tester,
+    ) async {
+      final dives = [
+        _makeDive(
+          diveNumber: 1,
+          maxDepth: 30.0,
+          avgDepth: 15.0,
+          minTemperature: 20.0,
+        ),
+      ];
+
+      await tester.pumpWidget(
+        _buildWidget(
+          settings: const AppSettings(
+            depthUnit: DepthUnit.feet,
+            temperatureUnit: TemperatureUnit.fahrenheit,
+          ),
+          initialState: DownloadState(
+            phase: DownloadPhase.complete,
+            progress: DownloadProgress.complete(1),
+            downloadedDives: dives,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('98.4ft'), findsOneWidget);
+      expect(find.text('avg 49.2ft'), findsOneWidget);
+      expect(find.text('68°F'), findsOneWidget);
+      expect(find.text('30.0m'), findsNothing);
+    });
+
+    // A CCR carries a trimix diluent and an oxygen cylinder; calling them
+    // EAN10 and EAN100 misnames both.
+    testWidgets('names trimix and oxygen mixes by their gas', (tester) async {
+      final dives = [
+        _makeDive(
+          diveNumber: 1,
+          tanks: const [
+            DownloadedTank(index: 0, o2Percent: 10.0, hePercent: 50.0),
+            DownloadedTank(index: 1, o2Percent: 100.0),
+            DownloadedTank(index: 2, o2Percent: 20.9),
+          ],
+        ),
+      ];
+
+      await tester.pumpWidget(
+        _buildWidget(
+          initialState: DownloadState(
+            phase: DownloadPhase.complete,
+            progress: DownloadProgress.complete(1),
+            downloadedDives: dives,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tx 10/50, O2'), findsOneWidget);
     });
 
     testWidgets('does not show gas mix chip for air tanks', (tester) async {

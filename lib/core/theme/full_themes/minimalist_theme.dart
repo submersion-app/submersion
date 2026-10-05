@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/core/theme/status_colors.dart';
+import 'package:submersion/core/theme/tinted_containers.dart';
 
 // ---------------------------------------------------------------------------
 // Minimalist Theme -- clean, near-monochrome
@@ -26,6 +27,11 @@ const _fabDark = Color(0xFFE0E0E0);
 
 const _errorColor = Color(0xFFB00020);
 const _onErrorColor = Color(0xFFFFFFFF);
+
+// A dark surface needs a light error: #B00020 reads at under 3:1 on it.
+// Matches the seeded Submersion dark theme's error tone.
+const _errorDark = Color(0xFFFFB4AB);
+const _onErrorDark = Color(0xFF690005);
 
 // -- Shared shape constants --------------------------------------------------
 
@@ -68,17 +74,19 @@ final ThemeData minimalistLight = ThemeData(
     FeatureAccentColors.light,
     StatusColors.light,
   ],
-  colorScheme: const ColorScheme(
-    brightness: Brightness.light,
-    primary: _primaryLight,
-    onPrimary: Color(0xFFFFFFFF),
-    secondary: Color(0xFF64748B),
-    onSecondary: Color(0xFFFFFFFF),
-    error: _errorColor,
-    onError: _onErrorColor,
-    surface: _surfaceLight,
-    onSurface: Color(0xFF1E1E1E),
-    surfaceContainerLow: _cardLight,
+  colorScheme: withTintedContainers(
+    const ColorScheme(
+      brightness: Brightness.light,
+      primary: _primaryLight,
+      onPrimary: Color(0xFFFFFFFF),
+      secondary: Color(0xFF64748B),
+      onSecondary: Color(0xFFFFFFFF),
+      error: _errorColor,
+      onError: _onErrorColor,
+      surface: _surfaceLight,
+      onSurface: Color(0xFF1E1E1E),
+      surfaceContainerLow: _cardLight,
+    ),
   ),
   textTheme: _buildTextTheme(Brightness.light),
   appBarTheme: const AppBarTheme(
@@ -120,17 +128,19 @@ final ThemeData minimalistDark = ThemeData(
     FeatureAccentColors.dark,
     StatusColors.dark,
   ],
-  colorScheme: const ColorScheme(
-    brightness: Brightness.dark,
-    primary: _primaryDark,
-    onPrimary: Color(0xFF1E1E1E),
-    secondary: Color(0xFF64748B),
-    onSecondary: Color(0xFFFFFFFF),
-    error: _errorColor,
-    onError: _onErrorColor,
-    surface: _surfaceDark,
-    onSurface: Color(0xFFE0E0E0),
-    surfaceContainerLow: _cardDark,
+  colorScheme: withTintedContainers(
+    const ColorScheme(
+      brightness: Brightness.dark,
+      primary: _primaryDark,
+      onPrimary: Color(0xFF1E1E1E),
+      secondary: Color(0xFF64748B),
+      onSecondary: Color(0xFFFFFFFF),
+      error: _errorDark,
+      onError: _onErrorDark,
+      surface: _surfaceDark,
+      onSurface: Color(0xFFE0E0E0),
+      surfaceContainerLow: _cardDark,
+    ),
   ),
   textTheme: _buildTextTheme(Brightness.dark),
   appBarTheme: const AppBarTheme(

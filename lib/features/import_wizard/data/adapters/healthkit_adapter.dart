@@ -68,11 +68,16 @@ class HealthKitAdapter implements ImportSourceAdapter {
 
   List<ImportedDive> _parsedDives = [];
 
-  /// Load the list of fetched [ImportedDive]s into this adapter.
+  /// The date range the fetch read, shown on the Review step (issue #161).
+  DateTimeRange? _fetchedRange;
+
+  /// Load the list of fetched [ImportedDive]s into this adapter, with the
+  /// date [range] they were fetched for.
   ///
   /// Called internally by the Fetch step widget after fetching from HealthKit.
-  void setParsedDives(List<ImportedDive> dives) {
+  void setParsedDives(List<ImportedDive> dives, {DateTimeRange? range}) {
     _parsedDives = List.unmodifiable(dives);
+    _fetchedRange = range;
   }
 
   // ---------------------------------------------------------------------------
@@ -141,7 +146,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
       builder: (context) => HealthKitFetchStep(
         healthService: _healthService,
         onDivesFetched: (dives) {
-          setParsedDives(dives);
+          setParsedDives(dives, range: _ref?.read(healthKitDateRangeProvider));
         },
       ),
       canAdvance: healthKitDivesFetchedProvider,
@@ -157,6 +162,11 @@ class HealthKitAdapter implements ImportSourceAdapter {
       source: ImportSourceInfo(
         type: ImportSourceType.healthKit,
         displayName: _displayName,
+        details: ImportSourceDetails(
+          title: 'Apple Health',
+          rangeStart: _fetchedRange?.start,
+          rangeEnd: _fetchedRange?.end,
+        ),
       ),
       groups: {ImportEntityType.dives: EntityGroup(items: items)},
     );

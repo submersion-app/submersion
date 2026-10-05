@@ -26,7 +26,10 @@ void main() {
   /// Renders the SettingsPage on the mobile decompression detail page via
   /// GoRouter (?selected=decompression), mirroring the harness used by the
   /// Manage/Appearance section tests in settings_page_test.dart.
-  Widget buildDecompressionWidget(ProviderContainer container) {
+  Widget buildDecompressionWidget(
+    ProviderContainer container, {
+    ThemeData? theme,
+  }) {
     final router = GoRouter(
       initialLocation: '/settings?selected=decompression',
       routes: [
@@ -42,6 +45,8 @@ void main() {
       child: MediaQuery(
         data: const MediaQueryData(size: Size(400, 900)),
         child: MaterialApp.router(
+          theme: theme,
+          locale: const Locale('en'),
           routerConfig: router,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -128,5 +133,63 @@ void main() {
     );
     // Dialog closes after selection.
     expect(find.text('About these methods'), findsNothing);
+  });
+
+  // The selected row is filled with primaryContainer. A theme where that is a
+  // bright accent (the Console dark theme in #2959) made the row's default
+  // onSurface text unreadable, and hid the check icon drawn in primary.
+  testWidgets('selected method draws its content in onPrimaryContainer', (
+    tester,
+  ) async {
+    const onSurface = Color(0xFFE0E4E8);
+    const onPrimaryContainer = Color(0xFF0A1018);
+    final theme = ThemeData(
+      colorScheme: const ColorScheme.dark(
+        primary: Color(0xFF4AE0C0),
+        primaryContainer: Color(0xFF4AE0C0),
+        onPrimaryContainer: onPrimaryContainer,
+        onSurface: onSurface,
+      ),
+    );
+    final container = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => _FakeSettingsNotifier()),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(buildDecompressionWidget(container, theme: theme));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('CNS calculation'),
+      100.0,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('CNS calculation'));
+    await tester.pumpAndSettle();
+
+    Text dialogText(String text) => tester.widget<Text>(
+      find.descendant(of: find.byType(AlertDialog), matching: find.text(text)),
+    );
+
+    // Shearwater is the default, so it is the selected row.
+    expect(
+      dialogText('Linear interpolation (Shearwater-style)').style?.color,
+      onPrimaryContainer,
+    );
+    expect(
+      dialogText(
+        'Interpolates between the NOAA limits as documented by Shearwater. '
+        'Matches most dive computers.',
+      ).style?.color,
+      onPrimaryContainer,
+    );
+    expect(
+      tester.widget<Icon>(find.byIcon(Icons.check)).color,
+      onPrimaryContainer,
+    );
+
+    // Unselected rows keep the ordinary surface foreground.
+    expect(dialogText('NOAA table, stepped (classic)').style?.color, onSurface);
   });
 }

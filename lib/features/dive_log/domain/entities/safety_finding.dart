@@ -6,7 +6,8 @@ enum SafetyRuleId {
   missedDecoStop,
   omittedSafetyStop,
   sawtoothProfile,
-  highSurfaceGf;
+  highSurfaceGf,
+  lateGasSwitch;
 
   String get dbValue => name;
 
