@@ -26,6 +26,18 @@ final certificationCatalogProvider = FutureProvider<CertificationCatalog>((
   );
 });
 
+/// Every custom row with no viewer, for imports and exports (issue #690):
+/// they resolve stored ids by name and never filter a picker, so they do
+/// not depend on which profile is active.
+final allCustomCertificationsCatalogProvider =
+    FutureProvider<CertificationCatalog>((ref) async {
+      final repository = ref.watch(customCertificationRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchChanges());
+      final agencies = await repository.getAllAgencies();
+      final levels = await repository.getAllLevels();
+      return CertificationCatalog(agencies: agencies, levels: levels);
+    });
+
 /// The loaded catalog for synchronous build methods; built-ins only while
 /// loading, so built-in names and colours never flicker.
 final certificationCatalogSyncProvider = Provider<CertificationCatalog>(

@@ -562,6 +562,7 @@ class ExportService {
     List<DiveSite>? sites,
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) => _uddf.exportDivesToUddf(
@@ -569,6 +570,7 @@ class ExportService {
     sites: sites,
     diveTankPressures: diveTankPressures,
     dataSources: dataSources,
+    certificationCatalog: certificationCatalog,
     extras: extras,
     options: options,
   );
@@ -578,6 +580,7 @@ class ExportService {
     List<DiveSite>? sites,
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) => _uddf.saveDivesToUddfFile(
@@ -585,6 +588,7 @@ class ExportService {
     sites: sites,
     diveTankPressures: diveTankPressures,
     dataSources: dataSources,
+    certificationCatalog: certificationCatalog,
     extras: extras,
     options: options,
   );
@@ -631,6 +635,7 @@ class ExportService {
     equipment: equipment,
     buddies: buddies,
     certifications: certifications,
+    certificationCatalog: certificationCatalog,
     diveCenters: diveCenters,
     species: species,
     serviceRecords: serviceRecords,
@@ -702,6 +707,7 @@ class ExportService {
     equipment: equipment,
     buddies: buddies,
     certifications: certifications,
+    certificationCatalog: certificationCatalog,
     diveCenters: diveCenters,
     species: species,
     serviceRecords: serviceRecords,

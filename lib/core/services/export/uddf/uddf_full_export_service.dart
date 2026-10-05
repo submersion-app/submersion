@@ -36,6 +36,7 @@ import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Handles comprehensive UDDF export of all application data.
 class UddfFullExportService {
@@ -54,6 +55,7 @@ class UddfFullExportService {
     List<EquipmentItem>? equipment,
     List<Buddy>? buddies,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     List<DiveCenter>? diveCenters,
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
@@ -176,7 +178,11 @@ class UddfFullExportService {
 
               // Export buddies
               if (buddies != null) {
-                UddfParticipantWriters.writeBuddyDeclarations(builder, buddies);
+                UddfParticipantWriters.writeBuddyDeclarations(
+                  builder,
+                  buddies,
+                  certificationCatalog: certificationCatalog,
+                );
               }
             },
           );
@@ -375,6 +381,7 @@ class UddfFullExportService {
           equipment: equipment,
           equipmentTagIdsByItem: equipmentTagIdsByItem,
           certifications: certifications,
+          certificationCatalog: certificationCatalog,
           diveCenters: diveCenters,
           species: species,
           serviceRecords: serviceRecords,
@@ -481,6 +488,7 @@ class UddfFullExportService {
     List<EquipmentItem>? equipment,
     List<Buddy>? buddies,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     List<DiveCenter>? diveCenters,
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
@@ -519,6 +527,7 @@ class UddfFullExportService {
       equipment: equipment,
       buddies: buddies,
       certifications: certifications,
+      certificationCatalog: certificationCatalog,
       diveCenters: diveCenters,
       species: species,
       serviceRecords: serviceRecords,
@@ -560,6 +569,7 @@ class UddfFullExportService {
     List<EquipmentItem>? equipment,
     List<Buddy>? buddies,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     List<DiveCenter>? diveCenters,
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
@@ -598,6 +608,7 @@ class UddfFullExportService {
       equipment: equipment,
       buddies: buddies,
       certifications: certifications,
+      certificationCatalog: certificationCatalog,
       diveCenters: diveCenters,
       species: species,
       serviceRecords: serviceRecords,

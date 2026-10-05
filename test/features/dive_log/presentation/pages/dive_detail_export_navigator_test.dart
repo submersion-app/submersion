@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Minimal export service for the navigator tests: every delivery succeeds.
 class _StubExportService implements ExportService {
@@ -49,6 +50,7 @@ class _StubExportService implements ExportService {
     List<DiveSite>? sites,
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
@@ -62,6 +64,7 @@ class _StubExportService implements ExportService {
     List<DiveSite>? sites,
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
@@ -81,6 +84,7 @@ class _ThrowingExportService extends _StubExportService {
     List<DiveSite>? sites,
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {

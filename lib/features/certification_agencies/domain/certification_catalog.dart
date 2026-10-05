@@ -290,6 +290,14 @@ class CertificationCatalog {
     return i < 0 ? -1 : builtIn.length + i;
   }
 
+  /// The text an export writes for agency [id] (issue #690): a built-in's
+  /// enum name (round-trips unchanged), a custom agency's name (its id means
+  /// nothing to another app), or the raw id when nothing here knows it.
+  String agencyExportText(String id) => _agencies[id]?.name ?? id;
+
+  /// The text an export writes for level [id], by the same rules.
+  String levelExportText(String id) => _levels[id]?.name ?? id;
+
   /// The viewer's own custom levels of [agencyId], for the editor.
   List<CustomCertificationLevel> ownCustomLevelsOf(String agencyId) => _levels
       .values

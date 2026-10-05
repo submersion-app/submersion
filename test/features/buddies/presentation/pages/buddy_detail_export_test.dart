@@ -21,6 +21,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Records which UDDF delivery the buddy export chose.
 class _RecordingExportService implements ExportService {
@@ -35,6 +36,7 @@ class _RecordingExportService implements ExportService {
     List<DiveSite>? sites,
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
@@ -51,6 +53,7 @@ class _RecordingExportService implements ExportService {
     List<DiveSite>? sites,
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {

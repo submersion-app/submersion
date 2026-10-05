@@ -656,7 +656,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
       certifications: certifications,
       certificationCatalog: await _ref.read(
-        certificationCatalogProvider.future,
+        allCustomCertificationsCatalogProvider.future,
       ),
       diver: diver,
       profiles: profiles,
@@ -758,7 +758,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         buddies: buddies,
         certifications: certifications,
         certificationCatalog: await _ref.read(
-          certificationCatalogProvider.future,
+          allCustomCertificationsCatalogProvider.future,
         ),
         diveCenters: diveCenters,
         species: species,
@@ -1503,7 +1503,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         buddies: buddies,
         certifications: certifications,
         certificationCatalog: await _ref.read(
-          certificationCatalogProvider.future,
+          allCustomCertificationsCatalogProvider.future,
         ),
         diveCenters: diveCenters,
         species: species,
