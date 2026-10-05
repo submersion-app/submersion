@@ -533,9 +533,21 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
         );
 
         final interactive = Listener(
+          // Claimed through the resolver, not handled outright: inside a
+          // scrolling page (the Site Details card) the page's Scrollable
+          // would otherwise take the same wheel tick, so the page would
+          // scroll and the terrain zoom at once. The innermost claim wins,
+          // as it does for the 2D map.
           onPointerSignal: (signal) {
             if (signal is PointerScrollEvent) {
-              _zoomBy(signal.scrollDelta.dy < 0 ? 1.1 : 1 / 1.1);
+              GestureBinding.instance.pointerSignalResolver.register(
+                signal,
+                (event) => _zoomBy(
+                  (event as PointerScrollEvent).scrollDelta.dy < 0
+                      ? 1.1
+                      : 1 / 1.1,
+                ),
+              );
             }
           },
           onPointerPanZoomStart: _onPanZoomStart,
