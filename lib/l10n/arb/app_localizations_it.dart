@@ -11927,6 +11927,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_equipmentStatus_spare => 'Di scorta';
 
   @override
+  String get enum_equipmentStatus_wanted => 'Desiderato';
+
+  @override
   String get enum_equipmentType_backplate => 'Piastra dorsale';
 
   @override
@@ -13727,6 +13730,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_detail_retiredChip => 'Ritirato';
 
   @override
+  String get equipment_detail_markPurchased => 'Segna come acquistato';
+
+  @override
   String get equipment_detail_serialNumberLabel => 'Numero di serie';
 
   @override
@@ -14323,6 +14329,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'Prezzo di acquisto';
+
+  @override
+  String get equipment_edit_expectedPriceLabel => 'Prezzo previsto';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -15138,6 +15147,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_snackbar_reactivated => 'Attrezzatura riattivata';
 
   @override
+  String get equipment_snackbar_purchased =>
+      'Spostato nell\'attrezzatura attiva';
+
+  @override
   String get equipment_snackbar_retired => 'Attrezzatura ritirata';
 
   @override
@@ -15184,6 +15197,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String equipment_summary_totalValue(String currency) {
     return 'Valore totale ($currency)';
+  }
+
+  @override
+  String equipment_summary_wantedValue(String currency) {
+    return 'Valore desiderato ($currency)';
   }
 
   @override
@@ -23929,6 +23947,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tendenze profondità e tempo';
 
   @override
+  String get insights_category_focus_subtitle =>
+      'Gruppi migliori, peggiori e per soglia';
+
+  @override
   String get insights_category_progression_title => 'Progressione';
 
   @override
@@ -24267,6 +24289,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_gas_sacRecords_title => 'Record di consumo di gas';
 
   @override
+  String get insights_gas_sacRecords_seeTop => 'Vedi i primi 10';
+
+  @override
   String get insights_gas_sacTrend_error =>
       'Impossibile caricare la tendenza del consumo';
 
@@ -24275,6 +24300,204 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insights_gas_sacTrend_title => 'Tendenza del consumo di gas';
+
+  @override
+  String get insights_focus_title => 'Focus immersioni';
+
+  @override
+  String get insights_focus_error => 'Impossibile caricare il focus immersioni';
+
+  @override
+  String get insights_focus_empty =>
+      'Nessuna immersione ha ancora questo valore';
+
+  @override
+  String insights_focus_summary(
+    int count,
+    int total,
+    String group,
+    String overall,
+  ) {
+    return '$count immersioni su $total, media del gruppo $group contro $overall complessiva';
+  }
+
+  @override
+  String insights_focus_summary_allShown(int total) {
+    return 'Solo $total immersioni hanno questo valore, quindi vengono mostrate tutte';
+  }
+
+  @override
+  String insights_focus_noMatch_above(String value, String min, String max) {
+    return 'Nessuna immersione sopra $value. Le tue immersioni vanno da $min a $max.';
+  }
+
+  @override
+  String insights_focus_noMatch_below(String value, String min, String max) {
+    return 'Nessuna immersione sotto $value. Le tue immersioni vanno da $min a $max.';
+  }
+
+  @override
+  String get insights_focus_enterValue =>
+      'Inserisci un valore per vedere le immersioni sopra o sotto';
+
+  @override
+  String get insights_focus_chart_title => 'Il gruppo nel tempo';
+
+  @override
+  String get insights_focus_chart_group => 'Nel gruppo';
+
+  @override
+  String get insights_focus_list_title => 'Immersioni del gruppo';
+
+  @override
+  String get insights_focus_list_unknownSite => 'Nessun sito';
+
+  @override
+  String get insights_focus_unit_minutes => 'min';
+
+  @override
+  String get insights_focus_metric_rmv => 'RMV';
+
+  @override
+  String get insights_focus_metric_sac => 'SAC';
+
+  @override
+  String get insights_focus_metric_maxDepth => 'Profondità massima';
+
+  @override
+  String get insights_focus_metric_bottomTime => 'Tempo di fondo';
+
+  @override
+  String get insights_focus_metric_weight => 'Zavorra';
+
+  @override
+  String get insights_focus_metric_waterTemp => 'Temperatura dell\'acqua';
+
+  @override
+  String get insights_focus_mode_best => 'Migliori';
+
+  @override
+  String get insights_focus_mode_worst => 'Peggiori';
+
+  @override
+  String get insights_focus_mode_lowest => 'Più bassi';
+
+  @override
+  String get insights_focus_mode_highest => 'Più alti';
+
+  @override
+  String get insights_focus_mode_above => 'Sopra';
+
+  @override
+  String get insights_focus_mode_below => 'Sotto';
+
+  @override
+  String get insights_focus_count_label => 'Immersioni';
+
+  @override
+  String get insights_focus_count_error =>
+      'Inserisci un numero intero da 1 a 999';
+
+  @override
+  String get insights_focus_threshold_label => 'Valore';
+
+  @override
+  String get insights_focus_threshold_error => 'Inserisci un numero';
+
+  @override
+  String get insights_focus_threshold_negativeError => 'Inserisci zero o più';
+
+  @override
+  String get insights_focus_factors_title => 'Fattori comuni';
+
+  @override
+  String get insights_focus_factors_subtitle =>
+      'Questo gruppo confrontato con tutte le immersioni che hanno il valore';
+
+  @override
+  String get insights_focus_factors_tooFew =>
+      'Scegli almeno 3 immersioni per confrontare i fattori comuni';
+
+  @override
+  String get insights_focus_factors_standsOut => 'Spicca';
+
+  @override
+  String insights_focus_factors_standoutsSummary(String factors) {
+    return 'Spicca: $factors';
+  }
+
+  @override
+  String insights_focus_factors_versus(String group, String baseline) {
+    return '$group contro $baseline';
+  }
+
+  @override
+  String insights_focus_factors_coverage(int covered, int total) {
+    return '$covered immersioni su $total';
+  }
+
+  @override
+  String get insights_focus_factorGroup_diveShape => 'Profilo dell\'immersione';
+
+  @override
+  String get insights_focus_factorGroup_conditions => 'Condizioni';
+
+  @override
+  String get insights_focus_factorGroup_whenWhere => 'Quando e dove';
+
+  @override
+  String get insights_focus_factorGroup_kitGas => 'Attrezzatura e gas';
+
+  @override
+  String get insights_focus_factor_avgDepth => 'Profondità media';
+
+  @override
+  String get insights_focus_factor_duration => 'Durata';
+
+  @override
+  String get insights_focus_factor_visibility => 'Visibilità';
+
+  @override
+  String get insights_focus_factor_current => 'Corrente';
+
+  @override
+  String get insights_focus_factor_waterType => 'Tipo di acqua';
+
+  @override
+  String get insights_focus_factor_entryMethod => 'Ingresso';
+
+  @override
+  String get insights_focus_factor_month => 'Mese';
+
+  @override
+  String get insights_focus_factor_timeOfDay => 'Momento della giornata';
+
+  @override
+  String get insights_focus_factor_site => 'Sito';
+
+  @override
+  String get insights_focus_factor_diveType => 'Tipo di immersione';
+
+  @override
+  String get insights_focus_factor_gas => 'Gas';
+
+  @override
+  String get insights_focus_factor_tankVolume => 'Dimensione bombola';
+
+  @override
+  String get insights_focus_factor_suit => 'Muta';
+
+  @override
+  String get insights_focus_factor_buddy => 'Da solo o con compagno';
+
+  @override
+  String get insights_focus_gas_air => 'Aria';
+
+  @override
+  String get insights_focus_gas_nitrox => 'Nitrox';
+
+  @override
+  String get insights_focus_gas_trimix => 'Trimix';
 
   @override
   String get insights_gas_tankRole_backGas => 'Gas principale';
@@ -45360,6 +45583,37 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insights_trend_tooltip_highest => 'Massimo';
+
+  @override
+  String get insights_trend_overview_semanticLabel =>
+      'Panoramica del grafico. Trascina la finestra evidenziata per scorrere nel tempo.';
+
+  @override
+  String get insights_trend_range_tooltip => 'Intervallo visibile';
+
+  @override
+  String get insights_trend_range_all => 'Tutto';
+
+  @override
+  String get insights_trend_range_years5 => 'Ultimi 5 anni';
+
+  @override
+  String get insights_trend_range_years2 => 'Ultimi 2 anni';
+
+  @override
+  String get insights_trend_range_year1 => 'Ultimo anno';
+
+  @override
+  String get insights_trend_range_months6 => 'Ultimi 6 mesi';
+
+  @override
+  String get insights_trend_range_months3 => 'Ultimi 3 mesi';
+
+  @override
+  String get insights_trend_range_custom => 'Personalizzato';
+
+  @override
+  String get insights_trend_range_customPick => 'Intervallo personalizzato...';
 
   @override
   String get diveLog_edit_excludeFromStats => 'Escludi dalle statistiche';

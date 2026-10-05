@@ -14,6 +14,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// ensuring an eighth would get it.
 const _censusFiles = <String>[
   'lib/features/insights/data/repositories/insights_repository.dart',
+  'lib/features/insights/data/repositories/insights_repository_focus.dart',
   'lib/features/dive_log/data/repositories/dive_repository_impl.dart',
   'lib/features/buddies/data/repositories/buddy_repository.dart',
   'lib/features/dive_sites/data/repositories/site_repository_impl.dart',

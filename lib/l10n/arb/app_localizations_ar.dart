@@ -12080,6 +12080,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentStatus_spare => 'احتياطي';
 
   @override
+  String get enum_equipmentStatus_wanted => 'مرغوب';
+
+  @override
   String get enum_equipmentType_backplate => 'لوحة ظهر';
 
   @override
@@ -13893,6 +13896,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_retiredChip => 'متقاعد';
 
   @override
+  String get equipment_detail_markPurchased => 'تحديد كمُشترى';
+
+  @override
   String get equipment_detail_serialNumberLabel => 'الرقم التسلسلي';
 
   @override
@@ -14502,6 +14508,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'سعر الشراء';
+
+  @override
+  String get equipment_edit_expectedPriceLabel => 'السعر المتوقع';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -15311,6 +15320,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_snackbar_reactivated => 'تم إعادة تفعيل المعدات';
 
   @override
+  String get equipment_snackbar_purchased => 'تم النقل إلى معداتك النشطة';
+
+  @override
   String get equipment_snackbar_retired => 'تم إيقاف المعدات';
 
   @override
@@ -15357,6 +15369,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String equipment_summary_totalValue(String currency) {
     return 'القيمة الإجمالية ($currency)';
+  }
+
+  @override
+  String equipment_summary_wantedValue(String currency) {
+    return 'القيمة المرغوبة ($currency)';
   }
 
   @override
@@ -24056,6 +24073,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_category_progression_subtitle => 'اتجاهات العمق والوقت';
 
   @override
+  String get insights_category_focus_subtitle =>
+      'مجموعات الأفضل والأسوأ وحسب الحد';
+
+  @override
   String get insights_category_progression_title => 'التقدم';
 
   @override
@@ -24385,6 +24406,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_gas_sacRecords_title => 'سجلات استهلاك الغاز';
 
   @override
+  String get insights_gas_sacRecords_seeTop => 'عرض أفضل 10';
+
+  @override
   String get insights_gas_sacTrend_error => 'فشل تحميل اتجاه الاستهلاك';
 
   @override
@@ -24392,6 +24416,202 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_gas_sacTrend_title => 'اتجاه استهلاك الغاز';
+
+  @override
+  String get insights_focus_title => 'تركيز الغطسات';
+
+  @override
+  String get insights_focus_error => 'تعذر تحميل تركيز الغطسات';
+
+  @override
+  String get insights_focus_empty => 'لا توجد غطسات بهذه القيمة بعد';
+
+  @override
+  String insights_focus_summary(
+    int count,
+    int total,
+    String group,
+    String overall,
+  ) {
+    return '$count من $total غطسة، متوسط المجموعة $group مقابل $overall إجمالاً';
+  }
+
+  @override
+  String insights_focus_summary_allShown(int total) {
+    return '$total غطسة فقط لها هذه القيمة، لذا تُعرض جميعها';
+  }
+
+  @override
+  String insights_focus_noMatch_above(String value, String min, String max) {
+    return 'لا توجد غطسات فوق $value. تتراوح غطساتك من $min إلى $max.';
+  }
+
+  @override
+  String insights_focus_noMatch_below(String value, String min, String max) {
+    return 'لا توجد غطسات تحت $value. تتراوح غطساتك من $min إلى $max.';
+  }
+
+  @override
+  String get insights_focus_enterValue =>
+      'أدخل قيمة لرؤية الغطسات فوقها أو تحتها';
+
+  @override
+  String get insights_focus_chart_title => 'المجموعة عبر الزمن';
+
+  @override
+  String get insights_focus_chart_group => 'في المجموعة';
+
+  @override
+  String get insights_focus_list_title => 'غطسات المجموعة';
+
+  @override
+  String get insights_focus_list_unknownSite => 'لا يوجد موقع';
+
+  @override
+  String get insights_focus_unit_minutes => 'د';
+
+  @override
+  String get insights_focus_metric_rmv => 'RMV';
+
+  @override
+  String get insights_focus_metric_sac => 'SAC';
+
+  @override
+  String get insights_focus_metric_maxDepth => 'العمق الأقصى';
+
+  @override
+  String get insights_focus_metric_bottomTime => 'وقت القاع';
+
+  @override
+  String get insights_focus_metric_weight => 'الأثقال';
+
+  @override
+  String get insights_focus_metric_waterTemp => 'حرارة الماء';
+
+  @override
+  String get insights_focus_mode_best => 'الأفضل';
+
+  @override
+  String get insights_focus_mode_worst => 'الأسوأ';
+
+  @override
+  String get insights_focus_mode_lowest => 'الأدنى';
+
+  @override
+  String get insights_focus_mode_highest => 'الأعلى';
+
+  @override
+  String get insights_focus_mode_above => 'فوق';
+
+  @override
+  String get insights_focus_mode_below => 'تحت';
+
+  @override
+  String get insights_focus_count_label => 'الغطسات';
+
+  @override
+  String get insights_focus_count_error => 'أدخل عدداً صحيحاً من 1 إلى 999';
+
+  @override
+  String get insights_focus_threshold_label => 'القيمة';
+
+  @override
+  String get insights_focus_threshold_error => 'أدخل رقماً';
+
+  @override
+  String get insights_focus_threshold_negativeError => 'أدخل صفراً أو أكثر';
+
+  @override
+  String get insights_focus_factors_title => 'العوامل المشتركة';
+
+  @override
+  String get insights_focus_factors_subtitle =>
+      'هذه المجموعة مقارنة بكل الغطسات التي لها هذه القيمة';
+
+  @override
+  String get insights_focus_factors_tooFew =>
+      'اختر 3 غطسات على الأقل لمقارنة العوامل المشتركة';
+
+  @override
+  String get insights_focus_factors_standsOut => 'بارز';
+
+  @override
+  String insights_focus_factors_standoutsSummary(String factors) {
+    return 'بارز: $factors';
+  }
+
+  @override
+  String insights_focus_factors_versus(String group, String baseline) {
+    return '$group مقابل $baseline';
+  }
+
+  @override
+  String insights_focus_factors_coverage(int covered, int total) {
+    return '$covered من $total غطسة';
+  }
+
+  @override
+  String get insights_focus_factorGroup_diveShape => 'شكل الغطسة';
+
+  @override
+  String get insights_focus_factorGroup_conditions => 'الظروف';
+
+  @override
+  String get insights_focus_factorGroup_whenWhere => 'متى وأين';
+
+  @override
+  String get insights_focus_factorGroup_kitGas => 'المعدات والغاز';
+
+  @override
+  String get insights_focus_factor_avgDepth => 'متوسط العمق';
+
+  @override
+  String get insights_focus_factor_duration => 'المدة';
+
+  @override
+  String get insights_focus_factor_visibility => 'الرؤية';
+
+  @override
+  String get insights_focus_factor_current => 'التيار';
+
+  @override
+  String get insights_focus_factor_waterType => 'نوع الماء';
+
+  @override
+  String get insights_focus_factor_entryMethod => 'طريقة الدخول';
+
+  @override
+  String get insights_focus_factor_month => 'الشهر';
+
+  @override
+  String get insights_focus_factor_timeOfDay => 'وقت اليوم';
+
+  @override
+  String get insights_focus_factor_site => 'الموقع';
+
+  @override
+  String get insights_focus_factor_diveType => 'نوع الغطسة';
+
+  @override
+  String get insights_focus_factor_gas => 'الغاز';
+
+  @override
+  String get insights_focus_factor_tankVolume => 'حجم الأسطوانة';
+
+  @override
+  String get insights_focus_factor_suit => 'البدلة';
+
+  @override
+  String get insights_focus_factor_buddy => 'منفرد أو مع رفيق';
+
+  @override
+  String get insights_focus_gas_air => 'هواء';
+
+  @override
+  String get insights_focus_gas_nitrox => 'نيتروكس';
+
+  @override
+  String get insights_focus_gas_trimix => 'ترايمكس';
 
   @override
   String get insights_gas_tankRole_backGas => 'غاز رئيسي';
@@ -45923,6 +46143,37 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_trend_tooltip_highest => 'الأعلى';
+
+  @override
+  String get insights_trend_overview_semanticLabel =>
+      'نظرة عامة على المخطط. اسحب النافذة المميزة للتنقل عبر الزمن.';
+
+  @override
+  String get insights_trend_range_tooltip => 'النطاق المرئي';
+
+  @override
+  String get insights_trend_range_all => 'الكل';
+
+  @override
+  String get insights_trend_range_years5 => 'آخر 5 سنوات';
+
+  @override
+  String get insights_trend_range_years2 => 'آخر سنتين';
+
+  @override
+  String get insights_trend_range_year1 => 'آخر سنة';
+
+  @override
+  String get insights_trend_range_months6 => 'آخر 6 أشهر';
+
+  @override
+  String get insights_trend_range_months3 => 'آخر 3 أشهر';
+
+  @override
+  String get insights_trend_range_custom => 'مخصص';
+
+  @override
+  String get insights_trend_range_customPick => 'نطاق مخصص...';
 
   @override
   String get diveLog_edit_excludeFromStats => 'استبعاد من الإحصائيات';

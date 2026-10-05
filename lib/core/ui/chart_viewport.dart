@@ -14,7 +14,34 @@ class ChartViewport {
   final double offsetX;
   final double offsetY;
 
-  const ChartViewport({this.zoom = 1, this.offsetX = 0, this.offsetY = 0});
+  /// The deepest zoom this viewport allows. Defaults to [maxZoom]; a date
+  /// chart over a long logbook raises it so a few weeks can fill the plot.
+  final double zoomLimit;
+
+  const ChartViewport({
+    this.zoom = 1,
+    this.offsetX = 0,
+    this.offsetY = 0,
+    this.zoomLimit = maxZoom,
+  });
+
+  /// A viewport showing [start]..[end] of the x range (fractions, 0..1).
+  ///
+  /// A window narrower than [zoomLimit] allows is widened about its centre,
+  /// then shifted back inside 0..1, so a window ending at 1 still ends at 1.
+  factory ChartViewport.forWindow(
+    double start,
+    double end, {
+    double zoomLimit = maxZoom,
+  }) {
+    final width = (end - start).clamp(1.0 / zoomLimit, 1.0);
+    final centre = (start + end) / 2;
+    return ChartViewport(
+      zoom: 1.0 / width,
+      offsetX: centre - width / 2,
+      zoomLimit: zoomLimit,
+    )._clamped();
+  }
 
   static const double minZoom = 1.0;
   static const double maxZoom = 10.0;
@@ -24,11 +51,25 @@ class ChartViewport {
   double get visibleWidth => 1.0 / zoom;
   double get visibleHeight => 1.0 / zoom;
 
+  /// Left edge of the visible x window, as a fraction of the full range.
+  double get windowStart => offsetX;
+
+  /// Right edge of the visible x window, as a fraction of the full range.
+  double get windowEnd => offsetX + visibleWidth;
+
+  /// This viewport under a different [limit], zoomed out to it if needed.
+  ChartViewport withZoomLimit(double limit) => ChartViewport(
+    zoom: zoom.clamp(minZoom, limit),
+    offsetX: offsetX,
+    offsetY: offsetY,
+    zoomLimit: limit,
+  )._clamped();
+
   /// Zoom by [factor] (>1 = in, <1 = out) keeping the data point under the
   /// focal point fixed. [focalX]/[focalY] are fractions (0..1) of the visible
   /// plot area under the cursor/pinch (0 = left/top edge).
   ChartViewport zoomedAt(double focalX, double focalY, double factor) {
-    final newZoom = (zoom * factor).clamp(minZoom, maxZoom);
+    final newZoom = (zoom * factor).clamp(minZoom, zoomLimit);
     if (newZoom == zoom) return this;
     final anchorX =
         offsetX + focalX / zoom; // data fraction under focus, before
@@ -37,6 +78,7 @@ class ChartViewport {
       zoom: newZoom,
       offsetX: anchorX - focalX / newZoom, // keep it under focus, after
       offsetY: anchorY - focalY / newZoom,
+      zoomLimit: zoomLimit,
     )._clamped();
   }
 
@@ -45,6 +87,7 @@ class ChartViewport {
     zoom: zoom,
     offsetX: offsetX + dx,
     offsetY: offsetY + dy,
+    zoomLimit: zoomLimit,
   )._clamped();
 
   ChartViewport _clamped() {
@@ -53,6 +96,7 @@ class ChartViewport {
       zoom: zoom,
       offsetX: offsetX.clamp(0.0, maxOff),
       offsetY: offsetY.clamp(0.0, maxOff),
+      zoomLimit: zoomLimit,
     );
   }
 }

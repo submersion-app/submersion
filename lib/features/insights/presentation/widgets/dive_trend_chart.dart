@@ -1,20 +1,19 @@
-import 'dart:math' as math;
-
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/presentation/widgets/chart_zoom_controls.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
-import 'package:submersion/core/ui/trackpad_zoom_recognizer.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/chart_touch_recognizer.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
+import 'package:submersion/features/insights/domain/trend_range.dart';
 import 'package:submersion/features/insights/presentation/widgets/chart_axis.dart';
+import 'package:submersion/features/insights/presentation/widgets/chart_overview_strip.dart';
 import 'package:submersion/features/insights/presentation/widgets/date_axis.dart';
+import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart_input.dart';
+import 'package:submersion/features/insights/presentation/widgets/trend_window_seater.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A per-dive trend chart on a real date axis.
@@ -65,6 +64,8 @@ class DiveTrendChart extends StatefulWidget {
     this.chartId,
     this.onDiveSelected,
     this.dateFormat = DateFormatPreference.mmmDYYYY,
+    this.range = TrendRange.all,
+    this.onRangeChanged,
   });
 
   /// Raw per-dive points, in any order. Never pre-aggregated by the caller.
@@ -86,6 +87,15 @@ class DiveTrendChart extends StatefulWidget {
   /// the ambient locale, so the axis and the tooltip match Manage - Units
   /// (#1512).
   final DateFormatPreference dateFormat;
+
+  /// The window to show. A changed range re-seats the viewport; so does a
+  /// changed data span, so a custom window keeps meaning the same dates.
+  final TrendRange range;
+
+  /// Called with the window the diver navigated to: [TrendRange.all] when
+  /// unzoomed, otherwise a custom range of the visible dates. Null when the
+  /// caller does not keep the window.
+  final ValueChanged<TrendRange>? onRangeChanged;
 
   final TrendAggregation aggregation;
   final bool showRollingMean;
@@ -116,8 +126,6 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   /// grid readable while panning.
   ChartViewport _viewport = ChartViewport.reset;
 
-  ChartViewport _gestureStartViewport = ChartViewport.reset;
-
   /// Buckets as last drawn, so a tap on the data series can resolve which
   /// dive it landed on.
   List<TrendBucket> _drawnBuckets = const [];
@@ -127,18 +135,6 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
 
   /// Index of the first secondary bar in the drawn bars, or -1.
   int _secondaryBarStart = -1;
-  PointerDeviceKind _activePointerKind = PointerDeviceKind.mouse;
-  int _activePointerCount = 0;
-  Offset? _lastPointerLocal;
-  bool _touchDragClaimed = false;
-  final Map<int, Offset> _touchPositions = {};
-  List<int> _pinchPointers = const [];
-  double _pinchStartDistance = 1;
-  Offset _pinchStartFocal = Offset.zero;
-
-  /// Axis gutters reserved by `_titles`. The focal fraction has to be taken
-  /// against the inner plot rect, not the whole widget.
-  static const _insets = (left: 50.0, right: 0.0, top: 0.0, bottom: 30.0);
 
   /// Column widths for the monospace tooltip rows, as on the profile chart.
   static const _tooltipLabelWidth = 16;
@@ -146,56 +142,28 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
 
   static double _x(DateTime date) => date.millisecondsSinceEpoch.toDouble();
 
-  double _focalX(Offset localPos, Size box) => chartFocalFraction(
-    localPos,
-    box,
-    left: _insets.left,
-    right: _insets.right,
-    top: _insets.top,
-    bottom: _insets.bottom,
-  ).fx;
+  /// Room fl_chart reserves for the rotated y-axis name, left of the tick
+  /// labels. The overview strip has to clear it to line up with the plot.
+  double get _yAxisNameSize => widget.yAxisLabel != null ? 20 : 0;
 
-  double _plotWidth(Size box) =>
-      (box.width - _insets.left - _insets.right).clamp(1.0, double.infinity);
+  /// True while the strip is being dragged, so a drag that zooms all the way
+  /// out keeps its strip until the gesture ends.
+  bool _stripActive = false;
 
-  void _zoomAt(Offset localPosition, double zoomDelta, Size box) {
-    if (zoomDelta == 0) return;
-    setState(() {
-      _activePointerKind = PointerDeviceKind.trackpad;
-      _viewport = _viewport.zoomedAt(
-        _focalX(localPosition, box),
-        0,
-        math.pow(2, zoomDelta).toDouble(),
-      );
-    });
-  }
+  /// The strip's points, rebuilt with the chart only while it is showing.
+  List<Offset> _overviewPoints = const [];
 
-  void _beginPinch() {
-    _pinchPointers = _touchPositions.keys.take(2).toList(growable: false);
-    final p0 = _touchPositions[_pinchPointers[0]]!;
-    final p1 = _touchPositions[_pinchPointers[1]]!;
-    _pinchStartDistance = (p0 - p1).distance.clamp(1.0, double.infinity);
-    _pinchStartFocal = (p0 + p1) / 2;
-    _gestureStartViewport = _viewport;
-  }
+  /// What [_overviewPoints] was last built from; lists compare by identity.
+  Object? _overviewKey;
 
-  void _updatePinch(Size box) {
-    if (_pinchPointers.length < 2) return;
-    final p0 = _touchPositions[_pinchPointers[0]];
-    final p1 = _touchPositions[_pinchPointers[1]];
-    if (p0 == null || p1 == null) return;
-    setState(() {
-      final scale =
-          (p0 - p1).distance.clamp(1.0, double.infinity) / _pinchStartDistance;
-      var vp = _gestureStartViewport.zoomedAt(
-        _focalX(_pinchStartFocal, box),
-        0,
-        scale,
-      );
-      final panPx = (p0 + p1) / 2 - _pinchStartFocal;
-      vp = vp.pannedBy(-panPx.dx / _plotWidth(box) / vp.zoom, 0);
-      _viewport = vp;
-    });
+  final TrendWindowSeater _seater = TrendWindowSeater();
+
+  /// Hands the settled window to [DiveTrendChart.onRangeChanged].
+  void _reportRange() {
+    final onRangeChanged = widget.onRangeChanged;
+    if (onRangeChanged == null) return;
+    final next = _seater.report(_viewport);
+    if (next != null && next != widget.range) onRangeChanged(next);
   }
 
   @override
@@ -211,6 +179,23 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _interactiveChart(context, box),
+            if (_viewport.isZoomed || _stripActive)
+              Padding(
+                padding: EdgeInsets.only(
+                  left: trendChartPlotInsets.left + _yAxisNameSize,
+                  top: 6,
+                ),
+                child: ChartOverviewStrip(
+                  points: _overviewPoints,
+                  viewport: _viewport,
+                  onViewportChanged: (vp) => setState(() => _viewport = vp),
+                  onChangeStart: () => setState(() => _stripActive = true),
+                  onChangeEnd: () {
+                    setState(() => _stripActive = false);
+                    _reportRange();
+                  },
+                ),
+              ),
             Align(
               alignment: AlignmentDirectional.centerEnd,
               child: ChartZoomControls(
@@ -219,16 +204,27 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
                     : 'trend-${widget.chartId}',
                 zoomLevel: _viewport.zoom,
                 minZoom: ChartViewport.minZoom,
-                maxZoom: ChartViewport.maxZoom,
+                maxZoom: _viewport.zoomLimit,
                 // No cursor to anchor on, so the buttons zoom about the middle
                 // of the visible window.
-                onZoomIn: () =>
-                    setState(() => _viewport = _viewport.zoomedAt(0.5, 0, 1.5)),
-                onZoomOut: () => setState(
-                  () => _viewport = _viewport.zoomedAt(0.5, 0, 1 / 1.5),
-                ),
-                onResetZoom: () =>
-                    setState(() => _viewport = ChartViewport.reset),
+                onZoomIn: () {
+                  setState(() => _viewport = _viewport.zoomedAt(0.5, 0, 1.5));
+                  _reportRange();
+                },
+                onZoomOut: () {
+                  setState(
+                    () => _viewport = _viewport.zoomedAt(0.5, 0, 1 / 1.5),
+                  );
+                  _reportRange();
+                },
+                onResetZoom: () {
+                  setState(
+                    () => _viewport = ChartViewport.reset.withZoomLimit(
+                      _viewport.zoomLimit,
+                    ),
+                  );
+                  _reportRange();
+                },
               ),
             ),
           ],
@@ -238,117 +234,15 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   }
 
   Widget _interactiveChart(BuildContext context, Size box) {
-    return RawGestureDetector(
-      gestures: {
-        TrackpadZoomGestureRecognizer:
-            GestureRecognizerFactoryWithHandlers<TrackpadZoomGestureRecognizer>(
-              () => TrackpadZoomGestureRecognizer(debugOwner: this),
-              (recognizer) =>
-                  recognizer.onZoom = (pos, delta) => _zoomAt(pos, delta, box),
-            ),
-      },
-      child: Listener(
-        onPointerDown: (event) {
-          _activePointerCount++;
-          _activePointerKind = event.kind;
-          _lastPointerLocal = event.localPosition;
-          if (event.kind == PointerDeviceKind.touch) {
-            _touchPositions[event.pointer] = event.localPosition;
-            if (_touchPositions.length == 2) _beginPinch();
-          }
-        },
-        onPointerMove: (event) {
-          final prev = _lastPointerLocal;
-          _lastPointerLocal = event.localPosition;
-          if (event.kind == PointerDeviceKind.touch) {
-            _touchPositions[event.pointer] = event.localPosition;
-          }
-          if (prev == null) return;
-          final intent = chartDragIntent(
-            kind: _activePointerKind,
-            pointerCount: _activePointerCount,
-            isZoomed: _viewport.isZoomed,
-          );
-          if (intent == ChartDragIntent.zoomPan &&
-              _activePointerKind == PointerDeviceKind.touch) {
-            _updatePinch(box);
-            return;
-          }
-          if (intent != ChartDragIntent.pan) return;
-          // A touch drag only pans once the claim recognizer has won the
-          // arena, so a scrub is never fought by a pan.
-          if (_activePointerKind == PointerDeviceKind.touch &&
-              !_touchDragClaimed) {
-            return;
-          }
-          setState(() {
-            final d = event.localPosition - prev;
-            _viewport = _viewport.pannedBy(
-              -d.dx / _plotWidth(box) / _viewport.zoom,
-              0,
-            );
-          });
-        },
-        onPointerUp: (event) {
-          if (_activePointerCount > 0) _activePointerCount--;
-          _lastPointerLocal = null;
-          _touchPositions.remove(event.pointer);
-          if (_pinchPointers.contains(event.pointer)) {
-            _touchPositions.length >= 2
-                ? _beginPinch()
-                : _pinchPointers = const [];
-          }
-        },
-        onPointerCancel: (event) {
-          if (_activePointerCount > 0) _activePointerCount--;
-          _lastPointerLocal = null;
-          _touchPositions.remove(event.pointer);
-          _pinchPointers = const [];
-        },
-        // Trackpad pan-zoom is claimed by the recognizer above so it does
-        // not also scroll the enclosing page.
-        onPointerSignal: (event) {
-          if (event is! PointerScrollEvent) return;
-          setState(() {
-            _activePointerKind = PointerDeviceKind.mouse;
-            final factor = event.scrollDelta.dy < 0 ? 1.1 : 1 / 1.1;
-            _viewport = _viewport.zoomedAt(
-              _focalX(event.localPosition, box),
-              0,
-              factor,
-            );
-          });
-        },
-        child: Stack(
-          children: [
-            _buildChart(context),
-            Positioned.fill(
-              child: RawGestureDetector(
-                behavior: HitTestBehavior.translucent,
-                gestures: {
-                  ChartTouchClaimRecognizer:
-                      GestureRecognizerFactoryWithHandlers<
-                        ChartTouchClaimRecognizer
-                      >(
-                        () => ChartTouchClaimRecognizer(
-                          isZoomed: () => _viewport.isZoomed,
-                          debugOwner: this,
-                        ),
-                        (recognizer) {
-                          recognizer.onClaimed = () {
-                            _touchDragClaimed = true;
-                          };
-                          recognizer.onReleased = () {
-                            _touchDragClaimed = false;
-                          };
-                        },
-                      ),
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+    // Built before the layer is handed the viewport: building the chart can
+    // re-seat the viewport (a new range or a new data span).
+    final chart = _buildChart(context);
+    return TrendChartInputLayer(
+      box: box,
+      viewport: _viewport,
+      onViewportChanged: (vp) => setState(() => _viewport = vp),
+      onNavigationEnd: _reportRange,
+      child: chart,
     );
   }
 
@@ -385,6 +279,8 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     final fullMin = _x(firstDate);
     final fullMax = _x(lastDate);
     final fullSpan = (fullMax - fullMin).clamp(1.0, double.infinity);
+    // Runs inside build, before anything reads the viewport.
+    _viewport = _seater.seat(widget.range, _viewport, fullMin, fullMax);
     final visibleMin = fullMin + _viewport.offsetX * fullSpan;
     final visibleMax = visibleMin + fullSpan * _viewport.visibleWidth;
     final dateAxis = DateAxis.forRange(
@@ -409,6 +305,31 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       ...smoothed.map((p) => p.value),
       if (fit != null) ...[fit.valueAt(firstDate), fit.valueAt(lastDate)],
     ]);
+
+    // Only rebuilt when what it is drawn from changes: pan and zoom rebuild
+    // the chart on every pointer move, and the data does not move with them.
+    final overviewKey = (
+      points,
+      widget.secondarySeries,
+      fullMin,
+      fullSpan,
+      yAxis.min,
+      yAxis.max,
+    );
+    if ((_viewport.isZoomed || _stripActive) && overviewKey != _overviewKey) {
+      _overviewKey = overviewKey;
+      final ySpan = yAxis.max - yAxis.min;
+      _overviewPoints = [
+        for (final p in [
+          ...points,
+          ...widget.secondarySeries.expand((s) => s.points),
+        ])
+          Offset(
+            ((_x(p.date) - fullMin) / fullSpan).clamp(0.0, 1.0),
+            ySpan <= 0 ? 0.5 : ((p.value - yAxis.min) / ySpan).clamp(0.0, 1.0),
+          ),
+      ];
+    }
 
     final isRaw = aggregation == TrendAggregation.none;
     final bars = _bars(
@@ -775,7 +696,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
                 style: Theme.of(context).textTheme.bodySmall,
               )
             : null,
-        axisNameSize: widget.yAxisLabel != null ? 20 : 0,
+        axisNameSize: _yAxisNameSize,
         sideTitles: SideTitles(
           showTitles: true,
           reservedSize: 50,

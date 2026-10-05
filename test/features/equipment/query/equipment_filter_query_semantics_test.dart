@@ -63,6 +63,9 @@ void main() {
     await item('loan', 'computer', status: 'loaned');
     await item('lent', 'computer', diver: 'other');
     await item('mine0', 'fins', diver: null);
+    // Wishlist gear (#2025), including a row whose is_active was left set.
+    await item('wish', 'bcd', status: 'wanted', active: false);
+    await item('wish2', 'fins', status: 'wanted');
     await db
         .into(db.equipmentShares)
         .insert(
@@ -172,6 +175,15 @@ void main() {
         const EquipmentFilterState(status: EquipmentStatus.loaned),
       ),
       {'loan'},
+    );
+  });
+
+  test('the Wanted view selects only wishlist gear (#2025)', () async {
+    expect(
+      await selected(
+        const EquipmentFilterState(status: EquipmentStatus.wanted),
+      ),
+      {'wish', 'wish2'},
     );
   });
 
