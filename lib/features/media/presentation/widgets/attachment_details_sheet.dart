@@ -99,6 +99,9 @@ class _AttachmentDetailsSheetState
       await ref
           .read(siteMediaListNotifierProvider(widget.siteId).notifier)
           .setAttachmentDetails(widget.item.id, edit);
+      // Dismissed by a drag or a tap outside while saving: popping now
+      // would close the page underneath instead.
+      if (!mounted) return;
       navigator.pop(edit.applyTo(widget.item));
     } catch (e) {
       if (!mounted) return;
@@ -152,6 +155,7 @@ class _AttachmentDetailsSheetState
           const SizedBox(height: 16),
           DropdownButtonFormField<SiteAttachmentCategory?>(
             initialValue: _category,
+            isExpanded: true,
             decoration: InputDecoration(
               labelText: l10n.media_siteAttachment_categoryLabel,
               border: const OutlineInputBorder(),
@@ -163,49 +167,56 @@ class _AttachmentDetailsSheetState
               ])
                 DropdownMenuItem(
                   value: category,
-                  child: Text(category.label(l10n)),
+                  child: Text(
+                    category.label(l10n),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
             ],
             onChanged: (value) => setState(() => _category = value),
           ),
           const SizedBox(height: 16),
-          Text(
-            l10n.media_siteAttachment_sizeLabel,
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-          const SizedBox(height: 8),
-          SegmentedButton<_SizeChoice>(
-            showSelectedIcon: false,
-            segments: [
-              ButtonSegment(
-                value: _SizeChoice.followCategory,
-                label: Text(
+          // A dropdown, not a segmented control: three segments at phone
+          // width cannot hold "Default (Large)" in every language.
+          DropdownButtonFormField<_SizeChoice>(
+            initialValue: _size,
+            isExpanded: true,
+            decoration: InputDecoration(
+              labelText: l10n.media_siteAttachment_sizeLabel,
+              border: const OutlineInputBorder(),
+            ),
+            items: [
+              for (final (choice, label) in [
+                (
+                  _SizeChoice.followCategory,
                   l10n.media_siteAttachment_sizeDefault(
                     defaultSize.label(l10n),
                   ),
                 ),
-              ),
-              ButtonSegment(
-                value: _SizeChoice.large,
-                label: Text(AttachmentDisplaySize.large.label(l10n)),
-              ),
-              ButtonSegment(
-                value: _SizeChoice.tile,
-                label: Text(AttachmentDisplaySize.tile.label(l10n)),
-              ),
+                (_SizeChoice.large, AttachmentDisplaySize.large.label(l10n)),
+                (_SizeChoice.tile, AttachmentDisplaySize.tile.label(l10n)),
+              ])
+                DropdownMenuItem(
+                  value: choice,
+                  child: Text(label, overflow: TextOverflow.ellipsis),
+                ),
             ],
-            selected: {_size},
-            onSelectionChanged: (s) => setState(() => _size = s.single),
+            onChanged: (value) {
+              if (value != null) setState(() => _size = value);
+            },
           ),
           const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+          // OverflowBar stacks the buttons when a long translation will not
+          // fit beside each other on a narrow phone.
+          OverflowBar(
+            alignment: MainAxisAlignment.end,
+            spacing: 8,
+            overflowAlignment: OverflowBarAlignment.end,
             children: [
               TextButton(
                 onPressed: _saving ? null : () => Navigator.of(context).pop(),
                 child: Text(l10n.common_action_cancel),
               ),
-              const SizedBox(width: 8),
               FilledButton(
                 onPressed: _saving || nameError != null ? null : _save,
                 child: Text(l10n.common_action_save),

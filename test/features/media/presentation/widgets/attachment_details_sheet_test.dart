@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +10,9 @@ import 'package:submersion/features/media/domain/entities/site_attachment_catego
 import 'package:submersion/features/media/domain/value_objects/attachment_details_edit.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/attachment_details_sheet.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart' show getBaseOverrides;
 
 import '../support/media_widget_harness.dart';
 
@@ -35,6 +40,16 @@ class _RecordingNotifier extends SiteMediaListNotifier {
 
 /// Issue #1039: Edit details renames an attachment (extension fixed), sets
 /// its category, and overrides its display size.
+class _GatedNotifier extends SiteMediaListNotifier {
+  _GatedNotifier(Ref ref, this.gate) : super(_StubMediaRepository(), ref, 's1');
+
+  final Future<void> gate;
+
+  @override
+  Future<void> setAttachmentDetails(String id, AttachmentDetailsEdit edit) =>
+      gate;
+}
+
 void main() {
   late List<(String, AttachmentDetailsEdit)> saves;
   MediaItem? result;
@@ -126,7 +141,9 @@ void main() {
 
   testWidgets('choosing Large stores an override', (tester) async {
     await open(tester, pdf);
-    await tester.tap(find.text('Large'));
+    await tester.tap(find.text('Default (Tile)'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Large').last);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
@@ -175,6 +192,73 @@ void main() {
     expect(find.textContaining("Couldn't save"), findsOneWidget);
     expect(find.text('Attachment details'), findsOneWidget);
     expect(result, isNull);
+  });
+
+  // Three segments could not hold "Default (Large)" at phone width; the
+  // longest translations are the real test.
+  for (final lang in ['en', 'hu', 'de', 'fr', 'es', 'nl']) {
+    testWidgets('fits a 320 px phone in $lang', (tester) async {
+      tester.view.physicalSize = const Size(320, 700);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: await getBaseOverrides(),
+          child: MaterialApp(
+            locale: Locale(lang),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: AttachmentDetailsSheet(
+                item: pdf.copyWith(
+                  originalFilename: 'a_long_site_map_name_for_the_reef.pdf',
+                  siteCategory: SiteAttachmentCategory.anchorage,
+                ),
+                siteId: 's1',
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('a sheet dismissed mid-save leaves the page underneath', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    await tester.pumpWidget(
+      await mediaTestApp(
+        overrides: [
+          siteMediaListNotifierProvider(
+            's1',
+          ).overrideWith((ref) => _GatedNotifier(ref, gate.future)),
+        ],
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () =>
+                  showAttachmentDetailsSheet(context, item: pdf, siteId: 's1'),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Renamed');
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+    // Dismiss by tapping the barrier above the sheet while the save runs.
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+    expect(find.text('Attachment details'), findsNothing);
+    gate.complete();
+    await tester.pumpAndSettle();
+    expect(find.text('open'), findsOneWidget);
   });
 
   testWidgets('Cancel writes nothing', (tester) async {

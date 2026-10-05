@@ -106,6 +106,31 @@ void main() {
     expect(find.byTooltip('Edit details'), findsOneWidget);
   });
 
+  testWidgets('a second Edit details opens on the saved category', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _editableHost(
+        _doc(originalFilename: 'reef-map.pdf'),
+        editableSiteId: 'site-1',
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Edit details'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Uncategorized'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Parking').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Edit details'));
+    await tester.pumpAndSettle();
+    expect(find.text('Parking'), findsOneWidget);
+    expect(find.text('Uncategorized'), findsNothing);
+  });
+
   testWidgets('a rename from the sheet updates the title', (tester) async {
     await tester.pumpWidget(
       _editableHost(

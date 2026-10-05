@@ -39,9 +39,11 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
   /// builds; the call is idempotent and cheap afterwards.
   late final Future<void> _engineReady = pdfrxFlutterInitialize();
 
-  /// The name shown in the app bar, updated by a rename here. The bytes stay
-  /// keyed on the original item, so a rename does not reload the PDF.
-  late String? _title = widget.item.originalFilename;
+  /// The item as last saved here, so the app bar shows a rename and a
+  /// second Edit details opens on the saved category and size, not the ones
+  /// the page was opened with. The bytes stay keyed on [widget.item], so an
+  /// edit does not reload the PDF.
+  late MediaItem _item = widget.item;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +52,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _title ?? context.l10n.media_documentViewer_title,
+          _item.originalFilename ?? context.l10n.media_documentViewer_title,
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
@@ -61,11 +63,11 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
               onPressed: () async {
                 final saved = await showAttachmentDetailsSheet(
                   context,
-                  item: widget.item.copyWith(originalFilename: _title),
+                  item: _item,
                   siteId: widget.editableSiteId!,
                 );
                 if (saved != null && mounted) {
-                  setState(() => _title = saved.originalFilename);
+                  setState(() => _item = saved);
                 }
               },
             ),
@@ -128,10 +130,10 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
         }
         return;
       }
-      final file = await writeShareTempFile(widget.item, resolved.bytes!);
+      final file = await writeShareTempFile(_item, resolved.bytes!);
       await SharePlus.instance.share(
         ShareParams(
-          files: [XFile(file.path, mimeType: widget.item.shareMimeType)],
+          files: [XFile(file.path, mimeType: _item.shareMimeType)],
           sharePositionOrigin: anchor,
         ),
       );
