@@ -15,6 +15,8 @@ import 'package:submersion/features/certifications/presentation/widgets/certific
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 
 class CourseEditPage extends ConsumerStatefulWidget {
@@ -45,7 +47,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
   final _locationController = TextEditingController();
   final _notesController = TextEditingController();
 
-  CertificationAgency _agency = CertificationAgency.padi;
+  String _agency = CertificationAgency.padi.name;
   DateTime _startDate = DateTime.now();
   DateTime? _completionDate;
   String? _instructorId;
@@ -142,18 +144,29 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           const SizedBox(height: 16),
 
           // Agency
-          DropdownButtonFormField<CertificationAgency>(
+          DropdownButtonFormField<String>(
             initialValue: _agency,
             decoration: InputDecoration(
               labelText: context.l10n.courses_label_agency,
               prefixIcon: const Icon(Icons.business),
             ),
-            items: CertificationAgency.values.map((agency) {
-              return DropdownMenuItem(
-                value: agency,
-                child: Text(agency.localizedName(context.l10n)),
-              );
-            }).toList(),
+            items: [
+              for (final agency in CertificationAgency.values)
+                DropdownMenuItem(
+                  value: agency.name,
+                  child: Text(agency.localizedName(context.l10n)),
+                ),
+              // A stored id outside the built-ins still has to render.
+              if (CertificationAgency.fromId(_agency) == null)
+                DropdownMenuItem(
+                  value: _agency,
+                  child: Text(
+                    CertificationCatalog.builtInOnly
+                        .agency(_agency)
+                        .localizedName(context.l10n),
+                  ),
+                ),
+            ],
             onChanged: (value) {
               if (value != null) {
                 setState(() => _agency = value);

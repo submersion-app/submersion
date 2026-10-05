@@ -3266,7 +3266,7 @@ void main() {
       final existingCert = Certification(
         id: 'cert-1',
         name: 'Open Water',
-        agency: CertificationAgency.padi,
+        agency: CertificationAgency.padi.name,
         createdAt: _now,
         updatedAt: _now,
       );

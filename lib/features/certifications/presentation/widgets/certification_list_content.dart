@@ -26,7 +26,6 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_search_delegate.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
@@ -36,6 +35,8 @@ import 'package:submersion/features/query/presentation/widgets/query_chips_frame
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_list_count_provider.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 
 /// Content widget for the certification list, used in master-detail layout.
 class CertificationListContent extends ConsumerStatefulWidget {
@@ -815,7 +816,7 @@ class CertificationListTile extends ConsumerWidget {
       // it would leave "Open Water" with no issuing agency. The title is
       // derived rather than raw so the agency is not said twice.
       label:
-          '${certification.agency.localizedName(context.l10n)} '
+          '${CertificationCatalog.builtInOnly.agency(certification.agency).localizedName(context.l10n)} '
           '${certificationTitleL10n(certification, context.l10n)}'
           '$levelLabel$issueDateLabel$statusLabel',
       child: Card(
@@ -849,14 +850,11 @@ class CertificationListTile extends ConsumerWidget {
       ),
       child: Center(
         child: Text(
-          certification.agency
-              .localizedName(context.l10n)
-              .substring(
-                0,
-                certification.agency.localizedName(context.l10n).length > 4
-                    ? 4
-                    : certification.agency.localizedName(context.l10n).length,
-              ),
+          _agencyBadge(
+            CertificationCatalog.builtInOnly
+                .agency(certification.agency)
+                .localizedName(context.l10n),
+          ),
           style: TextStyle(
             color: Theme.of(context).colorScheme.onPrimaryContainer,
             fontWeight: FontWeight.bold,
@@ -915,4 +913,8 @@ class CertificationListTile extends ConsumerWidget {
     }
     return const Icon(Icons.chevron_right);
   }
+
+  /// The first four characters of an agency name, for the badge.
+  String _agencyBadge(String name) =>
+      name.length > 4 ? name.substring(0, 4) : name;
 }

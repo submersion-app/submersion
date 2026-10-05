@@ -5054,6 +5054,18 @@ abstract class AppLocalizations {
   /// **'Agency *'**
   String get certifications_edit_label_agency;
 
+  /// Shown for a certification agency id that matches no built-in or custom agency (not yet synced, or deleted).
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown agency'**
+  String get certificationAgencies_unknownAgency;
+
+  /// Shown for a certification level id that matches nothing known.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown certification'**
+  String get certificationAgencies_unknownCertification;
+
   /// No description provided for @certifications_edit_addRecognition.
   ///
   /// In en, this message translates to:

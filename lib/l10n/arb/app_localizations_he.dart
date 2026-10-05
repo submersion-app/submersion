@@ -3200,6 +3200,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_edit_label_agency => 'סוכנות *';
 
   @override
+  String get certificationAgencies_unknownAgency => 'סוכנות לא ידועה';
+
+  @override
+  String get certificationAgencies_unknownCertification => 'הסמכה לא ידועה';
+
+  @override
   String get certifications_edit_addRecognition => 'הוספת הכרה נוספת';
 
   @override

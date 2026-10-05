@@ -960,9 +960,9 @@ class UddfExportBuilders {
                       attributes: {'id': 'cert_${cert.id}'},
                       nest: () {
                         builder.element('name', nest: cert.name);
-                        builder.element('agency', nest: cert.agency.name);
+                        builder.element('agency', nest: cert.agency);
                         if (cert.level != null) {
-                          builder.element('level', nest: cert.level!.name);
+                          builder.element('level', nest: cert.level!);
                         }
                         if (cert.cardNumber != null) {
                           builder.element('cardnumber', nest: cert.cardNumber);
@@ -1453,7 +1453,7 @@ class UddfExportBuilders {
                       attributes: {'id': 'course_${course.id}'},
                       nest: () {
                         builder.element('name', nest: course.name);
-                        builder.element('agency', nest: course.agency.name);
+                        builder.element('agency', nest: course.agency);
                         builder.element(
                           'startdate',
                           nest: course.startDate.toIso8601String(),

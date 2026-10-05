@@ -37,8 +37,8 @@ void main() {
   final testCert = Certification(
     id: 'cert-1',
     name: 'Advanced Open Water',
-    agency: CertificationAgency.padi,
-    level: CertificationLevel.advancedOpenWater,
+    agency: CertificationAgency.padi.name,
+    level: CertificationLevel.advancedOpenWater.name,
     cardNumber: 'AOW-12345',
     issueDate: DateTime(2023, 6, 15),
     expiryDate: DateTime(2026, 6, 15),
@@ -132,14 +132,14 @@ void main() {
     test('returns agency', () {
       expect(
         adapter.extractValue(CertificationField.agency, testCert),
-        equals(CertificationAgency.padi),
+        equals(CertificationAgency.padi.name),
       );
     });
 
     test('returns level', () {
       expect(
         adapter.extractValue(CertificationField.level, testCert),
-        equals(CertificationLevel.advancedOpenWater),
+        equals(CertificationLevel.advancedOpenWater.name),
       );
     });
 
@@ -201,7 +201,7 @@ void main() {
       final noLevelCert = Certification(
         id: 'cert-no-level',
         name: 'Basic',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -215,7 +215,7 @@ void main() {
       final noCardCert = Certification(
         id: 'cert-no-card',
         name: 'Basic',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -229,7 +229,7 @@ void main() {
       final noDateCert = Certification(
         id: 'cert-no-date',
         name: 'Basic',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -243,7 +243,7 @@ void main() {
       final noExpiryCert = Certification(
         id: 'cert-no-expiry',
         name: 'Basic',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -257,7 +257,7 @@ void main() {
       final noInstructorCert = Certification(
         id: 'cert-no-inst',
         name: 'Basic',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -274,7 +274,7 @@ void main() {
       final noInstNumCert = Certification(
         id: 'cert-no-instnum',
         name: 'Basic',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -291,7 +291,7 @@ void main() {
       final noExpiryCert = Certification(
         id: 'cert-no-expiry',
         name: 'Basic',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -305,7 +305,7 @@ void main() {
       final expiredCert = Certification(
         id: 'cert-expired',
         name: 'Expired Cert',
-        agency: CertificationAgency.padi,
+        agency: CertificationAgency.padi.name,
         expiryDate: DateTime(2020, 1, 1),
         createdAt: DateTime(2019, 1, 1),
         updatedAt: DateTime(2019, 1, 1),
@@ -320,7 +320,7 @@ void main() {
       final noNotesCert = Certification(
         id: 'cert-no-notes',
         name: 'Basic',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -352,14 +352,14 @@ void main() {
       );
     });
 
-    test('formats agency using enum name', () {
+    test('formats agency using its display name (issue #690)', () {
       expect(
         adapter.formatValue(
           CertificationField.agency,
-          CertificationAgency.padi,
+          CertificationAgency.padi.name,
           units,
         ),
-        equals('padi'),
+        equals('PADI'),
       );
     });
 
@@ -367,7 +367,7 @@ void main() {
       expect(
         adapter.formatValue(
           CertificationField.level,
-          CertificationLevel.advancedOpenWater,
+          CertificationLevel.advancedOpenWater.name,
           units,
         ),
         equals('Advanced Open Water'),

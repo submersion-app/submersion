@@ -965,6 +965,8 @@
   "certifications_edit_hint_instructorNumber": "Número de certificação do instrutor",
   "certifications_edit_hint_notes": "Quaisquer observações adicionais",
   "certifications_edit_label_agency": "Agência *",
+  "certificationAgencies_unknownAgency": "Agência desconhecida",
+  "certificationAgencies_unknownCertification": "Certificação desconhecida",
   "certifications_edit_addRecognition": "Adicionar outro reconhecimento",
   "certifications_edit_removeRecognition": "Remover este reconhecimento",
   "certifications_edit_label_cardNumber": "Número do Cartão",

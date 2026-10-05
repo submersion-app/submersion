@@ -36,7 +36,7 @@ final _now = DateTime(2026, 8, 9);
 Certification _makeCert({
   String id = 'cert-1',
   String name = 'Open Water Diver',
-  CertificationAgency agency = CertificationAgency.padi,
+  String agency = 'padi',
 }) {
   return Certification(
     id: id,
@@ -124,7 +124,7 @@ void main() {
           overrides: baseOverrides(
             certifications: [
               _makeCert(id: 'cert-1'),
-              _makeCert(id: 'cert-2', agency: CertificationAgency.ssi),
+              _makeCert(id: 'cert-2', agency: CertificationAgency.ssi.name),
             ],
           ),
         ),

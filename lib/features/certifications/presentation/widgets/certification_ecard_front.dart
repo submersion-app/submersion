@@ -6,7 +6,8 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_card_photo.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 
 /// The front face of the certification card.
 ///
@@ -49,7 +50,9 @@ class CertificationEcardFront extends StatelessWidget {
     // certificationTitle, not the raw name: a stored name that merely repeats
     // agency and level would otherwise render as "PADI - PADI : Open Water".
     final headline = [
-      certification.agency.localizedName(l10n),
+      CertificationCatalog.builtInOnly
+          .agency(certification.agency)
+          .localizedName(l10n),
       certificationTitleL10n(certification, l10n),
     ].where((value) => value.isNotEmpty).join('  -  ');
 
@@ -62,7 +65,9 @@ class CertificationEcardFront extends StatelessWidget {
   }
 
   Widget _buildGeneratedFront(BuildContext context) {
-    final agency = certification.agency;
+    final agency = CertificationCatalog.builtInOnly.agency(
+      certification.agency,
+    );
 
     return Container(
       decoration: BoxDecoration(
@@ -122,7 +127,9 @@ class CertificationEcardFront extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            certification.agency.localizedName(context.l10n),
+            CertificationCatalog.builtInOnly
+                .agency(certification.agency)
+                .localizedName(context.l10n),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 16,

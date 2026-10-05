@@ -1031,8 +1031,8 @@ class UddfEntityImporter {
             id: '',
             buddyId: newId,
             name: certLevel?.displayName ?? certAgency?.displayName ?? name,
-            agency: certAgency ?? CertificationAgency.other,
-            level: certLevel,
+            agency: (certAgency ?? CertificationAgency.other).name,
+            level: certLevel?.name,
             createdAt: now,
             updatedAt: now,
           ),
@@ -3582,23 +3582,27 @@ class UddfEntityImporter {
     return EquipmentStatus.active;
   }
 
-  CertificationAgency _parseCertificationAgency(dynamic value) {
-    if (value is CertificationAgency) return value;
+  /// The agency id for parsed text: a built-in's enum name. Stored ids are
+  /// text (issue #690).
+  String _parseCertificationAgency(dynamic value) {
+    if (value is CertificationAgency) return value.name;
     if (value is String) {
       // A named-but-unrecognised agency is "other", not PADI. Defaulting to
       // PADI relabels real cards from agencies outside the enum (#912).
-      return _parseEnumValue(value, CertificationAgency.values) ??
-          (value.trim().isEmpty
-              ? CertificationAgency.padi
-              : CertificationAgency.other);
+      return (_parseEnumValue(value, CertificationAgency.values) ??
+              (value.trim().isEmpty
+                  ? CertificationAgency.padi
+                  : CertificationAgency.other))
+          .name;
     }
-    return CertificationAgency.padi;
+    return CertificationAgency.padi.name;
   }
 
-  CertificationLevel? _parseCertificationLevel(dynamic value) {
-    if (value is CertificationLevel) return value;
+  /// The level id for parsed text, or null when it names no built-in.
+  String? _parseCertificationLevel(dynamic value) {
+    if (value is CertificationLevel) return value.name;
     if (value is String) {
-      return _parseEnumValue(value, CertificationLevel.values);
+      return _parseEnumValue(value, CertificationLevel.values)?.name;
     }
     return null;
   }

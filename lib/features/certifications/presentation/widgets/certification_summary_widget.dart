@@ -6,7 +6,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 
 /// Summary widget shown when no certification is selected.
 class CertificationSummaryWidget extends ConsumerWidget {
@@ -218,7 +219,9 @@ class CertificationSummaryWidget extends ConsumerWidget {
                   child: Center(
                     child: Text(
                       _abbreviateAgency(
-                        cert.agency.localizedName(context.l10n),
+                        CertificationCatalog.builtInOnly
+                            .agency(cert.agency)
+                            .localizedName(context.l10n),
                       ),
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onPrimaryContainer,

@@ -976,6 +976,8 @@
   "certifications_edit_hint_instructorNumber": "Instructor-Zertifizierungsnummer",
   "certifications_edit_hint_notes": "Zusätzliche Notizen",
   "certifications_edit_label_agency": "Verband *",
+  "certificationAgencies_unknownAgency": "Unbekannter Verband",
+  "certificationAgencies_unknownCertification": "Unbekannte Zertifizierung",
   "certifications_edit_addRecognition": "Weitere Anerkennung hinzufügen",
   "certifications_edit_removeRecognition": "Diese Anerkennung entfernen",
   "certifications_edit_label_cardNumber": "Kartennummer",

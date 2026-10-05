@@ -22,7 +22,7 @@ Buddy _makeBuddy(String id, String name) {
 Certification _makeInstructorCert({
   required String buddyId,
   String? cardNumber,
-  CertificationAgency agency = CertificationAgency.padi,
+  String agency = 'padi',
 }) {
   final now = DateTime(2024, 1, 1);
   return Certification(
@@ -30,7 +30,7 @@ Certification _makeInstructorCert({
     buddyId: buddyId,
     name: 'Instructor',
     agency: agency,
-    level: CertificationLevel.instructor,
+    level: CertificationLevel.instructor.name,
     cardNumber: cardNumber,
     createdAt: now,
     updatedAt: now,
@@ -44,7 +44,7 @@ void main() {
   final instructorCert = _makeInstructorCert(
     buddyId: 'buddy-1',
     cardNumber: '999-PADI',
-    agency: CertificationAgency.padi,
+    agency: CertificationAgency.padi.name,
   );
   const instructorLabel = 'PADI Instructor #999-PADI';
 
@@ -252,7 +252,7 @@ void main() {
         Certification(
           id: '',
           name: 'Advanced Open Water',
-          agency: CertificationAgency.padi,
+          agency: CertificationAgency.padi.name,
           instructorId: 'buddy-1',
           createdAt: now,
           updatedAt: now,

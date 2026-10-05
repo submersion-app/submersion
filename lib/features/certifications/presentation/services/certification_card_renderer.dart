@@ -8,7 +8,8 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 
 /// Service for rendering certification cards to PNG images for sharing.
 ///
@@ -51,10 +52,16 @@ class CertificationCardRenderer {
       final canvas = Canvas(recorder, const Rect.fromLTWH(0, 0, width, height));
 
       final primaryColor = ui.Color(
-        certification.agency.primaryColor.toARGB32(),
+        CertificationCatalog.builtInOnly
+            .agency(certification.agency)
+            .primaryColor
+            .toARGB32(),
       );
       final secondaryColor = ui.Color(
-        certification.agency.secondaryColor.toARGB32(),
+        CertificationCatalog.builtInOnly
+            .agency(certification.agency)
+            .secondaryColor
+            .toARGB32(),
       );
 
       // Draw gradient background
@@ -76,7 +83,9 @@ class CertificationCardRenderer {
       // Draw agency name at top
       _drawText(
         canvas: canvas,
-        text: certification.agency.localizedName(l10n),
+        text: CertificationCatalog.builtInOnly
+            .agency(certification.agency)
+            .localizedName(l10n),
         x: 32,
         y: 32,
         fontSize: 24,
@@ -298,7 +307,10 @@ class CertificationCardRenderer {
       final canvas = Canvas(recorder, const Rect.fromLTWH(0, 0, width, height));
 
       final agencyColor = ui.Color(
-        certification.agency.primaryColor.toARGB32(),
+        CertificationCatalog.builtInOnly
+            .agency(certification.agency)
+            .primaryColor
+            .toARGB32(),
       );
 
       // Draw white background
@@ -336,7 +348,9 @@ class CertificationCardRenderer {
       // Draw agency name at top
       _drawCenteredText(
         canvas: canvas,
-        text: certification.agency.localizedName(l10n),
+        text: CertificationCatalog.builtInOnly
+            .agency(certification.agency)
+            .localizedName(l10n),
         y: 60,
         width: width,
         fontSize: 48,

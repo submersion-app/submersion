@@ -965,6 +965,8 @@
   "certifications_edit_hint_instructorNumber": "Oktató képesítési száma",
   "certifications_edit_hint_notes": "Bármilyen további megjegyzés",
   "certifications_edit_label_agency": "Szervezet *",
+  "certificationAgencies_unknownAgency": "Ismeretlen szervezet",
+  "certificationAgencies_unknownCertification": "Ismeretlen képesítés",
   "certifications_edit_addRecognition": "Újabb elismerés hozzáadása",
   "certifications_edit_removeRecognition": "Elismerés eltávolítása",
   "certifications_edit_label_cardNumber": "Kártyaszám",

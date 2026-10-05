@@ -39,7 +39,7 @@ final _entry = BuddyWithDiveCount(
   buddy: Buddy(
     id: 'b1',
     name: 'Ken Sato',
-    certificationLevel: CertificationLevel.advancedOpenWater,
+    certificationLevel: CertificationLevel.advancedOpenWater.name,
     createdAt: DateTime(2026, 1, 1),
     updatedAt: DateTime(2026, 1, 1),
   ),

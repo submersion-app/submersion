@@ -3331,6 +3331,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_edit_label_agency => 'الجهة المانحة *';
 
   @override
+  String get certificationAgencies_unknownAgency => 'جهة مانحة غير معروفة';
+
+  @override
+  String get certificationAgencies_unknownCertification => 'شهادة غير معروفة';
+
+  @override
   String get certifications_edit_addRecognition => 'إضافة اعتراف آخر';
 
   @override

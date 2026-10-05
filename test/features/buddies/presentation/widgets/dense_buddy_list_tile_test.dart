@@ -11,8 +11,8 @@ import '../../helpers/fake_buddy_list_notifier.dart';
 Buddy _makeBuddy({
   String id = 'test-id',
   String name = 'Alice Smith',
-  CertificationLevel? certificationLevel = CertificationLevel.openWater,
-  CertificationAgency? certificationAgency,
+  String? certificationLevel = 'openWater',
+  String? certificationAgency,
 }) {
   final now = DateTime(2024, 1, 1);
   return Buddy(
@@ -43,7 +43,7 @@ void main() {
         testApp(
           child: DenseBuddyListTile(
             buddy: _makeBuddy(
-              certificationLevel: CertificationLevel.advancedOpenWater,
+              certificationLevel: CertificationLevel.advancedOpenWater.name,
             ),
           ),
         ),

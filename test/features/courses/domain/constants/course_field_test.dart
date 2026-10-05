@@ -16,7 +16,7 @@ void main() {
     id: 'course-1',
     diverId: 'diver-1',
     name: 'Advanced Open Water',
-    agency: CertificationAgency.padi,
+    agency: CertificationAgency.padi.name,
     startDate: DateTime(2024, 3, 1),
     completionDate: DateTime(2024, 3, 5),
     instructorName: 'Jane Smith',
@@ -104,7 +104,7 @@ void main() {
     test('returns agency enum', () {
       expect(
         adapter.extractValue(CourseField.agency, testCourse),
-        equals(CertificationAgency.padi),
+        equals(CertificationAgency.padi.name),
       );
     });
 
@@ -188,7 +188,7 @@ void main() {
         id: 'min-1',
         diverId: 'diver-1',
         name: 'Basic',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         startDate: DateTime(2024, 1, 1),
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
@@ -213,14 +213,14 @@ void main() {
       );
     });
 
-    test('formats agency as enum name', () {
+    test('formats agency as its display name (issue #690)', () {
       expect(
         adapter.formatValue(
           CourseField.agency,
-          CertificationAgency.padi,
+          CertificationAgency.padi.name,
           units,
         ),
-        equals('padi'),
+        equals('PADI'),
       );
     });
 

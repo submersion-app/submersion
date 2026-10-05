@@ -469,7 +469,7 @@ void main() {
           Certification(
             id: '1',
             name: 'Open Water',
-            agency: CertificationAgency.padi,
+            agency: CertificationAgency.padi.name,
             createdAt: now,
             updatedAt: now,
           ),

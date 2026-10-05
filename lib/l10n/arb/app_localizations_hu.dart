@@ -3253,6 +3253,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_edit_label_agency => 'Szervezet *';
 
   @override
+  String get certificationAgencies_unknownAgency => 'Ismeretlen szervezet';
+
+  @override
+  String get certificationAgencies_unknownCertification =>
+      'Ismeretlen képesítés';
+
+  @override
   String get certifications_edit_addRecognition => 'Újabb elismerés hozzáadása';
 
   @override

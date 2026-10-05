@@ -3097,6 +3097,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_edit_label_agency => '机构 *';
 
   @override
+  String get certificationAgencies_unknownAgency => '未知机构';
+
+  @override
+  String get certificationAgencies_unknownCertification => '未知证书';
+
+  @override
   String get certifications_edit_addRecognition => '添加其他认可';
 
   @override

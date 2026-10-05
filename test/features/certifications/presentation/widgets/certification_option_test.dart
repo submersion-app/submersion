@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_option.dart';
 
 void main() {
@@ -11,15 +10,15 @@ void main() {
   group('CertificationOption equality', () {
     test('two values wrapping the same level are equal', () {
       expect(
-        const CertificationOption.value(CertificationLevel.openWater),
-        const CertificationOption.value(CertificationLevel.openWater),
+        const CertificationOption.value('openWater'),
+        const CertificationOption.value('openWater'),
       );
     });
 
     test('values wrapping different levels are not equal', () {
       expect(
-        const CertificationOption.value(CertificationLevel.openWater),
-        isNot(const CertificationOption.value(CertificationLevel.rescue)),
+        const CertificationOption.value('openWater'),
+        isNot(const CertificationOption.value('rescue')),
       );
     });
 
@@ -50,11 +49,11 @@ void main() {
       const rows = [
         CertificationOption.value(null),
         CertificationOption.header('progression'),
-        CertificationOption.value(CertificationLevel.openWater),
-        CertificationOption.value(CertificationLevel.rescue),
+        CertificationOption.value('openWater'),
+        CertificationOption.value('rescue'),
         CertificationOption.header('specialties'),
-        CertificationOption.value(CertificationLevel.nitrox),
-        CertificationOption.value(CertificationLevel.other),
+        CertificationOption.value('nitrox'),
+        CertificationOption.value('other'),
       ];
 
       expect(rows.toSet(), hasLength(rows.length));
@@ -64,8 +63,8 @@ void main() {
   group('CertificationOption hashCode', () {
     test('agrees with equality', () {
       expect(
-        const CertificationOption.value(CertificationLevel.cave).hashCode,
-        const CertificationOption.value(CertificationLevel.cave).hashCode,
+        const CertificationOption.value('cave').hashCode,
+        const CertificationOption.value('cave').hashCode,
       );
       expect(
         const CertificationOption.header('progression').hashCode,

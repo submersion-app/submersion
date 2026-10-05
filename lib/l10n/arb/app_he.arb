@@ -965,6 +965,8 @@
   "certifications_edit_hint_instructorNumber": "מספר הסמכת המדריך",
   "certifications_edit_hint_notes": "הערות נוספות",
   "certifications_edit_label_agency": "סוכנות *",
+  "certificationAgencies_unknownAgency": "סוכנות לא ידועה",
+  "certificationAgencies_unknownCertification": "הסמכה לא ידועה",
   "certifications_edit_addRecognition": "הוספת הכרה נוספת",
   "certifications_edit_removeRecognition": "הסרת הכרה זו",
   "certifications_edit_label_cardNumber": "מספר כרטיס",

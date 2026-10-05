@@ -21,10 +21,7 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<List<CertificationAgency>> agencyOptions(
-    WidgetTester tester,
-    Widget page,
-  ) async {
+  Future<List<String>> agencyOptions(WidgetTester tester, Widget page) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       ProviderScope(
@@ -39,8 +36,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final dropdown = tester.widget<DropdownButton<CertificationAgency>>(
-      find.byType(DropdownButton<CertificationAgency>).first,
+    final dropdown = tester.widget<DropdownButton<String>>(
+      find.byType(DropdownButton<String>).first,
     );
     return [for (final item in dropdown.items!) item.value!];
   }
@@ -53,8 +50,8 @@ void main() {
       const CourseEditPage(embedded: true),
     );
 
-    expect(options, contains(CertificationAgency.ffessm));
-    expect(options, CertificationAgency.values);
+    expect(options, contains(CertificationAgency.ffessm.name));
+    expect(options, [for (final a in CertificationAgency.values) a.name]);
   });
 
   testWidgets('course and certification editors offer the same agencies', (

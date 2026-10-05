@@ -42,7 +42,7 @@ void main() {
         id: '',
         diverId: diver.id,
         name: 'Rescue Diver',
-        agency: CertificationAgency.padi,
+        agency: CertificationAgency.padi.name,
         startDate: DateTime(2024, 5, 1),
         instructorName: 'Alice Instructor',
         location: 'Blue Hole',

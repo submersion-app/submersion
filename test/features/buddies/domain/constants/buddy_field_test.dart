@@ -17,8 +17,8 @@ void main() {
     name: 'John Doe',
     email: 'john@example.com',
     phone: '+1234567890',
-    certificationLevel: CertificationLevel.advancedOpenWater,
-    certificationAgency: CertificationAgency.padi,
+    certificationLevel: CertificationLevel.advancedOpenWater.name,
+    certificationAgency: CertificationAgency.padi.name,
     notes: 'Great dive buddy',
     createdAt: DateTime(2024, 1, 1),
     updatedAt: DateTime(2024, 1, 1),
@@ -108,14 +108,14 @@ void main() {
     test('returns certification level', () {
       expect(
         adapter.extractValue(BuddyField.certificationLevel, testEntity),
-        equals(CertificationLevel.advancedOpenWater),
+        equals(CertificationLevel.advancedOpenWater.name),
       );
     });
 
     test('returns certification agency', () {
       expect(
         adapter.extractValue(BuddyField.certificationAgency, testEntity),
-        equals(CertificationAgency.padi),
+        equals(CertificationAgency.padi.name),
       );
     });
 
@@ -231,7 +231,7 @@ void main() {
       expect(
         adapter.formatValue(
           BuddyField.certificationLevel,
-          CertificationLevel.advancedOpenWater,
+          CertificationLevel.advancedOpenWater.name,
           units,
         ),
         equals('Advanced Open Water'),
@@ -242,7 +242,7 @@ void main() {
       expect(
         adapter.formatValue(
           BuddyField.certificationAgency,
-          CertificationAgency.padi,
+          CertificationAgency.padi.name,
           units,
         ),
         equals('PADI'),
@@ -458,7 +458,7 @@ void main() {
       expect(
         BuddyFieldAdapter.instance.formatValue(
           BuddyField.certificationLevel,
-          CertificationLevel.advancedOpenWater,
+          CertificationLevel.advancedOpenWater.name,
           units,
         ),
         'Advanced Open Water',
@@ -466,7 +466,7 @@ void main() {
       expect(
         BuddyFieldAdapter.instance.formatValue(
           BuddyField.certificationAgency,
-          CertificationAgency.padi,
+          CertificationAgency.padi.name,
           units,
         ),
         'PADI',

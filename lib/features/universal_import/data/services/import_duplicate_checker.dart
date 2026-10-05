@@ -17,6 +17,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Result of duplicate checking across all entity types in an import payload.
 class ImportDuplicateResult {
@@ -594,7 +595,7 @@ class ImportDuplicateChecker {
   ) {
     final existingByKey = <String, Certification>{};
     for (final cert in existingCerts) {
-      existingByKey['${cert.name.toLowerCase()}|${cert.agency.name.toLowerCase()}'] =
+      existingByKey['${cert.name.toLowerCase()}|${cert.agency.toLowerCase()}'] =
           cert;
     }
 
@@ -646,7 +647,9 @@ class ImportDuplicateChecker {
       existingName: existing.name,
       existingFields: {
         'Name': existing.name,
-        'Agency': existing.agency.displayName,
+        'Agency': CertificationCatalog.builtInOnly
+            .agency(existing.agency)
+            .interchangeName,
         'Date': existing.issueDate != null
             ? _dateFormatter.format(existing.issueDate!)
             : null,

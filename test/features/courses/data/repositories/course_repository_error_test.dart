@@ -28,7 +28,7 @@ void main() {
         id: 'cr1',
         diverId: 'diver1',
         name: 'Advanced Open Water',
-        agency: CertificationAgency.padi,
+        agency: CertificationAgency.padi.name,
         startDate: now,
         createdAt: now,
         updatedAt: now,
@@ -48,7 +48,7 @@ void main() {
 
       // getCoursesByAgency - rethrows
       await expectLater(
-        repository.getCoursesByAgency(CertificationAgency.padi),
+        repository.getCoursesByAgency(CertificationAgency.padi.name),
         throwsA(anything),
       );
 

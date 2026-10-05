@@ -74,7 +74,7 @@ void main() {
     Certification(
       id: 'c1',
       name: 'Open Water Diver',
-      agency: CertificationAgency.padi,
+      agency: CertificationAgency.padi.name,
       cardNumber: 'CARD-1',
       issueDate: DateTime(2018, 6, 12),
       createdAt: DateTime(2018, 6, 12),

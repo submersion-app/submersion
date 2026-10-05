@@ -1,4 +1,4 @@
-import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 
 /// What a certification is called on screen, and whether its stored
@@ -20,28 +20,36 @@ import 'package:submersion/features/certifications/domain/entities/certification
 /// list's Agency column -- so prefixing here would just trade one duplication
 /// for another.
 String derivedCertificationTitle(
-  CertificationAgency agency,
-  CertificationLevel? level,
-) => level?.displayName ?? agency.displayName;
+  String agency,
+  String? level, {
+  CertificationCatalog? catalog,
+}) {
+  final c = catalog ?? CertificationCatalog.builtInOnly;
+  return level != null
+      ? c.level(level).interchangeName
+      : c.agency(agency).interchangeName;
+}
 
 String _normalized(String value) =>
     value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
 
 /// True when [cert]'s stored name carries no information beyond agency and
 /// level -- including an empty name.
-bool hasDerivedName(Certification cert) {
+bool hasDerivedName(Certification cert, {CertificationCatalog? catalog}) {
   final stored = _normalized(cert.name);
   if (stored.isEmpty) return true;
 
-  final agencyName = cert.agency.displayName;
+  final c = catalog ?? CertificationCatalog.builtInOnly;
+  final agencyName = c.agency(cert.agency).interchangeName;
   final level = cert.level;
+  final levelName = level == null ? null : c.level(level).interchangeName;
   final candidates = <String>[
     agencyName,
-    if (level != null) ...[
-      '$agencyName ${level.displayName}',
-      '$agencyName: ${level.displayName}',
-      '$agencyName : ${level.displayName}',
-      level.displayName,
+    if (levelName != null) ...[
+      '$agencyName $levelName',
+      '$agencyName: $levelName',
+      '$agencyName : $levelName',
+      levelName,
     ],
   ];
   return candidates.map(_normalized).contains(stored);
@@ -49,20 +57,33 @@ bool hasDerivedName(Certification cert) {
 
 /// The stored name when it says something the structured fields do not,
 /// otherwise null.
-String? customNameOrNull(Certification cert) =>
-    hasDerivedName(cert) ? null : cert.name.trim();
+String? customNameOrNull(Certification cert, {CertificationCatalog? catalog}) =>
+    hasDerivedName(cert, catalog: catalog) ? null : cert.name.trim();
 
 /// The title to show for [cert] anywhere one is needed. Never empty.
-String certificationTitle(Certification cert) =>
-    customNameOrNull(cert) ??
-    derivedCertificationTitle(cert.agency, cert.level);
+String certificationTitle(
+  Certification cert, {
+  CertificationCatalog? catalog,
+}) =>
+    customNameOrNull(cert, catalog: catalog) ??
+    derivedCertificationTitle(cert.agency, cert.level, catalog: catalog);
 
 /// The secondary line beneath [certificationTitle]: the level, but only when
 /// the title is a custom name. When the title is derived it already contains
 /// the level, and showing it again is the duplication this module exists to
 /// remove.
-String? certificationSubtitle(Certification cert) =>
-    customNameOrNull(cert) == null ? null : cert.level?.displayName;
+String? certificationSubtitle(
+  Certification cert, {
+  CertificationCatalog? catalog,
+}) {
+  final level = cert.level;
+  if (level == null || customNameOrNull(cert, catalog: catalog) == null) {
+    return null;
+  }
+  return (catalog ?? CertificationCatalog.builtInOnly)
+      .level(level)
+      .interchangeName;
+}
 
 /// The agency line that list surfaces put beneath [certificationTitle],
 /// carrying the level as well whenever the title is a custom name.
@@ -71,8 +92,13 @@ String? certificationSubtitle(Certification cert) =>
 /// level it was actually issued for (Divemaster) would appear nowhere on the
 /// tile. [certificationSubtitle] returns null for a derived title, which
 /// already names the level, so this never says it twice.
-String certificationAgencyAndLevel(Certification cert) {
-  final level = certificationSubtitle(cert);
-  final agency = cert.agency.displayName;
+String certificationAgencyAndLevel(
+  Certification cert, {
+  CertificationCatalog? catalog,
+}) {
+  final level = certificationSubtitle(cert, catalog: catalog);
+  final agency = (catalog ?? CertificationCatalog.builtInOnly)
+      .agency(cert.agency)
+      .interchangeName;
   return level == null ? agency : '$agency - $level';
 }

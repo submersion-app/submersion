@@ -3243,6 +3243,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_edit_label_agency => 'Organisatie *';
 
   @override
+  String get certificationAgencies_unknownAgency => 'Onbekende organisatie';
+
+  @override
+  String get certificationAgencies_unknownCertification =>
+      'Onbekende certificering';
+
+  @override
   String get certifications_edit_addRecognition =>
       'Nog een erkenning toevoegen';
 

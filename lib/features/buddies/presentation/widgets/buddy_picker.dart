@@ -753,7 +753,7 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
   Set<String> _professionalRoleIds(List<Certification> certs) {
     final ids = <String>{};
     for (final cert in certs) {
-      final level = cert.level;
+      final level = CertificationLevel.fromId(cert.level);
       if (level == null) continue;
       if (level.isInstructorLevel) ids.add(DiveRole.instructorId);
       if (level == CertificationLevel.diveMaster) {

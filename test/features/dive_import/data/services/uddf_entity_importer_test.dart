@@ -984,8 +984,14 @@ void main() {
       final captured = verify(
         mockCertificationRepo.createCertification(captureAny),
       ).captured;
-      expect((captured[0] as Certification).agency, CertificationAgency.padi);
-      expect((captured[1] as Certification).agency, CertificationAgency.ssi);
+      expect(
+        (captured[0] as Certification).agency,
+        CertificationAgency.padi.name,
+      );
+      expect(
+        (captured[1] as Certification).agency,
+        CertificationAgency.ssi.name,
+      );
     });
   });
 
@@ -3619,7 +3625,7 @@ void main() {
         mockCertificationRepo.createCertification(captureAny),
       ).captured;
       final cert = captured[0] as Certification;
-      expect(cert.level, CertificationLevel.advancedOpenWater);
+      expect(cert.level, CertificationLevel.advancedOpenWater.name);
       expect(cert.buddyId, isNotNull);
     });
 
@@ -3653,7 +3659,7 @@ void main() {
         mockCertificationRepo.createCertification(captureAny),
       ).captured;
       final cert = captured[0] as Certification;
-      expect(cert.agency, CertificationAgency.ssi);
+      expect(cert.agency, CertificationAgency.ssi.name);
     });
 
     test('returns null for unrecognized certificationLevel', () async {

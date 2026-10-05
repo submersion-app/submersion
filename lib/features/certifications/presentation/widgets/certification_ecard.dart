@@ -7,6 +7,7 @@ import 'package:submersion/features/certifications/domain/certification_title.da
 import 'package:submersion/features/certifications/presentation/widgets/certification_ecard_back.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_ecard_front.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// A credit card-style widget displaying a certification with agency branding.
 ///
@@ -59,7 +60,7 @@ class CertificationEcard extends ConsumerWidget {
 
     return Semantics(
       label:
-          '${certification.agency.displayName} ${certificationTitle(certification)} certification for $diverName$issueDateStr$statusStr. ${showBack ? 'Showing back' : 'Showing front'}. Tap to flip',
+          '${CertificationCatalog.builtInOnly.agency(certification.agency).interchangeName} ${certificationTitle(certification)} certification for $diverName$issueDateStr$statusStr. ${showBack ? 'Showing back' : 'Showing front'}. Tap to flip',
       child: AspectRatio(
         aspectRatio: aspectRatio,
         child: GestureDetector(

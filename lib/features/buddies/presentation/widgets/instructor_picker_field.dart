@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -7,9 +9,9 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/certifications/domain/certification_primary.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
-import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 
 /// Dropdown for picking a certification/course instructor from the buddy
 /// list. Buddies holding an instructor-level certification (Instructor,
@@ -62,7 +64,10 @@ class _InstructorPickerFieldState extends ConsumerState<InstructorPickerField> {
 
     Certification? instructorCert(String buddyId) {
       final qualifying = (certsByBuddy[buddyId] ?? const <Certification>[])
-          .where((c) => c.level?.isInstructorLevel ?? false)
+          .where(
+            (c) =>
+                CertificationLevel.fromId(c.level)?.isInstructorLevel ?? false,
+          )
           .toList();
       return primaryCertification(qualifying);
     }
@@ -117,8 +122,8 @@ class _InstructorPickerFieldState extends ConsumerState<InstructorPickerField> {
 String _instructorCertLabel(Certification cert, AppLocalizations l10n) {
   final number = cert.cardNumber;
   return [
-    cert.agency.localizedName(l10n),
-    cert.level!.localizedName(l10n),
+    CertificationCatalog.builtInOnly.agency(cert.agency).localizedName(l10n),
+    CertificationCatalog.builtInOnly.level(cert.level!).localizedName(l10n),
     if (number != null && number.isNotEmpty) '#$number',
   ].join(' ');
 }

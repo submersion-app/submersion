@@ -21,6 +21,7 @@ import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_extra_fields.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_stat.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Detailed list card for one buddy.
 ///
@@ -66,7 +67,10 @@ class BuddyListTile extends ConsumerWidget {
     );
     final secondaryTextColor = colorScheme.onSurfaceVariant;
     final statColor = accent ?? colorScheme.primary;
-    final agencyColor = buddy.certificationAgency?.primaryColor;
+    final agencyId = buddy.certificationAgency;
+    final agencyColor = agencyId == null
+        ? null
+        : CertificationCatalog.builtInOnly.agency(agencyId).primaryColor;
 
     final adapter = BuddyFieldAdapter.instance;
     final slots = config.slots;

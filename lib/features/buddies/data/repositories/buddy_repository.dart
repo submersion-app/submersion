@@ -7,7 +7,6 @@ import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
@@ -18,6 +17,8 @@ import 'package:submersion/features/buddies/data/repositories/buddy_conversion_r
 import 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/certification_agencies/data/repositories/custom_certification_repository.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/certification_primary.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
@@ -74,6 +75,8 @@ class BuddyRepository {
 
   final SyncRepository _syncRepository = SyncRepository();
   final CertificationRepository _certRepo = CertificationRepository();
+  final CustomCertificationRepository _customCertRepo =
+      CustomCertificationRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(BuddyRepository);
 
@@ -153,12 +156,6 @@ class BuddyRepository {
         name: row.data['name'] as String,
         email: row.data['email'] as String?,
         phone: row.data['phone'] as String?,
-        certificationLevel: _parseCertificationLevel(
-          row.data['certification_level'] as String?,
-        ),
-        certificationAgency: _parseCertificationAgency(
-          row.data['certification_agency'] as String?,
-        ),
         photoPath: row.data['photo_path'] as String?,
         photo: row.data['photo'] as Uint8List?,
         notes: (row.data['notes'] as String?) ?? '',
@@ -265,12 +262,6 @@ class BuddyRepository {
           name: row.data['name'] as String,
           email: row.data['email'] as String?,
           phone: row.data['phone'] as String?,
-          certificationLevel: _parseCertificationLevel(
-            row.data['certification_level'] as String?,
-          ),
-          certificationAgency: _parseCertificationAgency(
-            row.data['certification_agency'] as String?,
-          ),
           photoPath: row.data['photo_path'] as String?,
           photo: row.data['photo'] as Uint8List?,
           notes: (row.data['notes'] as String?) ?? '',
@@ -416,12 +407,6 @@ class BuddyRepository {
         name: row.data['name'] as String,
         email: row.data['email'] as String?,
         phone: row.data['phone'] as String?,
-        certificationLevel: _parseCertificationLevel(
-          row.data['certification_level'] as String?,
-        ),
-        certificationAgency: _parseCertificationAgency(
-          row.data['certification_agency'] as String?,
-        ),
         photoPath: row.data['photo_path'] as String?,
         photo: row.data['photo'] as Uint8List?,
         notes: (row.data['notes'] as String?) ?? '',
@@ -929,12 +914,6 @@ class BuddyRepository {
           name: row.data['name'] as String,
           email: row.data['email'] as String?,
           phone: row.data['phone'] as String?,
-          certificationLevel: _parseCertificationLevel(
-            row.data['certification_level'] as String?,
-          ),
-          certificationAgency: _parseCertificationAgency(
-            row.data['certification_agency'] as String?,
-          ),
           photoPath: row.data['photo_path'] as String?,
           photo: row.data['photo'] as Uint8List?,
           notes: (row.data['notes'] as String?) ?? '',
@@ -1212,18 +1191,27 @@ class BuddyRepository {
     final certsByBuddy = await _certRepo.getCertificationsForBuddies(
       buddies.map((b) => b.id).toList(),
     );
+    // Every custom row, not just the viewer's: rank and title must not
+    // depend on which profile is looking (issue #690).
+    final catalog = CertificationCatalog(
+      agencies: await _customCertRepo.getAllAgencies(),
+      levels: await _customCertRepo.getAllLevels(),
+    );
     return buddies.map((b) {
       // copyWith (not a field-by-field rebuild): the incoming buddy already has
       // null cert fields (the inline columns were dropped in v110), so copyWith
       // just sets the derived primary -- and stays correct if Buddy gains new
       // fields later, which a full constructor call would silently drop.
-      final primary = primaryCertification(certsByBuddy[b.id] ?? const []);
+      final primary = primaryCertification(
+        certsByBuddy[b.id] ?? const [],
+        catalog: catalog,
+      );
       return b.copyWith(
         certificationLevel: primary?.level,
         certificationAgency: primary?.agency,
         certificationTitle: primary == null
             ? null
-            : certificationTitle(primary),
+            : certificationTitle(primary, catalog: catalog),
       );
     }).toList();
   }
@@ -1247,22 +1235,6 @@ class BuddyRepository {
       isFavorite: row.isFavorite,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
-    );
-  }
-
-  CertificationLevel? _parseCertificationLevel(String? value) {
-    if (value == null) return null;
-    return CertificationLevel.values.firstWhere(
-      (l) => l.name == value,
-      orElse: () => CertificationLevel.other,
-    );
-  }
-
-  CertificationAgency? _parseCertificationAgency(String? value) {
-    if (value == null) return null;
-    return CertificationAgency.values.firstWhere(
-      (a) => a.name == value,
-      orElse: () => CertificationAgency.other,
     );
   }
 }

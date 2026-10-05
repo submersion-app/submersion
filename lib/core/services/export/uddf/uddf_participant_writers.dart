@@ -60,16 +60,10 @@ abstract final class UddfParticipantWriters {
               'certification',
               nest: () {
                 if (buddy.certificationLevel != null) {
-                  builder.element(
-                    'level',
-                    nest: buddy.certificationLevel!.name,
-                  );
+                  builder.element('level', nest: buddy.certificationLevel!);
                 }
                 if (buddy.certificationAgency != null) {
-                  builder.element(
-                    'agency',
-                    nest: buddy.certificationAgency!.name,
-                  );
+                  builder.element('agency', nest: buddy.certificationAgency!);
                 }
               },
             );

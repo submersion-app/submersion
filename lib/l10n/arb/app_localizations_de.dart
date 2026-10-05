@@ -3266,6 +3266,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_edit_label_agency => 'Verband *';
 
   @override
+  String get certificationAgencies_unknownAgency => 'Unbekannter Verband';
+
+  @override
+  String get certificationAgencies_unknownCertification =>
+      'Unbekannte Zertifizierung';
+
+  @override
   String get certifications_edit_addRecognition =>
       'Weitere Anerkennung hinzufügen';
 

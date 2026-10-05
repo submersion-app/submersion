@@ -8,7 +8,8 @@ import 'package:submersion/features/courses/presentation/course_status_colors.da
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/widgets/card_icon_label.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 
 /// Card widget for displaying a course in a list
 class CourseCard extends ConsumerWidget {
@@ -44,7 +45,7 @@ class CourseCard extends ConsumerWidget {
 
     return Semantics(
       label:
-          '${course.name}, ${course.agency.localizedName(context.l10n)}, ${context.l10n.courses_card_started(startDateStr)}, $statusStr$instructorStr',
+          '${course.name}, ${CertificationCatalog.builtInOnly.agency(course.agency).localizedName(context.l10n)}, ${context.l10n.courses_card_started(startDateStr)}, $statusStr$instructorStr',
       child: Card(
         elevation: isSelected ? 2 : 1,
         color: isSelected
@@ -105,7 +106,9 @@ class CourseCard extends ConsumerWidget {
                         children: [
                           CardIconLabel(
                             icon: Icons.business,
-                            text: course.agency.localizedName(context.l10n),
+                            text: CertificationCatalog.builtInOnly
+                                .agency(course.agency)
+                                .localizedName(context.l10n),
                           ),
                           CardIconLabel(
                             icon: Icons.calendar_today,

@@ -8,8 +8,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 
 /// Minutes string for a logbook Duration field (#644).
 ///
@@ -321,9 +322,7 @@ class PdfSharedComponents {
           l10n: l10n,
           isHighlighted:
               highlightAgency != null &&
-              cert.agency.name.toLowerCase().contains(
-                highlightAgency.toLowerCase(),
-              ),
+              cert.agency.toLowerCase().contains(highlightAgency.toLowerCase()),
           accentColor: accentColor,
         ),
       ),
@@ -387,7 +386,9 @@ class PdfSharedComponents {
                     ),
                     pw.SizedBox(height: 4),
                     pw.Text(
-                      cert.agency.localizedName(l10n),
+                      CertificationCatalog.builtInOnly
+                          .agency(cert.agency)
+                          .localizedName(l10n),
                       style: const pw.TextStyle(
                         fontSize: 12,
                         color: PdfColors.grey600,

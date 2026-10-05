@@ -8,7 +8,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 
 /// A widget for selecting a certification to link to a course.
 class CertificationPicker extends ConsumerWidget {
@@ -218,7 +219,7 @@ class CertificationPickerSheet extends ConsumerWidget {
                       ? ', $alsoRecognized'
                       : '';
                   final certName =
-                      '${cert.agency.localizedName(context.l10n)} '
+                      '${CertificationCatalog.builtInOnly.agency(cert.agency).localizedName(context.l10n)} '
                       '${certificationTitleL10n(cert, context.l10n)}$levelLabel'
                       '$alsoLabel';
                   final certLabel = cert.issueDate != null

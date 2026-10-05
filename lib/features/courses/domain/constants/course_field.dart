@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Enumeration of every displayable field for the course table view.
 enum CourseField implements EntityField {
@@ -198,7 +198,10 @@ class CourseFieldAdapter extends EntityFieldAdapter<Course, CourseField> {
   String formatValue(CourseField field, dynamic value, UnitFormatter units) {
     if (value == null) return '--';
     return switch (field) {
-      CourseField.agency => (value as CertificationAgency).name,
+      CourseField.agency =>
+        CertificationCatalog.builtInOnly
+            .agency(value as String)
+            .interchangeName,
       CourseField.startDate => units.formatDate(value as DateTime),
       CourseField.completionDate => units.formatDate(value as DateTime),
       CourseField.durationDays => '${value as int} days',

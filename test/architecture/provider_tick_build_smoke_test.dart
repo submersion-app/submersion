@@ -280,7 +280,7 @@ void main() {
     (
       name: 'certificationsByAgencyProvider',
       read: (c) => c.read(
-        certificationsByAgencyProvider(CertificationAgency.padi).future,
+        certificationsByAgencyProvider(CertificationAgency.padi.name).future,
       ),
     ),
     (
@@ -329,7 +329,7 @@ void main() {
     (
       name: 'coursesByAgencyProvider',
       read: (c) =>
-          c.read(coursesByAgencyProvider(CertificationAgency.padi).future),
+          c.read(coursesByAgencyProvider(CertificationAgency.padi.name).future),
     ),
     (
       name: 'inProgressCoursesProvider',

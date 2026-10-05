@@ -1052,6 +1052,8 @@
   "certifications_edit_hint_instructorNumber": "教练认证编号",
   "certifications_edit_hint_notes": "其他备注",
   "certifications_edit_label_agency": "机构 *",
+  "certificationAgencies_unknownAgency": "未知机构",
+  "certificationAgencies_unknownCertification": "未知证书",
   "certifications_edit_addRecognition": "添加其他认可",
   "certifications_edit_removeRecognition": "移除此认可",
   "certifications_edit_label_cardNumber": "卡号",

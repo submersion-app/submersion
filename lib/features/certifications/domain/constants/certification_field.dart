@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Enumeration of every displayable field for the certification table view.
 enum CertificationField implements EntityField {
@@ -213,10 +213,14 @@ class CertificationFieldAdapter
   ) {
     if (value == null) return '--';
     return switch (field) {
-      CertificationField.agency => (value as CertificationAgency).name,
-      // displayName, not name: the latter is the enum identifier, so the
-      // column read "openWater" rather than "Open Water".
-      CertificationField.level => (value as CertificationLevel).displayName,
+      // Ids are enum names or custom ids (issue #690); show the name, not
+      // the id, so the column reads "Open Water" rather than "openWater".
+      CertificationField.agency =>
+        CertificationCatalog.builtInOnly
+            .agency(value as String)
+            .interchangeName,
+      CertificationField.level =>
+        CertificationCatalog.builtInOnly.level(value as String).interchangeName,
       CertificationField.issueDate => units.formatDate(value as DateTime),
       CertificationField.expiryDate => units.formatDate(value as DateTime),
       _ => value is String ? (value.isEmpty ? '--' : value) : value.toString(),
