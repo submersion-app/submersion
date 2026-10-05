@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
@@ -77,5 +78,35 @@ void main() {
     );
     expect(_u32(png!, 16), 1080);
     expect(_u32(png, 20), 1350);
+  });
+  test('the caption and app mark swap sides in right-to-left languages', () {
+    // Paragraph offsets in paint order: title, details, then the app name.
+    List<Offset> offsets(TextDirection d) {
+      final out = <Offset>[];
+      expect(
+        (Canvas c) => ConnectionsShareRenderer.paintCaption(
+          c,
+          ConnectionsShareRenderer.logicalSize,
+          caption,
+          null,
+          null,
+          d,
+        ),
+        paints..everything((method, args) {
+          if (method == #drawParagraph) out.add(args[1] as Offset);
+          return true;
+        }),
+      );
+      return out;
+    }
+
+    final ltr = offsets(TextDirection.ltr);
+    final rtl = offsets(TextDirection.rtl);
+    expect(ltr, hasLength(3));
+    expect(rtl, hasLength(3));
+    expect(ltr[0].dx, 16, reason: 'left-to-right text starts at the left');
+    expect(ltr[2].dx, greaterThan(ltr[0].dx), reason: 'mark on the right');
+    expect(rtl[2].dx, lessThan(rtl[0].dx), reason: 'mark moves to the left');
+    expect(rtl[0].dx, greaterThan(ltr[0].dx), reason: 'text moves right');
   });
 }

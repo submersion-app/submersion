@@ -39,6 +39,7 @@ abstract final class ConnectionsShareRenderer {
     required ConnectionsShareCaption caption,
     String appIconAsset = 'assets/icon/icon.png',
     String? fontFamily,
+    TextDirection direction = TextDirection.ltr,
   }) async {
     final photos = <NodeRef, ui.Image>{};
     ui.Image? icon;
@@ -75,6 +76,7 @@ abstract final class ConnectionsShareRenderer {
         photos: photos,
         appIcon: icon,
         fontFamily: fontFamily,
+        direction: direction,
       );
     } finally {
       for (final img in photos.values) {
@@ -93,6 +95,7 @@ abstract final class ConnectionsShareRenderer {
     Map<NodeRef, ui.Image> photos = const {},
     ui.Image? appIcon,
     String? fontFamily,
+    TextDirection direction = TextDirection.ltr,
   }) async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder)..scale(pixelRatio);
@@ -130,7 +133,7 @@ abstract final class ConnectionsShareRenderer {
     ).paint(canvas, mapSize);
     canvas.restore();
 
-    _paintCaption(canvas, size, caption, appIcon, fontFamily);
+    paintCaption(canvas, size, caption, appIcon, fontFamily, direction);
 
     final picture = recorder.endRecording();
     final image = await picture.toImage(
@@ -146,19 +149,22 @@ abstract final class ConnectionsShareRenderer {
     }
   }
 
-  static void _paintCaption(
+  @visibleForTesting
+  static void paintCaption(
     Canvas canvas,
     Size size,
     ConnectionsShareCaption caption,
     ui.Image? icon,
     String? fontFamily,
+    TextDirection direction,
   ) {
     final top = size.height - _captionHeight + 10;
     const markWidth = 110.0;
     final textWidth = size.width - 32 - markWidth;
+    final rtl = direction == TextDirection.rtl;
     TextPainter text(String s, TextStyle style, {int lines = 1}) => TextPainter(
       text: TextSpan(text: s, style: style),
-      textDirection: TextDirection.ltr,
+      textDirection: direction,
       maxLines: lines,
       ellipsis: '…',
     )..layout(maxWidth: textWidth);
@@ -181,8 +187,11 @@ abstract final class ConnectionsShareRenderer {
       // Range and counts may need a second line beside the app mark.
       lines: 2,
     );
-    title.paint(canvas, Offset(16, top));
-    details.paint(canvas, Offset(16, top + title.height + 2));
+    // Text hugs the start margin: the left, or the right in right-to-left
+    // languages, with the app mark on the other side.
+    double startX(TextPainter tp) => rtl ? size.width - 16 - tp.width : 16;
+    title.paint(canvas, Offset(startX(title), top));
+    details.paint(canvas, Offset(startX(details), top + title.height + 2));
 
     final name = TextPainter(
       text: TextSpan(
@@ -194,15 +203,17 @@ abstract final class ConnectionsShareRenderer {
           fontFamily: fontFamily,
         ),
       ),
-      textDirection: TextDirection.ltr,
+      textDirection: direction,
     )..layout();
-    final nameLeft = size.width - 16 - name.width;
+    // The mark reads icon then name in both directions.
+    final markLeft = rtl ? 16.0 : size.width - 16 - name.width - 24;
+    final nameLeft = markLeft + 24;
     final markTop = top + 6;
     name.paint(canvas, Offset(nameLeft, markTop + (20 - name.height) / 2));
     if (icon != null) {
       paintImage(
         canvas: canvas,
-        rect: Rect.fromLTWH(nameLeft - 24, markTop, 20, 20),
+        rect: Rect.fromLTWH(markLeft, markTop, 20, 20),
         image: icon,
         fit: BoxFit.contain,
       );
