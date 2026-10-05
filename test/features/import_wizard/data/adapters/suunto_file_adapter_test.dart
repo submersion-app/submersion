@@ -1,11 +1,16 @@
+import 'dart:typed_data';
+
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_dive_parser.dart';
+import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_file_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_route_writer.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/suunto_file_step.dart';
 
 import 'suunto_cloud_adapter_test.mocks.dart';
 
@@ -112,5 +117,48 @@ void main() {
 
     expect(result.importedDiveIds, ['new-dive-id']);
     expect(recorder.attached, ['new-dive-id']);
+  });
+
+  test('loads only the dives from the file step results', () async {
+    final file = SuuntoJsonFile(name: 'a.json', bytes: Uint8List(0));
+    adapter.setReadResults([
+      SuuntoFileReadResult.dive(file, parsed),
+      SuuntoFileReadResult.rejected(file, SuuntoFileRejection.notJson),
+    ]);
+
+    final bundle = await adapter.buildBundle();
+
+    expect(bundle.groups[ImportEntityType.dives]!.items, hasLength(1));
+  });
+
+  testWidgets('hands the last results back to a rebuilt file step', (
+    tester,
+  ) async {
+    final file = SuuntoJsonFile(name: 'a.json', bytes: Uint8List(0));
+    final results = [SuuntoFileReadResult.dive(file, parsed)];
+    adapter.setReadResults(results);
+
+    late BuildContext context;
+    await tester.pumpWidget(
+      Builder(
+        builder: (c) {
+          context = c;
+          return const SizedBox();
+        },
+      ),
+    );
+    final step = adapter.acquisitionSteps.single.builder(context);
+
+    expect((step as SuuntoFileStep).previousResults, results);
+  });
+
+  test('resetState forgets the read files and their dives', () async {
+    final file = SuuntoJsonFile(name: 'a.json', bytes: Uint8List(0));
+    adapter.setReadResults([SuuntoFileReadResult.dive(file, parsed)]);
+
+    adapter.resetState();
+
+    final bundle = await adapter.buildBundle();
+    expect(bundle.groups[ImportEntityType.dives]!.items, isEmpty);
   });
 }
