@@ -10,6 +10,21 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-05-ccr-diluent-switch-and-bailout-design.md`
 
+## Revisions after implementation
+
+The tasks below are the plan as executed; these later decisions supersede
+parts of them (the spec is current):
+
+- `TankRole.backGas` is no longer an open-circuit role on a CCR dive. File
+  imports give untagged cylinders that role, so `ccrCylinderRole` reads it as
+  the O2 supply at 99% O2 or more and otherwise as a diluent, both when
+  classifying switches and when resolving the initial diluent (Task 1's
+  `backGas` test case and role table are stale).
+- `buildAvailableGases(excludeLoopCylinders:)` (Task 5) became
+  `forCcrBailout:`: the diluent is left out, the O2 supply is kept under either
+  ascent-gas setting, and the gases come from the analysed computer's tanks.
+- The ppO2/ppN2/ppHe chart lines are drawn straight between samples.
+
 ## Global Constraints
 
 - A CCR dive with no recorded switches analyses exactly as before.
