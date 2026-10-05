@@ -115,17 +115,23 @@ quality picker anchored to the overflow button.
 
 ### `ShellChromeScope` (new, `lib/shared/widgets/shell_chrome_scope.dart`)
 
-An `InheritedWidget` that `MainScaffold` places around its page. It exposes:
+Two pieces in one file:
 
-- `static ShellChromeScope? maybeOf(BuildContext context)`
-- `void requestHidden(Object token)` and `void releaseHidden(Object token)`
+- `ShellChromeController`, a `ChangeNotifier` holding a `Set<Object>` of
+  hide tokens, with `isHidden`, `requestHidden(Object token)` and
+  `releaseHidden(Object token)`.
+- `ShellChromeScope`, an `InheritedWidget` that `MainScaffold` places around
+  its layout, with `static ShellChromeController? maybeOf(BuildContext)`.
 
-`MainScaffold` keeps a `Set<Object>` of tokens and renders the hidden layout
-(`GlobalDropTarget` around the page, nothing else) while the set is
-non-empty. Requests and releases are applied after the current frame so a
-descendant never calls `setState` on the scaffold during build. Releasing a
-token that was never requested does nothing, so two holders can never clear
-each other's request.
+`MainScaffold` owns the controller, listens to it, and renders the hidden
+layout (`GlobalDropTarget` around the page, nothing else) while it reports
+`isHidden`. A change made while the tree is locked (a holder requesting from
+`didChangeDependencies` or releasing from `dispose`) is announced after the
+frame, so a descendant never triggers `setState` on the scaffold during
+build. Releasing a token that was never requested does nothing, so two
+holders can never clear each other's request. The shell navigator keeps its
+pages across the layout change because go_router builds it with a
+`GlobalKey`.
 
 A viewer pushed on the root navigator (the dashboard media ribbon) sits above
 the shell, finds no scope, and skips the call; the shell is already covered
@@ -162,10 +168,12 @@ go in their own files under `lib/features/media/presentation/widgets/`
 Each action is described by a small value (`key`, icon, label, callback,
 priority). A `LayoutBuilder` computes how many 48 px icon buttons fit in the
 width left after the fixed buttons, the indicator minimum, and the overflow
-button when it is needed. The rest render as `PopupMenuItem`s. Re-upload is
-the exception to "one icon, one callback": its existing
-`MediaReuploadButton` is itself a menu, so its quality-picker logic is
-exposed as a function both the icon and the menu item call.
+button when it is needed. The rest render as `PopupMenuItem`s. Re-upload's
+existing `MediaReuploadButton` is itself a menu, so it is replaced by
+`mediaReuploadAvailable(ref)` and `showMediaReuploadMenu(anchorContext, ref,
+item)` in `media_reupload_menu.dart`; the page passes an `onReupload`
+callback (null when no store is connected) that both the icon and the menu
+item call with their own context as the anchor.
 
 ## Strings
 
@@ -173,7 +181,8 @@ New ARB keys (English, plus the existing translation workflow):
 
 - `media_viewer_enterFullscreen`: "Full screen"
 - `media_viewer_exitFullscreen`: "Exit full screen"
-- `media_viewer_moreActions`: "More actions"
+- `media_viewer_moreOptions`: "More options" (the wording the app already
+  uses for overflow menus, `diveCenters_tooltip_moreOptions` and others)
 
 Overflow menu labels reuse each action's existing tooltip string.
 
