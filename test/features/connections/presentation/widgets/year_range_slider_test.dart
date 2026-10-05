@@ -90,4 +90,15 @@ void main() {
     expect(slider.values, const RangeValues(2019, 2019));
     c.read(yearPlayProvider.notifier).pause();
   });
+  testWidgets('starting a drag pauses play at once', (tester) async {
+    final c = await _pump(tester, const YearRangeSlider());
+    c.read(yearPlayProvider.notifier).play();
+    await tester.pump();
+    expect(c.read(yearPlayProvider), isNotNull);
+    tester.widget<RangeSlider>(find.byType(RangeSlider)).onChangeStart!(
+      const RangeValues(2019, 2019),
+    );
+    await tester.pump();
+    expect(c.read(yearPlayProvider), isNull);
+  });
 }

@@ -12,8 +12,9 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 ///
 /// A beat moves to the next year only once [beat] has passed and the page
 /// has reported the year's graph loaded ([loadSettled]), so a slow log never
-/// piles up steps. Any filter or view change it did not make itself stops
-/// play, so it never overwrites what the diver just chose.
+/// piles up steps. Any filter change it did not make itself, and any view
+/// change other than the highlight mode, stops play, so it never overwrites
+/// what the diver just chose.
 class YearPlayNotifier extends Notifier<int?> {
   static const Duration beat = Duration(milliseconds: 1200);
 
@@ -35,8 +36,13 @@ class YearPlayNotifier extends Notifier<int?> {
     ref.listen<DiveFilterState>(connectionsFilterProvider, (_, next) {
       if (state != null && next != _written) stop();
     });
+    // Colouring the map is not a change of what it shows: play carries on.
     ref.listen<ConnectionsViewState>(connectionsViewProvider, (prev, next) {
-      if (state != null && prev != next) stop();
+      if (state != null &&
+          prev != null &&
+          prev.copyWith(highlight: next.highlight) != next) {
+        stop();
+      }
     });
     return null;
   }

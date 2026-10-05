@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
+import 'package:submersion/features/connections/presentation/providers/year_play_provider.dart';
 import 'package:submersion/features/connections/presentation/widgets/year_play_pill.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -60,6 +61,8 @@ class _YearRangeSliderState extends ConsumerState<YearRangeSlider> {
               '${values.start.round()}',
               '${values.end.round()}',
             ),
+            // Grabbing a thumb takes the range back from year play.
+            onChangeStart: (_) => ref.read(yearPlayProvider.notifier).pause(),
             onChanged: (v) => setState(() => _dragging = v),
             onChangeEnd: (v) {
               setState(() => _dragging = null);

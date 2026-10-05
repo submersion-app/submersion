@@ -2,6 +2,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
+import 'package:submersion/features/connections/domain/views/highlight_mode.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
@@ -148,6 +149,48 @@ void main() {
       c.read(yearPlayProvider.notifier).play();
       expect(c.read(yearPlayProvider), isNull);
       expect(filter(c).endDate, isNull);
+    });
+  });
+  test('changing how the map is colored does not stop play', () {
+    fakeAsync((async) {
+      final c = container();
+      async.flushMicrotasks();
+      final n = c.read(yearPlayProvider.notifier)..play();
+      c
+          .read(connectionsViewProvider.notifier)
+          .update((v) => v.withHighlight(HighlightMode.groups));
+      async.flushMicrotasks();
+      expect(c.read(yearPlayProvider), 2019);
+      n.loadSettled(failed: false);
+      async.elapse(YearPlayNotifier.beat);
+      expect(c.read(yearPlayProvider), 2020);
+      n.pause();
+    });
+  });
+
+  test('disposing the provider cancels the pending beat', () {
+    fakeAsync((async) {
+      final c = ProviderContainer(
+        overrides: [
+          ...base,
+          connectionsYearSpanProvider.overrideWith(
+            (ref) async => (first: 2019, last: 2022),
+          ),
+        ],
+      );
+      addTearDown(c.dispose);
+      final keep = c.listen(yearPlayProvider, (_, _) {});
+      c.listen(connectionsYearSpanProvider, (_, _) {});
+      async.flushMicrotasks();
+      c.read(yearPlayProvider.notifier)
+        ..play()
+        ..loadSettled(failed: false);
+      final written = c.read(connectionsFilterProvider);
+      keep.close();
+      async.flushMicrotasks();
+      async.elapse(YearPlayNotifier.beat * 3);
+      expect(c.read(connectionsFilterProvider), written);
+      expect(async.pendingTimers, isEmpty);
     });
   });
 }
