@@ -41,11 +41,13 @@ void _setMobileTestSurfaceSize(WidgetTester tester) {
 }
 
 /// The map preview's own fullscreen button. The Site Seascape card has one
-/// too, so the icon alone does not say which.
+/// too, so the icon alone does not say which; the preview is the card that
+/// holds the 2D map. Found by structure rather than by its label, so it does
+/// not depend on the test's locale.
 final _previewFullscreen = find.descendant(
-  of: find.byWidgetPredicate(
-    (w) => w is Semantics && w.properties.label == 'View fullscreen map',
-  ),
+  of: find
+      .ancestor(of: find.byType(FlutterMap).first, matching: find.byType(Card))
+      .first,
   matching: find.byIcon(Icons.fullscreen),
 );
 
