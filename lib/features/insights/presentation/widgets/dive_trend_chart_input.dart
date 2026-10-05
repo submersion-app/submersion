@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/core/ui/trackpad_zoom_recognizer.dart';
@@ -52,6 +53,14 @@ class _TrendChartInputLayerState extends State<TrendChartInputLayer> {
   List<int> _pinchPointers = const [];
   double _pinchStartDistance = 1;
   Offset _pinchStartFocal = Offset.zero;
+
+  final FocusNode _focusNode = FocusNode(debugLabel: 'trend-chart');
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
 
   @override
   void didUpdateWidget(TrendChartInputLayer oldWidget) {
@@ -117,18 +126,49 @@ class _TrendChartInputLayerState extends State<TrendChartInputLayer> {
     _emit(vp);
   }
 
+  /// Pans by a pointer movement of [dxPixels], the way a drag does: content
+  /// follows the movement, so the window moves the other way.
+  void _panByPixels(double dxPixels) {
+    _emit(_current.pannedBy(-dxPixels / _plotWidth() / _current.zoom, 0));
+  }
+
+  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    if (!_current.isZoomed) return KeyEventResult.ignored;
+    final step = _current.visibleWidth / 4;
+    final double dx;
+    if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+      dx = -step;
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+      dx = step;
+    } else {
+      return KeyEventResult.ignored;
+    }
+    _emit(_current.pannedBy(dx, 0));
+    return KeyEventResult.handled;
+  }
+
   @override
   Widget build(BuildContext context) {
+    return Focus(focusNode: _focusNode, onKeyEvent: _onKey, child: _gestures());
+  }
+
+  Widget _gestures() {
     return RawGestureDetector(
       gestures: {
         TrackpadZoomGestureRecognizer:
             GestureRecognizerFactoryWithHandlers<TrackpadZoomGestureRecognizer>(
               () => TrackpadZoomGestureRecognizer(debugOwner: this),
-              (recognizer) => recognizer.onZoom = _zoomAt,
+              (recognizer) => recognizer
+                ..onZoom = _zoomAt
+                ..onPan = (_, dx) => _panByPixels(dx),
             ),
       },
       child: Listener(
         onPointerDown: (event) {
+          _focusNode.requestFocus();
           _activePointerCount++;
           _activePointerKind = event.kind;
           _lastPointerLocal = event.localPosition;
@@ -185,6 +225,19 @@ class _TrendChartInputLayerState extends State<TrendChartInputLayer> {
         onPointerSignal: (event) {
           if (event is! PointerScrollEvent) return;
           _activePointerKind = PointerDeviceKind.mouse;
+          // A horizontal wheel, or shift with a vertical one, scrolls through
+          // time; a plain vertical wheel keeps zooming at the pointer.
+          final horizontal = event.scrollDelta.dx != 0
+              ? event.scrollDelta.dx
+              : HardwareKeyboard.instance.isShiftPressed
+              ? event.scrollDelta.dy
+              : 0.0;
+          if (horizontal != 0) {
+            _emit(
+              _current.pannedBy(horizontal / _plotWidth() / _current.zoom, 0),
+            );
+            return;
+          }
           final factor = event.scrollDelta.dy < 0 ? 1.1 : 1 / 1.1;
           _emit(_current.zoomedAt(_focalX(event.localPosition), 0, factor));
         },
