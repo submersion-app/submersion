@@ -21,7 +21,7 @@ void main() {
       defaultDecoStopSource: MetricDataSource.calculated,
     );
     expect(calculated.defaultDecoStopSource, MetricDataSource.calculated);
-    expect(calculated.defaultCeilingSource, settings.defaultCeilingSource);
+    expect(calculated.defaultNdlSource, settings.defaultNdlSource);
     expect(calculated.showDecoStopsOnProfile, isTrue);
   });
 }

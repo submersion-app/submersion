@@ -7,6 +7,10 @@ part of 'app_database_migrations.dart';
 /// asserted again here.
 extension BeforeOpenBackstops on AppDatabase {
   Future<void> _beforeOpen(OpeningDetails details) async {
+    // v261 backstop: drop diver_settings.default_ceiling_source from a
+    // database that reached 261 without the rung.
+    await _dropDefaultCeilingSourceColumn();
+
     // v257 backstop: metadata-only profile revision history over existing
     // dive_profile_series rows. Safe to re-run: INSERT OR IGNORE keeps
     // existing revisions untouched and only fills missing pointer rows.
@@ -131,17 +135,7 @@ extension BeforeOpenBackstops on AppDatabase {
 
     // v114 backstop: re-assert sync_peer_cursors.applied_hlc_high and the
     // deletion_log unique index.
-    final peerCursorCols = await customSelect(
-      "PRAGMA table_info('sync_peer_cursors')",
-    ).get();
-    final hasAppliedHlcHigh = peerCursorCols.any(
-      (c) => c.read<String>('name') == 'applied_hlc_high',
-    );
-    if (peerCursorCols.isNotEmpty && !hasAppliedHlcHigh) {
-      await customStatement(
-        'ALTER TABLE sync_peer_cursors ADD COLUMN applied_hlc_high TEXT',
-      );
-    }
+    await _addColumnIfMissing('sync_peer_cursors', 'applied_hlc_high', 'TEXT');
     await ensureDeletionLogIndex();
 
     // v120 backstop: re-assert planner Subsurface-parity columns.

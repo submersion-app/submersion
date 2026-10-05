@@ -9,7 +9,6 @@ void main() {
     const settings = AppSettings();
 
     expect(settings.defaultNdlSource, MetricDataSource.computer);
-    expect(settings.defaultCeilingSource, MetricDataSource.computer);
     expect(settings.defaultDecoStopSource, MetricDataSource.computer);
     expect(settings.defaultTtsSource, MetricDataSource.computer);
     expect(settings.defaultCnsSource, MetricDataSource.computer);

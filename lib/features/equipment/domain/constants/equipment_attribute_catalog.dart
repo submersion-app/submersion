@@ -465,6 +465,29 @@ abstract final class EquipmentAttributeCatalog {
         choiceKeys: ['harness', 'waist_belt', 'thigh'],
       ),
     ],
+    EquipmentType.bag: [
+      // Lift bags are left out on purpose: they are lift devices, filed
+      // with the SMB, not luggage.
+      EquipmentAttributeDef(
+        key: 'bag_style',
+        kind: AttributeKind.choice,
+        choiceKeys: [
+          'duffel',
+          'roller',
+          'backpack',
+          'mesh',
+          'dry_bag',
+          'regulator_bag',
+          'catch_bag',
+        ],
+      ),
+      // How bags are sold: litres, or cubic feet for an imperial diver.
+      EquipmentAttributeDef(
+        key: 'capacity_l',
+        kind: AttributeKind.number,
+        dimension: AttributeDimension.volumeL,
+      ),
+    ],
     EquipmentType.fins: [
       _size,
       EquipmentAttributeDef(

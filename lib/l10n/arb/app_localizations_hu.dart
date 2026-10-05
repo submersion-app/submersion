@@ -11702,6 +11702,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_entryMethod_boat => 'Hajós beszállás';
 
   @override
+  String get enum_entryMethod_frontRoll => 'Előregurulás';
+
+  @override
   String get enum_entryMethod_giantStride => 'Óriás lépés';
 
   @override
@@ -11790,6 +11793,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_equipmentType_gearPocket => 'Felszerelészseb';
+
+  @override
+  String get enum_equipmentType_bag => 'Táska';
 
   @override
   String get enum_equipmentType_hose => 'Tömlő';
@@ -18583,14 +18589,17 @@ class AppLocalizationsHu extends AppLocalizations {
       'Műholdas vízviszonyok a merülés napján';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Felszíni GPS';
+  String get diveDetailSection_surfaceGps_name => 'Helyszín';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS be-/kiszállási pontok és felszíni sodródás';
+      'A merülőhely, a GPS be-/kiszállási pontok és a felszíni sodródás térképe';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'Felszíni GPS';
+
+  @override
+  String get diveLog_detail_section_location => 'Helyszín';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'Beszállás';
@@ -28752,7 +28761,7 @@ class AppLocalizationsHu extends AppLocalizations {
       other: '$count duplikált profilból',
       one: 'egy duplikált profilból',
     );
-    return 'Az összes merülés, tanúsítvány, felszerelés és egyéb adat $_temp0 áthelyezésre kerül ide: \"$name\". Ez nem vonható vissza automatikusan.';
+    return 'Az összes merülés, tanúsítvány, felszerelés és egyéb adat $_temp0 áthelyezésre kerül ide: \"$name\". Ez az összevonás után azonnal visszavonható.';
   }
 
   @override
@@ -29976,6 +29985,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Rögzítés';
 
   @override
+  String get attrLabel_bag_style => 'Fazon';
+
+  @override
+  String get attrLabel_capacity_l => 'Kapacitás';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Alumínium';
 
   @override
@@ -30128,6 +30143,27 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Comb';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'Utazótáska';
+
+  @override
+  String get attrChoice_bag_style_roller => 'Gurulós táska';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'Hátizsák';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'Hálós táska';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'Vízhatlan zsák';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'Légzőautomata-táska';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'Gyűjtőzsák';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Mellény';

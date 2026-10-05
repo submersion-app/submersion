@@ -11185,6 +11185,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_entryMethod_boat => '船只入水';
 
   @override
+  String get enum_entryMethod_frontRoll => '前滚式入水';
+
+  @override
   String get enum_entryMethod_giantStride => '大跨步入水';
 
   @override
@@ -11273,6 +11276,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_equipmentType_gearPocket => '装备袋';
+
+  @override
+  String get enum_equipmentType_bag => '包';
 
   @override
   String get enum_equipmentType_hose => '软管';
@@ -17751,13 +17757,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveDetailSection_reefHealth_description => '潜水日期的卫星水况';
 
   @override
-  String get diveDetailSection_surfaceGps_name => '水面 GPS';
+  String get diveDetailSection_surfaceGps_name => '位置';
 
   @override
-  String get diveDetailSection_surfaceGps_description => 'GPS 入水/出水点及水面漂移';
+  String get diveDetailSection_surfaceGps_description =>
+      '潜点、GPS 入水/出水点及水面漂移的地图';
 
   @override
   String get diveLog_detail_section_surfaceGps => '水面 GPS';
+
+  @override
+  String get diveLog_detail_section_location => '位置';
 
   @override
   String get diveLog_detail_surfaceGps_entry => '入水';
@@ -27316,7 +27326,7 @@ class AppLocalizationsZh extends AppLocalizations {
       other: '$count 个重复档案',
       one: '1 个重复档案',
     );
-    return '$_temp0中的所有潜水记录、认证、装备及其他数据将被移入「$name」。此操作无法自动撤销。';
+    return '$_temp0中的所有潜水记录、认证、装备及其他数据将被移入「$name」。合并后可立即撤销此操作。';
   }
 
   @override
@@ -28494,6 +28504,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_pocket_mount => '佩戴方式';
 
   @override
+  String get attrLabel_bag_style => '款式';
+
+  @override
+  String get attrLabel_capacity_l => '容量';
+
+  @override
   String get attrChoice_plate_material_aluminum => '铝';
 
   @override
@@ -28645,6 +28661,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => '大腿';
+
+  @override
+  String get attrChoice_bag_style_duffel => '旅行袋';
+
+  @override
+  String get attrChoice_bag_style_roller => '拉杆箱';
+
+  @override
+  String get attrChoice_bag_style_backpack => '背包';
+
+  @override
+  String get attrChoice_bag_style_mesh => '网兜';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => '防水袋';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => '调节器包';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => '收集袋';
 
   @override
   String get attrChoice_bcd_style_jacket => '夹克式';

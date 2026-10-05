@@ -28,6 +28,18 @@ class RangeStatsPanel extends ConsumerWidget {
   /// Callback when range is cleared/closed
   final VoidCallback? onClose;
 
+  /// Most stats placed side by side in one row.
+  ///
+  /// The grid always has at least [_minColumns] columns, and adds more up to
+  /// this cap while each stat still gets [_minChipWidth]. The default keeps
+  /// the detail page's fixed four-column grid; the fullscreen strip raises
+  /// it so a wide screen shows the stats in one or two rows (#1577).
+  final int maxColumns;
+
+  static const int _minColumns = 4;
+  static const double _minChipWidth = 120;
+  static const double _chipSpacing = 8;
+
   const RangeStatsPanel({
     super.key,
     required this.diveId,
@@ -35,6 +47,7 @@ class RangeStatsPanel extends ConsumerWidget {
     required this.units,
     required this.tanks,
     this.onClose,
+    this.maxColumns = _minColumns,
   });
 
   @override
@@ -114,16 +127,25 @@ class RangeStatsPanel extends ConsumerWidget {
     );
   }
 
+  /// Columns for a grid [width] wide: as many [_minChipWidth] stats as fit,
+  /// clamped to [_minColumns]..[maxColumns].
+  int _columnCountFor(double width) {
+    final fitting = ((width + _chipSpacing) / (_minChipWidth + _chipSpacing))
+        .floor();
+    return fitting.clamp(_minColumns, math.max(_minColumns, maxColumns));
+  }
+
   Widget _buildStatsGrid(BuildContext context, _RangeStats stats) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        final columns = _columnCountFor(constraints.maxWidth);
         final chipWidth =
-            (constraints.maxWidth - 24) / 4; // 3 gaps x 8px spacing
+            (constraints.maxWidth - _chipSpacing * (columns - 1)) / columns;
         return Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: _chipSpacing,
+          runSpacing: _chipSpacing,
           children: [
             // Row 1: Elapsed | Depth Delta | Min Depth | Max Depth
             _buildStatChip(
