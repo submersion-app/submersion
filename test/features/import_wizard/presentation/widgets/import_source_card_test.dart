@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
@@ -33,7 +35,34 @@ Widget _host(ImportSourceInfo source, {double width = 390}) => ProviderScope(
 );
 
 void main() {
+  // Month names come from Intl.defaultLocale, a process global another test
+  // file in the same isolate may have changed; MaterialApp.locale does not
+  // pin it. Setting the global makes intl demand real symbol data, so load
+  // it first.
+  late String? previousLocale;
+  setUpAll(() => initializeDateFormatting('en'));
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+  tearDown(() => Intl.defaultLocale = previousLocale);
+
   group('importSourceLines', () {
+    test('a readable empty file shows its zero size', () {
+      final lines = _lines(
+        const ImportSourceInfo(
+          type: ImportSourceType.universal,
+          displayName: 'File Import',
+          details: ImportSourceDetails(
+            title: 'empty.uddf',
+            formats: ['UDDF'],
+            sizeBytes: 0,
+          ),
+        ),
+      );
+      expect(lines.details, ['UDDF', '0 B']);
+    });
+
     test('dive computer: name, model, then serial, firmware, connection', () {
       final lines = _lines(
         const ImportSourceInfo(

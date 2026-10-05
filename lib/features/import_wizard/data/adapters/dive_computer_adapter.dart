@@ -591,7 +591,11 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           _customDeviceName ??
           stored?.displayName ??
           pending?.device.displayName,
-      model: stored?.fullName ?? pending?.device.recognizedModel?.fullName,
+      // fullName falls back to the computer's name when the record has no
+      // manufacturer or model, which would hide the recognized device.
+      model: stored != null && (stored.manufacturer ?? stored.model) != null
+          ? stored.fullName
+          : pending?.device.recognizedModel?.fullName,
       serialNumber: pending?.serialNumber ?? stored?.serialNumber,
       firmwareVersion: pending?.firmwareVersion ?? stored?.firmwareVersion,
       connection:

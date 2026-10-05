@@ -54,7 +54,7 @@ ImportSourceLines importSourceLines(
     if (serial != null) l10n.equipment_rowLabel_serial(serial),
     if (firmware != null) l10n.importWizard_source_firmware(firmware),
     if (d.connection case final connection?) _connectionLabel(l10n, connection),
-    if (d.sizeBytes case final size? when size > 0) formatBytes(size),
+    if (d.sizeBytes case final size?) formatBytes(size),
     if (devices.isNotEmpty) devices.join(', '),
   ];
   return (
