@@ -26,12 +26,17 @@ class TrendChartInputLayer extends StatefulWidget {
     required this.viewport,
     required this.onViewportChanged,
     required this.child,
+    this.onNavigationEnd,
   });
 
   final Size box;
   final ChartViewport viewport;
   final ValueChanged<ChartViewport> onViewportChanged;
   final Widget child;
+
+  /// Fires once a navigation settles: pointer up after a pan or pinch, the
+  /// end of a trackpad gesture, and each wheel or arrow-key step.
+  final VoidCallback? onNavigationEnd;
 
   @override
   State<TrendChartInputLayer> createState() => _TrendChartInputLayerState();
@@ -68,9 +73,19 @@ class _TrendChartInputLayerState extends State<TrendChartInputLayer> {
     _current = widget.viewport;
   }
 
+  /// Whether the viewport moved since navigation last settled.
+  bool _navigated = false;
+
   void _emit(ChartViewport next) {
     _current = next;
+    _navigated = true;
     widget.onViewportChanged(next);
+  }
+
+  void _settle() {
+    if (!_navigated) return;
+    _navigated = false;
+    widget.onNavigationEnd?.call();
   }
 
   double _focalX(Offset localPos) => chartFocalFraction(
@@ -147,6 +162,7 @@ class _TrendChartInputLayerState extends State<TrendChartInputLayer> {
       return KeyEventResult.ignored;
     }
     _emit(_current.pannedBy(dx, 0));
+    _settle();
     return KeyEventResult.handled;
   }
 
@@ -213,13 +229,16 @@ class _TrendChartInputLayerState extends State<TrendChartInputLayer> {
                 ? _beginPinch()
                 : _pinchPointers = const [];
           }
+          if (_activePointerCount == 0) _settle();
         },
         onPointerCancel: (event) {
           if (_activePointerCount > 0) _activePointerCount--;
           _lastPointerLocal = null;
           _touchPositions.remove(event.pointer);
           _pinchPointers = const [];
+          _settle();
         },
+        onPointerPanZoomEnd: (_) => _settle(),
         // Trackpad pan-zoom is claimed by the recognizer above so it does
         // not also scroll the enclosing page.
         onPointerSignal: (event) {
@@ -236,10 +255,12 @@ class _TrendChartInputLayerState extends State<TrendChartInputLayer> {
             _emit(
               _current.pannedBy(horizontal / _plotWidth() / _current.zoom, 0),
             );
+            _settle();
             return;
           }
           final factor = event.scrollDelta.dy < 0 ? 1.1 : 1 / 1.1;
           _emit(_current.zoomedAt(_focalX(event.localPosition), 0, factor));
+          _settle();
         },
         child: Stack(
           children: [

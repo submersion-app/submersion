@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +10,7 @@ import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
+import 'package:submersion/features/insights/domain/trend_range.dart';
 import 'package:submersion/features/insights/presentation/widgets/chart_axis.dart';
 import 'package:submersion/features/insights/presentation/widgets/date_axis.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart_input.dart';
@@ -61,6 +64,8 @@ class DiveTrendChart extends StatefulWidget {
     this.chartId,
     this.onDiveSelected,
     this.dateFormat = DateFormatPreference.mmmDYYYY,
+    this.range = TrendRange.all,
+    this.onRangeChanged,
   });
 
   /// Raw per-dive points, in any order. Never pre-aggregated by the caller.
@@ -82,6 +87,15 @@ class DiveTrendChart extends StatefulWidget {
   /// the ambient locale, so the axis and the tooltip match Manage - Units
   /// (#1512).
   final DateFormatPreference dateFormat;
+
+  /// The window to show. A changed range re-seats the viewport; so does a
+  /// changed data span, so a custom window keeps meaning the same dates.
+  final TrendRange range;
+
+  /// Called with the window the diver navigated to: [TrendRange.all] when
+  /// unzoomed, otherwise a custom range of the visible dates. Null when the
+  /// caller does not keep the window.
+  final ValueChanged<TrendRange>? onRangeChanged;
 
   final TrendAggregation aggregation;
   final bool showRollingMean;
@@ -128,6 +142,74 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
 
   static double _x(DateTime date) => date.millisecondsSinceEpoch.toDouble();
 
+  /// The narrowest window a zoom can reach: a week, however long the data.
+  static const _minWindow = Duration(days: 7);
+
+  TrendRange? _appliedRange;
+
+  /// The last window handed to [DiveTrendChart.onRangeChanged]. A caller
+  /// that stores it passes it straight back, which must not re-seat the
+  /// viewport the diver is looking at; a caller that ignores it must not
+  /// snap the chart back either.
+  TrendRange? _reportedRange;
+  ({int first, int last})? _appliedSpan;
+
+  /// Full x range of the last build, for turning the viewport into dates.
+  ({double min, double span})? _fullX;
+
+  static DateTime _date(double ms) =>
+      DateTime.fromMillisecondsSinceEpoch(ms.round(), isUtc: true);
+
+  /// Applies [DiveTrendChart.range] when it, or the data's span, changed
+  /// since it was last applied, and keeps the zoom limit matched to the span.
+  /// Runs inside build, before anything reads [_viewport].
+  void _seatViewport(double fullMin, double fullMax) {
+    final span = (fullMax - fullMin).clamp(1.0, double.infinity);
+    final zoomLimit = math.max(
+      ChartViewport.maxZoom,
+      span / _minWindow.inMilliseconds,
+    );
+    final dataSpan = (first: fullMin.round(), last: fullMax.round());
+    _fullX = (min: fullMin, span: span);
+    final rangeSettled =
+        widget.range == _appliedRange || widget.range == _reportedRange;
+    if (rangeSettled && _appliedSpan == dataSpan) {
+      _appliedRange = widget.range;
+      if (_viewport.zoomLimit != zoomLimit) {
+        _viewport = _viewport.withZoomLimit(zoomLimit);
+      }
+      return;
+    }
+    final window = trendRangeFractions(
+      widget.range,
+      _date(fullMin),
+      _date(fullMax),
+    );
+    _viewport = ChartViewport.forWindow(
+      window.start,
+      window.end,
+      zoomLimit: zoomLimit,
+    );
+    _appliedRange = widget.range;
+    _reportedRange = null;
+    _appliedSpan = dataSpan;
+  }
+
+  /// Hands the settled window to [DiveTrendChart.onRangeChanged].
+  void _reportRange() {
+    final onRangeChanged = widget.onRangeChanged;
+    final full = _fullX;
+    if (onRangeChanged == null || full == null) return;
+    final next = _viewport.isZoomed
+        ? TrendRange.custom(
+            _date(full.min + _viewport.windowStart * full.span),
+            _date(full.min + _viewport.windowEnd * full.span),
+          )
+        : TrendRange.all;
+    _reportedRange = next;
+    if (next != widget.range) onRangeChanged(next);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.points.isEmpty &&
@@ -149,16 +231,27 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
                     : 'trend-${widget.chartId}',
                 zoomLevel: _viewport.zoom,
                 minZoom: ChartViewport.minZoom,
-                maxZoom: ChartViewport.maxZoom,
+                maxZoom: _viewport.zoomLimit,
                 // No cursor to anchor on, so the buttons zoom about the middle
                 // of the visible window.
-                onZoomIn: () =>
-                    setState(() => _viewport = _viewport.zoomedAt(0.5, 0, 1.5)),
-                onZoomOut: () => setState(
-                  () => _viewport = _viewport.zoomedAt(0.5, 0, 1 / 1.5),
-                ),
-                onResetZoom: () =>
-                    setState(() => _viewport = ChartViewport.reset),
+                onZoomIn: () {
+                  setState(() => _viewport = _viewport.zoomedAt(0.5, 0, 1.5));
+                  _reportRange();
+                },
+                onZoomOut: () {
+                  setState(
+                    () => _viewport = _viewport.zoomedAt(0.5, 0, 1 / 1.5),
+                  );
+                  _reportRange();
+                },
+                onResetZoom: () {
+                  setState(
+                    () => _viewport = ChartViewport.reset.withZoomLimit(
+                      _viewport.zoomLimit,
+                    ),
+                  );
+                  _reportRange();
+                },
               ),
             ),
           ],
@@ -175,6 +268,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       box: box,
       viewport: _viewport,
       onViewportChanged: (vp) => setState(() => _viewport = vp),
+      onNavigationEnd: _reportRange,
       child: chart,
     );
   }
@@ -212,6 +306,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     final fullMin = _x(firstDate);
     final fullMax = _x(lastDate);
     final fullSpan = (fullMax - fullMin).clamp(1.0, double.infinity);
+    _seatViewport(fullMin, fullMax);
     final visibleMin = fullMin + _viewport.offsetX * fullSpan;
     final visibleMax = visibleMin + fullSpan * _viewport.visibleWidth;
     final dateAxis = DateAxis.forRange(
