@@ -12,6 +12,8 @@ import 'package:submersion/features/settings/presentation/conflicts/conflict_fie
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+export 'conflict_enum_labels_sites.dart';
+
 /// Builds a labeler for an enum stored by name (or by [storedAs]). An unknown
 /// stored value yields null so the formatter prints it as stored: a newer
 /// peer may write a value this build has never heard of.

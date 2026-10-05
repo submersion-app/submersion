@@ -82,4 +82,36 @@ void main() {
       l10n.incidentEdit_severity_serious,
     );
   });
+
+  test('site and trip fields', () {
+    expect(conflictFieldFor('diveSites', 'latitude').kind, FieldKind.latitude);
+    expect(
+      conflictFieldFor('diveSites', 'difficulty').kind,
+      FieldKind.enumValue,
+    );
+    expect(
+      conflictFieldFor('tideRecords', 'tideState').kind,
+      FieldKind.enumValue,
+    );
+    expect(conflictFieldFor('trips', 'tripType').kind, FieldKind.enumValue);
+    expect(
+      conflictFieldFor('navTracks', 'totalDistance').kind,
+      FieldKind.geoDistance,
+    );
+    expect(conflictFieldFor('trips', 'startDate').kind, FieldKind.date);
+    expect(
+      conflictFieldFor('gpsTracks', 'startTime').kind,
+      FieldKind.wallClock,
+    );
+    expect(
+      conflictFieldFor('diveCenters', 'fillOpensAt').kind,
+      FieldKind.timeOfDay,
+    );
+    // A species category and a checklist category are different things.
+    expect(conflictFieldFor('species', 'category').kind, FieldKind.enumValue);
+    expect(
+      conflictFieldFor('tripChecklistItems', 'category').kind,
+      FieldKind.shortText,
+    );
+  });
 }

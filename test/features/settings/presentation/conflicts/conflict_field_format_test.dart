@@ -230,11 +230,20 @@ void main() {
       );
     });
 
-    test('a date kind drops the time of day', () {
-      final when = DateTime(2026, 3, 28, 10);
+    test('a date is the stored calendar day in every zone', () {
+      // Day-only columns hold UTC midnight. Decoding that as a local instant
+      // shows the previous day anywhere west of UTC.
+      final day = DateTime.utc(2026, 3, 28);
       expect(
-        fmt(metric, FieldKind.date, when.millisecondsSinceEpoch),
-        metric.formatDate(when),
+        fmt(metric, FieldKind.date, day.millisecondsSinceEpoch),
+        metric.formatDate(day),
+      );
+    });
+
+    test('a time of day is minutes after midnight', () {
+      expect(
+        fmt(metric, FieldKind.timeOfDay, 450),
+        metric.formatMinutesOfDay(450),
       );
     });
   });

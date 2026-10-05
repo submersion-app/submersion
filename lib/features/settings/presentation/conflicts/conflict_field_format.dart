@@ -25,16 +25,20 @@ String formatConflictValue({
       if (value is String) return field.enumLabel?.call(l10n, value) ?? value;
       return value.toString();
     case FieldKind.dateTime:
-    case FieldKind.date:
       final moment = _instant(value);
       if (moment == null) return value.toString();
-      return field.kind == FieldKind.date
-          ? units.formatDate(moment)
-          : units.formatDateTime(moment, l10n: l10n);
+      return units.formatDateTime(moment, l10n: l10n);
     case FieldKind.wallClock:
       final clock = _wallClock(value);
       if (clock == null) return value.toString();
       return units.formatDateTime(clock, l10n: l10n);
+    case FieldKind.date:
+      final day = _wallClock(value);
+      if (day == null) return value.toString();
+      return units.formatDate(day);
+    case FieldKind.timeOfDay:
+      if (value is int) return units.formatMinutesOfDay(value);
+      return value.toString();
     case FieldKind.unknown:
       if (value is bool) return _yesNo(l10n, value);
       return value.toString();

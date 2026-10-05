@@ -1,5 +1,6 @@
 import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/dive_log_fields.dart';
+import 'package:submersion/features/settings/presentation/conflicts/catalogue/site_trip_fields.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_reference_labels.dart';
 
@@ -19,12 +20,14 @@ const conflictBookkeepingColumns = <String>{
 /// mistake the merge asserts on.
 final Map<String, ConflictField> conflictFieldCatalogue = _merge([
   diveLogFields,
+  siteTripFields,
 ]);
 
 /// Entity-specific meanings, keyed `'<entityType>.<column>'`. Checked before
 /// [conflictFieldCatalogue].
 final Map<String, ConflictField> conflictFieldOverrides = _merge([
   diveLogOverrides,
+  siteTripOverrides,
 ]);
 
 Map<String, ConflictField> _merge(List<Map<String, ConflictField>> maps) {

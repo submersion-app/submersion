@@ -39,7 +39,12 @@ enum FieldKind {
   /// A dive computer's clock stored flagged UTC (`dives.dive_date_time`):
   /// shown as the stored digits, never shifted to the device's zone.
   wallClock,
+
+  /// A calendar day stored as UTC midnight: shown as that day everywhere.
   date,
+
+  /// Minutes after local midnight (opening hours).
+  timeOfDay,
   boolean,
   number,
   shortText,

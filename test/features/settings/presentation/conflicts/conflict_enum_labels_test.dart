@@ -55,6 +55,30 @@ void main() {
     expect(safetySeverityLabeler(l10n, 'significant'), 'Significant');
   });
 
+  test('site and trip enums reuse the labels their screens show', () {
+    expect(
+      speciesCategoryLabeler(l10n, 'fish'),
+      l10n.enum_speciesCategory_fish,
+    );
+    expect(
+      siteDifficultyLabeler(l10n, 'beginner'),
+      l10n.diveSites_difficulty_beginner,
+    );
+    expect(tideStateLabeler(l10n, 'rising'), l10n.enum_tideState_rising);
+    expect(dayTypeLabeler(l10n, 'seaDay'), l10n.trips_dayType_seaDay);
+    expect(
+      equipmentTypeLabeler(l10n, 'regulator'),
+      l10n.enum_equipmentType_regulator,
+    );
+    expect(tripTypeLabeler(l10n, 'liveaboard'), l10n.trips_type_liveaboard);
+    expect(siteFeatureTypeLabeler(l10n, 'wreck'), l10n.siteFeature_type_wreck);
+    expect(
+      rentalVerdictLabeler(l10n, 'avoid'),
+      l10n.diveCenters_rental_verdictAvoid,
+    );
+    expect(tripCylinderEventKindLabeler(l10n, 'fill'), 'Fill');
+  });
+
   test('returns null for a value this build does not know', () {
     expect(entryMethodLabeler(l10n, 'jetpack'), isNull);
     expect(entryMethodLabeler(l10n, ''), isNull);
