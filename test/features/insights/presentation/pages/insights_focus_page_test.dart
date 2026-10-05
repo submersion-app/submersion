@@ -134,4 +134,21 @@ void main() {
     await tester.pumpAndSettle();
     expect(pushed, ['d1']);
   });
+
+  testWidgets('changing N keeps the results up instead of flashing a spinner', (
+    tester,
+  ) async {
+    await pump(tester);
+    final chart = tester.state(find.byType(DiveTrendChart));
+    await tester.tap(find.byKey(const ValueKey('focus-count-5')));
+    for (var frame = 0; frame < 5; frame++) {
+      await tester.pump();
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    }
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.textContaining('5 of 12 dives'), findsOneWidget);
+    // Same State object: the chart was updated, not torn down, so a zoom the
+    // diver set survives.
+    expect(tester.state(find.byType(DiveTrendChart)), same(chart));
+  });
 }

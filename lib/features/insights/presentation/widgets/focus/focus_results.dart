@@ -26,9 +26,13 @@ class FocusResults extends ConsumerWidget {
     final units = UnitFormatter(ref.watch(settingsProvider));
     final metricUnits = FocusMetricUnits(selection.metric, units);
 
+    // A new selection is a reload: keep the previous group on screen until
+    // the new one lands, so the results do not flash a spinner and the chart
+    // keeps its State (and any zoom the diver set).
     return ref
         .watch(focusGroupProvider)
         .when(
+          skipLoadingOnReload: true,
           loading: () => const Padding(
             padding: EdgeInsets.all(32),
             child: Center(child: CircularProgressIndicator()),
@@ -104,6 +108,7 @@ class FocusResults extends ConsumerWidget {
                   child: ref
                       .watch(focusFactorReportProvider)
                       .when(
+                        skipLoadingOnReload: true,
                         loading: () =>
                             const Center(child: CircularProgressIndicator()),
                         error: (_, _) => Text(l10n.insights_focus_error),
