@@ -3398,6 +3398,7 @@
   "enum_diveMode_scr": "ריברידר חצי סגור",
   "enum_entryMethod_backRoll": "גלגול אחורה",
   "enum_entryMethod_boat": "כניסה מסירה",
+  "enum_entryMethod_frontRoll": "גלגול קדימה",
   "enum_entryMethod_giantStride": "צעד ענק",
   "enum_entryMethod_jetty": "מזח/רציף",
   "enum_entryMethod_ladder": "סולם",

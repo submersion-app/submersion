@@ -11785,6 +11785,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_entryMethod_boat => 'دخول من القارب';
 
   @override
+  String get enum_entryMethod_frontRoll => 'دحرجة أمامية';
+
+  @override
   String get enum_entryMethod_giantStride => 'خطوة عملاقة';
 
   @override

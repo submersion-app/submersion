@@ -3398,6 +3398,7 @@
   "enum_diveMode_scr": "Recycleur semi-fermé",
   "enum_entryMethod_backRoll": "Bascule arrière",
   "enum_entryMethod_boat": "Mise à l'eau depuis le bateau",
+  "enum_entryMethod_frontRoll": "Bascule avant",
   "enum_entryMethod_giantStride": "Pas de géant",
   "enum_entryMethod_jetty": "Ponton/Quai",
   "enum_entryMethod_ladder": "Échelle",

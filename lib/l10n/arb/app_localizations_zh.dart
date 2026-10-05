@@ -11099,6 +11099,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_entryMethod_boat => '船只入水';
 
   @override
+  String get enum_entryMethod_frontRoll => '前滚式入水';
+
+  @override
   String get enum_entryMethod_giantStride => '大跨步入水';
 
   @override

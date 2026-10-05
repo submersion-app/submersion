@@ -11555,6 +11555,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_entryMethod_boat => 'Instap vanaf boot';
 
   @override
+  String get enum_entryMethod_frontRoll => 'Voorwaartse rol';
+
+  @override
   String get enum_entryMethod_giantStride => 'Grote stap';
 
   @override

@@ -3510,6 +3510,7 @@
   "enum_diveMode_scr": "Halbgeschlossener Rebreather",
   "enum_entryMethod_backRoll": "Rückwärtsrolle",
   "enum_entryMethod_boat": "Bootseinstieg",
+  "enum_entryMethod_frontRoll": "Vorwärtsrolle",
   "enum_entryMethod_giantStride": "Großschritt",
   "enum_entryMethod_jetty": "Steg/Dock",
   "enum_entryMethod_ladder": "Leiter",

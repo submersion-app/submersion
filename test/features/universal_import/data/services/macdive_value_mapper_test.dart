@@ -52,6 +52,22 @@ void main() {
       expect(MacDiveValueMapper.entryType('Back Roll'), isNotNull);
     });
 
+    test('maps front and forward roll entries to the front roll', () {
+      for (final raw in [
+        'front roll',
+        'frontroll',
+        'Front Roll',
+        'forward roll',
+        'Forward Roll',
+      ]) {
+        expect(
+          MacDiveValueMapper.entryType(raw),
+          EntryMethod.frontRoll,
+          reason: raw,
+        );
+      }
+    });
+
     test('maps giant stride entries', () {
       expect(MacDiveValueMapper.entryType('giant stride'), isNotNull);
       expect(MacDiveValueMapper.entryType('giantstride'), isNotNull);

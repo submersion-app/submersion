@@ -3499,6 +3499,7 @@
   "enum_diveMode_scr": "جهاز إعادة تنفس شبه مغلق",
   "enum_entryMethod_backRoll": "دحرجة خلفية",
   "enum_entryMethod_boat": "دخول من القارب",
+  "enum_entryMethod_frontRoll": "دحرجة أمامية",
   "enum_entryMethod_giantStride": "خطوة عملاقة",
   "enum_entryMethod_jetty": "رصيف/مرسى",
   "enum_entryMethod_ladder": "سلم",

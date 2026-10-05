@@ -3398,6 +3398,7 @@
   "enum_diveMode_scr": "Rebreather semi-chiuso",
   "enum_entryMethod_backRoll": "Caduta all'indietro",
   "enum_entryMethod_boat": "Ingresso da barca",
+  "enum_entryMethod_frontRoll": "Caduta in avanti",
   "enum_entryMethod_giantStride": "Passo del gigante",
   "enum_entryMethod_jetty": "Pontile/Molo",
   "enum_entryMethod_ladder": "Scaletta",

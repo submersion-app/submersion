@@ -3499,6 +3499,7 @@
   "enum_diveMode_scr": "Rebreather Semi-Fechado",
   "enum_entryMethod_backRoll": "Rolamento para Trás",
   "enum_entryMethod_boat": "Entrada pelo Barco",
+  "enum_entryMethod_frontRoll": "Rolamento para a Frente",
   "enum_entryMethod_giantStride": "Passo Gigante",
   "enum_entryMethod_jetty": "Pier/Cais",
   "enum_entryMethod_ladder": "Escada",

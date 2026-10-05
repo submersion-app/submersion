@@ -38,6 +38,9 @@ class MacDiveValueMapper {
     if (s.contains('back') && s.contains('roll')) {
       return EntryMethod.backRoll;
     }
+    if ((s.contains('front') || s.contains('forward')) && s.contains('roll')) {
+      return EntryMethod.frontRoll;
+    }
     if (s.contains('giant') && s.contains('stride')) {
       return EntryMethod.giantStride;
     }

@@ -3618,6 +3618,7 @@
   "enum_diveMode_scr": "半密闭循环呼吸器",
   "enum_entryMethod_backRoll": "背滚式入水",
   "enum_entryMethod_boat": "船只入水",
+  "enum_entryMethod_frontRoll": "前滚式入水",
   "enum_entryMethod_giantStride": "大跨步入水",
   "enum_entryMethod_jetty": "码头/栈桥",
   "enum_entryMethod_ladder": "梯子",

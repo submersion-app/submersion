@@ -11641,6 +11641,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_entryMethod_boat => 'Entrada pelo Barco';
 
   @override
+  String get enum_entryMethod_frontRoll => 'Rolamento para a Frente';
+
+  @override
   String get enum_entryMethod_giantStride => 'Passo Gigante';
 
   @override

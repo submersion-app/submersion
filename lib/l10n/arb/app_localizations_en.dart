@@ -11459,6 +11459,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_entryMethod_boat => 'Boat Entry';
 
   @override
+  String get enum_entryMethod_frontRoll => 'Front Roll';
+
+  @override
   String get enum_entryMethod_giantStride => 'Giant Stride';
 
   @override

@@ -403,6 +403,9 @@ enum EntryMethod {
   shore('Shore Entry'),
   boat('Boat Entry'),
   backRoll('Back Roll'),
+
+  /// Rolling forward off the tube of a RIB (#2927).
+  frontRoll('Front Roll'),
   giantStride('Giant Stride'),
   seatedEntry('Seated Entry'),
   ladder('Ladder'),

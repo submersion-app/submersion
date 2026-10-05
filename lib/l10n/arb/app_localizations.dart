@@ -18793,6 +18793,12 @@ abstract class AppLocalizations {
   /// **'Boat Entry'**
   String get enum_entryMethod_boat;
 
+  /// No description provided for @enum_entryMethod_frontRoll.
+  ///
+  /// In en, this message translates to:
+  /// **'Front Roll'**
+  String get enum_entryMethod_frontRoll;
+
   /// No description provided for @enum_entryMethod_giantStride.
   ///
   /// In en, this message translates to:

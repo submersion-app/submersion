@@ -11385,6 +11385,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_entryMethod_boat => 'כניסה מסירה';
 
   @override
+  String get enum_entryMethod_frontRoll => 'גלגול קדימה';
+
+  @override
   String get enum_entryMethod_giantStride => 'צעד ענק';
 
   @override

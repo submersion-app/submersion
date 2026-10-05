@@ -3398,6 +3398,7 @@
   "enum_diveMode_scr": "Félig zárt visszalélegeztető",
   "enum_entryMethod_backRoll": "Hátragurulás",
   "enum_entryMethod_boat": "Hajós beszállás",
+  "enum_entryMethod_frontRoll": "Előregurulás",
   "enum_entryMethod_giantStride": "Óriás lépés",
   "enum_entryMethod_jetty": "Stég/Móló",
   "enum_entryMethod_ladder": "Létra",

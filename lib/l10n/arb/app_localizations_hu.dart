@@ -11616,6 +11616,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_entryMethod_boat => 'Hajós beszállás';
 
   @override
+  String get enum_entryMethod_frontRoll => 'Előregurulás';
+
+  @override
   String get enum_entryMethod_giantStride => 'Óriás lépés';
 
   @override

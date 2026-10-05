@@ -3499,6 +3499,7 @@
   "enum_diveMode_scr": "Semi-gesloten Rebreather",
   "enum_entryMethod_backRoll": "Achterwaartse rol",
   "enum_entryMethod_boat": "Instap vanaf boot",
+  "enum_entryMethod_frontRoll": "Voorwaartse rol",
   "enum_entryMethod_giantStride": "Grote stap",
   "enum_entryMethod_jetty": "Steiger/Kade",
   "enum_entryMethod_ladder": "Ladder",
