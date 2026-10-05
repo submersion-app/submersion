@@ -11556,7 +11556,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_eventSeverity_alert => 'התראה';
 
   @override
-  String get enum_eventSeverity_info => 'Info';
+  String get enum_eventSeverity_info => 'מידע';
 
   @override
   String get enum_eventSeverity_warning => 'אזהרה';
@@ -19160,13 +19160,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_cancel => 'ביטול';
 
   @override
-  String get settings_conflict_changed => 'Changed';
+  String get settings_conflict_changed => 'השתנה';
 
   @override
-  String get settings_conflict_chooseResolution => 'בחר פתרון';
-
-  @override
-  String get settings_conflict_chooseVersion => 'Choose which version to keep.';
+  String get settings_conflict_chooseVersion => 'בחר איזו גרסה לשמור.';
 
   @override
   String get settings_conflict_close => 'סגירה';
@@ -19176,7 +19173,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_consequence_deleteHere =>
-      'Deletes the record on this device too.';
+      'מוחק את הרשומה גם במכשיר הזה.';
 
   @override
   String settings_conflict_consequence_keep(
@@ -19184,26 +19181,26 @@ class AppLocalizationsHe extends AppLocalizations {
     String discarded,
     String fields,
   ) {
-    return 'Keeps $kept\'s version. $discarded\'s values for $fields are discarded.';
+    return 'שומר את הגרסה של $kept. הערכים של $discarded עבור $fields נמחקים.';
   }
 
   @override
   String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'Keeps $local\'s version and adds $remote\'s version as a separate copy.';
+    return 'שומר את הגרסה של $local ומוסיף את הגרסה של $remote כעותק נפרד.';
   }
 
   @override
   String settings_conflict_consequence_keepRecord(String device) {
-    return 'Keeps the record, with $device\'s values.';
+    return 'שומר את הרשומה, עם הערכים של $device.';
   }
 
   @override
   String get settings_conflict_consequence_nothingLost =>
-      'Both versions match, so nothing is lost.';
+      'שתי הגרסאות זהות, כך ששום דבר לא אובד.';
 
   @override
   String get settings_conflict_consequence_staysDeleted =>
-      'The record stays deleted on this device.';
+      'הרשומה נשארת מחוקה במכשיר הזה.';
 
   @override
   String settings_conflict_counterLabel(Object current, Object total) {
@@ -19212,7 +19209,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String settings_conflict_deletedValues(String device) {
-    return 'The record as $device has it:';
+    return 'הרשומה כפי שהיא ב-$device:';
   }
 
   @override
@@ -19221,1914 +19218,1869 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_conflict_fieldHeader => 'Field';
+  String get settings_conflict_fieldHeader => 'שדה';
 
   @override
-  String get settings_conflict_field_accentListIcons => 'Colored list icons';
+  String get settings_conflict_field_accentListIcons => 'סמלי רשימה צבעוניים';
 
   @override
-  String get settings_conflict_field_accentNavIcons =>
-      'Colored navigation icons';
+  String get settings_conflict_field_accentNavIcons => 'סמלי ניווט צבעוניים';
 
   @override
   String get settings_conflict_field_accentSectionHeaders =>
-      'Colored section headers';
+      'כותרות מקטעים צבעוניות';
 
   @override
-  String get settings_conflict_field_accessNotes => 'Access notes';
+  String get settings_conflict_field_accessNotes => 'הערות גישה';
 
   @override
-  String get settings_conflict_field_accountIdentifier => 'Account';
+  String get settings_conflict_field_accountIdentifier => 'חשבון';
 
   @override
-  String get settings_conflict_field_additionalCredentials =>
-      'Additional credentials';
+  String get settings_conflict_field_additionalCredentials => 'הסמכות נוספות';
 
   @override
-  String get settings_conflict_field_airBreakBreakSeconds => 'Air break length';
+  String get settings_conflict_field_airBreakBreakSeconds => 'משך הפסקת האוויר';
 
   @override
   String get settings_conflict_field_airBreakO2Seconds =>
-      'Oxygen time between air breaks';
+      'זמן חמצן בין הפסקות אוויר';
 
   @override
-  String get settings_conflict_field_allergies => 'Allergies';
+  String get settings_conflict_field_allergies => 'אלרגיות';
 
   @override
-  String get settings_conflict_field_altitudeUnit => 'Altitude unit';
+  String get settings_conflict_field_altitudeUnit => 'יחידת גובה';
 
   @override
-  String get settings_conflict_field_amountKg => 'Weight';
+  String get settings_conflict_field_amountKg => 'משקל';
 
   @override
-  String get settings_conflict_field_analyzedHe => 'Analyzed helium';
+  String get settings_conflict_field_analyzedHe => 'הליום שנמדד';
 
   @override
-  String get settings_conflict_field_analyzedO2 => 'Analyzed oxygen';
+  String get settings_conflict_field_analyzedO2 => 'חמצן שנמדד';
 
   @override
-  String get settings_conflict_field_analyzer => 'Analyzer';
+  String get settings_conflict_field_analyzer => 'מנתח';
 
   @override
-  String get settings_conflict_field_anchorDate => 'Counting from';
+  String get settings_conflict_field_anchorDate => 'ספירה החל מ';
 
   @override
-  String get settings_conflict_field_anchorLatitude => 'Route origin latitude';
+  String get settings_conflict_field_anchorLatitude =>
+      'קו רוחב של תחילת המסלול';
 
   @override
   String get settings_conflict_field_anchorLongitude =>
-      'Route origin longitude';
+      'קו אורך של תחילת המסלול';
 
   @override
-  String get settings_conflict_field_anchorSetAt => 'Counting date set';
+  String get settings_conflict_field_anchorSetAt => 'תאריך ההתחלה נקבע';
 
   @override
-  String get settings_conflict_field_applicableTypes => 'Suggested for';
+  String get settings_conflict_field_applicableTypes => 'מוצע עבור';
 
   @override
-  String get settings_conflict_field_appliesToDives => 'Offered on dives';
+  String get settings_conflict_field_appliesToDives => 'זמין בצלילות';
 
   @override
-  String get settings_conflict_field_appliesToEquipment =>
-      'Offered on equipment';
+  String get settings_conflict_field_appliesToEquipment => 'זמין בציוד';
 
   @override
-  String get settings_conflict_field_appliesToSites => 'Offered on dive sites';
+  String get settings_conflict_field_appliesToSites => 'זמין באתרי צלילה';
 
   @override
   String get settings_conflict_field_applyDefaultTankToImports =>
-      'Default tank on imported dives';
+      'בלון ברירת מחדל בצלילות מיובאות';
 
   @override
-  String get settings_conflict_field_ascentGasSet => 'Ascent gases';
+  String get settings_conflict_field_ascentGasSet => 'גזי עלייה';
 
   @override
-  String get settings_conflict_field_ascentRate => 'Ascent rate';
+  String get settings_conflict_field_ascentRate => 'קצב עלייה';
 
   @override
-  String get settings_conflict_field_ascentRateCritical =>
-      'Critical ascent rate';
+  String get settings_conflict_field_ascentRateCritical => 'קצב עלייה קריטי';
 
   @override
-  String get settings_conflict_field_ascentRateWarning => 'Ascent rate warning';
+  String get settings_conflict_field_ascentRateWarning => 'אזהרת קצב עלייה';
 
   @override
-  String get settings_conflict_field_assumedVo2 => 'Assumed oxygen consumption';
+  String get settings_conflict_field_assumedVo2 => 'צריכת חמצן משוערת';
 
   @override
-  String get settings_conflict_field_attrKey => 'Attribute';
+  String get settings_conflict_field_attrKey => 'מאפיין';
 
   @override
   String get settings_conflict_field_autoApplyOnComputerImport =>
-      'Applied on dive computer import';
+      'מוחל בייבוא ממחשב הצלילה';
 
   @override
-  String get settings_conflict_field_autoAttach => 'Scheduled automatically';
+  String get settings_conflict_field_autoAttach => 'מתוזמן אוטומטית';
 
   @override
-  String get settings_conflict_field_autoTagImports => 'Tag imported dives';
+  String get settings_conflict_field_autoTagImports => 'תיוג צלילות מיובאות';
 
   @override
-  String get settings_conflict_field_avgSpeed => 'Average speed';
+  String get settings_conflict_field_avgSpeed => 'מהירות ממוצעת';
 
   @override
-  String get settings_conflict_field_batteryReserveFraction =>
-      'Battery reserve';
+  String get settings_conflict_field_batteryReserveFraction => 'עתודת סוללה';
 
   @override
-  String get settings_conflict_field_bboxHeight => 'Box height';
+  String get settings_conflict_field_bboxHeight => 'גובה המסגרת';
 
   @override
-  String get settings_conflict_field_bboxWidth => 'Box width';
+  String get settings_conflict_field_bboxWidth => 'רוחב המסגרת';
 
   @override
-  String get settings_conflict_field_bboxX => 'Box left edge';
+  String get settings_conflict_field_bboxX => 'הקצה השמאלי של המסגרת';
 
   @override
-  String get settings_conflict_field_bboxY => 'Box top edge';
+  String get settings_conflict_field_bboxY => 'הקצה העליון של המסגרת';
 
   @override
-  String get settings_conflict_field_bearingDeg => 'Bearing in degrees';
+  String get settings_conflict_field_bearingDeg => 'כיוון במעלות';
 
   @override
   String get settings_conflict_field_bestMixEndMeters =>
-      'Best mix narcotic depth';
+      'עומק נרקוטי של התערובת הטובה ביותר';
 
   @override
-  String get settings_conflict_field_bloodType => 'Blood type';
+  String get settings_conflict_field_bloodType => 'סוג דם';
 
   @override
-  String get settings_conflict_field_bluetoothAddress => 'Bluetooth address';
+  String get settings_conflict_field_bluetoothAddress => 'כתובת Bluetooth';
 
   @override
-  String get settings_conflict_field_boatCaptain => 'Boat captain';
+  String get settings_conflict_field_boatCaptain => 'רב החובל';
 
   @override
-  String get settings_conflict_field_boatName => 'Boat name';
+  String get settings_conflict_field_boatName => 'שם הסירה';
 
   @override
-  String get settings_conflict_field_bookmarkRef => 'File access';
+  String get settings_conflict_field_bookmarkRef => 'גישה לקובץ';
 
   @override
-  String get settings_conflict_field_bottleLabel => 'Bottle number';
+  String get settings_conflict_field_bottleLabel => 'מספר הבלון';
 
   @override
-  String get settings_conflict_field_buddyListViewMode => 'Buddy list view';
+  String get settings_conflict_field_buddyListViewMode => 'תצוגת רשימת השותפים';
 
   @override
-  String get settings_conflict_field_builtinKey => 'Built-in template';
+  String get settings_conflict_field_builtinKey => 'תבנית מובנית';
 
   @override
-  String get settings_conflict_field_buoyancyKg => 'Buoyancy';
+  String get settings_conflict_field_buoyancyKg => 'ציפה';
 
   @override
-  String get settings_conflict_field_byteCount => 'File size in bytes';
+  String get settings_conflict_field_byteCount => 'גודל הקובץ בבתים';
 
   @override
-  String get settings_conflict_field_bytes => 'File contents';
+  String get settings_conflict_field_bytes => 'תוכן הקובץ';
 
   @override
-  String get settings_conflict_field_cabinType => 'Cabin type';
+  String get settings_conflict_field_cabinType => 'סוג תא';
 
   @override
-  String get settings_conflict_field_capacity => 'Capacity';
+  String get settings_conflict_field_capacity => 'קיבולת';
 
   @override
-  String get settings_conflict_field_caption => 'Caption';
+  String get settings_conflict_field_caption => 'כיתוב';
 
   @override
   String get settings_conflict_field_cardColorGradientEnd =>
-      'Card color gradient end';
+      'סוף מעבר הצבעים של הכרטיסים';
 
   @override
   String get settings_conflict_field_cardColorGradientPreset =>
-      'Card color gradient';
+      'מעבר הצבעים של הכרטיסים';
 
   @override
   String get settings_conflict_field_cardColorGradientStart =>
-      'Card color gradient start';
+      'תחילת מעבר הצבעים של הכרטיסים';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
-      'CCR diluent MOD ppO2';
+      'ppO2 של MOD המדלל ב-CCR';
 
   @override
-  String get settings_conflict_field_ccrSetpointHigh => 'CCR high setpoint';
+  String get settings_conflict_field_ccrSetpointHigh =>
+      'נקודת כיוון גבוהה ב-CCR';
 
   @override
-  String get settings_conflict_field_ccrSetpointLow => 'CCR low setpoint';
+  String get settings_conflict_field_ccrSetpointLow =>
+      'נקודת כיוון נמוכה ב-CCR';
 
   @override
-  String get settings_conflict_field_channelIndex => 'Channel';
+  String get settings_conflict_field_channelIndex => 'ערוץ';
 
   @override
   String get settings_conflict_field_checklistTemplateItems_category =>
-      'Category';
+      'קטגוריה';
 
   @override
-  String get settings_conflict_field_city => 'City';
+  String get settings_conflict_field_city => 'עיר';
 
   @override
-  String get settings_conflict_field_cloudAssetId => 'Cloud photo';
+  String get settings_conflict_field_cloudAssetId => 'תמונה בענן';
 
   @override
   String get settings_conflict_field_cns => 'CNS';
 
   @override
-  String get settings_conflict_field_cnsWarningThreshold =>
-      'CNS warning threshold';
+  String get settings_conflict_field_cnsWarningThreshold => 'סף אזהרת CNS';
 
   @override
-  String get settings_conflict_field_codecVersion => 'Format version';
+  String get settings_conflict_field_codecVersion => 'גרסת הפורמט';
 
   @override
-  String get settings_conflict_field_coldWaterThresholdC =>
-      'Cold water threshold';
+  String get settings_conflict_field_coldWaterThresholdC => 'סף מים קרים';
 
   @override
-  String get settings_conflict_field_color => 'Color';
+  String get settings_conflict_field_color => 'צבע';
 
   @override
-  String get settings_conflict_field_commonName => 'Common name';
+  String get settings_conflict_field_commonName => 'שם נפוץ';
 
   @override
-  String get settings_conflict_field_completedAt => 'Completed';
+  String get settings_conflict_field_completedAt => 'הושלם';
 
   @override
-  String get settings_conflict_field_compressedLevel => 'Compression';
+  String get settings_conflict_field_compressedLevel => 'דחיסה';
 
   @override
-  String get settings_conflict_field_compressedSizeBytes =>
-      'Compressed size in bytes';
+  String get settings_conflict_field_compressedSizeBytes => 'גודל דחוס בבתים';
 
   @override
-  String get settings_conflict_field_computerModel => 'Dive computer model';
+  String get settings_conflict_field_computerModel => 'דגם מחשב הצלילה';
 
   @override
   String get settings_conflict_field_computerSerial =>
-      'Dive computer serial number';
+      'מספר סידורי של מחשב הצלילה';
 
   @override
   String get settings_conflict_field_computerTissueJson =>
-      'Dive computer tissue data';
+      'נתוני רקמות ממחשב הצלילה';
 
   @override
   String get settings_conflict_field_conditionDisabledRules =>
-      'Turned-off gear checks';
+      'בדיקות ציוד מושבתות';
 
   @override
   String get settings_conflict_field_conditionEngineEnabled =>
-      'Gear condition checks';
+      'בדיקות מצב הציוד';
 
   @override
-  String get settings_conflict_field_configJson => 'Configuration';
+  String get settings_conflict_field_configJson => 'הגדרות';
 
   @override
-  String get settings_conflict_field_connectedAccounts_kind => 'Service';
+  String get settings_conflict_field_connectedAccounts_kind => 'שירות';
 
   @override
-  String get settings_conflict_field_connectionType => 'Connection';
+  String get settings_conflict_field_connectionType => 'חיבור';
 
   @override
-  String get settings_conflict_field_contentHash => 'Content fingerprint';
+  String get settings_conflict_field_contentHash => 'טביעת אצבע של התוכן';
 
   @override
-  String get settings_conflict_field_contentSizeBytes => 'Size in bytes';
+  String get settings_conflict_field_contentSizeBytes => 'גודל בבתים';
 
   @override
-  String get settings_conflict_field_contributingFactors =>
-      'Contributing factors';
+  String get settings_conflict_field_contributingFactors => 'גורמים תורמים';
 
   @override
-  String get settings_conflict_field_coordinateFormat => 'Coordinate format';
+  String get settings_conflict_field_coordinateFormat => 'פורמט קואורדינטות';
 
   @override
-  String get settings_conflict_field_cost => 'Cost';
+  String get settings_conflict_field_cost => 'עלות';
 
   @override
-  String get settings_conflict_field_count => 'Count';
+  String get settings_conflict_field_count => 'כמות';
 
   @override
-  String get settings_conflict_field_country => 'Country';
+  String get settings_conflict_field_country => 'מדינה';
 
   @override
-  String get settings_conflict_field_courseRequirements_kind =>
-      'Requirement type';
+  String get settings_conflict_field_courseRequirements_kind => 'סוג הדרישה';
 
   @override
-  String get settings_conflict_field_credentialsHostId => 'Sign-in host';
+  String get settings_conflict_field_credentialsHostId => 'שרת התחברות';
 
   @override
-  String get settings_conflict_field_currency => 'Currency';
+  String get settings_conflict_field_currency => 'מטבע';
 
   @override
   String get settings_conflict_field_currentSetsTowardDeg =>
-      'Current direction in degrees';
+      'כיוון הזרם במעלות';
 
   @override
-  String get settings_conflict_field_currentSpeedMps => 'Current speed';
+  String get settings_conflict_field_currentSpeedMps => 'מהירות הזרם';
 
   @override
-  String get settings_conflict_field_customReminderDays => 'Reminder days';
+  String get settings_conflict_field_customReminderDays => 'ימי תזכורת';
 
   @override
-  String get settings_conflict_field_customReminderEnabled =>
-      'Custom reminders';
+  String get settings_conflict_field_customReminderEnabled => 'תזכורות מותאמות';
 
   @override
-  String get settings_conflict_field_cylinderFills_source => 'Recorded from';
+  String get settings_conflict_field_cylinderFills_source => 'נרשם דרך';
 
   @override
-  String get settings_conflict_field_date => 'Date';
+  String get settings_conflict_field_date => 'תאריך';
 
   @override
-  String get settings_conflict_field_dateFormat => 'Date format';
+  String get settings_conflict_field_dateFormat => 'פורמט תאריך';
 
   @override
-  String get settings_conflict_field_dayNumber => 'Day number';
+  String get settings_conflict_field_dayNumber => 'מספר היום';
 
   @override
-  String get settings_conflict_field_dayType => 'Day type';
+  String get settings_conflict_field_dayType => 'סוג היום';
 
   @override
-  String get settings_conflict_field_decoStopIncrement => 'Deco stop increment';
+  String get settings_conflict_field_decoStopIncrement =>
+      'מרווח בין עצירות דקו';
 
   @override
-  String get settings_conflict_field_decoSwitchDepth => 'Deco gas switch depth';
+  String get settings_conflict_field_decoSwitchDepth => 'עומק המעבר לגז דקו';
 
   @override
-  String get settings_conflict_field_deepDiveThresholdM =>
-      'Deep dive threshold';
+  String get settings_conflict_field_deepDiveThresholdM => 'סף צלילה עמוקה';
 
   @override
-  String get settings_conflict_field_defaultCategory => 'Default category';
+  String get settings_conflict_field_defaultCategory => 'קטגוריית ברירת מחדל';
 
   @override
-  String get settings_conflict_field_defaultCeilingSource =>
-      'Ceiling data source';
+  String get settings_conflict_field_defaultCeilingSource => 'מקור נתוני התקרה';
 
   @override
-  String get settings_conflict_field_defaultCnsSource => 'CNS data source';
+  String get settings_conflict_field_defaultCnsSource => 'מקור נתוני CNS';
 
   @override
-  String get settings_conflict_field_defaultCost => 'Default cost';
+  String get settings_conflict_field_defaultCost => 'עלות ברירת מחדל';
 
   @override
-  String get settings_conflict_field_defaultCurrency => 'Default currency';
+  String get settings_conflict_field_defaultCurrency => 'מטבע ברירת מחדל';
 
   @override
   String get settings_conflict_field_defaultCurrentSetsTowardDeg =>
-      'Default current direction in degrees';
+      'כיוון זרם ברירת מחדל במעלות';
 
   @override
   String get settings_conflict_field_defaultCurrentSpeedMps =>
-      'Default current speed';
+      'מהירות זרם ברירת מחדל';
 
   @override
   String get settings_conflict_field_defaultDecoStopSource =>
-      'Deco stop data source';
+      'מקור נתוני עצירות הדקו';
 
   @override
-  String get settings_conflict_field_defaultDiveType => 'Default dive type';
+  String get settings_conflict_field_defaultDiveType => 'סוג צלילה ברירת מחדל';
 
   @override
-  String get settings_conflict_field_defaultGtrSource => 'GTR data source';
+  String get settings_conflict_field_defaultGtrSource => 'מקור נתוני GTR';
 
   @override
   String get settings_conflict_field_defaultIntervalDays =>
-      'Default interval in days';
+      'מרווח ברירת מחדל בימים';
 
   @override
   String get settings_conflict_field_defaultIntervalDives =>
-      'Default interval in dives';
+      'מרווח ברירת מחדל בצלילות';
 
   @override
   String get settings_conflict_field_defaultIntervalHours =>
-      'Default interval in hours';
+      'מרווח ברירת מחדל בשעות';
 
   @override
-  String get settings_conflict_field_defaultNdlSource => 'NDL data source';
+  String get settings_conflict_field_defaultNdlSource => 'מקור נתוני NDL';
 
   @override
   String get settings_conflict_field_defaultPlannerWaterType =>
-      'Default planner water type';
+      'סוג מים ברירת מחדל בתכנון';
 
   @override
   String get settings_conflict_field_defaultRightAxisMetric =>
-      'Profile right axis';
+      'הציר הימני של הפרופיל';
 
   @override
   String get settings_conflict_field_defaultShowAscentRateLine =>
-      'Profile shows ascent rate';
+      'הפרופיל מציג קצב עלייה';
 
   @override
-  String get settings_conflict_field_defaultShowCns => 'Profile shows CNS';
+  String get settings_conflict_field_defaultShowCns => 'הפרופיל מציג CNS';
 
   @override
   String get settings_conflict_field_defaultShowEstimatedTankPressure =>
-      'Profile shows estimated tank pressure';
+      'הפרופיל מציג לחץ בלון משוער';
 
   @override
   String get settings_conflict_field_defaultShowEvents =>
-      'Profile shows events';
+      'הפרופיל מציג אירועים';
 
   @override
   String get settings_conflict_field_defaultShowGasDensity =>
-      'Profile shows gas density';
+      'הפרופיל מציג צפיפות גז';
 
   @override
   String get settings_conflict_field_defaultShowGasSwitchMarkers =>
-      'Profile shows gas switches';
+      'הפרופיל מציג החלפות גז';
 
   @override
   String get settings_conflict_field_defaultShowGasTimeline =>
-      'Profile shows gas timeline';
+      'הפרופיל מציג ציר זמן של גזים';
 
   @override
-  String get settings_conflict_field_defaultShowGf =>
-      'Profile shows gradient factor';
+  String get settings_conflict_field_defaultShowGf => 'הפרופיל מציג מקדם שיפוע';
 
   @override
-  String get settings_conflict_field_defaultShowGtr => 'Profile shows GTR';
+  String get settings_conflict_field_defaultShowGtr => 'הפרופיל מציג GTR';
 
   @override
   String get settings_conflict_field_defaultShowHeartRate =>
-      'Profile shows heart rate';
+      'הפרופיל מציג דופק';
 
   @override
   String get settings_conflict_field_defaultShowMeanDepth =>
-      'Profile shows mean depth';
+      'הפרופיל מציג עומק ממוצע';
 
   @override
   String get settings_conflict_field_defaultShowO2CellMv =>
-      'Profile shows O2 cell millivolts';
+      'הפרופיל מציג מיליוולט של תאי O2';
 
   @override
-  String get settings_conflict_field_defaultShowOtu => 'Profile shows OTU';
+  String get settings_conflict_field_defaultShowOtu => 'הפרופיל מציג OTU';
 
   @override
   String get settings_conflict_field_defaultShowPhotoMarkers =>
-      'Profile shows photos';
+      'הפרופיל מציג תמונות';
 
   @override
-  String get settings_conflict_field_defaultShowPpHe => 'Profile shows ppHe';
+  String get settings_conflict_field_defaultShowPpHe => 'הפרופיל מציג ppHe';
 
   @override
-  String get settings_conflict_field_defaultShowPpN2 => 'Profile shows ppN2';
+  String get settings_conflict_field_defaultShowPpN2 => 'הפרופיל מציג ppN2';
 
   @override
-  String get settings_conflict_field_defaultShowPpO2 => 'Profile shows ppO2';
+  String get settings_conflict_field_defaultShowPpO2 => 'הפרופיל מציג ppO2';
 
   @override
   String get settings_conflict_field_defaultShowPressure =>
-      'Profile shows tank pressure';
+      'הפרופיל מציג לחץ בלון';
 
   @override
-  String get settings_conflict_field_defaultShowSac =>
-      'Profile shows gas consumption';
+  String get settings_conflict_field_defaultShowSac => 'הפרופיל מציג צריכת גז';
 
   @override
   String get settings_conflict_field_defaultShowSurfaceGf =>
-      'Profile shows surface gradient factor';
+      'הפרופיל מציג מקדם שיפוע בפני המים';
 
   @override
   String get settings_conflict_field_defaultShowTemperature =>
-      'Profile shows temperature';
+      'הפרופיל מציג טמפרטורה';
 
   @override
   String get settings_conflict_field_defaultShowTts =>
-      'Profile shows time to surface';
+      'הפרופיל מציג זמן עד פני המים';
 
   @override
   String get settings_conflict_field_defaultStartPressure =>
-      'Default start pressure';
+      'לחץ התחלתי ברירת מחדל';
 
   @override
   String get settings_conflict_field_defaultStartPressureBar =>
-      'Default start pressure';
+      'לחץ התחלתי ברירת מחדל';
 
   @override
-  String get settings_conflict_field_defaultTankPreset => 'Default tank preset';
+  String get settings_conflict_field_defaultTankPreset =>
+      'תבנית בלון ברירת מחדל';
 
   @override
-  String get settings_conflict_field_defaultTankVolume => 'Default tank volume';
+  String get settings_conflict_field_defaultTankVolume => 'נפח בלון ברירת מחדל';
 
   @override
   String get settings_conflict_field_defaultTtsSource =>
-      'Time to surface data source';
+      'מקור נתוני הזמן עד פני המים';
 
   @override
-  String get settings_conflict_field_depth => 'Depth';
+  String get settings_conflict_field_depth => 'עומק';
 
   @override
-  String get settings_conflict_field_depthM => 'Depth';
+  String get settings_conflict_field_depthM => 'עומק';
 
   @override
-  String get settings_conflict_field_depthMeters => 'Depth';
+  String get settings_conflict_field_depthMeters => 'עומק';
 
   @override
-  String get settings_conflict_field_depthUnit => 'Depth unit';
+  String get settings_conflict_field_depthUnit => 'יחידת עומק';
 
   @override
-  String get settings_conflict_field_descentRate => 'Descent rate';
+  String get settings_conflict_field_descentRate => 'קצב ירידה';
 
   @override
-  String get settings_conflict_field_description => 'Description';
+  String get settings_conflict_field_description => 'תיאור';
 
   @override
   String get settings_conflict_field_descriptorModel =>
-      'Dive computer model number';
+      'מספר דגם של מחשב הצלילה';
 
   @override
-  String get settings_conflict_field_descriptorProduct =>
-      'Dive computer product';
+  String get settings_conflict_field_descriptorProduct => 'מוצר מחשב הצלילה';
 
   @override
-  String get settings_conflict_field_descriptorVendor => 'Dive computer maker';
+  String get settings_conflict_field_descriptorVendor => 'יצרן מחשב הצלילה';
 
   @override
-  String get settings_conflict_field_detectorId => 'Check';
+  String get settings_conflict_field_detectorId => 'בדיקה';
 
   @override
-  String get settings_conflict_field_detectorVersion => 'Check version';
+  String get settings_conflict_field_detectorVersion => 'גרסת הבדיקה';
 
   @override
   String get settings_conflict_field_deviationDepthDelta =>
-      'Contingency extra depth';
+      'עומק נוסף למקרה חירום';
 
   @override
   String get settings_conflict_field_deviationTimeMinutes =>
-      'Contingency extra time';
+      'זמן נוסף למקרה חירום';
 
   @override
-  String get settings_conflict_field_deviceName => 'Recorded on';
+  String get settings_conflict_field_deviceName => 'הוקלט ב';
 
   @override
-  String get settings_conflict_field_diluentHe => 'Diluent helium';
+  String get settings_conflict_field_diluentHe => 'הליום במדלל';
 
   @override
-  String get settings_conflict_field_diluentO2 => 'Diluent oxygen';
+  String get settings_conflict_field_diluentO2 => 'חמצן במדלל';
 
   @override
-  String get settings_conflict_field_disembarkLatitude => 'Disembark latitude';
+  String get settings_conflict_field_disembarkLatitude =>
+      'קו רוחב של הירידה מהסירה';
 
   @override
   String get settings_conflict_field_disembarkLongitude =>
-      'Disembark longitude';
+      'קו אורך של הירידה מהסירה';
 
   @override
-  String get settings_conflict_field_disembarkPort => 'Disembark port';
+  String get settings_conflict_field_disembarkPort => 'נמל הירידה';
 
   @override
-  String get settings_conflict_field_dismissedAt => 'Dismissed';
+  String get settings_conflict_field_dismissedAt => 'נדחה';
 
   @override
-  String get settings_conflict_field_displayHint => 'Display hint';
+  String get settings_conflict_field_displayHint => 'רמז תצוגה';
 
   @override
-  String get settings_conflict_field_displayName => 'Display name';
+  String get settings_conflict_field_displayName => 'שם תצוגה';
 
   @override
-  String get settings_conflict_field_distanceM => 'Distance';
+  String get settings_conflict_field_distanceM => 'מרחק';
 
   @override
   String get settings_conflict_field_diveCenterListViewMode =>
-      'Dive center list view';
+      'תצוגת רשימת מרכזי הצלילה';
 
   @override
   String get settings_conflict_field_diveComputerFirmware =>
-      'Dive computer firmware';
+      'קושחת מחשב הצלילה';
 
   @override
   String get settings_conflict_field_diveComputerSerial =>
-      'Dive computer serial number';
+      'מספר סידורי של מחשב הצלילה';
 
   @override
-  String get settings_conflict_field_diveCount => 'Dive count';
+  String get settings_conflict_field_diveCount => 'מספר צלילות';
 
   @override
-  String get settings_conflict_field_diveDetailLayout => 'Dive detail layout';
+  String get settings_conflict_field_diveDetailLayout => 'פריסת פרטי הצלילה';
 
   @override
-  String get settings_conflict_field_diveDetailSections =>
-      'Dive detail sections';
+  String get settings_conflict_field_diveDetailSections => 'מקטעי פרטי הצלילה';
 
   @override
-  String get settings_conflict_field_diveListViewMode => 'Dive list view';
+  String get settings_conflict_field_diveListViewMode => 'תצוגת רשימת הצלילות';
 
   @override
-  String get settings_conflict_field_diveModeOverride =>
-      'Breathing mode for this segment';
+  String get settings_conflict_field_diveModeOverride => 'מצב נשימה בקטע הזה';
 
   @override
-  String get settings_conflict_field_diveOperator => 'Dive operator';
+  String get settings_conflict_field_diveOperator => 'מפעיל צלילה';
 
   @override
-  String get settings_conflict_field_divePlanSegments_type => 'Segment';
+  String get settings_conflict_field_divePlanSegments_type => 'קטע';
 
   @override
-  String get settings_conflict_field_divePlanTanks_role => 'Tank role';
+  String get settings_conflict_field_divePlanTanks_role => 'תפקיד הבלון';
 
   @override
-  String get settings_conflict_field_diveProfileEvents_severity => 'Severity';
+  String get settings_conflict_field_diveProfileEvents_severity => 'חומרה';
 
   @override
-  String get settings_conflict_field_diveProfileEvents_source => 'Source';
+  String get settings_conflict_field_diveProfileEvents_source => 'מקור';
 
   @override
-  String get settings_conflict_field_diveSafetyFindings_severity => 'Severity';
+  String get settings_conflict_field_diveSafetyFindings_severity => 'חומרה';
 
   @override
   String get settings_conflict_field_diversSharingCylinders =>
-      'Divers sharing cylinders';
+      'צוללים שחולקים בלונים';
 
   @override
-  String get settings_conflict_field_divesPerDayTarget =>
-      'Target dives per day';
+  String get settings_conflict_field_divesPerDayTarget => 'יעד צלילות ליום';
 
   @override
-  String get settings_conflict_field_divingSince => 'Diving since';
+  String get settings_conflict_field_divingSince => 'צולל מאז';
 
   @override
-  String get settings_conflict_field_dueDate => 'Due';
+  String get settings_conflict_field_dueDate => 'מועד';
 
   @override
-  String get settings_conflict_field_dueOffsetDays =>
-      'Due days before the trip';
+  String get settings_conflict_field_dueOffsetDays => 'מועד בימים לפני הטיול';
 
   @override
-  String get settings_conflict_field_duration => 'Duration';
+  String get settings_conflict_field_duration => 'משך';
 
   @override
-  String get settings_conflict_field_durationSeconds => 'Duration';
+  String get settings_conflict_field_durationSeconds => 'משך';
 
   @override
-  String get settings_conflict_field_elapsedSeconds => 'Time into dive';
+  String get settings_conflict_field_elapsedSeconds => 'זמן בצלילה';
 
   @override
-  String get settings_conflict_field_embarkLatitude => 'Embark latitude';
+  String get settings_conflict_field_embarkLatitude =>
+      'קו רוחב של העלייה לסירה';
 
   @override
-  String get settings_conflict_field_embarkLongitude => 'Embark longitude';
+  String get settings_conflict_field_embarkLongitude =>
+      'קו אורך של העלייה לסירה';
 
   @override
-  String get settings_conflict_field_embarkPort => 'Embark port';
+  String get settings_conflict_field_embarkPort => 'נמל העלייה';
 
   @override
   String get settings_conflict_field_emergencyContact2Name =>
-      'Second emergency contact';
+      'איש קשר שני לחירום';
 
   @override
   String get settings_conflict_field_emergencyContact2Phone =>
-      'Second emergency contact phone';
+      'טלפון של איש הקשר השני לחירום';
 
   @override
   String get settings_conflict_field_emergencyContact2Relation =>
-      'Second emergency contact relation';
+      'קרבה לאיש הקשר השני לחירום';
 
   @override
-  String get settings_conflict_field_emergencyContactName =>
-      'Emergency contact';
+  String get settings_conflict_field_emergencyContactName => 'איש קשר לחירום';
 
   @override
   String get settings_conflict_field_emergencyContactPhone =>
-      'Emergency contact phone';
+      'טלפון של איש הקשר לחירום';
 
   @override
   String get settings_conflict_field_emergencyContactRelation =>
-      'Emergency contact relation';
+      'קרבה לאיש הקשר לחירום';
 
   @override
-  String get settings_conflict_field_emergencyRegion => 'Emergency region';
+  String get settings_conflict_field_emergencyRegion => 'אזור חירום';
 
   @override
-  String get settings_conflict_field_enabled => 'Enabled';
+  String get settings_conflict_field_enabled => 'מופעל';
 
   @override
-  String get settings_conflict_field_endDepth => 'End depth';
+  String get settings_conflict_field_endDepth => 'עומק סיום';
 
   @override
-  String get settings_conflict_field_endLatitude => 'End latitude';
+  String get settings_conflict_field_endLatitude => 'קו רוחב בסיום';
 
   @override
-  String get settings_conflict_field_endLimit => 'Narcotic depth limit';
+  String get settings_conflict_field_endLimit => 'מגבלת עומק נרקוטי';
 
   @override
-  String get settings_conflict_field_endLongitude => 'End longitude';
+  String get settings_conflict_field_endLongitude => 'קו אורך בסיום';
 
   @override
-  String get settings_conflict_field_endMode => 'Route end';
+  String get settings_conflict_field_endMode => 'סוף המסלול';
 
   @override
-  String get settings_conflict_field_endTime => 'End time';
+  String get settings_conflict_field_endTime => 'שעת סיום';
 
   @override
-  String get settings_conflict_field_endTimestamp => 'Ends at (time into dive)';
+  String get settings_conflict_field_endTimestamp => 'מסתיים ב (זמן בצלילה)';
 
   @override
-  String get settings_conflict_field_engineVersion => 'Analysis version';
+  String get settings_conflict_field_engineVersion => 'גרסת הניתוח';
 
   @override
-  String get settings_conflict_field_entryKey => 'Entry';
+  String get settings_conflict_field_entryKey => 'רשומה';
 
   @override
-  String get settings_conflict_field_entryLatitude => 'Entry latitude';
+  String get settings_conflict_field_entryLatitude => 'קו רוחב בכניסה';
 
   @override
-  String get settings_conflict_field_entryLongitude => 'Entry longitude';
+  String get settings_conflict_field_entryLongitude => 'קו אורך בכניסה';
 
   @override
-  String get settings_conflict_field_entryTime => 'Entry time';
+  String get settings_conflict_field_entryTime => 'שעת כניסה';
 
   @override
-  String get settings_conflict_field_environment => 'Environment';
+  String get settings_conflict_field_environment => 'סביבה';
 
   @override
-  String get settings_conflict_field_equipmentComponents_role => 'Role';
+  String get settings_conflict_field_equipmentComponents_role => 'תפקיד';
 
   @override
-  String get settings_conflict_field_equipmentFindings_severity => 'Severity';
+  String get settings_conflict_field_equipmentFindings_severity => 'חומרה';
 
   @override
   String get settings_conflict_field_equipmentListViewMode =>
-      'Equipment list view';
+      'תצוגת רשימת הציוד';
 
   @override
-  String get settings_conflict_field_equipmentObservations_status => 'Status';
+  String get settings_conflict_field_equipmentObservations_status => 'מצב';
 
   @override
-  String get settings_conflict_field_equipmentOwnershipEvents_kind => 'Event';
+  String get settings_conflict_field_equipmentOwnershipEvents_kind => 'אירוע';
 
   @override
-  String get settings_conflict_field_equipmentSetName => 'Equipment set';
+  String get settings_conflict_field_equipmentSetName => 'ערכת ציוד';
 
   @override
-  String get settings_conflict_field_eventType => 'Event';
+  String get settings_conflict_field_eventType => 'אירוע';
 
   @override
-  String get settings_conflict_field_evidence => 'Evidence';
+  String get settings_conflict_field_evidence => 'ראיה';
 
   @override
   String get settings_conflict_field_evidenceFingerprint =>
-      'Evidence fingerprint';
+      'טביעת אצבע של הראיה';
 
   @override
   String get settings_conflict_field_excludedFromGasStats =>
-      'Left out of gas statistics';
+      'לא נכלל בסטטיסטיקת הגז';
 
   @override
-  String get settings_conflict_field_excludedFromStats =>
-      'Left out of statistics';
+  String get settings_conflict_field_excludedFromStats => 'לא נכלל בסטטיסטיקה';
 
   @override
-  String get settings_conflict_field_exitLatitude => 'Exit latitude';
+  String get settings_conflict_field_exitLatitude => 'קו רוחב ביציאה';
 
   @override
-  String get settings_conflict_field_exitLongitude => 'Exit longitude';
+  String get settings_conflict_field_exitLongitude => 'קו אורך ביציאה';
 
   @override
-  String get settings_conflict_field_exitTime => 'Exit time';
+  String get settings_conflict_field_exitTime => 'שעת יציאה';
 
   @override
-  String get settings_conflict_field_expectedDives => 'Expected dives';
+  String get settings_conflict_field_expectedDives => 'צלילות צפויות';
 
   @override
   String get settings_conflict_field_expectedRuntimeMinutes =>
-      'Expected runtime per dive';
+      'משך צפוי לכל צלילה';
 
   @override
-  String get settings_conflict_field_exposureIntervals => 'Exposure intervals';
+  String get settings_conflict_field_exposureIntervals => 'מרווחי חשיפה';
 
   @override
-  String get settings_conflict_field_fetchedAt => 'Fetched';
+  String get settings_conflict_field_fetchedAt => 'נשלף';
 
   @override
-  String get settings_conflict_field_fieldKey => 'Custom field';
+  String get settings_conflict_field_fieldKey => 'שדה מותאם';
 
   @override
-  String get settings_conflict_field_fieldValue => 'Custom field value';
+  String get settings_conflict_field_fieldValue => 'ערך השדה המותאם';
 
   @override
-  String get settings_conflict_field_fileName => 'File name';
+  String get settings_conflict_field_fileName => 'שם הקובץ';
 
   @override
-  String get settings_conflict_field_filePath => 'File';
+  String get settings_conflict_field_filePath => 'קובץ';
 
   @override
-  String get settings_conflict_field_fileType => 'File type';
+  String get settings_conflict_field_fileType => 'סוג הקובץ';
 
   @override
-  String get settings_conflict_field_fillClosesAt => 'Fills close';
+  String get settings_conflict_field_fillClosesAt => 'מילויים עד';
 
   @override
-  String get settings_conflict_field_fillOpensAt => 'Fills open';
+  String get settings_conflict_field_fillOpensAt => 'מילויים מ';
 
   @override
-  String get settings_conflict_field_filledAt => 'Filled';
+  String get settings_conflict_field_filledAt => 'מולא';
 
   @override
-  String get settings_conflict_field_filterJson => 'Filter';
+  String get settings_conflict_field_filterJson => 'מסנן';
 
   @override
-  String get settings_conflict_field_finalAscentRate => 'Final ascent rate';
+  String get settings_conflict_field_finalAscentRate => 'קצב עלייה אחרון';
 
   @override
-  String get settings_conflict_field_firmwareVersion => 'Firmware';
+  String get settings_conflict_field_firmwareVersion => 'קושחה';
 
   @override
-  String get settings_conflict_field_firstDepth => 'First sample depth';
+  String get settings_conflict_field_firstDepth => 'עומק הדגימה הראשונה';
 
   @override
-  String get settings_conflict_field_format => 'Format';
+  String get settings_conflict_field_format => 'פורמט';
 
   @override
   String get settings_conflict_field_gasConsumptionDisplay =>
-      'Gas consumption shown as';
+      'צריכת גז מוצגת כ';
 
   @override
-  String get settings_conflict_field_gasHe => 'Helium';
+  String get settings_conflict_field_gasHe => 'הליום';
 
   @override
-  String get settings_conflict_field_gasO2 => 'Oxygen';
+  String get settings_conflict_field_gasO2 => 'חמצן';
 
   @override
-  String get settings_conflict_field_gasSwitchStopSeconds => 'Gas switch stop';
+  String get settings_conflict_field_gasSwitchStopSeconds => 'עצירת החלפת גז';
 
   @override
-  String get settings_conflict_field_gearType => 'Gear type';
+  String get settings_conflict_field_gearType => 'סוג ציוד';
 
   @override
   String get settings_conflict_field_groupTripsInDiveList =>
-      'Trips grouped in the dive list';
+      'טיולים מקובצים ברשימת הצלילות';
 
   @override
-  String get settings_conflict_field_gtrReservePressure =>
-      'GTR reserve pressure';
+  String get settings_conflict_field_gtrReservePressure => 'לחץ עתודה ל-GTR';
 
   @override
-  String get settings_conflict_field_hasDecoStop => 'Has a deco stop';
+  String get settings_conflict_field_hasDecoStop => 'עם עצירת דקו';
 
   @override
-  String get settings_conflict_field_hasDecoType => 'Has deco data';
+  String get settings_conflict_field_hasDecoType => 'עם נתוני דקו';
 
   @override
-  String get settings_conflict_field_hasPositiveCeiling => 'Has a ceiling';
+  String get settings_conflict_field_hasPositiveCeiling => 'עם תקרה';
 
   @override
-  String get settings_conflict_field_hePercent => 'Helium';
+  String get settings_conflict_field_hePercent => 'הליום';
 
   @override
-  String get settings_conflict_field_headingDeg => 'Heading in degrees';
+  String get settings_conflict_field_headingDeg => 'כיוון במעלות';
 
   @override
-  String get settings_conflict_field_headingOffsetDeg =>
-      'Heading correction in degrees';
+  String get settings_conflict_field_headingOffsetDeg => 'תיקון כיוון במעלות';
 
   @override
-  String get settings_conflict_field_height => 'Height in pixels';
+  String get settings_conflict_field_height => 'גובה בפיקסלים';
 
   @override
-  String get settings_conflict_field_heightCm => 'Height';
+  String get settings_conflict_field_heightCm => 'גובה';
 
   @override
-  String get settings_conflict_field_heightMeters => 'Tide height';
+  String get settings_conflict_field_heightMeters => 'גובה הגאות';
 
   @override
-  String get settings_conflict_field_hiddenChamberIds => 'Hidden chambers';
+  String get settings_conflict_field_hiddenChamberIds => 'תאי לחץ מוסתרים';
 
   @override
   String get settings_conflict_field_hiddenTankPresetIds =>
-      'Hidden tank presets';
+      'תבניות בלון מוסתרות';
 
   @override
-  String get settings_conflict_field_highO2ThresholdPercent =>
-      'High oxygen threshold';
+  String get settings_conflict_field_highO2ThresholdPercent => 'סף חמצן גבוה';
 
   @override
-  String get settings_conflict_field_highTideHeight => 'High tide height';
+  String get settings_conflict_field_highTideHeight => 'גובה הגאות';
 
   @override
-  String get settings_conflict_field_highTideTime => 'High tide';
+  String get settings_conflict_field_highTideTime => 'גאות';
 
   @override
-  String get settings_conflict_field_imageData => 'Image';
+  String get settings_conflict_field_imageData => 'תמונה';
 
   @override
-  String get settings_conflict_field_importId => 'Import ID';
+  String get settings_conflict_field_importId => 'מזהה ייבוא';
 
   @override
-  String get settings_conflict_field_importVersion => 'Import version';
+  String get settings_conflict_field_importVersion => 'גרסת ייבוא';
 
   @override
-  String get settings_conflict_field_importedAt => 'Imported';
+  String get settings_conflict_field_importedAt => 'יובא';
 
   @override
-  String get settings_conflict_field_incidents_category => 'Category';
+  String get settings_conflict_field_incidents_category => 'קטגוריה';
 
   @override
-  String get settings_conflict_field_incidents_severity => 'Severity';
+  String get settings_conflict_field_incidents_severity => 'חומרה';
 
   @override
-  String get settings_conflict_field_inputsHash => 'Settings used';
+  String get settings_conflict_field_inputsHash => 'הגדרות בשימוש';
 
   @override
   String get settings_conflict_field_insuranceEmergencyPhone =>
-      'Insurance emergency line';
+      'קו חירום של הביטוח';
 
   @override
-  String get settings_conflict_field_insuranceExpiryDate => 'Insurance expiry';
+  String get settings_conflict_field_insuranceExpiryDate => 'תפוגת הביטוח';
 
   @override
-  String get settings_conflict_field_insurancePhone => 'Insurance phone';
+  String get settings_conflict_field_insurancePhone => 'טלפון הביטוח';
 
   @override
-  String get settings_conflict_field_insurancePolicyNumber =>
-      'Insurance policy number';
+  String get settings_conflict_field_insurancePolicyNumber => 'מספר פוליסה';
 
   @override
-  String get settings_conflict_field_insuranceProvider => 'Insurance provider';
+  String get settings_conflict_field_insuranceProvider => 'חברת ביטוח';
 
   @override
   String get settings_conflict_field_intermediateAscentRate =>
-      'Ascent rate between deep stops';
+      'קצב עלייה בין עצירות עמוקות';
 
   @override
-  String get settings_conflict_field_intervalDays => 'Interval in days';
+  String get settings_conflict_field_intervalDays => 'מרווח בימים';
 
   @override
-  String get settings_conflict_field_intervalDives => 'Interval in dives';
+  String get settings_conflict_field_intervalDives => 'מרווח בצלילות';
 
   @override
-  String get settings_conflict_field_intervalHours => 'Interval in hours';
+  String get settings_conflict_field_intervalHours => 'מרווח בשעות';
 
   @override
-  String get settings_conflict_field_isBuiltIn => 'Built in';
+  String get settings_conflict_field_isBuiltIn => 'מובנה';
 
   @override
-  String get settings_conflict_field_isCustom => 'Custom';
+  String get settings_conflict_field_isCustom => 'מותאם';
 
   @override
-  String get settings_conflict_field_isDefault => 'Default';
+  String get settings_conflict_field_isDefault => 'ברירת מחדל';
 
   @override
-  String get settings_conflict_field_isDone => 'Done';
+  String get settings_conflict_field_isDone => 'בוצע';
 
   @override
-  String get settings_conflict_field_isOrphaned => 'File missing';
+  String get settings_conflict_field_isOrphaned => 'הקובץ חסר';
 
   @override
-  String get settings_conflict_field_isPackage => 'Part of a package';
+  String get settings_conflict_field_isPackage => 'חלק מחבילה';
 
   @override
-  String get settings_conflict_field_isPlanned => 'Planned dive';
+  String get settings_conflict_field_isPlanned => 'צלילה מתוכננת';
 
   @override
-  String get settings_conflict_field_isPrimary => 'Primary';
+  String get settings_conflict_field_isPrimary => 'ראשי';
 
   @override
-  String get settings_conflict_field_isRequired => 'Required';
+  String get settings_conflict_field_isRequired => 'חובה';
 
   @override
-  String get settings_conflict_field_isShared => 'Shared';
+  String get settings_conflict_field_isShared => 'משותף';
 
   @override
-  String get settings_conflict_field_isTravelGas => 'Travel gas';
+  String get settings_conflict_field_isTravelGas => 'גז מעבר';
 
   @override
-  String get settings_conflict_field_issueTags => 'Issues';
+  String get settings_conflict_field_issueTags => 'בעיות';
 
   @override
-  String get settings_conflict_field_itemType => 'Item type';
+  String get settings_conflict_field_itemType => 'סוג הפריט';
 
   @override
-  String get settings_conflict_field_label => 'Label';
+  String get settings_conflict_field_label => 'תווית';
 
   @override
-  String get settings_conflict_field_lastDepth => 'Last sample depth';
+  String get settings_conflict_field_lastDepth => 'עומק הדגימה האחרונה';
 
   @override
   String get settings_conflict_field_lastDiveFingerprint =>
-      'Last downloaded dive';
+      'הצלילה האחרונה שהורדה';
 
   @override
-  String get settings_conflict_field_lastDownloadTimestamp => 'Last download';
+  String get settings_conflict_field_lastDownloadTimestamp => 'הורדה אחרונה';
 
   @override
-  String get settings_conflict_field_lastParsedAt => 'Last read';
+  String get settings_conflict_field_lastParsedAt => 'קריאה אחרונה';
 
   @override
-  String get settings_conflict_field_lastStopDepth => 'Last stop depth';
+  String get settings_conflict_field_lastStopDepth => 'עומק העצירה האחרונה';
 
   @override
-  String get settings_conflict_field_lastSweepAt => 'Last checked';
+  String get settings_conflict_field_lastSweepAt => 'בדיקה אחרונה';
 
   @override
-  String get settings_conflict_field_lastVerifiedAt => 'Last verified';
+  String get settings_conflict_field_lastVerifiedAt => 'אימות אחרון';
 
   @override
-  String get settings_conflict_field_latitude => 'Latitude';
+  String get settings_conflict_field_latitude => 'קו רוחב';
 
   @override
-  String get settings_conflict_field_leadAdjustmentKg => 'Extra lead needed';
+  String get settings_conflict_field_leadAdjustmentKg =>
+      'משקולות נוספות שנדרשות';
 
   @override
-  String get settings_conflict_field_lessonsLearned => 'Lessons learned';
+  String get settings_conflict_field_lessonsLearned => 'לקחים';
 
   @override
   String get settings_conflict_field_libdivecomputerVersion =>
-      'libdivecomputer version';
+      'גרסת libdivecomputer';
 
   @override
-  String get settings_conflict_field_linkMode => 'Linked';
+  String get settings_conflict_field_linkMode => 'מקושר';
 
   @override
-  String get settings_conflict_field_localPath => 'Local file';
+  String get settings_conflict_field_localPath => 'קובץ מקומי';
 
   @override
-  String get settings_conflict_field_locale => 'Language';
+  String get settings_conflict_field_locale => 'שפה';
 
   @override
-  String get settings_conflict_field_longitude => 'Longitude';
+  String get settings_conflict_field_longitude => 'קו אורך';
 
   @override
-  String get settings_conflict_field_loopO2Avg => 'Loop ppO2 average';
+  String get settings_conflict_field_loopO2Avg => 'ppO2 ממוצע בלולאה';
 
   @override
-  String get settings_conflict_field_loopO2Max => 'Loop ppO2 maximum';
+  String get settings_conflict_field_loopO2Max => 'ppO2 מרבי בלולאה';
 
   @override
-  String get settings_conflict_field_loopO2Min => 'Loop ppO2 minimum';
+  String get settings_conflict_field_loopO2Min => 'ppO2 מזערי בלולאה';
 
   @override
-  String get settings_conflict_field_loopVolume => 'Loop volume';
+  String get settings_conflict_field_loopVolume => 'נפח הלולאה';
 
   @override
-  String get settings_conflict_field_lowTideHeight => 'Low tide height';
+  String get settings_conflict_field_lowTideHeight => 'גובה השפל';
 
   @override
-  String get settings_conflict_field_lowTideTime => 'Low tide';
+  String get settings_conflict_field_lowTideTime => 'שפל';
 
   @override
-  String get settings_conflict_field_manifestUrl => 'Feed address';
+  String get settings_conflict_field_manifestUrl => 'כתובת הפיד';
 
   @override
   String get settings_conflict_field_manualElapsedSeconds =>
-      'Time into dive, set by hand';
+      'זמן בצלילה, נקבע ידנית';
 
   @override
-  String get settings_conflict_field_manufacturer => 'Manufacturer';
+  String get settings_conflict_field_manufacturer => 'יצרן';
 
   @override
-  String get settings_conflict_field_matchConfidence => 'Match';
+  String get settings_conflict_field_matchConfidence => 'התאמה';
 
   @override
-  String get settings_conflict_field_material => 'Tank material';
+  String get settings_conflict_field_material => 'חומר הבלון';
 
   @override
-  String get settings_conflict_field_maxAscentRate => 'Maximum ascent rate';
+  String get settings_conflict_field_maxAscentRate => 'קצב עלייה מרבי';
 
   @override
-  String get settings_conflict_field_maxDescentRate => 'Maximum descent rate';
+  String get settings_conflict_field_maxDescentRate => 'קצב ירידה מרבי';
 
   @override
-  String get settings_conflict_field_maxSpeed => 'Top speed';
+  String get settings_conflict_field_maxSpeed => 'מהירות מרבית';
 
   @override
-  String get settings_conflict_field_measuredAt => 'Measured';
+  String get settings_conflict_field_measuredAt => 'נמדד';
 
   @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
-      'Medical clearance expiry';
+      'תפוגת האישור הרפואי';
 
   @override
-  String get settings_conflict_field_medicalNotes => 'Medical notes';
+  String get settings_conflict_field_medicalNotes => 'הערות רפואיות';
 
   @override
-  String get settings_conflict_field_medications => 'Medications';
+  String get settings_conflict_field_medications => 'תרופות';
 
   @override
   String get settings_conflict_field_mergeSourceSlot =>
-      'Position among merged sources';
+      'מיקום בין המקורות שמוזגו';
 
   @override
-  String get settings_conflict_field_mode => 'Breathing mode';
+  String get settings_conflict_field_mode => 'מצב נשימה';
 
   @override
-  String get settings_conflict_field_name => 'Name';
+  String get settings_conflict_field_name => 'שם';
 
   @override
-  String get settings_conflict_field_narrative => 'What happened';
+  String get settings_conflict_field_narrative => 'מה קרה';
 
   @override
-  String get settings_conflict_field_noFlyPreset => 'No-fly rule';
+  String get settings_conflict_field_noFlyPreset => 'כלל איסור טיסה';
 
   @override
-  String get settings_conflict_field_note => 'Note';
+  String get settings_conflict_field_note => 'הערה';
 
   @override
-  String get settings_conflict_field_notedAt => 'Noted';
+  String get settings_conflict_field_notedAt => 'נרשם';
 
   @override
-  String get settings_conflict_field_notificationsEnabled => 'Notifications';
+  String get settings_conflict_field_notificationsEnabled => 'התראות';
 
   @override
-  String get settings_conflict_field_o2Narcotic => 'Oxygen counted as narcotic';
+  String get settings_conflict_field_o2Narcotic => 'חמצן נחשב נרקוטי';
 
   @override
-  String get settings_conflict_field_o2Percent => 'Oxygen';
+  String get settings_conflict_field_o2Percent => 'חמצן';
 
   @override
-  String get settings_conflict_field_observedAt => 'Observed';
+  String get settings_conflict_field_observedAt => 'נצפה';
 
   @override
-  String get settings_conflict_field_occurredAt => 'Occurred';
+  String get settings_conflict_field_occurredAt => 'התרחש';
 
   @override
-  String get settings_conflict_field_operatorName => 'Operator';
+  String get settings_conflict_field_operatorName => 'מפעיל';
 
   @override
-  String get settings_conflict_field_originalFilename => 'Original file name';
+  String get settings_conflict_field_originalFilename => 'שם הקובץ המקורי';
 
   @override
-  String get settings_conflict_field_outingId => 'Outing';
+  String get settings_conflict_field_outingId => 'יציאה';
 
   @override
-  String get settings_conflict_field_overdueServices => 'Overdue services';
+  String get settings_conflict_field_overdueServices => 'טיפולים שעבר מועדם';
 
   @override
-  String get settings_conflict_field_params => 'Details';
+  String get settings_conflict_field_params => 'פרטים';
 
   @override
-  String get settings_conflict_field_parkingInfo => 'Parking';
+  String get settings_conflict_field_parkingInfo => 'חניה';
 
   @override
-  String get settings_conflict_field_passportId => 'Cylinder passport';
+  String get settings_conflict_field_passportId => 'דרכון הבלון';
 
   @override
-  String get settings_conflict_field_phone => 'Phone';
+  String get settings_conflict_field_phone => 'טלפון';
 
   @override
-  String get settings_conflict_field_photo => 'Photo';
+  String get settings_conflict_field_photo => 'תמונה';
 
   @override
-  String get settings_conflict_field_photoBack => 'Card back';
+  String get settings_conflict_field_photoBack => 'גב הכרטיס';
 
   @override
-  String get settings_conflict_field_photoBackPath => 'Card back';
+  String get settings_conflict_field_photoBackPath => 'גב הכרטיס';
 
   @override
-  String get settings_conflict_field_photoFront => 'Card front';
+  String get settings_conflict_field_photoFront => 'חזית הכרטיס';
 
   @override
-  String get settings_conflict_field_photoFrontPath => 'Card front';
+  String get settings_conflict_field_photoFrontPath => 'חזית הכרטיס';
 
   @override
-  String get settings_conflict_field_photoPath => 'Photo';
+  String get settings_conflict_field_photoPath => 'תמונה';
 
   @override
-  String get settings_conflict_field_placeNameLanguage => 'Place name language';
+  String get settings_conflict_field_placeNameLanguage => 'שפת שמות המקומות';
 
   @override
-  String get settings_conflict_field_plannedDives => 'Planned dives';
+  String get settings_conflict_field_plannedDives => 'צלילות מתוכננות';
 
   @override
-  String get settings_conflict_field_plannedWeightKg => 'Planned weight';
+  String get settings_conflict_field_plannedWeightKg => 'משקולות מתוכננות';
 
   @override
   String get settings_conflict_field_plannedWeightPlacement =>
-      'Planned weight placement';
+      'פיזור משקולות מתוכנן';
 
   @override
-  String get settings_conflict_field_platformAssetId => 'Photo library item';
+  String get settings_conflict_field_platformAssetId => 'פריט בספריית התמונות';
 
   @override
-  String get settings_conflict_field_pointCount => 'Number of points';
+  String get settings_conflict_field_pointCount => 'מספר נקודות';
 
   @override
-  String get settings_conflict_field_points => 'Track points';
+  String get settings_conflict_field_points => 'נקודות המסלול';
 
   @override
-  String get settings_conflict_field_pollIntervalSeconds => 'Check every';
+  String get settings_conflict_field_pollIntervalSeconds => 'בדיקה כל';
 
   @override
-  String get settings_conflict_field_portName => 'Port';
+  String get settings_conflict_field_portName => 'נמל';
 
   @override
-  String get settings_conflict_field_ppO2Bottom => 'Bottom ppO2';
+  String get settings_conflict_field_ppO2Bottom => 'ppO2 בקרקעית';
 
   @override
-  String get settings_conflict_field_ppO2Deco => 'Deco ppO2';
+  String get settings_conflict_field_ppO2Deco => 'ppO2 בדקו';
 
   @override
-  String get settings_conflict_field_ppO2MaxDeco => 'Maximum deco ppO2';
+  String get settings_conflict_field_ppO2MaxDeco => 'ppO2 מרבי בדקו';
 
   @override
-  String get settings_conflict_field_ppO2MaxWorking => 'Maximum working ppO2';
+  String get settings_conflict_field_ppO2MaxWorking => 'ppO2 עבודה מרבי';
 
   @override
   String get settings_conflict_field_preDiveChecklistTemplates_category =>
-      'Category';
+      'קטגוריה';
 
   @override
-  String get settings_conflict_field_preDiveSessions_status => 'Status';
+  String get settings_conflict_field_preDiveSessions_status => 'מצב';
 
   @override
-  String get settings_conflict_field_presetJson => 'Preset';
+  String get settings_conflict_field_presetJson => 'הגדרה קבועה';
 
   @override
-  String get settings_conflict_field_presetName => 'Tank preset';
+  String get settings_conflict_field_presetName => 'תבנית בלון';
 
   @override
-  String get settings_conflict_field_pressure => 'Pressure';
+  String get settings_conflict_field_pressure => 'לחץ';
 
   @override
-  String get settings_conflict_field_pressureBar => 'Pressure';
+  String get settings_conflict_field_pressureBar => 'לחץ';
 
   @override
-  String get settings_conflict_field_pressureUnit => 'Pressure unit';
+  String get settings_conflict_field_pressureUnit => 'יחידת לחץ';
 
   @override
-  String get settings_conflict_field_priorDiveCount => 'Dives before this log';
+  String get settings_conflict_field_priorDiveCount => 'צלילות לפני היומן הזה';
 
   @override
   String get settings_conflict_field_priorDiveTimeSeconds =>
-      'Dive time before this log';
+      'זמן צלילה לפני היומן הזה';
 
   @override
   String get settings_conflict_field_problemSolvingMinutes =>
-      'Problem-solving time';
+      'זמן לפתרון בעיות';
 
   @override
-  String get settings_conflict_field_provider => 'Provider';
+  String get settings_conflict_field_provider => 'ספק';
 
   @override
-  String get settings_conflict_field_providerType => 'Storage provider';
+  String get settings_conflict_field_providerType => 'ספק אחסון';
 
   @override
-  String get settings_conflict_field_purchaseCurrency => 'Purchase currency';
+  String get settings_conflict_field_purchaseCurrency => 'מטבע הרכישה';
 
   @override
-  String get settings_conflict_field_qualityFindings_category => 'Category';
+  String get settings_conflict_field_qualityFindings_category => 'קטגוריה';
 
   @override
-  String get settings_conflict_field_qualityFindings_severity => 'Severity';
+  String get settings_conflict_field_qualityFindings_severity => 'חומרה';
 
   @override
-  String get settings_conflict_field_qualityFindings_status => 'Status';
+  String get settings_conflict_field_qualityFindings_status => 'מצב';
 
   @override
-  String get settings_conflict_field_queryJson => 'Query';
+  String get settings_conflict_field_queryJson => 'שאילתה';
 
   @override
-  String get settings_conflict_field_radiusMeters => 'Radius';
+  String get settings_conflict_field_radiusMeters => 'רדיוס';
 
   @override
-  String get settings_conflict_field_rate => 'Rate';
+  String get settings_conflict_field_rate => 'קצב';
 
   @override
-  String get settings_conflict_field_rateOfChange => 'Rate of change';
+  String get settings_conflict_field_rateOfChange => 'קצב שינוי';
 
   @override
-  String get settings_conflict_field_rawData => 'Raw dive computer data';
+  String get settings_conflict_field_rawData => 'נתונים גולמיים ממחשב הצלילה';
 
   @override
   String get settings_conflict_field_rawFingerprint =>
-      'Dive computer fingerprint';
+      'טביעת אצבע של מחשב הצלילה';
 
   @override
-  String get settings_conflict_field_reminderTime => 'Reminder time';
+  String get settings_conflict_field_reminderTime => 'שעת התזכורת';
 
   @override
-  String get settings_conflict_field_remoteAssetId => 'Remote item';
+  String get settings_conflict_field_remoteAssetId => 'פריט מרוחק';
 
   @override
   String get settings_conflict_field_remoteCompressedUploadedAt =>
-      'Compressed copy uploaded';
+      'עותק דחוס הועלה';
 
   @override
   String get settings_conflict_field_remoteThumbUploadedAt =>
-      'Thumbnail uploaded';
+      'תמונה ממוזערת הועלתה';
 
   @override
-  String get settings_conflict_field_remoteUploadedAt => 'Uploaded';
+  String get settings_conflict_field_remoteUploadedAt => 'הועלה';
 
   @override
-  String get settings_conflict_field_reservePressure => 'Reserve pressure';
+  String get settings_conflict_field_reservePressure => 'לחץ עתודה';
 
   @override
-  String get settings_conflict_field_retainInLibrary => 'Kept in the library';
+  String get settings_conflict_field_retainInLibrary => 'נשמר בספרייה';
 
   @override
-  String get settings_conflict_field_returnFlightAt => 'Return flight';
+  String get settings_conflict_field_returnFlightAt => 'טיסה חזרה';
 
   @override
-  String get settings_conflict_field_reviewedAt => 'Reviewed';
+  String get settings_conflict_field_reviewedAt => 'נבדק';
 
   @override
-  String get settings_conflict_field_roleSource => 'Role set by';
+  String get settings_conflict_field_roleSource => 'התפקיד נקבע על ידי';
 
   @override
-  String get settings_conflict_field_ruleId => 'Rule';
+  String get settings_conflict_field_ruleId => 'כלל';
 
   @override
-  String get settings_conflict_field_sacBottom => 'Bottom gas consumption';
+  String get settings_conflict_field_sacBottom => 'צריכת גז בקרקעית';
 
   @override
-  String get settings_conflict_field_sacDeco => 'Deco gas consumption';
+  String get settings_conflict_field_sacDeco => 'צריכת גז בדקו';
 
   @override
-  String get settings_conflict_field_sacFactor => 'Gas consumption factor';
+  String get settings_conflict_field_sacFactor => 'מקדם צריכת גז';
 
   @override
-  String get settings_conflict_field_sacStressed => 'Stressed gas consumption';
+  String get settings_conflict_field_sacStressed => 'צריכת גז במצב לחץ';
 
   @override
   String get settings_conflict_field_safetyReviewDisabledRules =>
-      'Turned-off safety checks';
+      'בדיקות בטיחות מושבתות';
 
   @override
-  String get settings_conflict_field_safetyReviewEnabled => 'Safety review';
+  String get settings_conflict_field_safetyReviewEnabled => 'סקירת בטיחות';
 
   @override
-  String get settings_conflict_field_salinityPpt =>
-      'Salinity in parts per thousand';
+  String get settings_conflict_field_salinityPpt => 'מליחות בחלקים לאלף';
 
   @override
-  String get settings_conflict_field_sampleCount => 'Number of samples';
+  String get settings_conflict_field_sampleCount => 'מספר דגימות';
 
   @override
-  String get settings_conflict_field_samples => 'Profile samples';
+  String get settings_conflict_field_samples => 'דגימות הפרופיל';
 
   @override
-  String get settings_conflict_field_scientificName => 'Scientific name';
+  String get settings_conflict_field_scientificName => 'שם מדעי';
 
   @override
-  String get settings_conflict_field_scooterBurnSeconds => 'Scooter burn time';
+  String get settings_conflict_field_scooterBurnSeconds => 'זמן פעולת הסקוטר';
 
   @override
-  String get settings_conflict_field_scooterName => 'Scooter';
+  String get settings_conflict_field_scooterName => 'סקוטר';
 
   @override
-  String get settings_conflict_field_scooterSpeedMps => 'Scooter speed';
+  String get settings_conflict_field_scooterSpeedMps => 'מהירות הסקוטר';
 
   @override
-  String get settings_conflict_field_scrAdditionRatio => 'SCR addition ratio';
+  String get settings_conflict_field_scrAdditionRatio => 'יחס הוספה ב-SCR';
 
   @override
-  String get settings_conflict_field_scrInjectionRate => 'SCR injection rate';
+  String get settings_conflict_field_scrInjectionRate => 'קצב הזרקה ב-SCR';
 
   @override
-  String get settings_conflict_field_scrOrificeSize => 'SCR orifice size';
+  String get settings_conflict_field_scrOrificeSize => 'גודל פתח ה-SCR';
 
   @override
-  String get settings_conflict_field_scrType => 'SCR type';
+  String get settings_conflict_field_scrType => 'סוג SCR';
 
   @override
   String get settings_conflict_field_scrubberDurationMinutes =>
-      'Scrubber duration';
+      'משך פעולת הסודה';
 
   @override
   String get settings_conflict_field_scrubberRemainingMinutes =>
-      'Scrubber time remaining';
+      'משך פעולה שנותר לסודה';
 
   @override
-  String get settings_conflict_field_scrubberType => 'Scrubber type';
+  String get settings_conflict_field_scrubberType => 'סוג הסודה';
 
   @override
-  String get settings_conflict_field_seascapeAppearance =>
-      'Seascape appearance';
+  String get settings_conflict_field_seascapeAppearance => 'מראה הנוף התת-ימי';
 
   @override
   String get settings_conflict_field_seascapeVerticalExaggerationOverrides =>
-      'Seascape height scaling';
+      'קנה מידה אנכי של הנוף התת-ימי';
 
   @override
-  String get settings_conflict_field_section => 'Section';
+  String get settings_conflict_field_section => 'מקטע';
 
   @override
-  String get settings_conflict_field_serviceCategory => 'Service type';
+  String get settings_conflict_field_serviceCategory => 'סוג הטיפול';
 
   @override
-  String get settings_conflict_field_serviceDate => 'Service date';
+  String get settings_conflict_field_serviceDate => 'תאריך הטיפול';
 
   @override
-  String get settings_conflict_field_serviceReminderDays =>
-      'Service reminder days';
+  String get settings_conflict_field_serviceReminderDays => 'ימי תזכורת לטיפול';
 
   @override
-  String get settings_conflict_field_setpointBar => 'Setpoint';
+  String get settings_conflict_field_setpointBar => 'נקודת כיוון';
 
   @override
   String get settings_conflict_field_setpointSwitchDepth =>
-      'Setpoint switch depth';
+      'עומק החלפת נקודת הכיוון';
 
   @override
-  String get settings_conflict_field_settings_key => 'Setting';
+  String get settings_conflict_field_settings_key => 'הגדרה';
 
   @override
-  String get settings_conflict_field_settings_value => 'Value';
+  String get settings_conflict_field_settings_value => 'ערך';
 
   @override
   String get settings_conflict_field_shallowAscentRate =>
-      'Ascent rate between shallow stops';
+      'קצב עלייה בין עצירות רדודות';
 
   @override
-  String get settings_conflict_field_sharedComputerIds =>
-      'Shared with computers';
+  String get settings_conflict_field_sharedComputerIds => 'משותף עם מחשבים';
 
   @override
-  String get settings_conflict_field_shoreSwimM => 'Shore swim';
+  String get settings_conflict_field_shoreSwimM => 'שחייה לחוף';
 
   @override
-  String get settings_conflict_field_shoreWalkM => 'Shore walk';
+  String get settings_conflict_field_shoreWalkM => 'הליכה לחוף';
 
   @override
-  String get settings_conflict_field_shortName => 'Short name';
+  String get settings_conflict_field_shortName => 'שם מקוצר';
 
   @override
-  String get settings_conflict_field_showAscentRateColors =>
-      'Ascent rate colors';
+  String get settings_conflict_field_showAscentRateColors => 'צבעי קצב עלייה';
 
   @override
   String get settings_conflict_field_showCeilingOnProfile =>
-      'Profile shows ceiling';
+      'הפרופיל מציג תקרה';
 
   @override
-  String get settings_conflict_field_showDataSourceBadges =>
-      'Data source badges';
+  String get settings_conflict_field_showDataSourceBadges => 'תגי מקור נתונים';
 
   @override
   String get settings_conflict_field_showDecoStopsOnProfile =>
-      'Profile shows deco stops';
+      'הפרופיל מציג עצירות דקו';
 
   @override
   String get settings_conflict_field_showDepthColoredDiveCards =>
-      'Dive cards colored by depth';
+      'כרטיסי צלילה צבועים לפי עומק';
 
   @override
   String get settings_conflict_field_showDetailsPaneBuddies =>
-      'Details pane for buddies';
+      'חלונית פרטים לשותפים';
 
   @override
   String get settings_conflict_field_showDetailsPaneCertifications =>
-      'Details pane for certifications';
+      'חלונית פרטים להסמכות';
 
   @override
   String get settings_conflict_field_showDetailsPaneCourses =>
-      'Details pane for courses';
+      'חלונית פרטים לקורסים';
 
   @override
   String get settings_conflict_field_showDetailsPaneDiveCenters =>
-      'Details pane for dive centers';
+      'חלונית פרטים למרכזי צלילה';
 
   @override
   String get settings_conflict_field_showDetailsPaneDives =>
-      'Details pane for dives';
+      'חלונית פרטים לצלילות';
 
   @override
   String get settings_conflict_field_showDetailsPaneEquipment =>
-      'Details pane for equipment';
+      'חלונית פרטים לציוד';
 
   @override
   String get settings_conflict_field_showDetailsPaneSites =>
-      'Details pane for sites';
+      'חלונית פרטים לאתרים';
 
   @override
   String get settings_conflict_field_showDetailsPaneTrips =>
-      'Details pane for trips';
+      'חלונית פרטים לטיולים';
 
   @override
-  String get settings_conflict_field_showDiveFigure => 'Diver figure';
+  String get settings_conflict_field_showDiveFigure => 'דמות הצולל';
 
   @override
-  String get settings_conflict_field_showFigure => 'Shown on the diver figure';
+  String get settings_conflict_field_showFigure => 'מוצג על דמות הצולל';
 
   @override
-  String get settings_conflict_field_showInDetailHeader =>
-      'Shown in the dive header';
+  String get settings_conflict_field_showInDetailHeader => 'מוצג בכותרת הצלילה';
 
   @override
-  String get settings_conflict_field_showInListView => 'Shown in the dive list';
+  String get settings_conflict_field_showInListView => 'מוצג ברשימת הצלילות';
 
   @override
   String get settings_conflict_field_showMapBackgroundOnDiveCards =>
-      'Map behind dive cards';
+      'מפה מאחורי כרטיסי הצלילה';
 
   @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>
-      'Map behind site cards';
+      'מפה מאחורי כרטיסי האתרים';
 
   @override
   String get settings_conflict_field_showMaxDepthMarker =>
-      'Profile shows maximum depth';
+      'הפרופיל מציג עומק מרבי';
 
   @override
-  String get settings_conflict_field_showNdlOnProfile => 'Profile shows NDL';
+  String get settings_conflict_field_showNdlOnProfile => 'הפרופיל מציג NDL';
 
   @override
   String get settings_conflict_field_showPressureThresholdMarkers =>
-      'Profile shows pressure thresholds';
+      'הפרופיל מציג ספי לחץ';
 
   @override
   String get settings_conflict_field_showProfilePanelInTableView =>
-      'Profile panel in table view';
+      'חלונית הפרופיל בתצוגת טבלה';
 
   @override
-  String get settings_conflict_field_signatureType => 'Signature type';
+  String get settings_conflict_field_signatureType => 'סוג החתימה';
 
   @override
-  String get settings_conflict_field_signedRecord => 'Signed fill record';
+  String get settings_conflict_field_signedRecord => 'רשומת מילוי חתומה';
 
   @override
-  String get settings_conflict_field_signerName => 'Signed by';
+  String get settings_conflict_field_signerName => 'נחתם על ידי';
 
   @override
-  String get settings_conflict_field_siteDetailLayout => 'Site detail layout';
+  String get settings_conflict_field_siteDetailLayout => 'פריסת פרטי האתר';
 
   @override
-  String get settings_conflict_field_siteDetailSections =>
-      'Site detail sections';
+  String get settings_conflict_field_siteDetailSections => 'מקטעי פרטי האתר';
 
   @override
-  String get settings_conflict_field_siteFeatures_type => 'Feature type';
+  String get settings_conflict_field_siteFeatures_type => 'סוג המאפיין';
 
   @override
-  String get settings_conflict_field_siteListViewMode => 'Site list view';
+  String get settings_conflict_field_siteListViewMode => 'תצוגת רשימת האתרים';
 
   @override
   String get settings_conflict_field_siteSuggestionDismissedAt =>
-      'Site suggestion dismissed';
+      'הצעת האתר נדחתה';
 
   @override
-  String get settings_conflict_field_size => 'Size';
+  String get settings_conflict_field_size => 'מידה';
 
   @override
-  String get settings_conflict_field_sortOrder => 'Sort order';
+  String get settings_conflict_field_sortOrder => 'סדר מיון';
 
   @override
-  String get settings_conflict_field_source => 'Source';
+  String get settings_conflict_field_source => 'מקור';
 
   @override
-  String get settings_conflict_field_sourceDiverKey =>
-      'Diver in the source log';
+  String get settings_conflict_field_sourceDiverKey => 'הצולל ביומן המקור';
 
   @override
-  String get settings_conflict_field_sourceFileFormat => 'Source file format';
+  String get settings_conflict_field_sourceFileFormat => 'פורמט קובץ המקור';
 
   @override
-  String get settings_conflict_field_sourceFileName => 'Source file name';
+  String get settings_conflict_field_sourceFileName => 'שם קובץ המקור';
 
   @override
-  String get settings_conflict_field_sourceFormat => 'Source format';
+  String get settings_conflict_field_sourceFormat => 'פורמט המקור';
 
   @override
-  String get settings_conflict_field_sourceItemId => 'Linked item';
+  String get settings_conflict_field_sourceItemId => 'פריט מקושר';
 
   @override
-  String get settings_conflict_field_sourceRef => 'Source file or device';
+  String get settings_conflict_field_sourceRef => 'קובץ או מכשיר המקור';
 
   @override
   String get settings_conflict_field_sourceTankIndex =>
-      'Tank number in the source log';
+      'מספר הבלון ביומן המקור';
 
   @override
-  String get settings_conflict_field_sourceType => 'Source';
+  String get settings_conflict_field_sourceType => 'מקור';
 
   @override
-  String get settings_conflict_field_sourceUuid => 'Source ID';
+  String get settings_conflict_field_sourceUuid => 'מזהה המקור';
 
   @override
-  String get settings_conflict_field_sourceValueNumber => 'Reference reading';
+  String get settings_conflict_field_sourceValueNumber => 'ערך ייחוס';
 
   @override
-  String get settings_conflict_field_spec => 'Connection map';
+  String get settings_conflict_field_spec => 'מפת חיבורים';
 
   @override
-  String get settings_conflict_field_species_category => 'Category';
+  String get settings_conflict_field_species_category => 'קטגוריה';
 
   @override
-  String get settings_conflict_field_startDateTime => 'Planned start';
+  String get settings_conflict_field_startDateTime => 'התחלה מתוכננת';
 
   @override
-  String get settings_conflict_field_startDepth => 'Start depth';
+  String get settings_conflict_field_startDepth => 'עומק התחלה';
 
   @override
-  String get settings_conflict_field_startTime => 'Start time';
+  String get settings_conflict_field_startTime => 'שעת התחלה';
 
   @override
-  String get settings_conflict_field_startTimestamp =>
-      'Starts at (time into dive)';
+  String get settings_conflict_field_startTimestamp => 'מתחיל ב (זמן בצלילה)';
 
   @override
-  String get settings_conflict_field_startedAt => 'Started';
+  String get settings_conflict_field_startedAt => 'התחיל';
 
   @override
-  String get settings_conflict_field_state => 'State';
+  String get settings_conflict_field_state => 'מצב';
 
   @override
-  String get settings_conflict_field_stationKey => 'Fill station key';
+  String get settings_conflict_field_stationKey => 'מפתח תחנת המילוי';
 
   @override
-  String get settings_conflict_field_stationName => 'Fill station';
+  String get settings_conflict_field_stationName => 'תחנת מילוי';
 
   @override
-  String get settings_conflict_field_stopMinimumsJson => 'Minimum stop times';
+  String get settings_conflict_field_stopMinimumsJson => 'זמני עצירה מזעריים';
 
   @override
-  String get settings_conflict_field_strictOrder => 'Items in a fixed order';
+  String get settings_conflict_field_strictOrder => 'פריטים בסדר קבוע';
 
   @override
-  String get settings_conflict_field_subject => 'Searches';
+  String get settings_conflict_field_subject => 'מחפש ב';
 
   @override
-  String get settings_conflict_field_summaryMaxDepth => 'Planned maximum depth';
+  String get settings_conflict_field_summaryMaxDepth => 'עומק מרבי מתוכנן';
 
   @override
-  String get settings_conflict_field_summaryRuntimeSeconds => 'Planned runtime';
+  String get settings_conflict_field_summaryRuntimeSeconds => 'משך מתוכנן';
 
   @override
   String get settings_conflict_field_summaryTtsSeconds =>
-      'Planned time to surface';
+      'זמן מתוכנן עד פני המים';
 
   @override
-  String get settings_conflict_field_surfaceConditions => 'Surface conditions';
+  String get settings_conflict_field_surfaceConditions => 'תנאים בפני המים';
 
   @override
   String get settings_conflict_field_surfaceSwimLimitM =>
-      'Longest surface swim';
+      'השחייה הארוכה ביותר בפני המים';
 
   @override
-  String get settings_conflict_field_swimSpeedMps => 'Swim speed';
+  String get settings_conflict_field_swimSpeedMps => 'מהירות שחייה';
 
   @override
-  String get settings_conflict_field_takenAt => 'Taken';
+  String get settings_conflict_field_takenAt => 'צולמה';
 
   @override
-  String get settings_conflict_field_tankMaterial => 'Tank material';
+  String get settings_conflict_field_tankMaterial => 'חומר הבלון';
 
   @override
-  String get settings_conflict_field_tankName => 'Tank name';
+  String get settings_conflict_field_tankName => 'שם הבלון';
 
   @override
-  String get settings_conflict_field_tankOrder => 'Tank order';
+  String get settings_conflict_field_tankOrder => 'סדר הבלון';
 
   @override
-  String get settings_conflict_field_tankRole => 'Tank role';
+  String get settings_conflict_field_tankRole => 'תפקיד הבלון';
 
   @override
-  String get settings_conflict_field_targetCount => 'Target';
+  String get settings_conflict_field_targetCount => 'יעד';
 
   @override
-  String get settings_conflict_field_taxonomyClass => 'Taxonomic class';
+  String get settings_conflict_field_taxonomyClass => 'מחלקה טקסונומית';
 
   @override
-  String get settings_conflict_field_temperatureC => 'Temperature';
+  String get settings_conflict_field_temperatureC => 'טמפרטורה';
 
   @override
-  String get settings_conflict_field_temperatureCelsius => 'Temperature';
+  String get settings_conflict_field_temperatureCelsius => 'טמפרטורה';
 
   @override
-  String get settings_conflict_field_temperatureUnit => 'Temperature unit';
+  String get settings_conflict_field_temperatureUnit => 'יחידת טמפרטורה';
 
   @override
-  String get settings_conflict_field_templateName => 'Checklist template';
+  String get settings_conflict_field_templateName => 'תבנית רשימת בדיקה';
 
   @override
-  String get settings_conflict_field_themeMode => 'Theme';
+  String get settings_conflict_field_themeMode => 'ערכת נושא';
 
   @override
-  String get settings_conflict_field_themePreset => 'Color theme';
+  String get settings_conflict_field_themePreset => 'ערכת צבעים';
 
   @override
-  String get settings_conflict_field_thickness => 'Thickness';
+  String get settings_conflict_field_thickness => 'עובי';
 
   @override
-  String get settings_conflict_field_thumbnailGeneratedAt => 'Thumbnail made';
+  String get settings_conflict_field_thumbnailGeneratedAt =>
+      'תמונה ממוזערת נוצרה';
 
   @override
-  String get settings_conflict_field_tideState => 'Tide';
+  String get settings_conflict_field_tideState => 'גאות ושפל';
 
   @override
-  String get settings_conflict_field_timeFormat => 'Time format';
+  String get settings_conflict_field_timeFormat => 'פורמט שעה';
 
   @override
-  String get settings_conflict_field_timeOffsetSeconds => 'Time offset';
+  String get settings_conflict_field_timeOffsetSeconds => 'הפרש זמן';
 
   @override
-  String get settings_conflict_field_timestamp => 'Time into dive';
+  String get settings_conflict_field_timestamp => 'זמן בצלילה';
 
   @override
-  String get settings_conflict_field_timestampOffsetSeconds => 'Time offset';
+  String get settings_conflict_field_timestampOffsetSeconds => 'הפרש זמן';
 
   @override
-  String get settings_conflict_field_tissueColorScheme => 'Tissue colors';
+  String get settings_conflict_field_tissueColorScheme => 'צבעי הרקמות';
 
   @override
-  String get settings_conflict_field_tissueVizMode => 'Tissue chart';
+  String get settings_conflict_field_tissueVizMode => 'תרשים הרקמות';
 
   @override
-  String get settings_conflict_field_title => 'Title';
+  String get settings_conflict_field_title => 'כותרת';
 
   @override
-  String get settings_conflict_field_totalDistance => 'Total distance';
+  String get settings_conflict_field_totalDistance => 'מרחק כולל';
 
   @override
-  String get settings_conflict_field_towBurnFactor => 'Tow burn factor';
+  String get settings_conflict_field_towBurnFactor => 'מקדם צריכה בגרירה';
 
   @override
-  String get settings_conflict_field_towSpeedFactor => 'Tow speed factor';
+  String get settings_conflict_field_towSpeedFactor => 'מקדם מהירות בגרירה';
 
   @override
   String get settings_conflict_field_transmitterSerial =>
-      'Transmitter serial number';
+      'מספר סידורי של המשדר';
 
   @override
-  String get settings_conflict_field_trimEndTime => 'Trimmed end';
+  String get settings_conflict_field_trimEndTime => 'סוף חתוך';
 
   @override
-  String get settings_conflict_field_trimStartTime => 'Trimmed start';
+  String get settings_conflict_field_trimStartTime => 'התחלה חתוכה';
 
   @override
   String get settings_conflict_field_trimTankPressureAtSurfacing =>
-      'Tank pressure trimmed at surfacing';
+      'לחץ הבלון חתוך ביציאה לפני המים';
 
   @override
-  String get settings_conflict_field_tripChecklistItems_category => 'Category';
+  String get settings_conflict_field_tripChecklistItems_category => 'קטגוריה';
 
   @override
-  String get settings_conflict_field_tripCylinderEvents_kind => 'Event';
+  String get settings_conflict_field_tripCylinderEvents_kind => 'אירוע';
 
   @override
-  String get settings_conflict_field_tripListViewMode => 'Trip list view';
+  String get settings_conflict_field_tripListViewMode => 'תצוגת רשימת הטיולים';
 
   @override
   String get settings_conflict_field_tripServiceLeadDays =>
-      'Service warning days before a trip';
+      'אזהרת טיפול בימים לפני טיול';
 
   @override
-  String get settings_conflict_field_trustFraction =>
-      'Trusted share of the route';
+  String get settings_conflict_field_trustFraction => 'החלק האמין של המסלול';
 
   @override
-  String get settings_conflict_field_turnPressureFraction =>
-      'Turn pressure share';
+  String get settings_conflict_field_turnPressureFraction => 'חלק לחץ החזרה';
 
   @override
-  String get settings_conflict_field_turnPressureRule => 'Turn pressure rule';
+  String get settings_conflict_field_turnPressureRule => 'כלל לחץ החזרה';
 
   @override
-  String get settings_conflict_field_tzOffsetMinutes =>
-      'Time zone offset in minutes';
+  String get settings_conflict_field_tzOffsetMinutes => 'הפרש אזור זמן בדקות';
 
   @override
-  String get settings_conflict_field_uploadFactsHlc => 'Upload record';
+  String get settings_conflict_field_uploadFactsHlc => 'יומן העלאה';
 
   @override
-  String get settings_conflict_field_url => 'Address';
+  String get settings_conflict_field_url => 'כתובת';
 
   @override
-  String get settings_conflict_field_usageDuration => 'Time breathed';
+  String get settings_conflict_field_usageDuration => 'זמן נשימה';
 
   @override
   String get settings_conflict_field_useDiveComputerCnsData =>
-      'CNS from the dive computer';
+      'CNS ממחשב הצלילה';
 
   @override
-  String get settings_conflict_field_value => 'Value';
+  String get settings_conflict_field_value => 'ערך';
 
   @override
-  String get settings_conflict_field_valueLabel => 'Value label';
+  String get settings_conflict_field_valueLabel => 'תווית הערך';
 
   @override
-  String get settings_conflict_field_valueMax => 'Highest expected value';
+  String get settings_conflict_field_valueMax => 'הערך הגבוה הצפוי';
 
   @override
-  String get settings_conflict_field_valueMin => 'Lowest expected value';
+  String get settings_conflict_field_valueMin => 'הערך הנמוך הצפוי';
 
   @override
-  String get settings_conflict_field_valueNum => 'Value';
+  String get settings_conflict_field_valueNum => 'ערך';
 
   @override
-  String get settings_conflict_field_valueNumber => 'Reading';
+  String get settings_conflict_field_valueNumber => 'קריאה';
 
   @override
-  String get settings_conflict_field_valueText => 'Value';
+  String get settings_conflict_field_valueText => 'ערך';
 
   @override
-  String get settings_conflict_field_valueUnit => 'Unit';
+  String get settings_conflict_field_valueUnit => 'יחידה';
 
   @override
-  String get settings_conflict_field_verdict => 'Verdict';
+  String get settings_conflict_field_verdict => 'הערכה';
 
   @override
-  String get settings_conflict_field_verifyFactsHlc => 'Verification record';
+  String get settings_conflict_field_verifyFactsHlc => 'יומן אימות';
 
   @override
-  String get settings_conflict_field_vesselName => 'Vessel';
+  String get settings_conflict_field_vesselName => 'ספינה';
 
   @override
-  String get settings_conflict_field_vesselType => 'Vessel type';
+  String get settings_conflict_field_vesselType => 'סוג הספינה';
 
   @override
-  String get settings_conflict_field_viewMode => 'View';
+  String get settings_conflict_field_viewMode => 'תצוגה';
 
   @override
   String get settings_conflict_field_visibilityScaleExcellentM =>
-      'Excellent visibility from';
+      'ראות מצוינת החל מ';
 
   @override
-  String get settings_conflict_field_visibilityScaleGoodM =>
-      'Good visibility from';
+  String get settings_conflict_field_visibilityScaleGoodM => 'ראות טובה החל מ';
 
   @override
   String get settings_conflict_field_visibilityScaleModerateM =>
-      'Moderate visibility from';
+      'ראות בינונית החל מ';
 
   @override
-  String get settings_conflict_field_volume => 'Volume';
+  String get settings_conflict_field_volume => 'נפח';
 
   @override
-  String get settings_conflict_field_volumeL => 'Volume';
+  String get settings_conflict_field_volumeL => 'נפח';
 
   @override
-  String get settings_conflict_field_volumeLiters => 'Volume';
+  String get settings_conflict_field_volumeLiters => 'נפח';
 
   @override
-  String get settings_conflict_field_volumeUnit => 'Volume unit';
+  String get settings_conflict_field_volumeUnit => 'יחידת נפח';
 
   @override
-  String get settings_conflict_field_walkSpeedMps => 'Walking speed';
+  String get settings_conflict_field_walkSpeedMps => 'מהירות הליכה';
 
   @override
-  String get settings_conflict_field_weatherCode => 'Weather code';
+  String get settings_conflict_field_weatherCode => 'קוד מזג אוויר';
 
   @override
-  String get settings_conflict_field_weatherFetchedAt => 'Weather fetched';
+  String get settings_conflict_field_weatherFetchedAt => 'מזג האוויר נשלף';
 
   @override
-  String get settings_conflict_field_weatherSource => 'Weather source';
+  String get settings_conflict_field_weatherSource => 'מקור מזג האוויר';
 
   @override
-  String get settings_conflict_field_weightAmount => 'Weight';
+  String get settings_conflict_field_weightAmount => 'משקולות';
 
   @override
-  String get settings_conflict_field_weightKg => 'Weight';
+  String get settings_conflict_field_weightKg => 'משקל';
 
   @override
-  String get settings_conflict_field_weightType => 'Weight type';
+  String get settings_conflict_field_weightType => 'סוג המשקולות';
 
   @override
-  String get settings_conflict_field_weightUnit => 'Weight unit';
+  String get settings_conflict_field_weightUnit => 'יחידת משקל';
 
   @override
-  String get settings_conflict_field_weightingFeedback => 'Weighting';
+  String get settings_conflict_field_weightingFeedback => 'משקול';
 
   @override
-  String get settings_conflict_field_weightingFeedbackKg =>
-      'Weighting difference';
+  String get settings_conflict_field_weightingFeedbackKg => 'הפרש משקול';
 
   @override
-  String get settings_conflict_field_width => 'Width in pixels';
+  String get settings_conflict_field_width => 'רוחב בפיקסלים';
 
   @override
-  String get settings_conflict_field_windDirection => 'Wind direction';
+  String get settings_conflict_field_windDirection => 'כיוון הרוח';
 
   @override
-  String get settings_conflict_field_workingPressure => 'Working pressure';
+  String get settings_conflict_field_workingPressure => 'לחץ עבודה';
 
   @override
-  String get settings_conflict_field_workingPressureBar => 'Working pressure';
+  String get settings_conflict_field_workingPressureBar => 'לחץ עבודה';
 
   @override
   String get settings_conflict_keepBoth => 'שמור את שניהם';
 
   @override
   String settings_conflict_keepDevice(String device) {
-    return 'Keep $device';
+    return 'שמור את $device';
   }
-
-  @override
-  String get settings_conflict_keepLocal => 'שמור מקומי';
-
-  @override
-  String get settings_conflict_keepRemote => 'שמור מרוחק';
 
   @override
   String settings_conflict_localDeleted(String device) {
-    return '$device deleted this record.';
-  }
-
-  @override
-  String get settings_conflict_localVersion => 'גרסה מקומית';
-
-  @override
-  String settings_conflict_modified(Object time) {
-    return 'שונה: $time';
+    return '$device מחק את הרשומה הזו.';
   }
 
   @override
   String settings_conflict_modifiedBy(String device, String time) {
-    return '$device · modified $time';
+    return '$device · שונה $time';
   }
 
   @override
@@ -21142,22 +21094,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_noConflicts_title => 'אין התנגשויות';
 
   @override
-  String get settings_conflict_noDataAvailable => 'אין נתונים זמינים';
+  String get settings_conflict_notSet => 'לא הוגדר';
 
   @override
-  String get settings_conflict_notSet => 'Not set';
-
-  @override
-  String get settings_conflict_otherDevice => 'Other device';
+  String get settings_conflict_otherDevice => 'מכשיר אחר';
 
   @override
   String get settings_conflict_previous_tooltip => 'ההתנגשות הקודמת';
 
   @override
-  String get settings_conflict_ref_appliedSet => 'Applied from set';
+  String get settings_conflict_ref_appliedSet => 'הוחל מהערכה';
 
   @override
-  String get settings_conflict_ref_attachedThrough => 'Attached through';
+  String get settings_conflict_ref_attachedThrough => 'מחובר דרך';
 
   @override
   String get settings_conflict_ref_buddy => 'שותף';
@@ -21169,7 +21118,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_checklistTemplate => 'תבנית רשימת משימות';
 
   @override
-  String get settings_conflict_ref_component => 'Component';
+  String get settings_conflict_ref_component => 'רכיב';
 
   @override
   String get settings_conflict_ref_connectedAccount => 'חשבון מחובר';
@@ -21199,7 +21148,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'תוכנית צלילה';
 
   @override
-  String get settings_conflict_ref_diveRole => 'Dive role';
+  String get settings_conflict_ref_diveRole => 'תפקיד בצלילה';
 
   @override
   String get settings_conflict_ref_diveSite => 'אתר צלילה';
@@ -21223,7 +21172,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_importedFile => 'קובץ מיובא';
 
   @override
-  String get settings_conflict_ref_installedIn => 'Installed in';
+  String get settings_conflict_ref_installedIn => 'מותקן ב';
 
   @override
   String get settings_conflict_ref_instructor => 'מדריך';
@@ -21256,13 +21205,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_preDiveSession => 'רשימת בדיקות לפני צלילה';
 
   @override
-  String get settings_conflict_ref_regulator => 'Regulator';
+  String get settings_conflict_ref_regulator => 'וסת';
 
   @override
   String get settings_conflict_ref_relatedDive => 'צלילה קשורה';
 
   @override
-  String get settings_conflict_ref_samePerson => 'Same person as';
+  String get settings_conflict_ref_samePerson => 'אותו אדם כמו';
 
   @override
   String get settings_conflict_ref_serviceKind => 'סוג טיפול';
@@ -21289,7 +21238,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_tank => 'בלון';
 
   @override
-  String get settings_conflict_ref_transmitter => 'Transmitter';
+  String get settings_conflict_ref_transmitter => 'משדר';
 
   @override
   String get settings_conflict_ref_trip => 'טיול';
@@ -21298,18 +21247,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_tripCylinder => 'בלון הטיול';
 
   @override
-  String get settings_conflict_ref_weightPreset => 'Weight preset';
+  String get settings_conflict_ref_weightPreset => 'תבנית משקולות';
 
   @override
-  String get settings_conflict_ref_yourRole => 'Your role';
+  String get settings_conflict_ref_yourRole => 'התפקיד שלך';
 
   @override
   String settings_conflict_remoteDeleted(String device) {
-    return '$device deleted this record.';
+    return '$device מחק את הרשומה הזו.';
   }
-
-  @override
-  String get settings_conflict_remoteVersion => 'גרסה מרוחקת';
 
   @override
   String settings_conflict_resolved(int count) {
@@ -21323,44 +21269,45 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_conflict_same => 'Same';
+  String get settings_conflict_same => 'זהה';
 
   @override
   String get settings_conflict_sameContent =>
-      'Both versions have the same content; only the time they were saved differs. Either choice keeps everything.';
+      'לשתי הגרסאות אותו תוכן; רק מועד השמירה שונה. כל בחירה שומרת על הכול.';
 
   @override
   String settings_conflict_sameFields(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count fields are the same',
-      one: '$count field is the same',
+      other: '$count שדות זהים',
+      two: 'שני שדות זהים',
+      one: 'שדה אחד זהה',
     );
     return '$_temp0';
   }
 
   @override
   String get settings_conflict_textDiffHint =>
-      'Highlighted words appear only in that version.';
+      'מילים מודגשות מופיעות רק בגרסה ההיא.';
 
   @override
-  String get settings_conflict_thisDevice => 'This device';
+  String get settings_conflict_thisDevice => 'המכשיר הזה';
 
   @override
   String get settings_conflict_title => 'פתרון התנגשויות';
 
   @override
-  String get enum_tissueVizMode_heatMap => 'Heat map';
+  String get enum_tissueVizMode_heatMap => 'מפת חום';
 
   @override
-  String get enum_tissueVizMode_stackedArea => 'Stacked area';
+  String get enum_tissueVizMode_stackedArea => 'שטחים מוערמים';
 
   @override
-  String get enum_tissueColorScheme_classic => 'Classic';
+  String get enum_tissueColorScheme_classic => 'קלאסי';
 
   @override
-  String get enum_tissueColorScheme_thermal => 'Thermal';
+  String get enum_tissueColorScheme_thermal => 'תרמי';
 
   @override
   String get enum_manifestFormat_atom => 'Atom';
@@ -21372,166 +21319,166 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_manifestFormat_json => 'JSON';
 
   @override
-  String get enum_requirementKind_checklist => 'Checklist';
+  String get enum_requirementKind_checklist => 'רשימת בדיקה';
 
   @override
-  String get enum_requirementKind_dive => 'Dives';
+  String get enum_requirementKind_dive => 'צלילות';
 
   @override
-  String get enum_preDiveSessionStatus_aborted => 'Aborted';
+  String get enum_preDiveSessionStatus_aborted => 'בוטל';
 
   @override
-  String get enum_preDiveSessionStatus_completed => 'Completed';
+  String get enum_preDiveSessionStatus_completed => 'הושלם';
 
   @override
-  String get enum_preDiveSessionStatus_inProgress => 'In progress';
+  String get enum_preDiveSessionStatus_inProgress => 'בתהליך';
 
   @override
-  String get enum_preDiveItemType_cellLinearity => 'Cell linearity';
+  String get enum_preDiveItemType_cellLinearity => 'ליניאריות התאים';
 
   @override
-  String get enum_preDiveItemType_check => 'Check';
+  String get enum_preDiveItemType_check => 'בדיקה';
 
   @override
-  String get enum_preDiveItemType_equipment => 'Equipment';
+  String get enum_preDiveItemType_equipment => 'ציוד';
 
   @override
-  String get enum_preDiveItemType_equipmentSet => 'Equipment set';
+  String get enum_preDiveItemType_equipmentSet => 'ערכת ציוד';
 
   @override
-  String get enum_preDiveItemType_value => 'Value';
+  String get enum_preDiveItemType_value => 'ערך';
 
   @override
-  String get enum_preDiveItemState_done => 'Done';
+  String get enum_preDiveItemState_done => 'בוצע';
 
   @override
-  String get enum_preDiveItemState_flagged => 'Flagged';
+  String get enum_preDiveItemState_flagged => 'מסומן';
 
   @override
-  String get enum_preDiveItemState_pending => 'Pending';
+  String get enum_preDiveItemState_pending => 'ממתין';
 
   @override
-  String get enum_preDiveItemState_skipped => 'Skipped';
+  String get enum_preDiveItemState_skipped => 'דולג';
 
   @override
-  String get enum_planMode_pscr => 'Passive semi-closed rebreather';
+  String get enum_planMode_pscr => 'ריבריד\'ר חצי סגור פסיבי';
 
   @override
-  String get enum_missionEnvironment_openWater => 'Open water';
+  String get enum_missionEnvironment_openWater => 'מים פתוחים';
 
   @override
-  String get enum_missionEnvironment_overhead => 'Overhead';
+  String get enum_missionEnvironment_overhead => 'סביבה עם תקרה';
 
   @override
-  String get enum_ownershipEventKind_shared => 'Shared';
+  String get enum_ownershipEventKind_shared => 'שותף';
 
   @override
-  String get enum_ownershipEventKind_transferred => 'Transferred';
+  String get enum_ownershipEventKind_transferred => 'הועבר';
 
   @override
-  String get enum_ownershipEventKind_unshared => 'Stopped sharing';
+  String get enum_ownershipEventKind_unshared => 'השיתוף הופסק';
 
   @override
-  String get enum_fillSource_file => 'File';
+  String get enum_fillSource_file => 'קובץ';
 
   @override
-  String get enum_fillSource_issued => 'Issued by the fill station';
+  String get enum_fillSource_issued => 'הונפק על ידי תחנת המילוי';
 
   @override
-  String get enum_fillSource_link => 'Link';
+  String get enum_fillSource_link => 'קישור';
 
   @override
-  String get enum_fillSource_manual => 'Entered by hand';
+  String get enum_fillSource_manual => 'הוזן ידנית';
 
   @override
-  String get enum_fillSource_nfc => 'NFC tag';
+  String get enum_fillSource_nfc => 'תג NFC';
 
   @override
-  String get enum_fillSource_qr => 'QR code';
+  String get enum_fillSource_qr => 'קוד QR';
 
   @override
-  String get enum_tripCylinderEventKind_adjustment => 'Adjustment';
+  String get enum_tripCylinderEventKind_adjustment => 'תיקון';
 
   @override
-  String get enum_tripCylinderEventKind_fill => 'Fill';
+  String get enum_tripCylinderEventKind_fill => 'מילוי';
 
   @override
-  String get enum_weatherSource_manual => 'Manual';
+  String get enum_weatherSource_manual => 'ידני';
 
   @override
   String get enum_weatherSource_openMeteo => 'Open-Meteo';
 
   @override
-  String get enum_tankRoleSource_transmitterName => 'Transmitter name';
+  String get enum_tankRoleSource_transmitterName => 'שם המשדר';
 
   @override
-  String get enum_safetySeverity_caution => 'Caution';
+  String get enum_safetySeverity_caution => 'זהירות';
 
   @override
-  String get enum_safetySeverity_info => 'Info';
+  String get enum_safetySeverity_info => 'מידע';
 
   @override
-  String get enum_safetySeverity_significant => 'Significant';
+  String get enum_safetySeverity_significant => 'משמעותי';
 
   @override
-  String get enum_qualityStatus_dismissed => 'Dismissed';
+  String get enum_qualityStatus_dismissed => 'נדחה';
 
   @override
-  String get enum_qualityStatus_open => 'Open';
+  String get enum_qualityStatus_open => 'פתוח';
 
   @override
-  String get enum_qualityStatus_resolved => 'Resolved';
+  String get enum_qualityStatus_resolved => 'נפתר';
 
   @override
-  String get enum_qualitySeverity_critical => 'Critical';
+  String get enum_qualitySeverity_critical => 'קריטי';
 
   @override
-  String get enum_qualitySeverity_info => 'Info';
+  String get enum_qualitySeverity_info => 'מידע';
 
   @override
-  String get enum_qualitySeverity_warning => 'Warning';
+  String get enum_qualitySeverity_warning => 'אזהרה';
 
   @override
-  String get enum_qualityCategory_duplicate => 'Duplicate';
+  String get enum_qualityCategory_duplicate => 'כפילות';
 
   @override
-  String get enum_qualityCategory_gas => 'Gas';
+  String get enum_qualityCategory_gas => 'גז';
 
   @override
-  String get enum_qualityCategory_pressure => 'Pressure';
+  String get enum_qualityCategory_pressure => 'לחץ';
 
   @override
-  String get enum_qualityCategory_profile => 'Profile';
+  String get enum_qualityCategory_profile => 'פרופיל';
 
   @override
-  String get enum_qualityCategory_source => 'Source';
+  String get enum_qualityCategory_source => 'מקור';
 
   @override
-  String get enum_qualityCategory_tank => 'Tank';
+  String get enum_qualityCategory_tank => 'בלון';
 
   @override
-  String get enum_qualityCategory_temperature => 'Temperature';
+  String get enum_qualityCategory_temperature => 'טמפרטורה';
 
   @override
-  String get enum_qualityCategory_time => 'Time';
+  String get enum_qualityCategory_time => 'זמן';
 
   @override
-  String get enum_eventSource_computed => 'Calculated';
+  String get enum_eventSource_computed => 'מחושב';
 
   @override
-  String get enum_eventSource_imported => 'Imported';
+  String get enum_eventSource_imported => 'מיובא';
 
   @override
-  String get enum_eventSource_user => 'Added by you';
+  String get enum_eventSource_user => 'נוסף על ידך';
 
   @override
   String settings_conflict_whatDiffers(int count) {
-    return 'What differs ($count)';
+    return 'מה שונה ($count)';
   }
 
   @override
   String get settings_conflict_whitespaceOnly =>
-      'Only spacing or line breaks differ.';
+      'רק רווחים או שבירות שורה שונים.';
 
   @override
   String get settings_data_appDefaultLocation =>

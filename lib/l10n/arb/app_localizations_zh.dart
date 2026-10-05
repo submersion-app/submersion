@@ -11270,7 +11270,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_eventSeverity_alert => '警报';
 
   @override
-  String get enum_eventSeverity_info => 'Info';
+  String get enum_eventSeverity_info => '信息';
 
   @override
   String get enum_eventSeverity_warning => '警告';
@@ -18645,13 +18645,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_cancel => '取消';
 
   @override
-  String get settings_conflict_changed => 'Changed';
+  String get settings_conflict_changed => '已更改';
 
   @override
-  String get settings_conflict_chooseResolution => '选择解决方案';
-
-  @override
-  String get settings_conflict_chooseVersion => 'Choose which version to keep.';
+  String get settings_conflict_chooseVersion => '选择要保留的版本。';
 
   @override
   String get settings_conflict_close => '关闭';
@@ -18660,8 +18657,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_close_tooltip => '关闭冲突对话框';
 
   @override
-  String get settings_conflict_consequence_deleteHere =>
-      'Deletes the record on this device too.';
+  String get settings_conflict_consequence_deleteHere => '也会在本设备上删除该记录。';
 
   @override
   String settings_conflict_consequence_keep(
@@ -18669,26 +18665,24 @@ class AppLocalizationsZh extends AppLocalizations {
     String discarded,
     String fields,
   ) {
-    return 'Keeps $kept\'s version. $discarded\'s values for $fields are discarded.';
+    return '保留 $kept 的版本。$discarded 中 $fields 的值将被舍弃。';
   }
 
   @override
   String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'Keeps $local\'s version and adds $remote\'s version as a separate copy.';
+    return '保留 $local 的版本，并将 $remote 的版本添加为单独的副本。';
   }
 
   @override
   String settings_conflict_consequence_keepRecord(String device) {
-    return 'Keeps the record, with $device\'s values.';
+    return '保留该记录，使用 $device 的值。';
   }
 
   @override
-  String get settings_conflict_consequence_nothingLost =>
-      'Both versions match, so nothing is lost.';
+  String get settings_conflict_consequence_nothingLost => '两个版本一致，因此不会丢失任何内容。';
 
   @override
-  String get settings_conflict_consequence_staysDeleted =>
-      'The record stays deleted on this device.';
+  String get settings_conflict_consequence_staysDeleted => '该记录在本设备上仍保持删除状态。';
 
   @override
   String settings_conflict_counterLabel(Object current, Object total) {
@@ -18697,7 +18691,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_conflict_deletedValues(String device) {
-    return 'The record as $device has it:';
+    return '$device 上的记录：';
   }
 
   @override
@@ -18706,1914 +18700,1757 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_conflict_fieldHeader => 'Field';
+  String get settings_conflict_fieldHeader => '字段';
 
   @override
-  String get settings_conflict_field_accentListIcons => 'Colored list icons';
+  String get settings_conflict_field_accentListIcons => '彩色列表图标';
 
   @override
-  String get settings_conflict_field_accentNavIcons =>
-      'Colored navigation icons';
+  String get settings_conflict_field_accentNavIcons => '彩色导航图标';
 
   @override
-  String get settings_conflict_field_accentSectionHeaders =>
-      'Colored section headers';
+  String get settings_conflict_field_accentSectionHeaders => '彩色分区标题';
 
   @override
-  String get settings_conflict_field_accessNotes => 'Access notes';
+  String get settings_conflict_field_accessNotes => '进入说明';
 
   @override
-  String get settings_conflict_field_accountIdentifier => 'Account';
+  String get settings_conflict_field_accountIdentifier => '账户';
 
   @override
-  String get settings_conflict_field_additionalCredentials =>
-      'Additional credentials';
+  String get settings_conflict_field_additionalCredentials => '其他资质';
 
   @override
-  String get settings_conflict_field_airBreakBreakSeconds => 'Air break length';
+  String get settings_conflict_field_airBreakBreakSeconds => '空气休息时长';
 
   @override
-  String get settings_conflict_field_airBreakO2Seconds =>
-      'Oxygen time between air breaks';
+  String get settings_conflict_field_airBreakO2Seconds => '空气休息之间的吸氧时间';
 
   @override
-  String get settings_conflict_field_allergies => 'Allergies';
+  String get settings_conflict_field_allergies => '过敏';
 
   @override
-  String get settings_conflict_field_altitudeUnit => 'Altitude unit';
+  String get settings_conflict_field_altitudeUnit => '海拔单位';
 
   @override
-  String get settings_conflict_field_amountKg => 'Weight';
+  String get settings_conflict_field_amountKg => '重量';
 
   @override
-  String get settings_conflict_field_analyzedHe => 'Analyzed helium';
+  String get settings_conflict_field_analyzedHe => '实测氦气';
 
   @override
-  String get settings_conflict_field_analyzedO2 => 'Analyzed oxygen';
+  String get settings_conflict_field_analyzedO2 => '实测氧气';
 
   @override
-  String get settings_conflict_field_analyzer => 'Analyzer';
+  String get settings_conflict_field_analyzer => '分析仪';
 
   @override
-  String get settings_conflict_field_anchorDate => 'Counting from';
+  String get settings_conflict_field_anchorDate => '起算日期';
 
   @override
-  String get settings_conflict_field_anchorLatitude => 'Route origin latitude';
+  String get settings_conflict_field_anchorLatitude => '路线起点纬度';
 
   @override
-  String get settings_conflict_field_anchorLongitude =>
-      'Route origin longitude';
+  String get settings_conflict_field_anchorLongitude => '路线起点经度';
 
   @override
-  String get settings_conflict_field_anchorSetAt => 'Counting date set';
+  String get settings_conflict_field_anchorSetAt => '起算日期设定时间';
 
   @override
-  String get settings_conflict_field_applicableTypes => 'Suggested for';
+  String get settings_conflict_field_applicableTypes => '建议用于';
 
   @override
-  String get settings_conflict_field_appliesToDives => 'Offered on dives';
+  String get settings_conflict_field_appliesToDives => '可用于潜水';
 
   @override
-  String get settings_conflict_field_appliesToEquipment =>
-      'Offered on equipment';
+  String get settings_conflict_field_appliesToEquipment => '可用于装备';
 
   @override
-  String get settings_conflict_field_appliesToSites => 'Offered on dive sites';
+  String get settings_conflict_field_appliesToSites => '可用于潜水点';
 
   @override
-  String get settings_conflict_field_applyDefaultTankToImports =>
-      'Default tank on imported dives';
+  String get settings_conflict_field_applyDefaultTankToImports => '导入潜水的默认气瓶';
 
   @override
-  String get settings_conflict_field_ascentGasSet => 'Ascent gases';
+  String get settings_conflict_field_ascentGasSet => '上升用气';
 
   @override
-  String get settings_conflict_field_ascentRate => 'Ascent rate';
+  String get settings_conflict_field_ascentRate => '上升速度';
 
   @override
-  String get settings_conflict_field_ascentRateCritical =>
-      'Critical ascent rate';
+  String get settings_conflict_field_ascentRateCritical => '危险上升速度';
 
   @override
-  String get settings_conflict_field_ascentRateWarning => 'Ascent rate warning';
+  String get settings_conflict_field_ascentRateWarning => '上升速度警告';
 
   @override
-  String get settings_conflict_field_assumedVo2 => 'Assumed oxygen consumption';
+  String get settings_conflict_field_assumedVo2 => '假定耗氧量';
 
   @override
-  String get settings_conflict_field_attrKey => 'Attribute';
+  String get settings_conflict_field_attrKey => '属性';
 
   @override
-  String get settings_conflict_field_autoApplyOnComputerImport =>
-      'Applied on dive computer import';
+  String get settings_conflict_field_autoApplyOnComputerImport => '从潜水电脑导入时应用';
 
   @override
-  String get settings_conflict_field_autoAttach => 'Scheduled automatically';
+  String get settings_conflict_field_autoAttach => '自动安排';
 
   @override
-  String get settings_conflict_field_autoTagImports => 'Tag imported dives';
+  String get settings_conflict_field_autoTagImports => '为导入的潜水添加标签';
 
   @override
-  String get settings_conflict_field_avgSpeed => 'Average speed';
+  String get settings_conflict_field_avgSpeed => '平均速度';
 
   @override
-  String get settings_conflict_field_batteryReserveFraction =>
-      'Battery reserve';
+  String get settings_conflict_field_batteryReserveFraction => '电池余量';
 
   @override
-  String get settings_conflict_field_bboxHeight => 'Box height';
+  String get settings_conflict_field_bboxHeight => '框高';
 
   @override
-  String get settings_conflict_field_bboxWidth => 'Box width';
+  String get settings_conflict_field_bboxWidth => '框宽';
 
   @override
-  String get settings_conflict_field_bboxX => 'Box left edge';
+  String get settings_conflict_field_bboxX => '框左边缘';
 
   @override
-  String get settings_conflict_field_bboxY => 'Box top edge';
+  String get settings_conflict_field_bboxY => '框上边缘';
 
   @override
-  String get settings_conflict_field_bearingDeg => 'Bearing in degrees';
+  String get settings_conflict_field_bearingDeg => '方位角（度）';
 
   @override
-  String get settings_conflict_field_bestMixEndMeters =>
-      'Best mix narcotic depth';
+  String get settings_conflict_field_bestMixEndMeters => '最佳混合气麻醉深度';
 
   @override
-  String get settings_conflict_field_bloodType => 'Blood type';
+  String get settings_conflict_field_bloodType => '血型';
 
   @override
-  String get settings_conflict_field_bluetoothAddress => 'Bluetooth address';
+  String get settings_conflict_field_bluetoothAddress => '蓝牙地址';
 
   @override
-  String get settings_conflict_field_boatCaptain => 'Boat captain';
+  String get settings_conflict_field_boatCaptain => '船长';
 
   @override
-  String get settings_conflict_field_boatName => 'Boat name';
+  String get settings_conflict_field_boatName => '船名';
 
   @override
-  String get settings_conflict_field_bookmarkRef => 'File access';
+  String get settings_conflict_field_bookmarkRef => '文件访问';
 
   @override
-  String get settings_conflict_field_bottleLabel => 'Bottle number';
+  String get settings_conflict_field_bottleLabel => '气瓶编号';
 
   @override
-  String get settings_conflict_field_buddyListViewMode => 'Buddy list view';
+  String get settings_conflict_field_buddyListViewMode => '潜伴列表视图';
 
   @override
-  String get settings_conflict_field_builtinKey => 'Built-in template';
+  String get settings_conflict_field_builtinKey => '内置模板';
 
   @override
-  String get settings_conflict_field_buoyancyKg => 'Buoyancy';
+  String get settings_conflict_field_buoyancyKg => '浮力';
 
   @override
-  String get settings_conflict_field_byteCount => 'File size in bytes';
+  String get settings_conflict_field_byteCount => '文件大小（字节）';
 
   @override
-  String get settings_conflict_field_bytes => 'File contents';
+  String get settings_conflict_field_bytes => '文件内容';
 
   @override
-  String get settings_conflict_field_cabinType => 'Cabin type';
+  String get settings_conflict_field_cabinType => '舱房类型';
 
   @override
-  String get settings_conflict_field_capacity => 'Capacity';
+  String get settings_conflict_field_capacity => '容量';
 
   @override
-  String get settings_conflict_field_caption => 'Caption';
+  String get settings_conflict_field_caption => '说明文字';
 
   @override
-  String get settings_conflict_field_cardColorGradientEnd =>
-      'Card color gradient end';
+  String get settings_conflict_field_cardColorGradientEnd => '卡片渐变终点';
 
   @override
-  String get settings_conflict_field_cardColorGradientPreset =>
-      'Card color gradient';
+  String get settings_conflict_field_cardColorGradientPreset => '卡片渐变';
 
   @override
-  String get settings_conflict_field_cardColorGradientStart =>
-      'Card color gradient start';
+  String get settings_conflict_field_cardColorGradientStart => '卡片渐变起点';
 
   @override
-  String get settings_conflict_field_ccrDiluentModPpO2 =>
-      'CCR diluent MOD ppO2';
+  String get settings_conflict_field_ccrDiluentModPpO2 => 'CCR 稀释气 MOD 的 ppO2';
 
   @override
-  String get settings_conflict_field_ccrSetpointHigh => 'CCR high setpoint';
+  String get settings_conflict_field_ccrSetpointHigh => 'CCR 高设定点';
 
   @override
-  String get settings_conflict_field_ccrSetpointLow => 'CCR low setpoint';
+  String get settings_conflict_field_ccrSetpointLow => 'CCR 低设定点';
 
   @override
-  String get settings_conflict_field_channelIndex => 'Channel';
+  String get settings_conflict_field_channelIndex => '通道';
 
   @override
-  String get settings_conflict_field_checklistTemplateItems_category =>
-      'Category';
+  String get settings_conflict_field_checklistTemplateItems_category => '类别';
 
   @override
-  String get settings_conflict_field_city => 'City';
+  String get settings_conflict_field_city => '城市';
 
   @override
-  String get settings_conflict_field_cloudAssetId => 'Cloud photo';
+  String get settings_conflict_field_cloudAssetId => '云端照片';
 
   @override
   String get settings_conflict_field_cns => 'CNS';
 
   @override
-  String get settings_conflict_field_cnsWarningThreshold =>
-      'CNS warning threshold';
+  String get settings_conflict_field_cnsWarningThreshold => 'CNS 警告阈值';
 
   @override
-  String get settings_conflict_field_codecVersion => 'Format version';
+  String get settings_conflict_field_codecVersion => '格式版本';
 
   @override
-  String get settings_conflict_field_coldWaterThresholdC =>
-      'Cold water threshold';
+  String get settings_conflict_field_coldWaterThresholdC => '冷水阈值';
 
   @override
-  String get settings_conflict_field_color => 'Color';
+  String get settings_conflict_field_color => '颜色';
 
   @override
-  String get settings_conflict_field_commonName => 'Common name';
+  String get settings_conflict_field_commonName => '俗名';
 
   @override
-  String get settings_conflict_field_completedAt => 'Completed';
+  String get settings_conflict_field_completedAt => '完成时间';
 
   @override
-  String get settings_conflict_field_compressedLevel => 'Compression';
+  String get settings_conflict_field_compressedLevel => '压缩';
 
   @override
-  String get settings_conflict_field_compressedSizeBytes =>
-      'Compressed size in bytes';
+  String get settings_conflict_field_compressedSizeBytes => '压缩后大小（字节）';
 
   @override
-  String get settings_conflict_field_computerModel => 'Dive computer model';
+  String get settings_conflict_field_computerModel => '潜水电脑型号';
 
   @override
-  String get settings_conflict_field_computerSerial =>
-      'Dive computer serial number';
+  String get settings_conflict_field_computerSerial => '潜水电脑序列号';
 
   @override
-  String get settings_conflict_field_computerTissueJson =>
-      'Dive computer tissue data';
+  String get settings_conflict_field_computerTissueJson => '潜水电脑组织数据';
 
   @override
-  String get settings_conflict_field_conditionDisabledRules =>
-      'Turned-off gear checks';
+  String get settings_conflict_field_conditionDisabledRules => '已关闭的装备检查';
 
   @override
-  String get settings_conflict_field_conditionEngineEnabled =>
-      'Gear condition checks';
+  String get settings_conflict_field_conditionEngineEnabled => '装备状态检查';
 
   @override
-  String get settings_conflict_field_configJson => 'Configuration';
+  String get settings_conflict_field_configJson => '配置';
 
   @override
-  String get settings_conflict_field_connectedAccounts_kind => 'Service';
+  String get settings_conflict_field_connectedAccounts_kind => '服务';
 
   @override
-  String get settings_conflict_field_connectionType => 'Connection';
+  String get settings_conflict_field_connectionType => '连接';
 
   @override
-  String get settings_conflict_field_contentHash => 'Content fingerprint';
+  String get settings_conflict_field_contentHash => '内容指纹';
 
   @override
-  String get settings_conflict_field_contentSizeBytes => 'Size in bytes';
+  String get settings_conflict_field_contentSizeBytes => '大小（字节）';
 
   @override
-  String get settings_conflict_field_contributingFactors =>
-      'Contributing factors';
+  String get settings_conflict_field_contributingFactors => '促成因素';
 
   @override
-  String get settings_conflict_field_coordinateFormat => 'Coordinate format';
+  String get settings_conflict_field_coordinateFormat => '坐标格式';
 
   @override
-  String get settings_conflict_field_cost => 'Cost';
+  String get settings_conflict_field_cost => '费用';
 
   @override
-  String get settings_conflict_field_count => 'Count';
+  String get settings_conflict_field_count => '数量';
 
   @override
-  String get settings_conflict_field_country => 'Country';
+  String get settings_conflict_field_country => '国家';
 
   @override
-  String get settings_conflict_field_courseRequirements_kind =>
-      'Requirement type';
+  String get settings_conflict_field_courseRequirements_kind => '要求类型';
 
   @override
-  String get settings_conflict_field_credentialsHostId => 'Sign-in host';
+  String get settings_conflict_field_credentialsHostId => '登录服务器';
 
   @override
-  String get settings_conflict_field_currency => 'Currency';
+  String get settings_conflict_field_currency => '货币';
 
   @override
-  String get settings_conflict_field_currentSetsTowardDeg =>
-      'Current direction in degrees';
+  String get settings_conflict_field_currentSetsTowardDeg => '水流方向（度）';
 
   @override
-  String get settings_conflict_field_currentSpeedMps => 'Current speed';
+  String get settings_conflict_field_currentSpeedMps => '水流速度';
 
   @override
-  String get settings_conflict_field_customReminderDays => 'Reminder days';
+  String get settings_conflict_field_customReminderDays => '提醒天数';
 
   @override
-  String get settings_conflict_field_customReminderEnabled =>
-      'Custom reminders';
+  String get settings_conflict_field_customReminderEnabled => '自定义提醒';
 
   @override
-  String get settings_conflict_field_cylinderFills_source => 'Recorded from';
+  String get settings_conflict_field_cylinderFills_source => '记录方式';
 
   @override
-  String get settings_conflict_field_date => 'Date';
+  String get settings_conflict_field_date => '日期';
 
   @override
-  String get settings_conflict_field_dateFormat => 'Date format';
+  String get settings_conflict_field_dateFormat => '日期格式';
 
   @override
-  String get settings_conflict_field_dayNumber => 'Day number';
+  String get settings_conflict_field_dayNumber => '第几天';
 
   @override
-  String get settings_conflict_field_dayType => 'Day type';
+  String get settings_conflict_field_dayType => '日程类型';
 
   @override
-  String get settings_conflict_field_decoStopIncrement => 'Deco stop increment';
+  String get settings_conflict_field_decoStopIncrement => '减压停留间隔';
 
   @override
-  String get settings_conflict_field_decoSwitchDepth => 'Deco gas switch depth';
+  String get settings_conflict_field_decoSwitchDepth => '切换减压气深度';
 
   @override
-  String get settings_conflict_field_deepDiveThresholdM =>
-      'Deep dive threshold';
+  String get settings_conflict_field_deepDiveThresholdM => '深潜阈值';
 
   @override
-  String get settings_conflict_field_defaultCategory => 'Default category';
+  String get settings_conflict_field_defaultCategory => '默认类别';
 
   @override
-  String get settings_conflict_field_defaultCeilingSource =>
-      'Ceiling data source';
+  String get settings_conflict_field_defaultCeilingSource => '天花板数据来源';
 
   @override
-  String get settings_conflict_field_defaultCnsSource => 'CNS data source';
+  String get settings_conflict_field_defaultCnsSource => 'CNS 数据来源';
 
   @override
-  String get settings_conflict_field_defaultCost => 'Default cost';
+  String get settings_conflict_field_defaultCost => '默认费用';
 
   @override
-  String get settings_conflict_field_defaultCurrency => 'Default currency';
+  String get settings_conflict_field_defaultCurrency => '默认货币';
 
   @override
-  String get settings_conflict_field_defaultCurrentSetsTowardDeg =>
-      'Default current direction in degrees';
+  String get settings_conflict_field_defaultCurrentSetsTowardDeg => '默认水流方向（度）';
 
   @override
-  String get settings_conflict_field_defaultCurrentSpeedMps =>
-      'Default current speed';
+  String get settings_conflict_field_defaultCurrentSpeedMps => '默认水流速度';
 
   @override
-  String get settings_conflict_field_defaultDecoStopSource =>
-      'Deco stop data source';
+  String get settings_conflict_field_defaultDecoStopSource => '减压停留数据来源';
 
   @override
-  String get settings_conflict_field_defaultDiveType => 'Default dive type';
+  String get settings_conflict_field_defaultDiveType => '默认潜水类型';
 
   @override
-  String get settings_conflict_field_defaultGtrSource => 'GTR data source';
+  String get settings_conflict_field_defaultGtrSource => 'GTR 数据来源';
 
   @override
-  String get settings_conflict_field_defaultIntervalDays =>
-      'Default interval in days';
+  String get settings_conflict_field_defaultIntervalDays => '默认间隔（天）';
 
   @override
-  String get settings_conflict_field_defaultIntervalDives =>
-      'Default interval in dives';
+  String get settings_conflict_field_defaultIntervalDives => '默认间隔（潜水次数）';
 
   @override
-  String get settings_conflict_field_defaultIntervalHours =>
-      'Default interval in hours';
+  String get settings_conflict_field_defaultIntervalHours => '默认间隔（小时）';
 
   @override
-  String get settings_conflict_field_defaultNdlSource => 'NDL data source';
+  String get settings_conflict_field_defaultNdlSource => 'NDL 数据来源';
 
   @override
-  String get settings_conflict_field_defaultPlannerWaterType =>
-      'Default planner water type';
+  String get settings_conflict_field_defaultPlannerWaterType => '计划器默认水体类型';
 
   @override
-  String get settings_conflict_field_defaultRightAxisMetric =>
-      'Profile right axis';
+  String get settings_conflict_field_defaultRightAxisMetric => '剖面右侧坐标轴';
 
   @override
-  String get settings_conflict_field_defaultShowAscentRateLine =>
-      'Profile shows ascent rate';
+  String get settings_conflict_field_defaultShowAscentRateLine => '剖面显示上升速度';
 
   @override
-  String get settings_conflict_field_defaultShowCns => 'Profile shows CNS';
+  String get settings_conflict_field_defaultShowCns => '剖面显示 CNS';
 
   @override
   String get settings_conflict_field_defaultShowEstimatedTankPressure =>
-      'Profile shows estimated tank pressure';
+      '剖面显示估算气瓶压力';
 
   @override
-  String get settings_conflict_field_defaultShowEvents =>
-      'Profile shows events';
+  String get settings_conflict_field_defaultShowEvents => '剖面显示事件';
 
   @override
-  String get settings_conflict_field_defaultShowGasDensity =>
-      'Profile shows gas density';
+  String get settings_conflict_field_defaultShowGasDensity => '剖面显示气体密度';
 
   @override
-  String get settings_conflict_field_defaultShowGasSwitchMarkers =>
-      'Profile shows gas switches';
+  String get settings_conflict_field_defaultShowGasSwitchMarkers => '剖面显示换气';
 
   @override
-  String get settings_conflict_field_defaultShowGasTimeline =>
-      'Profile shows gas timeline';
+  String get settings_conflict_field_defaultShowGasTimeline => '剖面显示气体时间线';
 
   @override
-  String get settings_conflict_field_defaultShowGf =>
-      'Profile shows gradient factor';
+  String get settings_conflict_field_defaultShowGf => '剖面显示梯度因子';
 
   @override
-  String get settings_conflict_field_defaultShowGtr => 'Profile shows GTR';
+  String get settings_conflict_field_defaultShowGtr => '剖面显示 GTR';
 
   @override
-  String get settings_conflict_field_defaultShowHeartRate =>
-      'Profile shows heart rate';
+  String get settings_conflict_field_defaultShowHeartRate => '剖面显示心率';
 
   @override
-  String get settings_conflict_field_defaultShowMeanDepth =>
-      'Profile shows mean depth';
+  String get settings_conflict_field_defaultShowMeanDepth => '剖面显示平均深度';
 
   @override
-  String get settings_conflict_field_defaultShowO2CellMv =>
-      'Profile shows O2 cell millivolts';
+  String get settings_conflict_field_defaultShowO2CellMv => '剖面显示氧传感器毫伏值';
 
   @override
-  String get settings_conflict_field_defaultShowOtu => 'Profile shows OTU';
+  String get settings_conflict_field_defaultShowOtu => '剖面显示 OTU';
 
   @override
-  String get settings_conflict_field_defaultShowPhotoMarkers =>
-      'Profile shows photos';
+  String get settings_conflict_field_defaultShowPhotoMarkers => '剖面显示照片';
 
   @override
-  String get settings_conflict_field_defaultShowPpHe => 'Profile shows ppHe';
+  String get settings_conflict_field_defaultShowPpHe => '剖面显示 ppHe';
 
   @override
-  String get settings_conflict_field_defaultShowPpN2 => 'Profile shows ppN2';
+  String get settings_conflict_field_defaultShowPpN2 => '剖面显示 ppN2';
 
   @override
-  String get settings_conflict_field_defaultShowPpO2 => 'Profile shows ppO2';
+  String get settings_conflict_field_defaultShowPpO2 => '剖面显示 ppO2';
 
   @override
-  String get settings_conflict_field_defaultShowPressure =>
-      'Profile shows tank pressure';
+  String get settings_conflict_field_defaultShowPressure => '剖面显示气瓶压力';
 
   @override
-  String get settings_conflict_field_defaultShowSac =>
-      'Profile shows gas consumption';
+  String get settings_conflict_field_defaultShowSac => '剖面显示耗气量';
 
   @override
-  String get settings_conflict_field_defaultShowSurfaceGf =>
-      'Profile shows surface gradient factor';
+  String get settings_conflict_field_defaultShowSurfaceGf => '剖面显示水面梯度因子';
 
   @override
-  String get settings_conflict_field_defaultShowTemperature =>
-      'Profile shows temperature';
+  String get settings_conflict_field_defaultShowTemperature => '剖面显示温度';
 
   @override
-  String get settings_conflict_field_defaultShowTts =>
-      'Profile shows time to surface';
+  String get settings_conflict_field_defaultShowTts => '剖面显示上升至水面时间';
 
   @override
-  String get settings_conflict_field_defaultStartPressure =>
-      'Default start pressure';
+  String get settings_conflict_field_defaultStartPressure => '默认起始压力';
 
   @override
-  String get settings_conflict_field_defaultStartPressureBar =>
-      'Default start pressure';
+  String get settings_conflict_field_defaultStartPressureBar => '默认起始压力';
 
   @override
-  String get settings_conflict_field_defaultTankPreset => 'Default tank preset';
+  String get settings_conflict_field_defaultTankPreset => '默认气瓶预设';
 
   @override
-  String get settings_conflict_field_defaultTankVolume => 'Default tank volume';
+  String get settings_conflict_field_defaultTankVolume => '默认气瓶容积';
 
   @override
-  String get settings_conflict_field_defaultTtsSource =>
-      'Time to surface data source';
+  String get settings_conflict_field_defaultTtsSource => '上升至水面时间数据来源';
 
   @override
-  String get settings_conflict_field_depth => 'Depth';
+  String get settings_conflict_field_depth => '深度';
 
   @override
-  String get settings_conflict_field_depthM => 'Depth';
+  String get settings_conflict_field_depthM => '深度';
 
   @override
-  String get settings_conflict_field_depthMeters => 'Depth';
+  String get settings_conflict_field_depthMeters => '深度';
 
   @override
-  String get settings_conflict_field_depthUnit => 'Depth unit';
+  String get settings_conflict_field_depthUnit => '深度单位';
 
   @override
-  String get settings_conflict_field_descentRate => 'Descent rate';
+  String get settings_conflict_field_descentRate => '下潜速度';
 
   @override
-  String get settings_conflict_field_description => 'Description';
+  String get settings_conflict_field_description => '描述';
 
   @override
-  String get settings_conflict_field_descriptorModel =>
-      'Dive computer model number';
+  String get settings_conflict_field_descriptorModel => '潜水电脑型号编号';
 
   @override
-  String get settings_conflict_field_descriptorProduct =>
-      'Dive computer product';
+  String get settings_conflict_field_descriptorProduct => '潜水电脑产品';
 
   @override
-  String get settings_conflict_field_descriptorVendor => 'Dive computer maker';
+  String get settings_conflict_field_descriptorVendor => '潜水电脑制造商';
 
   @override
-  String get settings_conflict_field_detectorId => 'Check';
+  String get settings_conflict_field_detectorId => '检查项';
 
   @override
-  String get settings_conflict_field_detectorVersion => 'Check version';
+  String get settings_conflict_field_detectorVersion => '检查版本';
 
   @override
-  String get settings_conflict_field_deviationDepthDelta =>
-      'Contingency extra depth';
+  String get settings_conflict_field_deviationDepthDelta => '应急额外深度';
 
   @override
-  String get settings_conflict_field_deviationTimeMinutes =>
-      'Contingency extra time';
+  String get settings_conflict_field_deviationTimeMinutes => '应急额外时间';
 
   @override
-  String get settings_conflict_field_deviceName => 'Recorded on';
+  String get settings_conflict_field_deviceName => '记录设备';
 
   @override
-  String get settings_conflict_field_diluentHe => 'Diluent helium';
+  String get settings_conflict_field_diluentHe => '稀释气氦含量';
 
   @override
-  String get settings_conflict_field_diluentO2 => 'Diluent oxygen';
+  String get settings_conflict_field_diluentO2 => '稀释气氧含量';
 
   @override
-  String get settings_conflict_field_disembarkLatitude => 'Disembark latitude';
+  String get settings_conflict_field_disembarkLatitude => '下船点纬度';
 
   @override
-  String get settings_conflict_field_disembarkLongitude =>
-      'Disembark longitude';
+  String get settings_conflict_field_disembarkLongitude => '下船点经度';
 
   @override
-  String get settings_conflict_field_disembarkPort => 'Disembark port';
+  String get settings_conflict_field_disembarkPort => '下船港口';
 
   @override
-  String get settings_conflict_field_dismissedAt => 'Dismissed';
+  String get settings_conflict_field_dismissedAt => '忽略时间';
 
   @override
-  String get settings_conflict_field_displayHint => 'Display hint';
+  String get settings_conflict_field_displayHint => '显示提示';
 
   @override
-  String get settings_conflict_field_displayName => 'Display name';
+  String get settings_conflict_field_displayName => '显示名称';
 
   @override
-  String get settings_conflict_field_distanceM => 'Distance';
+  String get settings_conflict_field_distanceM => '距离';
 
   @override
-  String get settings_conflict_field_diveCenterListViewMode =>
-      'Dive center list view';
+  String get settings_conflict_field_diveCenterListViewMode => '潜水中心列表视图';
 
   @override
-  String get settings_conflict_field_diveComputerFirmware =>
-      'Dive computer firmware';
+  String get settings_conflict_field_diveComputerFirmware => '潜水电脑固件';
 
   @override
-  String get settings_conflict_field_diveComputerSerial =>
-      'Dive computer serial number';
+  String get settings_conflict_field_diveComputerSerial => '潜水电脑序列号';
 
   @override
-  String get settings_conflict_field_diveCount => 'Dive count';
+  String get settings_conflict_field_diveCount => '潜水次数';
 
   @override
-  String get settings_conflict_field_diveDetailLayout => 'Dive detail layout';
+  String get settings_conflict_field_diveDetailLayout => '潜水详情布局';
 
   @override
-  String get settings_conflict_field_diveDetailSections =>
-      'Dive detail sections';
+  String get settings_conflict_field_diveDetailSections => '潜水详情分区';
 
   @override
-  String get settings_conflict_field_diveListViewMode => 'Dive list view';
+  String get settings_conflict_field_diveListViewMode => '潜水列表视图';
 
   @override
-  String get settings_conflict_field_diveModeOverride =>
-      'Breathing mode for this segment';
+  String get settings_conflict_field_diveModeOverride => '此段的呼吸模式';
 
   @override
-  String get settings_conflict_field_diveOperator => 'Dive operator';
+  String get settings_conflict_field_diveOperator => '潜水运营商';
 
   @override
-  String get settings_conflict_field_divePlanSegments_type => 'Segment';
+  String get settings_conflict_field_divePlanSegments_type => '分段';
 
   @override
-  String get settings_conflict_field_divePlanTanks_role => 'Tank role';
+  String get settings_conflict_field_divePlanTanks_role => '气瓶用途';
 
   @override
-  String get settings_conflict_field_diveProfileEvents_severity => 'Severity';
+  String get settings_conflict_field_diveProfileEvents_severity => '严重程度';
 
   @override
-  String get settings_conflict_field_diveProfileEvents_source => 'Source';
+  String get settings_conflict_field_diveProfileEvents_source => '来源';
 
   @override
-  String get settings_conflict_field_diveSafetyFindings_severity => 'Severity';
+  String get settings_conflict_field_diveSafetyFindings_severity => '严重程度';
 
   @override
-  String get settings_conflict_field_diversSharingCylinders =>
-      'Divers sharing cylinders';
+  String get settings_conflict_field_diversSharingCylinders => '共用气瓶的潜水员';
 
   @override
-  String get settings_conflict_field_divesPerDayTarget =>
-      'Target dives per day';
+  String get settings_conflict_field_divesPerDayTarget => '每日潜水目标';
 
   @override
-  String get settings_conflict_field_divingSince => 'Diving since';
+  String get settings_conflict_field_divingSince => '潜水起始年份';
 
   @override
-  String get settings_conflict_field_dueDate => 'Due';
+  String get settings_conflict_field_dueDate => '到期';
 
   @override
-  String get settings_conflict_field_dueOffsetDays =>
-      'Due days before the trip';
+  String get settings_conflict_field_dueOffsetDays => '行程前几天到期';
 
   @override
-  String get settings_conflict_field_duration => 'Duration';
+  String get settings_conflict_field_duration => '时长';
 
   @override
-  String get settings_conflict_field_durationSeconds => 'Duration';
+  String get settings_conflict_field_durationSeconds => '时长';
 
   @override
-  String get settings_conflict_field_elapsedSeconds => 'Time into dive';
+  String get settings_conflict_field_elapsedSeconds => '潜水内时间';
 
   @override
-  String get settings_conflict_field_embarkLatitude => 'Embark latitude';
+  String get settings_conflict_field_embarkLatitude => '登船点纬度';
 
   @override
-  String get settings_conflict_field_embarkLongitude => 'Embark longitude';
+  String get settings_conflict_field_embarkLongitude => '登船点经度';
 
   @override
-  String get settings_conflict_field_embarkPort => 'Embark port';
+  String get settings_conflict_field_embarkPort => '登船港口';
 
   @override
-  String get settings_conflict_field_emergencyContact2Name =>
-      'Second emergency contact';
+  String get settings_conflict_field_emergencyContact2Name => '第二紧急联系人';
 
   @override
-  String get settings_conflict_field_emergencyContact2Phone =>
-      'Second emergency contact phone';
+  String get settings_conflict_field_emergencyContact2Phone => '第二紧急联系人电话';
 
   @override
-  String get settings_conflict_field_emergencyContact2Relation =>
-      'Second emergency contact relation';
+  String get settings_conflict_field_emergencyContact2Relation => '与第二紧急联系人的关系';
 
   @override
-  String get settings_conflict_field_emergencyContactName =>
-      'Emergency contact';
+  String get settings_conflict_field_emergencyContactName => '紧急联系人';
 
   @override
-  String get settings_conflict_field_emergencyContactPhone =>
-      'Emergency contact phone';
+  String get settings_conflict_field_emergencyContactPhone => '紧急联系人电话';
 
   @override
-  String get settings_conflict_field_emergencyContactRelation =>
-      'Emergency contact relation';
+  String get settings_conflict_field_emergencyContactRelation => '与紧急联系人的关系';
 
   @override
-  String get settings_conflict_field_emergencyRegion => 'Emergency region';
+  String get settings_conflict_field_emergencyRegion => '紧急救援地区';
 
   @override
-  String get settings_conflict_field_enabled => 'Enabled';
+  String get settings_conflict_field_enabled => '已启用';
 
   @override
-  String get settings_conflict_field_endDepth => 'End depth';
+  String get settings_conflict_field_endDepth => '结束深度';
 
   @override
-  String get settings_conflict_field_endLatitude => 'End latitude';
+  String get settings_conflict_field_endLatitude => '终点纬度';
 
   @override
-  String get settings_conflict_field_endLimit => 'Narcotic depth limit';
+  String get settings_conflict_field_endLimit => '麻醉深度上限';
 
   @override
-  String get settings_conflict_field_endLongitude => 'End longitude';
+  String get settings_conflict_field_endLongitude => '终点经度';
 
   @override
-  String get settings_conflict_field_endMode => 'Route end';
+  String get settings_conflict_field_endMode => '路线终点';
 
   @override
-  String get settings_conflict_field_endTime => 'End time';
+  String get settings_conflict_field_endTime => '结束时间';
 
   @override
-  String get settings_conflict_field_endTimestamp => 'Ends at (time into dive)';
+  String get settings_conflict_field_endTimestamp => '结束于（潜水内时间）';
 
   @override
-  String get settings_conflict_field_engineVersion => 'Analysis version';
+  String get settings_conflict_field_engineVersion => '分析版本';
 
   @override
-  String get settings_conflict_field_entryKey => 'Entry';
+  String get settings_conflict_field_entryKey => '条目';
 
   @override
-  String get settings_conflict_field_entryLatitude => 'Entry latitude';
+  String get settings_conflict_field_entryLatitude => '入水点纬度';
 
   @override
-  String get settings_conflict_field_entryLongitude => 'Entry longitude';
+  String get settings_conflict_field_entryLongitude => '入水点经度';
 
   @override
-  String get settings_conflict_field_entryTime => 'Entry time';
+  String get settings_conflict_field_entryTime => '入水时间';
 
   @override
-  String get settings_conflict_field_environment => 'Environment';
+  String get settings_conflict_field_environment => '环境';
 
   @override
-  String get settings_conflict_field_equipmentComponents_role => 'Role';
+  String get settings_conflict_field_equipmentComponents_role => '用途';
 
   @override
-  String get settings_conflict_field_equipmentFindings_severity => 'Severity';
+  String get settings_conflict_field_equipmentFindings_severity => '严重程度';
 
   @override
-  String get settings_conflict_field_equipmentListViewMode =>
-      'Equipment list view';
+  String get settings_conflict_field_equipmentListViewMode => '装备列表视图';
 
   @override
-  String get settings_conflict_field_equipmentObservations_status => 'Status';
+  String get settings_conflict_field_equipmentObservations_status => '状态';
 
   @override
-  String get settings_conflict_field_equipmentOwnershipEvents_kind => 'Event';
+  String get settings_conflict_field_equipmentOwnershipEvents_kind => '事件';
 
   @override
-  String get settings_conflict_field_equipmentSetName => 'Equipment set';
+  String get settings_conflict_field_equipmentSetName => '装备组合';
 
   @override
-  String get settings_conflict_field_eventType => 'Event';
+  String get settings_conflict_field_eventType => '事件';
 
   @override
-  String get settings_conflict_field_evidence => 'Evidence';
+  String get settings_conflict_field_evidence => '依据';
 
   @override
-  String get settings_conflict_field_evidenceFingerprint =>
-      'Evidence fingerprint';
+  String get settings_conflict_field_evidenceFingerprint => '依据指纹';
 
   @override
-  String get settings_conflict_field_excludedFromGasStats =>
-      'Left out of gas statistics';
+  String get settings_conflict_field_excludedFromGasStats => '不计入气体统计';
 
   @override
-  String get settings_conflict_field_excludedFromStats =>
-      'Left out of statistics';
+  String get settings_conflict_field_excludedFromStats => '不计入统计';
 
   @override
-  String get settings_conflict_field_exitLatitude => 'Exit latitude';
+  String get settings_conflict_field_exitLatitude => '出水点纬度';
 
   @override
-  String get settings_conflict_field_exitLongitude => 'Exit longitude';
+  String get settings_conflict_field_exitLongitude => '出水点经度';
 
   @override
-  String get settings_conflict_field_exitTime => 'Exit time';
+  String get settings_conflict_field_exitTime => '出水时间';
 
   @override
-  String get settings_conflict_field_expectedDives => 'Expected dives';
+  String get settings_conflict_field_expectedDives => '预计潜水次数';
 
   @override
-  String get settings_conflict_field_expectedRuntimeMinutes =>
-      'Expected runtime per dive';
+  String get settings_conflict_field_expectedRuntimeMinutes => '每次潜水预计时长';
 
   @override
-  String get settings_conflict_field_exposureIntervals => 'Exposure intervals';
+  String get settings_conflict_field_exposureIntervals => '使用间隔';
 
   @override
-  String get settings_conflict_field_fetchedAt => 'Fetched';
+  String get settings_conflict_field_fetchedAt => '获取时间';
 
   @override
-  String get settings_conflict_field_fieldKey => 'Custom field';
+  String get settings_conflict_field_fieldKey => '自定义字段';
 
   @override
-  String get settings_conflict_field_fieldValue => 'Custom field value';
+  String get settings_conflict_field_fieldValue => '自定义字段值';
 
   @override
-  String get settings_conflict_field_fileName => 'File name';
+  String get settings_conflict_field_fileName => '文件名';
 
   @override
-  String get settings_conflict_field_filePath => 'File';
+  String get settings_conflict_field_filePath => '文件';
 
   @override
-  String get settings_conflict_field_fileType => 'File type';
+  String get settings_conflict_field_fileType => '文件类型';
 
   @override
-  String get settings_conflict_field_fillClosesAt => 'Fills close';
+  String get settings_conflict_field_fillClosesAt => '充气截止时间';
 
   @override
-  String get settings_conflict_field_fillOpensAt => 'Fills open';
+  String get settings_conflict_field_fillOpensAt => '充气开始时间';
 
   @override
-  String get settings_conflict_field_filledAt => 'Filled';
+  String get settings_conflict_field_filledAt => '充气时间';
 
   @override
-  String get settings_conflict_field_filterJson => 'Filter';
+  String get settings_conflict_field_filterJson => '筛选条件';
 
   @override
-  String get settings_conflict_field_finalAscentRate => 'Final ascent rate';
+  String get settings_conflict_field_finalAscentRate => '最终上升速度';
 
   @override
-  String get settings_conflict_field_firmwareVersion => 'Firmware';
+  String get settings_conflict_field_firmwareVersion => '固件';
 
   @override
-  String get settings_conflict_field_firstDepth => 'First sample depth';
+  String get settings_conflict_field_firstDepth => '首个采样深度';
 
   @override
-  String get settings_conflict_field_format => 'Format';
+  String get settings_conflict_field_format => '格式';
 
   @override
-  String get settings_conflict_field_gasConsumptionDisplay =>
-      'Gas consumption shown as';
+  String get settings_conflict_field_gasConsumptionDisplay => '耗气量显示方式';
 
   @override
-  String get settings_conflict_field_gasHe => 'Helium';
+  String get settings_conflict_field_gasHe => '氦气';
 
   @override
-  String get settings_conflict_field_gasO2 => 'Oxygen';
+  String get settings_conflict_field_gasO2 => '氧气';
 
   @override
-  String get settings_conflict_field_gasSwitchStopSeconds => 'Gas switch stop';
+  String get settings_conflict_field_gasSwitchStopSeconds => '换气停留';
 
   @override
-  String get settings_conflict_field_gearType => 'Gear type';
+  String get settings_conflict_field_gearType => '装备类型';
 
   @override
-  String get settings_conflict_field_groupTripsInDiveList =>
-      'Trips grouped in the dive list';
+  String get settings_conflict_field_groupTripsInDiveList => '在潜水列表中按行程分组';
 
   @override
-  String get settings_conflict_field_gtrReservePressure =>
-      'GTR reserve pressure';
+  String get settings_conflict_field_gtrReservePressure => 'GTR 储备压力';
 
   @override
-  String get settings_conflict_field_hasDecoStop => 'Has a deco stop';
+  String get settings_conflict_field_hasDecoStop => '有减压停留';
 
   @override
-  String get settings_conflict_field_hasDecoType => 'Has deco data';
+  String get settings_conflict_field_hasDecoType => '有减压数据';
 
   @override
-  String get settings_conflict_field_hasPositiveCeiling => 'Has a ceiling';
+  String get settings_conflict_field_hasPositiveCeiling => '有天花板';
 
   @override
-  String get settings_conflict_field_hePercent => 'Helium';
+  String get settings_conflict_field_hePercent => '氦气';
 
   @override
-  String get settings_conflict_field_headingDeg => 'Heading in degrees';
+  String get settings_conflict_field_headingDeg => '航向（度）';
 
   @override
-  String get settings_conflict_field_headingOffsetDeg =>
-      'Heading correction in degrees';
+  String get settings_conflict_field_headingOffsetDeg => '航向修正（度）';
 
   @override
-  String get settings_conflict_field_height => 'Height in pixels';
+  String get settings_conflict_field_height => '高度（像素）';
 
   @override
-  String get settings_conflict_field_heightCm => 'Height';
+  String get settings_conflict_field_heightCm => '身高';
 
   @override
-  String get settings_conflict_field_heightMeters => 'Tide height';
+  String get settings_conflict_field_heightMeters => '潮高';
 
   @override
-  String get settings_conflict_field_hiddenChamberIds => 'Hidden chambers';
+  String get settings_conflict_field_hiddenChamberIds => '已隐藏的减压舱';
 
   @override
-  String get settings_conflict_field_hiddenTankPresetIds =>
-      'Hidden tank presets';
+  String get settings_conflict_field_hiddenTankPresetIds => '已隐藏的气瓶预设';
 
   @override
-  String get settings_conflict_field_highO2ThresholdPercent =>
-      'High oxygen threshold';
+  String get settings_conflict_field_highO2ThresholdPercent => '高氧阈值';
 
   @override
-  String get settings_conflict_field_highTideHeight => 'High tide height';
+  String get settings_conflict_field_highTideHeight => '高潮潮高';
 
   @override
-  String get settings_conflict_field_highTideTime => 'High tide';
+  String get settings_conflict_field_highTideTime => '高潮';
 
   @override
-  String get settings_conflict_field_imageData => 'Image';
+  String get settings_conflict_field_imageData => '图片';
 
   @override
-  String get settings_conflict_field_importId => 'Import ID';
+  String get settings_conflict_field_importId => '导入 ID';
 
   @override
-  String get settings_conflict_field_importVersion => 'Import version';
+  String get settings_conflict_field_importVersion => '导入版本';
 
   @override
-  String get settings_conflict_field_importedAt => 'Imported';
+  String get settings_conflict_field_importedAt => '导入时间';
 
   @override
-  String get settings_conflict_field_incidents_category => 'Category';
+  String get settings_conflict_field_incidents_category => '类别';
 
   @override
-  String get settings_conflict_field_incidents_severity => 'Severity';
+  String get settings_conflict_field_incidents_severity => '严重程度';
 
   @override
-  String get settings_conflict_field_inputsHash => 'Settings used';
+  String get settings_conflict_field_inputsHash => '使用的设置';
 
   @override
-  String get settings_conflict_field_insuranceEmergencyPhone =>
-      'Insurance emergency line';
+  String get settings_conflict_field_insuranceEmergencyPhone => '保险紧急热线';
 
   @override
-  String get settings_conflict_field_insuranceExpiryDate => 'Insurance expiry';
+  String get settings_conflict_field_insuranceExpiryDate => '保险到期';
 
   @override
-  String get settings_conflict_field_insurancePhone => 'Insurance phone';
+  String get settings_conflict_field_insurancePhone => '保险公司电话';
 
   @override
-  String get settings_conflict_field_insurancePolicyNumber =>
-      'Insurance policy number';
+  String get settings_conflict_field_insurancePolicyNumber => '保单号';
 
   @override
-  String get settings_conflict_field_insuranceProvider => 'Insurance provider';
+  String get settings_conflict_field_insuranceProvider => '保险公司';
 
   @override
-  String get settings_conflict_field_intermediateAscentRate =>
-      'Ascent rate between deep stops';
+  String get settings_conflict_field_intermediateAscentRate => '深停留之间的上升速度';
 
   @override
-  String get settings_conflict_field_intervalDays => 'Interval in days';
+  String get settings_conflict_field_intervalDays => '间隔（天）';
 
   @override
-  String get settings_conflict_field_intervalDives => 'Interval in dives';
+  String get settings_conflict_field_intervalDives => '间隔（潜水次数）';
 
   @override
-  String get settings_conflict_field_intervalHours => 'Interval in hours';
+  String get settings_conflict_field_intervalHours => '间隔（小时）';
 
   @override
-  String get settings_conflict_field_isBuiltIn => 'Built in';
+  String get settings_conflict_field_isBuiltIn => '内置';
 
   @override
-  String get settings_conflict_field_isCustom => 'Custom';
+  String get settings_conflict_field_isCustom => '自定义';
 
   @override
-  String get settings_conflict_field_isDefault => 'Default';
+  String get settings_conflict_field_isDefault => '默认';
 
   @override
-  String get settings_conflict_field_isDone => 'Done';
+  String get settings_conflict_field_isDone => '已完成';
 
   @override
-  String get settings_conflict_field_isOrphaned => 'File missing';
+  String get settings_conflict_field_isOrphaned => '文件缺失';
 
   @override
-  String get settings_conflict_field_isPackage => 'Part of a package';
+  String get settings_conflict_field_isPackage => '套餐的一部分';
 
   @override
-  String get settings_conflict_field_isPlanned => 'Planned dive';
+  String get settings_conflict_field_isPlanned => '计划中的潜水';
 
   @override
-  String get settings_conflict_field_isPrimary => 'Primary';
+  String get settings_conflict_field_isPrimary => '主要';
 
   @override
-  String get settings_conflict_field_isRequired => 'Required';
+  String get settings_conflict_field_isRequired => '必填';
 
   @override
-  String get settings_conflict_field_isShared => 'Shared';
+  String get settings_conflict_field_isShared => '已共享';
 
   @override
-  String get settings_conflict_field_isTravelGas => 'Travel gas';
+  String get settings_conflict_field_isTravelGas => '过渡气';
 
   @override
-  String get settings_conflict_field_issueTags => 'Issues';
+  String get settings_conflict_field_issueTags => '问题';
 
   @override
-  String get settings_conflict_field_itemType => 'Item type';
+  String get settings_conflict_field_itemType => '条目类型';
 
   @override
-  String get settings_conflict_field_label => 'Label';
+  String get settings_conflict_field_label => '标签';
 
   @override
-  String get settings_conflict_field_lastDepth => 'Last sample depth';
+  String get settings_conflict_field_lastDepth => '最后采样深度';
 
   @override
-  String get settings_conflict_field_lastDiveFingerprint =>
-      'Last downloaded dive';
+  String get settings_conflict_field_lastDiveFingerprint => '最近下载的潜水';
 
   @override
-  String get settings_conflict_field_lastDownloadTimestamp => 'Last download';
+  String get settings_conflict_field_lastDownloadTimestamp => '最近下载';
 
   @override
-  String get settings_conflict_field_lastParsedAt => 'Last read';
+  String get settings_conflict_field_lastParsedAt => '最近读取';
 
   @override
-  String get settings_conflict_field_lastStopDepth => 'Last stop depth';
+  String get settings_conflict_field_lastStopDepth => '最后停留深度';
 
   @override
-  String get settings_conflict_field_lastSweepAt => 'Last checked';
+  String get settings_conflict_field_lastSweepAt => '最近检查';
 
   @override
-  String get settings_conflict_field_lastVerifiedAt => 'Last verified';
+  String get settings_conflict_field_lastVerifiedAt => '最近确认';
 
   @override
-  String get settings_conflict_field_latitude => 'Latitude';
+  String get settings_conflict_field_latitude => '纬度';
 
   @override
-  String get settings_conflict_field_leadAdjustmentKg => 'Extra lead needed';
+  String get settings_conflict_field_leadAdjustmentKg => '需额外配重';
 
   @override
-  String get settings_conflict_field_lessonsLearned => 'Lessons learned';
+  String get settings_conflict_field_lessonsLearned => '经验教训';
 
   @override
   String get settings_conflict_field_libdivecomputerVersion =>
-      'libdivecomputer version';
+      'libdivecomputer 版本';
 
   @override
-  String get settings_conflict_field_linkMode => 'Linked';
+  String get settings_conflict_field_linkMode => '已关联';
 
   @override
-  String get settings_conflict_field_localPath => 'Local file';
+  String get settings_conflict_field_localPath => '本地文件';
 
   @override
-  String get settings_conflict_field_locale => 'Language';
+  String get settings_conflict_field_locale => '语言';
 
   @override
-  String get settings_conflict_field_longitude => 'Longitude';
+  String get settings_conflict_field_longitude => '经度';
 
   @override
-  String get settings_conflict_field_loopO2Avg => 'Loop ppO2 average';
+  String get settings_conflict_field_loopO2Avg => '回路平均 ppO2';
 
   @override
-  String get settings_conflict_field_loopO2Max => 'Loop ppO2 maximum';
+  String get settings_conflict_field_loopO2Max => '回路最高 ppO2';
 
   @override
-  String get settings_conflict_field_loopO2Min => 'Loop ppO2 minimum';
+  String get settings_conflict_field_loopO2Min => '回路最低 ppO2';
 
   @override
-  String get settings_conflict_field_loopVolume => 'Loop volume';
+  String get settings_conflict_field_loopVolume => '回路容积';
 
   @override
-  String get settings_conflict_field_lowTideHeight => 'Low tide height';
+  String get settings_conflict_field_lowTideHeight => '低潮潮高';
 
   @override
-  String get settings_conflict_field_lowTideTime => 'Low tide';
+  String get settings_conflict_field_lowTideTime => '低潮';
 
   @override
-  String get settings_conflict_field_manifestUrl => 'Feed address';
+  String get settings_conflict_field_manifestUrl => '订阅源地址';
 
   @override
-  String get settings_conflict_field_manualElapsedSeconds =>
-      'Time into dive, set by hand';
+  String get settings_conflict_field_manualElapsedSeconds => '潜水内时间（手动设置）';
 
   @override
-  String get settings_conflict_field_manufacturer => 'Manufacturer';
+  String get settings_conflict_field_manufacturer => '制造商';
 
   @override
-  String get settings_conflict_field_matchConfidence => 'Match';
+  String get settings_conflict_field_matchConfidence => '匹配';
 
   @override
-  String get settings_conflict_field_material => 'Tank material';
+  String get settings_conflict_field_material => '气瓶材质';
 
   @override
-  String get settings_conflict_field_maxAscentRate => 'Maximum ascent rate';
+  String get settings_conflict_field_maxAscentRate => '最大上升速度';
 
   @override
-  String get settings_conflict_field_maxDescentRate => 'Maximum descent rate';
+  String get settings_conflict_field_maxDescentRate => '最大下潜速度';
 
   @override
-  String get settings_conflict_field_maxSpeed => 'Top speed';
+  String get settings_conflict_field_maxSpeed => '最高速度';
 
   @override
-  String get settings_conflict_field_measuredAt => 'Measured';
+  String get settings_conflict_field_measuredAt => '测量时间';
 
   @override
-  String get settings_conflict_field_medicalClearanceExpiryDate =>
-      'Medical clearance expiry';
+  String get settings_conflict_field_medicalClearanceExpiryDate => '体检合格证明到期';
 
   @override
-  String get settings_conflict_field_medicalNotes => 'Medical notes';
+  String get settings_conflict_field_medicalNotes => '医疗备注';
 
   @override
-  String get settings_conflict_field_medications => 'Medications';
+  String get settings_conflict_field_medications => '药物';
 
   @override
-  String get settings_conflict_field_mergeSourceSlot =>
-      'Position among merged sources';
+  String get settings_conflict_field_mergeSourceSlot => '在合并来源中的位置';
 
   @override
-  String get settings_conflict_field_mode => 'Breathing mode';
+  String get settings_conflict_field_mode => '呼吸模式';
 
   @override
-  String get settings_conflict_field_name => 'Name';
+  String get settings_conflict_field_name => '名称';
 
   @override
-  String get settings_conflict_field_narrative => 'What happened';
+  String get settings_conflict_field_narrative => '经过';
 
   @override
-  String get settings_conflict_field_noFlyPreset => 'No-fly rule';
+  String get settings_conflict_field_noFlyPreset => '禁飞规则';
 
   @override
-  String get settings_conflict_field_note => 'Note';
+  String get settings_conflict_field_note => '备注';
 
   @override
-  String get settings_conflict_field_notedAt => 'Noted';
+  String get settings_conflict_field_notedAt => '记录时间';
 
   @override
-  String get settings_conflict_field_notificationsEnabled => 'Notifications';
+  String get settings_conflict_field_notificationsEnabled => '通知';
 
   @override
-  String get settings_conflict_field_o2Narcotic => 'Oxygen counted as narcotic';
+  String get settings_conflict_field_o2Narcotic => '氧气计入麻醉性';
 
   @override
-  String get settings_conflict_field_o2Percent => 'Oxygen';
+  String get settings_conflict_field_o2Percent => '氧气';
 
   @override
-  String get settings_conflict_field_observedAt => 'Observed';
+  String get settings_conflict_field_observedAt => '观察时间';
 
   @override
-  String get settings_conflict_field_occurredAt => 'Occurred';
+  String get settings_conflict_field_occurredAt => '发生时间';
 
   @override
-  String get settings_conflict_field_operatorName => 'Operator';
+  String get settings_conflict_field_operatorName => '运营商';
 
   @override
-  String get settings_conflict_field_originalFilename => 'Original file name';
+  String get settings_conflict_field_originalFilename => '原始文件名';
 
   @override
-  String get settings_conflict_field_outingId => 'Outing';
+  String get settings_conflict_field_outingId => '出海';
 
   @override
-  String get settings_conflict_field_overdueServices => 'Overdue services';
+  String get settings_conflict_field_overdueServices => '逾期保养';
 
   @override
-  String get settings_conflict_field_params => 'Details';
+  String get settings_conflict_field_params => '详情';
 
   @override
-  String get settings_conflict_field_parkingInfo => 'Parking';
+  String get settings_conflict_field_parkingInfo => '停车';
 
   @override
-  String get settings_conflict_field_passportId => 'Cylinder passport';
+  String get settings_conflict_field_passportId => '气瓶护照';
 
   @override
-  String get settings_conflict_field_phone => 'Phone';
+  String get settings_conflict_field_phone => '电话';
 
   @override
-  String get settings_conflict_field_photo => 'Photo';
+  String get settings_conflict_field_photo => '照片';
 
   @override
-  String get settings_conflict_field_photoBack => 'Card back';
+  String get settings_conflict_field_photoBack => '证卡背面';
 
   @override
-  String get settings_conflict_field_photoBackPath => 'Card back';
+  String get settings_conflict_field_photoBackPath => '证卡背面';
 
   @override
-  String get settings_conflict_field_photoFront => 'Card front';
+  String get settings_conflict_field_photoFront => '证卡正面';
 
   @override
-  String get settings_conflict_field_photoFrontPath => 'Card front';
+  String get settings_conflict_field_photoFrontPath => '证卡正面';
 
   @override
-  String get settings_conflict_field_photoPath => 'Photo';
+  String get settings_conflict_field_photoPath => '照片';
 
   @override
-  String get settings_conflict_field_placeNameLanguage => 'Place name language';
+  String get settings_conflict_field_placeNameLanguage => '地名语言';
 
   @override
-  String get settings_conflict_field_plannedDives => 'Planned dives';
+  String get settings_conflict_field_plannedDives => '计划潜水次数';
 
   @override
-  String get settings_conflict_field_plannedWeightKg => 'Planned weight';
+  String get settings_conflict_field_plannedWeightKg => '计划配重';
 
   @override
-  String get settings_conflict_field_plannedWeightPlacement =>
-      'Planned weight placement';
+  String get settings_conflict_field_plannedWeightPlacement => '计划配重分布';
 
   @override
-  String get settings_conflict_field_platformAssetId => 'Photo library item';
+  String get settings_conflict_field_platformAssetId => '照片库项目';
 
   @override
-  String get settings_conflict_field_pointCount => 'Number of points';
+  String get settings_conflict_field_pointCount => '点数';
 
   @override
-  String get settings_conflict_field_points => 'Track points';
+  String get settings_conflict_field_points => '轨迹点';
 
   @override
-  String get settings_conflict_field_pollIntervalSeconds => 'Check every';
+  String get settings_conflict_field_pollIntervalSeconds => '检查频率';
 
   @override
-  String get settings_conflict_field_portName => 'Port';
+  String get settings_conflict_field_portName => '港口';
 
   @override
-  String get settings_conflict_field_ppO2Bottom => 'Bottom ppO2';
+  String get settings_conflict_field_ppO2Bottom => '水底 ppO2';
 
   @override
-  String get settings_conflict_field_ppO2Deco => 'Deco ppO2';
+  String get settings_conflict_field_ppO2Deco => '减压 ppO2';
 
   @override
-  String get settings_conflict_field_ppO2MaxDeco => 'Maximum deco ppO2';
+  String get settings_conflict_field_ppO2MaxDeco => '最高减压 ppO2';
 
   @override
-  String get settings_conflict_field_ppO2MaxWorking => 'Maximum working ppO2';
+  String get settings_conflict_field_ppO2MaxWorking => '最高工作 ppO2';
 
   @override
-  String get settings_conflict_field_preDiveChecklistTemplates_category =>
-      'Category';
+  String get settings_conflict_field_preDiveChecklistTemplates_category => '类别';
 
   @override
-  String get settings_conflict_field_preDiveSessions_status => 'Status';
+  String get settings_conflict_field_preDiveSessions_status => '状态';
 
   @override
-  String get settings_conflict_field_presetJson => 'Preset';
+  String get settings_conflict_field_presetJson => '预设';
 
   @override
-  String get settings_conflict_field_presetName => 'Tank preset';
+  String get settings_conflict_field_presetName => '气瓶预设';
 
   @override
-  String get settings_conflict_field_pressure => 'Pressure';
+  String get settings_conflict_field_pressure => '压力';
 
   @override
-  String get settings_conflict_field_pressureBar => 'Pressure';
+  String get settings_conflict_field_pressureBar => '压力';
 
   @override
-  String get settings_conflict_field_pressureUnit => 'Pressure unit';
+  String get settings_conflict_field_pressureUnit => '压力单位';
 
   @override
-  String get settings_conflict_field_priorDiveCount => 'Dives before this log';
+  String get settings_conflict_field_priorDiveCount => '本日志之前的潜水次数';
 
   @override
-  String get settings_conflict_field_priorDiveTimeSeconds =>
-      'Dive time before this log';
+  String get settings_conflict_field_priorDiveTimeSeconds => '本日志之前的潜水时间';
 
   @override
-  String get settings_conflict_field_problemSolvingMinutes =>
-      'Problem-solving time';
+  String get settings_conflict_field_problemSolvingMinutes => '问题处理时间';
 
   @override
-  String get settings_conflict_field_provider => 'Provider';
+  String get settings_conflict_field_provider => '服务商';
 
   @override
-  String get settings_conflict_field_providerType => 'Storage provider';
+  String get settings_conflict_field_providerType => '存储服务商';
 
   @override
-  String get settings_conflict_field_purchaseCurrency => 'Purchase currency';
+  String get settings_conflict_field_purchaseCurrency => '购买货币';
 
   @override
-  String get settings_conflict_field_qualityFindings_category => 'Category';
+  String get settings_conflict_field_qualityFindings_category => '类别';
 
   @override
-  String get settings_conflict_field_qualityFindings_severity => 'Severity';
+  String get settings_conflict_field_qualityFindings_severity => '严重程度';
 
   @override
-  String get settings_conflict_field_qualityFindings_status => 'Status';
+  String get settings_conflict_field_qualityFindings_status => '状态';
 
   @override
-  String get settings_conflict_field_queryJson => 'Query';
+  String get settings_conflict_field_queryJson => '查询';
 
   @override
-  String get settings_conflict_field_radiusMeters => 'Radius';
+  String get settings_conflict_field_radiusMeters => '半径';
 
   @override
-  String get settings_conflict_field_rate => 'Rate';
+  String get settings_conflict_field_rate => '速度';
 
   @override
-  String get settings_conflict_field_rateOfChange => 'Rate of change';
+  String get settings_conflict_field_rateOfChange => '变化速率';
 
   @override
-  String get settings_conflict_field_rawData => 'Raw dive computer data';
+  String get settings_conflict_field_rawData => '潜水电脑原始数据';
 
   @override
-  String get settings_conflict_field_rawFingerprint =>
-      'Dive computer fingerprint';
+  String get settings_conflict_field_rawFingerprint => '潜水电脑指纹';
 
   @override
-  String get settings_conflict_field_reminderTime => 'Reminder time';
+  String get settings_conflict_field_reminderTime => '提醒时间';
 
   @override
-  String get settings_conflict_field_remoteAssetId => 'Remote item';
+  String get settings_conflict_field_remoteAssetId => '远程项目';
 
   @override
-  String get settings_conflict_field_remoteCompressedUploadedAt =>
-      'Compressed copy uploaded';
+  String get settings_conflict_field_remoteCompressedUploadedAt => '压缩副本上传时间';
 
   @override
-  String get settings_conflict_field_remoteThumbUploadedAt =>
-      'Thumbnail uploaded';
+  String get settings_conflict_field_remoteThumbUploadedAt => '缩略图上传时间';
 
   @override
-  String get settings_conflict_field_remoteUploadedAt => 'Uploaded';
+  String get settings_conflict_field_remoteUploadedAt => '上传时间';
 
   @override
-  String get settings_conflict_field_reservePressure => 'Reserve pressure';
+  String get settings_conflict_field_reservePressure => '储备压力';
 
   @override
-  String get settings_conflict_field_retainInLibrary => 'Kept in the library';
+  String get settings_conflict_field_retainInLibrary => '保留在库中';
 
   @override
-  String get settings_conflict_field_returnFlightAt => 'Return flight';
+  String get settings_conflict_field_returnFlightAt => '返程航班';
 
   @override
-  String get settings_conflict_field_reviewedAt => 'Reviewed';
+  String get settings_conflict_field_reviewedAt => '审核时间';
 
   @override
-  String get settings_conflict_field_roleSource => 'Role set by';
+  String get settings_conflict_field_roleSource => '用途设定来源';
 
   @override
-  String get settings_conflict_field_ruleId => 'Rule';
+  String get settings_conflict_field_ruleId => '规则';
 
   @override
-  String get settings_conflict_field_sacBottom => 'Bottom gas consumption';
+  String get settings_conflict_field_sacBottom => '水底耗气量';
 
   @override
-  String get settings_conflict_field_sacDeco => 'Deco gas consumption';
+  String get settings_conflict_field_sacDeco => '减压耗气量';
 
   @override
-  String get settings_conflict_field_sacFactor => 'Gas consumption factor';
+  String get settings_conflict_field_sacFactor => '耗气系数';
 
   @override
-  String get settings_conflict_field_sacStressed => 'Stressed gas consumption';
+  String get settings_conflict_field_sacStressed => '紧张时耗气量';
 
   @override
-  String get settings_conflict_field_safetyReviewDisabledRules =>
-      'Turned-off safety checks';
+  String get settings_conflict_field_safetyReviewDisabledRules => '已关闭的安全检查';
 
   @override
-  String get settings_conflict_field_safetyReviewEnabled => 'Safety review';
+  String get settings_conflict_field_safetyReviewEnabled => '安全审查';
 
   @override
-  String get settings_conflict_field_salinityPpt =>
-      'Salinity in parts per thousand';
+  String get settings_conflict_field_salinityPpt => '盐度（千分比）';
 
   @override
-  String get settings_conflict_field_sampleCount => 'Number of samples';
+  String get settings_conflict_field_sampleCount => '采样数';
 
   @override
-  String get settings_conflict_field_samples => 'Profile samples';
+  String get settings_conflict_field_samples => '剖面采样';
 
   @override
-  String get settings_conflict_field_scientificName => 'Scientific name';
+  String get settings_conflict_field_scientificName => '学名';
 
   @override
-  String get settings_conflict_field_scooterBurnSeconds => 'Scooter burn time';
+  String get settings_conflict_field_scooterBurnSeconds => '推进器续航时间';
 
   @override
-  String get settings_conflict_field_scooterName => 'Scooter';
+  String get settings_conflict_field_scooterName => '推进器';
 
   @override
-  String get settings_conflict_field_scooterSpeedMps => 'Scooter speed';
+  String get settings_conflict_field_scooterSpeedMps => '推进器速度';
 
   @override
-  String get settings_conflict_field_scrAdditionRatio => 'SCR addition ratio';
+  String get settings_conflict_field_scrAdditionRatio => 'SCR 补气比例';
 
   @override
-  String get settings_conflict_field_scrInjectionRate => 'SCR injection rate';
+  String get settings_conflict_field_scrInjectionRate => 'SCR 注入速率';
 
   @override
-  String get settings_conflict_field_scrOrificeSize => 'SCR orifice size';
+  String get settings_conflict_field_scrOrificeSize => 'SCR 喷嘴尺寸';
 
   @override
-  String get settings_conflict_field_scrType => 'SCR type';
+  String get settings_conflict_field_scrType => 'SCR 类型';
 
   @override
-  String get settings_conflict_field_scrubberDurationMinutes =>
-      'Scrubber duration';
+  String get settings_conflict_field_scrubberDurationMinutes => '吸收剂使用时长';
 
   @override
-  String get settings_conflict_field_scrubberRemainingMinutes =>
-      'Scrubber time remaining';
+  String get settings_conflict_field_scrubberRemainingMinutes => '吸收剂剩余时长';
 
   @override
-  String get settings_conflict_field_scrubberType => 'Scrubber type';
+  String get settings_conflict_field_scrubberType => '吸收剂类型';
 
   @override
-  String get settings_conflict_field_seascapeAppearance =>
-      'Seascape appearance';
+  String get settings_conflict_field_seascapeAppearance => '水下地形外观';
 
   @override
   String get settings_conflict_field_seascapeVerticalExaggerationOverrides =>
-      'Seascape height scaling';
+      '水下地形垂直比例';
 
   @override
-  String get settings_conflict_field_section => 'Section';
+  String get settings_conflict_field_section => '分区';
 
   @override
-  String get settings_conflict_field_serviceCategory => 'Service type';
+  String get settings_conflict_field_serviceCategory => '保养类型';
 
   @override
-  String get settings_conflict_field_serviceDate => 'Service date';
+  String get settings_conflict_field_serviceDate => '保养日期';
 
   @override
-  String get settings_conflict_field_serviceReminderDays =>
-      'Service reminder days';
+  String get settings_conflict_field_serviceReminderDays => '保养提醒天数';
 
   @override
-  String get settings_conflict_field_setpointBar => 'Setpoint';
+  String get settings_conflict_field_setpointBar => '设定点';
 
   @override
-  String get settings_conflict_field_setpointSwitchDepth =>
-      'Setpoint switch depth';
+  String get settings_conflict_field_setpointSwitchDepth => '设定点切换深度';
 
   @override
-  String get settings_conflict_field_settings_key => 'Setting';
+  String get settings_conflict_field_settings_key => '设置项';
 
   @override
-  String get settings_conflict_field_settings_value => 'Value';
+  String get settings_conflict_field_settings_value => '值';
 
   @override
-  String get settings_conflict_field_shallowAscentRate =>
-      'Ascent rate between shallow stops';
+  String get settings_conflict_field_shallowAscentRate => '浅停留之间的上升速度';
 
   @override
-  String get settings_conflict_field_sharedComputerIds =>
-      'Shared with computers';
+  String get settings_conflict_field_sharedComputerIds => '与电脑共享';
 
   @override
-  String get settings_conflict_field_shoreSwimM => 'Shore swim';
+  String get settings_conflict_field_shoreSwimM => '游回岸边';
 
   @override
-  String get settings_conflict_field_shoreWalkM => 'Shore walk';
+  String get settings_conflict_field_shoreWalkM => '步行回岸';
 
   @override
-  String get settings_conflict_field_shortName => 'Short name';
+  String get settings_conflict_field_shortName => '简称';
 
   @override
-  String get settings_conflict_field_showAscentRateColors =>
-      'Ascent rate colors';
+  String get settings_conflict_field_showAscentRateColors => '上升速度颜色';
 
   @override
-  String get settings_conflict_field_showCeilingOnProfile =>
-      'Profile shows ceiling';
+  String get settings_conflict_field_showCeilingOnProfile => '剖面显示天花板';
 
   @override
-  String get settings_conflict_field_showDataSourceBadges =>
-      'Data source badges';
+  String get settings_conflict_field_showDataSourceBadges => '数据来源标记';
 
   @override
-  String get settings_conflict_field_showDecoStopsOnProfile =>
-      'Profile shows deco stops';
+  String get settings_conflict_field_showDecoStopsOnProfile => '剖面显示减压停留';
 
   @override
-  String get settings_conflict_field_showDepthColoredDiveCards =>
-      'Dive cards colored by depth';
+  String get settings_conflict_field_showDepthColoredDiveCards => '按深度着色的潜水卡片';
 
   @override
-  String get settings_conflict_field_showDetailsPaneBuddies =>
-      'Details pane for buddies';
+  String get settings_conflict_field_showDetailsPaneBuddies => '潜伴详情面板';
 
   @override
-  String get settings_conflict_field_showDetailsPaneCertifications =>
-      'Details pane for certifications';
+  String get settings_conflict_field_showDetailsPaneCertifications => '证书详情面板';
 
   @override
-  String get settings_conflict_field_showDetailsPaneCourses =>
-      'Details pane for courses';
+  String get settings_conflict_field_showDetailsPaneCourses => '课程详情面板';
 
   @override
-  String get settings_conflict_field_showDetailsPaneDiveCenters =>
-      'Details pane for dive centers';
+  String get settings_conflict_field_showDetailsPaneDiveCenters => '潜水中心详情面板';
 
   @override
-  String get settings_conflict_field_showDetailsPaneDives =>
-      'Details pane for dives';
+  String get settings_conflict_field_showDetailsPaneDives => '潜水详情面板';
 
   @override
-  String get settings_conflict_field_showDetailsPaneEquipment =>
-      'Details pane for equipment';
+  String get settings_conflict_field_showDetailsPaneEquipment => '装备详情面板';
 
   @override
-  String get settings_conflict_field_showDetailsPaneSites =>
-      'Details pane for sites';
+  String get settings_conflict_field_showDetailsPaneSites => '潜水点详情面板';
 
   @override
-  String get settings_conflict_field_showDetailsPaneTrips =>
-      'Details pane for trips';
+  String get settings_conflict_field_showDetailsPaneTrips => '行程详情面板';
 
   @override
-  String get settings_conflict_field_showDiveFigure => 'Diver figure';
+  String get settings_conflict_field_showDiveFigure => '潜水员图示';
 
   @override
-  String get settings_conflict_field_showFigure => 'Shown on the diver figure';
+  String get settings_conflict_field_showFigure => '在潜水员图示中显示';
 
   @override
-  String get settings_conflict_field_showInDetailHeader =>
-      'Shown in the dive header';
+  String get settings_conflict_field_showInDetailHeader => '在潜水标题中显示';
 
   @override
-  String get settings_conflict_field_showInListView => 'Shown in the dive list';
+  String get settings_conflict_field_showInListView => '在潜水列表中显示';
 
   @override
-  String get settings_conflict_field_showMapBackgroundOnDiveCards =>
-      'Map behind dive cards';
+  String get settings_conflict_field_showMapBackgroundOnDiveCards => '潜水卡片背景地图';
 
   @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>
-      'Map behind site cards';
+      '潜水点卡片背景地图';
 
   @override
-  String get settings_conflict_field_showMaxDepthMarker =>
-      'Profile shows maximum depth';
+  String get settings_conflict_field_showMaxDepthMarker => '剖面显示最大深度';
 
   @override
-  String get settings_conflict_field_showNdlOnProfile => 'Profile shows NDL';
+  String get settings_conflict_field_showNdlOnProfile => '剖面显示 NDL';
 
   @override
-  String get settings_conflict_field_showPressureThresholdMarkers =>
-      'Profile shows pressure thresholds';
+  String get settings_conflict_field_showPressureThresholdMarkers => '剖面显示压力阈值';
 
   @override
   String get settings_conflict_field_showProfilePanelInTableView =>
-      'Profile panel in table view';
+      '表格视图中的剖面面板';
 
   @override
-  String get settings_conflict_field_signatureType => 'Signature type';
+  String get settings_conflict_field_signatureType => '签名类型';
 
   @override
-  String get settings_conflict_field_signedRecord => 'Signed fill record';
+  String get settings_conflict_field_signedRecord => '已签名的充气记录';
 
   @override
-  String get settings_conflict_field_signerName => 'Signed by';
+  String get settings_conflict_field_signerName => '签名人';
 
   @override
-  String get settings_conflict_field_siteDetailLayout => 'Site detail layout';
+  String get settings_conflict_field_siteDetailLayout => '潜水点详情布局';
 
   @override
-  String get settings_conflict_field_siteDetailSections =>
-      'Site detail sections';
+  String get settings_conflict_field_siteDetailSections => '潜水点详情分区';
 
   @override
-  String get settings_conflict_field_siteFeatures_type => 'Feature type';
+  String get settings_conflict_field_siteFeatures_type => '特征类型';
 
   @override
-  String get settings_conflict_field_siteListViewMode => 'Site list view';
+  String get settings_conflict_field_siteListViewMode => '潜水点列表视图';
 
   @override
-  String get settings_conflict_field_siteSuggestionDismissedAt =>
-      'Site suggestion dismissed';
+  String get settings_conflict_field_siteSuggestionDismissedAt => '潜水点建议忽略时间';
 
   @override
-  String get settings_conflict_field_size => 'Size';
+  String get settings_conflict_field_size => '尺码';
 
   @override
-  String get settings_conflict_field_sortOrder => 'Sort order';
+  String get settings_conflict_field_sortOrder => '排序';
 
   @override
-  String get settings_conflict_field_source => 'Source';
+  String get settings_conflict_field_source => '来源';
 
   @override
-  String get settings_conflict_field_sourceDiverKey =>
-      'Diver in the source log';
+  String get settings_conflict_field_sourceDiverKey => '源日志中的潜水员';
 
   @override
-  String get settings_conflict_field_sourceFileFormat => 'Source file format';
+  String get settings_conflict_field_sourceFileFormat => '源文件格式';
 
   @override
-  String get settings_conflict_field_sourceFileName => 'Source file name';
+  String get settings_conflict_field_sourceFileName => '源文件名';
 
   @override
-  String get settings_conflict_field_sourceFormat => 'Source format';
+  String get settings_conflict_field_sourceFormat => '源格式';
 
   @override
-  String get settings_conflict_field_sourceItemId => 'Linked item';
+  String get settings_conflict_field_sourceItemId => '关联条目';
 
   @override
-  String get settings_conflict_field_sourceRef => 'Source file or device';
+  String get settings_conflict_field_sourceRef => '源文件或设备';
 
   @override
-  String get settings_conflict_field_sourceTankIndex =>
-      'Tank number in the source log';
+  String get settings_conflict_field_sourceTankIndex => '源日志中的气瓶编号';
 
   @override
-  String get settings_conflict_field_sourceType => 'Source';
+  String get settings_conflict_field_sourceType => '来源';
 
   @override
-  String get settings_conflict_field_sourceUuid => 'Source ID';
+  String get settings_conflict_field_sourceUuid => '来源 ID';
 
   @override
-  String get settings_conflict_field_sourceValueNumber => 'Reference reading';
+  String get settings_conflict_field_sourceValueNumber => '参考值';
 
   @override
-  String get settings_conflict_field_spec => 'Connection map';
+  String get settings_conflict_field_spec => '连接图';
 
   @override
-  String get settings_conflict_field_species_category => 'Category';
+  String get settings_conflict_field_species_category => '类别';
 
   @override
-  String get settings_conflict_field_startDateTime => 'Planned start';
+  String get settings_conflict_field_startDateTime => '计划开始时间';
 
   @override
-  String get settings_conflict_field_startDepth => 'Start depth';
+  String get settings_conflict_field_startDepth => '起始深度';
 
   @override
-  String get settings_conflict_field_startTime => 'Start time';
+  String get settings_conflict_field_startTime => '开始时间';
 
   @override
-  String get settings_conflict_field_startTimestamp =>
-      'Starts at (time into dive)';
+  String get settings_conflict_field_startTimestamp => '开始于（潜水内时间）';
 
   @override
-  String get settings_conflict_field_startedAt => 'Started';
+  String get settings_conflict_field_startedAt => '开始时间';
 
   @override
-  String get settings_conflict_field_state => 'State';
+  String get settings_conflict_field_state => '状态';
 
   @override
-  String get settings_conflict_field_stationKey => 'Fill station key';
+  String get settings_conflict_field_stationKey => '充气站密钥';
 
   @override
-  String get settings_conflict_field_stationName => 'Fill station';
+  String get settings_conflict_field_stationName => '充气站';
 
   @override
-  String get settings_conflict_field_stopMinimumsJson => 'Minimum stop times';
+  String get settings_conflict_field_stopMinimumsJson => '最短停留时间';
 
   @override
-  String get settings_conflict_field_strictOrder => 'Items in a fixed order';
+  String get settings_conflict_field_strictOrder => '条目按固定顺序';
 
   @override
-  String get settings_conflict_field_subject => 'Searches';
+  String get settings_conflict_field_subject => '搜索范围';
 
   @override
-  String get settings_conflict_field_summaryMaxDepth => 'Planned maximum depth';
+  String get settings_conflict_field_summaryMaxDepth => '计划最大深度';
 
   @override
-  String get settings_conflict_field_summaryRuntimeSeconds => 'Planned runtime';
+  String get settings_conflict_field_summaryRuntimeSeconds => '计划时长';
 
   @override
-  String get settings_conflict_field_summaryTtsSeconds =>
-      'Planned time to surface';
+  String get settings_conflict_field_summaryTtsSeconds => '计划上升至水面时间';
 
   @override
-  String get settings_conflict_field_surfaceConditions => 'Surface conditions';
+  String get settings_conflict_field_surfaceConditions => '水面状况';
 
   @override
-  String get settings_conflict_field_surfaceSwimLimitM =>
-      'Longest surface swim';
+  String get settings_conflict_field_surfaceSwimLimitM => '最长水面游动距离';
 
   @override
-  String get settings_conflict_field_swimSpeedMps => 'Swim speed';
+  String get settings_conflict_field_swimSpeedMps => '游泳速度';
 
   @override
-  String get settings_conflict_field_takenAt => 'Taken';
+  String get settings_conflict_field_takenAt => '拍摄时间';
 
   @override
-  String get settings_conflict_field_tankMaterial => 'Tank material';
+  String get settings_conflict_field_tankMaterial => '气瓶材质';
 
   @override
-  String get settings_conflict_field_tankName => 'Tank name';
+  String get settings_conflict_field_tankName => '气瓶名称';
 
   @override
-  String get settings_conflict_field_tankOrder => 'Tank order';
+  String get settings_conflict_field_tankOrder => '气瓶顺序';
 
   @override
-  String get settings_conflict_field_tankRole => 'Tank role';
+  String get settings_conflict_field_tankRole => '气瓶用途';
 
   @override
-  String get settings_conflict_field_targetCount => 'Target';
+  String get settings_conflict_field_targetCount => '目标';
 
   @override
-  String get settings_conflict_field_taxonomyClass => 'Taxonomic class';
+  String get settings_conflict_field_taxonomyClass => '分类纲';
 
   @override
-  String get settings_conflict_field_temperatureC => 'Temperature';
+  String get settings_conflict_field_temperatureC => '温度';
 
   @override
-  String get settings_conflict_field_temperatureCelsius => 'Temperature';
+  String get settings_conflict_field_temperatureCelsius => '温度';
 
   @override
-  String get settings_conflict_field_temperatureUnit => 'Temperature unit';
+  String get settings_conflict_field_temperatureUnit => '温度单位';
 
   @override
-  String get settings_conflict_field_templateName => 'Checklist template';
+  String get settings_conflict_field_templateName => '检查清单模板';
 
   @override
-  String get settings_conflict_field_themeMode => 'Theme';
+  String get settings_conflict_field_themeMode => '主题';
 
   @override
-  String get settings_conflict_field_themePreset => 'Color theme';
+  String get settings_conflict_field_themePreset => '配色主题';
 
   @override
-  String get settings_conflict_field_thickness => 'Thickness';
+  String get settings_conflict_field_thickness => '厚度';
 
   @override
-  String get settings_conflict_field_thumbnailGeneratedAt => 'Thumbnail made';
+  String get settings_conflict_field_thumbnailGeneratedAt => '缩略图生成时间';
 
   @override
-  String get settings_conflict_field_tideState => 'Tide';
+  String get settings_conflict_field_tideState => '潮汐';
 
   @override
-  String get settings_conflict_field_timeFormat => 'Time format';
+  String get settings_conflict_field_timeFormat => '时间格式';
 
   @override
-  String get settings_conflict_field_timeOffsetSeconds => 'Time offset';
+  String get settings_conflict_field_timeOffsetSeconds => '时间偏移';
 
   @override
-  String get settings_conflict_field_timestamp => 'Time into dive';
+  String get settings_conflict_field_timestamp => '潜水内时间';
 
   @override
-  String get settings_conflict_field_timestampOffsetSeconds => 'Time offset';
+  String get settings_conflict_field_timestampOffsetSeconds => '时间偏移';
 
   @override
-  String get settings_conflict_field_tissueColorScheme => 'Tissue colors';
+  String get settings_conflict_field_tissueColorScheme => '组织颜色';
 
   @override
-  String get settings_conflict_field_tissueVizMode => 'Tissue chart';
+  String get settings_conflict_field_tissueVizMode => '组织图表';
 
   @override
-  String get settings_conflict_field_title => 'Title';
+  String get settings_conflict_field_title => '标题';
 
   @override
-  String get settings_conflict_field_totalDistance => 'Total distance';
+  String get settings_conflict_field_totalDistance => '总距离';
 
   @override
-  String get settings_conflict_field_towBurnFactor => 'Tow burn factor';
+  String get settings_conflict_field_towBurnFactor => '牵引耗电系数';
 
   @override
-  String get settings_conflict_field_towSpeedFactor => 'Tow speed factor';
+  String get settings_conflict_field_towSpeedFactor => '牵引速度系数';
 
   @override
-  String get settings_conflict_field_transmitterSerial =>
-      'Transmitter serial number';
+  String get settings_conflict_field_transmitterSerial => '发射器序列号';
 
   @override
-  String get settings_conflict_field_trimEndTime => 'Trimmed end';
+  String get settings_conflict_field_trimEndTime => '裁剪后结束';
 
   @override
-  String get settings_conflict_field_trimStartTime => 'Trimmed start';
+  String get settings_conflict_field_trimStartTime => '裁剪后开始';
 
   @override
-  String get settings_conflict_field_trimTankPressureAtSurfacing =>
-      'Tank pressure trimmed at surfacing';
+  String get settings_conflict_field_trimTankPressureAtSurfacing => '出水时裁剪气瓶压力';
 
   @override
-  String get settings_conflict_field_tripChecklistItems_category => 'Category';
+  String get settings_conflict_field_tripChecklistItems_category => '类别';
 
   @override
-  String get settings_conflict_field_tripCylinderEvents_kind => 'Event';
+  String get settings_conflict_field_tripCylinderEvents_kind => '事件';
 
   @override
-  String get settings_conflict_field_tripListViewMode => 'Trip list view';
+  String get settings_conflict_field_tripListViewMode => '行程列表视图';
 
   @override
-  String get settings_conflict_field_tripServiceLeadDays =>
-      'Service warning days before a trip';
+  String get settings_conflict_field_tripServiceLeadDays => '行程前保养提醒天数';
 
   @override
-  String get settings_conflict_field_trustFraction =>
-      'Trusted share of the route';
+  String get settings_conflict_field_trustFraction => '路线可信部分';
 
   @override
-  String get settings_conflict_field_turnPressureFraction =>
-      'Turn pressure share';
+  String get settings_conflict_field_turnPressureFraction => '返程压力比例';
 
   @override
-  String get settings_conflict_field_turnPressureRule => 'Turn pressure rule';
+  String get settings_conflict_field_turnPressureRule => '返程压力规则';
 
   @override
-  String get settings_conflict_field_tzOffsetMinutes =>
-      'Time zone offset in minutes';
+  String get settings_conflict_field_tzOffsetMinutes => '时区偏移（分钟）';
 
   @override
-  String get settings_conflict_field_uploadFactsHlc => 'Upload record';
+  String get settings_conflict_field_uploadFactsHlc => '上传记录';
 
   @override
-  String get settings_conflict_field_url => 'Address';
+  String get settings_conflict_field_url => '地址';
 
   @override
-  String get settings_conflict_field_usageDuration => 'Time breathed';
+  String get settings_conflict_field_usageDuration => '呼吸时长';
 
   @override
-  String get settings_conflict_field_useDiveComputerCnsData =>
-      'CNS from the dive computer';
+  String get settings_conflict_field_useDiveComputerCnsData => '使用潜水电脑的 CNS';
 
   @override
-  String get settings_conflict_field_value => 'Value';
+  String get settings_conflict_field_value => '值';
 
   @override
-  String get settings_conflict_field_valueLabel => 'Value label';
+  String get settings_conflict_field_valueLabel => '值标签';
 
   @override
-  String get settings_conflict_field_valueMax => 'Highest expected value';
+  String get settings_conflict_field_valueMax => '预期最高值';
 
   @override
-  String get settings_conflict_field_valueMin => 'Lowest expected value';
+  String get settings_conflict_field_valueMin => '预期最低值';
 
   @override
-  String get settings_conflict_field_valueNum => 'Value';
+  String get settings_conflict_field_valueNum => '值';
 
   @override
-  String get settings_conflict_field_valueNumber => 'Reading';
+  String get settings_conflict_field_valueNumber => '读数';
 
   @override
-  String get settings_conflict_field_valueText => 'Value';
+  String get settings_conflict_field_valueText => '值';
 
   @override
-  String get settings_conflict_field_valueUnit => 'Unit';
+  String get settings_conflict_field_valueUnit => '单位';
 
   @override
-  String get settings_conflict_field_verdict => 'Verdict';
+  String get settings_conflict_field_verdict => '评价';
 
   @override
-  String get settings_conflict_field_verifyFactsHlc => 'Verification record';
+  String get settings_conflict_field_verifyFactsHlc => '验证记录';
 
   @override
-  String get settings_conflict_field_vesselName => 'Vessel';
+  String get settings_conflict_field_vesselName => '船只';
 
   @override
-  String get settings_conflict_field_vesselType => 'Vessel type';
+  String get settings_conflict_field_vesselType => '船只类型';
 
   @override
-  String get settings_conflict_field_viewMode => 'View';
+  String get settings_conflict_field_viewMode => '视图';
 
   @override
-  String get settings_conflict_field_visibilityScaleExcellentM =>
-      'Excellent visibility from';
+  String get settings_conflict_field_visibilityScaleExcellentM => '极佳能见度起点';
 
   @override
-  String get settings_conflict_field_visibilityScaleGoodM =>
-      'Good visibility from';
+  String get settings_conflict_field_visibilityScaleGoodM => '良好能见度起点';
 
   @override
-  String get settings_conflict_field_visibilityScaleModerateM =>
-      'Moderate visibility from';
+  String get settings_conflict_field_visibilityScaleModerateM => '一般能见度起点';
 
   @override
-  String get settings_conflict_field_volume => 'Volume';
+  String get settings_conflict_field_volume => '容积';
 
   @override
-  String get settings_conflict_field_volumeL => 'Volume';
+  String get settings_conflict_field_volumeL => '容积';
 
   @override
-  String get settings_conflict_field_volumeLiters => 'Volume';
+  String get settings_conflict_field_volumeLiters => '容积';
 
   @override
-  String get settings_conflict_field_volumeUnit => 'Volume unit';
+  String get settings_conflict_field_volumeUnit => '容积单位';
 
   @override
-  String get settings_conflict_field_walkSpeedMps => 'Walking speed';
+  String get settings_conflict_field_walkSpeedMps => '步行速度';
 
   @override
-  String get settings_conflict_field_weatherCode => 'Weather code';
+  String get settings_conflict_field_weatherCode => '天气代码';
 
   @override
-  String get settings_conflict_field_weatherFetchedAt => 'Weather fetched';
+  String get settings_conflict_field_weatherFetchedAt => '天气获取时间';
 
   @override
-  String get settings_conflict_field_weatherSource => 'Weather source';
+  String get settings_conflict_field_weatherSource => '天气来源';
 
   @override
-  String get settings_conflict_field_weightAmount => 'Weight';
+  String get settings_conflict_field_weightAmount => '配重';
 
   @override
-  String get settings_conflict_field_weightKg => 'Weight';
+  String get settings_conflict_field_weightKg => '重量';
 
   @override
-  String get settings_conflict_field_weightType => 'Weight type';
+  String get settings_conflict_field_weightType => '配重类型';
 
   @override
-  String get settings_conflict_field_weightUnit => 'Weight unit';
+  String get settings_conflict_field_weightUnit => '重量单位';
 
   @override
-  String get settings_conflict_field_weightingFeedback => 'Weighting';
+  String get settings_conflict_field_weightingFeedback => '配重感受';
 
   @override
-  String get settings_conflict_field_weightingFeedbackKg =>
-      'Weighting difference';
+  String get settings_conflict_field_weightingFeedbackKg => '配重差值';
 
   @override
-  String get settings_conflict_field_width => 'Width in pixels';
+  String get settings_conflict_field_width => '宽度（像素）';
 
   @override
-  String get settings_conflict_field_windDirection => 'Wind direction';
+  String get settings_conflict_field_windDirection => '风向';
 
   @override
-  String get settings_conflict_field_workingPressure => 'Working pressure';
+  String get settings_conflict_field_workingPressure => '工作压力';
 
   @override
-  String get settings_conflict_field_workingPressureBar => 'Working pressure';
+  String get settings_conflict_field_workingPressureBar => '工作压力';
 
   @override
   String get settings_conflict_keepBoth => '保留两者';
 
   @override
   String settings_conflict_keepDevice(String device) {
-    return 'Keep $device';
+    return '保留 $device';
   }
-
-  @override
-  String get settings_conflict_keepLocal => '保留本地';
-
-  @override
-  String get settings_conflict_keepRemote => '保留远程';
 
   @override
   String settings_conflict_localDeleted(String device) {
-    return '$device deleted this record.';
-  }
-
-  @override
-  String get settings_conflict_localVersion => '本地版本';
-
-  @override
-  String settings_conflict_modified(Object time) {
-    return '已修改: $time';
+    return '$device 已删除此记录。';
   }
 
   @override
   String settings_conflict_modifiedBy(String device, String time) {
-    return '$device · modified $time';
+    return '$device · 修改于 $time';
   }
 
   @override
@@ -20626,22 +20463,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_noConflicts_title => '无冲突';
 
   @override
-  String get settings_conflict_noDataAvailable => '无可用数据';
+  String get settings_conflict_notSet => '未设置';
 
   @override
-  String get settings_conflict_notSet => 'Not set';
-
-  @override
-  String get settings_conflict_otherDevice => 'Other device';
+  String get settings_conflict_otherDevice => '其他设备';
 
   @override
   String get settings_conflict_previous_tooltip => '上一个冲突';
 
   @override
-  String get settings_conflict_ref_appliedSet => 'Applied from set';
+  String get settings_conflict_ref_appliedSet => '应用自组合';
 
   @override
-  String get settings_conflict_ref_attachedThrough => 'Attached through';
+  String get settings_conflict_ref_attachedThrough => '连接方式';
 
   @override
   String get settings_conflict_ref_buddy => '潜伴';
@@ -20653,7 +20487,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_checklistTemplate => '清单模板';
 
   @override
-  String get settings_conflict_ref_component => 'Component';
+  String get settings_conflict_ref_component => '部件';
 
   @override
   String get settings_conflict_ref_connectedAccount => '已连接账户';
@@ -20683,7 +20517,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_divePlan => '潜水计划';
 
   @override
-  String get settings_conflict_ref_diveRole => 'Dive role';
+  String get settings_conflict_ref_diveRole => '潜水角色';
 
   @override
   String get settings_conflict_ref_diveSite => '潜水点';
@@ -20707,7 +20541,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_importedFile => '导入的文件';
 
   @override
-  String get settings_conflict_ref_installedIn => 'Installed in';
+  String get settings_conflict_ref_installedIn => '安装于';
 
   @override
   String get settings_conflict_ref_instructor => '教练';
@@ -20739,13 +20573,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_preDiveSession => '潜前清单';
 
   @override
-  String get settings_conflict_ref_regulator => 'Regulator';
+  String get settings_conflict_ref_regulator => '调节器';
 
   @override
   String get settings_conflict_ref_relatedDive => '相关潜水';
 
   @override
-  String get settings_conflict_ref_samePerson => 'Same person as';
+  String get settings_conflict_ref_samePerson => '与此人相同';
 
   @override
   String get settings_conflict_ref_serviceKind => '维护类型';
@@ -20772,7 +20606,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_tank => '气瓶';
 
   @override
-  String get settings_conflict_ref_transmitter => 'Transmitter';
+  String get settings_conflict_ref_transmitter => '发射器';
 
   @override
   String get settings_conflict_ref_trip => '行程';
@@ -20781,18 +20615,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_tripCylinder => '行程气瓶';
 
   @override
-  String get settings_conflict_ref_weightPreset => 'Weight preset';
+  String get settings_conflict_ref_weightPreset => '配重预设';
 
   @override
-  String get settings_conflict_ref_yourRole => 'Your role';
+  String get settings_conflict_ref_yourRole => '您的角色';
 
   @override
   String settings_conflict_remoteDeleted(String device) {
-    return '$device deleted this record.';
+    return '$device 已删除此记录。';
   }
-
-  @override
-  String get settings_conflict_remoteVersion => '远程版本';
 
   @override
   String settings_conflict_resolved(int count) {
@@ -20806,44 +20637,42 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_conflict_same => 'Same';
+  String get settings_conflict_same => '相同';
 
   @override
   String get settings_conflict_sameContent =>
-      'Both versions have the same content; only the time they were saved differs. Either choice keeps everything.';
+      '两个版本内容相同，仅保存时间不同。无论选择哪个都不会丢失任何内容。';
 
   @override
   String settings_conflict_sameFields(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count fields are the same',
-      one: '$count field is the same',
+      other: '$count 个字段相同',
     );
     return '$_temp0';
   }
 
   @override
-  String get settings_conflict_textDiffHint =>
-      'Highlighted words appear only in that version.';
+  String get settings_conflict_textDiffHint => '突出显示的词语只出现在该版本中。';
 
   @override
-  String get settings_conflict_thisDevice => 'This device';
+  String get settings_conflict_thisDevice => '本设备';
 
   @override
   String get settings_conflict_title => '解决冲突';
 
   @override
-  String get enum_tissueVizMode_heatMap => 'Heat map';
+  String get enum_tissueVizMode_heatMap => '热力图';
 
   @override
-  String get enum_tissueVizMode_stackedArea => 'Stacked area';
+  String get enum_tissueVizMode_stackedArea => '堆叠面积图';
 
   @override
-  String get enum_tissueColorScheme_classic => 'Classic';
+  String get enum_tissueColorScheme_classic => '经典';
 
   @override
-  String get enum_tissueColorScheme_thermal => 'Thermal';
+  String get enum_tissueColorScheme_thermal => '热成像';
 
   @override
   String get enum_manifestFormat_atom => 'Atom';
@@ -20855,166 +20684,165 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_manifestFormat_json => 'JSON';
 
   @override
-  String get enum_requirementKind_checklist => 'Checklist';
+  String get enum_requirementKind_checklist => '检查清单';
 
   @override
-  String get enum_requirementKind_dive => 'Dives';
+  String get enum_requirementKind_dive => '潜水';
 
   @override
-  String get enum_preDiveSessionStatus_aborted => 'Aborted';
+  String get enum_preDiveSessionStatus_aborted => '已中止';
 
   @override
-  String get enum_preDiveSessionStatus_completed => 'Completed';
+  String get enum_preDiveSessionStatus_completed => '已完成';
 
   @override
-  String get enum_preDiveSessionStatus_inProgress => 'In progress';
+  String get enum_preDiveSessionStatus_inProgress => '进行中';
 
   @override
-  String get enum_preDiveItemType_cellLinearity => 'Cell linearity';
+  String get enum_preDiveItemType_cellLinearity => '传感器线性';
 
   @override
-  String get enum_preDiveItemType_check => 'Check';
+  String get enum_preDiveItemType_check => '检查';
 
   @override
-  String get enum_preDiveItemType_equipment => 'Equipment';
+  String get enum_preDiveItemType_equipment => '装备';
 
   @override
-  String get enum_preDiveItemType_equipmentSet => 'Equipment set';
+  String get enum_preDiveItemType_equipmentSet => '装备组合';
 
   @override
-  String get enum_preDiveItemType_value => 'Value';
+  String get enum_preDiveItemType_value => '数值';
 
   @override
-  String get enum_preDiveItemState_done => 'Done';
+  String get enum_preDiveItemState_done => '已完成';
 
   @override
-  String get enum_preDiveItemState_flagged => 'Flagged';
+  String get enum_preDiveItemState_flagged => '已标记';
 
   @override
-  String get enum_preDiveItemState_pending => 'Pending';
+  String get enum_preDiveItemState_pending => '待处理';
 
   @override
-  String get enum_preDiveItemState_skipped => 'Skipped';
+  String get enum_preDiveItemState_skipped => '已跳过';
 
   @override
-  String get enum_planMode_pscr => 'Passive semi-closed rebreather';
+  String get enum_planMode_pscr => '被动式半密闭循环呼吸器';
 
   @override
-  String get enum_missionEnvironment_openWater => 'Open water';
+  String get enum_missionEnvironment_openWater => '开放水域';
 
   @override
-  String get enum_missionEnvironment_overhead => 'Overhead';
+  String get enum_missionEnvironment_overhead => '顶部封闭环境';
 
   @override
-  String get enum_ownershipEventKind_shared => 'Shared';
+  String get enum_ownershipEventKind_shared => '已共享';
 
   @override
-  String get enum_ownershipEventKind_transferred => 'Transferred';
+  String get enum_ownershipEventKind_transferred => '已转移';
 
   @override
-  String get enum_ownershipEventKind_unshared => 'Stopped sharing';
+  String get enum_ownershipEventKind_unshared => '已停止共享';
 
   @override
-  String get enum_fillSource_file => 'File';
+  String get enum_fillSource_file => '文件';
 
   @override
-  String get enum_fillSource_issued => 'Issued by the fill station';
+  String get enum_fillSource_issued => '由充气站签发';
 
   @override
-  String get enum_fillSource_link => 'Link';
+  String get enum_fillSource_link => '链接';
 
   @override
-  String get enum_fillSource_manual => 'Entered by hand';
+  String get enum_fillSource_manual => '手动输入';
 
   @override
-  String get enum_fillSource_nfc => 'NFC tag';
+  String get enum_fillSource_nfc => 'NFC 标签';
 
   @override
-  String get enum_fillSource_qr => 'QR code';
+  String get enum_fillSource_qr => '二维码';
 
   @override
-  String get enum_tripCylinderEventKind_adjustment => 'Adjustment';
+  String get enum_tripCylinderEventKind_adjustment => '调整';
 
   @override
-  String get enum_tripCylinderEventKind_fill => 'Fill';
+  String get enum_tripCylinderEventKind_fill => '充气';
 
   @override
-  String get enum_weatherSource_manual => 'Manual';
+  String get enum_weatherSource_manual => '手动';
 
   @override
   String get enum_weatherSource_openMeteo => 'Open-Meteo';
 
   @override
-  String get enum_tankRoleSource_transmitterName => 'Transmitter name';
+  String get enum_tankRoleSource_transmitterName => '发射器名称';
 
   @override
-  String get enum_safetySeverity_caution => 'Caution';
+  String get enum_safetySeverity_caution => '注意';
 
   @override
-  String get enum_safetySeverity_info => 'Info';
+  String get enum_safetySeverity_info => '信息';
 
   @override
-  String get enum_safetySeverity_significant => 'Significant';
+  String get enum_safetySeverity_significant => '重要';
 
   @override
-  String get enum_qualityStatus_dismissed => 'Dismissed';
+  String get enum_qualityStatus_dismissed => '已忽略';
 
   @override
-  String get enum_qualityStatus_open => 'Open';
+  String get enum_qualityStatus_open => '未处理';
 
   @override
-  String get enum_qualityStatus_resolved => 'Resolved';
+  String get enum_qualityStatus_resolved => '已解决';
 
   @override
-  String get enum_qualitySeverity_critical => 'Critical';
+  String get enum_qualitySeverity_critical => '严重';
 
   @override
-  String get enum_qualitySeverity_info => 'Info';
+  String get enum_qualitySeverity_info => '信息';
 
   @override
-  String get enum_qualitySeverity_warning => 'Warning';
+  String get enum_qualitySeverity_warning => '警告';
 
   @override
-  String get enum_qualityCategory_duplicate => 'Duplicate';
+  String get enum_qualityCategory_duplicate => '重复';
 
   @override
-  String get enum_qualityCategory_gas => 'Gas';
+  String get enum_qualityCategory_gas => '气体';
 
   @override
-  String get enum_qualityCategory_pressure => 'Pressure';
+  String get enum_qualityCategory_pressure => '压力';
 
   @override
-  String get enum_qualityCategory_profile => 'Profile';
+  String get enum_qualityCategory_profile => '剖面';
 
   @override
-  String get enum_qualityCategory_source => 'Source';
+  String get enum_qualityCategory_source => '来源';
 
   @override
-  String get enum_qualityCategory_tank => 'Tank';
+  String get enum_qualityCategory_tank => '气瓶';
 
   @override
-  String get enum_qualityCategory_temperature => 'Temperature';
+  String get enum_qualityCategory_temperature => '温度';
 
   @override
-  String get enum_qualityCategory_time => 'Time';
+  String get enum_qualityCategory_time => '时间';
 
   @override
-  String get enum_eventSource_computed => 'Calculated';
+  String get enum_eventSource_computed => '计算得出';
 
   @override
-  String get enum_eventSource_imported => 'Imported';
+  String get enum_eventSource_imported => '导入';
 
   @override
-  String get enum_eventSource_user => 'Added by you';
+  String get enum_eventSource_user => '由您添加';
 
   @override
   String settings_conflict_whatDiffers(int count) {
-    return 'What differs ($count)';
+    return '差异（$count）';
   }
 
   @override
-  String get settings_conflict_whitespaceOnly =>
-      'Only spacing or line breaks differ.';
+  String get settings_conflict_whitespaceOnly => '只有空格或换行不同。';
 
   @override
   String get settings_data_appDefaultLocation => '应用默认位置';

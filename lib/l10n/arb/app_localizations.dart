@@ -31366,12 +31366,6 @@ abstract class AppLocalizations {
   /// **'Changed'**
   String get settings_conflict_changed;
 
-  /// No description provided for @settings_conflict_chooseResolution.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose Resolution'**
-  String get settings_conflict_chooseResolution;
-
   /// No description provided for @settings_conflict_chooseVersion.
   ///
   /// In en, this message translates to:
@@ -34922,35 +34916,11 @@ abstract class AppLocalizations {
   /// **'Keep {device}'**
   String settings_conflict_keepDevice(String device);
 
-  /// No description provided for @settings_conflict_keepLocal.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep Local'**
-  String get settings_conflict_keepLocal;
-
-  /// No description provided for @settings_conflict_keepRemote.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep Remote'**
-  String get settings_conflict_keepRemote;
-
   /// No description provided for @settings_conflict_localDeleted.
   ///
   /// In en, this message translates to:
   /// **'{device} deleted this record.'**
   String settings_conflict_localDeleted(String device);
-
-  /// No description provided for @settings_conflict_localVersion.
-  ///
-  /// In en, this message translates to:
-  /// **'Local Version'**
-  String get settings_conflict_localVersion;
-
-  /// No description provided for @settings_conflict_modified.
-  ///
-  /// In en, this message translates to:
-  /// **'Modified: {time}'**
-  String settings_conflict_modified(Object time);
 
   /// No description provided for @settings_conflict_modifiedBy.
   ///
@@ -34975,12 +34945,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No Conflicts'**
   String get settings_conflict_noConflicts_title;
-
-  /// No description provided for @settings_conflict_noDataAvailable.
-  ///
-  /// In en, this message translates to:
-  /// **'No data available'**
-  String get settings_conflict_noDataAvailable;
 
   /// No description provided for @settings_conflict_notSet.
   ///
@@ -35299,12 +35263,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{device} deleted this record.'**
   String settings_conflict_remoteDeleted(String device);
-
-  /// No description provided for @settings_conflict_remoteVersion.
-  ///
-  /// In en, this message translates to:
-  /// **'Remote Version'**
-  String get settings_conflict_remoteVersion;
 
   /// No description provided for @settings_conflict_resolved.
   ///

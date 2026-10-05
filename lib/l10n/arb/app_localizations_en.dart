@@ -19316,9 +19316,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_changed => 'Changed';
 
   @override
-  String get settings_conflict_chooseResolution => 'Choose Resolution';
-
-  @override
   String get settings_conflict_chooseVersion => 'Choose which version to keep.';
 
   @override
@@ -21261,22 +21258,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settings_conflict_keepLocal => 'Keep Local';
-
-  @override
-  String get settings_conflict_keepRemote => 'Keep Remote';
-
-  @override
   String settings_conflict_localDeleted(String device) {
     return '$device deleted this record.';
-  }
-
-  @override
-  String get settings_conflict_localVersion => 'Local Version';
-
-  @override
-  String settings_conflict_modified(Object time) {
-    return 'Modified: $time';
   }
 
   @override
@@ -21293,9 +21276,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_noConflicts_title => 'No Conflicts';
-
-  @override
-  String get settings_conflict_noDataAvailable => 'No data available';
 
   @override
   String get settings_conflict_notSet => 'Not set';
@@ -21460,9 +21440,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String settings_conflict_remoteDeleted(String device) {
     return '$device deleted this record.';
   }
-
-  @override
-  String get settings_conflict_remoteVersion => 'Remote Version';
 
   @override
   String settings_conflict_resolved(int count) {

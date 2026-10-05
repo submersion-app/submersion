@@ -11995,7 +11995,6 @@
   "settings_conflict_applyAll": "Apply All",
   "settings_conflict_cancel": "Cancel",
   "settings_conflict_changed": "Changed",
-  "settings_conflict_chooseResolution": "Choose Resolution",
   "settings_conflict_chooseVersion": "Choose which version to keep.",
   "settings_conflict_close": "Close",
   "settings_conflict_close_tooltip": "Close conflict dialog",
@@ -12592,18 +12591,13 @@
   "settings_conflict_keepBoth": "Keep Both",
   "settings_conflict_keepDevice": "Keep {device}",
   "@settings_conflict_keepDevice": {"placeholders": {"device": {"type": "String"}}},
-  "settings_conflict_keepLocal": "Keep Local",
-  "settings_conflict_keepRemote": "Keep Remote",
   "settings_conflict_localDeleted": "{device} deleted this record.",
   "@settings_conflict_localDeleted": {"placeholders": {"device": {"type": "String"}}},
-  "settings_conflict_localVersion": "Local Version",
-  "settings_conflict_modified": "Modified: {time}",
   "settings_conflict_modifiedBy": "{device} · modified {time}",
   "@settings_conflict_modifiedBy": {"placeholders": {"device": {"type": "String"}, "time": {"type": "String"}}},
   "settings_conflict_next_tooltip": "Next conflict",
   "settings_conflict_noConflicts_message": "All sync conflicts have been resolved.",
   "settings_conflict_noConflicts_title": "No Conflicts",
-  "settings_conflict_noDataAvailable": "No data available",
   "settings_conflict_notSet": "Not set",
   "settings_conflict_otherDevice": "Other device",
   "settings_conflict_previous_tooltip": "Previous conflict",
@@ -12658,7 +12652,6 @@
   "settings_conflict_ref_yourRole": "Your role",
   "settings_conflict_remoteDeleted": "{device} deleted this record.",
   "@settings_conflict_remoteDeleted": {"placeholders": {"device": {"type": "String"}}},
-  "settings_conflict_remoteVersion": "Remote Version",
   "settings_conflict_resolved": "Resolved {count, plural, =1{1 conflict} other{{count} conflicts}}",
   "settings_conflict_same": "Same",
   "settings_conflict_sameContent": "Both versions have the same content; only the time they were saved differs. Either choice keeps everything.",
@@ -13368,13 +13361,6 @@
   "@settings_conflict_errorLoading": {
     "placeholders": {
       "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@settings_conflict_modified": {
-    "placeholders": {
-      "time": {
         "type": "Object"
       }
     }
