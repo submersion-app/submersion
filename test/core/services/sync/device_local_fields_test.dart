@@ -61,4 +61,14 @@ void main() {
       ]),
     );
   });
+
+  test('isDeviceLocalRecord matches only device-local settings keys', () {
+    expect(isDeviceLocalRecord('settings', 'nav_primary_ids'), isTrue);
+    expect(isDeviceLocalRecord('settings', 'active_diver_id'), isTrue);
+    expect(
+      isDeviceLocalRecord('settings', 'share_new_records_by_default'),
+      isFalse,
+    );
+    expect(isDeviceLocalRecord('dives', 'nav_primary_ids'), isFalse);
+  });
 }

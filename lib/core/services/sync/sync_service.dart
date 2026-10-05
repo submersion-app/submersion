@@ -2365,10 +2365,7 @@ class SyncService {
           // A device-local settings key never syncs (issue #2947), so a
           // peer's tombstone for one neither deletes this device's value nor
           // raises a conflict, as the merge treats a live copy.
-          if (entityType == 'settings' &&
-              deviceLocalSettingsKeys.contains(recordId)) {
-            continue;
-          }
+          if (isDeviceLocalRecord(entityType, recordId)) continue;
           if (pendingByEntity[entityType]?.contains(recordId) == true) {
             continue;
           }
@@ -3107,10 +3104,7 @@ class SyncService {
         // A device-local settings key never syncs (issue #2947). A peer on
         // an older build may still send one; it neither applies nor raises
         // a conflict for a value that stays on each device.
-        if (entityType == 'settings' &&
-            deviceLocalSettingsKeys.contains(recordId)) {
-          continue;
-        }
+        if (isDeviceLocalRecord(entityType, recordId)) continue;
 
         // A locally pending row used to skip the peer's copy outright, and
         // the changeset cursor still advanced past it, so the peer's update

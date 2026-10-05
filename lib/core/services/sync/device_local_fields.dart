@@ -44,6 +44,12 @@ const Set<String> deviceLocalSettingsKeys = {
   'nav_always_hide_labels',
 };
 
+/// Whether the synced record [recordId] of [entityType] is a device-local
+/// settings key ([deviceLocalSettingsKeys]): a peer's live copy or tombstone
+/// of one never applies here.
+bool isDeviceLocalRecord(String entityType, String recordId) =>
+    entityType == 'settings' && deviceLocalSettingsKeys.contains(recordId);
+
 /// Whether the SQL column [sqlName] of [entityType]'s table is device-local.
 bool isDeviceLocalColumn(String entityType, String sqlName) =>
     deviceLocalSyncColumns[entityType]?.contains(columnJsonKey(sqlName)) ??
