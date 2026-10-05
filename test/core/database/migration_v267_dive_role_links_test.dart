@@ -5,10 +5,10 @@ import 'package:submersion/core/database/dive_role_link_uniqueness.dart';
 
 /// The role junctions (v267, issue #1221).
 void main() {
-  /// A v264 database: the parents exist, the two junctions do not.
+  /// A v265 database: the parents exist, the two junctions do not.
   NativeDatabase setupDb() => NativeDatabase.memory(
     setup: (rawDb) {
-      rawDb.execute('PRAGMA user_version = 264');
+      rawDb.execute('PRAGMA user_version = 265');
       rawDb.execute('CREATE TABLE divers (id TEXT PRIMARY KEY)');
       rawDb.execute('CREATE TABLE dives (id TEXT PRIMARY KEY)');
       rawDb.execute('CREATE TABLE buddies (id TEXT PRIMARY KEY)');
@@ -27,7 +27,7 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 267);
     expect(AppDatabase.migrationVersions, contains(267));
-    expect(AppDatabase.migrationStepCount(264), 1);
+    expect(AppDatabase.migrationStepCount(265), 1);
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 

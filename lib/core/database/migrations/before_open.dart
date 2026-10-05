@@ -196,10 +196,11 @@ extension BeforeOpenBackstops on AppDatabase {
     // v250 backstop: trip_hides and site_hides (idempotent).
     await _assertTripHidesSchema();
     await _assertSiteHidesSchema();
+    // v265 backstop: Insights observation dismissals and muted rules.
+    await _assertInsightObservationsSchema();
 
-    // v122 backstop: re-assert service ledger schema + built-in kinds.
-    // The legacy backfill is NOT here (onUpgrade only) -- re-running it
-    // would resurrect user-deleted schedules.
+    // v122 backstop: service ledger schema + built-in kinds. The legacy
+    // backfill is onUpgrade only: re-running it resurrects deleted schedules.
     await _assertServiceLedgerSchema();
 
     // v123 backstop: re-assert safety review tables + settings columns
@@ -208,9 +209,8 @@ extension BeforeOpenBackstops on AppDatabase {
     // v253 backstop: the review's inputs fingerprint, after the table above.
     await _assertSafetyReviewInputsHashColumn();
 
-    // v124 backstop: re-assert the equipment_attributes table (schema
-    // only -- the legacy-column copy must NOT run here, it would
-    // resurrect attribute rows the user has cleared).
+    // v124 backstop: equipment_attributes schema only. The legacy copy must
+    // NOT run here: it would resurrect attribute rows the user cleared.
     await _assertEquipmentAttributesSchema();
 
     // v125 backstop: re-assert diver_settings.no_fly_preset.

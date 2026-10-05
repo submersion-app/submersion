@@ -7,6 +7,9 @@ import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/insights/domain/focus/focus_metric.dart';
+import 'package:submersion/features/insights/domain/focus/focus_selection.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_focus_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_gas_lane_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
@@ -255,10 +258,27 @@ class InsightsGasPage extends ConsumerWidget {
     final isRmv = lane == GasConsumptionLane.rmv;
     final unitSymbol = isRmv ? units.rmvSymbol : units.sacSymbol;
     String format(double v) => isRmv ? units.formatRmv(v) : units.formatSac(v);
+    final records = sacRecordsAsync.value;
+    final hasRecords = records?.best != null || records?.worst != null;
 
     return StatSectionCard(
       title: context.l10n.insights_gas_sacRecords_title,
       subtitle: context.l10n.insights_gas_sacRecords_subtitle,
+      // Only with records to rank: with none, Dive focus would open empty.
+      trailing: hasRecords
+          ? TextButton(
+              key: const ValueKey('gas-records-see-top'),
+              onPressed: () {
+                ref
+                    .read(focusSelectionProvider.notifier)
+                    .state = FocusSelection(
+                  metric: isRmv ? FocusMetric.rmv : FocusMetric.sac,
+                );
+                context.push('/insights/focus');
+              },
+              child: Text(context.l10n.insights_gas_sacRecords_seeTop),
+            )
+          : null,
       child: sacRecordsAsync.when(
         data: (records) {
           if (records.best == null && records.worst == null) {

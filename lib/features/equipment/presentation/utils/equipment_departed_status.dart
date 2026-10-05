@@ -12,7 +12,12 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 /// Lost row into Retired; this badge keeps Lost whether the row is active
 /// or not, because the gear is gone either way and "Lost" is the more
 /// useful prompt to swap it.
+///
+/// Wanted gear (#2025) never joined the kit, but it is just as absent from
+/// it, so it is badged Wanted (never Retired): a wishlist part still linked
+/// into an assembly must not read as fitted.
 EquipmentStatus? departedStatusOf(EquipmentItem item) {
+  if (item.isWanted) return EquipmentStatus.wanted;
   if (item.status == EquipmentStatus.sold) return EquipmentStatus.sold;
   if (item.status == EquipmentStatus.lost) return EquipmentStatus.lost;
   if (item.status == EquipmentStatus.retired || !item.isActive) {

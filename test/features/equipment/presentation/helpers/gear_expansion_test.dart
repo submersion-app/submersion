@@ -217,4 +217,14 @@ void main() {
     expect(result!.provenance.single.viaSetId, 'w');
     expect(result!.newItems, isEmpty);
   });
+
+  test('isGearActive refuses wishlist gear even if flagged active (#2025)', () {
+    const wish = EquipmentItem(
+      id: 'w',
+      name: 'w',
+      type: EquipmentType.hose,
+      status: EquipmentStatus.wanted,
+    );
+    expect(isGearActive(wish), isFalse);
+  });
 }

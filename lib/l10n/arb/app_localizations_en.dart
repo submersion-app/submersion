@@ -11744,6 +11744,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentStatus_spare => 'Spare';
 
   @override
+  String get enum_equipmentStatus_wanted => 'Wanted';
+
+  @override
   String get enum_equipmentType_backplate => 'Backplate';
 
   @override
@@ -13526,6 +13529,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_detail_retiredChip => 'Retired';
 
   @override
+  String get equipment_detail_markPurchased => 'Mark as purchased';
+
+  @override
   String get equipment_detail_serialNumberLabel => 'Serial Number';
 
   @override
@@ -14112,6 +14118,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'Purchase Price';
+
+  @override
+  String get equipment_edit_expectedPriceLabel => 'Expected Price';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -14902,6 +14911,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_snackbar_reactivated => 'Equipment reactivated';
 
   @override
+  String get equipment_snackbar_purchased => 'Moved to your active gear';
+
+  @override
   String get equipment_snackbar_retired => 'Equipment retired';
 
   @override
@@ -14948,6 +14960,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String equipment_summary_totalValue(String currency) {
     return 'Total Value ($currency)';
+  }
+
+  @override
+  String equipment_summary_wantedValue(String currency) {
+    return 'Wanted Value ($currency)';
   }
 
   @override
@@ -20176,6 +20193,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_depthUnit => 'Depth unit';
 
   @override
+  String get settings_conflict_field_distanceUnit => 'Distance unit';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Profile shows late gas switches';
+
+  @override
+  String get settings_conflict_field_insightsMutedObservationRules =>
+      'Hidden observation kinds';
+
+  @override
+  String get settings_conflict_field_fingerprint => 'Observation fingerprint';
+
+  @override
   String get settings_conflict_field_descentRate => 'Descent rate';
 
   @override
@@ -23503,6 +23534,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_category_progression_subtitle => 'Depth & time trends';
 
   @override
+  String get insights_category_focus_subtitle =>
+      'Best, worst and threshold groups';
+
+  @override
   String get insights_category_progression_title => 'Progression';
 
   @override
@@ -23832,6 +23867,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_gas_sacRecords_title => 'Gas consumption records';
 
   @override
+  String get insights_gas_sacRecords_seeTop => 'See top 10';
+
+  @override
   String get insights_gas_sacTrend_error => 'Failed to load consumption trend';
 
   @override
@@ -23839,6 +23877,202 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insights_gas_sacTrend_title => 'Gas consumption trend';
+
+  @override
+  String get insights_focus_title => 'Dive focus';
+
+  @override
+  String get insights_focus_error => 'Failed to load dive focus';
+
+  @override
+  String get insights_focus_empty => 'No dives have this value yet';
+
+  @override
+  String insights_focus_summary(
+    int count,
+    int total,
+    String group,
+    String overall,
+  ) {
+    return '$count of $total dives, group average $group vs $overall overall';
+  }
+
+  @override
+  String insights_focus_summary_allShown(int total) {
+    return 'Only $total dives have this value, so all of them are shown';
+  }
+
+  @override
+  String insights_focus_noMatch_above(String value, String min, String max) {
+    return 'No dives above $value. Your dives range from $min to $max.';
+  }
+
+  @override
+  String insights_focus_noMatch_below(String value, String min, String max) {
+    return 'No dives below $value. Your dives range from $min to $max.';
+  }
+
+  @override
+  String get insights_focus_enterValue =>
+      'Enter a value to see the dives above or below it';
+
+  @override
+  String get insights_focus_chart_title => 'The group over time';
+
+  @override
+  String get insights_focus_chart_group => 'In group';
+
+  @override
+  String get insights_focus_list_title => 'Dives in the group';
+
+  @override
+  String get insights_focus_list_unknownSite => 'No site';
+
+  @override
+  String get insights_focus_unit_minutes => 'min';
+
+  @override
+  String get insights_focus_metric_rmv => 'RMV';
+
+  @override
+  String get insights_focus_metric_sac => 'SAC';
+
+  @override
+  String get insights_focus_metric_maxDepth => 'Max depth';
+
+  @override
+  String get insights_focus_metric_bottomTime => 'Bottom time';
+
+  @override
+  String get insights_focus_metric_weight => 'Weight';
+
+  @override
+  String get insights_focus_metric_waterTemp => 'Water temp';
+
+  @override
+  String get insights_focus_mode_best => 'Best';
+
+  @override
+  String get insights_focus_mode_worst => 'Worst';
+
+  @override
+  String get insights_focus_mode_lowest => 'Lowest';
+
+  @override
+  String get insights_focus_mode_highest => 'Highest';
+
+  @override
+  String get insights_focus_mode_above => 'Above';
+
+  @override
+  String get insights_focus_mode_below => 'Below';
+
+  @override
+  String get insights_focus_count_label => 'Dives';
+
+  @override
+  String get insights_focus_count_error => 'Enter a whole number from 1 to 999';
+
+  @override
+  String get insights_focus_threshold_label => 'Value';
+
+  @override
+  String get insights_focus_threshold_error => 'Enter a number';
+
+  @override
+  String get insights_focus_threshold_negativeError => 'Enter zero or more';
+
+  @override
+  String get insights_focus_factors_title => 'Common factors';
+
+  @override
+  String get insights_focus_factors_subtitle =>
+      'This group compared with every dive that has the value';
+
+  @override
+  String get insights_focus_factors_tooFew =>
+      'Choose at least 3 dives to compare common factors';
+
+  @override
+  String get insights_focus_factors_standsOut => 'Stands out';
+
+  @override
+  String insights_focus_factors_standoutsSummary(String factors) {
+    return 'Stands out: $factors';
+  }
+
+  @override
+  String insights_focus_factors_versus(String group, String baseline) {
+    return '$group vs $baseline';
+  }
+
+  @override
+  String insights_focus_factors_coverage(int covered, int total) {
+    return '$covered of $total dives';
+  }
+
+  @override
+  String get insights_focus_factorGroup_diveShape => 'Dive shape';
+
+  @override
+  String get insights_focus_factorGroup_conditions => 'Conditions';
+
+  @override
+  String get insights_focus_factorGroup_whenWhere => 'When and where';
+
+  @override
+  String get insights_focus_factorGroup_kitGas => 'Kit and gas';
+
+  @override
+  String get insights_focus_factor_avgDepth => 'Average depth';
+
+  @override
+  String get insights_focus_factor_duration => 'Duration';
+
+  @override
+  String get insights_focus_factor_visibility => 'Visibility';
+
+  @override
+  String get insights_focus_factor_current => 'Current';
+
+  @override
+  String get insights_focus_factor_waterType => 'Water type';
+
+  @override
+  String get insights_focus_factor_entryMethod => 'Entry';
+
+  @override
+  String get insights_focus_factor_month => 'Month';
+
+  @override
+  String get insights_focus_factor_timeOfDay => 'Time of day';
+
+  @override
+  String get insights_focus_factor_site => 'Site';
+
+  @override
+  String get insights_focus_factor_diveType => 'Dive type';
+
+  @override
+  String get insights_focus_factor_gas => 'Gas';
+
+  @override
+  String get insights_focus_factor_tankVolume => 'Tank size';
+
+  @override
+  String get insights_focus_factor_suit => 'Suit';
+
+  @override
+  String get insights_focus_factor_buddy => 'Solo or buddy';
+
+  @override
+  String get insights_focus_gas_air => 'Air';
+
+  @override
+  String get insights_focus_gas_nitrox => 'Nitrox';
+
+  @override
+  String get insights_focus_gas_trimix => 'Trimix';
 
   @override
   String get insights_gas_tankRole_backGas => 'Back Gas';
@@ -24207,6 +24441,299 @@ class AppLocalizationsEn extends AppLocalizations {
     Object siteName,
   ) {
     return '$title: $siteName';
+  }
+
+  @override
+  String get insights_observations_title => 'Observations';
+
+  @override
+  String get insights_observations_seeAll => 'See all';
+
+  @override
+  String get insights_observations_filterNote =>
+      'Observations use your whole log, so the filter does not apply to them';
+
+  @override
+  String get insights_observations_empty =>
+      'Observations appear as your log grows';
+
+  @override
+  String get insights_observations_error => 'Couldn\'t load observations';
+
+  @override
+  String get insights_observations_actions => 'Observation actions';
+
+  @override
+  String get insights_observations_dismiss => 'Dismiss';
+
+  @override
+  String get insights_observations_dismissed => 'Observation dismissed';
+
+  @override
+  String get insights_observations_dismissFailed =>
+      'Couldn\'t dismiss the observation';
+
+  @override
+  String get insights_observations_mute => 'Don\'t show this kind';
+
+  @override
+  String get insights_observations_muted =>
+      'Observations of this kind are hidden';
+
+  @override
+  String get insights_observations_undo => 'Undo';
+
+  @override
+  String get insights_observations_mutedKinds => 'Muted kinds';
+
+  @override
+  String get insights_observations_mutedKinds_empty => 'No kinds are muted';
+
+  @override
+  String get insights_observations_unmute => 'Unmute';
+
+  @override
+  String get insights_observations_rule_rmvTrend => 'RMV trend';
+
+  @override
+  String get insights_observations_rule_maxDepthTrend => 'Max depth trend';
+
+  @override
+  String get insights_observations_rule_diveTimeTrend => 'Dive time trend';
+
+  @override
+  String get insights_observations_rule_weightTrend => 'Weight trend';
+
+  @override
+  String get insights_observations_rule_frequencyTrend => 'Dive frequency';
+
+  @override
+  String get insights_observations_rule_diveCountMilestone =>
+      'Dive count milestones';
+
+  @override
+  String get insights_observations_rule_diveHoursMilestone =>
+      'Dive hours milestones';
+
+  @override
+  String get insights_observations_rule_deepestDive => 'New deepest dive';
+
+  @override
+  String get insights_observations_rule_longestDive => 'New longest dive';
+
+  @override
+  String get insights_observations_rule_newCountry => 'New countries';
+
+  @override
+  String get insights_observations_rule_newSpecies => 'New species';
+
+  @override
+  String get insights_observations_rule_diveGap => 'Time since last dive';
+
+  @override
+  String get insights_observations_rule_favouriteSite => 'Favourite site';
+
+  @override
+  String get insights_observations_rule_regularBuddy => 'Regular buddy';
+
+  @override
+  String get insights_observations_rule_busiestMonth => 'Busiest month';
+
+  @override
+  String get insights_observations_rule_ascentRate => 'Ascent rate';
+
+  @override
+  String insights_observations_rmvTrend_improved(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Your RMV improved: $recent over the last 12 months, $percent% lower than the year before ($previous)';
+  }
+
+  @override
+  String insights_observations_rmvTrend_rose(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Your RMV rose: $recent over the last 12 months, $percent% higher than the year before ($previous)';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_deeper(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Over the last 12 months your average max depth was $recent, $percent% deeper than the year before ($previous)';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_shallower(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Over the last 12 months your average max depth was $recent, $percent% shallower than the year before ($previous)';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_longer(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Over the last 12 months your average dive time was $recent, $percent% longer than the year before ($previous)';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_shorter(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Over the last 12 months your average dive time was $recent, $percent% shorter than the year before ($previous)';
+  }
+
+  @override
+  String insights_observations_weightTrend_more(String amount) {
+    return 'Over the last 12 months you carried $amount more weight on average than the year before';
+  }
+
+  @override
+  String insights_observations_weightTrend_less(String amount) {
+    return 'Over the last 12 months you carried $amount less weight on average than the year before';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_more(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'You logged $count dives in the last 12 months, $percent% more than the year before',
+      one:
+          'You logged 1 dive in the last 12 months, $percent% more than the year before',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_fewer(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'You logged $count dives in the last 12 months, $percent% fewer than the year before',
+      one:
+          'You logged 1 dive in the last 12 months, $percent% fewer than the year before',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone(String count, String date) {
+    return 'You reached $count dives on $date';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone_logged(
+    String count,
+    String date,
+  ) {
+    return 'You reached $count logged dives on $date';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone(String hours, String date) {
+    return 'You passed $hours hours underwater on $date';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone_logged(
+    String hours,
+    String date,
+  ) {
+    return 'You passed $hours logged hours underwater on $date';
+  }
+
+  @override
+  String insights_observations_deepestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return 'New deepest dive: $value on $date, beyond your previous $previous';
+  }
+
+  @override
+  String insights_observations_longestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return 'New longest dive: $value on $date, beyond your previous $previous';
+  }
+
+  @override
+  String insights_observations_newCountry(String country, String date) {
+    return 'Your first dive in $country, on $date';
+  }
+
+  @override
+  String insights_observations_newSpecies(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new species in the last 90 days, most recently $name',
+      one: 'A new species in the last 90 days: $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveGap(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Your last dive was $count days ago',
+      one: 'Your last dive was 1 day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_favouriteSite(
+    String site,
+    String dives,
+    String total,
+  ) {
+    return '$site hosted $dives of your $total dives in the last 12 months';
+  }
+
+  @override
+  String insights_observations_regularBuddy(
+    String buddyName,
+    String dives,
+    String total,
+  ) {
+    return 'You dived with $buddyName on $dives of your $total dives in the last 12 months';
+  }
+
+  @override
+  String insights_observations_busiestMonth(String month, String years) {
+    return '$month has been your busiest month in $years different years';
+  }
+
+  @override
+  String insights_observations_ascentRate(
+    String rate,
+    String dives,
+    String low,
+    String high,
+  ) {
+    return 'Your average ascent rate over the last 12 months was $rate, across $dives dives. Common guidance is $low to $high or slower';
   }
 
   @override
@@ -44650,6 +45177,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insights_trend_tooltip_highest => 'Highest';
+
+  @override
+  String get insights_trend_overview_semanticLabel =>
+      'Chart overview. Drag the highlighted window to scroll through time.';
+
+  @override
+  String get insights_trend_range_tooltip => 'Visible range';
+
+  @override
+  String get insights_trend_range_all => 'All';
+
+  @override
+  String get insights_trend_range_years5 => 'Last 5 years';
+
+  @override
+  String get insights_trend_range_years2 => 'Last 2 years';
+
+  @override
+  String get insights_trend_range_year1 => 'Last year';
+
+  @override
+  String get insights_trend_range_months6 => 'Last 6 months';
+
+  @override
+  String get insights_trend_range_months3 => 'Last 3 months';
+
+  @override
+  String get insights_trend_range_custom => 'Custom';
+
+  @override
+  String get insights_trend_range_customPick => 'Custom range...';
 
   @override
   String get diveLog_edit_excludeFromStats => 'Exclude from statistics';

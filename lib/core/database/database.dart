@@ -17,6 +17,7 @@ import 'package:submersion/core/database/tables/marine_life_tables.dart';
 import 'package:submersion/core/database/tables/media_tables.dart';
 import 'package:submersion/core/database/tables/pre_dive_tables.dart';
 import 'package:submersion/core/database/tables/quality_tables.dart';
+import 'package:submersion/core/database/tables/insight_tables.dart';
 import 'package:submersion/core/database/tables/query_tables.dart';
 import 'package:submersion/core/database/tables/safety_tables.dart';
 import 'package:submersion/core/database/tables/service_tables.dart';
@@ -44,6 +45,7 @@ export 'package:submersion/core/database/tables/marine_life_tables.dart';
 export 'package:submersion/core/database/tables/media_tables.dart';
 export 'package:submersion/core/database/tables/pre_dive_tables.dart';
 export 'package:submersion/core/database/tables/quality_tables.dart';
+export 'package:submersion/core/database/tables/insight_tables.dart';
 export 'package:submersion/core/database/tables/query_tables.dart';
 export 'package:submersion/core/database/tables/safety_tables.dart';
 export 'package:submersion/core/database/tables/service_tables.dart';
@@ -226,6 +228,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // A profile's hidden shared trips and sites (v250, issue #2594)
     TripHides,
     SiteHides,
+    // Insight observation dismissals (v265)
+    InsightObservationDismissals,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -1096,10 +1100,15 @@ class AppDatabase extends _$AppDatabase {
     // v264: diver_settings.default_show_late_gas_switches (issue #2939).
     // Additive column with a default, so the floor stays.
     264,
+    // v265: insight_observation_dismissals (synced) and
+    // diver_settings.insights_muted_observation_rules (#2381). Additive, so
+    // the floor stays. Renumbered several times while this was open (262 is
+    // held by #2991; 261, 263 and 264 landed first).
+    265,
     // v267: dive_diver_roles and dive_buddy_roles, several roles per person
     // on a dive (issue #1221). New synced child tables, no backfill: an
     // older peer ignores them and its scalar role writes still resolve, so
-    // the floor stays. 265 and 266 are held by open branches (#3011, #3001), 262 by #2991.
+    // the floor stays. 262 and 266 are held by open branches (#2991, #3001).
     267,
   ];
 
