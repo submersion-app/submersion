@@ -25,8 +25,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 const double _kFocusZoom = 16.0;
 const double _kMapHeight = 180.0;
 
-/// The dive detail "Surface GPS" section: an interactive map of the entry/exit
+/// The dive detail location section: an interactive map of the entry/exit
 /// GPS fixes and the associated dive site, plus copyable coordinate rows.
+///
+/// Titled "Surface GPS" when the dive has a GPS fix. A dive with no fix but a
+/// site with coordinates gets the same card titled "Location", mapping the
+/// site alone (issue #402).
 class SurfaceGpsSection extends ConsumerStatefulWidget {
   const SurfaceGpsSection({
     super.key,
@@ -92,14 +96,19 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
       driftText = '${units.formatDistance(dist)} · ${formatBearing(bearing)}';
     }
 
+    final hasGps = entry != null || exit != null;
     final collapsedSubtitle = driftText != null
         ? '${context.l10n.diveLog_detail_label_drift}: $driftText'
-        : (entry != null
-              ? context.l10n.diveLog_detail_surfaceGps_entryOnly
-              : context.l10n.diveLog_detail_surfaceGps_exitOnly);
+        : entry != null
+        ? context.l10n.diveLog_detail_surfaceGps_entryOnly
+        : exit != null
+        ? context.l10n.diveLog_detail_surfaceGps_exitOnly
+        : dive.site?.name;
 
     return CollapsibleCardSection(
-      title: context.l10n.diveLog_detail_section_surfaceGps,
+      title: hasGps
+          ? context.l10n.diveLog_detail_section_surfaceGps
+          : context.l10n.diveLog_detail_section_location,
       icon: Icons.my_location,
       collapsedSubtitle: collapsedSubtitle,
       isExpanded: isExpanded,

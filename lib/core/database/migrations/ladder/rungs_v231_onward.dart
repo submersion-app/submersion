@@ -197,12 +197,19 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankSharedComputerIds();
     }
     if (from < 260) await reportProgress();
-    // v261: dive_weights.label and weight_preset_entries.label, a diver's
-    // own name for a weight (issue #956). Defaulted columns, no backfill:
-    // existing rows read '' (unnamed). Re-asserted in beforeOpen.
+    // v261: drop diver_settings.default_ceiling_source (issue #767), unread
+    // since the ceiling line lost its source toggle (#755). Re-asserted in
+    // beforeOpen.
     if (from < 261) {
-      await _assertWeightLabelColumns();
+      await _dropDefaultCeilingSourceColumn();
     }
     if (from < 261) await reportProgress();
+    // v262: dive_weights.label and weight_preset_entries.label, a diver's
+    // own name for a weight (issue #956). Defaulted columns, no backfill:
+    // existing rows read '' (unnamed). Re-asserted in beforeOpen.
+    if (from < 262) {
+      await _assertWeightLabelColumns();
+    }
+    if (from < 262) await reportProgress();
   }
 }
