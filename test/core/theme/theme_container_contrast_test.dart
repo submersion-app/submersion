@@ -56,32 +56,39 @@ void main() {
   // a "container" became white on bright teal in the Console theme (#2959).
   // Container roles are low-emphasis fills: both their paired foreground and
   // the scheme's ordinary onSurface text must read on them.
+  //
+  // The registry is read inside each test body, never while tests register:
+  // touching it builds the GoogleFonts-backed theme finals, which must happen
+  // inside setUpAll's guarded zone.
   group('theme container roles', () {
-    for (final preset in AppThemeRegistry.presets) {
-      for (final brightness in Brightness.values) {
-        final scheme = AppThemeRegistry.resolveTheme(
-          preset,
-          brightness,
-        ).colorScheme;
-        for (final MapEntry(key: role, value: (container, onContainer))
-            in _containers(scheme).entries) {
-          final label = '${preset.id} ${brightness.name} $role';
-
-          test('$label: paired foreground meets WCAG AA', () {
+    void expectContainers(
+      String description,
+      Color Function(ColorScheme scheme, Color onContainer) foreground,
+    ) {
+      for (final preset in AppThemeRegistry.presets) {
+        for (final brightness in Brightness.values) {
+          final scheme = AppThemeRegistry.resolveTheme(
+            preset,
+            brightness,
+          ).colorScheme;
+          for (final MapEntry(key: role, value: (container, onContainer))
+              in _containers(scheme).entries) {
             expect(
-              _contrast(onContainer, container),
+              _contrast(foreground(scheme, onContainer), container),
               greaterThanOrEqualTo(_aaText),
+              reason: '${preset.id} ${brightness.name} $role: $description',
             );
-          });
-
-          test('$label: onSurface text meets WCAG AA', () {
-            expect(
-              _contrast(scheme.onSurface, container),
-              greaterThanOrEqualTo(_aaText),
-            );
-          });
+          }
         }
       }
     }
+
+    test('paired foreground meets WCAG AA on every preset', () {
+      expectContainers('paired foreground', (_, onContainer) => onContainer);
+    });
+
+    test('onSurface text meets WCAG AA on every preset', () {
+      expectContainers('onSurface text', (scheme, _) => scheme.onSurface);
+    });
   });
 }

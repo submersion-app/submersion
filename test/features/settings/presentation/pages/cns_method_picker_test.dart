@@ -46,6 +46,7 @@ void main() {
         data: const MediaQueryData(size: Size(400, 900)),
         child: MaterialApp.router(
           theme: theme,
+          locale: const Locale('en'),
           routerConfig: router,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
