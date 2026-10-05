@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -53,14 +54,16 @@ void main() {
     ];
   }
 
-  for (final locale in const [Locale('en'), Locale('de')]) {
+  // French labels the transmitter with a leading accent, which must sort
+  // by its base letter.
+  for (final locale in const [Locale('en'), Locale('de'), Locale('fr')]) {
     testWidgets('offers every type alphabetically in $locale', (tester) async {
       await pumpEditor(tester, locale);
       final l10n = lookupAppLocalizations(locale);
 
       final shown = dropdownLabels(tester, l10n);
       final alphabetical = [...shown]
-        ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+        ..sort((a, b) => normalize(a).compareTo(normalize(b)));
       expect(shown, hasLength(EquipmentType.values.length));
       expect(shown, alphabetical);
       // Guards against a vacuous pass: the enum order is not alphabetical.

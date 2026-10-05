@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/text/fuzzy_match.dart';
 
 /// How a gear list orders equipment types.
 ///
@@ -216,19 +217,19 @@ int equipmentTypeRank(EquipmentType type, List<EquipmentType> table) {
 /// Orders types alphabetically by the label the reader sees (#2937).
 ///
 /// [label] resolves a type to its on-screen string; pass the localized name
-/// so the order follows the active locale. Comparison is case-insensitive,
-/// and two types sharing a label fall back to the enum name so the order is
-/// total and stable. Each label is resolved and lowercased once per
-/// comparator, not once per comparison.
+/// so the order follows the active locale. Comparison ignores case and common
+/// accents, so French "Émetteur" files under E rather than after Z, and two
+/// types sharing a key fall back to the enum name so the order is total and
+/// stable. Each key is computed once per comparator, not once per comparison.
 Comparator<EquipmentType> equipmentTypeLabelComparator(
   String Function(EquipmentType) label,
 ) {
-  final lowerLabels = <EquipmentType, String>{};
-  String lowerLabel(EquipmentType type) =>
-      lowerLabels[type] ??= label(type).toLowerCase();
+  final sortKeys = <EquipmentType, String>{};
+  String sortKey(EquipmentType type) =>
+      sortKeys[type] ??= normalize(label(type));
   return (a, b) {
     if (a == b) return 0;
-    final byLabel = lowerLabel(a).compareTo(lowerLabel(b));
+    final byLabel = sortKey(a).compareTo(sortKey(b));
     return byLabel != 0 ? byLabel : a.name.compareTo(b.name);
   };
 }

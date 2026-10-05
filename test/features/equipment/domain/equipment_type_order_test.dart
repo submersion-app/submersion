@@ -92,6 +92,16 @@ void main() {
       expect(sorted, [EquipmentType.mask, EquipmentType.fins]);
     });
 
+    test('places an accented label by its base letter', () {
+      // French labels the transmitter "Émetteur". By code unit "é"
+      // sorts after "z", which put it last instead of before "Gilet".
+      final sorted = sortEquipmentTypesByLabel([
+        EquipmentType.bcd,
+        EquipmentType.transmitter,
+      ], (t) => t == EquipmentType.transmitter ? '\u00c9metteur' : 'Gilet');
+      expect(sorted, [EquipmentType.transmitter, EquipmentType.bcd]);
+    });
+
     test('breaks a shared label by enum name, whatever the input order', () {
       String label(EquipmentType _) => 'same';
       expect(
