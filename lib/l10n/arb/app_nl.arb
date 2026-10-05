@@ -4153,6 +4153,7 @@
   "equipment_location_move_to": "Naar",
   "equipment_location_move_choose": "Kies een plek",
   "equipment_location_move_date": "Datum",
+  "equipment_location_move_time": "Tijd",
   "equipment_location_move_note": "Notitie",
   "equipment_location_move_noteHint": "bv. jaarlijkse ademautomaatservice",
   "equipment_location_move_confirm": "Verplaatsen",

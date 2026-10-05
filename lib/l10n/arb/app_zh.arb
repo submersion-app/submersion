@@ -4280,6 +4280,7 @@
   "equipment_location_move_to": "移至",
   "equipment_location_move_choose": "选择地点",
   "equipment_location_move_date": "日期",
+  "equipment_location_move_time": "时间",
   "equipment_location_move_note": "备注",
   "equipment_location_move_noteHint": "例如：调节器年度保养",
   "equipment_location_move_confirm": "移动",

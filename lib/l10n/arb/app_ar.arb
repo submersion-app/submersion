@@ -4153,6 +4153,7 @@
   "equipment_location_move_to": "إلى",
   "equipment_location_move_choose": "اختر مكانًا",
   "equipment_location_move_date": "التاريخ",
+  "equipment_location_move_time": "الوقت",
   "equipment_location_move_note": "ملاحظة",
   "equipment_location_move_noteHint": "مثال: الصيانة السنوية لمنظم الهواء",
   "equipment_location_move_confirm": "نقل",

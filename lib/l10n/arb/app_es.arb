@@ -4153,6 +4153,7 @@
   "equipment_location_move_to": "A",
   "equipment_location_move_choose": "Elige un lugar",
   "equipment_location_move_date": "Fecha",
+  "equipment_location_move_time": "Hora",
   "equipment_location_move_note": "Nota",
   "equipment_location_move_noteHint": "p. ej., revisión anual del regulador",
   "equipment_location_move_confirm": "Mover",

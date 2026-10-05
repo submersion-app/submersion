@@ -4052,6 +4052,7 @@
   "equipment_location_move_to": "Verso",
   "equipment_location_move_choose": "Scegli un luogo",
   "equipment_location_move_date": "Data",
+  "equipment_location_move_time": "Ora",
   "equipment_location_move_note": "Nota",
   "equipment_location_move_noteHint": "es. revisione annuale dell'erogatore",
   "equipment_location_move_confirm": "Sposta",

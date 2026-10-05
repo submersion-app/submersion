@@ -56,11 +56,14 @@ class _LocationMoveEditDialogState
   }
 
   Future<void> _pickDate() async {
+    final now = DateTime.now();
     final picked = await showAppDatePicker(
       context: context,
       initialDate: _movedAt,
       firstDate: DateTime(1970),
-      lastDate: DateTime.now(),
+      // A peer whose clock runs ahead can sync a move dated after today;
+      // the picker asserts its initial date is not past the last one.
+      lastDate: _movedAt.isAfter(now) ? _movedAt : now,
     );
     if (picked == null) return;
     // Keep the time of day, so editing the date never reorders two moves
@@ -74,6 +77,23 @@ class _LocationMoveEditDialogState
         _movedAt.minute,
         _movedAt.second,
         _movedAt.millisecond,
+      ),
+    );
+  }
+
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_movedAt),
+    );
+    if (picked == null || !mounted) return;
+    setState(
+      () => _movedAt = DateTime(
+        _movedAt.year,
+        _movedAt.month,
+        _movedAt.day,
+        picked.hour,
+        picked.minute,
       ),
     );
   }
@@ -133,6 +153,14 @@ class _LocationMoveEditDialogState
             subtitle: Text(units.formatDate(_movedAt)),
             trailing: const Icon(Icons.event),
             onTap: _pickDate,
+          ),
+          ListTile(
+            key: const ValueKey('location_move_time'),
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.equipment_location_move_time),
+            subtitle: Text(units.formatTime(_movedAt)),
+            trailing: const Icon(Icons.schedule),
+            onTap: _pickTime,
           ),
           TextField(
             key: const ValueKey('location_move_note'),

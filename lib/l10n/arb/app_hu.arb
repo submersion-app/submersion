@@ -4052,6 +4052,7 @@
   "equipment_location_move_to": "Ide",
   "equipment_location_move_choose": "Hely kiválasztása",
   "equipment_location_move_date": "Dátum",
+  "equipment_location_move_time": "Időpont",
   "equipment_location_move_note": "Megjegyzés",
   "equipment_location_move_noteHint": "pl. éves légzőautomata-szerviz",
   "equipment_location_move_confirm": "Áthelyezés",

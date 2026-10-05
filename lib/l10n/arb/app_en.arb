@@ -8348,6 +8348,8 @@
   "@equipment_location_move_choose": {"description": "Shown in the move sheet before a destination is chosen"},
   "equipment_location_move_date": "Date",
   "@equipment_location_move_date": {"description": "Label of the move date in the move sheet"},
+  "equipment_location_move_time": "Time",
+  "@equipment_location_move_time": {"description": "Label of the move time in the move sheet and the history editor; sets where a move falls among same-day moves"},
   "equipment_location_move_note": "Note",
   "@equipment_location_move_note": {"description": "Label of the optional note on a move"},
   "equipment_location_move_noteHint": "e.g. annual regulator service",

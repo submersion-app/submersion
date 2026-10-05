@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/data/services/equipment_move_flow.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/services/move_time.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
@@ -113,6 +114,9 @@ class _MoveEquipmentSheet extends ConsumerStatefulWidget {
 class _MoveEquipmentSheetState extends ConsumerState<_MoveEquipmentSheet> {
   LocationPick? _pick;
   DateTime _day = DateTime.now();
+
+  /// Null until the diver picks a time; see [resolveMovedAt].
+  ({int hour, int minute})? _time;
   final _note = TextEditingController();
 
   @override
@@ -121,13 +125,16 @@ class _MoveEquipmentSheetState extends ConsumerState<_MoveEquipmentSheet> {
     super.dispose();
   }
 
-  /// Today keeps the current time, so two moves today stay in order; an
-  /// earlier day is recorded at local noon.
-  DateTime get _movedAt {
-    final now = DateTime.now();
-    final isToday =
-        _day.year == now.year && _day.month == now.month && _day.day == now.day;
-    return isToday ? now : DateTime(_day.year, _day.month, _day.day, 12);
+  DateTime get _movedAt =>
+      resolveMovedAt(day: _day, time: _time, now: DateTime.now());
+
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_movedAt),
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _time = (hour: picked.hour, minute: picked.minute));
   }
 
   @override
@@ -190,6 +197,14 @@ class _MoveEquipmentSheetState extends ConsumerState<_MoveEquipmentSheet> {
                 );
                 if (picked != null) setState(() => _day = picked);
               },
+            ),
+            ListTile(
+              key: const ValueKey('move_equipment_time'),
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.schedule),
+              title: Text(l10n.equipment_location_move_time),
+              subtitle: Text(units.formatTime(_movedAt)),
+              onTap: _pickTime,
             ),
             TextField(
               key: const ValueKey('move_equipment_note'),

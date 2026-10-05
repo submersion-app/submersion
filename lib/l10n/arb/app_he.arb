@@ -4052,6 +4052,7 @@
   "equipment_location_move_to": "אל",
   "equipment_location_move_choose": "בחירת מקום",
   "equipment_location_move_date": "תאריך",
+  "equipment_location_move_time": "שעה",
   "equipment_location_move_note": "הערה",
   "equipment_location_move_noteHint": "לדוגמה: טיפול שנתי בווסת",
   "equipment_location_move_confirm": "העברה",

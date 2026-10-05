@@ -14307,6 +14307,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_location_move_date => 'Dátum';
 
   @override
+  String get equipment_location_move_time => 'Időpont';
+
+  @override
   String get equipment_location_move_note => 'Megjegyzés';
 
   @override

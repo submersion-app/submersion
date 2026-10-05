@@ -4052,6 +4052,7 @@
   "equipment_location_move_to": "Vers",
   "equipment_location_move_choose": "Choisir un lieu",
   "equipment_location_move_date": "Date",
+  "equipment_location_move_time": "Heure",
   "equipment_location_move_note": "Note",
   "equipment_location_move_noteHint": "p. ex. révision annuelle du détendeur",
   "equipment_location_move_confirm": "Déplacer",

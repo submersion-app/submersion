@@ -14347,6 +14347,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_location_move_date => 'Fecha';
 
   @override
+  String get equipment_location_move_time => 'Hora';
+
+  @override
   String get equipment_location_move_note => 'Nota';
 
   @override

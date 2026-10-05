@@ -23261,6 +23261,12 @@ abstract class AppLocalizations {
   /// **'Date'**
   String get equipment_location_move_date;
 
+  /// Label of the move time in the move sheet and the history editor; sets where a move falls among same-day moves
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get equipment_location_move_time;
+
   /// Label of the optional note on a move
   ///
   /// In en, this message translates to:

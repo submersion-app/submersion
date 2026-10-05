@@ -13704,6 +13704,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_location_move_date => '日期';
 
   @override
+  String get equipment_location_move_time => '时间';
+
+  @override
   String get equipment_location_move_note => '备注';
 
   @override

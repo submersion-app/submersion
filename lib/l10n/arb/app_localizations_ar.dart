@@ -14530,6 +14530,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_location_move_date => 'التاريخ';
 
   @override
+  String get equipment_location_move_time => 'الوقت';
+
+  @override
   String get equipment_location_move_note => 'ملاحظة';
 
   @override

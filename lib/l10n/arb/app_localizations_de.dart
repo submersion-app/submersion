@@ -14344,6 +14344,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_location_move_date => 'Datum';
 
   @override
+  String get equipment_location_move_time => 'Uhrzeit';
+
+  @override
   String get equipment_location_move_note => 'Notiz';
 
   @override

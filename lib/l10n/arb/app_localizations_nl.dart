@@ -14253,6 +14253,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_location_move_date => 'Datum';
 
   @override
+  String get equipment_location_move_time => 'Tijd';
+
+  @override
   String get equipment_location_move_note => 'Notitie';
 
   @override

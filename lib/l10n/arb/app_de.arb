@@ -4255,6 +4255,7 @@
   "equipment_location_move_to": "Nach",
   "equipment_location_move_choose": "Ort wählen",
   "equipment_location_move_date": "Datum",
+  "equipment_location_move_time": "Uhrzeit",
   "equipment_location_move_note": "Notiz",
   "equipment_location_move_noteHint": "z. B. jährliche Atemreglerwartung",
   "equipment_location_move_confirm": "Verschieben",

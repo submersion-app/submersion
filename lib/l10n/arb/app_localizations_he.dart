@@ -14050,6 +14050,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_location_move_date => 'תאריך';
 
   @override
+  String get equipment_location_move_time => 'שעה';
+
+  @override
   String get equipment_location_move_note => 'הערה';
 
   @override
