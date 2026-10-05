@@ -135,6 +135,8 @@ void main() {
       ('dives', 'diveType'): 'diveTypes',
       ('dives', 'diverRole'): 'diveRoles',
       ('diveBuddies', 'role'): 'diveRoles',
+      ('diveDiverRoles', 'roleId'): 'diveRoles',
+      ('diveBuddyRoles', 'roleId'): 'diveRoles',
       ('diveTanks', 'regulatorEquipmentId'): 'equipment',
       ('diveEquipment', 'viaEquipmentId'): 'equipment',
       ('diveEquipment', 'viaSetId'): 'equipmentSets',
