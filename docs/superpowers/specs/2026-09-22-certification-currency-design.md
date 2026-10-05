@@ -108,9 +108,9 @@ deliberately few, conservative, and editable. Levels named below are
 
 | id | name | scope | clock | lead | lapse | counts |
 | --- | --- | --- | --- | --- | --- | --- |
-| `padi_reactivate` | PADI refresher (ReActivate) | agency padi, ladder levels | activity | 180 | 365 | any dive |
-| `ssi_skills_update` | SSI Scuba Skills Update | agency ssi, ladder levels | activity | 180 | 365 | any dive |
-| `generic_refresher` | Refresher | agencies naui, sdi, tdi, raid, bsac, cmas, iantd, psai, ffessm, other; ladder levels | activity | 180 | 365 | any dive |
+| `padi_reactivate` | PADI refresher (ReActivate) | agency padi, ladder levels | activity | 185 | 365 | any dive |
+| `ssi_skills_update` | SSI Scuba Skills Update | agency ssi, ladder levels | activity | 185 | 365 | any dive |
+| `generic_refresher` | Refresher | agencies naui, sdi, tdi, raid, bsac, cmas, iantd, psai, ffessm, other; ladder levels | activity | 185 | 365 | any dive |
 | `first_aid_24mo` | First aid and CPR renewal | any agency, levels firstAid and oxygenProvider | date | 60 | 730 | n/a |
 | `pro_membership_annual` | Professional membership renewal | any agency except ffessm, professional levels | date | 45 | 365 | n/a |
 | `gue_revalidation` | GUE revalidation | agency gue, any level | date | 90 | 1095 | n/a |
@@ -119,10 +119,16 @@ deliberately few, conservative, and editable. Levels named below are
 | `rebreather_currency` | Rebreather currency | any agency, level rebreather | activity | 90 | 180 | dive modes ccr, scr |
 | `deco_currency` | Decompression currency | any agency, levels decompression, trimix, advancedTrimix, advancedNitrox, techDiver, extendedRange, gueTech1, gueTech2 | activity | 90 | 365 | dive type technical |
 
-"Ladder levels" means the progression rungs in `CertificationLevelCatalog`
-(the generic, SSI, CMAS, BSAC, GUE and FFESSM ladders), not the specialty
-list. A seeded rule stores the resolved level names, so the catalog's own
-grouping can change later without moving a diver's rules.
+"Ladder levels" means every rung of each named agency's ladder in
+`CertificationLevelCatalog.ladderFor`, professional rungs included (decided
+during implementation), not the specialty list. TDI, IANTD and PSAI use the
+tech ladder, so the generic refresher's union includes its rungs too. A
+seeded rule stores the resolved level names, so the catalog's own grouping
+can change later without moving a diver's rules;
+`currency_seed_catalog_test.dart` pins the two together.
+
+A lead of 185 days against a lapse of 365 turns a refresher amber at 180
+days since the last dive, the same day the home strip's last-dive chip does.
 
 `gue` is left out of `generic_refresher` because `gue_revalidation` already
 speaks for those cards. `ffessm` is in both, because an annual licence and
@@ -254,7 +260,13 @@ before. Adding tables never raises `minimumCompatibleSchemaVersion`.
   will fail the suite until both the spare and the re-seed are in place.
 - The byte-copy `.db` backup carries all three tables for free. The
   hand-written UDDF full backup must carry custom rules, prefs and events
-  explicitly, or they are lost on format conversion. There is no test that
+  explicitly, or they are lost on format conversion. Restoring one goes
+  through the import wizard, so they also cross it: carried as payload
+  metadata, as custom dive roles are, with no selection step of their own.
+  Custom rules restore unconditionally, keeping their id unless one is
+  already here. Prefs and events ride along with the certifications the
+  import created, as service records ride along with equipment, and are
+  skipped for a certification the review matched to an existing card. There is no test that
   enumerates tables against the backup, so this needs a new per-feature
   provider-capture test in the shape of
   `export_uddf_site_features_test.dart`, which intercepts

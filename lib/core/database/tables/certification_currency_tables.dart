@@ -125,6 +125,11 @@ class CertificationCurrencyEvents extends Table {
 ///
 /// lead_days is the amber window before lapse_days, so "amber at 6 months,
 /// red at 12" is lapse_days 365 with lead_days 185.
+///
+/// The three refresher rules cover every rung of their agencies' ladders in
+/// CertificationLevelCatalog, professional rungs included, resolved to level
+/// names here so a later change to the catalog never moves a diver's rules.
+/// currency_seed_catalog_test pins the two together.
 const String kSeedBuiltInCurrencyRulesSql = '''
   INSERT OR IGNORE INTO certification_currency_rules
     (id, diver_id, name, clock_kind, applicable_agencies, applicable_levels,
@@ -137,18 +142,19 @@ const String kSeedBuiltInCurrencyRulesSql = '''
   FROM (
     SELECT 'padi_reactivate' AS id, 'PADI refresher (ReActivate)' AS name,
       'activity' AS clock_kind, '["padi"]' AS agencies,
-      '["openWater","advancedOpenWater","rescue","masterDiver"]' AS levels,
+      '["openWater","advancedOpenWater","rescue","masterDiver","diveGuide","diveMaster","assistantInstructor","instructor","masterInstructor","courseDirector"]'
+        AS levels,
       365 AS lapse_days, 185 AS lead_days, '[]' AS dive_types,
       '[]' AS dive_modes,
       'currencyRule_padi_reactivate_advisory' AS advisory_key
     UNION ALL SELECT 'ssi_skills_update', 'SSI Scuba Skills Update',
       'activity', '["ssi"]',
-      '["openWater","advancedOpenWater","rescue","masterDiver"]',
+      '["openWater","advancedOpenWater","rescue","masterDiver","diveGuide","diveMaster","assistantInstructor","instructor"]',
       365, 185, '[]', '[]', 'currencyRule_ssi_skills_update_advisory'
     UNION ALL SELECT 'generic_refresher', 'Refresher',
       'activity',
       '["naui","sdi","tdi","raid","bsac","cmas","iantd","psai","ffessm","other"]',
-      '["openWater","advancedOpenWater","rescue","masterDiver","cmas1StarDiver","cmas2StarDiver","cmas3StarDiver","bsacOceanDiver","bsacSportsDiver","bsacDiveLeader","ffessmN1","ffessmN2","ffessmN3"]',
+      '["openWater","advancedOpenWater","rescue","masterDiver","diveGuide","diveMaster","assistantInstructor","instructor","courseDirector","masterInstructor","nitrox","advancedNitrox","decompression","extendedRange","trimix","advancedTrimix","cavern","cave","rebreather","bsacOceanDiver","bsacSportsDiver","bsacDiveLeader","bsacAdvancedDiver","bsacFirstClassDiver","bsacOpenWaterInstructor","bsacAdvancedInstructor","bsacNationalInstructor","cmas1StarDiver","cmas2StarDiver","cmas3StarDiver","cmas4StarDiver","cmas3StarDiverAssistantInstructor","cmas4StarDiverAssistantInstructor","cmas1StarInstructor","cmas2StarInstructor","cmas3StarInstructor","ffessmPlongeurBronze","ffessmPlongeurArgent","ffessmPlongeurOr","ffessmN1","ffessmN2","ffessmN3","ffessmN4","ffessmN5","ffessmInitiateur","ffessmE2","ffessmMf1","ffessmMf2"]',
       365, 185, '[]', '[]', 'currencyRule_generic_refresher_advisory'
     UNION ALL SELECT 'first_aid_24mo', 'First aid and CPR renewal',
       'date', '[]', '["firstAid","oxygenProvider"]',
