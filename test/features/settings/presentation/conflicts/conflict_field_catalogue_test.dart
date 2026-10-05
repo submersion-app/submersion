@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -161,5 +164,37 @@ void main() {
       FieldKind.epochSeconds,
     );
     expect(conflictFieldFor('divePlans', 'sacBottom').kind, FieldKind.rmv);
+  });
+
+  test('diver settings render unit choices the way settings shows them', () {
+    final depthUnit = conflictFieldFor('diverSettings', 'depthUnit');
+    expect(depthUnit.kind, FieldKind.enumValue);
+    expect(
+      formatConflictValue(
+        l10n: l10n,
+        units: const UnitFormatter(AppSettings()),
+        field: depthUnit,
+        value: 'feet',
+      ),
+      'ft',
+    );
+    expect(conflictFieldFor('settings', 'value').kind, FieldKind.shortText);
+    expect(conflictFieldFor('media', 'takenAt').kind, FieldKind.wallClock);
+  });
+
+  test('no synced entity is left out of the coverage guard', () {
+    // Guards against reintroducing a skip list.
+    final guard = File(
+      p.join(
+        'test',
+        'features',
+        'settings',
+        'presentation',
+        'conflicts',
+        'conflict_field_catalogue_coverage_test.dart',
+      ),
+    ).readAsStringSync();
+    expect(guard, isNot(contains('skip:')));
+    expect(guard, isNot(contains('_pending')));
   });
 }

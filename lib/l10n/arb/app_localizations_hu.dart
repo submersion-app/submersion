@@ -19620,7 +19620,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_fieldHeader => 'Field';
 
   @override
+  String get settings_conflict_field_accentListIcons => 'Colored list icons';
+
+  @override
+  String get settings_conflict_field_accentNavIcons =>
+      'Colored navigation icons';
+
+  @override
+  String get settings_conflict_field_accentSectionHeaders =>
+      'Colored section headers';
+
+  @override
   String get settings_conflict_field_accessNotes => 'Access notes';
+
+  @override
+  String get settings_conflict_field_accountIdentifier => 'Account';
 
   @override
   String get settings_conflict_field_additionalCredentials =>
@@ -19635,6 +19649,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_allergies => 'Allergies';
+
+  @override
+  String get settings_conflict_field_altitudeUnit => 'Altitude unit';
 
   @override
   String get settings_conflict_field_amountKg => 'Weight';
@@ -19675,7 +19692,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_appliesToSites => 'Offered on dive sites';
 
   @override
+  String get settings_conflict_field_applyDefaultTankToImports =>
+      'Default tank on imported dives';
+
+  @override
+  String get settings_conflict_field_ascentGasSet => 'Ascent gases';
+
+  @override
   String get settings_conflict_field_ascentRate => 'Ascent rate';
+
+  @override
+  String get settings_conflict_field_ascentRateCritical =>
+      'Critical ascent rate';
+
+  @override
+  String get settings_conflict_field_ascentRateWarning => 'Ascent rate warning';
 
   @override
   String get settings_conflict_field_assumedVo2 => 'Assumed oxygen consumption';
@@ -19691,11 +19722,26 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_autoAttach => 'Scheduled automatically';
 
   @override
+  String get settings_conflict_field_autoTagImports => 'Tag imported dives';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Average speed';
 
   @override
   String get settings_conflict_field_batteryReserveFraction =>
       'Battery reserve';
+
+  @override
+  String get settings_conflict_field_bboxHeight => 'Box height';
+
+  @override
+  String get settings_conflict_field_bboxWidth => 'Box width';
+
+  @override
+  String get settings_conflict_field_bboxX => 'Box left edge';
+
+  @override
+  String get settings_conflict_field_bboxY => 'Box top edge';
 
   @override
   String get settings_conflict_field_bearingDeg => 'Bearing in degrees';
@@ -19717,7 +19763,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_boatName => 'Boat name';
 
   @override
+  String get settings_conflict_field_bookmarkRef => 'File access';
+
+  @override
   String get settings_conflict_field_bottleLabel => 'Bottle number';
+
+  @override
+  String get settings_conflict_field_buddyListViewMode => 'Buddy list view';
 
   @override
   String get settings_conflict_field_builtinKey => 'Built-in template';
@@ -19738,6 +19790,31 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_capacity => 'Capacity';
 
   @override
+  String get settings_conflict_field_caption => 'Caption';
+
+  @override
+  String get settings_conflict_field_cardColorGradientEnd =>
+      'Card color gradient end';
+
+  @override
+  String get settings_conflict_field_cardColorGradientPreset =>
+      'Card color gradient';
+
+  @override
+  String get settings_conflict_field_cardColorGradientStart =>
+      'Card color gradient start';
+
+  @override
+  String get settings_conflict_field_ccrDiluentModPpO2 =>
+      'CCR diluent MOD ppO2';
+
+  @override
+  String get settings_conflict_field_ccrSetpointHigh => 'CCR high setpoint';
+
+  @override
+  String get settings_conflict_field_ccrSetpointLow => 'CCR low setpoint';
+
+  @override
   String get settings_conflict_field_channelIndex => 'Channel';
 
   @override
@@ -19748,10 +19825,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_city => 'City';
 
   @override
+  String get settings_conflict_field_cloudAssetId => 'Cloud photo';
+
+  @override
   String get settings_conflict_field_cns => 'CNS';
 
   @override
+  String get settings_conflict_field_cnsWarningThreshold =>
+      'CNS warning threshold';
+
+  @override
   String get settings_conflict_field_codecVersion => 'Format version';
+
+  @override
+  String get settings_conflict_field_coldWaterThresholdC =>
+      'Cold water threshold';
 
   @override
   String get settings_conflict_field_color => 'Color';
@@ -19761,6 +19849,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_completedAt => 'Completed';
+
+  @override
+  String get settings_conflict_field_compressedLevel => 'Compression';
+
+  @override
+  String get settings_conflict_field_compressedSizeBytes =>
+      'Compressed size in bytes';
 
   @override
   String get settings_conflict_field_computerModel => 'Dive computer model';
@@ -19774,11 +19869,34 @@ class AppLocalizationsHu extends AppLocalizations {
       'Dive computer tissue data';
 
   @override
+  String get settings_conflict_field_conditionDisabledRules =>
+      'Turned-off gear checks';
+
+  @override
+  String get settings_conflict_field_conditionEngineEnabled =>
+      'Gear condition checks';
+
+  @override
+  String get settings_conflict_field_configJson => 'Configuration';
+
+  @override
+  String get settings_conflict_field_connectedAccounts_kind => 'Service';
+
+  @override
   String get settings_conflict_field_connectionType => 'Connection';
+
+  @override
+  String get settings_conflict_field_contentHash => 'Content fingerprint';
+
+  @override
+  String get settings_conflict_field_contentSizeBytes => 'Size in bytes';
 
   @override
   String get settings_conflict_field_contributingFactors =>
       'Contributing factors';
+
+  @override
+  String get settings_conflict_field_coordinateFormat => 'Coordinate format';
 
   @override
   String get settings_conflict_field_cost => 'Cost';
@@ -19792,6 +19910,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_courseRequirements_kind =>
       'Requirement type';
+
+  @override
+  String get settings_conflict_field_credentialsHostId => 'Sign-in host';
 
   @override
   String get settings_conflict_field_currency => 'Currency';
@@ -19817,16 +19938,33 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_date => 'Date';
 
   @override
+  String get settings_conflict_field_dateFormat => 'Date format';
+
+  @override
   String get settings_conflict_field_dayNumber => 'Day number';
 
   @override
   String get settings_conflict_field_dayType => 'Day type';
 
   @override
+  String get settings_conflict_field_decoStopIncrement => 'Deco stop increment';
+
+  @override
   String get settings_conflict_field_decoSwitchDepth => 'Deco gas switch depth';
 
   @override
+  String get settings_conflict_field_deepDiveThresholdM =>
+      'Deep dive threshold';
+
+  @override
   String get settings_conflict_field_defaultCategory => 'Default category';
+
+  @override
+  String get settings_conflict_field_defaultCeilingSource =>
+      'Ceiling data source';
+
+  @override
+  String get settings_conflict_field_defaultCnsSource => 'CNS data source';
 
   @override
   String get settings_conflict_field_defaultCost => 'Default cost';
@@ -19843,6 +19981,16 @@ class AppLocalizationsHu extends AppLocalizations {
       'Default current speed';
 
   @override
+  String get settings_conflict_field_defaultDecoStopSource =>
+      'Deco stop data source';
+
+  @override
+  String get settings_conflict_field_defaultDiveType => 'Default dive type';
+
+  @override
+  String get settings_conflict_field_defaultGtrSource => 'GTR data source';
+
+  @override
   String get settings_conflict_field_defaultIntervalDays =>
       'Default interval in days';
 
@@ -19855,8 +20003,115 @@ class AppLocalizationsHu extends AppLocalizations {
       'Default interval in hours';
 
   @override
+  String get settings_conflict_field_defaultNdlSource => 'NDL data source';
+
+  @override
+  String get settings_conflict_field_defaultPlannerWaterType =>
+      'Default planner water type';
+
+  @override
+  String get settings_conflict_field_defaultRightAxisMetric =>
+      'Profile right axis';
+
+  @override
+  String get settings_conflict_field_defaultShowAscentRateLine =>
+      'Profile shows ascent rate';
+
+  @override
+  String get settings_conflict_field_defaultShowCns => 'Profile shows CNS';
+
+  @override
+  String get settings_conflict_field_defaultShowEstimatedTankPressure =>
+      'Profile shows estimated tank pressure';
+
+  @override
+  String get settings_conflict_field_defaultShowEvents =>
+      'Profile shows events';
+
+  @override
+  String get settings_conflict_field_defaultShowGasDensity =>
+      'Profile shows gas density';
+
+  @override
+  String get settings_conflict_field_defaultShowGasSwitchMarkers =>
+      'Profile shows gas switches';
+
+  @override
+  String get settings_conflict_field_defaultShowGasTimeline =>
+      'Profile shows gas timeline';
+
+  @override
+  String get settings_conflict_field_defaultShowGf =>
+      'Profile shows gradient factor';
+
+  @override
+  String get settings_conflict_field_defaultShowGtr => 'Profile shows GTR';
+
+  @override
+  String get settings_conflict_field_defaultShowHeartRate =>
+      'Profile shows heart rate';
+
+  @override
+  String get settings_conflict_field_defaultShowMeanDepth =>
+      'Profile shows mean depth';
+
+  @override
+  String get settings_conflict_field_defaultShowO2CellMv =>
+      'Profile shows O2 cell millivolts';
+
+  @override
+  String get settings_conflict_field_defaultShowOtu => 'Profile shows OTU';
+
+  @override
+  String get settings_conflict_field_defaultShowPhotoMarkers =>
+      'Profile shows photos';
+
+  @override
+  String get settings_conflict_field_defaultShowPpHe => 'Profile shows ppHe';
+
+  @override
+  String get settings_conflict_field_defaultShowPpN2 => 'Profile shows ppN2';
+
+  @override
+  String get settings_conflict_field_defaultShowPpO2 => 'Profile shows ppO2';
+
+  @override
+  String get settings_conflict_field_defaultShowPressure =>
+      'Profile shows tank pressure';
+
+  @override
+  String get settings_conflict_field_defaultShowSac =>
+      'Profile shows gas consumption';
+
+  @override
+  String get settings_conflict_field_defaultShowSurfaceGf =>
+      'Profile shows surface gradient factor';
+
+  @override
+  String get settings_conflict_field_defaultShowTemperature =>
+      'Profile shows temperature';
+
+  @override
+  String get settings_conflict_field_defaultShowTts =>
+      'Profile shows time to surface';
+
+  @override
+  String get settings_conflict_field_defaultStartPressure =>
+      'Default start pressure';
+
+  @override
   String get settings_conflict_field_defaultStartPressureBar =>
       'Default start pressure';
+
+  @override
+  String get settings_conflict_field_defaultTankPreset => 'Default tank preset';
+
+  @override
+  String get settings_conflict_field_defaultTankVolume => 'Default tank volume';
+
+  @override
+  String get settings_conflict_field_defaultTtsSource =>
+      'Time to surface data source';
 
   @override
   String get settings_conflict_field_depth => 'Depth';
@@ -19866,6 +20121,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_depthMeters => 'Depth';
+
+  @override
+  String get settings_conflict_field_depthUnit => 'Depth unit';
 
   @override
   String get settings_conflict_field_descentRate => 'Descent rate';
@@ -19921,10 +20179,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_dismissedAt => 'Dismissed';
 
   @override
+  String get settings_conflict_field_displayHint => 'Display hint';
+
+  @override
   String get settings_conflict_field_displayName => 'Display name';
 
   @override
   String get settings_conflict_field_distanceM => 'Distance';
+
+  @override
+  String get settings_conflict_field_diveCenterListViewMode =>
+      'Dive center list view';
 
   @override
   String get settings_conflict_field_diveComputerFirmware =>
@@ -19936,6 +20201,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_diveCount => 'Dive count';
+
+  @override
+  String get settings_conflict_field_diveDetailLayout => 'Dive detail layout';
+
+  @override
+  String get settings_conflict_field_diveDetailSections =>
+      'Dive detail sections';
+
+  @override
+  String get settings_conflict_field_diveListViewMode => 'Dive list view';
 
   @override
   String get settings_conflict_field_diveModeOverride =>
@@ -19984,6 +20259,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_durationSeconds => 'Duration';
 
   @override
+  String get settings_conflict_field_elapsedSeconds => 'Time into dive';
+
+  @override
   String get settings_conflict_field_embarkLatitude => 'Embark latitude';
 
   @override
@@ -20017,6 +20295,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Emergency contact relation';
 
   @override
+  String get settings_conflict_field_emergencyRegion => 'Emergency region';
+
+  @override
   String get settings_conflict_field_enabled => 'Enabled';
 
   @override
@@ -20024,6 +20305,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_endLatitude => 'End latitude';
+
+  @override
+  String get settings_conflict_field_endLimit => 'Narcotic depth limit';
 
   @override
   String get settings_conflict_field_endLongitude => 'End longitude';
@@ -20039,6 +20323,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_engineVersion => 'Analysis version';
+
+  @override
+  String get settings_conflict_field_entryKey => 'Entry';
 
   @override
   String get settings_conflict_field_entryLatitude => 'Entry latitude';
@@ -20057,6 +20344,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_equipmentFindings_severity => 'Severity';
+
+  @override
+  String get settings_conflict_field_equipmentListViewMode =>
+      'Equipment list view';
 
   @override
   String get settings_conflict_field_equipmentObservations_status => 'Status';
@@ -20117,6 +20408,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_fileName => 'File name';
 
   @override
+  String get settings_conflict_field_filePath => 'File';
+
+  @override
+  String get settings_conflict_field_fileType => 'File type';
+
+  @override
   String get settings_conflict_field_fillClosesAt => 'Fills close';
 
   @override
@@ -20126,6 +20423,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_filledAt => 'Filled';
 
   @override
+  String get settings_conflict_field_filterJson => 'Filter';
+
+  @override
   String get settings_conflict_field_finalAscentRate => 'Final ascent rate';
 
   @override
@@ -20133,6 +20433,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_firstDepth => 'First sample depth';
+
+  @override
+  String get settings_conflict_field_format => 'Format';
+
+  @override
+  String get settings_conflict_field_gasConsumptionDisplay =>
+      'Gas consumption shown as';
 
   @override
   String get settings_conflict_field_gasHe => 'Helium';
@@ -20145,6 +20452,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_gearType => 'Gear type';
+
+  @override
+  String get settings_conflict_field_groupTripsInDiveList =>
+      'Trips grouped in the dive list';
+
+  @override
+  String get settings_conflict_field_gtrReservePressure =>
+      'GTR reserve pressure';
 
   @override
   String get settings_conflict_field_hasDecoStop => 'Has a deco stop';
@@ -20166,16 +20481,33 @@ class AppLocalizationsHu extends AppLocalizations {
       'Heading correction in degrees';
 
   @override
+  String get settings_conflict_field_height => 'Height in pixels';
+
+  @override
   String get settings_conflict_field_heightCm => 'Height';
 
   @override
   String get settings_conflict_field_heightMeters => 'Tide height';
 
   @override
+  String get settings_conflict_field_hiddenChamberIds => 'Hidden chambers';
+
+  @override
+  String get settings_conflict_field_hiddenTankPresetIds =>
+      'Hidden tank presets';
+
+  @override
+  String get settings_conflict_field_highO2ThresholdPercent =>
+      'High oxygen threshold';
+
+  @override
   String get settings_conflict_field_highTideHeight => 'High tide height';
 
   @override
   String get settings_conflict_field_highTideTime => 'High tide';
+
+  @override
+  String get settings_conflict_field_imageData => 'Image';
 
   @override
   String get settings_conflict_field_importId => 'Import ID';
@@ -20238,6 +20570,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_isDone => 'Done';
 
   @override
+  String get settings_conflict_field_isOrphaned => 'File missing';
+
+  @override
   String get settings_conflict_field_isPackage => 'Part of a package';
 
   @override
@@ -20281,6 +20616,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_lastStopDepth => 'Last stop depth';
 
   @override
+  String get settings_conflict_field_lastSweepAt => 'Last checked';
+
+  @override
+  String get settings_conflict_field_lastVerifiedAt => 'Last verified';
+
+  @override
   String get settings_conflict_field_latitude => 'Latitude';
 
   @override
@@ -20295,6 +20636,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_linkMode => 'Linked';
+
+  @override
+  String get settings_conflict_field_localPath => 'Local file';
+
+  @override
+  String get settings_conflict_field_locale => 'Language';
 
   @override
   String get settings_conflict_field_longitude => 'Longitude';
@@ -20318,7 +20665,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_lowTideTime => 'Low tide';
 
   @override
+  String get settings_conflict_field_manifestUrl => 'Feed address';
+
+  @override
+  String get settings_conflict_field_manualElapsedSeconds =>
+      'Time into dive, set by hand';
+
+  @override
   String get settings_conflict_field_manufacturer => 'Manufacturer';
+
+  @override
+  String get settings_conflict_field_matchConfidence => 'Match';
 
   @override
   String get settings_conflict_field_material => 'Tank material';
@@ -20359,10 +20716,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_narrative => 'What happened';
 
   @override
+  String get settings_conflict_field_noFlyPreset => 'No-fly rule';
+
+  @override
   String get settings_conflict_field_note => 'Note';
 
   @override
   String get settings_conflict_field_notedAt => 'Noted';
+
+  @override
+  String get settings_conflict_field_notificationsEnabled => 'Notifications';
 
   @override
   String get settings_conflict_field_o2Narcotic => 'Oxygen counted as narcotic';
@@ -20378,6 +20741,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_operatorName => 'Operator';
+
+  @override
+  String get settings_conflict_field_originalFilename => 'Original file name';
 
   @override
   String get settings_conflict_field_outingId => 'Outing';
@@ -20416,6 +20782,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_photoPath => 'Photo';
 
   @override
+  String get settings_conflict_field_placeNameLanguage => 'Place name language';
+
+  @override
   String get settings_conflict_field_plannedDives => 'Planned dives';
 
   @override
@@ -20426,10 +20795,16 @@ class AppLocalizationsHu extends AppLocalizations {
       'Planned weight placement';
 
   @override
+  String get settings_conflict_field_platformAssetId => 'Photo library item';
+
+  @override
   String get settings_conflict_field_pointCount => 'Number of points';
 
   @override
   String get settings_conflict_field_points => 'Track points';
+
+  @override
+  String get settings_conflict_field_pollIntervalSeconds => 'Check every';
 
   @override
   String get settings_conflict_field_portName => 'Port';
@@ -20441,11 +20816,20 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_ppO2Deco => 'Deco ppO2';
 
   @override
+  String get settings_conflict_field_ppO2MaxDeco => 'Maximum deco ppO2';
+
+  @override
+  String get settings_conflict_field_ppO2MaxWorking => 'Maximum working ppO2';
+
+  @override
   String get settings_conflict_field_preDiveChecklistTemplates_category =>
       'Category';
 
   @override
   String get settings_conflict_field_preDiveSessions_status => 'Status';
+
+  @override
+  String get settings_conflict_field_presetJson => 'Preset';
 
   @override
   String get settings_conflict_field_presetName => 'Tank preset';
@@ -20455,6 +20839,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_pressureBar => 'Pressure';
+
+  @override
+  String get settings_conflict_field_pressureUnit => 'Pressure unit';
 
   @override
   String get settings_conflict_field_priorDiveCount => 'Dives before this log';
@@ -20471,6 +20858,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_provider => 'Provider';
 
   @override
+  String get settings_conflict_field_providerType => 'Storage provider';
+
+  @override
   String get settings_conflict_field_purchaseCurrency => 'Purchase currency';
 
   @override
@@ -20481,6 +20871,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_qualityFindings_status => 'Status';
+
+  @override
+  String get settings_conflict_field_queryJson => 'Query';
 
   @override
   String get settings_conflict_field_radiusMeters => 'Radius';
@@ -20499,7 +20892,27 @@ class AppLocalizationsHu extends AppLocalizations {
       'Dive computer fingerprint';
 
   @override
+  String get settings_conflict_field_reminderTime => 'Reminder time';
+
+  @override
+  String get settings_conflict_field_remoteAssetId => 'Remote item';
+
+  @override
+  String get settings_conflict_field_remoteCompressedUploadedAt =>
+      'Compressed copy uploaded';
+
+  @override
+  String get settings_conflict_field_remoteThumbUploadedAt =>
+      'Thumbnail uploaded';
+
+  @override
+  String get settings_conflict_field_remoteUploadedAt => 'Uploaded';
+
+  @override
   String get settings_conflict_field_reservePressure => 'Reserve pressure';
+
+  @override
+  String get settings_conflict_field_retainInLibrary => 'Kept in the library';
 
   @override
   String get settings_conflict_field_returnFlightAt => 'Return flight';
@@ -20524,6 +20937,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_sacStressed => 'Stressed gas consumption';
+
+  @override
+  String get settings_conflict_field_safetyReviewDisabledRules =>
+      'Turned-off safety checks';
+
+  @override
+  String get settings_conflict_field_safetyReviewEnabled => 'Safety review';
 
   @override
   String get settings_conflict_field_salinityPpt =>
@@ -20571,6 +20991,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_scrubberType => 'Scrubber type';
 
   @override
+  String get settings_conflict_field_seascapeAppearance =>
+      'Seascape appearance';
+
+  @override
+  String get settings_conflict_field_seascapeVerticalExaggerationOverrides =>
+      'Seascape height scaling';
+
+  @override
   String get settings_conflict_field_section => 'Section';
 
   @override
@@ -20580,11 +21008,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_serviceDate => 'Service date';
 
   @override
+  String get settings_conflict_field_serviceReminderDays =>
+      'Service reminder days';
+
+  @override
   String get settings_conflict_field_setpointBar => 'Setpoint';
 
   @override
   String get settings_conflict_field_setpointSwitchDepth =>
       'Setpoint switch depth';
+
+  @override
+  String get settings_conflict_field_settings_key => 'Setting';
+
+  @override
+  String get settings_conflict_field_settings_value => 'Value';
 
   @override
   String get settings_conflict_field_shallowAscentRate =>
@@ -20604,6 +21042,61 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_shortName => 'Short name';
 
   @override
+  String get settings_conflict_field_showAscentRateColors =>
+      'Ascent rate colors';
+
+  @override
+  String get settings_conflict_field_showCeilingOnProfile =>
+      'Profile shows ceiling';
+
+  @override
+  String get settings_conflict_field_showDataSourceBadges =>
+      'Data source badges';
+
+  @override
+  String get settings_conflict_field_showDecoStopsOnProfile =>
+      'Profile shows deco stops';
+
+  @override
+  String get settings_conflict_field_showDepthColoredDiveCards =>
+      'Dive cards colored by depth';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneBuddies =>
+      'Details pane for buddies';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneCertifications =>
+      'Details pane for certifications';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneCourses =>
+      'Details pane for courses';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneDiveCenters =>
+      'Details pane for dive centers';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneDives =>
+      'Details pane for dives';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneEquipment =>
+      'Details pane for equipment';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneSites =>
+      'Details pane for sites';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneTrips =>
+      'Details pane for trips';
+
+  @override
+  String get settings_conflict_field_showDiveFigure => 'Diver figure';
+
+  @override
   String get settings_conflict_field_showFigure => 'Shown on the diver figure';
 
   @override
@@ -20614,10 +21107,49 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_showInListView => 'Shown in the dive list';
 
   @override
+  String get settings_conflict_field_showMapBackgroundOnDiveCards =>
+      'Map behind dive cards';
+
+  @override
+  String get settings_conflict_field_showMapBackgroundOnSiteCards =>
+      'Map behind site cards';
+
+  @override
+  String get settings_conflict_field_showMaxDepthMarker =>
+      'Profile shows maximum depth';
+
+  @override
+  String get settings_conflict_field_showNdlOnProfile => 'Profile shows NDL';
+
+  @override
+  String get settings_conflict_field_showPressureThresholdMarkers =>
+      'Profile shows pressure thresholds';
+
+  @override
+  String get settings_conflict_field_showProfilePanelInTableView =>
+      'Profile panel in table view';
+
+  @override
+  String get settings_conflict_field_signatureType => 'Signature type';
+
+  @override
   String get settings_conflict_field_signedRecord => 'Signed fill record';
 
   @override
+  String get settings_conflict_field_signerName => 'Signed by';
+
+  @override
+  String get settings_conflict_field_siteDetailLayout => 'Site detail layout';
+
+  @override
+  String get settings_conflict_field_siteDetailSections =>
+      'Site detail sections';
+
+  @override
   String get settings_conflict_field_siteFeatures_type => 'Feature type';
+
+  @override
+  String get settings_conflict_field_siteListViewMode => 'Site list view';
 
   @override
   String get settings_conflict_field_siteSuggestionDismissedAt =>
@@ -20656,10 +21188,16 @@ class AppLocalizationsHu extends AppLocalizations {
       'Tank number in the source log';
 
   @override
+  String get settings_conflict_field_sourceType => 'Source';
+
+  @override
   String get settings_conflict_field_sourceUuid => 'Source ID';
 
   @override
   String get settings_conflict_field_sourceValueNumber => 'Reference reading';
+
+  @override
+  String get settings_conflict_field_spec => 'Connection map';
 
   @override
   String get settings_conflict_field_species_category => 'Category';
@@ -20696,6 +21234,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_strictOrder => 'Items in a fixed order';
 
   @override
+  String get settings_conflict_field_subject => 'Searches';
+
+  @override
   String get settings_conflict_field_summaryMaxDepth => 'Planned maximum depth';
 
   @override
@@ -20714,6 +21255,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_swimSpeedMps => 'Swim speed';
+
+  @override
+  String get settings_conflict_field_takenAt => 'Taken';
 
   @override
   String get settings_conflict_field_tankMaterial => 'Tank material';
@@ -20737,19 +21281,46 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_temperatureC => 'Temperature';
 
   @override
+  String get settings_conflict_field_temperatureCelsius => 'Temperature';
+
+  @override
+  String get settings_conflict_field_temperatureUnit => 'Temperature unit';
+
+  @override
   String get settings_conflict_field_templateName => 'Checklist template';
+
+  @override
+  String get settings_conflict_field_themeMode => 'Theme';
+
+  @override
+  String get settings_conflict_field_themePreset => 'Color theme';
 
   @override
   String get settings_conflict_field_thickness => 'Thickness';
 
   @override
+  String get settings_conflict_field_thumbnailGeneratedAt => 'Thumbnail made';
+
+  @override
   String get settings_conflict_field_tideState => 'Tide';
+
+  @override
+  String get settings_conflict_field_timeFormat => 'Time format';
 
   @override
   String get settings_conflict_field_timeOffsetSeconds => 'Time offset';
 
   @override
   String get settings_conflict_field_timestamp => 'Time into dive';
+
+  @override
+  String get settings_conflict_field_timestampOffsetSeconds => 'Time offset';
+
+  @override
+  String get settings_conflict_field_tissueColorScheme => 'Tissue colors';
+
+  @override
+  String get settings_conflict_field_tissueVizMode => 'Tissue chart';
 
   @override
   String get settings_conflict_field_title => 'Title';
@@ -20774,10 +21345,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_trimStartTime => 'Trimmed start';
 
   @override
+  String get settings_conflict_field_trimTankPressureAtSurfacing =>
+      'Tank pressure trimmed at surfacing';
+
+  @override
   String get settings_conflict_field_tripChecklistItems_category => 'Category';
 
   @override
   String get settings_conflict_field_tripCylinderEvents_kind => 'Event';
+
+  @override
+  String get settings_conflict_field_tripListViewMode => 'Trip list view';
+
+  @override
+  String get settings_conflict_field_tripServiceLeadDays =>
+      'Service warning days before a trip';
 
   @override
   String get settings_conflict_field_trustFraction =>
@@ -20795,7 +21377,17 @@ class AppLocalizationsHu extends AppLocalizations {
       'Time zone offset in minutes';
 
   @override
+  String get settings_conflict_field_uploadFactsHlc => 'Upload record';
+
+  @override
+  String get settings_conflict_field_url => 'Address';
+
+  @override
   String get settings_conflict_field_usageDuration => 'Time breathed';
+
+  @override
+  String get settings_conflict_field_useDiveComputerCnsData =>
+      'CNS from the dive computer';
 
   @override
   String get settings_conflict_field_value => 'Value';
@@ -20825,10 +21417,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_verdict => 'Verdict';
 
   @override
+  String get settings_conflict_field_verifyFactsHlc => 'Verification record';
+
+  @override
   String get settings_conflict_field_vesselName => 'Vessel';
 
   @override
   String get settings_conflict_field_vesselType => 'Vessel type';
+
+  @override
+  String get settings_conflict_field_viewMode => 'View';
+
+  @override
+  String get settings_conflict_field_visibilityScaleExcellentM =>
+      'Excellent visibility from';
+
+  @override
+  String get settings_conflict_field_visibilityScaleGoodM =>
+      'Good visibility from';
+
+  @override
+  String get settings_conflict_field_visibilityScaleModerateM =>
+      'Moderate visibility from';
 
   @override
   String get settings_conflict_field_volume => 'Volume';
@@ -20838,6 +21448,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_volumeLiters => 'Volume';
+
+  @override
+  String get settings_conflict_field_volumeUnit => 'Volume unit';
 
   @override
   String get settings_conflict_field_walkSpeedMps => 'Walking speed';
@@ -20861,11 +21474,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_weightType => 'Weight type';
 
   @override
+  String get settings_conflict_field_weightUnit => 'Weight unit';
+
+  @override
   String get settings_conflict_field_weightingFeedback => 'Weighting';
 
   @override
   String get settings_conflict_field_weightingFeedbackKg =>
       'Weighting difference';
+
+  @override
+  String get settings_conflict_field_width => 'Width in pixels';
 
   @override
   String get settings_conflict_field_windDirection => 'Wind direction';
@@ -21128,6 +21747,27 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_title => 'Ütközések feloldása';
+
+  @override
+  String get enum_tissueVizMode_heatMap => 'Heat map';
+
+  @override
+  String get enum_tissueVizMode_stackedArea => 'Stacked area';
+
+  @override
+  String get enum_tissueColorScheme_classic => 'Classic';
+
+  @override
+  String get enum_tissueColorScheme_thermal => 'Thermal';
+
+  @override
+  String get enum_manifestFormat_atom => 'Atom';
+
+  @override
+  String get enum_manifestFormat_csv => 'CSV';
+
+  @override
+  String get enum_manifestFormat_json => 'JSON';
 
   @override
   String get enum_requirementKind_checklist => 'Checklist';

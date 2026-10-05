@@ -125,6 +125,67 @@ void main() {
     expect(preDiveItemTypeLabeler(l10n, 'cellLinearity'), 'Cell linearity');
   });
 
+  test('settings enums read the way the settings screens show them', () {
+    expect(depthUnitLabeler(l10n, 'feet'), 'ft');
+    expect(pressureUnitLabeler(l10n, 'psi'), 'psi');
+    expect(listViewModeLabeler(l10n, 'dense'), l10n.enum_listViewMode_dense);
+    expect(timeFormatLabeler(l10n, 'twelveHour'), isNot('twelveHour'));
+    expect(
+      mapStyleLabeler(l10n, 'openTopoMap'),
+      l10n.settings_appearance_mapStyle_openTopoMap,
+    );
+    expect(
+      cnsCalculationMethodLabeler(l10n, 'shearwater'),
+      l10n.settings_decompression_cnsMethodShearwater,
+    );
+    expect(
+      noFlyPresetLabeler(l10n, 'strict'),
+      l10n.safetySettings_noFlyPreset_strict,
+    );
+    expect(
+      siteMatchSensitivityLabeler(l10n, 'relaxed'),
+      l10n.settings_siteMatch_relaxed,
+    );
+    expect(gasModelLabeler(l10n, 'real'), l10n.settings_units_gasModel_real);
+    expect(
+      gasConsumptionDisplayLabeler(l10n, 'both'),
+      l10n.settings_units_gasConsumption_both,
+    );
+    expect(
+      plannerWaterTypeLabeler(l10n, 'custom'),
+      l10n.decoCalculator_waterType_custom,
+    );
+    expect(
+      profileRightAxisMetricLabeler(l10n, 'sac'),
+      l10n.enum_profileMetric_sacRate,
+    );
+    expect(
+      cardColorAttributeLabeler(l10n, 'depth'),
+      l10n.settings_appearance_cardColorAttribute_depth,
+    );
+    expect(diveDetailLayoutLabeler(l10n, 'list'), l10n.diveDetailLayout_list);
+    expect(
+      visibilityScalePresetLabeler(l10n, 'coldWater'),
+      l10n.settings_visibilityScale_preset_coldWater,
+    );
+    expect(themeModeLabeler(l10n, 'dark'), l10n.settings_appearance_theme_dark);
+    expect(themeModeLabeler(l10n, 'sepia'), isNull);
+    expect(
+      matchConfidenceLabeler(l10n, 'exact'),
+      isNot(anyOf(isNull, 'exact')),
+    );
+    expect(
+      mediaSourceTypeLabeler(l10n, 'localFile'),
+      isNot(anyOf(isNull, 'localFile')),
+    );
+  });
+
+  test('settings enums without a screen label get their own', () {
+    expect(tissueColorSchemeLabeler(l10n, 'thermal'), 'Thermal');
+    expect(tissueVizModeLabeler(l10n, 'stackedArea'), 'Stacked area');
+    expect(manifestFormatLabeler(l10n, 'json'), 'JSON');
+  });
+
   test('returns null for a value this build does not know', () {
     expect(entryMethodLabeler(l10n, 'jetpack'), isNull);
     expect(entryMethodLabeler(l10n, ''), isNull);
