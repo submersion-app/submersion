@@ -513,19 +513,27 @@ void main() {
 
     // Every fixture, JSON ones included (iNaturalist, bathymetry, crypto
     // vectors): those are exactly the files a loose JSON check would grab.
-    test('does not false-positive on any pinned fixture', () {
-      var scanned = 0;
+    // The real Suunto exports under fixtures/suunto are the one place the
+    // detector must say yes.
+    test('detects only the Suunto fixtures among every pinned fixture', () {
+      var scanned = 0, suunto = 0;
+      final suuntoDir = p.join('test', 'fixtures', 'suunto');
       final root = Directory(p.join('test', 'fixtures'));
       for (final entity in root.listSync(recursive: true)) {
         if (entity is! File) continue;
         scanned++;
+        final isSuunto = p.isWithin(suuntoDir, entity.path);
+        if (isSuunto) suunto++;
         expect(
           detector.detect(entity.readAsBytesSync()).format,
-          isNot(ImportFormat.suuntoJson),
-          reason: 'false positive on fixture: ${entity.path}',
+          isSuunto ? ImportFormat.suuntoJson : isNot(ImportFormat.suuntoJson),
+          reason: isSuunto
+              ? 'missed Suunto fixture: ${entity.path}'
+              : 'false positive on fixture: ${entity.path}',
         );
       }
-      expect(scanned, greaterThan(0));
+      expect(scanned, greaterThan(suunto));
+      expect(suunto, greaterThan(0));
     });
   });
 }
