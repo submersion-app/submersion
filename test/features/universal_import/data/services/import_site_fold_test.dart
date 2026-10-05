@@ -48,6 +48,18 @@ void main() {
       expect(folded.aliases, {'c': 'a'});
     });
 
+    test('a survivor with no id takes the id of the first entry folded '
+        'into it', () async {
+      final folded = foldImportSites([
+        {'name': 'Kealakekua Bay', 'latitude': 19.5, 'longitude': -155.9},
+        {'uddfId': 'a', 'latitude': 19.5, 'longitude': -155.9},
+        {'uddfId': 'b', 'latitude': 19.5, 'longitude': -155.9},
+      ], foldSameName: false);
+
+      expect(folded.sites.single['uddfId'], 'a');
+      expect(folded.aliases, {'b': 'a'});
+    });
+
     test('returns an empty result for no sites', () async {
       final folded = foldImportSites([]);
       expect(folded.sites, isEmpty);

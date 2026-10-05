@@ -124,7 +124,16 @@ void _absorb(
 ) {
   final foldedId = folded['uddfId'] as String?;
   final hostId = host.site['uddfId'] as String?;
-  if (foldedId != null && hostId != null) aliases[foldedId] = hostId;
+  if (foldedId != null) {
+    // A survivor with no id of its own (UDDF keeps a <site> without one)
+    // takes the folded entry's, or the dives linking that entry would point
+    // at nothing.
+    if (hostId == null) {
+      host.site['uddfId'] = foldedId;
+    } else {
+      aliases[foldedId] = hostId;
+    }
+  }
 
   folded.forEach((key, value) {
     if (key == 'uddfId' || key == 'name') return;

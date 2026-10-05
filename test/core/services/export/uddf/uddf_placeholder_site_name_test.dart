@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
@@ -145,6 +146,30 @@ void main() {
     });
   });
 
+  test(
+    'a dive keeps its site when that site folds into one with no id',
+    () async {
+      // UDDF keeps a <site> without an id. When a placeholder site folds into
+      // it, the survivor has to take the placeholder's id, or the dive's
+      // <link ref> no longer resolves.
+      final result = await parse(
+        [
+          '<site><name>Kealakekua Bay</name><geography>'
+              '<latitude>19.5</latitude><longitude>-155.9</longitude>'
+              '</geography></site>',
+          site('site_a', name: 'site_a', lat: 19.5, lon: -155.9),
+        ].join(),
+        dive('dive_1', 'site_a', '2025-12-26T07:48:00'),
+      );
+
+      expect(result.sites, hasLength(1));
+      expect(result.sites.single['name'], 'Kealakekua Bay');
+      expect(result.sites.single['uddfId'], 'site_a');
+      expect(result.dives.single['site'], same(result.sites.single));
+      expect(result.divesMissingSite, 0);
+    },
+  );
+
   test('two named sites sharing a name and a spot are kept apart', () async {
     // Submersion's own export can hold two sites with one name, and a round
     // trip has to bring both back.
@@ -166,7 +191,7 @@ void main() {
 
   test('a real Oceanic+ export imports one named site per place', () async {
     final content = await File(
-      'test/dives/issue_279_oceanic_plus_export.uddf',
+      p.join('test', 'dives', 'issue_279_oceanic_plus_export.uddf'),
     ).readAsString();
 
     final result = await UddfFullImportService().importAllDataFromUddf(content);
