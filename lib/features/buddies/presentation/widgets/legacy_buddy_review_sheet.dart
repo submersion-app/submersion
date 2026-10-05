@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/domain/entities/legacy_buddy_conversion.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_name_matcher.dart';
@@ -96,6 +98,9 @@ class _LegacyBuddyReviewSheetState
       color: theme.colorScheme.onSurfaceVariant,
     );
     final roles = ref.watch(allDiveRolesProvider).value ?? const <DiveRole>[];
+    final hiddenRoleIds = ref.watch(
+      hiddenBuiltInIdsProvider(BuiltInCatalog.diveRoles),
+    );
     final buddyText = widget.plan.buddyText?.trim() ?? '';
     final diveMasterText = widget.plan.diveMasterText?.trim() ?? '';
     return ConstrainedBox(
@@ -133,6 +138,7 @@ class _LegacyBuddyReviewSheetState
                   key: ValueKey(_links[i].identity),
                   link: _links[i],
                   roles: roles,
+                  hiddenRoleIds: hiddenRoleIds,
                   onRoleChanged: (roleId) =>
                       _update(_replaced(i, _links[i].copyWith(roleId: roleId))),
                   onUseSuggestion: () => _useSuggestion(i),

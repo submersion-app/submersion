@@ -35,6 +35,7 @@ Widget _harness({
   Set<String> credentialRoleIds = const {},
   String? selectedRoleId,
   Future<DiveRole?> Function(String name)? onCreateCustomRole,
+  Set<String> hiddenRoleIds = const {},
 }) {
   return MaterialApp(
     localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -52,6 +53,7 @@ Widget _harness({
                 credentialRoleIds: credentialRoleIds,
                 selectedRoleId: selectedRoleId,
                 onCreateCustomRole: onCreateCustomRole,
+                hiddenRoleIds: hiddenRoleIds,
               );
               onResult(result);
             },
@@ -168,5 +170,28 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('leaves out hidden built-in roles', (tester) async {
+    await tester.pumpWidget(
+      _harness(onResult: (_) {}, hiddenRoleIds: {DiveRole.rearGuardId}),
+    );
+    await _open(tester);
+    expect(find.text('Rear Guard'), findsNothing);
+    expect(find.text('Instructor'), findsOneWidget);
+    expect(find.text('Hekkensluiter'), findsOneWidget);
+  });
+
+  testWidgets('keeps a hidden role that is currently selected', (tester) async {
+    await tester.pumpWidget(
+      _harness(
+        onResult: (_) {},
+        hiddenRoleIds: {DiveRole.buddyId, DiveRole.rearGuardId},
+        selectedRoleId: DiveRole.buddyId,
+      ),
+    );
+    await _open(tester);
+    expect(find.text('Buddy'), findsOneWidget);
+    expect(find.text('Rear Guard'), findsNothing);
   });
 }

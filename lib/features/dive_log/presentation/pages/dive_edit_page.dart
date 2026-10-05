@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/presentation/utils/usable_set_items.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -1558,6 +1560,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       context,
       title: context.l10n.buddies_picker_selectMyRole,
       roles: roles,
+      hiddenRoleIds: ref.read(
+        hiddenBuiltInIdsProvider(BuiltInCatalog.diveRoles),
+      ),
       allowNone: true,
       selectedRoleId: _diverRoleId,
     );
@@ -1598,6 +1603,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       context,
       title: context.l10n.buddies_picker_selectRole(item.label),
       roles: roles,
+      hiddenRoleIds: ref.read(
+        hiddenBuiltInIdsProvider(BuiltInCatalog.diveRoles),
+      ),
       selectedRoleId: _bulkBuddyRoleId(item.id),
       onCreateCustomRole: (name) => ref
           .read(diveRoleListNotifierProvider.notifier)
