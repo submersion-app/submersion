@@ -96,7 +96,7 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
     if (!mounted) return;
     final routerState = GoRouterState.of(context);
     final currentPath = routerState.uri.path;
-    if (currentPath.startsWith('/transfer/import-wizard') ||
+    if (isImportWizardRoute(currentPath) ||
         ref.read(openPhotoPickerSessionsProvider).value > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.dropTarget_error_wizardActive)),

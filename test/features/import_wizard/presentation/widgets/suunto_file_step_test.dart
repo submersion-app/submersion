@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/suunto_cloud/suunto_dive_parser.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_file_adapter.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/suunto_file_step.dart';
@@ -40,7 +39,8 @@ Uint8List _export({int activityType = 51}) => utf8.encode(
 
 Widget _host({
   required List<SuuntoJsonFile> initialFiles,
-  required void Function(List<SuuntoParsedDive>) onDivesRead,
+  required void Function(List<SuuntoFileReadResult>) onRead,
+  List<SuuntoFileReadResult> previousResults = const [],
   Future<List<SuuntoJsonFile>> Function()? picker,
 }) => ProviderScope(
   overrides: [
@@ -53,7 +53,8 @@ Widget _host({
     home: Scaffold(
       body: SuuntoFileStep(
         initialFiles: initialFiles,
-        onDivesRead: onDivesRead,
+        previousResults: previousResults,
+        onRead: onRead,
       ),
     ),
   ),
@@ -67,14 +68,14 @@ void main() {
   testWidgets('reads handed-over files and lists why one was skipped', (
     tester,
   ) async {
-    List<SuuntoParsedDive>? read;
+    List<SuuntoFileReadResult>? read;
     await tester.pumpWidget(
       _host(
         initialFiles: [
           SuuntoJsonFile(name: 'nautic.json', bytes: _export()),
           SuuntoJsonFile(name: 'notes.txt', bytes: utf8.encode('not json')),
         ],
-        onDivesRead: (dives) => read = dives,
+        onRead: (results) => read = results,
       ),
     );
     await tester.pumpAndSettle();
@@ -84,7 +85,7 @@ void main() {
     expect(find.text('notes.txt'), findsOneWidget);
     expect(find.text('Not a JSON file'), findsOneWidget);
     expect(find.text('1 dive ready to import'), findsOneWidget);
-    expect(read, hasLength(1));
+    expect(read!.where((r) => r.dive != null), hasLength(1));
     expect(_ready(tester), isTrue);
   });
 
@@ -95,7 +96,7 @@ void main() {
     await tester.pumpWidget(
       _host(
         initialFiles: const [],
-        onDivesRead: (_) {},
+        onRead: (_) {},
         picker: () async {
           picks++;
           return [
@@ -120,7 +121,7 @@ void main() {
     await tester.pumpWidget(
       _host(
         initialFiles: const [],
-        onDivesRead: (_) {},
+        onRead: (_) {},
         picker: () async => throw const FileSystemException('denied'),
       ),
     );
@@ -137,5 +138,35 @@ void main() {
       ),
     );
     expect(button.onPressed, isNotNull);
+  });
+
+  // The wizard's PageView rebuilds a step it comes back to; the files read
+  // or picked last time must reappear, not the hand-over again.
+  testWidgets('coming back to the step shows what was read last time', (
+    tester,
+  ) async {
+    var last = const <SuuntoFileReadResult>[];
+    Widget step() => _host(
+      initialFiles: [SuuntoJsonFile(name: 'handed.json', bytes: _export())],
+      previousResults: last,
+      onRead: (results) => last = results,
+      picker: () async => [
+        SuuntoJsonFile(name: 'picked.json', bytes: _export()),
+      ],
+    );
+
+    await tester.pumpWidget(step());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Choose files'));
+    await tester.pumpAndSettle();
+    expect(find.text('picked.json'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(step());
+    await tester.pumpAndSettle();
+
+    expect(find.text('picked.json'), findsOneWidget);
+    expect(find.text('handed.json'), findsNothing);
+    expect(_ready(tester), isTrue);
   });
 }

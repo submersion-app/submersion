@@ -32,6 +32,13 @@ enum IncomingFileOutcome {
   none,
 }
 
+/// True while an import wizard owns the screen: the universal import
+/// wizard, or the Suunto file import (#1445). A file arriving then is
+/// turned away rather than stacking a second wizard over the first.
+bool isImportWizardRoute(String path) =>
+    path.startsWith('/transfer/import-wizard') ||
+    path.startsWith('/transfer/import-file/');
+
 /// Shared logic for handling an incoming file from drag-and-drop or
 /// share-sheet intents. Both [GlobalDropTarget] and [SubmersionApp]
 /// delegate to this function.
@@ -44,7 +51,7 @@ Future<IncomingFileOutcome> handleIncomingFile({
   String? wizardActiveMessage,
   String? unsupportedFileMessage,
 }) async {
-  if (currentPath.startsWith('/transfer/import-wizard')) {
+  if (isImportWizardRoute(currentPath)) {
     messenger?.showSnackBar(
       SnackBar(
         content: Text(wizardActiveMessage ?? 'Finish current import first'),
@@ -95,7 +102,7 @@ Future<bool> handleIncomingFiles({
   required ScaffoldMessengerState? messenger,
   String? wizardActiveMessage,
 }) async {
-  if (currentPath.startsWith('/transfer/import-wizard')) {
+  if (isImportWizardRoute(currentPath)) {
     messenger?.showSnackBar(
       SnackBar(
         content: Text(wizardActiveMessage ?? 'Finish current import first'),

@@ -84,6 +84,25 @@ void main() {
       expect(result, IncomingFileOutcome.none);
     });
 
+    test(
+      'treats the Suunto file wizard as a busy import too (#1445)',
+      () async {
+        final result = await handleIncomingFile(
+          bytes: _suuntoJsonBytes,
+          fileName: 'nautic.json',
+          currentPath: '/transfer/import-file/suunto',
+          notifier: notifier,
+          messenger: null,
+        );
+
+        expect(result, IncomingFileOutcome.none);
+        expect(notifier.state.fileBytes, isNull);
+        expect(isImportWizardRoute('/transfer/import-wizard'), isTrue);
+        expect(isImportWizardRoute('/transfer/import-file/suunto'), isTrue);
+        expect(isImportWizardRoute('/transfer'), isFalse);
+      },
+    );
+
     testWidgets(
       'returns false and shows snackbar for unsupported file format',
       (tester) async {

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/core/services/suunto_cloud/suunto_dive_parser.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_file_adapter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -37,11 +36,20 @@ class SuuntoFileStep extends ConsumerStatefulWidget {
   const SuuntoFileStep({
     super.key,
     required this.initialFiles,
-    required this.onDivesRead,
+    required this.onRead,
+    this.previousResults = const [],
   });
 
+  /// Files handed over by a hand-off, read when the step first opens.
   final List<SuuntoJsonFile> initialFiles;
-  final void Function(List<SuuntoParsedDive> dives) onDivesRead;
+
+  /// What the step read the last time it was on screen. The wizard's
+  /// PageView rebuilds a step it returns to, so these are shown again
+  /// instead of re-reading [initialFiles] over the diver's own pick.
+  final List<SuuntoFileReadResult> previousResults;
+
+  /// Every read file, dives and skipped ones alike.
+  final void Function(List<SuuntoFileReadResult> results) onRead;
 
   @override
   ConsumerState<SuuntoFileStep> createState() => _SuuntoFileStepState();
@@ -54,12 +62,24 @@ class _SuuntoFileStepState extends ConsumerState<SuuntoFileStep> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialFiles.isNotEmpty) {
+    if (widget.previousResults.isNotEmpty) {
+      _results = widget.previousResults;
       // Providers cannot be written during the first build.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _publish(_results);
+      });
+    } else if (widget.initialFiles.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _read(widget.initialFiles);
       });
     }
+  }
+
+  void _publish(List<SuuntoFileReadResult> results) {
+    widget.onRead(results);
+    ref.read(suuntoFileDivesReadyProvider.notifier).state = results.any(
+      (r) => r.dive != null,
+    );
   }
 
   Future<void> _pick() async {
@@ -90,12 +110,7 @@ class _SuuntoFileStepState extends ConsumerState<SuuntoFileStep> {
         await Future<void>.delayed(Duration.zero);
       }
       if (!mounted) return;
-      final dives = [
-        for (final r in results)
-          if (r.dive != null) r.dive!,
-      ];
-      widget.onDivesRead(dives);
-      ref.read(suuntoFileDivesReadyProvider.notifier).state = dives.isNotEmpty;
+      _publish(results);
       setState(() => _results = results);
     } finally {
       // Never leave "Choose files" disabled behind a failed read.

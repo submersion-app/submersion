@@ -30,9 +30,24 @@ class SuuntoFileAdapter extends SuuntoDiveImportCore {
   /// soon as the file step opens.
   final List<SuuntoJsonFile> initialFiles;
 
+  /// What the file step last read, kept here because the wizard rebuilds
+  /// the step when the diver comes back to it.
+  List<SuuntoFileReadResult> _readResults = const [];
+
+  /// Takes the file step's results: keeps them for a return to the step and
+  /// loads their dives for import.
+  void setReadResults(List<SuuntoFileReadResult> results) {
+    _readResults = List.unmodifiable(results);
+    setParsedDives([
+      for (final r in results)
+        if (r.dive != null) r.dive!,
+    ]);
+  }
+
   @override
   void resetState() {
     super.resetState();
+    _readResults = const [];
     ref?.invalidate(suuntoFileDivesReadyProvider);
   }
 
@@ -52,7 +67,8 @@ class SuuntoFileAdapter extends SuuntoDiveImportCore {
       icon: Icons.description_outlined,
       builder: (context) => SuuntoFileStep(
         initialFiles: initialFiles,
-        onDivesRead: setParsedDives,
+        previousResults: _readResults,
+        onRead: setReadResults,
       ),
       canAdvance: suuntoFileDivesReadyProvider,
       // The diver reviews which files were read (and why any were skipped)
