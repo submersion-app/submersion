@@ -150,6 +150,15 @@ class _UnitsStepState extends ConsumerState<UnitsStep> {
                 onChanged: (u) =>
                     notifier.updateSettings(s.copyWith(altitudeUnit: u)),
               ),
+              _unitRow<DistanceUnit>(
+                label: l10n.setup_units_distance,
+                keyPrefix: 'setup-unit-distance',
+                values: DistanceUnit.values,
+                selected: s.distanceUnit,
+                symbol: (u) => u.symbol,
+                onChanged: (u) =>
+                    notifier.updateSettings(s.copyWith(distanceUnit: u)),
+              ),
               _unitRow<GasConsumptionDisplay>(
                 label: l10n.setup_units_gasConsumption,
                 keyPrefix: 'setup-unit-gasconsumption',

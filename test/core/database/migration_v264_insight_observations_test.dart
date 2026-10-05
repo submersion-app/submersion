@@ -3,11 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v262: insight_observation_dismissals and
+/// Schema v264: insight_observation_dismissals and
 /// diver_settings.insights_muted_observation_rules (issue #2381).
 void main() {
-  /// A database at [version] with only the tables v262 touches.
-  NativeDatabase setupDb({int version = 261, bool withParents = true}) =>
+  /// A database at [version] with only the tables v264 touches.
+  NativeDatabase setupDb({int version = 263, bool withParents = true}) =>
       NativeDatabase.memory(
         setup: (rawDb) {
           rawDb.execute('PRAGMA user_version = $version');
@@ -30,13 +30,14 @@ void main() {
   }
 
   test('version bookkeeping', () {
-    expect(AppDatabase.currentSchemaVersion, 262);
-    expect(AppDatabase.migrationVersions, contains(262));
-    expect(AppDatabase.migrationStepCount(261), 1);
+    expect(AppDatabase.currentSchemaVersion, 264);
+    expect(AppDatabase.migrationVersions, contains(264));
+    expect(AppDatabase.migrationVersions.last, 264);
+    expect(AppDatabase.migrationStepCount(263), 1);
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 
-  test('upgrading from v261 adds the table and the nullable column', () async {
+  test('upgrading from v263 adds the table and the nullable column', () async {
     final db = AppDatabase(setupDb());
     addTearDown(db.close);
     await db.customSelect('SELECT 1').get();

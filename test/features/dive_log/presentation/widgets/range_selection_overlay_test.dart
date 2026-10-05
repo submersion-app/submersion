@@ -147,7 +147,9 @@ void main() {
       expect(changes.last.$2, closeTo(3600, 1));
     });
 
-    testWidgets('keeps the start handle behind the end handle', (tester) async {
+    testWidgets('stops the dragged handle at the end of the dive', (
+      tester,
+    ) async {
       final changes = <(int, int)>[];
       await pumpOverlay(
         tester,
@@ -155,12 +157,12 @@ void main() {
       );
 
       await tester.drag(
-        find.byKey(RangeSelectionOverlay.startHandleKey),
+        find.byKey(RangeSelectionOverlay.endHandleKey),
         const Offset(plotWidth, 0),
       );
       await tester.pump();
 
-      expect(changes.last.$1, 2699);
+      expect(changes.last, (900, 3600));
     });
 
     testWidgets('releases the chart when range mode ends mid-drag', (
@@ -197,6 +199,203 @@ void main() {
       );
       await tester.pump();
 
+      expect(active, [true, false]);
+    });
+  });
+
+  group('dragging one handle past the other (issue #1584)', () {
+    // Feeds each reported range back into the overlay, the way the chart
+    // does through the range provider, so the handles swap roles on screen.
+    Future<List<(int, int)>> pumpLiveOverlay(
+      WidgetTester tester, {
+      int startSeconds = 900,
+      int endSeconds = 2700,
+      double visibleMaxSeconds = 3600,
+      void Function(bool active)? onDragActiveChanged,
+    }) async {
+      final changes = <(int, int)>[];
+      var start = startSeconds;
+      var end = endSeconds;
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SizedBox(
+              width: 400,
+              height: 300,
+              child: StatefulBuilder(
+                builder: (context, setState) => RangeSelectionOverlay(
+                  startSeconds: start,
+                  endSeconds: end,
+                  maxSeconds: 3600,
+                  visibleMinSeconds: 0,
+                  visibleMaxSeconds: visibleMaxSeconds,
+                  insets: insets,
+                  onRangeChanged: (newStart, newEnd) {
+                    changes.add((newStart, newEnd));
+                    setState(() {
+                      start = newStart;
+                      end = newEnd;
+                    });
+                  },
+                  onDragActiveChanged: onDragActiveChanged,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return changes;
+    }
+
+    double gripWidth(WidgetTester tester, Key handleKey) => tester
+        .getSize(
+          find
+              .descendant(
+                of: find.byKey(handleKey),
+                matching: find.byType(Container),
+              )
+              .first,
+        )
+        .width;
+
+    testWidgets('the start handle passes the end and becomes the end', (
+      tester,
+    ) async {
+      final changes = await pumpLiveOverlay(tester);
+
+      // 900 s + 2250 s lands at 3150 s, past the end handle at 2700 s.
+      await tester.drag(
+        find.byKey(RangeSelectionOverlay.startHandleKey),
+        const Offset(plotWidth * 0.625, 0),
+      );
+      await tester.pump();
+
+      expect(changes.last.$1, 2700);
+      expect(changes.last.$2, closeTo(3150, 1));
+    });
+
+    testWidgets('the end handle passes the start and becomes the start', (
+      tester,
+    ) async {
+      final changes = await pumpLiveOverlay(tester);
+
+      // 2700 s - 2250 s lands at 450 s, before the start handle at 900 s.
+      await tester.drag(
+        find.byKey(RangeSelectionOverlay.endHandleKey),
+        const Offset(-plotWidth * 0.625, 0),
+      );
+      await tester.pump();
+
+      expect(changes.last.$1, closeTo(450, 1));
+      expect(changes.last.$2, 900);
+    });
+
+    testWidgets('the handle under the finger stays highlighted after a swap', (
+      tester,
+    ) async {
+      await pumpLiveOverlay(tester);
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byKey(RangeSelectionOverlay.startHandleKey)),
+      );
+      await gesture.moveBy(const Offset(plotWidth * 0.625, 0));
+      await tester.pump();
+
+      // The dragged handle is now the end; the one left behind is the start.
+      expect(gripWidth(tester, RangeSelectionOverlay.endHandleKey), 16);
+      expect(gripWidth(tester, RangeSelectionOverlay.startHandleKey), 12);
+
+      await gesture.up();
+      await tester.pump();
+    });
+
+    testWidgets('never reports a zero-width range while crossing', (
+      tester,
+    ) async {
+      final changes = await pumpLiveOverlay(tester);
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byKey(RangeSelectionOverlay.startHandleKey)),
+      );
+      // Lands exactly on the end handle, then carries on past it.
+      await gesture.moveBy(const Offset(plotWidth * 0.5, 0));
+      await tester.pump();
+      await gesture.moveBy(const Offset(plotWidth * 0.125, 0));
+      await tester.pump();
+      await gesture.up();
+      await tester.pump();
+
+      expect(changes, isNotEmpty);
+      for (final (start, end) in changes) {
+        expect(start, lessThan(end));
+      }
+      expect(changes.last.$1, 2700);
+    });
+
+    testWidgets('keeps dragging after the handle reaches the end of the dive', (
+      tester,
+    ) async {
+      final active = <bool>[];
+      final changes = await pumpLiveOverlay(
+        tester,
+        onDragActiveChanged: active.add,
+      );
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byKey(RangeSelectionOverlay.startHandleKey)),
+      );
+      // Reaching the dive's end removes the trailing shade from the Stack,
+      // which must not tear down the handle that owns this drag.
+      await gesture.moveBy(const Offset(plotWidth * 2, 0));
+      await tester.pump();
+      expect(changes.last, (2700, 3600));
+
+      await gesture.moveBy(const Offset(-plotWidth * 0.125, 0));
+      await tester.pump();
+      expect(changes.last.$1, 2700);
+      expect(changes.last.$2, closeTo(3150, 1));
+
+      await gesture.up();
+      await tester.pump();
+      // The drag ended normally, so the chart got its panning back.
+      expect(active, [true, false]);
+    });
+
+    testWidgets('keeps dragging a handle taken out of the zoomed window', (
+      tester,
+    ) async {
+      final active = <bool>[];
+      // 2x zoom: only 0 to 1800 s is on screen, 6.04 s per pixel.
+      final changes = await pumpLiveOverlay(
+        tester,
+        startSeconds: 900,
+        endSeconds: 1200,
+        visibleMaxSeconds: 1800,
+        onDragActiveChanged: active.add,
+      );
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byKey(RangeSelectionOverlay.endHandleKey)),
+      );
+      // 1200 s + 1350 s = 2550 s, off the right edge of the window. The
+      // handle is no longer drawn, but it must not drop the drag.
+      await gesture.moveBy(const Offset(plotWidth * 0.75, 0));
+      await tester.pump();
+      expect(changes.last.$2, closeTo(2550, 1));
+      expect(find.byKey(RangeSelectionOverlay.endHandleKey), findsNothing);
+
+      // Back on screen at 2550 s - 900 s = 1650 s.
+      await gesture.moveBy(const Offset(-plotWidth * 0.5, 0));
+      await tester.pump();
+      expect(changes.last.$1, 900);
+      expect(changes.last.$2, closeTo(1650, 1));
+
+      await gesture.up();
+      await tester.pump();
+      // The chart must get its panning back once the finger lifts.
       expect(active, [true, false]);
     });
   });

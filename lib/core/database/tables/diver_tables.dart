@@ -84,6 +84,11 @@ class DiverSettings extends Table {
       text().withDefault(const Constant('kilograms'))();
   TextColumn get altitudeUnit => text().withDefault(const Constant('meters'))();
 
+  /// v263: geographic distance unit, a DistanceUnit name (issue #2030).
+  /// Backfilled from depth_unit as the column is added.
+  TextColumn get distanceUnit =>
+      text().withDefault(const Constant('kilometers'))();
+
   /// v170: renamed from sacUnit. Holds a GasConsumptionDisplay name (sac,
   /// rmv, both). The Drift getter name is also the sync wire key, so this
   /// rename raises minimumCompatibleSchemaVersion; see
@@ -256,7 +261,7 @@ class DiverSettings extends Table {
   /// #2305), JSON list of preset slugs. Null or absent = none hidden.
   TextColumn get hiddenTankPresetIds => text().nullable()();
 
-  /// v262: muted Insights observation rules (#2381), JSON list of
+  /// v264: muted Insights observation rules (#2381), JSON list of
   /// ObservationRuleId.dbValue. Null or absent = none muted.
   TextColumn get insightsMutedObservationRules => text().nullable()();
   // Appearance settings
