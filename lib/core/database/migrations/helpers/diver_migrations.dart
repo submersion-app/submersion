@@ -2,6 +2,23 @@ part of '../app_database_migrations.dart';
 
 /// Diver profiles and diver settings.
 extension DiverMigrations on AppDatabase {
+  /// v261: drops diver_settings.default_ceiling_source (issue #767). The
+  /// ceiling line lost its source toggle at v137 (#755), and nothing has
+  /// read the column since. No index, trigger or view names it, so SQLite's
+  /// DROP COLUMN applies. Idempotent and a no-op when the table is absent,
+  /// so it is safe to call from both onUpgrade and the beforeOpen backstop.
+  Future<void> _dropDefaultCeilingSourceColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (!cols.any((c) => c.read<String>('name') == 'default_ceiling_source')) {
+      return;
+    }
+    await customStatement(
+      'ALTER TABLE diver_settings DROP COLUMN default_ceiling_source',
+    );
+  }
+
   /// v237: diver_settings.show_dive_figure (issue #2326). Additive, not
   /// null, default 0, so the dive figure starts off for every diver, new
   /// and existing. Idempotent, so it is safe to call from both onUpgrade
@@ -125,14 +142,14 @@ extension DiverMigrations on AppDatabase {
   }
 
   /// The beforeOpen backstop for both hidden-picker-entry columns: v227's
-  /// tank presets (#2305) and v261's built-in catalog entries (#401). One
+  /// tank presets (#2305) and v262's built-in catalog entries (#401). One
   /// call keeps before_open.dart inside its line budget.
   Future<void> _assertHiddenPickerEntryColumns() async {
     await _assertHiddenTankPresetIdsColumn();
     await _assertHiddenBuiltInIdsColumn();
   }
 
-  /// v261: diver_settings.hidden_built_in_ids (issue #401). PRAGMA-guarded
+  /// v262: diver_settings.hidden_built_in_ids (issue #401). PRAGMA-guarded
   /// and idempotent so both onUpgrade and the beforeOpen backstop can call it.
   Future<void> _assertHiddenBuiltInIdsColumn() async {
     final cols = await customSelect(

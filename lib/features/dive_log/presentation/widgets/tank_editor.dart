@@ -9,7 +9,6 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_template_display.dart';
 import 'package:submersion/core/constants/gas_templates.dart';
-import 'package:submersion/core/constants/tank_preset_display.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/number_display.dart';
@@ -23,11 +22,11 @@ import 'package:submersion/features/cylinder_passports/presentation/utils/scan_c
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
-import 'package:submersion/features/tank_presets/domain/services/tank_preset_visibility.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/own_cylinder_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_preset_dropdown.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/import_tag_fill.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -59,7 +58,8 @@ class TankEditor extends ConsumerStatefulWidget {
   /// can add it to the dive's gear. Awaited, so a failed add is reported
   /// like any other failure. The tank itself never records the link:
   /// `DiveTank.equipmentId` belongs to the transmitter registry. Null hides
-  /// the "My cylinders" picker, whose point is that gear add.
+  /// the "My cylinders" picker and the cylinders in the preset dropdown
+  /// (issue #163), whose point is that gear add.
   final Future<void> Function(EquipmentItem item)? onOwnCylinderUsed;
 
   /// Called with a tag scan or cylinder pick that has started resolving,
@@ -114,6 +114,12 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   late TankRole _role;
   late TankMaterial? _material;
   TankPresetEntity? _selectedPreset;
+
+  /// Counts the diver's spec choices: a preset, a cylinder, a scan or a trip
+  /// cylinder slot. A cylinder or a scan fills the tank only once its
+  /// database work is done, and only if no newer choice came in meanwhile,
+  /// which it would otherwise overwrite.
+  int _specChoice = 0;
 
   /// The regulator breathed from this cylinder (v202). Null until the diver
   /// picks one or a preset prefills it from the last pairing.
@@ -577,88 +583,27 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   }
 
   Widget _buildPresetAndRoleRow(UnitFormatter units) {
-    final presetsAsync = ref.watch(tankPresetsProvider);
-
     return Row(
       children: [
-        // Tank preset dropdown
         Expanded(
-          child: presetsAsync.when(
-            // A reload (a synced settings change, a preset edit) keeps the
-            // dropdown in place instead of swapping it for a progress bar.
-            skipLoadingOnReload: true,
-            loading: () => const LinearProgressIndicator(),
-            error: (e, st) => Text('Error: $e'),
-            data: (visiblePresets) {
-              final presetName =
-                  _selectedPreset?.name ?? widget.tank.presetName;
-              // A tank logged with a preset the diver has since hidden keeps
-              // showing it (issue #2305).
-              final presets = withKeptTankPresets(visiblePresets, [presetName]);
-              final customPresets = presets.where((p) => !p.isBuiltIn).toList();
-              final builtInPresets = presets.where((p) => p.isBuiltIn).toList();
-
-              // Find the matching preset from the loaded list to ensure object equality
-              // This is necessary because DropdownButtonFormField requires the value
-              // to be the exact same instance as one of the items
-              final matchingPreset = presetName != null
-                  ? presets.where((p) => p.name == presetName).firstOrNull
-                  : null;
-
-              return DropdownButtonFormField<TankPresetEntity?>(
-                key: ValueKey(matchingPreset?.id ?? 'no-preset'),
-                initialValue: matchingPreset,
-                // Each dropdown here is one Expanded of a shared Row, so it is
-                // narrow. Without this a long label (a custom preset name,
-                // "Carbon Fiber") overflows instead of ellipsizing.
-                isExpanded: true,
-                decoration: InputDecoration(
-                  labelText: context.l10n.diveLog_tank_label_tankPreset,
-                  isDense: true,
-                ),
-                items: [
-                  DropdownMenuItem<TankPresetEntity?>(
-                    value: null,
-                    child: Text(context.l10n.diveLog_tank_selectPreset),
-                  ),
-                  // Custom presets first (shown with a star icon)
-                  ...customPresets.map(
-                    (preset) => DropdownMenuItem(
-                      value: preset,
-                      child: Row(
-                        children: [
-                          const ExcludeSemantics(
-                            child: Icon(Icons.star, size: 16),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(preset.displayName),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Built-in presets. Their stored displayName is the stable
-                  // English identifier that exports and sync carry, so the
-                  // localized label is resolved here at render time.
-                  ...builtInPresets.map(
-                    (preset) => DropdownMenuItem(
-                      value: preset,
-                      child: Text(
-                        builtInTankPresetName(context.l10n, preset.name) ??
-                            preset.displayName,
-                      ),
-                    ),
-                  ),
-                ],
-                onChanged: (preset) {
-                  if (preset != null) {
-                    _applyPreset(preset);
-                  } else {
-                    setState(() => _selectedPreset = null);
-                    _notifyChange();
-                  }
-                },
-              );
+          child: TankPresetDropdown(
+            key: const Key('tank-preset-dropdown'),
+            presetName: _selectedPreset?.name ?? widget.tank.presetName,
+            // Like the "My cylinders" button, only where the host records
+            // the cylinder as dive gear too.
+            cylinders: widget.onOwnCylinderUsed == null
+                ? const []
+                : cylindersWithSpec(_ownCylinders()),
+            onPresetChanged: (preset) {
+              if (preset != null) {
+                _applyPreset(preset);
+              } else {
+                _specChoice++;
+                setState(() => _selectedPreset = null);
+                _notifyChange();
+              }
             },
+            onCylinderChosen: _chooseOwnCylinder,
           ),
         ),
         const SizedBox(width: 16),
@@ -764,6 +709,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     // refilling from the slot would overwrite the fields behind the
     // diver's back (on an existing dive, from a state that includes it).
     if (id == widget.tank.tripCylinderId) return;
+    // A slot fills the spec too: a newer choice than a cylinder or scan
+    // still resolving.
+    _specChoice++;
     final current = _currentTank();
     final slot = states.where((s) => s.cylinder.id == id).firstOrNull;
     widget.onChanged(
@@ -1186,27 +1134,37 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   );
 
   Future<void> _pickOwnCylinder() async {
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
     final item = await showOwnCylinderPicker(context);
     if (item == null || !mounted) return;
+    await _chooseOwnCylinder(item);
+  }
+
+  /// Fills the tank from [item], picked from "My cylinders" or chosen in the
+  /// preset dropdown (issue #163).
+  Future<void> _chooseOwnCylinder(EquipmentItem item) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final choice = ++_specChoice;
     // Like a scan, the cylinder reaches the dive's gear through database
     // work Save must wait for.
-    final use = _fillFromOwnCylinder(item, messenger, l10n);
+    final use = _fillFromOwnCylinder(item, choice, messenger, l10n);
     widget.onScanPending?.call(use);
     await use;
   }
 
-  /// Fills the tank from a picked [item]. Never throws: a failure is logged
-  /// and reported.
+  /// Fills the tank from a picked [item], unless a newer spec choice than
+  /// [choice] came in while its fills loaded: then the diver changed their
+  /// mind, and the cylinder neither fills the tank nor joins the gear. Never
+  /// throws: a failure is logged and reported.
   Future<void> _fillFromOwnCylinder(
     EquipmentItem item,
+    int choice,
     ScaffoldMessengerState messenger,
     AppLocalizations l10n,
   ) async {
     try {
       final fills = await ref.read(fillsForEquipmentProvider(item.id).future);
-      if (!mounted) return;
+      if (!mounted || choice != _specChoice) return;
       await _useOwnCylinder(item, fills, messenger, l10n);
     } catch (e, stackTrace) {
       _log.error(
@@ -1226,17 +1184,23 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     final l10n = context.l10n;
     final text = await ref.read(passportScanLauncherProvider)(context);
     if (text == null || !mounted) return;
+    final choice = ++_specChoice;
     // From here the scan is database work the host may need to wait for:
     // Save must not run before the scanned cylinder reaches the dive.
-    final scan = _fillFromTag(text, messenger, l10n);
+    final scan = _fillFromTag(text, choice, messenger, l10n);
     widget.onScanPending?.call(scan);
     await scan;
   }
 
-  /// Resolves a scanned [text] and fills the tank from it. Never throws: a
-  /// failure is logged and reported with a snack bar.
+  /// Resolves a scanned [text] and fills the tank from it, unless a newer
+  /// spec choice than [choice] came in while it resolved: then the tag
+  /// neither fills the tank nor adds its cylinder to the gear. A fill the
+  /// tag carries is still recorded, since it is the cylinder's history, not
+  /// a choice about this tank. Never throws: a failure is logged and
+  /// reported with a snack bar.
   Future<void> _fillFromTag(
     String text,
+    int choice,
     ScaffoldMessengerState messenger,
     AppLocalizations l10n,
   ) async {
@@ -1260,7 +1224,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 passportId: tag.passportId,
                 equipmentId: equipmentId,
               );
-          if (!mounted) return;
+          if (!mounted || choice != _specChoice) return;
           // The passport lookup found it, but the row is gone (deleted on
           // another device): say so rather than do nothing.
           if (item == null) {
@@ -1268,6 +1232,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           }
           await _useOwnCylinder(item, fills, messenger, l10n);
         case ForeignCylinder(:final tag):
+          if (choice != _specChoice) return;
           final filled = _applyScannedSpec(
             volumeL: tag.volumeL,
             workingPressureBar: tag.workingPressureBar?.toDouble(),
@@ -1399,6 +1364,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   }
 
   void _applyPreset(TankPresetEntity preset) {
+    _specChoice++;
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
     _prefillRegulatorFor(preset.name);

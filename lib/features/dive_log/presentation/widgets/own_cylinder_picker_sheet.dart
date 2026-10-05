@@ -15,6 +15,18 @@ List<EquipmentItem> ownCylinders(List<EquipmentItem> gear) => [
       item,
 ];
 
+/// The [cylinders] that record a size or a material, so choosing one fills
+/// something. The tank preset dropdown offers only these (issue #163): a
+/// cylinder with no spec would fill nothing there, yet still join the dive's
+/// gear. The "My cylinders" picker, which says what picking does, offers all.
+List<EquipmentItem> cylindersWithSpec(List<EquipmentItem> cylinders) => [
+  for (final item in cylinders)
+    if (item.volumeL != null ||
+        item.workingPressureBar != null ||
+        item.tankMaterial != null)
+      item,
+];
+
 /// Lets the diver choose one of their cylinders to fill a dive tank from
 /// (issue #2599): the gear picker narrowed to cylinders, saying what picking
 /// does. Resolves to the chosen cylinder, or null when dismissed.

@@ -11,6 +11,7 @@ import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/utils/site_picker_search.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/similar_value_hint.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -19,12 +20,17 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Returned by the site picker's "New Dive Site" button in place of a
 /// [DiveSite], so [pickOrCreateSite] can tell "create a new one" apart from
 /// "picked this existing one" (the sheet resolves to null when merely
-/// dismissed).
-const _createNewSiteSentinel = '__create_new__';
+/// dismissed). Carries the trimmed search text, which names the new site.
+class _CreateNewSite {
+  const _CreateNewSite(this.query);
+
+  final String query;
+}
 
 /// Opens [SitePickerSheet] in a draggable bottom sheet and, on "New Dive
-/// Site", pushes the new-site form seeded with [newSiteSeedLocation] and
-/// resolves once the site has been saved.
+/// Site", pushes the new-site form seeded with [newSiteSeedLocation] and the
+/// text the diver searched for (#1501), and resolves once the site has been
+/// saved.
 ///
 /// Returns the picked or newly created [DiveSite], or null if the sheet was
 /// dismissed or the new-site form was cancelled.
@@ -55,19 +61,22 @@ Future<DiveSite?> pickOrCreateSite(
         diveLocation: diveLocation,
         onSiteSelected: (site) => Navigator.of(sheetContext).pop(site),
         onCreateNewSite: allowCreate
-            ? () => Navigator.of(sheetContext).pop(_createNewSiteSentinel)
+            ? (query) => Navigator.of(sheetContext).pop(_CreateNewSite(query))
             : null,
       ),
     ),
   );
 
   if (chosen is DiveSite) return chosen;
-  if (chosen != _createNewSiteSentinel) return null;
+  if (chosen is! _CreateNewSite) return null;
 
   if (!context.mounted) return null;
   final newSiteId = await context.push<String>(
     '/sites/new',
-    extra: newSiteSeedLocation,
+    extra: NewSiteSeed(
+      location: newSiteSeedLocation,
+      name: chosen.query.isEmpty ? null : chosen.query,
+    ),
   );
   if (newSiteId == null || !context.mounted) return null;
   return ref.read(siteProvider(newSiteId).future);
@@ -80,7 +89,10 @@ class SitePickerSheet extends ConsumerStatefulWidget {
   final LocationResult? currentLocation;
   final GeoPoint? diveLocation;
   final void Function(DiveSite) onSiteSelected;
-  final VoidCallback? onCreateNewSite;
+
+  /// Called by the "New Dive Site" buttons with the search field's trimmed
+  /// text, empty when nothing was searched. Null hides those buttons.
+  final void Function(String query)? onCreateNewSite;
 
   const SitePickerSheet({
     super.key,
@@ -169,6 +181,13 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
     );
   }
 
+  /// The "New Dive Site" buttons' handler, or null to disable them.
+  VoidCallback? get _createNewSite {
+    final onCreateNewSite = widget.onCreateNewSite;
+    if (onCreateNewSite == null) return null;
+    return () => onCreateNewSite(_searchQuery.trim());
+  }
+
   @override
   Widget build(BuildContext context) {
     final sitesAsync = ref.watch(sitesProvider);
@@ -247,7 +266,7 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
               ),
               if (widget.onCreateNewSite != null)
                 TextButton.icon(
-                  onPressed: widget.onCreateNewSite,
+                  onPressed: _createNewSite,
                   icon: const Icon(Icons.add),
                   label: Text(context.l10n.diveLog_sitePicker_newDiveSite),
                 ),
@@ -319,7 +338,7 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
                       if (widget.onCreateNewSite != null) ...[
                         const SizedBox(height: 8),
                         TextButton.icon(
-                          onPressed: widget.onCreateNewSite,
+                          onPressed: _createNewSite,
                           icon: const Icon(Icons.add),
                           label: Text(
                             context.l10n.diveLog_sitePicker_addDiveSite,
