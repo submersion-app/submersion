@@ -93,25 +93,34 @@ flagged.
 
 At each sample `i` with timestamp `t`:
 
-- The **eligible set** is every assessed gas whose `idealTimestamp <= t`. When
-  it is empty, the sample is not behind.
+- The **eligible set** is every assessed gas whose `idealTimestamp <= t` and
+  whose MOD is at or below `depths[i]` (so a sample inside the 1 m hysteresis
+  band never demands the switch). When it is empty, the sample is not behind.
 - The **ideal gas** is the choice of an `OptimalOcAscentGas` built over the
   eligible set only, at `depths[i]`. The plan's own preference and
   tie-breaking rules (highest O2, then higher He, then lower N2) are reused,
   not reimplemented.
-- The **actual gas** is the recorded segment active at `t`.
+- The **actual gas** is the recorded segment active at `t`. Mixes are compared
+  by fO2 and fHe within 0.005, because recorded air segments carry
+  `airN2Fraction` (0.7902) while cylinders derive 0.79.
 - The sample is **behind** when the ideal gas has a strictly higher fO2 than
-  the actual gas.
+  the actual gas **and** the diver has not yet breathed the ideal gas since its
+  `idealTimestamp`. The second condition keeps air breaks (a deliberate return
+  to a leaner gas after switching, for example 5 minutes of back gas every 20
+  minutes on O2) from reading as late switches.
 
-A **window** is a maximal run of behind samples sharing the same ideal gas. It
-ends at the first sample where any of the following happens:
+A **window** is a maximal run of behind samples sharing the same ideal gas. Its
+ideal time and depth are those of its first sample: `idealTimestamp` is that
+sample's timestamp and `idealDepth` is `min(MOD, depth there)`. It ends at the
+first sample where any of the following happens:
 
 - The diver switches to the ideal gas. This is a **late** window.
 - The ideal gas changes to a richer gas, for example from EAN50 to O2 at 6 m.
 - The dive ends.
 
-A window that ended without the diver ever breathing its gas after that gas's
-`idealTimestamp` is a **missed** window. Example: skipping EAN50 and switching
+A window whose gas the diver breathes at any sample from the window's start
+onward is **late**, with the switch at the first such sample. A window whose gas
+is never breathed from its start onward is a **missed** window. Example: skipping EAN50 and switching
 straight to O2 at 6 m gives a missed-EAN50 window from the EAN50 ideal time to
 the O2 switch.
 
@@ -192,7 +201,7 @@ class GasSwitchWindow {
 }
 
 class GasSwitchEfficiency {
-  final bool evaluated; // OC, >= 2 mixes, and some deco obligation
+  final bool evaluated; // OC, >= 2 mixes, a deco obligation, >= 1 gas assessed
   final List<GasSwitchWindow> windows; // flagged only, time-ordered
   final int totalExtraDecoSeconds;
 }
@@ -200,7 +209,10 @@ class GasSwitchEfficiency {
 
 `ProfileAnalysis` gains a nullable `gasSwitchEfficiency` field, included in
 `copyWith`, `empty()` and equality. It is null on gauge, CCR and SCR dives and
-when the plan holds fewer than two mixes. `evaluated` lets the UI tell "all
+when the plan holds fewer than two mixes. `evaluated` is false when the dive
+had no deco obligation or no gas was assessed (a dive that never went below any
+gas's MOD, where bottom time and deco cannot be told apart). It lets the UI
+tell "all
 switches on time" apart from "not applicable". `ProfileAnalysis` is never
 persisted, so `analysisEngineVersion` does not change.
 
@@ -219,16 +231,17 @@ persisted, so `analysisEngineVersion` does not change.
     version constant);
   - the sync serializer default;
   - `diver_settings_repository.dart` and `settings_providers.dart`;
-  - a toggle on the Default visible metrics page.
+  - a toggle on the Appearance settings page, next to the existing
+    gas-switch-markers default, which is where that default already lives.
 - `ProfileLegendConfig.hasLateGasSwitches` is true when the analysis has at
   least one flagged window. It is OR-ed into `hasSecondaryToggles`.
-- The chart options dialog gets a row in its Overlays section, and
-  `active_legend_entries.dart` gets a legend chip.
-- Bands: a new `lateSwitchRanges` list of `ProfileHighlightRange` is passed
-  next to `secondaryRanges` from `dive_profile_chart_host.dart` and
-  `fullscreen_profile_page.dart`. It is drawn in
-  `_buildHighlightRangeAnnotations`, gated by the new toggle, not by
-  `_showO2Cells`. Each band is tinted with `GasColors.forMixFraction` of the
+- The chart options dialog gets a row in its Markers section, next to the gas
+  switch markers row, and `active_legend_entries.dart` gets a legend chip.
+- Bands: the chart already receives `analysis`, so it derives the ranges from
+  `widget.analysis?.gasSwitchEfficiency` itself; no host or fullscreen page
+  needs a new parameter. They are drawn in `_buildHighlightRangeAnnotations`,
+  before the cell-divergence and selection bands, gated by the new toggle, not
+  by `_showO2Cells`. Each band is tinted with `GasColors.forMixFraction` of the
   gas that should have been breathed, at alpha 0.12, and clamped with
   `visibleHighlightSpan`.
 - Tooltip: when the cursor sample falls inside a flagged window,
@@ -284,11 +297,13 @@ the l10n generator afterwards.
     window;
   - a mid-dive excursion above the MOD followed by a descent, not flagged;
   - a shallow deco dive never deeper than the deco gas's MOD, gas not
-    assessed and nothing flagged;
+    assessed, `evaluated == false` and nothing flagged;
   - a no-deco dive with an unused deco bottle, `evaluated == false`, nothing
     flagged;
   - sidemount cylinders of the same mix, nothing flagged;
-  - the `decoStageOnly` gas set excludes a pony bottle;
+  - air breaks on O2 at 6 m after an on-time switch, nothing flagged;
+  - a recorded switch to a gas outside the plan (a pony bottle excluded by the
+    `decoStageOnly` gas set) creates no window of its own;
   - `extraDecoSeconds > 0` for late and missed windows, and 0 when the
     counterfactual equals the actual;
   - the total from the all-fixed run is at most the sum of the per-window
