@@ -46,6 +46,47 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
   }
 
+  Future<ScrollController> pumpInScrollingPage(WidgetTester tester) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(800, 600);
+    addTearDown(tester.view.reset);
+    final controller = ScrollController();
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => TestSettingsNotifier()),
+          siteSeascapeProvider.overrideWith((ref, id) async => readyState()),
+          siteFeaturesProvider(
+            'site-1',
+          ).overrideWith((ref) async => const <SiteFeature>[]),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              controller: controller,
+              child: Column(
+                children: [
+                  SiteSeascapeSection(
+                    siteId: 'site-1',
+                    onOpenFullscreen: () {},
+                  ),
+                  const SizedBox(height: 2000),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    return controller;
+  }
+
   testWidgets('shows the site terrain under the card title', (tester) async {
     await pumpSection(tester, readyState());
 
@@ -103,47 +144,6 @@ void main() {
   });
 
   group('mouse wheel inside a scrolling page', () {
-    Future<ScrollController> pumpInPage(WidgetTester tester) async {
-      tester.view.devicePixelRatio = 1.0;
-      tester.view.physicalSize = const Size(800, 600);
-      addTearDown(tester.view.reset);
-      final controller = ScrollController();
-      addTearDown(controller.dispose);
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            settingsProvider.overrideWith((ref) => TestSettingsNotifier()),
-            siteSeascapeProvider.overrideWith((ref, id) async => readyState()),
-            siteFeaturesProvider(
-              'site-1',
-            ).overrideWith((ref) async => const <SiteFeature>[]),
-          ],
-          child: MaterialApp(
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: SingleChildScrollView(
-                controller: controller,
-                child: Column(
-                  children: [
-                    SiteSeascapeSection(
-                      siteId: 'site-1',
-                      onOpenFullscreen: () {},
-                    ),
-                    const SizedBox(height: 2000),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-      return controller;
-    }
-
     Future<void> wheelAt(WidgetTester tester, Offset at) async {
       final mouse = TestPointer(1, PointerDeviceKind.mouse);
       await tester.sendEventToBinding(mouse.hover(at));
@@ -154,7 +154,7 @@ void main() {
     testWidgets('over the terrain, the terrain takes it and the page stays', (
       tester,
     ) async {
-      final controller = await pumpInPage(tester);
+      final controller = await pumpInScrollingPage(tester);
       final pane = tester.getRect(find.byType(SiteTerrainPane));
 
       // Left of centre, clear of the zoom buttons on the right edge.
@@ -167,11 +167,56 @@ void main() {
     });
 
     testWidgets('over the card title, the page scrolls', (tester) async {
-      final controller = await pumpInPage(tester);
+      final controller = await pumpInScrollingPage(tester);
 
       await wheelAt(tester, tester.getCenter(find.text('Site Seascape')));
 
       expect(controller.offset, greaterThan(0));
+    });
+  });
+
+  group('trackpad two-finger swipe inside a scrolling page', () {
+    Future<void> swipeAt(WidgetTester tester, Offset at) async {
+      final pad = TestPointer(2, PointerDeviceKind.trackpad);
+      await tester.sendEventToBinding(pad.panZoomStart(at));
+      for (var i = 1; i <= 10; i++) {
+        await tester.sendEventToBinding(
+          pad.panZoomUpdate(at, pan: Offset(0, -12.0 * i)),
+        );
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      await tester.sendEventToBinding(pad.panZoomEnd());
+      await tester.pump();
+    }
+
+    double terrainPanY(WidgetTester tester) => tester
+        .widget<Transform>(find.byKey(const ValueKey('dive3dViewportPan')))
+        .transform
+        .getTranslation()
+        .y;
+
+    testWidgets('over the terrain, the terrain pans and the page stays', (
+      tester,
+    ) async {
+      final controller = await pumpInScrollingPage(tester);
+      final pane = tester.getRect(find.byType(SiteTerrainPane));
+
+      await swipeAt(
+        tester,
+        Offset(pane.left + pane.width * 0.3, pane.center.dy),
+      );
+
+      expect(controller.offset, 0);
+      expect(terrainPanY(tester), lessThan(0));
+    });
+
+    testWidgets('over the card title, the page scrolls', (tester) async {
+      final controller = await pumpInScrollingPage(tester);
+
+      await swipeAt(tester, tester.getCenter(find.text('Site Seascape')));
+
+      expect(controller.offset, greaterThan(0));
+      expect(terrainPanY(tester), 0);
     });
   });
 
