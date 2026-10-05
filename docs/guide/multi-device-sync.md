@@ -206,8 +206,9 @@ them.
 
 Changing a setting that stays on the device never changes it on another
 device, and a sync never overwrites it. A device that joins your library keeps
-its own values; only the notifications and light or dark mode of a diver that
-is new to the device start at their defaults.
+its own values. When a diver is new to the device, that diver's service
+reminders (on or off, the reminder schedule, the reminder time and the trip
+service lead time) and light or dark mode start at their defaults there.
 
 <div class="tip">
 <strong>Upload quality syncs, uploading does not.</strong> Each device decides for
