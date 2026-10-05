@@ -13790,6 +13790,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_location_editMove_delete => '删除移动记录';
 
   @override
+  String get equipment_location_deleteMoveConfirm =>
+      '删除这条历史记录？将根据剩余的移动记录重新确定物品位置。';
+
+  @override
   String get equipment_location_bulkAction => '移至位置';
 
   @override
@@ -13842,6 +13846,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_locations_delete => '删除';
+
+  @override
+  String equipment_locations_deleteConfirm(String name) {
+    return '删除 $name？';
+  }
 
   @override
   String get equipment_locations_itemsHere => '此处物品';

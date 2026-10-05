@@ -23387,6 +23387,12 @@ abstract class AppLocalizations {
   /// **'Delete move'**
   String get equipment_location_editMove_delete;
 
+  /// Confirmation before deleting one entry of an item's location history
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this history entry? The item\'s location is worked out again from the moves that are left.'**
+  String get equipment_location_deleteMoveConfirm;
+
   /// Bulk action moving the selected gear to a place
   ///
   /// In en, this message translates to:
@@ -23476,6 +23482,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete'**
   String get equipment_locations_delete;
+
+  /// Confirmation before deleting a place where gear is kept
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String equipment_locations_deleteConfirm(String name);
 
   /// Heading of the list of items currently at a place
   ///

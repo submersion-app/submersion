@@ -14343,6 +14343,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_location_editMove_delete => 'Verplaatsing verwijderen';
 
   @override
+  String get equipment_location_deleteMoveConfirm =>
+      'Dit item uit de geschiedenis verwijderen? De locatie van het item wordt opnieuw bepaald uit de resterende verplaatsingen.';
+
+  @override
   String get equipment_location_bulkAction => 'Naar locatie verplaatsen';
 
   @override
@@ -14398,6 +14402,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_locations_delete => 'Verwijderen';
+
+  @override
+  String equipment_locations_deleteConfirm(String name) {
+    return '$name verwijderen?';
+  }
 
   @override
   String get equipment_locations_itemsHere => 'Items hier';

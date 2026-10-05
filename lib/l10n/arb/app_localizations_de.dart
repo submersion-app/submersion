@@ -14435,6 +14435,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_location_editMove_delete => 'Eintrag löschen';
 
   @override
+  String get equipment_location_deleteMoveConfirm =>
+      'Diesen Verlaufseintrag löschen? Der Standort des Teils wird aus den übrigen Einträgen neu ermittelt.';
+
+  @override
   String get equipment_location_bulkAction => 'An Standort verschieben';
 
   @override
@@ -14490,6 +14494,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_locations_delete => 'Löschen';
+
+  @override
+  String equipment_locations_deleteConfirm(String name) {
+    return '$name löschen?';
+  }
 
   @override
   String get equipment_locations_itemsHere => 'Hier vorhanden';

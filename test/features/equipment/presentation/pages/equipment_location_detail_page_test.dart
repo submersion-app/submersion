@@ -104,4 +104,17 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Delete'), findsOneWidget);
   });
+
+  testWidgets('deleting a place asks first; Cancel keeps it', (tester) async {
+    await pump(tester, inUse: false);
+    await tester.tap(find.byKey(const ValueKey('equipment_location_menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+    expect(find.text("Delete Joe's Scuba?"), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('12 Harbour Rd'), findsOneWidget);
+  });
 }

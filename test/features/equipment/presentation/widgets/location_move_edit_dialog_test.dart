@@ -68,4 +68,46 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(TimePickerDialog), findsOneWidget);
   });
+
+  EquipmentLocationMove pastMove() => EquipmentLocationMove(
+    id: 'm',
+    equipmentId: 'reg',
+    locationId: null,
+    movedAt: DateTime(2026, 9, 3, 18),
+    createdAt: DateTime(2026, 9, 3, 18),
+  );
+
+  testWidgets('deleting a history entry asks first; Cancel keeps it', (
+    tester,
+  ) async {
+    await openDialog(tester, pastMove());
+    await tester.tap(find.byKey(const ValueKey('location_move_delete')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        "Delete this history entry? The item's location is worked out "
+        'again from the moves that are left.',
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Cancel').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Edit move'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a save that fails says so and keeps the dialog open', (
+    tester,
+  ) async {
+    // No database behind this test: the repository write throws.
+    await openDialog(tester, pastMove());
+    await tester.tap(find.byKey(const ValueKey('location_move_save')));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Edit move'), findsOneWidget);
+  });
 }

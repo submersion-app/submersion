@@ -49,6 +49,9 @@ void main() {
             equipmentLocationMovesProvider(
               'reg',
             ).overrideWith((ref) async => moves),
+            equipmentLocationsProvider.overrideWith(
+              (ref) async => [place('shop', "Joe's Scuba")],
+            ),
             allEquipmentLocationsByIdProvider.overrideWith(
               (ref) async => {
                 'shop': place('shop', "Joe's Scuba"),
@@ -101,6 +104,25 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       find.byKey(const ValueKey('equipment_location_move_m1')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a move that fails says so instead of throwing', (tester) async {
+    // No database behind this test: recording the move throws.
+    await pump(tester, const []);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('equipment_location_move')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('move_equipment_to')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text("Joe's Scuba"));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('move_equipment_confirm')));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(
+      find.text('Something went wrong. Please try again.'),
       findsOneWidget,
     );
   });

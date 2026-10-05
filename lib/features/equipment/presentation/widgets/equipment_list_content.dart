@@ -577,27 +577,19 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         label: context.l10n.equipment_location_bulkAction,
         onInvoke: () async {
           final ids = _selectedIds;
-          final messenger = ScaffoldMessenger.of(context);
-          final errorColor = Theme.of(context).colorScheme.error;
-          try {
-            final moved = await showMoveEquipmentFlow(
-              context,
-              ref,
-              items: [
-                for (final e in equipment)
-                  if (ids.contains(e.id)) e,
-              ],
-            );
-            return moved == null
-                ? BulkActionOutcome.cancelled
-                : BulkActionOutcome.completed;
-          } catch (e) {
-            // Keep the selection so the diver can try again.
-            messenger.showSnackBar(
-              SnackBar(content: Text('$e'), backgroundColor: errorColor),
-            );
-            return BulkActionOutcome.failed;
-          }
+          // The flow reports its own failure; either way a null keeps the
+          // selection so the diver can try again.
+          final moved = await showMoveEquipmentFlow(
+            context,
+            ref,
+            items: [
+              for (final e in equipment)
+                if (ids.contains(e.id)) e,
+            ],
+          );
+          return moved == null
+              ? BulkActionOutcome.cancelled
+              : BulkActionOutcome.completed;
         },
       ),
       BulkAction(

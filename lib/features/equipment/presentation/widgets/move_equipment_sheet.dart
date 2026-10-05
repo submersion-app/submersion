@@ -23,7 +23,8 @@ class MoveDraft {
 }
 
 /// Moves [items]: the sheet, then the parts and status prompts, then a
-/// SnackBar. Returns how many items moved, or null when cancelled.
+/// SnackBar. Returns how many items moved, or null when cancelled or when
+/// the move failed (a SnackBar says so).
 Future<int?> showMoveEquipmentFlow(
   BuildContext context,
   WidgetRef ref, {
@@ -74,15 +75,23 @@ Future<int?> showMoveEquipmentFlow(
     ),
     setStatus: notifier.setStatusForMany,
   );
-  final moved = await flow.run(
-    items: items,
-    target: switch (draft.pick) {
-      PlacePick(:final location) => location,
-      NoLocationPick() => null,
-    },
-    movedAt: draft.movedAt,
-    note: draft.note,
-  );
+  final int moved;
+  try {
+    moved = await flow.run(
+      items: items,
+      target: switch (draft.pick) {
+        PlacePick(:final location) => location,
+        NoLocationPick() => null,
+      },
+      movedAt: draft.movedAt,
+      note: draft.note,
+    );
+  } catch (_) {
+    // Nothing is written on a failure before the moves land, so the diver
+    // can simply try again.
+    messenger.showSnackBar(SnackBar(content: Text(l10n.common_error_tryAgain)));
+    return null;
+  }
   messenger.showSnackBar(
     SnackBar(content: Text(l10n.equipment_location_moved(moved))),
   );

@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_l
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_location_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_edit_dialog.dart';
+import 'package:submersion/features/equipment/presentation/widgets/location_confirm_dialogs.dart';
 import 'package:submersion/features/equipment/presentation/widgets/move_equipment_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -34,12 +35,26 @@ class EquipmentLocationDetailPage extends ConsumerWidget {
     String action,
   ) async {
     final repo = ref.read(equipmentLocationRepositoryProvider);
-    switch (action) {
-      case 'archive':
-        await repo.setArchived(place.id, archived: !place.isArchived);
-      case 'delete':
-        await repo.deleteLocation(place.id);
-        if (context.mounted) context.pop();
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      switch (action) {
+        case 'archive':
+          await repo.setArchived(place.id, archived: !place.isArchived);
+        case 'delete':
+          if (!await confirmLocationDelete(
+            context,
+            l10n.equipment_locations_deleteConfirm(place.name),
+          )) {
+            return;
+          }
+          // Throws if a move synced in since the menu opened: the place is
+          // in use again, and the diver is told rather than the place lost.
+          await repo.deleteLocation(place.id);
+          if (context.mounted) context.pop();
+      }
+    } catch (_) {
+      showLocationWriteFailed(messenger, l10n.common_error_tryAgain);
     }
   }
 

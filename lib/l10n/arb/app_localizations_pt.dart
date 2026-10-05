@@ -14441,6 +14441,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_location_editMove_delete => 'Eliminar movimento';
 
   @override
+  String get equipment_location_deleteMoveConfirm =>
+      'Eliminar esta entrada do histórico? A localização do item é recalculada a partir dos movimentos que restam.';
+
+  @override
   String get equipment_location_bulkAction => 'Mover para localização';
 
   @override
@@ -14496,6 +14500,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_locations_delete => 'Eliminar';
+
+  @override
+  String equipment_locations_deleteConfirm(String name) {
+    return 'Eliminar $name?';
+  }
 
   @override
   String get equipment_locations_itemsHere => 'Itens aqui';

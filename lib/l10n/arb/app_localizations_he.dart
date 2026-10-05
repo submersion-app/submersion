@@ -14139,6 +14139,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_location_editMove_delete => 'מחיקת העברה';
 
   @override
+  String get equipment_location_deleteMoveConfirm =>
+      'למחוק את הרשומה הזו מההיסטוריה? מיקום הפריט יחושב מחדש מההעברות שנותרו.';
+
+  @override
   String get equipment_location_bulkAction => 'העברה למיקום';
 
   @override
@@ -14194,6 +14198,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_locations_delete => 'מחיקה';
+
+  @override
+  String equipment_locations_deleteConfirm(String name) {
+    return 'למחוק את $name?';
+  }
 
   @override
   String get equipment_locations_itemsHere => 'פריטים כאן';

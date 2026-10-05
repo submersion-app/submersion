@@ -6,6 +6,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_location
 import 'package:submersion/features/equipment/domain/entities/equipment_location_move.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
+import 'package:submersion/features/equipment/presentation/widgets/location_confirm_dialogs.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
@@ -100,27 +101,48 @@ class _LocationMoveEditDialogState
 
   Future<void> _save() async {
     final repo = ref.read(equipmentLocationMoveRepositoryProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.l10n.common_error_tryAgain;
     final locationId = _locationId;
-    await repo.updateMove(
-      locationId == null
-          ? widget.move.copyWith(
-              clearLocation: true,
-              movedAt: _movedAt,
-              note: _note.text,
-            )
-          : widget.move.copyWith(
-              locationId: locationId,
-              movedAt: _movedAt,
-              note: _note.text,
-            ),
-    );
+    try {
+      await repo.updateMove(
+        locationId == null
+            ? widget.move.copyWith(
+                clearLocation: true,
+                movedAt: _movedAt,
+                note: _note.text,
+              )
+            : widget.move.copyWith(
+                locationId: locationId,
+                movedAt: _movedAt,
+                note: _note.text,
+              ),
+      );
+    } catch (_) {
+      // Keep the dialog and the diver's edits so they can try again.
+      showLocationWriteFailed(messenger, failed);
+      return;
+    }
     if (mounted) Navigator.of(context).pop();
   }
 
   Future<void> _delete() async {
-    await ref
-        .read(equipmentLocationMoveRepositoryProvider)
-        .deleteMove(widget.move.id);
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    if (!await confirmLocationDelete(
+      context,
+      l10n.equipment_location_deleteMoveConfirm,
+    )) {
+      return;
+    }
+    try {
+      await ref
+          .read(equipmentLocationMoveRepositoryProvider)
+          .deleteMove(widget.move.id);
+    } catch (_) {
+      showLocationWriteFailed(messenger, l10n.common_error_tryAgain);
+      return;
+    }
     if (mounted) Navigator.of(context).pop();
   }
 

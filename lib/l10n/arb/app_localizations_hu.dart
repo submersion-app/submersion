@@ -14398,6 +14398,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_location_editMove_delete => 'Áthelyezés törlése';
 
   @override
+  String get equipment_location_deleteMoveConfirm =>
+      'Törlöd ezt az előzménybejegyzést? Az elem helyét a megmaradt áthelyezésekből számoljuk újra.';
+
+  @override
   String get equipment_location_bulkAction => 'Áthelyezés helyre';
 
   @override
@@ -14453,6 +14457,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_locations_delete => 'Törlés';
+
+  @override
+  String equipment_locations_deleteConfirm(String name) {
+    return 'Törlöd: $name?';
+  }
 
   @override
   String get equipment_locations_itemsHere => 'Itt lévő elemek';

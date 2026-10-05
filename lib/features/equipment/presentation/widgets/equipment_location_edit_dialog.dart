@@ -78,6 +78,8 @@ class _EquipmentLocationEditDialogState
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     final repo = ref.read(equipmentLocationRepositoryProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.l10n.common_error_tryAgain;
     try {
       final existing = widget.existing;
       final EquipmentLocation saved;
@@ -97,6 +99,9 @@ class _EquipmentLocationEditDialogState
         await repo.updateLocation(saved);
       }
       if (mounted) Navigator.of(context).pop(saved);
+    } catch (_) {
+      // Keep the dialog and what the diver typed.
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
     } finally {
       if (mounted) setState(() => _saving = false);
     }

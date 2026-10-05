@@ -14441,6 +14441,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_location_editMove_delete => 'Elimina spostamento';
 
   @override
+  String get equipment_location_deleteMoveConfirm =>
+      'Eliminare questa voce della cronologia? La posizione dell\'elemento viene ricalcolata dagli spostamenti rimasti.';
+
+  @override
   String get equipment_location_bulkAction => 'Sposta in una posizione';
 
   @override
@@ -14496,6 +14500,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_locations_delete => 'Elimina';
+
+  @override
+  String equipment_locations_deleteConfirm(String name) {
+    return 'Eliminare $name?';
+  }
 
   @override
   String get equipment_locations_itemsHere => 'Elementi qui';

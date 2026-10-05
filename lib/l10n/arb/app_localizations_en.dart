@@ -14231,6 +14231,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_location_editMove_delete => 'Delete move';
 
   @override
+  String get equipment_location_deleteMoveConfirm =>
+      'Delete this history entry? The item\'s location is worked out again from the moves that are left.';
+
+  @override
   String get equipment_location_bulkAction => 'Move to location';
 
   @override
@@ -14286,6 +14290,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_locations_delete => 'Delete';
+
+  @override
+  String equipment_locations_deleteConfirm(String name) {
+    return 'Delete $name?';
+  }
 
   @override
   String get equipment_locations_itemsHere => 'Items here';

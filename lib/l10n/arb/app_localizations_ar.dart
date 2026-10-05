@@ -14632,6 +14632,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_location_editMove_delete => 'حذف النقل';
 
   @override
+  String get equipment_location_deleteMoveConfirm =>
+      'حذف هذا الإدخال من السجل؟ يُحسب موقع العنصر من جديد من التنقلات المتبقية.';
+
+  @override
   String get equipment_location_bulkAction => 'نقل إلى موقع';
 
   @override
@@ -14691,6 +14695,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_locations_delete => 'حذف';
+
+  @override
+  String equipment_locations_deleteConfirm(String name) {
+    return 'حذف $name؟';
+  }
 
   @override
   String get equipment_locations_itemsHere => 'العناصر هنا';
