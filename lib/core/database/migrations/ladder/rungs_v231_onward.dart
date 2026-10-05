@@ -197,5 +197,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankSharedComputerIds();
     }
     if (from < 260) await reportProgress();
+    // v262: diver_settings.distance_unit (issue #2030), backfilled from each
+    // diver's depth unit as the column is added. Re-asserted in beforeOpen.
+    // 261 is held by an open branch (#2985).
+    if (from < 262) {
+      await _assertDistanceUnitColumn();
+    }
+    if (from < 262) await reportProgress();
   }
 }

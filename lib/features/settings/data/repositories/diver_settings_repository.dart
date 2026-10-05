@@ -95,6 +95,7 @@ class DiverSettingsRepository {
               volumeUnit: Value(s.volumeUnit.name),
               weightUnit: Value(s.weightUnit.name),
               altitudeUnit: Value(s.altitudeUnit.name),
+              distanceUnit: Value(s.distanceUnit.name),
               gasConsumptionDisplay: Value(s.gasConsumptionDisplay.name),
               gasModel: Value(s.gasModel.name),
               defaultPlannerWaterType: Value(s.defaultPlannerWaterType.name),
@@ -351,6 +352,7 @@ class DiverSettingsRepository {
     volumeUnit: Value(settings.volumeUnit.name),
     weightUnit: Value(settings.weightUnit.name),
     altitudeUnit: Value(settings.altitudeUnit.name),
+    distanceUnit: Value(settings.distanceUnit.name),
     gasConsumptionDisplay: Value(settings.gasConsumptionDisplay.name),
     gasModel: Value(settings.gasModel.name),
     defaultPlannerWaterType: Value(settings.defaultPlannerWaterType.name),
@@ -551,6 +553,7 @@ class DiverSettingsRepository {
       volumeUnit: _parseVolumeUnit(row.volumeUnit),
       weightUnit: _parseWeightUnit(row.weightUnit),
       altitudeUnit: _parseAltitudeUnit(row.altitudeUnit),
+      distanceUnit: _parseDistanceUnit(row.distanceUnit),
       gasConsumptionDisplay: GasConsumptionDisplay.fromName(
         row.gasConsumptionDisplay,
       ),
@@ -749,6 +752,13 @@ class DiverSettingsRepository {
     return AltitudeUnit.values.firstWhere(
       (e) => e.name == value,
       orElse: () => AltitudeUnit.meters,
+    );
+  }
+
+  DistanceUnit _parseDistanceUnit(String value) {
+    return DistanceUnit.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => DistanceUnit.kilometers,
     );
   }
 
