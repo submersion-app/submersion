@@ -34,6 +34,14 @@ Future<void> showStartSessionSheet(
   );
 }
 
+/// The members of [set] a pre-dive session checks: every member in [all]
+/// except one on the wishlist (#2025), which is not in the diver's kit.
+List<EquipmentItem> sessionSetGear(List<EquipmentItem> all, EquipmentSet set) =>
+    [
+      for (final g in all)
+        if (set.equipmentIds.contains(g.id) && !g.isWanted) g,
+    ];
+
 class _StartSessionSheet extends ConsumerStatefulWidget {
   final String? diveId;
   final String? tripId;
@@ -90,7 +98,7 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
         final all = await EquipmentRepository().getAllEquipment(
           diverId: diverId,
         );
-        gear = all.where((g) => chosenSet.equipmentIds.contains(g.id)).toList();
+        gear = sessionSetGear(all, chosenSet);
       }
       // Union of set-expanded gear and single-item links, deduplicated by id
       // so a device chosen both ways is not passed twice to the composer.

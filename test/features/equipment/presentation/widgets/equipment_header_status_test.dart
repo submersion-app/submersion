@@ -38,6 +38,14 @@ void main() {
       }
     });
 
+    test('wanted gear is named even with isActive left true', () {
+      // An import that defaults isActive must still offer the purchase.
+      expect(
+        headerStatusOf(_item(EquipmentStatus.wanted)),
+        EquipmentStatus.wanted,
+      );
+    });
+
     test('a legacy inactive row reads as retired', () {
       expect(
         headerStatusOf(_item(EquipmentStatus.needsService, isActive: false)),

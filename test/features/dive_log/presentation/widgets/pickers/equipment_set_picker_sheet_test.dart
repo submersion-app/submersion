@@ -95,6 +95,30 @@ void main() {
     expect(pickedItems?.length, 2);
   });
 
+  testWidgets('tapping a set leaves out a member on the wishlist (#2025)', (
+    tester,
+  ) async {
+    const wish = EquipmentItem(
+      id: 'e3',
+      name: 'Dream wing',
+      type: EquipmentType.bcd,
+      status: EquipmentStatus.wanted,
+      isActive: false,
+    );
+    List<EquipmentItem>? pickedItems;
+    await _pump(
+      tester,
+      sets: [
+        _set('s1', 'Tropical', [_regulator, wish, _mask]),
+      ],
+      onSetSelected: (set, items) => pickedItems = items,
+    );
+    await tester.tap(find.text('Tropical'));
+    // Bulk dive edit and the planners apply exactly what the sheet hands
+    // back, so the wishlist member must not reach them.
+    expect(pickedItems?.map((i) => i.id), ['e1', 'e2']);
+  });
+
   testWidgets('an empty set is rendered disabled', (tester) async {
     var called = false;
     await _pump(

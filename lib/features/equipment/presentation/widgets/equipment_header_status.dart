@@ -9,8 +9,11 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The status an inactive item's header chip names, or null for gear in the
 /// kit. Sold, Lost and Wanted (#2025) keep their own label; any other
-/// inactive row is a legacy retirement (#636) and reads as Retired.
+/// inactive row is a legacy retirement (#636) and reads as Retired. Wanted
+/// is named even on a row whose isActive was left true (an import), so the
+/// purchase action is always offered.
 EquipmentStatus? headerStatusOf(EquipmentItem item) {
+  if (item.isWanted) return EquipmentStatus.wanted;
   if (item.isActive) return null;
   return switch (item.status) {
     EquipmentStatus.sold ||

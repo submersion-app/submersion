@@ -80,7 +80,12 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
                   final set = sets[index];
                   return _EquipmentSetTile(
                     set: set,
-                    onTap: (items) => onSetSelected(set, items),
+                    // A member on the wishlist (#2025) stays in the set but
+                    // is never handed to a dive, plan or rig.
+                    onTap: (items) => onSetSelected(set, [
+                      for (final item in items)
+                        if (!item.isWanted) item,
+                    ]),
                   );
                 },
               );
