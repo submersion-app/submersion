@@ -90,6 +90,16 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
   @protected
   WidgetRef? get ref => _ref;
 
+  /// The signed-in account shown on the Review step, for a source that has
+  /// one (the cloud import); null otherwise.
+  @protected
+  String? get sourceAccount => null;
+
+  /// How many files the dives were read from, for a file source; null for
+  /// the cloud import.
+  @protected
+  int? get sourceFileCount => null;
+
   /// Today's date as yyyy-mm-dd, for [defaultTagName].
   @protected
   String todayIsoDate() {
@@ -133,7 +143,15 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
     final items = _parsedDives.map(_diveToEntityItem).toList();
 
     return ImportBundle(
-      source: ImportSourceInfo(type: sourceType, displayName: displayName),
+      source: ImportSourceInfo(
+        type: sourceType,
+        displayName: displayName,
+        details: ImportSourceDetails(
+          account: sourceAccount,
+          fileCount: sourceFileCount,
+          deviceModels: _deviceModels(),
+        ),
+      ),
       groups: {ImportEntityType.dives: EntityGroup(items: items)},
     );
   }
@@ -411,6 +429,13 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
   // ---------------------------------------------------------------------------
   // Helpers -- dive computer resolution
   // ---------------------------------------------------------------------------
+
+  /// The models of the devices that recorded the read dives, each once,
+  /// in the order the dives list them.
+  List<String> _deviceModels() => {
+    for (final parsed in _parsedDives)
+      ?normalizedIdentityPart(parsed.deviceName),
+  }.toList();
 
   Future<void> _ensureComputers() async {
     for (final parsed in _parsedDives) {

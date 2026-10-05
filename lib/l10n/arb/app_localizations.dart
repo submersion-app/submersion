@@ -12841,6 +12841,12 @@ abstract class AppLocalizations {
   /// **'Altitude'**
   String get setup_units_altitude;
 
+  /// No description provided for @setup_units_distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get setup_units_distance;
+
   /// No description provided for @setup_units_dateFormat.
   ///
   /// In en, this message translates to:
@@ -14394,6 +14400,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} {count, plural, =1{dive} other{dives}}'**
   String diveLog_summary_diveCount(int count);
+
+  /// Line under the Dive Log Summary title while the dive list is filtered: the summary covers {shown} of the diver's {total} logged dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Filtered: summarizing {shown} of {total, plural, =1{{total} dive} other{{total} dives}}'**
+  String diveLog_summary_filteredBanner(int shown, int total);
 
   /// No description provided for @diveLog_summary_overview.
   ///
@@ -18793,6 +18805,12 @@ abstract class AppLocalizations {
   /// **'Boat Entry'**
   String get enum_entryMethod_boat;
 
+  /// No description provided for @enum_entryMethod_frontRoll.
+  ///
+  /// In en, this message translates to:
+  /// **'Front Roll'**
+  String get enum_entryMethod_frontRoll;
+
   /// No description provided for @enum_entryMethod_giantStride.
   ///
   /// In en, this message translates to:
@@ -18972,6 +18990,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gear Pocket'**
   String get enum_equipmentType_gearPocket;
+
+  /// No description provided for @enum_equipmentType_bag.
+  ///
+  /// In en, this message translates to:
+  /// **'Bag'**
+  String get enum_equipmentType_bag;
 
   /// No description provided for @enum_equipmentType_hose.
   ///
@@ -29740,13 +29764,13 @@ abstract class AppLocalizations {
   /// No description provided for @diveDetailSection_surfaceGps_name.
   ///
   /// In en, this message translates to:
-  /// **'Surface GPS'**
+  /// **'Location'**
   String get diveDetailSection_surfaceGps_name;
 
   /// No description provided for @diveDetailSection_surfaceGps_description.
   ///
   /// In en, this message translates to:
-  /// **'GPS entry/exit points and surface drift'**
+  /// **'Map of the dive site, GPS entry/exit points and surface drift'**
   String get diveDetailSection_surfaceGps_description;
 
   /// No description provided for @diveLog_detail_section_surfaceGps.
@@ -29754,6 +29778,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Surface GPS'**
   String get diveLog_detail_section_surfaceGps;
+
+  /// Title of the dive detail map card when the dive has no GPS fix and only its dive site has coordinates
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get diveLog_detail_section_location;
 
   /// No description provided for @diveLog_detail_surfaceGps_entry.
   ///
@@ -33582,6 +33612,18 @@ abstract class AppLocalizations {
   /// **'Weight'**
   String get settings_summary_weight;
 
+  /// No description provided for @settings_summary_altitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude'**
+  String get settings_summary_altitude;
+
+  /// No description provided for @settings_summary_distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get settings_summary_distance;
+
   /// No description provided for @settings_units_custom.
   ///
   /// In en, this message translates to:
@@ -33869,6 +33911,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pounds (lbs)'**
   String get settings_units_weight_pounds;
+
+  /// No description provided for @settings_units_altitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude'**
+  String get settings_units_altitude;
+
+  /// No description provided for @settings_units_altitude_feet.
+  ///
+  /// In en, this message translates to:
+  /// **'Feet (ft)'**
+  String get settings_units_altitude_feet;
+
+  /// No description provided for @settings_units_altitude_meters.
+  ///
+  /// In en, this message translates to:
+  /// **'Meters (m)'**
+  String get settings_units_altitude_meters;
+
+  /// No description provided for @settings_units_dialog_altitudeUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude Unit'**
+  String get settings_units_dialog_altitudeUnit;
+
+  /// No description provided for @settings_units_distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get settings_units_distance;
+
+  /// No description provided for @settings_units_distance_kilometers.
+  ///
+  /// In en, this message translates to:
+  /// **'Kilometers (km)'**
+  String get settings_units_distance_kilometers;
+
+  /// No description provided for @settings_units_distance_miles.
+  ///
+  /// In en, this message translates to:
+  /// **'Miles (mi)'**
+  String get settings_units_distance_miles;
+
+  /// No description provided for @settings_units_dialog_distanceUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance Unit'**
+  String get settings_units_dialog_distanceUnit;
 
   /// No description provided for @settings_updates_automaticUpdates.
   ///
@@ -36338,6 +36428,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tags'**
   String get importWizard_tagsLabel;
+
+  /// Name line of the Review step source card for a batch import: how many files it read
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} file} other{{count} files}}'**
+  String importWizard_source_fileCount(int count);
+
+  /// Review step source card: the firmware version the dive computer reported
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware {version}'**
+  String importWizard_source_firmware(String version);
+
+  /// Review step source card: the application an imported file came from, after its format (e.g. UDDF from Subsurface)
+  ///
+  /// In en, this message translates to:
+  /// **'from {app}'**
+  String importWizard_source_fromApp(String app);
 
   /// Count of photos the imported logbook refers to
   ///
@@ -45031,7 +45139,7 @@ abstract class AppLocalizations {
   /// Body text of the merge confirmation dialog.
   ///
   /// In en, this message translates to:
-  /// **'All dives, certifications, gear, and other data from {count} duplicate {count, plural, one{profile} other{profiles}} will be moved onto \"{name}\". This cannot be undone automatically.'**
+  /// **'All dives, certifications, gear, and other data from {count} duplicate {count, plural, one{profile} other{profiles}} will be moved onto \"{name}\". You can undo this right after merging.'**
   String settings_cloudSync_duplicateDivers_confirmBody(int count, String name);
 
   /// Cancel button on the merge confirmation dialog.
@@ -47208,6 +47316,18 @@ abstract class AppLocalizations {
   /// **'Mount'**
   String get attrLabel_pocket_mount;
 
+  /// No description provided for @attrLabel_bag_style.
+  ///
+  /// In en, this message translates to:
+  /// **'Style'**
+  String get attrLabel_bag_style;
+
+  /// No description provided for @attrLabel_capacity_l.
+  ///
+  /// In en, this message translates to:
+  /// **'Capacity'**
+  String get attrLabel_capacity_l;
+
   /// No description provided for @attrChoice_plate_material_aluminum.
   ///
   /// In en, this message translates to:
@@ -47513,6 +47633,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Thigh'**
   String get attrChoice_pocket_mount_thigh;
+
+  /// No description provided for @attrChoice_bag_style_duffel.
+  ///
+  /// In en, this message translates to:
+  /// **'Duffel'**
+  String get attrChoice_bag_style_duffel;
+
+  /// No description provided for @attrChoice_bag_style_roller.
+  ///
+  /// In en, this message translates to:
+  /// **'Roller'**
+  String get attrChoice_bag_style_roller;
+
+  /// No description provided for @attrChoice_bag_style_backpack.
+  ///
+  /// In en, this message translates to:
+  /// **'Backpack'**
+  String get attrChoice_bag_style_backpack;
+
+  /// No description provided for @attrChoice_bag_style_mesh.
+  ///
+  /// In en, this message translates to:
+  /// **'Mesh'**
+  String get attrChoice_bag_style_mesh;
+
+  /// No description provided for @attrChoice_bag_style_dry_bag.
+  ///
+  /// In en, this message translates to:
+  /// **'Dry bag'**
+  String get attrChoice_bag_style_dry_bag;
+
+  /// No description provided for @attrChoice_bag_style_regulator_bag.
+  ///
+  /// In en, this message translates to:
+  /// **'Regulator bag'**
+  String get attrChoice_bag_style_regulator_bag;
+
+  /// No description provided for @attrChoice_bag_style_catch_bag.
+  ///
+  /// In en, this message translates to:
+  /// **'Catch bag'**
+  String get attrChoice_bag_style_catch_bag;
 
   /// No description provided for @attrChoice_bcd_style_jacket.
   ///

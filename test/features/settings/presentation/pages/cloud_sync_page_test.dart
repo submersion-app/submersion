@@ -1730,6 +1730,34 @@ void main() {
       expect(handles.merge.mergeCalls, 0);
     });
 
+    testWidgets('merge confirm says the merge can be undone', (tester) async {
+      // The success snackbar offers Undo, so the confirm text must not claim
+      // the merge is permanent.
+      await pumpPage(
+        tester,
+        duplicateGroups: [makeGroup(name: 'Bob', duplicateCount: 1)],
+      );
+
+      await tester.tap(find.text('Merge'));
+      await tester.pumpAndSettle();
+
+      final dialog = find.byType(AlertDialog);
+      expect(
+        find.descendant(
+          of: dialog,
+          matching: find.textContaining('cannot be undone'),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: dialog,
+          matching: find.textContaining('You can undo this right after'),
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('merge confirm runs merge and shows undo snackbar', (
       tester,
     ) async {

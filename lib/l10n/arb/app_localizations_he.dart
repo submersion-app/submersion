@@ -7868,6 +7868,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_units_altitude => 'גובה';
 
   @override
+  String get setup_units_distance => 'מרחק';
+
+  @override
   String get setup_units_dateFormat => 'תבנית תאריך';
 
   @override
@@ -8782,6 +8785,17 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'צלילה',
     );
     return '$count $_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total צלילות',
+      one: 'צלילה אחת',
+    );
+    return 'מסונן: סיכום של $shown מתוך $_temp0';
   }
 
   @override
@@ -11385,6 +11399,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_entryMethod_boat => 'כניסה מסירה';
 
   @override
+  String get enum_entryMethod_frontRoll => 'גלגול קדימה';
+
+  @override
   String get enum_entryMethod_giantStride => 'צעד ענק';
 
   @override
@@ -11473,6 +11490,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_gearPocket => 'כיס ציוד';
+
+  @override
+  String get enum_equipmentType_bag => 'תיק';
 
   @override
   String get enum_equipmentType_hose => 'צינור';
@@ -18134,14 +18154,17 @@ class AppLocalizationsHe extends AppLocalizations {
       'תנאי מים לווייניים בתאריך הצלילה';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'GPS פני המים';
+  String get diveDetailSection_surfaceGps_name => 'מיקום';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'נקודות כניסה/יציאה ב-GPS וסחף פני המים';
+      'מפת אתר הצלילה, נקודות כניסה/יציאה ב-GPS וסחף פני המים';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'GPS פני המים';
+
+  @override
+  String get diveLog_detail_section_location => 'מיקום';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'כניסה';
@@ -20425,6 +20448,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_summary_weight => 'משקל';
 
   @override
+  String get settings_summary_altitude => 'גובה';
+
+  @override
+  String get settings_summary_distance => 'מרחק';
+
+  @override
   String get settings_units_custom => 'מותאם אישית';
 
   @override
@@ -20575,6 +20604,30 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'ליברות (lbs)';
+
+  @override
+  String get settings_units_altitude => 'גובה';
+
+  @override
+  String get settings_units_altitude_feet => 'רגל (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'מטרים (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'יחידת גובה';
+
+  @override
+  String get settings_units_distance => 'מרחק';
+
+  @override
+  String get settings_units_distance_kilometers => 'קילומטרים (km)';
+
+  @override
+  String get settings_units_distance_miles => 'מיילים (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'יחידת מרחק';
 
   @override
   String get settings_updates_automaticUpdates => 'עדכונים אוטומטיים';
@@ -22044,6 +22097,27 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count קבצים',
+      one: 'קובץ אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'קושחה $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'מ-$app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {
@@ -28092,7 +28166,7 @@ class AppLocalizationsHe extends AppLocalizations {
       other: '$count פרופילים כפולים',
       one: 'פרופיל כפול אחד',
     );
-    return 'כל הצלילות, הסמכות, הציוד ושאר הנתונים מ-$_temp0 יועברו אל \"$name\". לא ניתן לבטל פעולה זו באופן אוטומטי.';
+    return 'כל הצלילות, הסמכות, הציוד ושאר הנתונים מ-$_temp0 יועברו אל \"$name\". ניתן לבטל פעולה זו מיד לאחר המיזוג.';
   }
 
   @override
@@ -29312,6 +29386,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_pocket_mount => 'התקנה';
 
   @override
+  String get attrLabel_bag_style => 'סגנון';
+
+  @override
+  String get attrLabel_capacity_l => 'קיבולת';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'אלומיניום';
 
   @override
@@ -29463,6 +29543,27 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'ירך';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'תיק נסיעות';
+
+  @override
+  String get attrChoice_bag_style_roller => 'טרולי';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'תרמיל גב';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'תיק רשת';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'תיק יבש';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'תיק לווסת';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'שקית איסוף';
 
   @override
   String get attrChoice_bcd_style_jacket => 'ז\'קט';

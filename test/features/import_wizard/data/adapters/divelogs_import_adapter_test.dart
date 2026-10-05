@@ -342,4 +342,37 @@ void main() {
     expect(wentBack, 1);
     expect(container.read(divelogsFetchedProvider), isFalse);
   });
+  testWidgets('the Review step names the signed-in account (#161)', (
+    tester,
+  ) async {
+    final adapter = await pumpAdapter(tester);
+    final store = DivelogsSessionStore(storage: InMemoryKeychain());
+    await tester.runAsync(
+      () => store.save(const DivelogsSession(username: 'rainer', token: 't')),
+    );
+    final auth = DivelogsAuth(
+      httpClient: MockClient((_) async => fail('')),
+      store: store,
+    );
+    await tester.runAsync(auth.restore);
+    adapter.setSession((
+      auth: auth,
+      client: _client((_) async => http.Response('', 200)),
+    ));
+    final notifier = container.read(universalImportNotifierProvider.notifier);
+    notifier.state = notifier.state.copyWith(
+      payload: ImportPayload(
+        entities: {
+          ImportEntityType.dives: [
+            {'sourceUuid': 'divelogs-1', 'dateTime': DateTime(2026, 3, 15)},
+          ],
+        },
+      ),
+    );
+
+    final bundle = await tester.runAsync(adapter.buildBundle);
+
+    expect(bundle!.source.details.account, 'rainer');
+    expect(bundle.source.details.fileCount, isNull);
+  });
 }

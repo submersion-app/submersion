@@ -155,6 +155,7 @@ Method of water entry/exit.
 | `shore` | Shore Entry |
 | `boat` | Boat Entry |
 | `backRoll` | Back Roll |
+| `frontRoll` | Front Roll |
 | `giantStride` | Giant Stride |
 | `seatedEntry` | Seated Entry |
 | `ladder` | Ladder |

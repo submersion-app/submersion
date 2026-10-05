@@ -7996,6 +7996,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get setup_units_altitude => 'Hoogte';
 
   @override
+  String get setup_units_distance => 'Afstand';
+
+  @override
   String get setup_units_dateFormat => 'Datumnotatie';
 
   @override
@@ -8924,6 +8927,17 @@ class AppLocalizationsNl extends AppLocalizations {
       one: 'duik',
     );
     return '$count $_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total duiken',
+      one: '$total duik',
+    );
+    return 'Gefilterd: overzicht van $shown van $_temp0';
   }
 
   @override
@@ -11555,6 +11569,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_entryMethod_boat => 'Instap vanaf boot';
 
   @override
+  String get enum_entryMethod_frontRoll => 'Voorwaartse rol';
+
+  @override
   String get enum_entryMethod_giantStride => 'Grote stap';
 
   @override
@@ -11643,6 +11660,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_equipmentType_gearPocket => 'Uitrustingstas';
+
+  @override
+  String get enum_equipmentType_bag => 'Tas';
 
   @override
   String get enum_equipmentType_hose => 'Slang';
@@ -18428,14 +18448,17 @@ class AppLocalizationsNl extends AppLocalizations {
       'Satellietwateromstandigheden op de duikdatum';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Oppervlakte-GPS';
+  String get diveDetailSection_surfaceGps_name => 'Locatie';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS in-/uitstappunten en oppervlaktedrift';
+      'Kaart van de duikstek, GPS in-/uitstappunten en oppervlaktedrift';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'Oppervlakte-GPS';
+
+  @override
+  String get diveLog_detail_section_location => 'Locatie';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'Te water';
@@ -20763,6 +20786,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_summary_weight => 'Gewicht';
 
   @override
+  String get settings_summary_altitude => 'Hoogte';
+
+  @override
+  String get settings_summary_distance => 'Afstand';
+
+  @override
   String get settings_units_custom => 'Aangepast';
 
   @override
@@ -20913,6 +20942,30 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'Pond (lbs)';
+
+  @override
+  String get settings_units_altitude => 'Hoogte';
+
+  @override
+  String get settings_units_altitude_feet => 'Voet (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'Meters (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'Hoogte-eenheid';
+
+  @override
+  String get settings_units_distance => 'Afstand';
+
+  @override
+  String get settings_units_distance_kilometers => 'Kilometers (km)';
+
+  @override
+  String get settings_units_distance_miles => 'Mijlen (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'Afstandseenheid';
 
   @override
   String get settings_updates_automaticUpdates => 'Automatische updates';
@@ -22431,6 +22484,27 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bestanden',
+      one: '$count bestand',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'uit $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {
@@ -28573,7 +28647,7 @@ class AppLocalizationsNl extends AppLocalizations {
       other: '$count dubbele profielen',
       one: 'één dubbel profiel',
     );
-    return 'Alle duiken, certificeringen, uitrusting en andere gegevens van $_temp0 worden verplaatst naar \"$name\". Dit kan niet automatisch ongedaan worden gemaakt.';
+    return 'Alle duiken, certificeringen, uitrusting en andere gegevens van $_temp0 worden verplaatst naar \"$name\". Dit kan direct na het samenvoegen ongedaan worden gemaakt.';
   }
 
   @override
@@ -29817,6 +29891,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Bevestiging';
 
   @override
+  String get attrLabel_bag_style => 'Stijl';
+
+  @override
+  String get attrLabel_capacity_l => 'Capaciteit';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminium';
 
   @override
@@ -29969,6 +30049,27 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Dij';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'Plunjezak';
+
+  @override
+  String get attrChoice_bag_style_roller => 'Trolley';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'Rugzak';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'Nettas';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'Droogzak';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'Ademautomaattas';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'Verzamelzakje';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

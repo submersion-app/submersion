@@ -45,6 +45,9 @@ class SuuntoFileAdapter extends SuuntoDiveImportCore {
   }
 
   @override
+  int? get sourceFileCount => _readResults.isEmpty ? null : _readResults.length;
+
+  @override
   void resetState() {
     super.resetState();
     _readResults = const [];

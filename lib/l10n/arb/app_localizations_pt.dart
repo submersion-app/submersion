@@ -8055,6 +8055,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get setup_units_altitude => 'Altitude';
 
   @override
+  String get setup_units_distance => 'Distância';
+
+  @override
   String get setup_units_dateFormat => 'Formato de data';
 
   @override
@@ -8989,6 +8992,17 @@ class AppLocalizationsPt extends AppLocalizations {
       one: 'mergulho',
     );
     return '$count $_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total mergulhos',
+      one: '$total mergulho',
+    );
+    return 'Filtrado: resumo de $shown de $_temp0';
   }
 
   @override
@@ -11641,6 +11655,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_entryMethod_boat => 'Entrada pelo Barco';
 
   @override
+  String get enum_entryMethod_frontRoll => 'Rolamento para a Frente';
+
+  @override
   String get enum_entryMethod_giantStride => 'Passo Gigante';
 
   @override
@@ -11729,6 +11746,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get enum_equipmentType_gearPocket => 'Bolso de equipamento';
+
+  @override
+  String get enum_equipmentType_bag => 'Bolsa';
 
   @override
   String get enum_equipmentType_hose => 'Mangueira';
@@ -18560,14 +18580,17 @@ class AppLocalizationsPt extends AppLocalizations {
       'Condições da água por satélite na data do mergulho';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'GPS de superfície';
+  String get diveDetailSection_surfaceGps_name => 'Localização';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'Pontos de entrada/saída por GPS e deriva na superfície';
+      'Mapa do ponto de mergulho, dos pontos de entrada/saída por GPS e da deriva na superfície';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'GPS de superfície';
+
+  @override
+  String get diveLog_detail_section_location => 'Localização';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'Entrada';
@@ -20924,6 +20947,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_summary_weight => 'Peso';
 
   @override
+  String get settings_summary_altitude => 'Altitude';
+
+  @override
+  String get settings_summary_distance => 'Distância';
+
+  @override
   String get settings_units_custom => 'Personalizado';
 
   @override
@@ -21075,6 +21104,30 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'Libras (lbs)';
+
+  @override
+  String get settings_units_altitude => 'Altitude';
+
+  @override
+  String get settings_units_altitude_feet => 'Pés (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'Metros (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'Unidade de Altitude';
+
+  @override
+  String get settings_units_distance => 'Distância';
+
+  @override
+  String get settings_units_distance_kilometers => 'Quilômetros (km)';
+
+  @override
+  String get settings_units_distance_miles => 'Milhas (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'Unidade de Distância';
 
   @override
   String get settings_updates_automaticUpdates => 'Atualizações automáticas';
@@ -22608,6 +22661,27 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count arquivos',
+      one: '$count arquivo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'de $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {
@@ -28784,7 +28858,7 @@ class AppLocalizationsPt extends AppLocalizations {
       other: '$count perfis duplicados',
       one: 'um perfil duplicado',
     );
-    return 'Todos os mergulhos, certificações, equipamento e outros dados de $_temp0 serão movidos para \"$name\". Esta ação não pode ser desfeita automaticamente.';
+    return 'Todos os mergulhos, certificações, equipamento e outros dados de $_temp0 serão movidos para \"$name\". Esta ação pode ser desfeita logo após a mesclagem.';
   }
 
   @override
@@ -30031,6 +30105,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Fixação';
 
   @override
+  String get attrLabel_bag_style => 'Estilo';
+
+  @override
+  String get attrLabel_capacity_l => 'Capacidade';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Alumínio';
 
   @override
@@ -30185,6 +30265,27 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Coxa';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'Bolsa de viagem';
+
+  @override
+  String get attrChoice_bag_style_roller => 'Mala com rodinhas';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'Mochila';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'Bolsa de rede';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'Bolsa estanque';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'Bolsa para regulador';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'Saco de coleta';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Colete';

@@ -57,6 +57,18 @@ class SuuntoCloudAdapter extends SuuntoDiveImportCore {
     _client = client;
   }
 
+  /// The account the sign-in step signed in with, shown on the Review step
+  /// (issue #161).
+  String? _account;
+
+  /// Set by the sign-in step alongside [setClient].
+  void setAccount(String? account) {
+    _account = account;
+  }
+
+  @override
+  String? get sourceAccount => _account;
+
   /// The authenticated client set by the sign-in step. Only meaningful once
   /// the sign-in acquisition step has completed.
   SuuntoCloudClient? get client => _client;
@@ -65,6 +77,7 @@ class SuuntoCloudAdapter extends SuuntoDiveImportCore {
   void resetState() {
     super.resetState();
     _client = null;
+    _account = null;
     final ref = this.ref;
     if (ref == null) return;
     ref.invalidate(suuntoCloudSignedInProvider);
@@ -85,7 +98,10 @@ class SuuntoCloudAdapter extends SuuntoDiveImportCore {
     WizardStepDef(
       label: 'Sign In',
       icon: Icons.login,
-      builder: (context) => SuuntoCloudSignInStep(onSignedIn: setClient),
+      builder: (context) => SuuntoCloudSignInStep(
+        onSignedIn: setClient,
+        onAccountSignedIn: setAccount,
+      ),
       canAdvance: suuntoCloudSignedInProvider,
       autoAdvance: true,
     ),

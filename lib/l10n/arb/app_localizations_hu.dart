@@ -8039,6 +8039,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get setup_units_altitude => 'Magasság';
 
   @override
+  String get setup_units_distance => 'Távolság';
+
+  @override
   String get setup_units_dateFormat => 'Dátumformátum';
 
   @override
@@ -8973,6 +8976,17 @@ class AppLocalizationsHu extends AppLocalizations {
       one: 'merülés',
     );
     return '$count $_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total merülés',
+      one: '$total merülés',
+    );
+    return 'Szűrve: $shown / $_temp0 összesítve';
   }
 
   @override
@@ -11616,6 +11630,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_entryMethod_boat => 'Hajós beszállás';
 
   @override
+  String get enum_entryMethod_frontRoll => 'Előregurulás';
+
+  @override
   String get enum_entryMethod_giantStride => 'Óriás lépés';
 
   @override
@@ -11704,6 +11721,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_equipmentType_gearPocket => 'Felszerelészseb';
+
+  @override
+  String get enum_equipmentType_bag => 'Táska';
 
   @override
   String get enum_equipmentType_hose => 'Tömlő';
@@ -18497,14 +18517,17 @@ class AppLocalizationsHu extends AppLocalizations {
       'Műholdas vízviszonyok a merülés napján';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Felszíni GPS';
+  String get diveDetailSection_surfaceGps_name => 'Helyszín';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS be-/kiszállási pontok és felszíni sodródás';
+      'A merülőhely, a GPS be-/kiszállási pontok és a felszíni sodródás térképe';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'Felszíni GPS';
+
+  @override
+  String get diveLog_detail_section_location => 'Helyszín';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'Beszállás';
@@ -20851,6 +20874,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_summary_weight => 'Súly';
 
   @override
+  String get settings_summary_altitude => 'Magasság';
+
+  @override
+  String get settings_summary_distance => 'Távolság';
+
+  @override
   String get settings_units_custom => 'Egyedi';
 
   @override
@@ -21002,6 +21031,30 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'Font (lbs)';
+
+  @override
+  String get settings_units_altitude => 'Magasság';
+
+  @override
+  String get settings_units_altitude_feet => 'Láb (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'Méter (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'Magasság egység';
+
+  @override
+  String get settings_units_distance => 'Távolság';
+
+  @override
+  String get settings_units_distance_kilometers => 'Kilométer (km)';
+
+  @override
+  String get settings_units_distance_miles => 'Mérföld (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'Távolság egység';
 
   @override
   String get settings_updates_automaticUpdates => 'Automatikus frissítések';
@@ -22527,6 +22580,27 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fájl',
+      one: '$count fájl',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'forrás: $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {
@@ -28671,7 +28745,7 @@ class AppLocalizationsHu extends AppLocalizations {
       other: '$count duplikált profilból',
       one: 'egy duplikált profilból',
     );
-    return 'Az összes merülés, tanúsítvány, felszerelés és egyéb adat $_temp0 áthelyezésre kerül ide: \"$name\". Ez nem vonható vissza automatikusan.';
+    return 'Az összes merülés, tanúsítvány, felszerelés és egyéb adat $_temp0 áthelyezésre kerül ide: \"$name\". Ez az összevonás után azonnal visszavonható.';
   }
 
   @override
@@ -29895,6 +29969,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Rögzítés';
 
   @override
+  String get attrLabel_bag_style => 'Fazon';
+
+  @override
+  String get attrLabel_capacity_l => 'Kapacitás';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Alumínium';
 
   @override
@@ -30047,6 +30127,27 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Comb';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'Utazótáska';
+
+  @override
+  String get attrChoice_bag_style_roller => 'Gurulós táska';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'Hátizsák';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'Hálós táska';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'Vízhatlan zsák';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'Légzőautomata-táska';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'Gyűjtőzsák';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Mellény';

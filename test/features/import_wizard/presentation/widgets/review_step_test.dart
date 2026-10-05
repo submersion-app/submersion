@@ -14,6 +14,7 @@ import 'package:submersion/features/import_wizard/domain/models/unified_import_r
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/entity_review_list.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/import_source_card.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/review_step.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -189,6 +190,58 @@ void main() {
       await tester.pump();
 
       expect(find.byType(TabBar), findsOneWidget);
+    });
+
+    testWidgets('names the import source above the tabs (#161)', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final bundle = ImportBundle(
+        source: const ImportSourceInfo(
+          type: ImportSourceType.universal,
+          displayName: 'File Import',
+          details: ImportSourceDetails(
+            title: 'logbook.uddf',
+            formats: ['UDDF'],
+          ),
+        ),
+        groups: {
+          ImportEntityType.dives: EntityGroup(
+            items: [_item('Dive 1')],
+            duplicateIndices: const {},
+          ),
+        },
+      );
+
+      await tester.pumpWidget(_buildReviewStep(bundle: bundle));
+      await tester.pump();
+
+      expect(find.byType(ImportSourceCard), findsOneWidget);
+      expect(find.text('logbook.uddf'), findsOneWidget);
+      expect(
+        tester.getBottomLeft(find.byType(ImportSourceCard)).dy,
+        lessThanOrEqualTo(tester.getTopLeft(find.byType(TabBar)).dy),
+      );
+    });
+
+    testWidgets('leaves the source card out when the step is too short', (
+      tester,
+    ) async {
+      // A landscape phone leaves the step about this much height; the card
+      // would push the column past it (#161 review).
+      await tester.binding.setSurfaceSize(const Size(800, 250));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final bundle = _buildBundle(diveItems: [_item('Dive 1')]);
+
+      await tester.pumpWidget(_buildReviewStep(bundle: bundle));
+      await tester.pump();
+
+      expect(find.byType(ImportSourceCard), findsNothing);
+      expect(find.byType(TabBar), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('EntityReviewList is rendered for single type', (tester) async {

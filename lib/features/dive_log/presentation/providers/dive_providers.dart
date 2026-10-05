@@ -345,7 +345,11 @@ final batchProfileCacheProvider =
 final diveStatisticsProvider = FutureProvider<DiveStatistics>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  // Every table the query reads, so a site rename refreshes Most Visited
+  // Sites without waiting for a dive write.
+  ref.invalidateSelfWhen(
+    repository.watchTables(DiveRepository.statisticsTickTables),
+  );
   // divesThisYear reads the clock once per build (#2600).
   ref.invalidateSelfWhen(localDayChanges());
   return repository.getStatistics(diverId: currentDiverId);
@@ -414,7 +418,11 @@ final tripDiveCountsProvider = FutureProvider<Map<String, int>>((ref) async {
 final diveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  // Every table the query reads, so a site rename refreshes each record's
+  // site name without waiting for a dive write.
+  ref.invalidateSelfWhen(
+    repository.watchTables(DiveRepository.statisticsTickTables),
+  );
   return repository.getRecords(diverId: currentDiverId);
 });
 

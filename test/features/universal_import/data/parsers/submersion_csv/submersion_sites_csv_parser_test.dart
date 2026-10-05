@@ -48,6 +48,21 @@ void main() {
     },
   );
 
+  test(
+    'a Front Roll entry and exit type import as frontRoll (#2927)',
+    () async {
+      final payload = await const SubmersionSitesCsvParser().parse(
+        _bytes(
+          'Name,Entry Type,Exit Type\n'
+          'Tube Reef,Front Roll,Front Roll\n',
+        ),
+      );
+      final site = payload.entitiesOf(ImportEntityType.sites).single;
+      expect(site['entryMethod'], 'frontRoll');
+      expect(site['exitMethod'], 'frontRoll');
+    },
+  );
+
   test('a row with no name is skipped with an error warning', () async {
     final payload = await const SubmersionSitesCsvParser().parse(
       _bytes(

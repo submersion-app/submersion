@@ -4150,7 +4150,10 @@ class SyncDataSerializer {
     );
     data = _withSchemaDefaults(
       entityType,
-      (await _withLocalForOmitted(entityType, [data])).single,
+      _withDerivedDistanceUnit(
+        entityType,
+        (await _withLocalForOmitted(entityType, [data])).single,
+      ),
     );
     switch (entityType) {
       case 'divers':
@@ -4998,7 +5001,11 @@ class SyncDataSerializer {
         ),
     ]);
     records = [
-      for (final record in records) _withSchemaDefaults(entityType, record),
+      for (final record in records)
+        _withSchemaDefaults(
+          entityType,
+          _withDerivedDistanceUnit(entityType, record),
+        ),
     ];
     switch (entityType) {
       case 'divers':
@@ -8431,14 +8438,21 @@ class SyncDataSerializer {
   /// conflict on every cross-device pull (same `key` row, different value
   /// per device).
   ///
-  /// Audit (last reviewed when [SyncData] grew to ~39 entities): only three
-  /// keys are ever written to the `settings` table in app code:
-  ///   - `active_diver_id` (per-device — each device auto-creates its own
-  ///     owner diver at first launch). FILTERED.
-  ///   - `share_new_records_by_default` (global user preference). Syncs.
-  ///   - `nav_primary_ids` (user's preferred top-level nav). Syncs.
+  /// Audit (last reviewed for issue #2949): every other key written to the
+  /// `settings` table syncs. Today those are `share_new_records_by_default`,
+  /// `nav_primary_ids`, `nav_rail_ids`, `nav_always_hide_labels`,
+  /// `gas_blender_prefs`, `equipment_arrangement`, `gas_mod_calculator_prefs`,
+  /// `media_upload_quality_photo`, `media_upload_quality_video`,
+  /// `media_library_view_mode`, `media_library_sort` and
+  /// `media_watcher_auto_apply`, plus two keys per connected Lightroom account,
+  /// `lightroom_<account>_album_ids` and `lightroom_<account>_auto_poll`
+  /// (written by `LightroomConnectorState`). `active_diver_id` is FILTERED:
+  /// which diver a device has open is that device's choice.
+  ///
   /// New keys should be assessed against the rule: "is this answer the same
-  /// across all of one user's devices?" If no, add it here.
+  /// across all of one user's devices?" If no, add it here. Either way, update
+  /// the "What Syncs Between Devices" section of
+  /// docs/guide/multi-device-sync.md.
   static const Set<String> _deviceLocalSettingsKeys = {'active_diver_id'};
 
   Future<List<Map<String, dynamic>>> _exportSettings(String? hlcSince) async {
@@ -9088,6 +9102,24 @@ class SyncDataSerializer {
     return patched ?? data;
   }
 
+  /// Issue #2030. A diver_settings row from a peer older than v263 carries
+  /// no `distanceUnit`. [_withLocalForOmitted] already kept this device's
+  /// value for a row it holds; for a row new here, derive the unit from the
+  /// payload's own depth unit before [_withSchemaDefaults] fills the column
+  /// default, so a feet diver's settings do not arrive in kilometres.
+  static Map<String, dynamic> _withDerivedDistanceUnit(
+    String entityType,
+    Map<String, dynamic> data,
+  ) {
+    if (entityType != 'diverSettings' || data['distanceUnit'] != null) {
+      return data;
+    }
+    return {
+      ...data,
+      'distanceUnit': data['depthUnit'] == 'feet' ? 'miles' : 'kilometers',
+    };
+  }
+
   Map<String, dynamic> _withSchemaDefaults(
     String entityType,
     Map<String, dynamic> data,
@@ -9202,7 +9234,6 @@ class SyncDataSerializer {
       'endLimit': 30.0,
       'useDiveComputerCnsData': false,
       'defaultNdlSource': 1,
-      'defaultCeilingSource': 1,
       'defaultTtsSource': 1,
       'defaultCnsSource': 1,
       // Appearance settings

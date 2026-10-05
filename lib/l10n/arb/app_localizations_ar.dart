@@ -8156,6 +8156,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setup_units_altitude => 'الارتفاع';
 
   @override
+  String get setup_units_distance => 'المسافة';
+
+  @override
   String get setup_units_dateFormat => 'تنسيق التاريخ';
 
   @override
@@ -9099,6 +9102,20 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'غوصة واحدة',
     );
     return '$_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total غوصة',
+      many: '$total غوصة',
+      few: '$total غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    return 'مُصفّى: ملخص $shown من $_temp0';
   }
 
   @override
@@ -11785,6 +11802,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_entryMethod_boat => 'دخول من القارب';
 
   @override
+  String get enum_entryMethod_frontRoll => 'دحرجة أمامية';
+
+  @override
   String get enum_entryMethod_giantStride => 'خطوة عملاقة';
 
   @override
@@ -11873,6 +11893,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_equipmentType_gearPocket => 'جيب المعدات';
+
+  @override
+  String get enum_equipmentType_bag => 'حقيبة';
 
   @override
   String get enum_equipmentType_hose => 'خرطوم';
@@ -18778,14 +18801,17 @@ class AppLocalizationsAr extends AppLocalizations {
       'أحوال المياه عبر الأقمار الصناعية في تاريخ الغطسة';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'GPS السطح';
+  String get diveDetailSection_surfaceGps_name => 'الموقع الجغرافي';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'نقاط الدخول/الخروج عبر GPS وانجراف السطح';
+      'خريطة موقع الغوص ونقاط الدخول/الخروج عبر GPS وانجراف السطح';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'GPS السطح';
+
+  @override
+  String get diveLog_detail_section_location => 'الموقع الجغرافي';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'الدخول';
@@ -21136,6 +21162,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_summary_weight => 'الوزن';
 
   @override
+  String get settings_summary_altitude => 'الارتفاع';
+
+  @override
+  String get settings_summary_distance => 'المسافة';
+
+  @override
   String get settings_units_custom => 'مخصص';
 
   @override
@@ -21286,6 +21318,30 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'أرطال (lbs)';
+
+  @override
+  String get settings_units_altitude => 'الارتفاع';
+
+  @override
+  String get settings_units_altitude_feet => 'أقدام (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'أمتار (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'وحدة الارتفاع';
+
+  @override
+  String get settings_units_distance => 'المسافة';
+
+  @override
+  String get settings_units_distance_kilometers => 'كيلومترات (km)';
+
+  @override
+  String get settings_units_distance_miles => 'أميال (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'وحدة المسافة';
 
   @override
   String get settings_updates_automaticUpdates => 'التحديثات التلقائية';
@@ -22780,6 +22836,30 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملف',
+      many: '$count ملفًا',
+      few: '$count ملفات',
+      two: 'ملفان',
+      one: 'ملف واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'البرنامج الثابت $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'من $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {
@@ -29265,7 +29345,7 @@ class AppLocalizationsAr extends AppLocalizations {
       two: 'ملفين مكررين',
       one: 'ملف مكرر',
     );
-    return 'سيتم نقل جميع الغطسات والشهادات والمعدات والبيانات الأخرى من $_temp0 إلى \"$name\". لا يمكن التراجع عن هذا تلقائيًا.';
+    return 'سيتم نقل جميع الغطسات والشهادات والمعدات والبيانات الأخرى من $_temp0 إلى \"$name\". يمكن التراجع عن هذا مباشرةً بعد الدمج.';
   }
 
   @override
@@ -30503,6 +30583,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_pocket_mount => 'التثبيت';
 
   @override
+  String get attrLabel_bag_style => 'النمط';
+
+  @override
+  String get attrLabel_capacity_l => 'السعة';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'ألومنيوم';
 
   @override
@@ -30654,6 +30740,27 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'الفخذ';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'حقيبة سفر';
+
+  @override
+  String get attrChoice_bag_style_roller => 'حقيبة بعجلات';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'حقيبة ظهر';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'حقيبة شبكية';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'حقيبة جافة';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'حقيبة منظم التنفس';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'كيس جمع';
 
   @override
   String get attrChoice_bcd_style_jacket => 'جاكيت';
