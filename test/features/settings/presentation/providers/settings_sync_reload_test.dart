@@ -14,10 +14,14 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 import '../../../../helpers/test_database.dart';
 
-/// Holds every settings write until [gate] completes, so a test can keep a
-/// local save in flight while a sync lands.
-class _GatedWriteRepository extends DiverSettingsRepository {
-  Completer<void>? gate;
+/// Holds settings writes and reads until a test releases them, so it can
+/// keep a local save or a diver's load in flight while something else lands.
+class _GatedRepository extends DiverSettingsRepository {
+  /// Each write waits on the next gate in line, if any.
+  final writeGates = <Completer<void>>[];
+
+  /// A diver's settings read waits on that diver's gate, if any.
+  final readGates = <String, Completer<void>>{};
 
   @override
   Future<void> updateSettingsForDiver(
@@ -25,9 +29,21 @@ class _GatedWriteRepository extends DiverSettingsRepository {
     AppSettings settings, {
     AppSettings? previous,
   }) async {
-    final held = gate;
-    if (held != null) await held.future;
+    if (writeGates.isNotEmpty) await writeGates.removeAt(0).future;
     return super.updateSettingsForDiver(diverId, settings, previous: previous);
+  }
+
+  @override
+  Future<AppSettings> getOrCreateSettingsForDiver(
+    String diverId, {
+    AppSettings? defaultSettings,
+  }) async {
+    final gate = readGates[diverId];
+    if (gate != null) await gate.future;
+    return super.getOrCreateSettingsForDiver(
+      diverId,
+      defaultSettings: defaultSettings,
+    );
   }
 }
 
@@ -37,7 +53,7 @@ class _GatedWriteRepository extends DiverSettingsRepository {
 void main() {
   late AppDatabase db;
   late ProviderContainer container;
-  late _GatedWriteRepository settingsRepository;
+  late _GatedRepository settingsRepository;
   late String diverA;
   late String diverB;
 
@@ -76,7 +92,7 @@ void main() {
     diverB = await createDiver('B');
     SharedPreferences.setMockInitialValues({currentDiverIdKey: diverA});
     final prefs = await SharedPreferences.getInstance();
-    settingsRepository = _GatedWriteRepository();
+    settingsRepository = _GatedRepository();
     container = ProviderContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
@@ -132,7 +148,8 @@ void main() {
   });
 
   test('a sync landing while a local save is in flight keeps both', () async {
-    final gate = settingsRepository.gate = Completer<void>();
+    final gate = Completer<void>();
+    settingsRepository.writeGates.add(gate);
     final saving = container
         .read(settingsProvider.notifier)
         .setDepthUnit(DepthUnit.feet);
@@ -168,4 +185,47 @@ void main() {
 
     expect(container.read(settingsProvider).gfHigh, 70);
   });
+
+  test('overlapping saves land in the order they were made', () async {
+    final notifier = container.read(settingsProvider.notifier);
+    final slowWrite = Completer<void>();
+    settingsRepository.writeGates.add(slowWrite);
+
+    // Not awaited, as a slider or a settings tile may call them.
+    final first = notifier.setGfHigh(80);
+    final second = notifier.setGfHigh(75);
+    await pumpEventQueue();
+    slowWrite.complete();
+    await Future.wait([first, second]);
+    await pumpEventQueue();
+
+    expect(container.read(settingsProvider).gfHigh, 75);
+    final stored = await storedSettings(diverA);
+    expect(stored!.gfHigh, 75, reason: 'the earlier save landed last');
+  });
+
+  test(
+    "a change made mid-switch never lands in the next diver's row",
+    () async {
+      await applyPeerRow(diverB, (row) => row.copyWith(gfHigh: 70));
+      final readB = settingsRepository.readGates[diverB] = Completer<void>();
+      await container
+          .read(currentDiverIdProvider.notifier)
+          .setCurrentDiver(diverB);
+      await pumpEventQueue();
+      // B's row is being read; [state] still holds A's settings.
+      expect(container.read(settingsProvider).gfHigh, 85);
+
+      await container
+          .read(settingsProvider.notifier)
+          .setDepthUnit(DepthUnit.feet);
+      readB.complete();
+      await container.read(settingsProvider.notifier).settingsLoaded;
+      await pumpEventQueue();
+
+      final stored = await storedSettings(diverB);
+      expect(stored!.gfHigh, 70, reason: "A's settings overwrote B's row");
+      expect(container.read(settingsProvider).gfHigh, 70);
+    },
+  );
 }

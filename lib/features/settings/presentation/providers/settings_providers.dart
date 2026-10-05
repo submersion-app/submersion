@@ -1181,6 +1181,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// A reload asked for while a save was out, run once the last one ends.
   bool _reloadDeferred = false;
 
+  /// Completes when the last save started has finished with the row. Each
+  /// save waits for the one before it, so row writes land in the order the
+  /// changes were made: setters need not be awaited, and an earlier change
+  /// landing last would revert a later one to the same column.
+  Future<void> _rowWriteTurn = Future<void>.value();
+
   StreamSubscription<void>? _storageChanges;
 
   /// Completes once [state] holds the CURRENT diver's settings.
@@ -1486,12 +1492,16 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   Future<void> _saveSettings() async {
-    // Taken before the first await: [state] can move on while the writes
-    // below are out, and the row write carries exactly this change.
-    final generation = _loadGeneration;
+    // Taken before the first await: [state] can move on, and a diver switch
+    // can start, while the writes below are out. The row write carries
+    // exactly this change, to the diver it was made for.
+    final diverId = _validatedDiverId;
     final previous = _persisted;
     final next = state;
     if (previous != null) _persisted = next;
+    final turn = _rowWriteTurn;
+    final turnDone = Completer<void>();
+    _rowWriteTurn = turnDone.future;
     _pendingSaves++;
     try {
       // Device-local preferences are always persisted to SharedPreferences,
@@ -1529,7 +1539,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       }
       await _writeCachedTheme(prefs);
 
-      final diverId = _validatedDiverId;
       if (diverId == null) {
         // No diver yet: the device-local pref is the seascape knobs' only
         // store; it is adopted into the diver row and retired on the first
@@ -1540,19 +1549,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         );
         return;
       }
-      if (generation != _loadGeneration) {
-        // A diver switch started a load while the preferences were written,
-        // so the snapshot may be the previous diver's. Store what [state]
-        // holds now, as a change from what is known of this diver's row.
-        await _repository.updateSettingsForDiver(
-          diverId,
-          state,
-          previous: _persisted,
-        );
-        return;
-      }
-      // With no load landed yet [previous] is null and every column is
-      // written; the load then reads them back.
+      // No load has landed for this diver: [state] holds the defaults, or
+      // the previous diver's settings mid-switch, and the load is about to
+      // replace them. Writing them would overwrite the diver's stored row.
+      if (previous == null) return;
+      await turn;
       await _repository.updateSettingsForDiver(
         diverId,
         next,
@@ -1563,6 +1564,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       if (identical(_persisted, next)) _persisted = previous;
       rethrow;
     } finally {
+      turnDone.complete();
       _pendingSaves--;
       _runDeferredReload();
     }
