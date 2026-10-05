@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-05-hide-built-in-entries-design.md`
 
-**Renumbered after this plan was executed:** while this branch was open, #767 took v261, #2939 took v264, and #2991 and #3011 hold v262 and v265, so the column landed as **v266** (`from < 266`, test `migration_v266_hidden_built_ins_test.dart`). Read every v261 below as v266.
+**Renumbered after this plan was executed:** while this branch was open, #767 took v261, #2939 took v264, #2381 took v265, and #2991 holds v262, so the column landed as **v266** (`from < 266`, test `migration_v266_hidden_built_ins_test.dart`). Read every v261 below as v266.
 
 ## Global Constraints
 

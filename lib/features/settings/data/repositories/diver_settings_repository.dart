@@ -151,6 +151,9 @@ class DiverSettingsRepository {
               conditionDisabledRules: Value(
                 _encodeDisabledRules(s.conditionDisabledRules),
               ),
+              insightsMutedObservationRules: Value(
+                _encodeDisabledRules(s.insightsMutedObservationRules),
+              ),
               hiddenChamberIds: Value(_encodeDisabledRules(s.hiddenChamberIds)),
               emergencyRegion: Value(s.emergencyRegion),
               hiddenTankPresetIds: Value(
@@ -424,6 +427,9 @@ class DiverSettingsRepository {
     conditionDisabledRules: Value(
       _encodeDisabledRules(settings.conditionDisabledRules),
     ),
+    insightsMutedObservationRules: Value(
+      _encodeDisabledRules(settings.insightsMutedObservationRules),
+    ),
     hiddenChamberIds: Value(_encodeDisabledRules(settings.hiddenChamberIds)),
     emergencyRegion: Value(settings.emergencyRegion),
     hiddenTankPresetIds: Value(
@@ -628,6 +634,9 @@ class DiverSettingsRepository {
       highO2ThresholdPercent: row.highO2ThresholdPercent,
       conditionEngineEnabled: row.conditionEngineEnabled,
       conditionDisabledRules: _decodeDisabledRules(row.conditionDisabledRules),
+      insightsMutedObservationRules: _decodeDisabledRules(
+        row.insightsMutedObservationRules,
+      ),
       hiddenChamberIds: _decodeDisabledRules(row.hiddenChamberIds),
       emergencyRegion: row.emergencyRegion,
       hiddenTankPresetIds: _decodeDisabledRules(row.hiddenTankPresetIds),

@@ -19463,6 +19463,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_depthUnit => '深度单位';
 
   @override
+  String get settings_conflict_field_distanceUnit => '距离单位';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches => '剖面图显示延迟的换气';
+
+  @override
+  String get settings_conflict_field_insightsMutedObservationRules =>
+      '已隐藏的观察类型';
+
+  @override
+  String get settings_conflict_field_fingerprint => '观察指纹';
+
+  @override
   String get settings_conflict_field_descentRate => '下潜速度';
 
   @override
@@ -23492,6 +23505,285 @@ class AppLocalizationsZh extends AppLocalizations {
     Object siteName,
   ) {
     return '$title: $siteName';
+  }
+
+  @override
+  String get insights_observations_title => '观察';
+
+  @override
+  String get insights_observations_seeAll => '查看全部';
+
+  @override
+  String get insights_observations_filterNote => '观察基于您的全部日志，因此筛选条件不适用于它们';
+
+  @override
+  String get insights_observations_empty => '随着日志增加，观察会逐渐出现';
+
+  @override
+  String get insights_observations_error => '无法加载观察';
+
+  @override
+  String get insights_observations_actions => '观察操作';
+
+  @override
+  String get insights_observations_dismiss => '忽略';
+
+  @override
+  String get insights_observations_dismissed => '已忽略此观察';
+
+  @override
+  String get insights_observations_dismissFailed => '无法忽略此观察';
+
+  @override
+  String get insights_observations_mute => '不再显示此类';
+
+  @override
+  String get insights_observations_muted => '此类观察已隐藏';
+
+  @override
+  String get insights_observations_undo => '撤消';
+
+  @override
+  String get insights_observations_mutedKinds => '已隐藏的类型';
+
+  @override
+  String get insights_observations_mutedKinds_empty => '没有隐藏的类型';
+
+  @override
+  String get insights_observations_unmute => '重新显示';
+
+  @override
+  String get insights_observations_rule_rmvTrend => 'RMV 趋势';
+
+  @override
+  String get insights_observations_rule_maxDepthTrend => '最大深度趋势';
+
+  @override
+  String get insights_observations_rule_diveTimeTrend => '潜水时间趋势';
+
+  @override
+  String get insights_observations_rule_weightTrend => '配重趋势';
+
+  @override
+  String get insights_observations_rule_frequencyTrend => '潜水频率';
+
+  @override
+  String get insights_observations_rule_diveCountMilestone => '潜水次数里程碑';
+
+  @override
+  String get insights_observations_rule_diveHoursMilestone => '潜水时长里程碑';
+
+  @override
+  String get insights_observations_rule_deepestDive => '新的最深潜水';
+
+  @override
+  String get insights_observations_rule_longestDive => '新的最长潜水';
+
+  @override
+  String get insights_observations_rule_newCountry => '新的国家';
+
+  @override
+  String get insights_observations_rule_newSpecies => '新的物种';
+
+  @override
+  String get insights_observations_rule_diveGap => '距上次潜水的时间';
+
+  @override
+  String get insights_observations_rule_favouriteSite => '常去的潜点';
+
+  @override
+  String get insights_observations_rule_regularBuddy => '固定潜伴';
+
+  @override
+  String get insights_observations_rule_busiestMonth => '最活跃的月份';
+
+  @override
+  String get insights_observations_rule_ascentRate => '上升速度';
+
+  @override
+  String insights_observations_rmvTrend_improved(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return '您的 RMV 有所改善：过去 12 个月为 $recent，比前一年低 $percent%（$previous）';
+  }
+
+  @override
+  String insights_observations_rmvTrend_rose(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return '您的 RMV 有所上升：过去 12 个月为 $recent，比前一年高 $percent%（$previous）';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_deeper(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return '过去 12 个月您的平均最大深度为 $recent，比前一年深 $percent%（$previous）';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_shallower(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return '过去 12 个月您的平均最大深度为 $recent，比前一年浅 $percent%（$previous）';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_longer(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return '过去 12 个月您的平均潜水时间为 $recent，比前一年长 $percent%（$previous）';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_shorter(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return '过去 12 个月您的平均潜水时间为 $recent，比前一年短 $percent%（$previous）';
+  }
+
+  @override
+  String insights_observations_weightTrend_more(String amount) {
+    return '过去 12 个月您平均比前一年多带 $amount 配重';
+  }
+
+  @override
+  String insights_observations_weightTrend_less(String amount) {
+    return '过去 12 个月您平均比前一年少带 $amount 配重';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_more(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '过去 12 个月您记录了 $count 次潜水，比前一年多 $percent%',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_fewer(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '过去 12 个月您记录了 $count 次潜水，比前一年少 $percent%',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone(String count, String date) {
+    return '您在 $date 达到 $count 次潜水';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone_logged(
+    String count,
+    String date,
+  ) {
+    return '您在 $date 达到 $count 次已记录潜水';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone(String hours, String date) {
+    return '您在 $date 水下时长超过 $hours 小时';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone_logged(
+    String hours,
+    String date,
+  ) {
+    return '您在 $date 已记录的水下时长超过 $hours 小时';
+  }
+
+  @override
+  String insights_observations_deepestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return '新的最深潜水：$date 达到 $value，超过之前的记录 $previous';
+  }
+
+  @override
+  String insights_observations_longestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return '新的最长潜水：$date 达到 $value，超过之前的记录 $previous';
+  }
+
+  @override
+  String insights_observations_newCountry(String country, String date) {
+    return '您在 $date 首次在$country潜水';
+  }
+
+  @override
+  String insights_observations_newSpecies(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '过去 90 天新增 $count 个物种，最近一个是 $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveGap(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '您的上一次潜水是在 $count 天前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_favouriteSite(
+    String site,
+    String dives,
+    String total,
+  ) {
+    return '过去 12 个月您的 $total 次潜水中有 $dives 次在 $site';
+  }
+
+  @override
+  String insights_observations_regularBuddy(
+    String buddyName,
+    String dives,
+    String total,
+  ) {
+    return '过去 12 个月您的 $total 次潜水中有 $dives 次与 $buddyName 同潜';
+  }
+
+  @override
+  String insights_observations_busiestMonth(String month, String years) {
+    return '$month在 $years 个不同年份都是您最活跃的月份';
+  }
+
+  @override
+  String insights_observations_ascentRate(
+    String rate,
+    String dives,
+    String low,
+    String high,
+  ) {
+    return '过去 12 个月您的平均上升速度为 $rate（共 $dives 次潜水）。常见建议为 $low 至 $high 或更慢';
   }
 
   @override
@@ -45507,12 +45799,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String preDive_start_allTemplatesHidden(String path) {
     return '所有检查清单都已隐藏。可在 $path 中重新显示。';
   }
-
-  @override
-  String get settings_conflict_field_distanceUnit => '距离单位';
-
-  @override
-  String get settings_conflict_field_defaultShowLateGasSwitches => '延迟换气';
 
   @override
   String get settings_conflict_field_hiddenBuiltInIds => '已隐藏的内置项目';

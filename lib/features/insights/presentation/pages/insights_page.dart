@@ -9,11 +9,13 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_action.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_list_content.dart';
+import 'package:submersion/features/insights/presentation/widgets/observations_strip.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_conditions_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_equipment_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_gas_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_geographic_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_marine_life_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_observations_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_focus_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_profile_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_progression_page.dart';
@@ -42,7 +44,8 @@ class InsightsPage extends ConsumerWidget {
               showAppBar: false,
             ),
         detailBuilder: (context, categoryId) => _buildCategoryPage(categoryId),
-        summaryBuilder: (context) => const InsightsOverviewPage(embedded: true),
+        summaryBuilder: (context) =>
+            const InsightsOverviewPage(embedded: true, showObservations: true),
         mobileDetailRoute: (id) => '/insights/$id',
       );
     }
@@ -76,6 +79,8 @@ class InsightsPage extends ConsumerWidget {
         return const InsightsEquipmentPage(embedded: true);
       case 'profile':
         return const InsightsProfilePage(embedded: true);
+      case 'observations':
+        return const InsightsObservationsPage(embedded: true);
       default:
         return Center(child: Text('Unknown category: $categoryId'));
     }
@@ -107,22 +112,25 @@ class InsightsMobileContent extends ConsumerWidget {
         children: [
           const InsightsFilterBar(),
           Expanded(
-            child: ListView.separated(
+            child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: insightsCategoriesOf(context).length,
-              separatorBuilder: (context, index) {
-                if (index == 0) {
-                  return const Divider(height: 16, thickness: 1);
-                }
-                return const Divider(height: 1);
-              },
-              itemBuilder: (context, index) {
-                final category = insightsCategoriesOf(context)[index];
-                return _InsightsCategoryTile(
-                  category: category,
-                  onTap: () => context.push(category.location),
-                );
-              },
+              children: [
+                // Observations lead the list (#2381); an empty strip is
+                // zero-size, so the categories sit where they always did.
+                const ObservationsStrip(
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
+                ),
+                for (final (index, category) in insightsCategoriesOf(
+                  context,
+                ).indexed) ...[
+                  if (index == 1) const Divider(height: 16, thickness: 1),
+                  if (index > 1) const Divider(height: 1),
+                  _InsightsCategoryTile(
+                    category: category,
+                    onTap: () => context.push(category.location),
+                  ),
+                ],
+              ],
             ),
           ),
         ],

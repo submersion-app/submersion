@@ -217,9 +217,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertLateGasSwitchSettingColumn();
     }
     if (from < 264) await reportProgress();
+    // v265: Insights observation dismissals (synced) and the muted-rules
+    // column on diver_settings (#2381). Additive; re-asserted in beforeOpen.
+    if (from < 265) await _assertInsightObservationsSchema();
+    if (from < 265) await reportProgress();
     // v266: diver_settings.hidden_built_in_ids (issue #401). Column-only
-    // rung, no backfill: null reads back as "nothing hidden". 265 is held by
-    // an open branch (#3011).
+    // rung, no backfill: null reads back as "nothing hidden".
     if (from < 266) {
       await _assertHiddenBuiltInIdsColumn();
     }

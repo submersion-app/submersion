@@ -43,7 +43,7 @@ Out of scope:
 ### Storage
 
 One new nullable column, `diver_settings.hidden_built_in_ids` (TEXT, JSON),
-added by a column-only rung v266 (while this was open #767 took v261, #2939 took v264, and #2991 and #3011 hold v262 and v265) in
+added by a column-only rung v266 (while this was open #767 took v261, #2939 took v264, #2381 took v265, and #2991 holds v262) in
 `lib/core/database/migrations/ladder/rungs_v231_onward.dart`. No backfill:
 null reads back as "nothing hidden". The column syncs with the rest of the
 settings row, as `hidden_tank_preset_ids` does. `hidden_tank_preset_ids` is
