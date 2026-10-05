@@ -28,10 +28,6 @@ extension TableBackstopsFromV217 on AppDatabase {
     // idempotent).
     await _assertEquipmentSharingSchema();
 
-    // v265 backstop: the custom certification tables (parallel-branch
-    // version-collision self-heal; idempotent).
-    await _assertCustomCertificationSchema();
-
     // v235 backstop: connection_maps and idx_sightings_dive_id
     // (parallel-branch version-collision self-heal; idempotent).
     await _assertConnectionMapsSchema();
@@ -55,5 +51,9 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v250 backstop: trip_hides and site_hides (idempotent).
     await _assertTripHidesSchema();
     await _assertSiteHidesSchema();
+
+    // v265 backstop: the custom certification tables (parallel-branch
+    // version-collision self-heal; idempotent).
+    await _assertCustomCertificationSchema();
   }
 }
