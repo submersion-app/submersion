@@ -119,6 +119,27 @@ void main() {
     });
   });
 
+  // Console dark once used its app-bar navy as secondary: 1.10:1 on the
+  // surface, so every secondary-coloured icon and label vanished.
+  test('Console dark secondary and tertiary read on the surface', () {
+    final scheme = AppThemeRegistry.resolveTheme(
+      AppThemeRegistry.findById('console'),
+      Brightness.dark,
+    ).colorScheme;
+    expect(
+      _contrast(scheme.secondary, scheme.surface),
+      greaterThanOrEqualTo(_aaText),
+    );
+    expect(
+      _contrast(scheme.tertiary, scheme.surface),
+      greaterThanOrEqualTo(_aaText),
+    );
+    expect(
+      _contrast(scheme.onSecondary, scheme.secondary),
+      greaterThanOrEqualTo(_aaText),
+    );
+  });
+
   group('theme error role', () {
     test('error reads on the surface and onError reads on error', () {
       for (final preset in AppThemeRegistry.presets) {

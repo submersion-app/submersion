@@ -20,6 +20,10 @@ const _appBarDark = Color(0xFF1A2230);
 const _primaryLight = Color(0xFF1A2230);
 const _primaryDark = Color(0xFF4AE0C0);
 
+// The app-bar navy sits a step from the dark surface (1.10:1), so it cannot
+// double as the dark secondary; a mid slate keeps the instrument-panel tone.
+const _secondaryDark = Color(0xFF8FA6BF);
+
 const _onPrimaryLight = Color(0xFFFFFFFF);
 const _onPrimaryDark = Color(0xFF0A1018);
 
@@ -135,16 +139,16 @@ final ThemeData consoleDark = ThemeData(
       brightness: Brightness.dark,
       primary: _primaryDark,
       onPrimary: _onPrimaryDark,
-      secondary: _appBarDark,
-      onSecondary: _onPrimaryLight,
+      secondary: _secondaryDark,
+      onSecondary: _onPrimaryDark,
       error: _errorDark,
       onError: _onErrorDark,
       surface: _surfaceDark,
       onSurface: Color(0xFFE0E4E8),
       surfaceContainerLow: _cardDark,
     ),
-    // The secondary is the app-bar navy, a step from the surface; tinting
-    // it would leave selection indicators invisible.
+    // Selection indicators fill with secondaryContainer; tinting them from
+    // the teal primary keeps them in the theme's accent.
     secondaryAccent: _primaryDark,
   ),
   textTheme: _buildTextTheme(Brightness.dark),
