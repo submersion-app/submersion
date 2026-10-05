@@ -305,4 +305,83 @@ void main() {
     expect(find.byIcon(Icons.play_arrow), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('controls left up on a paused video hide on the next photo', (
+    tester,
+  ) async {
+    final platform = _FakeVideoPlatform();
+    final originalPlatform = VideoPlayerPlatform.instance;
+    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
+    VideoPlayerPlatform.instance = platform;
+    final photo = MediaItem(
+      id: 'p1',
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.localFile,
+      takenAt: DateTime.utc(2026, 7, 1, 11),
+      createdAt: DateTime.utc(2026, 7, 1),
+      updatedAt: DateTime.utc(2026, 7, 1),
+    );
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            mediaSourceResolverRegistryProvider.overrideWithValue(
+              MediaSourceResolverRegistry({
+                MediaSourceType.localFile: _UnavailableResolver(),
+              }),
+            ),
+            resolvedFilePathProvider.overrideWith(
+              (ref, MediaItem arg) async => '/tmp/v1.mp4',
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: MediaViewerPage(
+              mediaList: [video('v1'), photo],
+              initialMediaId: 'v1',
+            ),
+          ),
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      platform.completeInitialization();
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      await tester.pump();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    final playPause = find.byWidgetPredicate(
+      (w) => w is Semantics && w.properties.label == 'Play or pause video',
+    );
+    final exitButton = find.byTooltip('Exit full screen');
+
+    await tester.tap(find.byTooltip('Full screen'));
+    await tester.pump();
+    // Play, then pause: the controls stay up on the paused clip.
+    await tester.tap(playPause);
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(playPause);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(platform.playing, isFalse);
+    expect(exitButton, findsOneWidget);
+
+    // Swipe on to the photo: the 3-second hide applies again.
+    await tester.fling(
+      find.byType(MediaViewerPage),
+      const Offset(-700, 0),
+      2000,
+    );
+    // Let the ballistic scroll settle frame by frame (well under 3 s).
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(exitButton, findsOneWidget);
+    await tester.pump(const Duration(seconds: 3));
+    expect(exitButton, findsNothing);
+  });
 }

@@ -479,6 +479,12 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                         _currentIndex = index;
                         _navTargetIndex = index;
                       });
+                      // Controls left up on a paused video have no timer; the
+                      // next page restarts the 3-second hide so they do not
+                      // linger over a photo nobody tapped.
+                      if (isFullscreen && fullscreenControlsVisible) {
+                        revealFullscreenControls(autoHide: true);
+                      }
                     },
                     showOverlay: isFullscreen
                         ? fullscreenControlsVisible
