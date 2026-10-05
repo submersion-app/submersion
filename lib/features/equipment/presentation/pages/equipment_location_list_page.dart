@@ -127,8 +127,8 @@ Map<String, int> locationItemCounts(WidgetRef ref) {
   return counts;
 }
 
-/// The diver's gear that is still with them (not retired or sold) and has a
-/// current place. Watches both providers, so callers rebuild on a move.
+/// The diver's gear that is with them (not retired, sold, or still on the
+/// wishlist) and has a current place. Watches both providers, so callers rebuild on a move.
 List<EquipmentItem> itemsAtPlaces(WidgetRef ref) {
   final items = ref.watch(allEquipmentProvider).value ?? const [];
   final current =
@@ -138,6 +138,7 @@ List<EquipmentItem> itemsAtPlaces(WidgetRef ref) {
     for (final item in items)
       if (item.status != EquipmentStatus.retired &&
           item.status != EquipmentStatus.sold &&
+          item.status != EquipmentStatus.wanted &&
           current.containsKey(item.id))
         item,
   ];

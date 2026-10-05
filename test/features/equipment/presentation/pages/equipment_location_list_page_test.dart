@@ -68,7 +68,13 @@ void main() {
     await pump(
       tester,
       [attic, garage, shop],
-      current: {'reg': garage, 'bcd': garage, 'fins': shop, 'old': shop},
+      current: {
+        'reg': garage,
+        'bcd': garage,
+        'fins': shop,
+        'old': shop,
+        'wish': shop,
+      },
       items: [
         for (final id in ['reg', 'bcd', 'fins'])
           EquipmentItem(id: id, name: id, type: EquipmentType.regulator),
@@ -77,6 +83,13 @@ void main() {
           name: 'old',
           type: EquipmentType.regulator,
           status: EquipmentStatus.retired,
+        ),
+        // On the wishlist: not owned, so not at the shop either.
+        const EquipmentItem(
+          id: 'wish',
+          name: 'wish',
+          type: EquipmentType.regulator,
+          status: EquipmentStatus.wanted,
         ),
       ],
     );

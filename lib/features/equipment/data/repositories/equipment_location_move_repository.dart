@@ -156,9 +156,10 @@ class EquipmentLocationMoveRepository {
   }
 
   /// Every part of [equipmentIds], transitively: assembly components and
-  /// installed children, to each part's status. Retired and sold parts are
-  /// left out (they are not with the item), though the walk goes on through
-  /// them to any live part inside; so is anything in [equipmentIds] itself.
+  /// installed children, to each part's status. Retired, sold and wanted
+  /// parts are left out (they are not with the item), though the walk goes
+  /// on through them to any live part inside; so is anything in
+  /// [equipmentIds] itself.
   Future<Map<String, EquipmentStatus>> partsOf(
     Iterable<String> equipmentIds,
   ) async {
@@ -186,7 +187,8 @@ class EquipmentLocationMoveRepository {
           next.add(id);
           final status = _statusOf(r.read<String>('status'));
           if (status == EquipmentStatus.retired ||
-              status == EquipmentStatus.sold) {
+              status == EquipmentStatus.sold ||
+              status == EquipmentStatus.wanted) {
             continue;
           }
           parts[id] = status;

@@ -9,7 +9,13 @@ EquipmentStatus? offeredStatusAfterMove(
   EquipmentLocationKind? kind,
   EquipmentStatus current,
 ) {
-  const terminal = {EquipmentStatus.retired, EquipmentStatus.sold};
+  // Gear that has left the diver's hands, or is not theirs yet (a wishlist
+  // item, #2025), is never offered a status by being moved.
+  const terminal = {
+    EquipmentStatus.retired,
+    EquipmentStatus.sold,
+    EquipmentStatus.wanted,
+  };
   switch (kind) {
     case EquipmentLocationKind.serviceShop:
       if (current == EquipmentStatus.inService || terminal.contains(current)) {

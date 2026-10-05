@@ -267,4 +267,10 @@ void main() {
       isNotEmpty,
     );
   });
+
+  test('partsOf leaves out wanted parts, which are not owned yet', () async {
+    await item('wantedCell', parent: 'reg', status: 'wanted');
+    await item('cell', parent: 'reg');
+    expect((await moves.partsOf(['reg'])).keys.toSet(), {'cell'});
+  });
 }
