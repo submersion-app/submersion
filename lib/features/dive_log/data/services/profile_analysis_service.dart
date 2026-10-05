@@ -17,6 +17,8 @@ import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/deco/gas_density.dart';
+import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency.dart';
+import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency_analyzer.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/profile_depth_sanitizer.dart';
 import 'package:submersion/core/deco/scr_calculator.dart';
@@ -346,6 +348,11 @@ class ProfileAnalysis {
   /// (issue #2592). Null for an analysis built outside the pipeline.
   final String? inputsFingerprint;
 
+  /// Late and missed deco gas switches against the ideal ascent (#2939).
+  /// Null off the open-circuit path or with fewer than two gases. Read-only:
+  /// computing it changes no other field.
+  final GasSwitchEfficiency? gasSwitchEfficiency;
+
   const ProfileAnalysis({
     required this.ascentRates,
     required this.ascentRateStats,
@@ -381,6 +388,7 @@ class ProfileAnalysis {
     this.gfSource,
     this.tissueLoadingWithheld = false,
     this.inputsFingerprint,
+    this.gasSwitchEfficiency,
   });
 
   /// Whether diver went into decompression obligation
@@ -481,6 +489,7 @@ class ProfileAnalysis {
     GradientFactorSource? gfSource,
     bool? tissueLoadingWithheld,
     String? inputsFingerprint,
+    GasSwitchEfficiency? gasSwitchEfficiency,
   }) {
     return ProfileAnalysis(
       ascentRates: ascentRates ?? this.ascentRates,
@@ -519,6 +528,7 @@ class ProfileAnalysis {
       tissueLoadingWithheld:
           tissueLoadingWithheld ?? this.tissueLoadingWithheld,
       inputsFingerprint: inputsFingerprint ?? this.inputsFingerprint,
+      gasSwitchEfficiency: gasSwitchEfficiency ?? this.gasSwitchEfficiency,
     );
   }
 
@@ -1039,6 +1049,23 @@ class ProfileAnalysisService {
         ocGasMetrics?.otuCurve ??
         _calculateOtuCurve(ppO2Curve: ppO2Curve, timestamps: timestamps);
 
+    // Read-only technique feedback (#2939): its own engines, after every
+    // curve above is final, so no deco value can move.
+    final plan = ascentGasPlan;
+    final gasSwitchEfficiency = useOcGasSegments && plan is OptimalOcAscentGas
+        ? GasSwitchEfficiencyAnalyzer(
+            newEngine: _buhlmannAlgorithm.withSameConfig,
+            gases: plan.gases,
+            maxPpO2: plan.maxPpO2,
+            startCompartments: startCompartments,
+          ).analyze(
+            depths: depths,
+            timestamps: timestamps,
+            gasSegments: gasSegments,
+            ceilingCurve: ceilingCurve,
+          )
+        : null;
+
     return ProfileAnalysis(
       ascentRates: ascentRates,
       ascentRateStats: ascentRateStats,
@@ -1070,6 +1097,7 @@ class ProfileAnalysisService {
       durationSeconds: durationSeconds,
       gfSource: _gfSource,
       tissueLoadingWithheld: tissueLoadingWithheld,
+      gasSwitchEfficiency: gasSwitchEfficiency,
     );
   }
 
