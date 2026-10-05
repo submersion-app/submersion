@@ -52,7 +52,12 @@ void main() {
     for (final preset in AppThemeRegistry.presets) {
       for (final theme in [preset.lightTheme, preset.darkTheme]) {
         final scheme = theme.colorScheme;
-        final card = theme.cardTheme.color ?? scheme.surfaceContainerLow;
+        // A translucent card (Deep dark's is 70%) shows the surface through
+        // it, so measure the colour actually on screen.
+        final card = Color.alphaBlend(
+          theme.cardTheme.color ?? scheme.surfaceContainerLow,
+          scheme.surface,
+        );
         final mode = theme.brightness.name;
         expect(
           _contrast(scheme.tertiary, card),
@@ -64,7 +69,29 @@ void main() {
           greaterThanOrEqualTo(floor),
           reason: '${preset.id} $mode: tertiary on surface is unreadable',
         );
+        expect(
+          _contrast(scheme.onTertiary, scheme.tertiary),
+          greaterThanOrEqualTo(floor),
+          reason: '${preset.id} $mode: onTertiary on tertiary is unreadable',
+        );
       }
     }
+  });
+
+  // Console dark is the one preset that defines its tertiary pair itself, so
+  // it is held to WCAG AA for small text: tertiary labels sit on cards, and
+  // the scan step's known-computer badge puts onTertiary text on a tertiary
+  // fill.
+  test('Console dark tertiary pairs meet 4.5:1 for small text', () {
+    final theme = AppThemeRegistry.findById('console').darkTheme;
+    final scheme = theme.colorScheme;
+    expect(
+      _contrast(scheme.tertiary, theme.cardTheme.color!),
+      greaterThanOrEqualTo(4.5),
+    );
+    expect(
+      _contrast(scheme.onTertiary, scheme.tertiary),
+      greaterThanOrEqualTo(4.5),
+    );
   });
 }

@@ -29,8 +29,8 @@ const _cardDark = Color(0xFF1A2230);
 // secondary, which here is the app-bar navy, the same colour as _cardDark, so
 // every tertiary label on a card was invisible (issue #2956). Light mode's
 // fallback (_appBarLight on white) already reads, so it stays unset. The mid
-// blue reads as text on cards (4.7:1) and as a fill under the white labels
-// the import action buttons hard-code (3.4:1).
+// blue reads as text on cards (4.7:1), and dark onTertiary text reads on it
+// (5.6:1) where white would fall short of 4.5:1 for small badge labels.
 const _tertiaryDark = Color(0xFF4A90D0);
 
 const _cardBorderLight = Color(0xFFD0D8E0);
@@ -137,7 +137,7 @@ final ThemeData consoleDark = ThemeData(
     secondary: _appBarDark,
     onSecondary: _onPrimaryLight,
     tertiary: _tertiaryDark,
-    onTertiary: _onPrimaryLight,
+    onTertiary: _onPrimaryDark,
     // Pinned to what the secondary fallback gave before, so tertiary
     // containers look as they always have.
     tertiaryContainer: _appBarDark,
