@@ -135,6 +135,31 @@ void main() {
     expect(find.text('Full page a'), findsOneWidget);
   });
 
+  testWidgets('a highlight change under a pushed page leaves that page up', (
+    tester,
+  ) async {
+    await pumpLayout(tester);
+    router.push('/test/a');
+    await tester.pumpAndSettle();
+
+    // The full dive page steps to a neighbour with the arrow keys by setting
+    // the highlight; the table is still mounted underneath it.
+    highlighted.value = 'b';
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+
+    expect(location(), '/test/a');
+    expect(find.text('Full page a'), findsOneWidget);
+
+    // Back on the table, the pane catches up with the row now lit.
+    router.pop();
+    await tester.pumpAndSettle();
+
+    expect(location(), '/test?selected=b');
+    expect(find.text('Detail b'), findsOneWidget);
+  });
+
   testWidgets('clearing the highlight closes the detail pane', (tester) async {
     await pumpLayout(tester);
 

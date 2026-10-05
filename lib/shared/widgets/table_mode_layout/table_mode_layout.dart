@@ -431,6 +431,22 @@ class _TableModeMaster extends StatefulWidget {
 class _TableModeMasterState extends State<_TableModeMaster> {
   bool _syncScheduled = false;
 
+  /// The page route this table sits in. A page pushed over it, the full dive
+  /// page say, still sees highlight changes reach this table underneath.
+  ModalRoute<Object?>? _route;
+
+  /// A sync skipped while another page covered the table, run once it pops.
+  bool _syncDeferred = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Depending on the route also brings this back when its status changes,
+    // so a sync deferred under a pushed page runs as soon as that page pops.
+    _route = ModalRoute.of(context);
+    if (_syncDeferred && (_route?.isCurrent ?? true)) _scheduleSync();
+  }
+
   @override
   void didUpdateWidget(_TableModeMaster oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -446,6 +462,13 @@ class _TableModeMasterState extends State<_TableModeMaster> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _syncScheduled = false;
       if (!mounted) return;
+      // The full dive page steps to a neighbour by setting the highlight;
+      // going to the list route now would replace that page with the table.
+      if (!(_route?.isCurrent ?? true)) {
+        _syncDeferred = true;
+        return;
+      }
+      _syncDeferred = false;
       // The embedded detail page steps to a neighbour by setting the
       // highlight and going to the route itself; nothing is left to do.
       if (widget.selectedId == widget.paneSelectedId) return;
