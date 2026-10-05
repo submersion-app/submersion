@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/domain/trend_range.dart';
 import 'package:submersion/features/insights/presentation/widgets/chart_axis.dart';
+import 'package:submersion/features/insights/presentation/widgets/chart_overview_strip.dart';
 import 'package:submersion/features/insights/presentation/widgets/date_axis.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart_input.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -145,6 +146,13 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   /// The narrowest window a zoom can reach: a week, however long the data.
   static const _minWindow = Duration(days: 7);
 
+  /// True while the strip is being dragged, so a drag that zooms all the way
+  /// out keeps its strip until the gesture ends.
+  bool _stripActive = false;
+
+  /// The strip's points, rebuilt with the chart only while it is showing.
+  List<Offset> _overviewPoints = const [];
+
   TrendRange? _appliedRange;
 
   /// The last window handed to [DiveTrendChart.onRangeChanged]. A caller
@@ -223,6 +231,23 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _interactiveChart(context, box),
+            if (_viewport.isZoomed || _stripActive)
+              Padding(
+                padding: EdgeInsets.only(
+                  left: trendChartPlotInsets.left,
+                  top: 6,
+                ),
+                child: ChartOverviewStrip(
+                  points: _overviewPoints,
+                  viewport: _viewport,
+                  onViewportChanged: (vp) => setState(() => _viewport = vp),
+                  onChangeStart: () => setState(() => _stripActive = true),
+                  onChangeEnd: () {
+                    setState(() => _stripActive = false);
+                    _reportRange();
+                  },
+                ),
+              ),
             Align(
               alignment: AlignmentDirectional.centerEnd,
               child: ChartZoomControls(
@@ -331,6 +356,20 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       ...smoothed.map((p) => p.value),
       if (fit != null) ...[fit.valueAt(firstDate), fit.valueAt(lastDate)],
     ]);
+
+    if (_viewport.isZoomed || _stripActive) {
+      final ySpan = yAxis.max - yAxis.min;
+      _overviewPoints = [
+        for (final p in [
+          ...points,
+          ...widget.secondarySeries.expand((s) => s.points),
+        ])
+          Offset(
+            ((_x(p.date) - fullMin) / fullSpan).clamp(0.0, 1.0),
+            ySpan <= 0 ? 0.5 : ((p.value - yAxis.min) / ySpan).clamp(0.0, 1.0),
+          ),
+      ];
+    }
 
     final isRaw = aggregation == TrendAggregation.none;
     final bars = _bars(
