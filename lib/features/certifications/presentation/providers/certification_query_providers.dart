@@ -28,9 +28,11 @@ final filteredCertificationsProvider =
         (c) => c.id,
       );
       if (!ref.watch(certificationAttentionFilterProvider)) return byQuery;
-      final ids =
-          ref.watch(currencyAttentionProvider).value?.certificationIds ??
-          const <String>{};
+      // Until currency resolves the scope is unknown, not empty: reading
+      // it as empty would flash "No certifications need attention".
+      final attention = ref.watch(currencyAttentionProvider).value;
+      if (attention == null) return const AsyncLoading();
+      final ids = attention.certificationIds;
       return byQuery.whenData(
         (certs) => [
           for (final c in certs)

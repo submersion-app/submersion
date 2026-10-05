@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -41,6 +43,7 @@ Future<ProviderContainer> _pump(
   WidgetTester tester, {
   required Set<String> attention,
   bool scoped = true,
+  Future<CurrencyAttention>? pendingAttention,
 }) async {
   final overrides = await getBaseOverrides();
   final router = GoRouter(
@@ -61,10 +64,14 @@ Future<ProviderContainer> _pump(
           (ref) => ListViewMode.detailed,
         ),
         currencyAttentionProvider.overrideWith(
-          (ref) async => CurrencyAttention(
-            count: attention.isEmpty ? 0 : 1,
-            certificationIds: attention,
-          ),
+          (ref) =>
+              pendingAttention ??
+              Future.value(
+                CurrencyAttention(
+                  count: attention.isEmpty ? 0 : 1,
+                  certificationIds: attention,
+                ),
+              ),
         ),
         certificationAttentionFilterProvider.overrideWith((ref) => scoped),
       ].cast(),
@@ -76,7 +83,12 @@ Future<ProviderContainer> _pump(
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  if (pendingAttention == null) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+  }
   return ProviderScope.containerOf(tester.element(find.byType(MaterialApp)));
 }
 
@@ -119,6 +131,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(container.read(certificationAttentionFilterProvider), isFalse);
     expect(find.text('Charlie Nitrox'), findsOneWidget);
+  });
+
+  testWidgets('the scope waits for currency instead of claiming it is empty', (
+    tester,
+  ) async {
+    // On a cold start the attention set is still loading; an empty set in
+    // the meantime would flash "No certifications need attention" and
+    // "0 of 3", and a tap on Clear there would drop the scope.
+    await _pump(
+      tester,
+      attention: const {},
+      pendingAttention: Completer<CurrencyAttention>().future,
+    );
+    expect(find.text('No certifications need attention'), findsNothing);
+    expect(find.textContaining('0 of 3'), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 
   testWidgets('with the scope off nothing is hidden and no bar shows', (
