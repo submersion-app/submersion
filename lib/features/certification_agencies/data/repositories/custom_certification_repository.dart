@@ -138,12 +138,21 @@ class CustomCertificationRepository {
         throw CertificationNotOwnerException(agency.id);
       }
       final trimmed = _requireName(agency.name);
-      await _ensureAgencyNameFree(
+      // Only a rename or a newly shared agency can introduce a clash; a
+      // same-name pair that arrived by sync must not block other edits.
+      if (_nameOrSharingChanged(
+        existing.name,
         trimmed,
-        diverId: actingDiverId,
+        wasShared: existing.isShared,
         isShared: agency.isShared,
-        exceptId: agency.id,
-      );
+      )) {
+        await _ensureAgencyNameFree(
+          trimmed,
+          diverId: actingDiverId,
+          isShared: agency.isShared,
+          exceptId: agency.id,
+        );
+      }
       final now = DateTime.now().millisecondsSinceEpoch;
       await (_db.update(
         _db.customCertificationAgencies,
@@ -225,13 +234,21 @@ class CustomCertificationRepository {
         throw CertificationNotOwnerException(level.id);
       }
       final trimmed = _requireName(level.name);
-      await _ensureLevelNameFree(
+      // As in updateAgency: only a rename or newly sharing can clash.
+      if (_nameOrSharingChanged(
+        existing.name,
         trimmed,
-        agencyId: existing.agencyId,
-        diverId: actingDiverId,
+        wasShared: existing.isShared,
         isShared: level.isShared,
-        exceptId: level.id,
-      );
+      )) {
+        await _ensureLevelNameFree(
+          trimmed,
+          agencyId: existing.agencyId,
+          diverId: actingDiverId,
+          isShared: level.isShared,
+          exceptId: level.id,
+        );
+      }
       final now = DateTime.now().millisecondsSinceEpoch;
       // Moving a specialty onto the ladder appends it; the agency is fixed.
       final sortOrder = level.isProgression && !existing.isProgression
@@ -427,6 +444,15 @@ class CustomCertificationRepository {
       rethrow;
     }
   }
+
+  bool _nameOrSharingChanged(
+    String oldName,
+    String newName, {
+    required bool wasShared,
+    required bool isShared,
+  }) =>
+      oldName.toLowerCase() != newName.toLowerCase() ||
+      (isShared && !wasShared);
 
   String _requireName(String name) {
     final trimmed = name.trim();

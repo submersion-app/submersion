@@ -133,6 +133,30 @@ void main() {
       );
     });
 
+    test(
+      'a same-name pair that arrived by sync does not block other edits',
+      () async {
+        final a = await repo.createAgency(
+          diverId: 'a',
+          name: 'Club X',
+          isShared: true,
+        );
+        // Another device created this before the two synced; no local check
+        // ran against it.
+        await db.customStatement(
+          'INSERT INTO custom_certification_agencies (id, diver_id, name, '
+          'color_argb, is_shared, created_at, updated_at) '
+          'VALUES (?, ?, ?, ?, 0, 0, 0)',
+          ['b-club', 'b', 'Club X', 0xFF22C55E],
+        );
+        final updated = await repo.updateAgency(
+          a.copyWith(colorArgb: 0xFF3B82F6),
+          actingDiverId: 'a',
+        );
+        expect(updated.colorArgb, 0xFF3B82F6);
+      },
+    );
+
     test('agencyUsage counts the agency and every one of its levels', () async {
       final a = await repo.createAgency(
         diverId: 'a',
