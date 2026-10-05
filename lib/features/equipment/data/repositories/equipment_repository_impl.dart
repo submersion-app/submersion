@@ -12,6 +12,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_visibility_queries.dart';
@@ -619,6 +620,8 @@ class EquipmentRepository {
         await EquipmentShareRepository().deleteForEquipment(id);
         // Trip packing links (issue #2338), tombstoned like the shares.
         await TripEquipmentRepository().deleteForEquipment(id);
+        // Location history (v267), tombstoned like the shares.
+        await EquipmentLocationMoveRepository().deleteForEquipment(id);
         await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
         for (final s in schedules) {
           await _syncRepository.logDeletion(
@@ -728,6 +731,48 @@ class EquipmentRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to retire equipment: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Sets [status] on every item in [ids], for the status offer after a
+  /// location move. Only ever In Service, Loaned Out or Active, so the items
+  /// stay active: is_active pairs with retired and sold only (#636).
+  Future<void> setStatusForMany(
+    Iterable<String> ids,
+    EquipmentStatus status,
+  ) async {
+    final list = ids.toSet().toList();
+    if (list.isEmpty) return;
+    assert(
+      status != EquipmentStatus.retired && status != EquipmentStatus.sold,
+      'Retire through retireEquipment, which also clears is_active',
+    );
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await _db.transaction(() async {
+        await (_db.update(_db.equipment)..where((t) => t.id.isIn(list))).write(
+          EquipmentCompanion(
+            status: Value(status.name),
+            isActive: const Value(true),
+            updatedAt: Value(now),
+          ),
+        );
+        for (final id in list) {
+          await _syncRepository.markRecordPending(
+            entityType: 'equipment',
+            recordId: id,
+            localUpdatedAt: now,
+          );
+        }
+      });
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set status ${status.name} on ${list.length} items',
         error: e,
         stackTrace: stackTrace,
       );

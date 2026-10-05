@@ -558,6 +558,15 @@ class EquipmentListNotifier
     await _repository.reactivateEquipment(id);
     await refresh();
   }
+
+  /// The status offer after a location move (v267).
+  Future<void> setStatusForMany(
+    List<String> ids,
+    EquipmentStatus status,
+  ) async {
+    await _repository.setStatusForMany(ids, status);
+    await refresh();
+  }
 }
 
 final equipmentListNotifierProvider =
