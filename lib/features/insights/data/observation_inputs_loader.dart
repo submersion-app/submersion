@@ -1,0 +1,66 @@
+import 'dart:math' as math;
+
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/data/repositories/observation_inputs_queries.dart';
+import 'package:submersion/features/insights/domain/observations/observation_inputs.dart';
+import 'package:submersion/features/marine_life/data/repositories/seen_species_repository.dart';
+
+/// Builds [ObservationInputs] for one diver over the whole log, reusing the
+/// Insights queries wherever one already returns the data (spec 5.2).
+class ObservationInputsLoader {
+  ObservationInputsLoader({
+    ObservationInputsQueries? queries,
+    InsightsRepository? insights,
+    SeenSpeciesRepository? species,
+  }) : _queries = queries ?? ObservationInputsQueries(),
+       _insights = insights ?? InsightsRepository(),
+       _species = species ?? SeenSpeciesRepository();
+
+  final ObservationInputsQueries _queries;
+  final InsightsRepository _insights;
+  final SeenSpeciesRepository _species;
+
+  /// [now] is wall-clock UTC; [diverId] scopes the dives (every diver when
+  /// null, as the other Insights pages do) and [diver] supplies the prior
+  /// experience that career milestones add to the logged count.
+  Future<ObservationInputs> load({
+    String? diverId,
+    Diver? diver,
+    required DateTime now,
+  }) async {
+    final windows = ObservationInputs(now: now);
+    final divesFuture = _queries.dives(diverId: diverId);
+    final rmvFuture = _insights.getSacVolumePerDive(diverId: diverId);
+    final seenFuture = _species.getSeenSpecies(diverId: diverId);
+    final ratesFuture = _insights.getAscentDescentRates(
+      diverId: diverId,
+      filter: DiveFilterState(startDate: windows.recentStart, endDate: now),
+    );
+    final dives = await divesFuture;
+    final rmv = await rmvFuture;
+    final seen = await seenFuture;
+    final rates = await ratesFuture;
+    return ObservationInputs(
+      now: now,
+      dives: dives,
+      rmvPerDive: [
+        for (final p in rmv)
+          if (p.diveId != null)
+            ObservationValue(diveId: p.diveId!, date: p.date, value: p.value),
+      ],
+      species: [
+        for (final s in seen)
+          ObservationSpecies(
+            id: s.species.id,
+            name: s.species.commonName,
+            firstSeen: s.firstSeen,
+          ),
+      ],
+      priorDives: math.max(0, diver?.priorDiveCount ?? 0),
+      priorTimeSeconds: math.max(0, diver?.priorDiveTimeSeconds ?? 0),
+      recentAscentRate: rates.avgAscent,
+    );
+  }
+}
