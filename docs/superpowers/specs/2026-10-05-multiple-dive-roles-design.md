@@ -45,8 +45,10 @@ untouched.
 ### Primary-role mirror
 
 `dives.diver_role` and `dive_buddies.role` stay. Every write sets them to the
-FIRST role of the set in role-list order (`dive_roles.sort_order`, then name),
-or null / `'buddy'` for an empty set. Older app versions keep showing and
+FIRST role of the set in canonical order, or null / `'buddy'` for an empty
+set. Canonical order needs no database, so every device agrees on the
+primary role: built-in ids in seed order (`DiveRole.builtInIds`), then any
+other id ascending. Older app versions keep showing and
 editing a sensible single role.
 
 ### Read rule (self-healing)
@@ -54,16 +56,23 @@ editing a sensible single role.
 One pure function resolves a person's roles on a dive from
 `(scalar, junctionRoleIds)`:
 
-1. Junction empty, scalar set: `[scalar]` (legacy data, rows written by an
+1. Scalar null: `[]` for the diver (an older peer cleared the role; any
+   junction rows are stale); `['buddy']` for a buddy (a buddy link always
+   carries a role).
+2. Junction empty, scalar set: `[scalar]` (legacy data, rows written by an
    older peer).
-2. Junction non-empty and contains the scalar: the junction set.
-3. Junction non-empty, scalar set and NOT in it: an older peer changed the
-   role after the junction was written; the junction is stale, the result is
-   `[scalar]`. The stale rows are replaced on the next save.
-4. Both empty: `[]` for the diver; `['buddy']` for a buddy (a buddy link
-   always carries a role).
+3. The junction's own primary role equals the scalar: the junction set.
+4. Otherwise (the scalar is missing from the junction, or is a member but
+   not its primary): an older peer changed the role after the junction was
+   written, so the junction is stale and the result is `[scalar]`. The stale
+   rows are replaced on the next save.
 
-Result order is role-list order. No data backfill: existing dives resolve
+Every write keeps the scalar equal to the junction's primary, so rule 3 is
+the normal case. Requiring the primary (not mere membership) means an older
+peer that narrows Divemaster + Dive Guide down to Dive Guide alone is
+honoured even though Dive Guide was already a member.
+
+Result order is canonical order. No data backfill: existing dives resolve
 through rule 1, which avoids minting per-device random ids the fleet would
 union (the #1360 trap).
 
