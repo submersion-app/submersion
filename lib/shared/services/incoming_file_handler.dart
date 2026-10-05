@@ -22,6 +22,11 @@ enum IncomingFileOutcome {
   /// already has, instead of the wizard.
   navigateToNavTrackReview,
 
+  /// A Suunto app JSON export was recognised (issue #1445). It is imported
+  /// by the Suunto importer, not the universal wizard; push the Suunto file
+  /// import with the same [bytes]/[fileName] the caller already has.
+  navigateToSuuntoFileImport,
+
   /// Nothing to do: the wizard was already busy, or the file is
   /// genuinely unsupported (both cases already surfaced a snackbar).
   none,
@@ -58,6 +63,11 @@ Future<IncomingFileOutcome> handleIncomingFile({
   if (detection.format == ImportFormat.navTrack) {
     notifier.reset();
     return IncomingFileOutcome.navigateToNavTrackReview;
+  }
+
+  if (detection.format == ImportFormat.suuntoJson) {
+    notifier.reset();
+    return IncomingFileOutcome.navigateToSuuntoFileImport;
   }
 
   if (!detection.format.isSupported) {
