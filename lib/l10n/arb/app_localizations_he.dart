@@ -17316,6 +17316,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_viewer_goToDive => 'מעבר לצלילה';
 
   @override
+  String get media_viewer_enterFullscreen => 'מסך מלא';
+
+  @override
+  String get media_viewer_exitFullscreen => 'יציאה ממסך מלא';
+
+  @override
+  String get media_viewer_moreOptions => 'אפשרויות נוספות';
+
+  @override
   String get nav_home => 'בית';
 
   @override

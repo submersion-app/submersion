@@ -16879,6 +16879,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_viewer_goToDive => '前往潜水';
 
   @override
+  String get media_viewer_enterFullscreen => '全屏';
+
+  @override
+  String get media_viewer_exitFullscreen => '退出全屏';
+
+  @override
+  String get media_viewer_moreOptions => '更多选项';
+
+  @override
   String get nav_home => '首页';
 
   @override

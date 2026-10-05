@@ -10923,6 +10923,18 @@
   "@media_viewer_goToDive": {
     "description": "Viewer action: navigate to the dive owning this media"
   },
+  "media_viewer_enterFullscreen": "Full screen",
+  "@media_viewer_enterFullscreen": {
+    "description": "Viewer toolbar action: hide all app and viewer chrome so only the photo or video shows"
+  },
+  "media_viewer_exitFullscreen": "Exit full screen",
+  "@media_viewer_exitFullscreen": {
+    "description": "Button revealed by a tap in fullscreen mode: return to the normal viewer"
+  },
+  "media_viewer_moreOptions": "More options",
+  "@media_viewer_moreOptions": {
+    "description": "Viewer toolbar overflow menu holding the actions that do not fit"
+  },
   "nav_home": "Home",
   "nav_media": "Media",
   "nav_more": "More",

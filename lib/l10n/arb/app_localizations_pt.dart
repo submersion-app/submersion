@@ -17725,6 +17725,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_viewer_goToDive => 'Ir para o mergulho';
 
   @override
+  String get media_viewer_enterFullscreen => 'Tela cheia';
+
+  @override
+  String get media_viewer_exitFullscreen => 'Sair da tela cheia';
+
+  @override
+  String get media_viewer_moreOptions => 'Mais opções';
+
+  @override
   String get nav_home => 'Início';
 
   @override

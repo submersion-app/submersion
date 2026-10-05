@@ -28435,6 +28435,24 @@ abstract class AppLocalizations {
   /// **'Go to dive'**
   String get media_viewer_goToDive;
 
+  /// Viewer toolbar action: hide all app and viewer chrome so only the photo or video shows
+  ///
+  /// In en, this message translates to:
+  /// **'Full screen'**
+  String get media_viewer_enterFullscreen;
+
+  /// Button revealed by a tap in fullscreen mode: return to the normal viewer
+  ///
+  /// In en, this message translates to:
+  /// **'Exit full screen'**
+  String get media_viewer_exitFullscreen;
+
+  /// Viewer toolbar overflow menu holding the actions that do not fit
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get media_viewer_moreOptions;
+
   /// Navigation label for home/dashboard
   ///
   /// In en, this message translates to:

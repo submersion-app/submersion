@@ -17774,6 +17774,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_viewer_goToDive => 'Aller à la plongée';
 
   @override
+  String get media_viewer_enterFullscreen => 'Plein écran';
+
+  @override
+  String get media_viewer_exitFullscreen => 'Quitter le plein écran';
+
+  @override
+  String get media_viewer_moreOptions => 'Plus d\'options';
+
+  @override
   String get nav_home => 'Accueil';
 
   @override

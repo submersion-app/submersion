@@ -17932,6 +17932,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_viewer_goToDive => 'الانتقال إلى الغطسة';
 
   @override
+  String get media_viewer_enterFullscreen => 'ملء الشاشة';
+
+  @override
+  String get media_viewer_exitFullscreen => 'الخروج من ملء الشاشة';
+
+  @override
+  String get media_viewer_moreOptions => 'المزيد من الخيارات';
+
+  @override
   String get nav_home => 'الرئيسية';
 
   @override
