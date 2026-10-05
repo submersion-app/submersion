@@ -29,6 +29,10 @@ const Map<String, Set<String>> deviceLocalSyncColumns = {
 const Set<String> deviceLocalSettingsKeys = {
   // Each device auto-creates its own owner diver at first launch.
   'active_diver_id',
+  // The nav layout depends on the screen it is shown on (issue #2947).
+  'nav_primary_ids',
+  'nav_rail_ids',
+  'nav_always_hide_labels',
 };
 
 /// Whether the SQL column [sqlName] of [entityType]'s table is device-local.

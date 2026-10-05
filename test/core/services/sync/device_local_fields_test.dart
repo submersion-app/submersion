@@ -50,4 +50,15 @@ void main() {
     expect(isDeviceLocalColumn('diverSettings', 'map_style'), isFalse);
     expect(isDeviceLocalColumn('diverSettings', 'locale'), isFalse);
   });
+
+  test('the nav layout keys are device-local settings keys', () {
+    expect(
+      deviceLocalSettingsKeys,
+      containsAll(<String>[
+        'nav_primary_ids',
+        'nav_rail_ids',
+        'nav_always_hide_labels',
+      ]),
+    );
+  });
 }
