@@ -19492,6 +19492,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_defaultShowHeartRate => '剖面显示心率';
 
   @override
+  String get settings_conflict_field_defaultShowLateGasSwitches => '剖面显示延迟换气';
+
+  @override
   String get settings_conflict_field_defaultShowMeanDepth => '剖面显示平均深度';
 
   @override
@@ -19610,6 +19613,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_distanceM => '距离';
+
+  @override
+  String get settings_conflict_field_distanceUnit => '距离单位';
 
   @override
   String get settings_conflict_field_diveCenterListViewMode => '潜水中心列表视图';

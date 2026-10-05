@@ -20221,6 +20221,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Profile shows heart rate';
 
   @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Profile shows late gas switches';
+
+  @override
   String get settings_conflict_field_defaultShowMeanDepth =>
       'Profile shows mean depth';
 
@@ -20355,6 +20359,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_distanceM => 'Distance';
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'Distance unit';
 
   @override
   String get settings_conflict_field_diveCenterListViewMode =>

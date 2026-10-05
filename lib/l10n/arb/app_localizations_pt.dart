@@ -20551,6 +20551,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Perfil mostra a frequência cardíaca';
 
   @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Perfil mostra as trocas de gás tardias';
+
+  @override
   String get settings_conflict_field_defaultShowMeanDepth =>
       'Perfil mostra a profundidade média';
 
@@ -20689,6 +20693,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_distanceM => 'Distância';
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'Unidade de distância';
 
   @override
   String get settings_conflict_field_diveCenterListViewMode =>

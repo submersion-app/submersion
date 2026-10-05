@@ -20762,6 +20762,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'الملف يعرض معدل ضربات القلب';
 
   @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'الملف يعرض تبديلات الغاز المتأخرة';
+
+  @override
   String get settings_conflict_field_defaultShowMeanDepth =>
       'الملف يعرض متوسط العمق';
 
@@ -20897,6 +20901,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_distanceM => 'المسافة';
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'وحدة المسافة';
 
   @override
   String get settings_conflict_field_diveCenterListViewMode =>

@@ -189,6 +189,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_defaultShowHeartRate,
     FieldKind.boolean,
   ),
+  'defaultShowLateGasSwitches': ConflictField(
+    (l) => l.settings_conflict_field_defaultShowLateGasSwitches,
+    FieldKind.boolean,
+  ),
   'defaultShowMeanDepth': ConflictField(
     (l) => l.settings_conflict_field_defaultShowMeanDepth,
     FieldKind.boolean,
@@ -257,6 +261,11 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_depthUnit,
     FieldKind.enumValue,
     enumLabel: depthUnitLabeler,
+  ),
+  'distanceUnit': ConflictField(
+    (l) => l.settings_conflict_field_distanceUnit,
+    FieldKind.enumValue,
+    enumLabel: distanceUnitLabeler,
   ),
   'diveCenterListViewMode': ConflictField(
     (l) => l.settings_conflict_field_diveCenterListViewMode,

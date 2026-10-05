@@ -32858,6 +32858,12 @@ abstract class AppLocalizations {
   /// **'Profile shows heart rate'**
   String get settings_conflict_field_defaultShowHeartRate;
 
+  /// No description provided for @settings_conflict_field_defaultShowLateGasSwitches.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile shows late gas switches'**
+  String get settings_conflict_field_defaultShowLateGasSwitches;
+
   /// No description provided for @settings_conflict_field_defaultShowMeanDepth.
   ///
   /// In en, this message translates to:
@@ -33097,6 +33103,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Distance'**
   String get settings_conflict_field_distanceM;
+
+  /// No description provided for @settings_conflict_field_distanceUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance unit'**
+  String get settings_conflict_field_distanceUnit;
 
   /// No description provided for @settings_conflict_field_diveCenterListViewMode.
   ///

@@ -20407,6 +20407,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Profiel toont de hartslag';
 
   @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Profiel toont late gaswissels';
+
+  @override
   String get settings_conflict_field_defaultShowMeanDepth =>
       'Profiel toont de gemiddelde diepte';
 
@@ -20546,6 +20550,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_field_distanceM => 'Afstand';
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'Eenheid voor afstand';
 
   @override
   String get settings_conflict_field_diveCenterListViewMode =>

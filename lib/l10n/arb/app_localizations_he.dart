@@ -20054,6 +20054,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'הפרופיל מציג דופק';
 
   @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'הפרופיל מציג החלפות גז מאוחרות';
+
+  @override
   String get settings_conflict_field_defaultShowMeanDepth =>
       'הפרופיל מציג עומק ממוצע';
 
@@ -20188,6 +20192,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_distanceM => 'מרחק';
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'יחידת מרחק';
 
   @override
   String get settings_conflict_field_diveCenterListViewMode =>

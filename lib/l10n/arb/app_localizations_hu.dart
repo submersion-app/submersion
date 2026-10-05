@@ -20481,6 +20481,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A profil mutatja a pulzust';
 
   @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'A profil mutatja a késői gázváltásokat';
+
+  @override
   String get settings_conflict_field_defaultShowMeanDepth =>
       'A profil mutatja az átlagmélységet';
 
@@ -20623,6 +20627,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_distanceM => 'Távolság';
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'Távolság mértékegysége';
 
   @override
   String get settings_conflict_field_diveCenterListViewMode =>
