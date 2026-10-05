@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/core/theme/status_colors.dart';
+import 'package:submersion/core/theme/tinted_containers.dart';
 
 // ---------------------------------------------------------------------------
 // Console Theme -- instrument-panel aesthetic
@@ -70,17 +71,19 @@ final ThemeData consoleLight = ThemeData(
     FeatureAccentColors.light,
     StatusColors.light,
   ],
-  colorScheme: const ColorScheme(
-    brightness: Brightness.light,
-    primary: _primaryLight,
-    onPrimary: _onPrimaryLight,
-    secondary: _appBarLight,
-    onSecondary: _onPrimaryLight,
-    error: _errorColor,
-    onError: _onErrorColor,
-    surface: _surfaceLight,
-    onSurface: _primaryLight,
-    surfaceContainerLow: _cardLight,
+  colorScheme: withTintedContainers(
+    const ColorScheme(
+      brightness: Brightness.light,
+      primary: _primaryLight,
+      onPrimary: _onPrimaryLight,
+      secondary: _appBarLight,
+      onSecondary: _onPrimaryLight,
+      error: _errorColor,
+      onError: _onErrorColor,
+      surface: _surfaceLight,
+      onSurface: _primaryLight,
+      surfaceContainerLow: _cardLight,
+    ),
   ),
   textTheme: _buildTextTheme(Brightness.light),
   appBarTheme: const AppBarTheme(
@@ -122,17 +125,19 @@ final ThemeData consoleDark = ThemeData(
     FeatureAccentColors.dark,
     StatusColors.dark,
   ],
-  colorScheme: const ColorScheme(
-    brightness: Brightness.dark,
-    primary: _primaryDark,
-    onPrimary: _onPrimaryDark,
-    secondary: _appBarDark,
-    onSecondary: _onPrimaryLight,
-    error: _errorColor,
-    onError: _onErrorColor,
-    surface: _surfaceDark,
-    onSurface: Color(0xFFE0E4E8),
-    surfaceContainerLow: _cardDark,
+  colorScheme: withTintedContainers(
+    const ColorScheme(
+      brightness: Brightness.dark,
+      primary: _primaryDark,
+      onPrimary: _onPrimaryDark,
+      secondary: _appBarDark,
+      onSecondary: _onPrimaryLight,
+      error: _errorColor,
+      onError: _onErrorColor,
+      surface: _surfaceDark,
+      onSurface: Color(0xFFE0E4E8),
+      surfaceContainerLow: _cardDark,
+    ),
   ),
   textTheme: _buildTextTheme(Brightness.dark),
   appBarTheme: const AppBarTheme(

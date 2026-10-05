@@ -1579,6 +1579,14 @@ class _DecompressionSectionContent extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isSelected = settings.cnsCalculationMethod == method;
+    // Foregrounds must pair with the fill: on primaryContainer only
+    // onPrimaryContainer is guaranteed to read (#2959).
+    final labelColor = isSelected
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.onSurface;
+    final descriptionColor = isSelected
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.onSurfaceVariant;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -1612,19 +1620,24 @@ class _DecompressionSectionContent extends ConsumerWidget {
                         _cnsMethodLabel(context, method),
                         style: textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
+                          color: labelColor,
                         ),
                       ),
                       Text(
                         _cnsMethodDescription(context, method),
                         style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                          color: descriptionColor,
                         ),
                       ),
                     ],
                   ),
                 ),
                 if (isSelected)
-                  Icon(Icons.check, color: colorScheme.primary, size: 20),
+                  Icon(
+                    Icons.check,
+                    color: colorScheme.onPrimaryContainer,
+                    size: 20,
+                  ),
               ],
             ),
           ),
