@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -15,6 +13,7 @@ import 'package:submersion/features/insights/presentation/widgets/chart_axis.dar
 import 'package:submersion/features/insights/presentation/widgets/chart_overview_strip.dart';
 import 'package:submersion/features/insights/presentation/widgets/date_axis.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart_input.dart';
+import 'package:submersion/features/insights/presentation/widgets/trend_window_seater.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A per-dive trend chart on a real date axis.
@@ -143,9 +142,6 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
 
   static double _x(DateTime date) => date.millisecondsSinceEpoch.toDouble();
 
-  /// The narrowest window a zoom can reach: a week, however long the data.
-  static const _minWindow = Duration(days: 7);
-
   /// True while the strip is being dragged, so a drag that zooms all the way
   /// out keeps its strip until the gesture ends.
   bool _stripActive = false;
@@ -153,69 +149,14 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   /// The strip's points, rebuilt with the chart only while it is showing.
   List<Offset> _overviewPoints = const [];
 
-  TrendRange? _appliedRange;
-
-  /// The last window handed to [DiveTrendChart.onRangeChanged]. A caller
-  /// that stores it passes it straight back, which must not re-seat the
-  /// viewport the diver is looking at; a caller that ignores it must not
-  /// snap the chart back either.
-  TrendRange? _reportedRange;
-  ({int first, int last})? _appliedSpan;
-
-  /// Full x range of the last build, for turning the viewport into dates.
-  ({double min, double span})? _fullX;
-
-  static DateTime _date(double ms) =>
-      DateTime.fromMillisecondsSinceEpoch(ms.round(), isUtc: true);
-
-  /// Applies [DiveTrendChart.range] when it, or the data's span, changed
-  /// since it was last applied, and keeps the zoom limit matched to the span.
-  /// Runs inside build, before anything reads [_viewport].
-  void _seatViewport(double fullMin, double fullMax) {
-    final span = (fullMax - fullMin).clamp(1.0, double.infinity);
-    final zoomLimit = math.max(
-      ChartViewport.maxZoom,
-      span / _minWindow.inMilliseconds,
-    );
-    final dataSpan = (first: fullMin.round(), last: fullMax.round());
-    _fullX = (min: fullMin, span: span);
-    final rangeSettled =
-        widget.range == _appliedRange || widget.range == _reportedRange;
-    if (rangeSettled && _appliedSpan == dataSpan) {
-      _appliedRange = widget.range;
-      if (_viewport.zoomLimit != zoomLimit) {
-        _viewport = _viewport.withZoomLimit(zoomLimit);
-      }
-      return;
-    }
-    final window = trendRangeFractions(
-      widget.range,
-      _date(fullMin),
-      _date(fullMax),
-    );
-    _viewport = ChartViewport.forWindow(
-      window.start,
-      window.end,
-      zoomLimit: zoomLimit,
-    );
-    _appliedRange = widget.range;
-    _reportedRange = null;
-    _appliedSpan = dataSpan;
-  }
+  final TrendWindowSeater _seater = TrendWindowSeater();
 
   /// Hands the settled window to [DiveTrendChart.onRangeChanged].
   void _reportRange() {
     final onRangeChanged = widget.onRangeChanged;
-    final full = _fullX;
-    if (onRangeChanged == null || full == null) return;
-    final next = _viewport.isZoomed
-        ? TrendRange.custom(
-            _date(full.min + _viewport.windowStart * full.span),
-            _date(full.min + _viewport.windowEnd * full.span),
-          )
-        : TrendRange.all;
-    _reportedRange = next;
-    if (next != widget.range) onRangeChanged(next);
+    if (onRangeChanged == null) return;
+    final next = _seater.report(_viewport);
+    if (next != null && next != widget.range) onRangeChanged(next);
   }
 
   @override
@@ -331,7 +272,8 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     final fullMin = _x(firstDate);
     final fullMax = _x(lastDate);
     final fullSpan = (fullMax - fullMin).clamp(1.0, double.infinity);
-    _seatViewport(fullMin, fullMax);
+    // Runs inside build, before anything reads the viewport.
+    _viewport = _seater.seat(widget.range, _viewport, fullMin, fullMax);
     final visibleMin = fullMin + _viewport.offsetX * fullSpan;
     final visibleMax = visibleMin + fullSpan * _viewport.visibleWidth;
     final dateAxis = DateAxis.forRange(
