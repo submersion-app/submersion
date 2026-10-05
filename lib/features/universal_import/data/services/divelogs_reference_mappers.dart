@@ -20,13 +20,33 @@ abstract final class DivelogsReferenceMappers {
     (['weight', 'blei'], EquipmentType.weights),
     // The camera's parts (#1997), ahead of the light and camera words their
     // names contain ("Videolampe", "Blitzarm"). A float arm comes before the
-    // arms and an arm before the strobe it carries.
-    (['float arm', 'auftriebsarm'], EquipmentType.floatArm),
+    // arms and an arm before the strobe it carries. Matching is by
+    // substring, so the forms mirror the MacDive mapper's but a bare "port"
+    // (inside "sport") and a bare "float" (a surface float) stay out.
+    (
+      [
+        'float arm',
+        'float collar',
+        'arm float',
+        'buoyancy arm',
+        'auftriebsarm',
+      ],
+      EquipmentType.floatArm,
+    ),
     (['strobe arm', 'blitzarm', 'clamp', 'klemme'], EquipmentType.armClamp),
-    (['camera tray', 'kameraschiene'], EquipmentType.trayHandle),
+    (
+      ['tray', 'pistol grip', 'kameraschiene', 'pistolengriff'],
+      EquipmentType.trayHandle,
+    ),
     (['video light', 'videolicht', 'videolampe'], EquipmentType.videoLight),
-    (['dome port', 'flat port', 'domeport'], EquipmentType.port),
-    (['wet lens', 'nasslinse', 'objektiv', 'diopter'], EquipmentType.lens),
+    (
+      ['dome port', 'flat port', 'macro port', 'domeport', 'makroport'],
+      EquipmentType.port,
+    ),
+    (
+      ['lens', 'nasslinse', 'objektiv', 'diopter', 'dioptrie'],
+      EquipmentType.lens,
+    ),
     (['housing', 'gehäuse'], EquipmentType.housing),
     (['strobe', 'blitz'], EquipmentType.strobe),
     (['light', 'lamp', 'lampe'], EquipmentType.light),
