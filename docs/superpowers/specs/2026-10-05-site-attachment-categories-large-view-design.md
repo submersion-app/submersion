@@ -74,7 +74,9 @@ object are never touched.
   `documentExtension` reads it) is fixed and shown as a suffix, so `isPdf` and
   the share MIME type cannot change. A name with no extension is editable as a
   whole.
-- A blank stem is rejected.
+- A blank stem is rejected, except when the item had no name to begin with
+  (some gallery rows store none): then a blank field leaves the name unset, so
+  such an item can still be categorized.
 - The characters `/ \ : * ? " < > |` and control characters are rejected with
   an inline error, because `shareFilename` becomes a temp file name on whatever
   device the row syncs to.
@@ -136,7 +138,8 @@ renderer is an injectable seam so widget and service tests stay hermetic
 
 ## Edit details sheet
 
-A modal bottom sheet on phone widths and a dialog on desktop widths.
+A modal bottom sheet at every width, the app's convention for transient
+panels (see `showMediaSpeciesSheet`).
 
 - **Name:** a text field holding the stem, with the fixed extension as a suffix.
   Validation as in "Rename". Save is disabled while the stem is invalid.
@@ -156,11 +159,15 @@ success and failure snackbars as the existing Unlink action.
 
 ## Repository writes
 
-Following the narrow-writer convention (`setManualElapsedSeconds`):
+Following the narrow-writer convention (`setManualElapsedSeconds`), in a new
+`SiteAttachmentRepository` (`media_repository.dart` is already far past the
+800-line ceiling):
 
-- `setAttachmentDetails(id, {filename, category, displaySize})` writes only the
-  columns passed, plus `updatedAt`, in one transaction with
-  `markRecordPending`, then notifies the sync event bus.
+- `setAttachmentDetails(id, edit)` writes only the fields the
+  `AttachmentDetailsEdit` carries, plus `updatedAt`, in one transaction with
+  `markRecordPending`, then notifies the sync event bus. A row that no longer
+  exists (unlinked while the sheet was open) throws instead of queueing a sync
+  record for a missing row.
 - `setSiteCategory(ids, category)` writes `site_category` and `updatedAt` for
   every id in one transaction and marks each row pending.
 
