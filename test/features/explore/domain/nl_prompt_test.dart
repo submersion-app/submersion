@@ -37,7 +37,8 @@ void main() {
     expect(
       text,
       contains(
-        'entryMethod: shore, boat, backRoll, giantStride, seatedEntry, '
+        'entryMethod: shore, boat, backRoll, frontRoll, giantStride, '
+        'seatedEntry, '
         'ladder, platform, jetty or other.',
       ),
     );

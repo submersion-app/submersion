@@ -2,7 +2,7 @@ part of '../app_database_migrations.dart';
 
 /// Diver profiles and diver settings.
 extension DiverMigrations on AppDatabase {
-  /// v262: diver_settings.distance_unit (issue #2030). Not null, default
+  /// v263: diver_settings.distance_unit (issue #2030). Not null, default
   /// 'kilometers'. As the column is added, a diver who logs depth in feet
   /// gets miles, so nobody's site distances change unit on upgrade. The
   /// backfill runs only on the open that adds the column, so a choice made
@@ -26,12 +26,29 @@ extension DiverMigrations on AppDatabase {
     );
   }
 
-  /// The beforeOpen backstop for diver_settings display columns: v262's
+  /// The beforeOpen backstop for diver_settings display columns: v263's
   /// distance unit and v237's dive figure switch. Grouped so the backstop
   /// list in before_open.dart does not grow past its size cap.
   Future<void> _assertDiverSettingsDisplayColumns() async {
     await _assertDistanceUnitColumn();
     await _assertShowDiveFigureColumn();
+  }
+
+  /// v261: drops diver_settings.default_ceiling_source (issue #767). The
+  /// ceiling line lost its source toggle at v137 (#755), and nothing has
+  /// read the column since. No index, trigger or view names it, so SQLite's
+  /// DROP COLUMN applies. Idempotent and a no-op when the table is absent,
+  /// so it is safe to call from both onUpgrade and the beforeOpen backstop.
+  Future<void> _dropDefaultCeilingSourceColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (!cols.any((c) => c.read<String>('name') == 'default_ceiling_source')) {
+      return;
+    }
+    await customStatement(
+      'ALTER TABLE diver_settings DROP COLUMN default_ceiling_source',
+    );
   }
 
   /// v237: diver_settings.show_dive_figure (issue #2326). Additive, not

@@ -119,11 +119,9 @@ void main() {
         ),
         GoRoute(
           path: '/sites/new',
-          builder: (context, state) => SiteEditPage(
-            initialLocation: state.extra is GeoPoint
-                ? state.extra as GeoPoint
-                : null,
-          ),
+          // The same factory app_router.dart's newSite route builds with.
+          builder: (context, state) =>
+              SiteEditPage.fromNewSiteExtra(state.extra),
         ),
       ],
     );

@@ -6,18 +6,18 @@ import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/database/database.dart';
 
-/// v262: diver_settings.distance_unit (issue #2030). Backfilled from each
+/// v263: diver_settings.distance_unit (issue #2030). Backfilled from each
 /// diver's depth unit as the column is added, so nobody's site distances
 /// change unit on upgrade; never rewritten afterwards.
 void main() {
   late Directory dir;
 
-  setUp(() => dir = Directory.systemTemp.createTempSync('v262_'));
+  setUp(() => dir = Directory.systemTemp.createTempSync('v263_'));
   tearDown(() => dir.deleteSync(recursive: true));
 
-  File dbFile() => File(p.join(dir.path, 'v262.db'));
+  File dbFile() => File(p.join(dir.path, 'v263.db'));
 
-  /// A diver_settings table as it stood at v261: no distance_unit.
+  /// A diver_settings table as it stood at main's v261: no distance_unit.
   NativeDatabase fixtureAt(int userVersion) => NativeDatabase(
     dbFile(),
     setup: (rawDb) {
@@ -47,10 +47,13 @@ void main() {
     };
   }
 
-  test('v262 is the current schema version and is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 262);
-    expect(AppDatabase.migrationVersions, contains(262));
-    expect(AppDatabase.migrationVersions.last, 262);
+  test('v263 is the current schema version and is in the ladder', () {
+    // The newest rung owns the exact assertion; relax it to
+    // greaterThanOrEqualTo when the next one lands. 262 is held by an open
+    // branch (#2991), so from 261 this is one step.
+    expect(AppDatabase.currentSchemaVersion, 263);
+    expect(AppDatabase.migrationVersions, contains(263));
+    expect(AppDatabase.migrationVersions.last, 263);
     expect(AppDatabase.migrationStepCount(261), 1);
   });
 
@@ -80,9 +83,9 @@ void main() {
     });
   });
 
-  test('a database already at v262 without the column regains it, '
+  test('a database already at v263 without the column regains it, '
       'backfilled, via beforeOpen', () async {
-    final db = AppDatabase(fixtureAt(262));
+    final db = AppDatabase(fixtureAt(263));
     addTearDown(db.close);
     expect(await distanceUnits(db), {
       'metric': 'kilometers',

@@ -47,7 +47,7 @@ setup wizard can set it. Manage > Units has no Altitude tile.
 
 - `diver_settings.distance_unit` (`diver_tables.dart`): `TextColumn`, default
   `'kilometers'`.
-- Schema v262 (261 is held by open PR #2985). The rung calls
+- Schema v263 (main shipped 261 with #2985; 262 is held by open PR #2991). The rung calls
   `_assertDistanceUnitColumn()` in `helpers/diver_migrations.dart`:
   - If the column is missing, add it, then in the same step run
     `UPDATE diver_settings SET distance_unit = 'miles' WHERE depth_unit = 'feet'`.
@@ -57,7 +57,7 @@ setup wizard can set it. Manage > Units has no Altitude tile.
   - The helper is self-guarding when `diver_settings` is absent, as the other
     diver_settings asserts are.
 - The same assert is called from `beforeOpen` as the out-of-order backstop
-  (a database that reached v262 before a lower rung merged). Because it is a
+  (a database that reached v263 before a lower rung merged). Because it is a
   no-op once the column exists, repeating it is safe.
 - `DiverSettingsRepository` writes `distanceUnit` in both companion builders
   and parses it on read with a `_parseDistanceUnit` that falls back to
@@ -136,7 +136,7 @@ So for `diverSettings`, between `_withLocalForOmitted` and
 - `SetupWizardDraft.applyingUnitPreset` sets distance.
 - Repository round trip of `distanceUnit`, and the unknown-value fallback.
 - Migration: a v261 database with one metres diver and one feet diver opens at
-  v262 with `kilometers` and `miles`; changing the feet diver to kilometres and
+  v263 with `kilometers` and `miles`; changing the feet diver to kilometres and
   reopening keeps `kilometers` (no second backfill).
 - Sync: a payload without `distanceUnit` and with `depthUnit: feet` hydrates
   to `miles`; with `meters` to `kilometers`; a payload carrying

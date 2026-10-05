@@ -19,7 +19,7 @@ import 'package:submersion/features/universal_import/data/parsers/subsurface/sub
 /// tools produced for it carry the coordinates that way.
 ///
 /// Returns a site map in the same shape the `<divesites>` block produces,
-/// ready for `foldSubsurfaceSites`, or null when the dive names no site and
+/// ready for `foldImportSites`, or null when the dive names no site and
 /// carries no coordinates. The map has no `uddfId`: the caller assigns one,
 /// since a pre-4.5 file has no site identifiers to reuse.
 Map<String, dynamic>? parseInlineSubsurfaceSite(XmlElement dive) {

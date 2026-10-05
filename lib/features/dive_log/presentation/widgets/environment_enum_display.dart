@@ -62,6 +62,7 @@ extension EntryMethodDisplay on EntryMethod {
     EntryMethod.shore => l10n.enum_entryMethod_shore,
     EntryMethod.boat => l10n.enum_entryMethod_boat,
     EntryMethod.backRoll => l10n.enum_entryMethod_backRoll,
+    EntryMethod.frontRoll => l10n.enum_entryMethod_frontRoll,
     EntryMethod.giantStride => l10n.enum_entryMethod_giantStride,
     EntryMethod.seatedEntry => l10n.enum_entryMethod_seatedEntry,
     EntryMethod.ladder => l10n.enum_entryMethod_ladder,
