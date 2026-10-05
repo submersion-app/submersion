@@ -5,8 +5,10 @@ import 'dart:ui' show Color;
 /// Persisted by [name] (the `equipment.type` column is text), so the order of
 /// the values is free to change and new values need no migration: an older
 /// build reading a newer library falls back to [other] rather than failing.
-/// The declaration order is the order the type dropdown and the filter chips
-/// offer, so related gear is grouped rather than alphabetised.
+/// The declaration order is not a display order: the type dropdown and the
+/// filter chips list types alphabetically by localized label (#2937), via
+/// `sortEquipmentTypesByLabel`, and the gear lists use the diver's chosen
+/// `EquipmentTypeOrder`.
 enum EquipmentType {
   regulator('Regulator'),
   // The regulator's parts (issue #1487). A diver who swaps second stages and
