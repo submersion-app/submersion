@@ -120,6 +120,7 @@
   "gasCalculators_blender_notYourCylinder": "Diese Flasche gehört nicht zu deiner Ausrüstung",
   "gasCalculators_blender_cylinderFailed": "Die Flasche konnte nicht geöffnet werden. Versuche es erneut.",
   "gasCalculators_blender_cylinderNoVolume": "Für {name} ist kein Wasservolumen erfasst",
+  "gasCalculators_blender_noCylinders": "Noch keine Flaschen in deiner Ausrüstung. Gib stattdessen das Wasservolumen ein.",
   "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_error_targetPressure": "Zieldruck muss höher als der Ausgangsdruck sein.",
   "gasCalculators_blender_error_invalidMix": "O₂ + He eines Gasgemischs darf 100 % nicht überschreiten.",

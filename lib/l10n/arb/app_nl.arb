@@ -120,6 +120,7 @@
   "gasCalculators_blender_notYourCylinder": "Die fles zit niet in je uitrusting",
   "gasCalculators_blender_cylinderFailed": "Kan die fles niet openen. Probeer het opnieuw.",
   "gasCalculators_blender_cylinderNoVolume": "Geen waterinhoud geregistreerd voor {name}",
+  "gasCalculators_blender_noCylinders": "Nog geen flessen in je uitrusting. Vul in plaats daarvan de waterinhoud in.",
   "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_error_targetPressure": "De doeldruk moet hoger zijn dan de begindruk.",
   "gasCalculators_blender_error_invalidMix": "O₂ + He van een mengsel mag niet meer dan 100% zijn.",

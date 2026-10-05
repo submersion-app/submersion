@@ -11,7 +11,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-const _log = LoggerService('showBlenderCylinderPicker');
+const _log = LoggerService('pickBlenderCylinderSpecs');
 
 /// Which of the diver's cylinders a blend is for: a tank from their gear, or
 /// its tag scanned. Only an own cylinder can be logged or filled in, so a
@@ -21,10 +21,15 @@ const _log = LoggerService('showBlenderCylinderPicker');
 /// fill into the cylinder's history as a side effect (spec section 11), which
 /// fits picking the start cylinder or logging a fill, but not a spot that
 /// only wants the water volume or working pressure for a cost line.
+///
+/// Without the scan and with no tanks in the gear there is nothing to pick,
+/// so the sheet is not opened at all: [onNoTanks] is called instead and the
+/// picker resolves null.
 Future<EquipmentItem?> showBlenderCylinderPicker(
   BuildContext context,
   WidgetRef ref, {
   bool allowScan = true,
+  VoidCallback? onNoTanks,
 }) async {
   final l10n = context.l10n;
   final tanks = [
@@ -32,6 +37,10 @@ Future<EquipmentItem?> showBlenderCylinderPicker(
       if (e.type == EquipmentType.tank) e,
   ];
   if (!context.mounted) return null;
+  if (tanks.isEmpty && !allowScan) {
+    onNoTanks?.call();
+    return null;
+  }
   final choice = await showModalBottomSheet<Object>(
     context: context,
     useSafeArea: true,
@@ -98,37 +107,50 @@ typedef BlenderCylinderSpecs = ({EquipmentItem tank, double volumeL});
 /// Picks one of the diver's own tanks for its water volume and working
 /// pressure (issue #2926), without the tag scan: a spot that only wants a
 /// number for a cost line or a billed gas, not a fill to log. Handles the
-/// picker's failure and the "no volume recorded" case itself, with the same
-/// snackbar wording at every call site, and resolves null when nothing
+/// picker's failure, an empty gear list (pointing the diver at the
+/// free-text field instead) and the "no volume recorded" case itself, with
+/// the same wording at every call site, and resolves null when nothing
 /// usable was picked.
+///
+/// [onMessage] receives that feedback instead of a snackbar. A caller that is
+/// itself a modal sheet needs it: the page's [ScaffoldMessenger] would draw
+/// the snackbar underneath the sheet, out of sight.
 Future<BlenderCylinderSpecs?> pickBlenderCylinderSpecs(
   BuildContext context,
-  WidgetRef ref,
-) async {
+  WidgetRef ref, {
+  void Function(String message)? onMessage,
+}) async {
   final messenger = ScaffoldMessenger.maybeOf(context);
   final l10n = context.l10n;
+  void report(String message) {
+    if (onMessage != null) {
+      onMessage(message);
+    } else {
+      messenger?.showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
   EquipmentItem? tank;
   try {
-    tank = await showBlenderCylinderPicker(context, ref, allowScan: false);
+    tank = await showBlenderCylinderPicker(
+      context,
+      ref,
+      allowScan: false,
+      onNoTanks: () => report(l10n.gasCalculators_blender_noCylinders),
+    );
   } catch (e, stackTrace) {
     _log.error(
-      'Failed to choose a cylinder for a cost line',
+      'Failed to choose a cylinder for its specs',
       error: e,
       stackTrace: stackTrace,
     );
-    messenger?.showSnackBar(
-      SnackBar(content: Text(l10n.gasCalculators_blender_cylinderFailed)),
-    );
+    report(l10n.gasCalculators_blender_cylinderFailed);
     return null;
   }
   if (tank == null || !context.mounted) return null;
   final volumeL = tank.volumeL;
   if (volumeL == null) {
-    messenger?.showSnackBar(
-      SnackBar(
-        content: Text(l10n.gasCalculators_blender_cylinderNoVolume(tank.name)),
-      ),
-    );
+    report(l10n.gasCalculators_blender_cylinderNoVolume(tank.name));
     return null;
   }
   return (tank: tank, volumeL: volumeL);

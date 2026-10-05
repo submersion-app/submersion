@@ -15111,6 +15111,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_blender_noCylinders =>
+      'אין עדיין בלונים בציוד שלך. הזן במקום זאת את נפח המים.';
+
+  @override
   String gasCalculators_blender_filledFrom(String name, String mix) {
     return '$name: $mix';
   }

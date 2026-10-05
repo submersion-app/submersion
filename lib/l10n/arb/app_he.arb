@@ -120,6 +120,7 @@
   "gasCalculators_blender_notYourCylinder": "הבלון הזה אינו בציוד שלך",
   "gasCalculators_blender_cylinderFailed": "לא ניתן לפתוח את הבלון הזה. נסו שוב.",
   "gasCalculators_blender_cylinderNoVolume": "לא נרשם נפח מים עבור {name}",
+  "gasCalculators_blender_noCylinders": "אין עדיין בלונים בציוד שלך. הזן במקום זאת את נפח המים.",
   "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_error_targetPressure": "לחץ היעד חייב להיות גבוה מלחץ ההתחלה.",
   "gasCalculators_blender_error_invalidMix": "O₂ + He של תערובת לא יכול לעלות על 100%.",

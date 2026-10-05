@@ -85,6 +85,11 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
   /// enough to misprice the fill if it were read back from the text.
   double? _pickedLiters;
 
+  /// The name of the tank last picked, which the description took on. A
+  /// description that still reads exactly this is the sheet's own, so a later
+  /// pick may replace it; anything else the diver typed is left alone.
+  String? _pickedName;
+
   /// The gas fill fields as the sheet opened them, to tell an edit of the
   /// description alone from a changed fill.
   late final String _seedCylinder;
@@ -622,8 +627,15 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
     AppSettings settings,
     UnitFormatter units,
   ) async {
-    final picked = await pickBlenderCylinderSpecs(context, ref);
-    if (picked == null) return;
+    final picked = await pickBlenderCylinderSpecs(
+      context,
+      ref,
+      // Inline, not a snackbar: this sheet would cover one.
+      onMessage: (message) {
+        if (mounted) setState(() => _error = message);
+      },
+    );
+    if (picked == null || !mounted) return;
     final litres = picked.volumeL;
     setState(() {
       _pickedLiters = litres;
@@ -633,8 +645,13 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
       );
       // The tank's own name, not a generated "gas / volume / pressure"
       // summary: a real starting point for the diver, still freely editable
-      // afterwards (issue #2926 follow-up).
-      _label.text = picked.tank.name;
+      // afterwards (issue #2926 follow-up). Only over a blank description or
+      // the previous pick's name, never over one the diver wrote.
+      final label = _label.text.trim();
+      if (label.isEmpty || label == _pickedName) {
+        _label.text = picked.tank.name;
+      }
+      _pickedName = picked.tank.name;
       // The working pressure is what the cylinder is filled to (issue
       // #2302). Still editable afterwards, since only the last gas of a
       // blend reaches it. Cleared rather than left as-is when the tank has

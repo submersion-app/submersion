@@ -15456,6 +15456,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_blender_noCylinders =>
+      'Ancora nessuna bombola nella tua attrezzatura. Inserisci invece il volume d\'acqua.';
+
+  @override
   String gasCalculators_blender_filledFrom(String name, String mix) {
     return '$name: $mix';
   }

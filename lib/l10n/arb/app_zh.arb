@@ -120,6 +120,7 @@
   "gasCalculators_blender_notYourCylinder": "该气瓶不在你的装备中",
   "gasCalculators_blender_cylinderFailed": "无法打开该气瓶，请重试。",
   "gasCalculators_blender_cylinderNoVolume": "{name} 未记录水容积",
+  "gasCalculators_blender_noCylinders": "你的装备中还没有气瓶。请直接输入水容积。",
   "gasCalculators_blender_filledFrom": "{name}：{mix}",
   "gasCalculators_blender_error_targetPressure": "目标压力必须高于初始压力。",
   "gasCalculators_blender_error_invalidMix": "混合气的 O₂ + He 不能超过 100%。",

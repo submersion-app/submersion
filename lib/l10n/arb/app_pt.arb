@@ -120,6 +120,7 @@
   "gasCalculators_blender_notYourCylinder": "Esse cilindro não está no seu equipamento",
   "gasCalculators_blender_cylinderFailed": "Não foi possível abrir esse cilindro. Tente novamente.",
   "gasCalculators_blender_cylinderNoVolume": "Nenhum volume de água registrado para {name}",
+  "gasCalculators_blender_noCylinders": "Ainda não há cilindros no seu equipamento. Digite o volume de água em vez disso.",
   "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_error_targetPressure": "A pressão alvo deve ser maior que a inicial.",
   "gasCalculators_blender_error_invalidMix": "O₂ + He de uma mistura não pode exceder 100%.",

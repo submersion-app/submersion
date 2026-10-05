@@ -120,6 +120,7 @@
   "gasCalculators_blender_notYourCylinder": "Ce bloc ne fait pas partie de votre matériel",
   "gasCalculators_blender_cylinderFailed": "Impossible d'ouvrir ce bloc. Réessayez.",
   "gasCalculators_blender_cylinderNoVolume": "Aucun volume d'eau enregistré pour {name}",
+  "gasCalculators_blender_noCylinders": "Aucun bloc dans votre matériel pour l'instant. Saisissez plutôt le volume d'eau.",
   "gasCalculators_blender_filledFrom": "{name} : {mix}",
   "gasCalculators_blender_error_targetPressure": "La pression cible doit être supérieure à la pression de départ.",
   "gasCalculators_blender_error_invalidMix": "L'O₂ + He d'un mélange ne peut pas dépasser 100 %.",

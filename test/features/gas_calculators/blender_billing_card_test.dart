@@ -209,6 +209,29 @@ void main() {
   });
 
   testWidgets(
+    'with no tanks in the gear, says to type the volume instead of opening '
+    'an empty picker',
+    (tester) async {
+      final ref = await _pump(tester, gear: const []);
+      ref.read(blenderCylinderLitersProvider.notifier).state = 11.1;
+      await tester.tap(
+        find.byKey(const Key('blender-billing-choose-cylinder')),
+      );
+      await tester.pumpAndSettle();
+
+      final l10n = AppLocalizations.of(
+        tester.element(find.byType(BlenderBillingCard)),
+      );
+      expect(find.byType(BottomSheet), findsNothing);
+      expect(
+        find.text(l10n.gasCalculators_blender_noCylinders),
+        findsOneWidget,
+      );
+      expect(ref.read(blenderCylinderLitersProvider), closeTo(11.1, 0.01));
+    },
+  );
+
+  testWidgets(
     'on a narrow card at a large text size, Choose cylinder wraps its label '
     'onto more lines instead of truncating it',
     (tester) async {

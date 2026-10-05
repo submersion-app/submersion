@@ -38,6 +38,38 @@ void main() {
     expect(find.text('Action'), findsOneWidget);
   });
 
+  testWidgets('a too-wide trailing shortens instead of overflowing the row', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 400,
+            child: BlenderResponsiveHeaderRow(
+              leading: const TextField(),
+              trailing: TextButton.icon(
+                icon: const Icon(Icons.add),
+                label: Text(
+                  'A label far wider than the whole row ' * 4,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                onPressed: () {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(
+      tester.getSize(find.byType(TextButton)).width,
+      lessThanOrEqualTo(240),
+    );
+    expect(tester.getSize(find.byType(TextField)).width, greaterThan(100));
+  });
+
   testWidgets('switches from row to column exactly at minRowWidth', (
     tester,
   ) async {

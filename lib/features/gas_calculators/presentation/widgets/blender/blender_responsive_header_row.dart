@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 
-/// Lays [leading] and [trailing] side by side in a [Row] when there is
-/// enough width to show [trailing] in full, and stacks them in a [Column]
-/// (leading above trailing) otherwise.
+/// Lays [leading] and [trailing] side by side in a [Row] when the available
+/// width is at least [minRowWidth], and stacks them in a [Column] (leading
+/// above trailing) otherwise.
+///
+/// In row mode [trailing] is capped at [maxTrailingShare] of the width, so a
+/// label that is still too wide (a long translation, a large system text
+/// size) shortens to its ellipsis instead of squeezing [leading] to nothing
+/// and overflowing the row.
 ///
 /// Every blender card row that pairs a title or input field on the left with
 /// a single action on the right used to cope with a narrow phone or a
@@ -24,6 +29,7 @@ class BlenderResponsiveHeaderRow extends StatelessWidget {
     this.minRowWidth = 320,
     this.gap = 8,
     this.rowCrossAxisAlignment = CrossAxisAlignment.center,
+    this.maxTrailingShare = 0.6,
   });
 
   final Widget leading;
@@ -41,6 +47,10 @@ class BlenderResponsiveHeaderRow extends StatelessWidget {
   /// trailing action lines up with the field's top edge, not its label.
   final CrossAxisAlignment rowCrossAxisAlignment;
 
+  /// The largest fraction of the available width [trailing] may take in row
+  /// mode; [leading] always keeps the rest.
+  final double maxTrailingShare;
+
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
@@ -50,7 +60,12 @@ class BlenderResponsiveHeaderRow extends StatelessWidget {
           children: [
             Expanded(child: leading),
             SizedBox(width: gap),
-            trailing,
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: constraints.maxWidth * maxTrailingShare,
+              ),
+              child: trailing,
+            ),
           ],
         );
       }

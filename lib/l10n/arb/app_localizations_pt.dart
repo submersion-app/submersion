@@ -15458,6 +15458,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_blender_noCylinders =>
+      'Ainda não há cilindros no seu equipamento. Digite o volume de água em vez disso.';
+
+  @override
   String gasCalculators_blender_filledFrom(String name, String mix) {
     return '$name: $mix';
   }

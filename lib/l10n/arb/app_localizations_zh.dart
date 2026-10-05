@@ -14736,6 +14736,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_blender_noCylinders => '你的装备中还没有气瓶。请直接输入水容积。';
+
+  @override
   String gasCalculators_blender_filledFrom(String name, String mix) {
     return '$name：$mix';
   }

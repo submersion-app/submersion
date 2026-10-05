@@ -15617,6 +15617,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_blender_noCylinders =>
+      'لا توجد أسطوانات في معداتك بعد. أدخل السعة المائية بدلًا من ذلك.';
+
+  @override
   String gasCalculators_blender_filledFrom(String name, String mix) {
     return '$name: $mix';
   }

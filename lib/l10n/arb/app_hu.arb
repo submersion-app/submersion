@@ -120,6 +120,7 @@
   "gasCalculators_blender_notYourCylinder": "Ez a palack nem szerepel a felszerelésedben",
   "gasCalculators_blender_cylinderFailed": "Nem sikerült megnyitni a palackot. Próbáld újra.",
   "gasCalculators_blender_cylinderNoVolume": "Nincs rögzített vízűrtartalom ehhez: {name}",
+  "gasCalculators_blender_noCylinders": "Még nincs palack a felszerelésedben. Add meg helyette a víztérfogatot.",
   "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_error_targetPressure": "A célnyomásnak magasabbnak kell lennie a kiindulási nyomásnál.",
   "gasCalculators_blender_error_invalidMix": "Egy keverék O₂ + He aránya nem haladhatja meg a 100%-ot.",

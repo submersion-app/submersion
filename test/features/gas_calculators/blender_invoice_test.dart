@@ -25,6 +25,7 @@ import 'package:submersion/features/gas_calculators/presentation/providers/gas_b
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_billing_card.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_invoice_card.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_invoice_export_sheet.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_line_edit_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -740,6 +741,118 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(text('blender-line-description'), 'Twinset');
+      },
+    );
+
+    testWidgets(
+      'choosing a cylinder keeps a description the diver already typed',
+      (tester) async {
+        await _pump(
+          tester,
+          gear: [_tank('d12', 'D12 232', volumeL: 12, workingPressureBar: 232)],
+        );
+        await _openAddLine(tester);
+
+        await tester.enterText(
+          find.byKey(const Key('blender-line-description')),
+          "Bob's twinset",
+        );
+        await tester.tap(find.byKey(const Key('blender-line-choose-cylinder')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('D12 232'));
+        await tester.pumpAndSettle();
+
+        String text(String key) =>
+            tester.widget<TextField>(find.byKey(Key(key))).controller!.text;
+        expect(text('blender-line-description'), "Bob's twinset");
+        expect(text('blender-line-cylinder'), '12');
+      },
+    );
+
+    testWidgets(
+      'a later pick replaces the description an earlier pick filled in',
+      (tester) async {
+        await _pump(
+          tester,
+          gear: [
+            _tank('d12', 'D12 232', volumeL: 12, workingPressureBar: 232),
+            _tank('al80', 'AL80', volumeL: 11.1, workingPressureBar: 207),
+          ],
+        );
+        await _openAddLine(tester);
+
+        for (final name in ['D12 232', 'AL80']) {
+          await tester.tap(
+            find.byKey(const Key('blender-line-choose-cylinder')),
+          );
+          await tester.pumpAndSettle();
+          await tester.tap(find.text(name));
+          await tester.pumpAndSettle();
+        }
+
+        expect(
+          tester
+              .widget<TextField>(
+                find.byKey(const Key('blender-line-description')),
+              )
+              .controller!
+              .text,
+          'AL80',
+        );
+      },
+    );
+
+    testWidgets(
+      'a tank with no recorded volume says so inside the sheet, where a '
+      'snackbar would be hidden behind it',
+      (tester) async {
+        await _pump(tester, gear: [_tank('spare', 'Spare 12')]);
+        await _openAddLine(tester);
+
+        await tester.tap(find.byKey(const Key('blender-line-choose-cylinder')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Spare 12'));
+        await tester.pumpAndSettle();
+
+        final l10n = AppLocalizations.of(
+          tester.element(find.byType(BlenderLineEditSheet)),
+        );
+        final message = l10n.gasCalculators_blender_cylinderNoVolume(
+          'Spare 12',
+        );
+        expect(
+          find.descendant(
+            of: find.byType(BlenderLineEditSheet),
+            matching: find.text(message),
+          ),
+          findsOneWidget,
+        );
+        expect(find.byType(SnackBar), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'with no tanks in the gear, says inside the sheet to type the volume '
+      'instead of opening an empty picker',
+      (tester) async {
+        await _pump(tester);
+        await _openAddLine(tester);
+
+        await tester.tap(find.byKey(const Key('blender-line-choose-cylinder')));
+        await tester.pumpAndSettle();
+
+        final l10n = AppLocalizations.of(
+          tester.element(find.byType(BlenderLineEditSheet)),
+        );
+        // Only the edit sheet itself is open: no picker on top of it.
+        expect(find.byType(BottomSheet), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(BlenderLineEditSheet),
+            matching: find.text(l10n.gasCalculators_blender_noCylinders),
+          ),
+          findsOneWidget,
+        );
       },
     );
 

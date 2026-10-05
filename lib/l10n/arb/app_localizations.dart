@@ -25059,6 +25059,12 @@ abstract class AppLocalizations {
   /// **'{name} has no recorded water volume'**
   String gasCalculators_blender_cylinderNoVolume(String name);
 
+  /// Choose cylinder tapped on the cost card or a billed gas line while the diver has no tanks in their gear; the cylinder picker is not opened. Points at the water-capacity field next to the button.
+  ///
+  /// In en, this message translates to:
+  /// **'No cylinders in your gear yet. Type the water capacity instead.'**
+  String get gasCalculators_blender_noCylinders;
+
   /// After Choose cylinder: the cylinder chosen and the mix of its last fill, now what is in it.
   ///
   /// In en, this message translates to:

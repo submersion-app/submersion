@@ -120,6 +120,7 @@
   "gasCalculators_blender_notYourCylinder": "هذه الأسطوانة ليست ضمن معداتك",
   "gasCalculators_blender_cylinderFailed": "تعذر فتح هذه الأسطوانة. حاول مرة أخرى.",
   "gasCalculators_blender_cylinderNoVolume": "لا يوجد حجم ماء مسجَّل لـ {name}",
+  "gasCalculators_blender_noCylinders": "لا توجد أسطوانات في معداتك بعد. أدخل السعة المائية بدلًا من ذلك.",
   "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_error_targetPressure": "يجب أن يكون الضغط المستهدف أعلى من الضغط الابتدائي.",
   "gasCalculators_blender_error_invalidMix": "لا يمكن أن يتجاوز O₂ + He لأي خليط 100%.",

@@ -15406,6 +15406,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_blender_noCylinders =>
+      'Még nincs palack a felszerelésedben. Add meg helyette a víztérfogatot.';
+
+  @override
   String gasCalculators_blender_filledFrom(String name, String mix) {
     return '$name: $mix';
   }

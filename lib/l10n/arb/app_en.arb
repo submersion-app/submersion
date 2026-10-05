@@ -9136,6 +9136,10 @@
       }
     }
   },
+  "gasCalculators_blender_noCylinders": "No cylinders in your gear yet. Type the water capacity instead.",
+  "@gasCalculators_blender_noCylinders": {
+    "description": "Choose cylinder tapped on the cost card or a billed gas line while the diver has no tanks in their gear; the cylinder picker is not opened. Points at the water-capacity field next to the button."
+  },
   "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "@gasCalculators_blender_filledFrom": {
     "description": "After Choose cylinder: the cylinder chosen and the mix of its last fill, now what is in it.",
