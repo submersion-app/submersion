@@ -2149,6 +2149,24 @@ abstract class AppLocalizations {
   /// **'This Dive'**
   String get o2Toxicity_thisDive;
 
+  /// No description provided for @o2Toxicity_lastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Dive'**
+  String get o2Toxicity_lastDive;
+
+  /// No description provided for @o2Toxicity_lastDiveStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Before last dive: {percent}%'**
+  String o2Toxicity_lastDiveStart(String percent);
+
+  /// No description provided for @o2Toxicity_lastDiveDelta.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive: +{percent}%'**
+  String o2Toxicity_lastDiveDelta(String percent);
+
   /// No description provided for @o2Toxicity_weekly.
   ///
   /// In en, this message translates to:
@@ -9401,6 +9419,30 @@ abstract class AppLocalizations {
   /// **'The selected dives belong to different divers and can\'t be combined.'**
   String get diveLog_combine_mixedDivers;
 
+  /// No description provided for @diveLog_combine_modeJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Join into one dive'**
+  String get diveLog_combine_modeJoin;
+
+  /// No description provided for @diveLog_combine_modeJoinShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get diveLog_combine_modeJoinShort;
+
+  /// No description provided for @diveLog_combine_modeMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge as another computer'**
+  String get diveLog_combine_modeMerge;
+
+  /// No description provided for @diveLog_combine_modeMergeShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get diveLog_combine_modeMergeShort;
+
   /// No description provided for @diveLog_combine_profilePreview.
   ///
   /// In en, this message translates to:
@@ -9453,6 +9495,42 @@ abstract class AppLocalizations {
   /// **'Primary'**
   String get diveLog_computerSource_badge_primary;
 
+  /// No description provided for @diveLog_consolidate_alignBestFit.
+  ///
+  /// In en, this message translates to:
+  /// **'Best fit'**
+  String get diveLog_consolidate_alignBestFit;
+
+  /// No description provided for @diveLog_consolidate_alignStarts.
+  ///
+  /// In en, this message translates to:
+  /// **'Align starts'**
+  String get diveLog_consolidate_alignStarts;
+
+  /// No description provided for @diveLog_consolidate_alignStartsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts'**
+  String get diveLog_consolidate_alignStartsShort;
+
+  /// No description provided for @diveLog_consolidate_alignmentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Line up the records by'**
+  String get diveLog_consolidate_alignmentLabel;
+
+  /// No description provided for @diveLog_consolidate_clockNote.
+  ///
+  /// In en, this message translates to:
+  /// **'These records don\'t overlap in time, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.'**
+  String get diveLog_consolidate_clockNote;
+
+  /// No description provided for @diveLog_consolidate_clockNoteShort.
+  ///
+  /// In en, this message translates to:
+  /// **'One computer\'s clock is probably off.'**
+  String get diveLog_consolidate_clockNoteShort;
+
   /// No description provided for @diveLog_consolidate_confirm.
   ///
   /// In en, this message translates to:
@@ -9476,6 +9554,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These dives are from the same dive computer and can\'t be merged this way.'**
   String get diveLog_consolidate_error_sameComputer;
+
+  /// No description provided for @diveLog_consolidate_noProfileFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'A record has no depth profile to match, so its start is lined up with the primary\'s.'**
+  String get diveLog_consolidate_noProfileFallback;
+
+  /// No description provided for @diveLog_consolidate_sameDiveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'These profiles look like the same dive recorded by two computers.'**
+  String get diveLog_consolidate_sameDiveHint;
 
   /// No description provided for @diveLog_consolidate_selectPrimary.
   ///
@@ -12841,6 +12931,12 @@ abstract class AppLocalizations {
   /// **'Altitude'**
   String get setup_units_altitude;
 
+  /// No description provided for @setup_units_distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get setup_units_distance;
+
   /// No description provided for @setup_units_dateFormat.
   ///
   /// In en, this message translates to:
@@ -14394,6 +14490,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} {count, plural, =1{dive} other{dives}}'**
   String diveLog_summary_diveCount(int count);
+
+  /// Line under the Dive Log Summary title while the dive list is filtered: the summary covers {shown} of the diver's {total} logged dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Filtered: summarizing {shown} of {total, plural, =1{{total} dive} other{{total} dives}}'**
+  String diveLog_summary_filteredBanner(int shown, int total);
 
   /// No description provided for @diveLog_summary_overview.
   ///
@@ -18793,6 +18895,12 @@ abstract class AppLocalizations {
   /// **'Boat Entry'**
   String get enum_entryMethod_boat;
 
+  /// No description provided for @enum_entryMethod_frontRoll.
+  ///
+  /// In en, this message translates to:
+  /// **'Front Roll'**
+  String get enum_entryMethod_frontRoll;
+
   /// No description provided for @enum_entryMethod_giantStride.
   ///
   /// In en, this message translates to:
@@ -18979,6 +19087,12 @@ abstract class AppLocalizations {
   /// **'Gear Pocket'**
   String get enum_equipmentType_gearPocket;
 
+  /// No description provided for @enum_equipmentType_bag.
+  ///
+  /// In en, this message translates to:
+  /// **'Bag'**
+  String get enum_equipmentType_bag;
+
   /// No description provided for @enum_equipmentType_hose.
   ///
   /// In en, this message translates to:
@@ -19002,6 +19116,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Strobe'**
   String get enum_equipmentType_strobe;
+
+  /// No description provided for @enum_equipmentType_lens.
+  ///
+  /// In en, this message translates to:
+  /// **'Lens'**
+  String get enum_equipmentType_lens;
+
+  /// No description provided for @enum_equipmentType_port.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get enum_equipmentType_port;
+
+  /// No description provided for @enum_equipmentType_trayHandle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tray / Handle'**
+  String get enum_equipmentType_trayHandle;
+
+  /// No description provided for @enum_equipmentType_armClamp.
+  ///
+  /// In en, this message translates to:
+  /// **'Arm / Clamp'**
+  String get enum_equipmentType_armClamp;
+
+  /// No description provided for @enum_equipmentType_videoLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Video Light'**
+  String get enum_equipmentType_videoLight;
+
+  /// No description provided for @enum_equipmentType_floatArm.
+  ///
+  /// In en, this message translates to:
+  /// **'Float Arm / Float'**
+  String get enum_equipmentType_floatArm;
 
   /// No description provided for @enum_equipmentType_undersuit.
   ///
@@ -28465,6 +28615,24 @@ abstract class AppLocalizations {
   /// **'Go to dive'**
   String get media_viewer_goToDive;
 
+  /// Viewer toolbar action: hide all app and viewer chrome so only the photo or video shows
+  ///
+  /// In en, this message translates to:
+  /// **'Full screen'**
+  String get media_viewer_enterFullscreen;
+
+  /// Button revealed by a tap in fullscreen mode: return to the normal viewer
+  ///
+  /// In en, this message translates to:
+  /// **'Exit full screen'**
+  String get media_viewer_exitFullscreen;
+
+  /// Viewer toolbar overflow menu holding the actions that do not fit
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get media_viewer_moreOptions;
+
   /// Navigation label for home/dashboard
   ///
   /// In en, this message translates to:
@@ -29770,13 +29938,13 @@ abstract class AppLocalizations {
   /// No description provided for @diveDetailSection_surfaceGps_name.
   ///
   /// In en, this message translates to:
-  /// **'Surface GPS'**
+  /// **'Location'**
   String get diveDetailSection_surfaceGps_name;
 
   /// No description provided for @diveDetailSection_surfaceGps_description.
   ///
   /// In en, this message translates to:
-  /// **'GPS entry/exit points and surface drift'**
+  /// **'Map of the dive site, GPS entry/exit points and surface drift'**
   String get diveDetailSection_surfaceGps_description;
 
   /// No description provided for @diveLog_detail_section_surfaceGps.
@@ -29784,6 +29952,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Surface GPS'**
   String get diveLog_detail_section_surfaceGps;
+
+  /// Title of the dive detail map card when the dive has no GPS fix and only its dive site has coordinates
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get diveLog_detail_section_location;
 
   /// No description provided for @diveLog_detail_surfaceGps_entry.
   ///
@@ -30216,6 +30390,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Country, region, body of water, GPS coordinates'**
   String get siteDetailSection_location_description;
+
+  /// No description provided for @siteDetailSection_seascape_description.
+  ///
+  /// In en, this message translates to:
+  /// **'3D view of the underwater terrain around the site'**
+  String get siteDetailSection_seascape_description;
 
   /// No description provided for @siteDetailSection_depth_description.
   ///
@@ -33612,6 +33792,18 @@ abstract class AppLocalizations {
   /// **'Weight'**
   String get settings_summary_weight;
 
+  /// No description provided for @settings_summary_altitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude'**
+  String get settings_summary_altitude;
+
+  /// No description provided for @settings_summary_distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get settings_summary_distance;
+
   /// No description provided for @settings_units_custom.
   ///
   /// In en, this message translates to:
@@ -33899,6 +34091,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pounds (lbs)'**
   String get settings_units_weight_pounds;
+
+  /// No description provided for @settings_units_altitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude'**
+  String get settings_units_altitude;
+
+  /// No description provided for @settings_units_altitude_feet.
+  ///
+  /// In en, this message translates to:
+  /// **'Feet (ft)'**
+  String get settings_units_altitude_feet;
+
+  /// No description provided for @settings_units_altitude_meters.
+  ///
+  /// In en, this message translates to:
+  /// **'Meters (m)'**
+  String get settings_units_altitude_meters;
+
+  /// No description provided for @settings_units_dialog_altitudeUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude Unit'**
+  String get settings_units_dialog_altitudeUnit;
+
+  /// No description provided for @settings_units_distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get settings_units_distance;
+
+  /// No description provided for @settings_units_distance_kilometers.
+  ///
+  /// In en, this message translates to:
+  /// **'Kilometers (km)'**
+  String get settings_units_distance_kilometers;
+
+  /// No description provided for @settings_units_distance_miles.
+  ///
+  /// In en, this message translates to:
+  /// **'Miles (mi)'**
+  String get settings_units_distance_miles;
+
+  /// No description provided for @settings_units_dialog_distanceUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance Unit'**
+  String get settings_units_dialog_distanceUnit;
 
   /// No description provided for @settings_updates_automaticUpdates.
   ///
@@ -36368,6 +36608,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tags'**
   String get importWizard_tagsLabel;
+
+  /// Name line of the Review step source card for a batch import: how many files it read
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} file} other{{count} files}}'**
+  String importWizard_source_fileCount(int count);
+
+  /// Review step source card: the firmware version the dive computer reported
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware {version}'**
+  String importWizard_source_firmware(String version);
+
+  /// Review step source card: the application an imported file came from, after its format (e.g. UDDF from Subsurface)
+  ///
+  /// In en, this message translates to:
+  /// **'from {app}'**
+  String importWizard_source_fromApp(String app);
 
   /// Count of photos the imported logbook refers to
   ///
@@ -45055,7 +45313,7 @@ abstract class AppLocalizations {
   /// Body text of the merge confirmation dialog.
   ///
   /// In en, this message translates to:
-  /// **'All dives, certifications, gear, and other data from {count} duplicate {count, plural, one{profile} other{profiles}} will be moved onto \"{name}\". This cannot be undone automatically.'**
+  /// **'All dives, certifications, gear, and other data from {count} duplicate {count, plural, one{profile} other{profiles}} will be moved onto \"{name}\". You can undo this right after merging.'**
   String settings_cloudSync_duplicateDivers_confirmBody(int count, String name);
 
   /// Cancel button on the merge confirmation dialog.
@@ -47232,6 +47490,54 @@ abstract class AppLocalizations {
   /// **'Mount'**
   String get attrLabel_pocket_mount;
 
+  /// No description provided for @attrLabel_lens_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Lens type'**
+  String get attrLabel_lens_type;
+
+  /// No description provided for @attrLabel_focal_length_mm.
+  ///
+  /// In en, this message translates to:
+  /// **'Focal length (mm)'**
+  String get attrLabel_focal_length_mm;
+
+  /// No description provided for @attrLabel_port_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Port type'**
+  String get attrLabel_port_type;
+
+  /// No description provided for @attrLabel_tray_style.
+  ///
+  /// In en, this message translates to:
+  /// **'Style'**
+  String get attrLabel_tray_style;
+
+  /// No description provided for @attrLabel_arm_length_m.
+  ///
+  /// In en, this message translates to:
+  /// **'Arm length'**
+  String get attrLabel_arm_length_m;
+
+  /// No description provided for @attrLabel_guide_number_m.
+  ///
+  /// In en, this message translates to:
+  /// **'Guide number'**
+  String get attrLabel_guide_number_m;
+
+  /// No description provided for @attrLabel_bag_style.
+  ///
+  /// In en, this message translates to:
+  /// **'Style'**
+  String get attrLabel_bag_style;
+
+  /// No description provided for @attrLabel_capacity_l.
+  ///
+  /// In en, this message translates to:
+  /// **'Capacity'**
+  String get attrLabel_capacity_l;
+
   /// No description provided for @attrChoice_plate_material_aluminum.
   ///
   /// In en, this message translates to:
@@ -47537,6 +47843,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Thigh'**
   String get attrChoice_pocket_mount_thigh;
+
+  /// No description provided for @attrChoice_lens_type_camera_lens.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera lens'**
+  String get attrChoice_lens_type_camera_lens;
+
+  /// No description provided for @attrChoice_lens_type_wet_lens.
+  ///
+  /// In en, this message translates to:
+  /// **'Wet lens'**
+  String get attrChoice_lens_type_wet_lens;
+
+  /// No description provided for @attrChoice_lens_type_diopter.
+  ///
+  /// In en, this message translates to:
+  /// **'Diopter'**
+  String get attrChoice_lens_type_diopter;
+
+  /// No description provided for @attrChoice_port_type_dome.
+  ///
+  /// In en, this message translates to:
+  /// **'Dome'**
+  String get attrChoice_port_type_dome;
+
+  /// No description provided for @attrChoice_port_type_flat.
+  ///
+  /// In en, this message translates to:
+  /// **'Flat'**
+  String get attrChoice_port_type_flat;
+
+  /// No description provided for @attrChoice_port_type_macro.
+  ///
+  /// In en, this message translates to:
+  /// **'Macro'**
+  String get attrChoice_port_type_macro;
+
+  /// No description provided for @attrChoice_tray_style_single_handle.
+  ///
+  /// In en, this message translates to:
+  /// **'Single handle'**
+  String get attrChoice_tray_style_single_handle;
+
+  /// No description provided for @attrChoice_tray_style_double_handle.
+  ///
+  /// In en, this message translates to:
+  /// **'Double handle'**
+  String get attrChoice_tray_style_double_handle;
+
+  /// No description provided for @attrChoice_tray_style_pistol_grip.
+  ///
+  /// In en, this message translates to:
+  /// **'Pistol grip'**
+  String get attrChoice_tray_style_pistol_grip;
+
+  /// No description provided for @attrChoice_bag_style_duffel.
+  ///
+  /// In en, this message translates to:
+  /// **'Duffel'**
+  String get attrChoice_bag_style_duffel;
+
+  /// No description provided for @attrChoice_bag_style_roller.
+  ///
+  /// In en, this message translates to:
+  /// **'Roller'**
+  String get attrChoice_bag_style_roller;
+
+  /// No description provided for @attrChoice_bag_style_backpack.
+  ///
+  /// In en, this message translates to:
+  /// **'Backpack'**
+  String get attrChoice_bag_style_backpack;
+
+  /// No description provided for @attrChoice_bag_style_mesh.
+  ///
+  /// In en, this message translates to:
+  /// **'Mesh'**
+  String get attrChoice_bag_style_mesh;
+
+  /// No description provided for @attrChoice_bag_style_dry_bag.
+  ///
+  /// In en, this message translates to:
+  /// **'Dry bag'**
+  String get attrChoice_bag_style_dry_bag;
+
+  /// No description provided for @attrChoice_bag_style_regulator_bag.
+  ///
+  /// In en, this message translates to:
+  /// **'Regulator bag'**
+  String get attrChoice_bag_style_regulator_bag;
+
+  /// No description provided for @attrChoice_bag_style_catch_bag.
+  ///
+  /// In en, this message translates to:
+  /// **'Catch bag'**
+  String get attrChoice_bag_style_catch_bag;
 
   /// No description provided for @attrChoice_bcd_style_jacket.
   ///
@@ -48102,6 +48504,12 @@ abstract class AppLocalizations {
   /// **'Flying after diving'**
   String get safetySettings_noFlyHeader;
 
+  /// No description provided for @safetySettings_cnsOtuHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Current CNS/OTU load'**
+  String get safetySettings_cnsOtuHeader;
+
   /// No description provided for @safetySettings_noFlyPreset_standard.
   ///
   /// In en, this message translates to:
@@ -48173,6 +48581,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No active flying restriction'**
   String get safetyHub_noFly_clear_subtitle;
+
+  /// No description provided for @safetyHub_cnsOtu_clear_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No active load'**
+  String get safetyHub_cnsOtu_clear_title;
+
+  /// No description provided for @safetyHub_cnsOtu_clear_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS and OTU have cleared since your last dive'**
+  String get safetyHub_cnsOtu_clear_subtitle;
+
+  /// No description provided for @safetyHub_cnsOtu_sinceLastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive ended {duration} ago'**
+  String safetyHub_cnsOtu_sinceLastDive(String duration);
+
+  /// No description provided for @safetyHub_cnsOtu_elapsedDaysHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d {hours}h'**
+  String safetyHub_cnsOtu_elapsedDaysHours(int days, int hours);
+
+  /// No description provided for @safetyHub_cnsOtu_noProfile_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive has no profile'**
+  String get safetyHub_cnsOtu_noProfile_title;
+
+  /// No description provided for @safetyHub_cnsOtu_noProfile_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Its CNS% and OTU can\'t be calculated without depth samples. The totals below leave it out.'**
+  String get safetyHub_cnsOtu_noProfile_body;
 
   /// No description provided for @safetyHub_noFly_category_single.
   ///
@@ -48887,6 +49331,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Guideline countdown from your last dives'**
   String get planning_card_noFly_subtitle;
+
+  /// No description provided for @planning_card_cnsOtu_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Live decay since your last dive'**
+  String get planning_card_cnsOtu_subtitle;
 
   /// No description provided for @settings_section_safety_title.
   ///

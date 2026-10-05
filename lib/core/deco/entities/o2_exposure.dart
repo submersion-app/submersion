@@ -58,11 +58,17 @@ class O2Exposure extends Equatable {
   /// CNS% accumulated during this dive
   double get cnsDelta => cnsEnd - cnsStart;
 
+  /// CNS% at or above which the oxygen clock is in its warning zone.
+  static const double cnsWarningPercent = 80.0;
+
+  /// CNS% at or above which the oxygen clock is critical.
+  static const double cnsCriticalPercent = 100.0;
+
   /// Whether CNS is in warning zone (>80%)
-  bool get cnsWarning => cnsEnd >= 80.0;
+  bool get cnsWarning => cnsEnd >= cnsWarningPercent;
 
   /// Whether CNS is critical (>100%)
-  bool get cnsCritical => cnsEnd >= 100.0;
+  bool get cnsCritical => cnsEnd >= cnsCriticalPercent;
 
   /// Whether ppO2 exceeded the diver's working limit ([warningThreshold])
   bool get ppO2Warning => maxPpO2 > warningThreshold;

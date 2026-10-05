@@ -57,6 +57,7 @@ import 'package:submersion/features/media/presentation/providers/photo_picker_pr
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/batch_source_files.dart';
+import 'package:submersion/features/import_wizard/data/adapters/file_source_details.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_number_conflict_notice.dart';
 import 'package:submersion/features/import_wizard/data/adapters/diver_slice_review.dart';
 import 'package:submersion/features/import_wizard/data/adapters/existing_import_records.dart';
@@ -515,13 +516,26 @@ class UniversalAdapter implements ImportSourceAdapter {
 
     final targets = await _importTargets(payload);
     return ImportBundle(
-      source: ImportSourceInfo(type: sourceType, displayName: _displayName),
+      source: ImportSourceInfo(
+        type: sourceType,
+        displayName: _displayName,
+        details: await sourceDetails(),
+      ),
       // One profile needs no labels; the counts already say where it goes.
       groups: targets.length > 1
           ? _labelTargets(groups, payload, targets)
           : groups,
       nextDiveNumberByTarget: await _nextDiveNumbers(targets.keys),
     );
+  }
+
+  /// What the Review step shows about where this import came from (issue
+  /// #161): the picked files, by [fileSourceDetails]. Sources that are not
+  /// files override this.
+  @protected
+  Future<ImportSourceDetails> sourceDetails() {
+    final state = _ref.read(universalImportNotifierProvider);
+    return fileSourceDetails(state.files, confirmed: state.options);
   }
 
   /// The profile behind each target key of an expanded payload (#1893).

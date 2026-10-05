@@ -1387,6 +1387,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get o2Toxicity_thisDive => 'Deze duik';
 
   @override
+  String get o2Toxicity_lastDive => 'Laatste duik';
+
+  @override
+  String o2Toxicity_lastDiveStart(String percent) {
+    return 'Voor de laatste duik: $percent%';
+  }
+
+  @override
+  String o2Toxicity_lastDiveDelta(String percent) {
+    return 'Laatste duik: +$percent%';
+  }
+
+  @override
   String get o2Toxicity_weekly => 'Wekelijks';
 
   @override
@@ -5895,6 +5908,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'De geselecteerde duiken behoren tot verschillende duikers en kunnen niet worden samengevoegd.';
 
   @override
+  String get diveLog_combine_modeJoin => 'Aan elkaar koppelen tot één duik';
+
+  @override
+  String get diveLog_combine_modeJoinShort => 'Koppelen';
+
+  @override
+  String get diveLog_combine_modeMerge => 'Samenvoegen als extra computer';
+
+  @override
+  String get diveLog_combine_modeMergeShort => 'Samenvoegen';
+
+  @override
   String get diveLog_combine_profilePreview => 'Samengevoegd profiel';
 
   @override
@@ -5936,6 +5961,26 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => 'Primair';
 
   @override
+  String get diveLog_consolidate_alignBestFit => 'Beste overeenkomst';
+
+  @override
+  String get diveLog_consolidate_alignStarts => 'Begin uitlijnen';
+
+  @override
+  String get diveLog_consolidate_alignStartsShort => 'Begin';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel => 'Registraties uitlijnen op';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      'Deze registraties overlappen niet in tijd, dus de klok van een computer staat waarschijnlijk verkeerd. De duik behoudt de tijd van de primaire computer.';
+
+  @override
+  String get diveLog_consolidate_clockNoteShort =>
+      'De klok van een computer staat waarschijnlijk verkeerd.';
+
+  @override
   String get diveLog_consolidate_confirm =>
       'Bewaren als één duik met beide computers';
 
@@ -5950,6 +5995,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'Deze duiken zijn afkomstig van dezelfde duikcomputer en kunnen op deze manier niet worden samengevoegd.';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      'Een registratie heeft geen diepteprofiel om te vergelijken, dus het begin wordt uitgelijnd met dat van de primaire computer.';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint =>
+      'Deze profielen lijken op dezelfde duik, vastgelegd door twee computers.';
 
   @override
   String get diveLog_consolidate_selectPrimary => 'Primaire duikcomputer';
@@ -7996,6 +8049,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get setup_units_altitude => 'Hoogte';
 
   @override
+  String get setup_units_distance => 'Afstand';
+
+  @override
   String get setup_units_dateFormat => 'Datumnotatie';
 
   @override
@@ -8924,6 +8980,17 @@ class AppLocalizationsNl extends AppLocalizations {
       one: 'duik',
     );
     return '$count $_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total duiken',
+      one: '$total duik',
+    );
+    return 'Gefilterd: overzicht van $shown van $_temp0';
   }
 
   @override
@@ -11555,6 +11622,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_entryMethod_boat => 'Instap vanaf boot';
 
   @override
+  String get enum_entryMethod_frontRoll => 'Voorwaartse rol';
+
+  @override
   String get enum_entryMethod_giantStride => 'Grote stap';
 
   @override
@@ -11648,6 +11718,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentType_gearPocket => 'Uitrustingstas';
 
   @override
+  String get enum_equipmentType_bag => 'Tas';
+
+  @override
   String get enum_equipmentType_hose => 'Slang';
 
   @override
@@ -11658,6 +11731,24 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_equipmentType_strobe => 'Flitser';
+
+  @override
+  String get enum_equipmentType_lens => 'Objectief';
+
+  @override
+  String get enum_equipmentType_port => 'Poort';
+
+  @override
+  String get enum_equipmentType_trayHandle => 'Tray / Handgreep';
+
+  @override
+  String get enum_equipmentType_armClamp => 'Arm / Klem';
+
+  @override
+  String get enum_equipmentType_videoLight => 'Videolamp';
+
+  @override
+  String get enum_equipmentType_floatArm => 'Drijfarm / Drijver';
 
   @override
   String get enum_equipmentType_undersuit => 'Onderpak';
@@ -17617,6 +17708,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_viewer_goToDive => 'Naar duik';
 
   @override
+  String get media_viewer_enterFullscreen => 'Volledig scherm';
+
+  @override
+  String get media_viewer_exitFullscreen => 'Volledig scherm verlaten';
+
+  @override
+  String get media_viewer_moreOptions => 'Meer opties';
+
+  @override
   String get nav_home => 'Home';
 
   @override
@@ -18446,14 +18546,17 @@ class AppLocalizationsNl extends AppLocalizations {
       'Satellietwateromstandigheden op de duikdatum';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Oppervlakte-GPS';
+  String get diveDetailSection_surfaceGps_name => 'Locatie';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS in-/uitstappunten en oppervlaktedrift';
+      'Kaart van de duikstek, GPS in-/uitstappunten en oppervlaktedrift';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'Oppervlakte-GPS';
+
+  @override
+  String get diveLog_detail_section_location => 'Locatie';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'Te water';
@@ -18706,6 +18809,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get siteDetailSection_location_description =>
       'Land, regio, wateroppervlak, GPS-coördinaten';
+
+  @override
+  String get siteDetailSection_seascape_description =>
+      '3D-weergave van het onderwaterterrein rond de duikstek';
 
   @override
   String get siteDetailSection_depth_description =>
@@ -20781,6 +20888,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_summary_weight => 'Gewicht';
 
   @override
+  String get settings_summary_altitude => 'Hoogte';
+
+  @override
+  String get settings_summary_distance => 'Afstand';
+
+  @override
   String get settings_units_custom => 'Aangepast';
 
   @override
@@ -20931,6 +21044,30 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'Pond (lbs)';
+
+  @override
+  String get settings_units_altitude => 'Hoogte';
+
+  @override
+  String get settings_units_altitude_feet => 'Voet (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'Meters (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'Hoogte-eenheid';
+
+  @override
+  String get settings_units_distance => 'Afstand';
+
+  @override
+  String get settings_units_distance_kilometers => 'Kilometers (km)';
+
+  @override
+  String get settings_units_distance_miles => 'Mijlen (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'Afstandseenheid';
 
   @override
   String get settings_updates_automaticUpdates => 'Automatische updates';
@@ -22449,6 +22586,27 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bestanden',
+      one: '$count bestand',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'uit $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {
@@ -28586,7 +28744,7 @@ class AppLocalizationsNl extends AppLocalizations {
       other: '$count dubbele profielen',
       one: 'één dubbel profiel',
     );
-    return 'Alle duiken, certificeringen, uitrusting en andere gegevens van $_temp0 worden verplaatst naar \"$name\". Dit kan niet automatisch ongedaan worden gemaakt.';
+    return 'Alle duiken, certificeringen, uitrusting en andere gegevens van $_temp0 worden verplaatst naar \"$name\". Dit kan direct na het samenvoegen ongedaan worden gemaakt.';
   }
 
   @override
@@ -29830,6 +29988,30 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Bevestiging';
 
   @override
+  String get attrLabel_lens_type => 'Objectieftype';
+
+  @override
+  String get attrLabel_focal_length_mm => 'Brandpuntsafstand (mm)';
+
+  @override
+  String get attrLabel_port_type => 'Poorttype';
+
+  @override
+  String get attrLabel_tray_style => 'Stijl';
+
+  @override
+  String get attrLabel_arm_length_m => 'Armlengte';
+
+  @override
+  String get attrLabel_guide_number_m => 'Richtgetal';
+
+  @override
+  String get attrLabel_bag_style => 'Stijl';
+
+  @override
+  String get attrLabel_capacity_l => 'Capaciteit';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminium';
 
   @override
@@ -29982,6 +30164,54 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Dij';
+
+  @override
+  String get attrChoice_lens_type_camera_lens => 'Cameraobjectief';
+
+  @override
+  String get attrChoice_lens_type_wet_lens => 'Natte lens';
+
+  @override
+  String get attrChoice_lens_type_diopter => 'Voorzetlens (dioptrie)';
+
+  @override
+  String get attrChoice_port_type_dome => 'Dome';
+
+  @override
+  String get attrChoice_port_type_flat => 'Vlak';
+
+  @override
+  String get attrChoice_port_type_macro => 'Macro';
+
+  @override
+  String get attrChoice_tray_style_single_handle => 'Enkele handgreep';
+
+  @override
+  String get attrChoice_tray_style_double_handle => 'Dubbele handgreep';
+
+  @override
+  String get attrChoice_tray_style_pistol_grip => 'Pistoolgreep';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'Plunjezak';
+
+  @override
+  String get attrChoice_bag_style_roller => 'Trolley';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'Rugzak';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'Nettas';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'Droogzak';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'Ademautomaattas';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'Verzamelzakje';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';
@@ -30272,6 +30502,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Vliegen na het duiken';
 
   @override
+  String get safetySettings_cnsOtuHeader => 'Huidige CNS/OTU-belasting';
+
+  @override
   String get safetySettings_noFlyPreset_standard => 'Standaard (12/18/24 u)';
 
   @override
@@ -30318,6 +30551,30 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get safetyHub_noFly_clear_subtitle => 'Geen actieve vliegbeperking';
+
+  @override
+  String get safetyHub_cnsOtu_clear_title => 'Geen actieve belasting';
+
+  @override
+  String get safetyHub_cnsOtu_clear_subtitle =>
+      'CNS en OTU zijn afgenomen sinds je laatste duik';
+
+  @override
+  String safetyHub_cnsOtu_sinceLastDive(String duration) {
+    return 'Laatste duik eindigde $duration geleden';
+  }
+
+  @override
+  String safetyHub_cnsOtu_elapsedDaysHours(int days, int hours) {
+    return '${days}d ${hours}u';
+  }
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_title => 'Laatste duik zonder profiel';
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_body =>
+      'Zonder diepteprofiel kunnen CNS% en OTU ervan niet worden berekend. De totalen hieronder laten hem buiten beschouwing.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -30754,6 +31011,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get planning_card_noFly_subtitle =>
       'Richtlijn-aftelling vanaf je laatste duiken';
+
+  @override
+  String get planning_card_cnsOtu_subtitle =>
+      'Live afname sinds je laatste duik';
 
   @override
   String get settings_section_safety_title => 'Veiligheid';

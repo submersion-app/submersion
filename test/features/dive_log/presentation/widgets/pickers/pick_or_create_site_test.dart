@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -115,7 +116,7 @@ void main() {
     'tapping "New Dive Site" seeds the form and returns the saved site',
     (tester) async {
       DiveSite? result;
-      Object? seededLocation = 'untouched';
+      Object? seededExtra = 'untouched';
       final router = GoRouter(
         initialLocation: '/start',
         routes: [
@@ -131,7 +132,7 @@ void main() {
           GoRoute(
             path: '/sites/new',
             builder: (context, state) {
-              seededLocation = state.extra;
+              seededExtra = state.extra;
               return Scaffold(
                 body: TextButton(
                   onPressed: () => context.pop(_newSite.id),
@@ -169,13 +170,66 @@ void main() {
       await tester.tap(find.text('Add Dive Site'));
       await tester.pumpAndSettle();
 
-      expect(seededLocation, const GeoPoint(1, 2));
+      expect(seededExtra, const NewSiteSeed(location: GeoPoint(1, 2)));
       await tester.tap(find.text('save new site'));
       await tester.pumpAndSettle();
 
       expect(result?.id, 'new-site');
     },
   );
+
+  testWidgets('the search text seeds the new site\'s name', (tester) async {
+    Object? seededExtra;
+    final router = GoRouter(
+      initialLocation: '/start',
+      routes: [
+        GoRoute(
+          path: '/start',
+          builder: (context, state) => Scaffold(
+            body: ConsumerButton(
+              onResult: (_) {},
+              newSiteSeedLocation: const GeoPoint(1, 2),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/sites/new',
+          builder: (context, state) {
+            seededExtra = state.extra;
+            return const Scaffold(body: Text('new site form'));
+          },
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          locationServiceProvider.overrideWithValue(_NoFixLocationService()),
+          sitesProvider.overrideWith((ref) async => [_existingSite]),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('open picker'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), ' Blue Corner ');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('New Dive Site'));
+    await tester.pumpAndSettle();
+
+    expect(
+      seededExtra,
+      const NewSiteSeed(location: GeoPoint(1, 2), name: 'Blue Corner'),
+    );
+  });
 
   testWidgets('cancelling the new-site form returns null', (tester) async {
     DiveSite? result;

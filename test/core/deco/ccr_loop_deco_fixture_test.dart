@@ -17,7 +17,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/dive_log/domain/services/ccr_gas_schedule.dart';
 
 const _fixture = 'test/dives/006_ccr_petrel3_shearwater-cloud-export.uddf';
 

@@ -54,20 +54,26 @@ void main() {
   });
 
   group('geo distance formatting', () {
-    UnitFormatter formatter(DepthUnit unit) =>
-        UnitFormatter(AppSettings(depthUnit: unit));
+    UnitFormatter formatter(DistanceUnit unit) =>
+        UnitFormatter(AppSettings(distanceUnit: unit));
 
     test('a boat crossing reads in km, not thousands of metres', () {
       // formatDistance, the depth-unit formatter, rendered this as "74000 m".
-      expect(formatter(DepthUnit.meters).formatGeoDistance(74000), '74 km');
+      expect(
+        formatter(DistanceUnit.kilometers).formatGeoDistance(74000),
+        '74 km',
+      );
     });
 
     test('a short hop stays in metres', () {
-      expect(formatter(DepthUnit.meters).formatGeoDistance(420), '420 m');
+      expect(
+        formatter(DistanceUnit.kilometers).formatGeoDistance(420),
+        '420 m',
+      );
     });
 
-    test('imported divers get miles', () {
-      expect(formatter(DepthUnit.feet).formatGeoDistance(74000), '46 mi');
+    test('a diver who reads miles gets miles', () {
+      expect(formatter(DistanceUnit.miles).formatGeoDistance(74000), '46 mi');
     });
   });
 

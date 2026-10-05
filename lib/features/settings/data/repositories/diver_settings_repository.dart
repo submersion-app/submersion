@@ -25,6 +25,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
@@ -95,6 +96,7 @@ class DiverSettingsRepository {
               volumeUnit: Value(s.volumeUnit.name),
               weightUnit: Value(s.weightUnit.name),
               altitudeUnit: Value(s.altitudeUnit.name),
+              distanceUnit: Value(s.distanceUnit.name),
               gasConsumptionDisplay: Value(s.gasConsumptionDisplay.name),
               gasModel: Value(s.gasModel.name),
               defaultPlannerWaterType: Value(s.defaultPlannerWaterType.name),
@@ -161,7 +163,6 @@ class DiverSettingsRepository {
               o2Narcotic: Value(s.o2Narcotic),
               endLimit: Value(s.endLimit),
               defaultNdlSource: Value(s.defaultNdlSource.toInt()),
-              defaultCeilingSource: Value(s.defaultCeilingSource.toInt()),
               defaultDecoStopSource: Value(s.defaultDecoStopSource.toInt()),
               defaultTtsSource: Value(s.defaultTtsSource.toInt()),
               defaultCnsSource: Value(s.defaultCnsSource.toInt()),
@@ -279,7 +280,9 @@ class DiverSettingsRepository {
   /// changed since (issue #2946). Given [previous], the settings this caller
   /// last read or stored, only the columns where [settings] differs from it
   /// are written, and nothing at all (no new clock, nothing queued to sync)
-  /// when none does. Without it every column is written.
+  /// when none does. Without it every column is written. A change to
+  /// device-local columns alone ([deviceLocalSyncColumns]) is written
+  /// without a new clock and queues nothing.
   Future<void> updateSettingsForDiver(
     String diverId,
     AppSettings settings, {
@@ -291,6 +294,19 @@ class DiverSettingsRepository {
           ? columns
           : _changedColumns(_storedColumns(previous).toColumns(false), columns);
       if (changed.isEmpty) return;
+      // A device-local value never syncs (issue #2947). Stamping the row
+      // for one would republish this device's copy of every synced column
+      // with a newer clock, which could undo a peer's change, so only the
+      // value is written.
+      if (changed.keys.every(
+        (name) => isDeviceLocalColumn('diverSettings', name),
+      )) {
+        await (_db.update(_db.diverSettings)
+              ..where((t) => t.diverId.equals(diverId)))
+            .write(RawValuesInsertable<DiverSetting>(changed));
+        _log.info('Updated device-local settings for diver: $diverId');
+        return;
+      }
       final now = DateTime.now().millisecondsSinceEpoch;
 
       await (_db.update(
@@ -351,6 +367,7 @@ class DiverSettingsRepository {
     volumeUnit: Value(settings.volumeUnit.name),
     weightUnit: Value(settings.weightUnit.name),
     altitudeUnit: Value(settings.altitudeUnit.name),
+    distanceUnit: Value(settings.distanceUnit.name),
     gasConsumptionDisplay: Value(settings.gasConsumptionDisplay.name),
     gasModel: Value(settings.gasModel.name),
     defaultPlannerWaterType: Value(settings.defaultPlannerWaterType.name),
@@ -417,7 +434,6 @@ class DiverSettingsRepository {
     o2Narcotic: Value(settings.o2Narcotic),
     endLimit: Value(settings.endLimit),
     defaultNdlSource: Value(settings.defaultNdlSource.toInt()),
-    defaultCeilingSource: Value(settings.defaultCeilingSource.toInt()),
     defaultDecoStopSource: Value(settings.defaultDecoStopSource.toInt()),
     defaultTtsSource: Value(settings.defaultTtsSource.toInt()),
     defaultCnsSource: Value(settings.defaultCnsSource.toInt()),
@@ -551,6 +567,7 @@ class DiverSettingsRepository {
       volumeUnit: _parseVolumeUnit(row.volumeUnit),
       weightUnit: _parseWeightUnit(row.weightUnit),
       altitudeUnit: _parseAltitudeUnit(row.altitudeUnit),
+      distanceUnit: _parseDistanceUnit(row.distanceUnit),
       gasConsumptionDisplay: GasConsumptionDisplay.fromName(
         row.gasConsumptionDisplay,
       ),
@@ -620,7 +637,6 @@ class DiverSettingsRepository {
       o2Narcotic: row.o2Narcotic,
       endLimit: row.endLimit,
       defaultNdlSource: MetricDataSource.fromInt(row.defaultNdlSource),
-      defaultCeilingSource: MetricDataSource.fromInt(row.defaultCeilingSource),
       defaultDecoStopSource: MetricDataSource.fromInt(
         row.defaultDecoStopSource,
       ),
@@ -749,6 +765,13 @@ class DiverSettingsRepository {
     return AltitudeUnit.values.firstWhere(
       (e) => e.name == value,
       orElse: () => AltitudeUnit.meters,
+    );
+  }
+
+  DistanceUnit _parseDistanceUnit(String value) {
+    return DistanceUnit.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => DistanceUnit.kilometers,
     );
   }
 

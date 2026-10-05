@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/domain/models/equipment_filter_sta
 import 'package:submersion/features/equipment/domain/models/service_due_filter_display.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_choice_attribute_filter.dart';
+import 'package:submersion/features/equipment/query/equipment_filter_query.dart';
 import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_sheet_section.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
@@ -145,6 +146,8 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                           root: equipmentQueryEntity,
                           value: _query,
                           onChanged: (node) => setState(() => _query = node),
+                          saveNode: _draft().toSavedQuery(),
+                          onLoad: _loadSaved,
                         ),
                         const SizedBox(height: 24),
                         _buildStatusSection(),
@@ -380,19 +383,34 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
     });
   }
 
+  /// A saved search is the whole search (#2989, spec 5.4): the controls
+  /// return to the default view rather than be ANDed with it. One naming
+  /// the status shows every status, so its conditions decide. Whose gear to
+  /// show is the diver's view, never saved, so it stays.
+  void _loadSaved(QueryNode? node) => setState(() {
+    _status = null;
+    _allStatuses = node != null && constrainsEquipmentStatus(node);
+    _serviceDue = null;
+    _type = null;
+    _attrConditions = const [];
+    _tagIds = const {};
+    _query = node;
+  });
+
+  /// The filter as the sheet shows it: what Apply writes and Save stores.
+  EquipmentFilterState _draft() => EquipmentFilterState(
+    status: _status,
+    allStatuses: _allStatuses,
+    serviceDue: _serviceDue,
+    type: _type,
+    attrConditions: _attrConditions,
+    tagIds: _tagIds,
+    owner: _owner,
+    query: _query,
+  );
+
   void _applyFilters() {
-    widget.ref
-        .read(equipmentFilterProvider.notifier)
-        .state = EquipmentFilterState(
-      status: _status,
-      allStatuses: _allStatuses,
-      serviceDue: _serviceDue,
-      type: _type,
-      attrConditions: _attrConditions,
-      tagIds: _tagIds,
-      owner: _owner,
-      query: _query,
-    );
+    widget.ref.read(equipmentFilterProvider.notifier).state = _draft();
     Navigator.of(context).pop();
   }
 

@@ -1382,6 +1382,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get o2Toxicity_thisDive => 'This Dive';
 
   @override
+  String get o2Toxicity_lastDive => 'Last Dive';
+
+  @override
+  String o2Toxicity_lastDiveStart(String percent) {
+    return 'Before last dive: $percent%';
+  }
+
+  @override
+  String o2Toxicity_lastDiveDelta(String percent) {
+    return 'Last dive: +$percent%';
+  }
+
+  @override
   String get o2Toxicity_weekly => 'Weekly';
 
   @override
@@ -5842,6 +5855,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'The selected dives belong to different divers and can\'t be combined.';
 
   @override
+  String get diveLog_combine_modeJoin => 'Join into one dive';
+
+  @override
+  String get diveLog_combine_modeJoinShort => 'Join';
+
+  @override
+  String get diveLog_combine_modeMerge => 'Merge as another computer';
+
+  @override
+  String get diveLog_combine_modeMergeShort => 'Merge';
+
+  @override
   String get diveLog_combine_profilePreview => 'Combined profile';
 
   @override
@@ -5882,6 +5907,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => 'Primary';
 
   @override
+  String get diveLog_consolidate_alignBestFit => 'Best fit';
+
+  @override
+  String get diveLog_consolidate_alignStarts => 'Align starts';
+
+  @override
+  String get diveLog_consolidate_alignStartsShort => 'Starts';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel => 'Line up the records by';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      'These records don\'t overlap in time, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.';
+
+  @override
+  String get diveLog_consolidate_clockNoteShort =>
+      'One computer\'s clock is probably off.';
+
+  @override
   String get diveLog_consolidate_confirm =>
       'Keep as one dive with both computers';
 
@@ -5896,6 +5941,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'These dives are from the same dive computer and can\'t be merged this way.';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      'A record has no depth profile to match, so its start is lined up with the primary\'s.';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint =>
+      'These profiles look like the same dive recorded by two computers.';
 
   @override
   String get diveLog_consolidate_selectPrimary => 'Primary dive computer';
@@ -7919,6 +7972,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setup_units_altitude => 'Altitude';
 
   @override
+  String get setup_units_distance => 'Distance';
+
+  @override
   String get setup_units_dateFormat => 'Date format';
 
   @override
@@ -8840,6 +8896,17 @@ class AppLocalizationsEn extends AppLocalizations {
       one: 'dive',
     );
     return '$count $_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total dives',
+      one: '$total dive',
+    );
+    return 'Filtered: summarizing $shown of $_temp0';
   }
 
   @override
@@ -11459,6 +11526,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_entryMethod_boat => 'Boat Entry';
 
   @override
+  String get enum_entryMethod_frontRoll => 'Front Roll';
+
+  @override
   String get enum_entryMethod_giantStride => 'Giant Stride';
 
   @override
@@ -11552,6 +11622,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentType_gearPocket => 'Gear Pocket';
 
   @override
+  String get enum_equipmentType_bag => 'Bag';
+
+  @override
   String get enum_equipmentType_hose => 'Hose';
 
   @override
@@ -11562,6 +11635,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_equipmentType_strobe => 'Strobe';
+
+  @override
+  String get enum_equipmentType_lens => 'Lens';
+
+  @override
+  String get enum_equipmentType_port => 'Port';
+
+  @override
+  String get enum_equipmentType_trayHandle => 'Tray / Handle';
+
+  @override
+  String get enum_equipmentType_armClamp => 'Arm / Clamp';
+
+  @override
+  String get enum_equipmentType_videoLight => 'Video Light';
+
+  @override
+  String get enum_equipmentType_floatArm => 'Float Arm / Float';
 
   @override
   String get enum_equipmentType_undersuit => 'Undersuit';
@@ -17464,6 +17555,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_viewer_goToDive => 'Go to dive';
 
   @override
+  String get media_viewer_enterFullscreen => 'Full screen';
+
+  @override
+  String get media_viewer_exitFullscreen => 'Exit full screen';
+
+  @override
+  String get media_viewer_moreOptions => 'More options';
+
+  @override
   String get nav_home => 'Home';
 
   @override
@@ -18289,14 +18389,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Satellite water conditions on the dive date';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Surface GPS';
+  String get diveDetailSection_surfaceGps_name => 'Location';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS entry/exit points and surface drift';
+      'Map of the dive site, GPS entry/exit points and surface drift';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'Surface GPS';
+
+  @override
+  String get diveLog_detail_section_location => 'Location';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'Entry';
@@ -18548,6 +18651,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get siteDetailSection_location_description =>
       'Country, region, body of water, GPS coordinates';
+
+  @override
+  String get siteDetailSection_seascape_description =>
+      '3D view of the underwater terrain around the site';
 
   @override
   String get siteDetailSection_depth_description =>
@@ -20603,6 +20710,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_summary_weight => 'Weight';
 
   @override
+  String get settings_summary_altitude => 'Altitude';
+
+  @override
+  String get settings_summary_distance => 'Distance';
+
+  @override
   String get settings_units_custom => 'Custom';
 
   @override
@@ -20753,6 +20866,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'Pounds (lbs)';
+
+  @override
+  String get settings_units_altitude => 'Altitude';
+
+  @override
+  String get settings_units_altitude_feet => 'Feet (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'Meters (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'Altitude Unit';
+
+  @override
+  String get settings_units_distance => 'Distance';
+
+  @override
+  String get settings_units_distance_kilometers => 'Kilometers (km)';
+
+  @override
+  String get settings_units_distance_miles => 'Miles (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'Distance Unit';
 
   @override
   String get settings_updates_automaticUpdates => 'Automatic updates';
@@ -22249,6 +22386,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files',
+      one: '$count file',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'from $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {
@@ -28333,7 +28491,7 @@ class AppLocalizationsEn extends AppLocalizations {
       other: 'profiles',
       one: 'profile',
     );
-    return 'All dives, certifications, gear, and other data from $count duplicate $_temp0 will be moved onto \"$name\". This cannot be undone automatically.';
+    return 'All dives, certifications, gear, and other data from $count duplicate $_temp0 will be moved onto \"$name\". You can undo this right after merging.';
   }
 
   @override
@@ -29565,6 +29723,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Mount';
 
   @override
+  String get attrLabel_lens_type => 'Lens type';
+
+  @override
+  String get attrLabel_focal_length_mm => 'Focal length (mm)';
+
+  @override
+  String get attrLabel_port_type => 'Port type';
+
+  @override
+  String get attrLabel_tray_style => 'Style';
+
+  @override
+  String get attrLabel_arm_length_m => 'Arm length';
+
+  @override
+  String get attrLabel_guide_number_m => 'Guide number';
+
+  @override
+  String get attrLabel_bag_style => 'Style';
+
+  @override
+  String get attrLabel_capacity_l => 'Capacity';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminum';
 
   @override
@@ -29716,6 +29898,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Thigh';
+
+  @override
+  String get attrChoice_lens_type_camera_lens => 'Camera lens';
+
+  @override
+  String get attrChoice_lens_type_wet_lens => 'Wet lens';
+
+  @override
+  String get attrChoice_lens_type_diopter => 'Diopter';
+
+  @override
+  String get attrChoice_port_type_dome => 'Dome';
+
+  @override
+  String get attrChoice_port_type_flat => 'Flat';
+
+  @override
+  String get attrChoice_port_type_macro => 'Macro';
+
+  @override
+  String get attrChoice_tray_style_single_handle => 'Single handle';
+
+  @override
+  String get attrChoice_tray_style_double_handle => 'Double handle';
+
+  @override
+  String get attrChoice_tray_style_pistol_grip => 'Pistol grip';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'Duffel';
+
+  @override
+  String get attrChoice_bag_style_roller => 'Roller';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'Backpack';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'Mesh';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'Dry bag';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'Regulator bag';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'Catch bag';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';
@@ -30006,6 +30236,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Flying after diving';
 
   @override
+  String get safetySettings_cnsOtuHeader => 'Current CNS/OTU load';
+
+  @override
   String get safetySettings_noFlyPreset_standard => 'Standard (12/18/24 h)';
 
   @override
@@ -30052,6 +30285,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get safetyHub_noFly_clear_subtitle => 'No active flying restriction';
+
+  @override
+  String get safetyHub_cnsOtu_clear_title => 'No active load';
+
+  @override
+  String get safetyHub_cnsOtu_clear_subtitle =>
+      'CNS and OTU have cleared since your last dive';
+
+  @override
+  String safetyHub_cnsOtu_sinceLastDive(String duration) {
+    return 'Last dive ended $duration ago';
+  }
+
+  @override
+  String safetyHub_cnsOtu_elapsedDaysHours(int days, int hours) {
+    return '${days}d ${hours}h';
+  }
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_title => 'Last dive has no profile';
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_body =>
+      'Its CNS% and OTU can\'t be calculated without depth samples. The totals below leave it out.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -30485,6 +30742,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get planning_card_noFly_subtitle =>
       'Guideline countdown from your last dives';
+
+  @override
+  String get planning_card_cnsOtu_subtitle => 'Live decay since your last dive';
 
   @override
   String get settings_section_safety_title => 'Safety';

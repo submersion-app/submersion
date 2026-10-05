@@ -690,6 +690,124 @@ void main() {
       await drainSnackBar(tester);
     });
   });
+
+  group('fullscreen mode (#1087)', () {
+    final exitButton = find.byTooltip('Exit full screen');
+
+    /// The viewer pushed over a host page, so Back and Esc have somewhere to
+    /// go.
+    Future<void> pumpOverHost(WidgetTester tester) async {
+      await tester.pumpWidget(
+        await mediaTestApp(
+          overrides: [
+            mediaForSiteProvider(
+              'site-1',
+            ).overrideWith((ref) async => [first, second]),
+          ],
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const SiteMediaViewerPage(
+                    siteId: 'site-1',
+                    initialMediaId: 'm1',
+                    scope: SiteViewerScope.attachments,
+                  ),
+                ),
+              ),
+              child: const Text('Open viewer'),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open viewer'));
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> tapPhoto(WidgetTester tester) async {
+      await tester.tapAt(tester.getCenter(find.byType(PhotoViewGallery)));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+    }
+
+    Future<void> enterFullscreen(WidgetTester tester) async {
+      await tester.tap(find.byTooltip('Full screen'));
+      await tester.pump();
+    }
+
+    testWidgets('the Full screen button hides every overlay', (tester) async {
+      await pumpViewer(tester);
+      await enterFullscreen(tester);
+      expect(find.text('1 / 2'), findsNothing);
+      expect(find.text('Mooring line'), findsNothing);
+      expect(find.byTooltip('Next media'), findsNothing);
+      expect(find.byTooltip('Full screen'), findsNothing);
+      expect(exitButton, findsNothing);
+    });
+
+    testWidgets('a tap reveals the exit button, which hides after 3 s', (
+      tester,
+    ) async {
+      await pumpViewer(tester);
+      await enterFullscreen(tester);
+      await tapPhoto(tester);
+      expect(exitButton, findsOneWidget);
+      expect(find.text('1 / 2'), findsNothing);
+
+      await tester.pump(const Duration(seconds: 2));
+      expect(exitButton, findsOneWidget);
+      await tester.pump(const Duration(seconds: 1));
+      expect(exitButton, findsNothing);
+    });
+
+    testWidgets('the exit button returns to the normal viewer', (tester) async {
+      await pumpViewer(tester);
+      await enterFullscreen(tester);
+      await tapPhoto(tester);
+      await tester.tap(exitButton);
+      await tester.pumpAndSettle();
+      expect(find.text('1 / 2'), findsOneWidget);
+      expect(find.text('Mooring line'), findsOneWidget);
+    });
+
+    testWidgets('Esc and Back each leave fullscreen before closing', (
+      tester,
+    ) async {
+      await pumpOverHost(tester);
+      await enterFullscreen(tester);
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+      expect(find.byType(SiteMediaViewerPage), findsOneWidget);
+      expect(find.text('1 / 2'), findsOneWidget);
+
+      await enterFullscreen(tester);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.byType(SiteMediaViewerPage), findsOneWidget);
+      expect(find.text('1 / 2'), findsOneWidget);
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.byType(SiteMediaViewerPage), findsNothing);
+    });
+
+    testWidgets('an emptied list leaves fullscreen by itself', (tester) async {
+      final shrink = await pumpShrinkableViewer(tester, [
+        first,
+        second,
+      ], initialMediaId: 'm1');
+      await enterFullscreen(tester);
+
+      shrink(const []);
+      await tester.pumpAndSettle();
+      expect(find.text('No photos available'), findsOneWidget);
+      final popScope = tester.widget<PopScope<Object?>>(
+        find.byWidgetPredicate((w) => w is PopScope),
+      );
+      expect(popScope.canPop, isTrue);
+    });
+  });
 }
 
 /// A downward flick whose [DragEndDetails.primaryVelocity] and velocity

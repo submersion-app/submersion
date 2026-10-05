@@ -2,6 +2,9 @@ import 'package:flutter/widgets.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_source_details.dart';
+
+export 'package:submersion/features/import_wizard/domain/models/import_source_details.dart';
 
 /// The source system that produced an [ImportBundle].
 enum ImportSourceType {
@@ -91,11 +94,15 @@ class ImportSourceInfo {
   /// re-download, never auto-suggested for consolidation).
   final String? currentComputerId;
 
+  /// What the Review step shows about this source (issue #161).
+  final ImportSourceDetails details;
+
   const ImportSourceInfo({
     required this.type,
     required this.displayName,
     this.metadata,
     this.currentComputerId,
+    this.details = const ImportSourceDetails(),
   });
 }
 

@@ -5,6 +5,7 @@ import 'package:submersion/features/deco_calculator/presentation/pages/deco_calc
 import 'package:submersion/features/planning/presentation/planning_tools.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_list_content.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_summary_widget.dart';
+import 'package:submersion/features/safety/presentation/pages/cns_otu_page.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
 import 'package:submersion/features/weight_planner/presentation/pages/weight_planner_page.dart';
@@ -60,6 +61,8 @@ class PlanningPage extends ConsumerWidget {
         return const SurfaceIntervalToolPage(embedded: true);
       case 'no-fly':
         return const NoFlyPage(embedded: true);
+      case 'cns-otu':
+        return const CnsOtuPage(embedded: true);
       default:
         return const PlanningSummaryWidget();
     }

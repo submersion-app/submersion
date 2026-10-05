@@ -1377,6 +1377,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get o2Toxicity_thisDive => 'צלילה זו';
 
   @override
+  String get o2Toxicity_lastDive => 'צלילה אחרונה';
+
+  @override
+  String o2Toxicity_lastDiveStart(String percent) {
+    return 'לפני הצלילה האחרונה: $percent%';
+  }
+
+  @override
+  String o2Toxicity_lastDiveDelta(String percent) {
+    return 'צלילה אחרונה: +$percent%';
+  }
+
+  @override
   String get o2Toxicity_weekly => 'שבועי';
 
   @override
@@ -5811,6 +5824,18 @@ class AppLocalizationsHe extends AppLocalizations {
       'הצלילות שנבחרו שייכות לצוללנים שונים ולא ניתן למזג אותן.';
 
   @override
+  String get diveLog_combine_modeJoin => 'חיבור לצלילה אחת';
+
+  @override
+  String get diveLog_combine_modeJoinShort => 'חיבור';
+
+  @override
+  String get diveLog_combine_modeMerge => 'מיזוג כמחשב נוסף';
+
+  @override
+  String get diveLog_combine_modeMergeShort => 'מיזוג';
+
+  @override
   String get diveLog_combine_profilePreview => 'פרופיל ממוזג';
 
   @override
@@ -5851,6 +5876,26 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => 'ראשי';
 
   @override
+  String get diveLog_consolidate_alignBestFit => 'התאמה מיטבית';
+
+  @override
+  String get diveLog_consolidate_alignStarts => 'יישור התחלות';
+
+  @override
+  String get diveLog_consolidate_alignStartsShort => 'התחלות';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel => 'יישור הרשומות לפי';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      'הרשומות האלה לא חופפות בזמן, כך שכנראה השעון של אחד המחשבים שגוי. הצלילה שומרת על השעה של המחשב הראשי.';
+
+  @override
+  String get diveLog_consolidate_clockNoteShort =>
+      'כנראה השעון של אחד המחשבים שגוי.';
+
+  @override
   String get diveLog_consolidate_confirm => 'לשמור כצלילה אחת עם שני המחשבים';
 
   @override
@@ -5864,6 +5909,14 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'הצלילות האלה מגיעות מאותו מחשב צלילה ולא ניתן למזג אותן בדרך זו.';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      'לאחת הרשומות אין פרופיל עומק להתאמה, ולכן ההתחלה שלה מיושרת להתחלה של הראשי.';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint =>
+      'הפרופילים האלה נראים כמו אותה צלילה שתועדה על ידי שני מחשבים.';
 
   @override
   String get diveLog_consolidate_selectPrimary => 'מחשב הצלילה הראשי';
@@ -7868,6 +7921,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_units_altitude => 'גובה';
 
   @override
+  String get setup_units_distance => 'מרחק';
+
+  @override
   String get setup_units_dateFormat => 'תבנית תאריך';
 
   @override
@@ -8782,6 +8838,17 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'צלילה',
     );
     return '$count $_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total צלילות',
+      one: 'צלילה אחת',
+    );
+    return 'מסונן: סיכום של $shown מתוך $_temp0';
   }
 
   @override
@@ -11385,6 +11452,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_entryMethod_boat => 'כניסה מסירה';
 
   @override
+  String get enum_entryMethod_frontRoll => 'גלגול קדימה';
+
+  @override
   String get enum_entryMethod_giantStride => 'צעד ענק';
 
   @override
@@ -11478,6 +11548,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentType_gearPocket => 'כיס ציוד';
 
   @override
+  String get enum_equipmentType_bag => 'תיק';
+
+  @override
   String get enum_equipmentType_hose => 'צינור';
 
   @override
@@ -11488,6 +11561,24 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_strobe => 'פלאש';
+
+  @override
+  String get enum_equipmentType_lens => 'עדשה';
+
+  @override
+  String get enum_equipmentType_port => 'פורט';
+
+  @override
+  String get enum_equipmentType_trayHandle => 'מגש / ידית';
+
+  @override
+  String get enum_equipmentType_armClamp => 'זרוע / מהדק';
+
+  @override
+  String get enum_equipmentType_videoLight => 'פנס וידאו';
+
+  @override
+  String get enum_equipmentType_floatArm => 'זרוע ציפה / מצוף';
 
   @override
   String get enum_equipmentType_undersuit => 'חליפה תחתונה';
@@ -17333,6 +17424,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_viewer_goToDive => 'מעבר לצלילה';
 
   @override
+  String get media_viewer_enterFullscreen => 'מסך מלא';
+
+  @override
+  String get media_viewer_exitFullscreen => 'יציאה ממסך מלא';
+
+  @override
+  String get media_viewer_moreOptions => 'אפשרויות נוספות';
+
+  @override
   String get nav_home => 'בית';
 
   @override
@@ -18151,14 +18251,17 @@ class AppLocalizationsHe extends AppLocalizations {
       'תנאי מים לווייניים בתאריך הצלילה';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'GPS פני המים';
+  String get diveDetailSection_surfaceGps_name => 'מיקום';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'נקודות כניסה/יציאה ב-GPS וסחף פני המים';
+      'מפת אתר הצלילה, נקודות כניסה/יציאה ב-GPS וסחף פני המים';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'GPS פני המים';
+
+  @override
+  String get diveLog_detail_section_location => 'מיקום';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'כניסה';
@@ -18409,6 +18512,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get siteDetailSection_location_description =>
       'מדינה, אזור, מקווה מים, קואורדינטות GPS';
+
+  @override
+  String get siteDetailSection_seascape_description =>
+      'תצוגת תלת־ממד של פני השטח התת־ימיים סביב האתר';
 
   @override
   String get siteDetailSection_depth_description =>
@@ -20442,6 +20549,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_summary_weight => 'משקל';
 
   @override
+  String get settings_summary_altitude => 'גובה';
+
+  @override
+  String get settings_summary_distance => 'מרחק';
+
+  @override
   String get settings_units_custom => 'מותאם אישית';
 
   @override
@@ -20592,6 +20705,30 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'ליברות (lbs)';
+
+  @override
+  String get settings_units_altitude => 'גובה';
+
+  @override
+  String get settings_units_altitude_feet => 'רגל (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'מטרים (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'יחידת גובה';
+
+  @override
+  String get settings_units_distance => 'מרחק';
+
+  @override
+  String get settings_units_distance_kilometers => 'קילומטרים (km)';
+
+  @override
+  String get settings_units_distance_miles => 'מיילים (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'יחידת מרחק';
 
   @override
   String get settings_updates_automaticUpdates => 'עדכונים אוטומטיים';
@@ -22061,6 +22198,27 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count קבצים',
+      one: 'קובץ אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'קושחה $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'מ-$app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {
@@ -28104,7 +28262,7 @@ class AppLocalizationsHe extends AppLocalizations {
       other: '$count פרופילים כפולים',
       one: 'פרופיל כפול אחד',
     );
-    return 'כל הצלילות, הסמכות, הציוד ושאר הנתונים מ-$_temp0 יועברו אל \"$name\". לא ניתן לבטל פעולה זו באופן אוטומטי.';
+    return 'כל הצלילות, הסמכות, הציוד ושאר הנתונים מ-$_temp0 יועברו אל \"$name\". ניתן לבטל פעולה זו מיד לאחר המיזוג.';
   }
 
   @override
@@ -29324,6 +29482,30 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_pocket_mount => 'התקנה';
 
   @override
+  String get attrLabel_lens_type => 'סוג עדשה';
+
+  @override
+  String get attrLabel_focal_length_mm => 'אורך מוקד (מ״מ)';
+
+  @override
+  String get attrLabel_port_type => 'סוג פורט';
+
+  @override
+  String get attrLabel_tray_style => 'סגנון';
+
+  @override
+  String get attrLabel_arm_length_m => 'אורך זרוע';
+
+  @override
+  String get attrLabel_guide_number_m => 'מספר מנחה';
+
+  @override
+  String get attrLabel_bag_style => 'סגנון';
+
+  @override
+  String get attrLabel_capacity_l => 'קיבולת';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'אלומיניום';
 
   @override
@@ -29475,6 +29657,54 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'ירך';
+
+  @override
+  String get attrChoice_lens_type_camera_lens => 'עדשת מצלמה';
+
+  @override
+  String get attrChoice_lens_type_wet_lens => 'עדשה רטובה';
+
+  @override
+  String get attrChoice_lens_type_diopter => 'עדשת קירוב (דיופטר)';
+
+  @override
+  String get attrChoice_port_type_dome => 'כיפה';
+
+  @override
+  String get attrChoice_port_type_flat => 'שטוח';
+
+  @override
+  String get attrChoice_port_type_macro => 'מאקרו';
+
+  @override
+  String get attrChoice_tray_style_single_handle => 'ידית אחת';
+
+  @override
+  String get attrChoice_tray_style_double_handle => 'שתי ידיות';
+
+  @override
+  String get attrChoice_tray_style_pistol_grip => 'אחיזת אקדח';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'תיק נסיעות';
+
+  @override
+  String get attrChoice_bag_style_roller => 'טרולי';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'תרמיל גב';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'תיק רשת';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'תיק יבש';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'תיק לווסת';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'שקית איסוף';
 
   @override
   String get attrChoice_bcd_style_jacket => 'ז\'קט';
@@ -29764,6 +29994,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'טיסה אחרי צלילה';
 
   @override
+  String get safetySettings_cnsOtuHeader => 'עומס CNS/OTU נוכחי';
+
+  @override
   String get safetySettings_noFlyPreset_standard => 'רגיל (12/18/24 ש\')';
 
   @override
@@ -29809,6 +30042,30 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get safetyHub_noFly_clear_subtitle => 'אין הגבלת טיסה פעילה';
+
+  @override
+  String get safetyHub_cnsOtu_clear_title => 'אין עומס פעיל';
+
+  @override
+  String get safetyHub_cnsOtu_clear_subtitle =>
+      'ה-CNS וה-OTU דעכו מאז הצלילה האחרונה שלך';
+
+  @override
+  String safetyHub_cnsOtu_sinceLastDive(String duration) {
+    return 'הצלילה האחרונה הסתיימה לפני $duration';
+  }
+
+  @override
+  String safetyHub_cnsOtu_elapsedDaysHours(int days, int hours) {
+    return '${days}d ${hours}h';
+  }
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_title => 'לצלילה האחרונה אין פרופיל';
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_body =>
+      'ללא פרופיל עומק לא ניתן לחשב את ה-CNS% וה-OTU שלה. הסיכומים שלהלן אינם כוללים אותה.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -30237,6 +30494,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get planning_card_noFly_subtitle =>
       'ספירה לאחור מנחה מהצלילות האחרונות שלך';
+
+  @override
+  String get planning_card_cnsOtu_subtitle =>
+      'דעיכה בזמן אמת מאז הצלילה האחרונה שלך';
 
   @override
   String get settings_section_safety_title => 'בטיחות';

@@ -7,6 +7,7 @@ import 'package:submersion/features/dashboard/presentation/providers/dashboard_p
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_summary_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
@@ -126,21 +127,22 @@ void main() {
     }, initialTime: DateTime(2026, 7, 15, 23));
   });
 
-  test('both statistics providers re-query after midnight', () {
+  test('every statistics provider re-queries after midnight', () {
     fakeAsync((async) {
       final c = container();
       c.listen(diveStatisticsProvider, (_, _) {});
       c.listen(filteredDiveStatisticsProvider, (_, _) {});
+      c.listen(diveListScopedStatisticsProvider, (_, _) {});
       async.flushMicrotasks();
-      expect(dives.statisticsCalls, 2);
+      expect(dives.statisticsCalls, 3);
 
       async.elapse(const Duration(minutes: 30));
       async.flushMicrotasks();
-      expect(dives.statisticsCalls, 2, reason: 'still Dec 31');
+      expect(dives.statisticsCalls, 3, reason: 'still Dec 31');
 
       async.elapse(const Duration(hours: 1));
       async.flushMicrotasks();
-      expect(dives.statisticsCalls, 4);
+      expect(dives.statisticsCalls, 6);
       c.dispose();
     }, initialTime: DateTime(2026, 12, 31, 23));
   });

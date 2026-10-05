@@ -1395,6 +1395,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get o2Toxicity_thisDive => 'Ez a merülés';
 
   @override
+  String get o2Toxicity_lastDive => 'Utolsó merülés';
+
+  @override
+  String o2Toxicity_lastDiveStart(String percent) {
+    return 'Utolsó merülés előtt: $percent%';
+  }
+
+  @override
+  String o2Toxicity_lastDiveDelta(String percent) {
+    return 'Utolsó merülés: +$percent%';
+  }
+
+  @override
   String get o2Toxicity_weekly => 'Heti';
 
   @override
@@ -5926,6 +5939,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'A kiválasztott merülések különböző búvárokhoz tartoznak, ezért nem vonhatók össze.';
 
   @override
+  String get diveLog_combine_modeJoin => 'Összefűzés egy merüléssé';
+
+  @override
+  String get diveLog_combine_modeJoinShort => 'Összefűzés';
+
+  @override
+  String get diveLog_combine_modeMerge => 'Összevonás másik számítógépként';
+
+  @override
+  String get diveLog_combine_modeMergeShort => 'Összevonás';
+
+  @override
   String get diveLog_combine_profilePreview => 'Összevont profil';
 
   @override
@@ -5967,6 +5992,26 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => 'Elsődleges';
 
   @override
+  String get diveLog_consolidate_alignBestFit => 'Legjobb illeszkedés';
+
+  @override
+  String get diveLog_consolidate_alignStarts => 'Kezdetek igazítása';
+
+  @override
+  String get diveLog_consolidate_alignStartsShort => 'Kezdetek';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel => 'Felvételek igazítása';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      'Ezek a felvételek időben nem fedik egymást, így valószínűleg az egyik számítógép órája rosszul jár. A merülés az elsődleges számítógép idejét tartja meg.';
+
+  @override
+  String get diveLog_consolidate_clockNoteShort =>
+      'Valószínűleg az egyik számítógép órája rosszul jár.';
+
+  @override
   String get diveLog_consolidate_confirm =>
       'Megtartás egyetlen merülésként mindkét számítógéppel';
 
@@ -5981,6 +6026,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'Ezek a merülések ugyanattól a búvárszámítógéptől származnak, ezért így nem vonhatók össze.';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      'Az egyik felvételnek nincs összevethető mélységprofilja, ezért a kezdete az elsődleges számítógépéhez igazodik.';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint =>
+      'Ezek a profilok ugyanannak a merülésnek tűnnek, amelyet két számítógép rögzített.';
 
   @override
   String get diveLog_consolidate_selectPrimary => 'Elsődleges búvárszámítógép';
@@ -8039,6 +8092,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get setup_units_altitude => 'Magasság';
 
   @override
+  String get setup_units_distance => 'Távolság';
+
+  @override
   String get setup_units_dateFormat => 'Dátumformátum';
 
   @override
@@ -8973,6 +9029,17 @@ class AppLocalizationsHu extends AppLocalizations {
       one: 'merülés',
     );
     return '$count $_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total merülés',
+      one: '$total merülés',
+    );
+    return 'Szűrve: $shown / $_temp0 összesítve';
   }
 
   @override
@@ -11616,6 +11683,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_entryMethod_boat => 'Hajós beszállás';
 
   @override
+  String get enum_entryMethod_frontRoll => 'Előregurulás';
+
+  @override
   String get enum_entryMethod_giantStride => 'Óriás lépés';
 
   @override
@@ -11709,6 +11779,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentType_gearPocket => 'Felszerelészseb';
 
   @override
+  String get enum_equipmentType_bag => 'Táska';
+
+  @override
   String get enum_equipmentType_hose => 'Tömlő';
 
   @override
@@ -11719,6 +11792,24 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_equipmentType_strobe => 'Vaku';
+
+  @override
+  String get enum_equipmentType_lens => 'Objektív';
+
+  @override
+  String get enum_equipmentType_port => 'Port';
+
+  @override
+  String get enum_equipmentType_trayHandle => 'Tálca / Markolat';
+
+  @override
+  String get enum_equipmentType_armClamp => 'Kar / Bilincs';
+
+  @override
+  String get enum_equipmentType_videoLight => 'Videólámpa';
+
+  @override
+  String get enum_equipmentType_floatArm => 'Úszókar / Úszó';
 
   @override
   String get enum_equipmentType_undersuit => 'Alsóöltözet';
@@ -17681,6 +17772,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_viewer_goToDive => 'Ugrás a merüléshez';
 
   @override
+  String get media_viewer_enterFullscreen => 'Teljes képernyő';
+
+  @override
+  String get media_viewer_exitFullscreen => 'Kilépés a teljes képernyőből';
+
+  @override
+  String get media_viewer_moreOptions => 'További lehetőségek';
+
+  @override
   String get nav_home => 'Főoldal';
 
   @override
@@ -18515,14 +18615,17 @@ class AppLocalizationsHu extends AppLocalizations {
       'Műholdas vízviszonyok a merülés napján';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Felszíni GPS';
+  String get diveDetailSection_surfaceGps_name => 'Helyszín';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS be-/kiszállási pontok és felszíni sodródás';
+      'A merülőhely, a GPS be-/kiszállási pontok és a felszíni sodródás térképe';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'Felszíni GPS';
+
+  @override
+  String get diveLog_detail_section_location => 'Helyszín';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'Beszállás';
@@ -18776,6 +18879,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get siteDetailSection_location_description =>
       'Ország, régió, víztest, GPS-koordináták';
+
+  @override
+  String get siteDetailSection_seascape_description =>
+      'A merülőhely körüli víz alatti domborzat 3D nézete';
 
   @override
   String get siteDetailSection_depth_description =>
@@ -20869,6 +20976,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_summary_weight => 'Súly';
 
   @override
+  String get settings_summary_altitude => 'Magasság';
+
+  @override
+  String get settings_summary_distance => 'Távolság';
+
+  @override
   String get settings_units_custom => 'Egyedi';
 
   @override
@@ -21020,6 +21133,30 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'Font (lbs)';
+
+  @override
+  String get settings_units_altitude => 'Magasság';
+
+  @override
+  String get settings_units_altitude_feet => 'Láb (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'Méter (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'Magasság egység';
+
+  @override
+  String get settings_units_distance => 'Távolság';
+
+  @override
+  String get settings_units_distance_kilometers => 'Kilométer (km)';
+
+  @override
+  String get settings_units_distance_miles => 'Mérföld (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'Távolság egység';
 
   @override
   String get settings_updates_automaticUpdates => 'Automatikus frissítések';
@@ -22545,6 +22682,27 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fájl',
+      one: '$count fájl',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'forrás: $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {
@@ -28684,7 +28842,7 @@ class AppLocalizationsHu extends AppLocalizations {
       other: '$count duplikált profilból',
       one: 'egy duplikált profilból',
     );
-    return 'Az összes merülés, tanúsítvány, felszerelés és egyéb adat $_temp0 áthelyezésre kerül ide: \"$name\". Ez nem vonható vissza automatikusan.';
+    return 'Az összes merülés, tanúsítvány, felszerelés és egyéb adat $_temp0 áthelyezésre kerül ide: \"$name\". Ez az összevonás után azonnal visszavonható.';
   }
 
   @override
@@ -29908,6 +30066,30 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Rögzítés';
 
   @override
+  String get attrLabel_lens_type => 'Objektív típusa';
+
+  @override
+  String get attrLabel_focal_length_mm => 'Gyújtótávolság (mm)';
+
+  @override
+  String get attrLabel_port_type => 'Port típusa';
+
+  @override
+  String get attrLabel_tray_style => 'Fazon';
+
+  @override
+  String get attrLabel_arm_length_m => 'Kar hossza';
+
+  @override
+  String get attrLabel_guide_number_m => 'Kulcsszám';
+
+  @override
+  String get attrLabel_bag_style => 'Fazon';
+
+  @override
+  String get attrLabel_capacity_l => 'Kapacitás';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Alumínium';
 
   @override
@@ -30060,6 +30242,54 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Comb';
+
+  @override
+  String get attrChoice_lens_type_camera_lens => 'Fényképezőgép-objektív';
+
+  @override
+  String get attrChoice_lens_type_wet_lens => 'Nedves előtétlencse';
+
+  @override
+  String get attrChoice_lens_type_diopter => 'Közelítő lencse (dioptria)';
+
+  @override
+  String get attrChoice_port_type_dome => 'Dóm';
+
+  @override
+  String get attrChoice_port_type_flat => 'Sík';
+
+  @override
+  String get attrChoice_port_type_macro => 'Makró';
+
+  @override
+  String get attrChoice_tray_style_single_handle => 'Egy markolat';
+
+  @override
+  String get attrChoice_tray_style_double_handle => 'Két markolat';
+
+  @override
+  String get attrChoice_tray_style_pistol_grip => 'Pisztolymarkolat';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'Utazótáska';
+
+  @override
+  String get attrChoice_bag_style_roller => 'Gurulós táska';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'Hátizsák';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'Hálós táska';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'Vízhatlan zsák';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'Légzőautomata-táska';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'Gyűjtőzsák';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Mellény';
@@ -30351,6 +30581,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Repülés merülés után';
 
   @override
+  String get safetySettings_cnsOtuHeader => 'Jelenlegi CNS/OTU terhelés';
+
+  @override
   String get safetySettings_noFlyPreset_standard => 'Normál (12/18/24 ó)';
 
   @override
@@ -30398,6 +30631,31 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get safetyHub_noFly_clear_subtitle =>
       'Nincs aktív repülési korlátozás';
+
+  @override
+  String get safetyHub_cnsOtu_clear_title => 'Nincs aktív terhelés';
+
+  @override
+  String get safetyHub_cnsOtu_clear_subtitle =>
+      'A CNS és az OTU lecsengett az utolsó merülés óta';
+
+  @override
+  String safetyHub_cnsOtu_sinceLastDive(String duration) {
+    return 'Az utolsó merülés $duration ezelőtt ért véget';
+  }
+
+  @override
+  String safetyHub_cnsOtu_elapsedDaysHours(int days, int hours) {
+    return '${days}n $hoursó';
+  }
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_title =>
+      'Az utolsó merülésnek nincs profilja';
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_body =>
+      'Mélységprofil nélkül a CNS% és az OTU nem számítható ki. Az alábbi összesítések nem tartalmazzák.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -30834,6 +31092,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get planning_card_noFly_subtitle =>
       'Irányadó visszaszámlálás az utolsó merüléseidtől';
+
+  @override
+  String get planning_card_cnsOtu_subtitle =>
+      'Élő csökkenés az utolsó merülés óta';
 
   @override
   String get settings_section_safety_title => 'Biztonság';

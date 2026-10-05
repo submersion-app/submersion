@@ -55,8 +55,20 @@ enum EquipmentType {
   light('Light'),
   camera('Camera'),
   // Photo rig parts (issue #1487): the same strobes ride different housings.
+  // #1997 completed the family, so a camera is assembled from its parts the
+  // way a regulator and a BCD are. They run lens to float, roughly from the
+  // camera body outwards. A port is its own type because it, not the lens,
+  // is what floods and scratches, and it is swapped with the lens behind it.
+  lens('Lens'),
+  port('Port'),
   housing('Housing'),
+  trayHandle('Tray / Handle'),
+  armClamp('Arm / Clamp'),
   strobe('Strobe'),
+  // A light on the rig rather than in the hand: rated and charged like a
+  // dive light, but carried by the camera's arms.
+  videoLight('Video Light'),
+  floatArm('Float Arm / Float'),
   smb('SMB'),
   reel('Reel'),
   knife('Knife'),
@@ -65,6 +77,11 @@ enum EquipmentType {
   gloves('Gloves'),
   boots('Boots'),
   dpv('DPV'),
+  // Requested in #2952. A bag carries gear rather than being worn, so it
+  // has no place on the diver figure or in a body order, and adds no mass
+  // to a dive: gear bags, rollers, mesh and dry bags alike, told apart by
+  // the bag_style attribute rather than by types of their own.
+  bag('Bag'),
   // Consumable parts that live inside another item (spec: equipment
   // condition intelligence). Both are children of a parent item and inherit
   // its dives from their install date.
@@ -403,6 +420,9 @@ enum EntryMethod {
   shore('Shore Entry'),
   boat('Boat Entry'),
   backRoll('Back Roll'),
+
+  /// Rolling forward off the tube of a RIB (#2927).
+  frontRoll('Front Roll'),
   giantStride('Giant Stride'),
   seatedEntry('Seated Entry'),
   ladder('Ladder'),

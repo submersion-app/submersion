@@ -1427,6 +1427,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get o2Toxicity_thisDive => 'هذه الغطسة';
 
   @override
+  String get o2Toxicity_lastDive => 'الغطسة الأخيرة';
+
+  @override
+  String o2Toxicity_lastDiveStart(String percent) {
+    return 'قبل الغطسة الأخيرة: $percent%';
+  }
+
+  @override
+  String o2Toxicity_lastDiveDelta(String percent) {
+    return 'الغطسة الأخيرة: +$percent%';
+  }
+
+  @override
   String get o2Toxicity_weekly => 'أسبوعي';
 
   @override
@@ -6022,6 +6035,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'الغوصات المحددة تخص غواصين مختلفين ولا يمكن دمجها.';
 
   @override
+  String get diveLog_combine_modeJoin => 'ربط في غوصة واحدة';
+
+  @override
+  String get diveLog_combine_modeJoinShort => 'ربط';
+
+  @override
+  String get diveLog_combine_modeMerge => 'دمج ككمبيوتر إضافي';
+
+  @override
+  String get diveLog_combine_modeMergeShort => 'دمج';
+
+  @override
   String get diveLog_combine_profilePreview => 'الملف المدمج';
 
   @override
@@ -6065,6 +6090,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => 'أساسي';
 
   @override
+  String get diveLog_consolidate_alignBestFit => 'أفضل تطابق';
+
+  @override
+  String get diveLog_consolidate_alignStarts => 'محاذاة البدايات';
+
+  @override
+  String get diveLog_consolidate_alignStartsShort => 'البدايات';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel => 'محاذاة السجلات حسب';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      'هذه السجلات لا تتداخل زمنيًا، لذا ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة. تحتفظ الغوصة بوقت الكمبيوتر الأساسي.';
+
+  @override
+  String get diveLog_consolidate_clockNoteShort =>
+      'ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة.';
+
+  @override
   String get diveLog_consolidate_confirm =>
       'الاحتفاظ بها كغوصة واحدة بجهازي كمبيوتر';
 
@@ -6079,6 +6124,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'هاتان الغوصتان من نفس كمبيوتر الغوص ولا يمكن دمجهما بهذه الطريقة.';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      'أحد السجلات لا يحتوي على ملف عمق للمطابقة، لذا تتم محاذاة بدايته مع بداية الأساسي.';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint =>
+      'تبدو هذه الملفات كأنها الغوصة نفسها سجّلها جهازا كمبيوتر.';
 
   @override
   String get diveLog_consolidate_selectPrimary => 'كمبيوتر الغوص الأساسي';
@@ -8156,6 +8209,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setup_units_altitude => 'الارتفاع';
 
   @override
+  String get setup_units_distance => 'المسافة';
+
+  @override
   String get setup_units_dateFormat => 'تنسيق التاريخ';
 
   @override
@@ -9099,6 +9155,20 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'غوصة واحدة',
     );
     return '$_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total غوصة',
+      many: '$total غوصة',
+      few: '$total غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    return 'مُصفّى: ملخص $shown من $_temp0';
   }
 
   @override
@@ -11785,6 +11855,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_entryMethod_boat => 'دخول من القارب';
 
   @override
+  String get enum_entryMethod_frontRoll => 'دحرجة أمامية';
+
+  @override
   String get enum_entryMethod_giantStride => 'خطوة عملاقة';
 
   @override
@@ -11878,6 +11951,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentType_gearPocket => 'جيب المعدات';
 
   @override
+  String get enum_equipmentType_bag => 'حقيبة';
+
+  @override
   String get enum_equipmentType_hose => 'خرطوم';
 
   @override
@@ -11888,6 +11964,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_equipmentType_strobe => 'فلاش';
+
+  @override
+  String get enum_equipmentType_lens => 'عدسة';
+
+  @override
+  String get enum_equipmentType_port => 'منفذ العدسة';
+
+  @override
+  String get enum_equipmentType_trayHandle => 'حامل / مقبض';
+
+  @override
+  String get enum_equipmentType_armClamp => 'ذراع / مشبك';
+
+  @override
+  String get enum_equipmentType_videoLight => 'مصباح فيديو';
+
+  @override
+  String get enum_equipmentType_floatArm => 'ذراع طفو / عوامة';
 
   @override
   String get enum_equipmentType_undersuit => 'بدلة داخلية';
@@ -17949,6 +18043,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_viewer_goToDive => 'الانتقال إلى الغطسة';
 
   @override
+  String get media_viewer_enterFullscreen => 'ملء الشاشة';
+
+  @override
+  String get media_viewer_exitFullscreen => 'الخروج من ملء الشاشة';
+
+  @override
+  String get media_viewer_moreOptions => 'المزيد من الخيارات';
+
+  @override
   String get nav_home => 'الرئيسية';
 
   @override
@@ -18795,14 +18898,17 @@ class AppLocalizationsAr extends AppLocalizations {
       'أحوال المياه عبر الأقمار الصناعية في تاريخ الغطسة';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'GPS السطح';
+  String get diveDetailSection_surfaceGps_name => 'الموقع الجغرافي';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'نقاط الدخول/الخروج عبر GPS وانجراف السطح';
+      'خريطة موقع الغوص ونقاط الدخول/الخروج عبر GPS وانجراف السطح';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'GPS السطح';
+
+  @override
+  String get diveLog_detail_section_location => 'الموقع الجغرافي';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'الدخول';
@@ -19057,6 +19163,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get siteDetailSection_location_description =>
       'الدولة، المنطقة، المسطح المائي، إحداثيات GPS';
+
+  @override
+  String get siteDetailSection_seascape_description =>
+      'عرض ثلاثي الأبعاد للتضاريس تحت الماء حول الموقع';
 
   @override
   String get siteDetailSection_depth_description =>
@@ -21153,6 +21263,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_summary_weight => 'الوزن';
 
   @override
+  String get settings_summary_altitude => 'الارتفاع';
+
+  @override
+  String get settings_summary_distance => 'المسافة';
+
+  @override
   String get settings_units_custom => 'مخصص';
 
   @override
@@ -21303,6 +21419,30 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'أرطال (lbs)';
+
+  @override
+  String get settings_units_altitude => 'الارتفاع';
+
+  @override
+  String get settings_units_altitude_feet => 'أقدام (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'أمتار (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'وحدة الارتفاع';
+
+  @override
+  String get settings_units_distance => 'المسافة';
+
+  @override
+  String get settings_units_distance_kilometers => 'كيلومترات (km)';
+
+  @override
+  String get settings_units_distance_miles => 'أميال (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'وحدة المسافة';
 
   @override
   String get settings_updates_automaticUpdates => 'التحديثات التلقائية';
@@ -22797,6 +22937,30 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملف',
+      many: '$count ملفًا',
+      few: '$count ملفات',
+      two: 'ملفان',
+      one: 'ملف واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'البرنامج الثابت $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'من $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {
@@ -29277,7 +29441,7 @@ class AppLocalizationsAr extends AppLocalizations {
       two: 'ملفين مكررين',
       one: 'ملف مكرر',
     );
-    return 'سيتم نقل جميع الغطسات والشهادات والمعدات والبيانات الأخرى من $_temp0 إلى \"$name\". لا يمكن التراجع عن هذا تلقائيًا.';
+    return 'سيتم نقل جميع الغطسات والشهادات والمعدات والبيانات الأخرى من $_temp0 إلى \"$name\". يمكن التراجع عن هذا مباشرةً بعد الدمج.';
   }
 
   @override
@@ -30515,6 +30679,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_pocket_mount => 'التثبيت';
 
   @override
+  String get attrLabel_lens_type => 'نوع العدسة';
+
+  @override
+  String get attrLabel_focal_length_mm => 'البعد البؤري (مم)';
+
+  @override
+  String get attrLabel_port_type => 'نوع المنفذ';
+
+  @override
+  String get attrLabel_tray_style => 'النمط';
+
+  @override
+  String get attrLabel_arm_length_m => 'طول الذراع';
+
+  @override
+  String get attrLabel_guide_number_m => 'الرقم الدليلي';
+
+  @override
+  String get attrLabel_bag_style => 'النمط';
+
+  @override
+  String get attrLabel_capacity_l => 'السعة';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'ألومنيوم';
 
   @override
@@ -30666,6 +30854,54 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'الفخذ';
+
+  @override
+  String get attrChoice_lens_type_camera_lens => 'عدسة الكاميرا';
+
+  @override
+  String get attrChoice_lens_type_wet_lens => 'عدسة رطبة';
+
+  @override
+  String get attrChoice_lens_type_diopter => 'عدسة مقرّبة (ديوبتر)';
+
+  @override
+  String get attrChoice_port_type_dome => 'قبة';
+
+  @override
+  String get attrChoice_port_type_flat => 'مسطح';
+
+  @override
+  String get attrChoice_port_type_macro => 'ماكرو';
+
+  @override
+  String get attrChoice_tray_style_single_handle => 'مقبض واحد';
+
+  @override
+  String get attrChoice_tray_style_double_handle => 'مقبضان';
+
+  @override
+  String get attrChoice_tray_style_pistol_grip => 'مقبض مسدس';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'حقيبة سفر';
+
+  @override
+  String get attrChoice_bag_style_roller => 'حقيبة بعجلات';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'حقيبة ظهر';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'حقيبة شبكية';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'حقيبة جافة';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'حقيبة منظم التنفس';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'كيس جمع';
 
   @override
   String get attrChoice_bcd_style_jacket => 'جاكيت';
@@ -30956,6 +31192,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'الطيران بعد الغوص';
 
   @override
+  String get safetySettings_cnsOtuHeader => 'الحمل الحالي لـ CNS/OTU';
+
+  @override
   String get safetySettings_noFlyPreset_standard => 'قياسي (12/18/24 س)';
 
   @override
@@ -31002,6 +31241,30 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get safetyHub_noFly_clear_subtitle => 'لا يوجد قيد نشط على الطيران';
+
+  @override
+  String get safetyHub_cnsOtu_clear_title => 'لا يوجد حمل نشط';
+
+  @override
+  String get safetyHub_cnsOtu_clear_subtitle =>
+      'تلاشى كل من CNS وOTU منذ غطستك الأخيرة';
+
+  @override
+  String safetyHub_cnsOtu_sinceLastDive(String duration) {
+    return 'انتهت الغطسة الأخيرة منذ $duration';
+  }
+
+  @override
+  String safetyHub_cnsOtu_elapsedDaysHours(int days, int hours) {
+    return '${days}d ${hours}h';
+  }
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_title => 'آخر غطسة بلا بيانات مخطط';
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_body =>
+      'لا يمكن حساب CNS% و OTU لها بدون بيانات العمق. المجاميع أدناه لا تشملها.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -31437,6 +31700,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get planning_card_noFly_subtitle => 'عدّاد إرشادي منذ آخر غطساتك';
+
+  @override
+  String get planning_card_cnsOtu_subtitle => 'تناقص مباشر منذ غطستك الأخيرة';
 
   @override
   String get settings_section_safety_title => 'السلامة';

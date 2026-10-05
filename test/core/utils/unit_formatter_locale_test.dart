@@ -122,6 +122,12 @@ void main() {
     test('geo distance uses the locale decimal separator', () {
       Intl.defaultLocale = 'de';
       expect(metric.formatGeoDistance(2500), '2,5 km');
+      expect(
+        const UnitFormatter(
+          AppSettings(distanceUnit: DistanceUnit.miles),
+        ).formatGeoDistance(1931.2128),
+        '1,2 mi',
+      );
     });
   });
 

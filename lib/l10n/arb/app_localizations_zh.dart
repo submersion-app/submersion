@@ -1341,6 +1341,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get o2Toxicity_thisDive => '本次潜水';
 
   @override
+  String get o2Toxicity_lastDive => '上次潜水';
+
+  @override
+  String o2Toxicity_lastDiveStart(String percent) {
+    return '上次潜水前：$percent%';
+  }
+
+  @override
+  String o2Toxicity_lastDiveDelta(String percent) {
+    return '上次潜水：+$percent%';
+  }
+
+  @override
   String get o2Toxicity_weekly => '每周';
 
   @override
@@ -5652,6 +5665,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_combine_mixedDivers => '所选潜水属于不同的潜水员，无法合并。';
 
   @override
+  String get diveLog_combine_modeJoin => '连接为一次潜水';
+
+  @override
+  String get diveLog_combine_modeJoinShort => '连接';
+
+  @override
+  String get diveLog_combine_modeMerge => '作为另一台电脑合并';
+
+  @override
+  String get diveLog_combine_modeMergeShort => '合并';
+
+  @override
   String get diveLog_combine_profilePreview => '合并后的剖面';
 
   @override
@@ -5692,6 +5717,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => '主要';
 
   @override
+  String get diveLog_consolidate_alignBestFit => '最佳匹配';
+
+  @override
+  String get diveLog_consolidate_alignStarts => '对齐开始时间';
+
+  @override
+  String get diveLog_consolidate_alignStartsShort => '开始时间';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel => '记录对齐方式';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      '这些记录在时间上没有重叠，可能是某台电脑的时钟不准。潜水保留主电脑的时间。';
+
+  @override
+  String get diveLog_consolidate_clockNoteShort => '可能是某台电脑的时钟不准。';
+
+  @override
   String get diveLog_consolidate_confirm => '保留为一次潜水，包含两台电脑';
 
   @override
@@ -5704,6 +5748,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       '这些潜水来自同一台潜水电脑，无法以这种方式合并。';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      '有一条记录没有可供匹配的深度剖面，因此将其开始时间与主电脑对齐。';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint => '这些剖面看起来是两台电脑记录的同一次潜水。';
 
   @override
   String get diveLog_consolidate_selectPrimary => '主潜水电脑';
@@ -7651,6 +7702,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setup_units_altitude => '海拔';
 
   @override
+  String get setup_units_distance => '距离';
+
+  @override
   String get setup_units_dateFormat => '日期格式';
 
   @override
@@ -8555,6 +8609,17 @@ class AppLocalizationsZh extends AppLocalizations {
       one: '次潜水',
     );
     return '$count $_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total 次潜水',
+      one: '$total 次潜水',
+    );
+    return '已筛选：汇总 $shown / $_temp0';
   }
 
   @override
@@ -11099,6 +11164,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_entryMethod_boat => '船只入水';
 
   @override
+  String get enum_entryMethod_frontRoll => '前滚式入水';
+
+  @override
   String get enum_entryMethod_giantStride => '大跨步入水';
 
   @override
@@ -11192,6 +11260,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentType_gearPocket => '装备袋';
 
   @override
+  String get enum_equipmentType_bag => '包';
+
+  @override
   String get enum_equipmentType_hose => '软管';
 
   @override
@@ -11202,6 +11273,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_equipmentType_strobe => '闪光灯';
+
+  @override
+  String get enum_equipmentType_lens => '镜头';
+
+  @override
+  String get enum_equipmentType_port => '镜头罩';
+
+  @override
+  String get enum_equipmentType_trayHandle => '托架 / 手柄';
+
+  @override
+  String get enum_equipmentType_armClamp => '臂 / 夹子';
+
+  @override
+  String get enum_equipmentType_videoLight => '摄像灯';
+
+  @override
+  String get enum_equipmentType_floatArm => '浮力臂 / 浮力块';
 
   @override
   String get enum_equipmentType_undersuit => '内胆保暖服';
@@ -16896,6 +16985,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_viewer_goToDive => '前往潜水';
 
   @override
+  String get media_viewer_enterFullscreen => '全屏';
+
+  @override
+  String get media_viewer_exitFullscreen => '退出全屏';
+
+  @override
+  String get media_viewer_moreOptions => '更多选项';
+
+  @override
   String get nav_home => '首页';
 
   @override
@@ -17682,13 +17780,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveDetailSection_reefHealth_description => '潜水日期的卫星水况';
 
   @override
-  String get diveDetailSection_surfaceGps_name => '水面 GPS';
+  String get diveDetailSection_surfaceGps_name => '位置';
 
   @override
-  String get diveDetailSection_surfaceGps_description => 'GPS 入水/出水点及水面漂移';
+  String get diveDetailSection_surfaceGps_description =>
+      '潜点、GPS 入水/出水点及水面漂移的地图';
 
   @override
   String get diveLog_detail_section_surfaceGps => '水面 GPS';
+
+  @override
+  String get diveLog_detail_section_location => '位置';
 
   @override
   String get diveLog_detail_surfaceGps_entry => '入水';
@@ -17924,6 +18026,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get siteDetailSection_location_description => '国家、地区、水域、GPS 坐标';
+
+  @override
+  String get siteDetailSection_seascape_description => '潜点周围水下地形的 3D 视图';
 
   @override
   String get siteDetailSection_depth_description => '标注深度范围及潜水实际到达深度';
@@ -19880,6 +19985,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_summary_weight => '重量';
 
   @override
+  String get settings_summary_altitude => '海拔';
+
+  @override
+  String get settings_summary_distance => '距离';
+
+  @override
   String get settings_units_custom => '自定义';
 
   @override
@@ -20029,6 +20140,30 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => '磅 (lbs)';
+
+  @override
+  String get settings_units_altitude => '海拔';
+
+  @override
+  String get settings_units_altitude_feet => '英尺 (ft)';
+
+  @override
+  String get settings_units_altitude_meters => '米 (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => '海拔单位';
+
+  @override
+  String get settings_units_distance => '距离';
+
+  @override
+  String get settings_units_distance_kilometers => '千米 (km)';
+
+  @override
+  String get settings_units_distance_miles => '英里 (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => '距离单位';
 
   @override
   String get settings_updates_automaticUpdates => '自动更新';
@@ -21449,6 +21584,26 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => '标签';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个文件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return '固件 $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return '来自 $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {
@@ -27247,7 +27402,7 @@ class AppLocalizationsZh extends AppLocalizations {
       other: '$count 个重复档案',
       one: '1 个重复档案',
     );
-    return '$_temp0中的所有潜水记录、认证、装备及其他数据将被移入「$name」。此操作无法自动撤销。';
+    return '$_temp0中的所有潜水记录、认证、装备及其他数据将被移入「$name」。合并后可立即撤销此操作。';
   }
 
   @override
@@ -28425,6 +28580,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_pocket_mount => '佩戴方式';
 
   @override
+  String get attrLabel_lens_type => '镜头类型';
+
+  @override
+  String get attrLabel_focal_length_mm => '焦距 (mm)';
+
+  @override
+  String get attrLabel_port_type => '镜头罩类型';
+
+  @override
+  String get attrLabel_tray_style => '款式';
+
+  @override
+  String get attrLabel_arm_length_m => '臂长';
+
+  @override
+  String get attrLabel_guide_number_m => '闪光指数';
+
+  @override
+  String get attrLabel_bag_style => '款式';
+
+  @override
+  String get attrLabel_capacity_l => '容量';
+
+  @override
   String get attrChoice_plate_material_aluminum => '铝';
 
   @override
@@ -28576,6 +28755,54 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => '大腿';
+
+  @override
+  String get attrChoice_lens_type_camera_lens => '相机镜头';
+
+  @override
+  String get attrChoice_lens_type_wet_lens => '湿镜';
+
+  @override
+  String get attrChoice_lens_type_diopter => '近摄镜 (屈光度)';
+
+  @override
+  String get attrChoice_port_type_dome => '球面罩';
+
+  @override
+  String get attrChoice_port_type_flat => '平面罩';
+
+  @override
+  String get attrChoice_port_type_macro => '微距罩';
+
+  @override
+  String get attrChoice_tray_style_single_handle => '单手柄';
+
+  @override
+  String get attrChoice_tray_style_double_handle => '双手柄';
+
+  @override
+  String get attrChoice_tray_style_pistol_grip => '手枪式握把';
+
+  @override
+  String get attrChoice_bag_style_duffel => '旅行袋';
+
+  @override
+  String get attrChoice_bag_style_roller => '拉杆箱';
+
+  @override
+  String get attrChoice_bag_style_backpack => '背包';
+
+  @override
+  String get attrChoice_bag_style_mesh => '网兜';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => '防水袋';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => '调节器包';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => '收集袋';
 
   @override
   String get attrChoice_bcd_style_jacket => '夹克式';
@@ -28861,6 +29088,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get safetySettings_noFlyHeader => '潜水后飞行';
 
   @override
+  String get safetySettings_cnsOtuHeader => '当前CNS/OTU负荷';
+
+  @override
   String get safetySettings_noFlyPreset_standard => '标准(12/18/24 小时)';
 
   @override
@@ -28905,6 +29135,29 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get safetyHub_noFly_clear_subtitle => '无活动的飞行限制';
+
+  @override
+  String get safetyHub_cnsOtu_clear_title => '无活跃负荷';
+
+  @override
+  String get safetyHub_cnsOtu_clear_subtitle => '自上次潜水以来CNS和OTU已消退';
+
+  @override
+  String safetyHub_cnsOtu_sinceLastDive(String duration) {
+    return '上次潜水结束于$duration前';
+  }
+
+  @override
+  String safetyHub_cnsOtu_elapsedDaysHours(int days, int hours) {
+    return '$days天$hours小时';
+  }
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_title => '上次潜水没有剖面';
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_body =>
+      '没有深度剖面，无法计算其 CNS% 和 OTU。下方合计不包含此次潜水。';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -29316,6 +29569,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get planning_card_noFly_subtitle => '基于最近潜水的指导倒计时';
+
+  @override
+  String get planning_card_cnsOtu_subtitle => '自上次潜水以来的实时衰减';
 
   @override
   String get settings_section_safety_title => '安全';

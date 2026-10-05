@@ -1398,6 +1398,19 @@ class AppLocalizationsIt extends AppLocalizations {
   String get o2Toxicity_thisDive => 'Questa immersione';
 
   @override
+  String get o2Toxicity_lastDive => 'Ultima immersione';
+
+  @override
+  String o2Toxicity_lastDiveStart(String percent) {
+    return 'Prima dell\'ultima immersione: $percent%';
+  }
+
+  @override
+  String o2Toxicity_lastDiveDelta(String percent) {
+    return 'Ultima immersione: +$percent%';
+  }
+
+  @override
   String get o2Toxicity_weekly => 'Settimanale';
 
   @override
@@ -5937,6 +5950,18 @@ class AppLocalizationsIt extends AppLocalizations {
       'Le immersioni selezionate appartengono a subacquei diversi e non possono essere unite.';
 
   @override
+  String get diveLog_combine_modeJoin => 'Concatena in un\'unica immersione';
+
+  @override
+  String get diveLog_combine_modeJoinShort => 'Concatena';
+
+  @override
+  String get diveLog_combine_modeMerge => 'Unisci come un altro computer';
+
+  @override
+  String get diveLog_combine_modeMergeShort => 'Unisci';
+
+  @override
   String get diveLog_combine_profilePreview => 'Profilo combinato';
 
   @override
@@ -5977,6 +6002,27 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => 'Primario';
 
   @override
+  String get diveLog_consolidate_alignBestFit => 'Miglior corrispondenza';
+
+  @override
+  String get diveLog_consolidate_alignStarts => 'Allinea gli inizi';
+
+  @override
+  String get diveLog_consolidate_alignStartsShort => 'Inizi';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel =>
+      'Allinea le registrazioni per';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      'Queste registrazioni non si sovrappongono nel tempo, quindi l\'orologio di un computer è probabilmente sbagliato. L\'immersione mantiene l\'ora del computer principale.';
+
+  @override
+  String get diveLog_consolidate_clockNoteShort =>
+      'L\'orologio di un computer è probabilmente sbagliato.';
+
+  @override
   String get diveLog_consolidate_confirm =>
       'Mantieni come un\'unica immersione con entrambi i computer';
 
@@ -5991,6 +6037,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'Queste immersioni provengono dallo stesso computer subacqueo e non possono essere unite in questo modo.';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      'Una registrazione non ha un profilo di profondità da confrontare, quindi il suo inizio viene allineato a quello del principale.';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint =>
+      'Questi profili sembrano la stessa immersione registrata da due computer.';
 
   @override
   String get diveLog_consolidate_selectPrimary =>
@@ -8056,6 +8110,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get setup_units_altitude => 'Altitudine';
 
   @override
+  String get setup_units_distance => 'Distanza';
+
+  @override
   String get setup_units_dateFormat => 'Formato data';
 
   @override
@@ -8992,6 +9049,17 @@ class AppLocalizationsIt extends AppLocalizations {
       one: 'immersione',
     );
     return '$count $_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total immersioni',
+      one: '$total immersione',
+    );
+    return 'Filtrato: riepilogo di $shown su $_temp0';
   }
 
   @override
@@ -11640,6 +11708,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_entryMethod_boat => 'Ingresso da barca';
 
   @override
+  String get enum_entryMethod_frontRoll => 'Caduta in avanti';
+
+  @override
   String get enum_entryMethod_giantStride => 'Passo del gigante';
 
   @override
@@ -11733,6 +11804,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_equipmentType_gearPocket => 'Tasca porta attrezzatura';
 
   @override
+  String get enum_equipmentType_bag => 'Borsa';
+
+  @override
   String get enum_equipmentType_hose => 'Frusta';
 
   @override
@@ -11743,6 +11817,25 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_equipmentType_strobe => 'Flash';
+
+  @override
+  String get enum_equipmentType_lens => 'Obiettivo';
+
+  @override
+  String get enum_equipmentType_port => 'Oblò';
+
+  @override
+  String get enum_equipmentType_trayHandle => 'Piastra / Maniglia';
+
+  @override
+  String get enum_equipmentType_armClamp => 'Braccio / Morsetto';
+
+  @override
+  String get enum_equipmentType_videoLight => 'Illuminatore video';
+
+  @override
+  String get enum_equipmentType_floatArm =>
+      'Braccio galleggiante / Galleggiante';
 
   @override
   String get enum_equipmentType_undersuit => 'Sottomuta';
@@ -17737,6 +17830,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_viewer_goToDive => 'Vai all\'immersione';
 
   @override
+  String get media_viewer_enterFullscreen => 'Schermo intero';
+
+  @override
+  String get media_viewer_exitFullscreen => 'Esci da schermo intero';
+
+  @override
+  String get media_viewer_moreOptions => 'Altre opzioni';
+
+  @override
   String get nav_home => 'Home';
 
   @override
@@ -18571,14 +18673,17 @@ class AppLocalizationsIt extends AppLocalizations {
       'Condizioni dell\'acqua da satellite alla data dell\'immersione';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'GPS di superficie';
+  String get diveDetailSection_surfaceGps_name => 'Posizione';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'Punti GPS di entrata/uscita e deriva in superficie';
+      'Mappa del sito, dei punti GPS di entrata/uscita e della deriva in superficie';
 
   @override
   String get diveLog_detail_section_surfaceGps => 'GPS di superficie';
+
+  @override
+  String get diveLog_detail_section_location => 'Posizione';
 
   @override
   String get diveLog_detail_surfaceGps_entry => 'Entrata';
@@ -18833,6 +18938,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get siteDetailSection_location_description =>
       'Paese, regione, specchio d\'acqua, coordinate GPS';
+
+  @override
+  String get siteDetailSection_seascape_description =>
+      'Vista 3D del fondale intorno al sito';
 
   @override
   String get siteDetailSection_depth_description =>
@@ -20928,6 +21037,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_summary_weight => 'Peso';
 
   @override
+  String get settings_summary_altitude => 'Altitudine';
+
+  @override
+  String get settings_summary_distance => 'Distanza';
+
+  @override
   String get settings_units_custom => 'Personalizzato';
 
   @override
@@ -21079,6 +21194,30 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'Libbre (lbs)';
+
+  @override
+  String get settings_units_altitude => 'Altitudine';
+
+  @override
+  String get settings_units_altitude_feet => 'Piedi (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'Metri (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'Unità di altitudine';
+
+  @override
+  String get settings_units_distance => 'Distanza';
+
+  @override
+  String get settings_units_distance_kilometers => 'Chilometri (km)';
+
+  @override
+  String get settings_units_distance_miles => 'Miglia (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'Unità di distanza';
 
   @override
   String get settings_updates_automaticUpdates => 'Aggiornamenti automatici';
@@ -22610,6 +22749,27 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count file',
+      one: '$count file',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'da $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {
@@ -28783,7 +28943,7 @@ class AppLocalizationsIt extends AppLocalizations {
       other: '$count profili duplicati',
       one: 'un profilo duplicato',
     );
-    return 'Tutte le immersioni, le certificazioni, l\'attrezzatura e gli altri dati di $_temp0 verranno spostati su \"$name\". Questa operazione non può essere annullata automaticamente.';
+    return 'Tutte le immersioni, le certificazioni, l\'attrezzatura e gli altri dati di $_temp0 verranno spostati su \"$name\". Questa operazione può essere annullata subito dopo l\'unione.';
   }
 
   @override
@@ -30029,6 +30189,30 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Montaggio';
 
   @override
+  String get attrLabel_lens_type => 'Tipo di obiettivo';
+
+  @override
+  String get attrLabel_focal_length_mm => 'Lunghezza focale (mm)';
+
+  @override
+  String get attrLabel_port_type => 'Tipo di oblò';
+
+  @override
+  String get attrLabel_tray_style => 'Stile';
+
+  @override
+  String get attrLabel_arm_length_m => 'Lunghezza del braccio';
+
+  @override
+  String get attrLabel_guide_number_m => 'Numero guida';
+
+  @override
+  String get attrLabel_bag_style => 'Stile';
+
+  @override
+  String get attrLabel_capacity_l => 'Capacità';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Alluminio';
 
   @override
@@ -30182,6 +30366,54 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Coscia';
+
+  @override
+  String get attrChoice_lens_type_camera_lens => 'Obiettivo fotografico';
+
+  @override
+  String get attrChoice_lens_type_wet_lens => 'Lente umida';
+
+  @override
+  String get attrChoice_lens_type_diopter => 'Lente addizionale (diottria)';
+
+  @override
+  String get attrChoice_port_type_dome => 'Cupola';
+
+  @override
+  String get attrChoice_port_type_flat => 'Piano';
+
+  @override
+  String get attrChoice_port_type_macro => 'Macro';
+
+  @override
+  String get attrChoice_tray_style_single_handle => 'Maniglia singola';
+
+  @override
+  String get attrChoice_tray_style_double_handle => 'Doppia maniglia';
+
+  @override
+  String get attrChoice_tray_style_pistol_grip => 'Impugnatura a pistola';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'Borsone';
+
+  @override
+  String get attrChoice_bag_style_roller => 'Trolley';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'Zaino';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'Sacca a rete';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'Sacca stagna';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'Borsa per erogatore';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'Sacchetto di raccolta';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';
@@ -30473,6 +30705,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Volare dopo l\'immersione';
 
   @override
+  String get safetySettings_cnsOtuHeader => 'Carico attuale di CNS/OTU';
+
+  @override
   String get safetySettings_noFlyPreset_standard => 'Standard (12/18/24 h)';
 
   @override
@@ -30520,6 +30755,31 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get safetyHub_noFly_clear_subtitle =>
       'Nessuna restrizione di volo attiva';
+
+  @override
+  String get safetyHub_cnsOtu_clear_title => 'Nessun carico attivo';
+
+  @override
+  String get safetyHub_cnsOtu_clear_subtitle =>
+      'CNS e OTU si sono dissipati dall\'ultima immersione';
+
+  @override
+  String safetyHub_cnsOtu_sinceLastDive(String duration) {
+    return 'Ultima immersione terminata $duration fa';
+  }
+
+  @override
+  String safetyHub_cnsOtu_elapsedDaysHours(int days, int hours) {
+    return '${days}g ${hours}h';
+  }
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_title =>
+      'Ultima immersione senza profilo';
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_body =>
+      'Senza profilo di profondità non è possibile calcolarne CNS% e OTU. I totali qui sotto la escludono.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -30958,6 +31218,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get planning_card_noFly_subtitle =>
       'Conto alla rovescia indicativo dalle ultime immersioni';
+
+  @override
+  String get planning_card_cnsOtu_subtitle =>
+      'Decadimento in tempo reale dall\'ultima immersione';
 
   @override
   String get settings_section_safety_title => 'Sicurezza';

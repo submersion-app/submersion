@@ -9,7 +9,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
-import 'package:submersion/features/media_store/presentation/widgets/media_reupload_button.dart';
+import 'package:submersion/features/media_store/presentation/widgets/media_reupload_menu.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../helpers/in_memory_media_object_store.dart';
 
@@ -54,7 +54,20 @@ void main() {
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: MediaReuploadButton(item: item)),
+          home: Scaffold(
+            body: Consumer(
+              builder: (context, ref, _) => mediaReuploadAvailable(ref)
+                  ? Builder(
+                      builder: (anchor) => IconButton(
+                        key: const Key('media-reupload-button'),
+                        icon: const Icon(Icons.tune),
+                        onPressed: () =>
+                            showMediaReuploadMenu(anchor, ref, item),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
         ),
       );
 

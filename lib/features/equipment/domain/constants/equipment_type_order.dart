@@ -59,8 +59,15 @@ const List<EquipmentType> kHeadToToeTypeOrder = [
   EquipmentType.compass,
   EquipmentType.light,
   EquipmentType.camera,
+  // The camera's parts (#1487, #1997) sit beside it, as the regulator's do.
+  EquipmentType.lens,
+  EquipmentType.port,
   EquipmentType.housing,
+  EquipmentType.trayHandle,
+  EquipmentType.armClamp,
   EquipmentType.strobe,
+  EquipmentType.videoLight,
+  EquipmentType.floatArm,
   EquipmentType.smb,
   EquipmentType.reel,
   EquipmentType.knife,
@@ -69,6 +76,9 @@ const List<EquipmentType> kHeadToToeTypeOrder = [
   EquipmentType.gloves,
   EquipmentType.boots,
   EquipmentType.fins,
+  // A bag (#2952) carries the gear above rather than being worn, so it
+  // follows every worn item instead of being guessed into the sequence.
+  EquipmentType.bag,
   // Consumable child parts (#1708): they live inside another item and are
   // never worn or donned on their own, so they have no position in an
   // anatomical or a dressing sequence. They tail the list beside `other`
@@ -112,8 +122,15 @@ const List<EquipmentType> kDressingTypeOrder = [
   EquipmentType.compass,
   EquipmentType.light,
   EquipmentType.camera,
+  // The camera's parts (#1487, #1997) sit beside it, as the regulator's do.
+  EquipmentType.lens,
+  EquipmentType.port,
   EquipmentType.housing,
+  EquipmentType.trayHandle,
+  EquipmentType.armClamp,
   EquipmentType.strobe,
+  EquipmentType.videoLight,
+  EquipmentType.floatArm,
   EquipmentType.smb,
   EquipmentType.reel,
   EquipmentType.knife,
@@ -123,6 +140,9 @@ const List<EquipmentType> kDressingTypeOrder = [
   EquipmentType.mask,
   EquipmentType.snorkel,
   EquipmentType.gloves,
+  // A bag (#2952) carries the gear above rather than being worn, so it
+  // follows every worn item instead of being guessed into the sequence.
+  EquipmentType.bag,
   // Consumable child parts (#1708): they live inside another item and are
   // never worn or donned on their own, so they have no position in an
   // anatomical or a dressing sequence. They tail the list beside `other`
@@ -178,12 +198,21 @@ const List<EquipmentType> kCanonicalTypeOrder = [
   // Accessories.
   EquipmentType.light,
   EquipmentType.camera,
+  // The camera's parts (#1487, #1997) sit beside it, as the regulator's do.
+  EquipmentType.lens,
+  EquipmentType.port,
   EquipmentType.housing,
+  EquipmentType.trayHandle,
+  EquipmentType.armClamp,
   EquipmentType.strobe,
+  EquipmentType.videoLight,
+  EquipmentType.floatArm,
   EquipmentType.smb,
   EquipmentType.reel,
   EquipmentType.knife,
   EquipmentType.tool,
+  // Transport (#2952): what the gear travels in.
+  EquipmentType.bag,
   // Consumable child parts (#1708), a family of their own: they live inside
   // another item rather than being gear a diver wears.
   EquipmentType.o2Cell,

@@ -5408,6 +5408,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           spec: ProfileMetricBands.ppO2,
           max: _getPpO2MaxScale(),
           leadIn: _OverlayLeadIn.computed,
+          curved: false,
         );
       }
 
@@ -5422,6 +5423,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           spec: ProfileMetricBands.ppN2,
           max: _getPpN2MaxScale(),
           leadIn: _OverlayLeadIn.computed,
+          curved: false,
         );
       }
 
@@ -5438,6 +5440,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           spec: ProfileMetricBands.ppHe,
           max: _getPpHeMaxScale(),
           leadIn: _OverlayLeadIn.computed,
+          curved: false,
           include: (value) => value > 0.001,
         );
       }
@@ -5658,6 +5661,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // Drops points that should not be plotted at all, such as helium on a
     // dive that carried none.
     bool Function(double value)? include,
+    // False draws straight segments between samples: the partial-pressure
+    // lines step at every gas switch, and a spline overshoots a step.
+    bool curved = true,
   }) {
     if (curve == null || curve.isEmpty) return;
 
@@ -5697,7 +5703,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 ),
                 owner: overlay.points,
               ),
-        isCurved: true,
+        isCurved: curved,
         curveSmoothness: 0.2,
         preventCurveOverShooting: _seriesGetsLeadIn(spots, overlay.points),
         color: _overlayColor(overlay, spec.color),
@@ -6036,7 +6042,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _decimatedCurveIndices,
     _withSurfaceLeadIn,
     _surfaceValueOf,
-    _seriesGetsLeadIn,
   );
 
   List<AscentRatePoint>? _ascentRateAxisRangeSource;
@@ -6471,7 +6476,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _decimatedCurveIndices,
     _withSurfaceLeadIn,
     _surfaceValueOf,
-    _seriesGetsLeadIn,
   );
 
   /// Build ppHe (partial pressure of helium) line for trimix dives
@@ -6483,7 +6487,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _decimatedCurveIndices,
     _withSurfaceLeadIn,
     _surfaceValueOf,
-    _seriesGetsLeadIn,
   );
 
   /// Build MOD (Maximum Operating Depth) line

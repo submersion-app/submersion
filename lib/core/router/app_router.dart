@@ -56,7 +56,6 @@ import 'package:submersion/features/dive_log/presentation/pages/profile_editor_p
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
 import 'package:submersion/features/maps/presentation/pages/dive_activity_map_page.dart';
 import 'package:submersion/features/maps/presentation/pages/offline_maps_page.dart';
-import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_list_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
@@ -117,6 +116,7 @@ import 'package:submersion/features/settings/presentation/pages/site_detail_sect
 import 'package:submersion/features/safety/presentation/pages/add_chamber_page.dart';
 import 'package:submersion/features/safety/presentation/pages/chambers_directory_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incident_edit_page.dart';
+import 'package:submersion/features/safety/presentation/pages/cns_otu_page.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
 import 'package:submersion/features/safety/presentation/pages/emergency_card_page.dart';
@@ -360,6 +360,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'noFly',
                 builder: (context, state) => const NoFlyPage(),
               ),
+              GoRoute(
+                path: 'cns-otu',
+                name: 'cnsOtu',
+                builder: (context, state) => const CnsOtuPage(),
+              ),
               // The GPS logger moved into the Tracks area; keep old deep
               // links working.
               GoRoute(
@@ -516,11 +521,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newSite',
-                builder: (context, state) => SiteEditPage(
-                  initialLocation: state.extra is GeoPoint
-                      ? state.extra as GeoPoint
-                      : null,
-                ),
+                builder: (context, state) =>
+                    SiteEditPage.fromNewSiteExtra(state.extra),
               ),
               GoRoute(
                 path: 'merge',

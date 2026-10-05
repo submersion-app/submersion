@@ -84,7 +84,16 @@ void main() {
   });
 
   group('SetupWizardDraft', () {
-    test('applyUnitPreset imperial sets the six core units', () {
+    test('applyUnitPreset metric sets distance back to kilometres', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.firstRun,
+        settings: AppSettings(distanceUnit: DistanceUnit.miles),
+      );
+      final metric = draft.applyingUnitPreset(UnitPreset.metric);
+      expect(metric.settings.distanceUnit, DistanceUnit.kilometers);
+    });
+
+    test('applyUnitPreset imperial sets the seven core units', () {
       const draft = SetupWizardDraft(mode: SetupWizardMode.firstRun);
       final imperial = draft.applyingUnitPreset(UnitPreset.imperial);
       expect(imperial.settings.depthUnit, DepthUnit.feet);
@@ -93,6 +102,7 @@ void main() {
       expect(imperial.settings.volumeUnit, VolumeUnit.cubicFeet);
       expect(imperial.settings.weightUnit, WeightUnit.pounds);
       expect(imperial.settings.altitudeUnit, AltitudeUnit.feet);
+      expect(imperial.settings.distanceUnit, DistanceUnit.miles);
       // gasConsumptionDisplay untouched by preset
       expect(
         imperial.settings.gasConsumptionDisplay,

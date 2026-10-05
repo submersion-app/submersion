@@ -10,7 +10,6 @@ import 'package:video_player/video_player.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -31,6 +30,7 @@ import 'package:submersion/features/media/presentation/helpers/set_time_seed.dar
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_fullscreen_controls.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/media_nav_arrows.dart';
 import 'package:submersion/features/media/presentation/widgets/perdix_overlay/draggable_perdix_overlay.dart';
@@ -40,8 +40,9 @@ import 'package:submersion/features/media/presentation/widgets/mini_dive_profile
 import 'package:submersion/features/media/presentation/widgets/media_info_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_chips_row.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
+import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
-import 'package:submersion/features/media_store/presentation/widgets/media_reupload_button.dart';
+import 'package:submersion/features/media_store/presentation/widgets/media_reupload_menu.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/media/presentation/match_confidence_display.dart';
@@ -76,7 +77,8 @@ class MediaViewerPage extends ConsumerStatefulWidget {
   ConsumerState<MediaViewerPage> createState() => _MediaViewerPageState();
 }
 
-class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
+class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
+    with MediaFullscreenMixin<MediaViewerPage> {
   /// The pageable subset of [MediaViewerPage.mediaList].
   ///
   /// Documents (PDF, docx, ...) resolve to raw bytes the Image widgets cannot
@@ -228,6 +230,20 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
     super.dispose();
   }
 
+  @override
+  void onExitFullscreen() => _showOverlay = true;
+
+  /// Video play/pause reports here: [show] is true when the video just
+  /// paused. Outside fullscreen that drives the overlays as before; inside
+  /// it reveals the fullscreen controls, which stay up while paused.
+  void _onSetOverlay(bool show) {
+    if (isFullscreen) {
+      revealFullscreenControls(autoHide: !show);
+      return;
+    }
+    setState(() => _showOverlay = show);
+  }
+
   /// Steps [delta] pages from the last page *requested*, not the last one
   /// settled on.
   ///
@@ -273,7 +289,11 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
       return KeyEventResult.handled;
     }
     if (event.logicalKey == LogicalKeyboardKey.escape) {
-      Navigator.of(context).maybePop();
+      if (isFullscreen) {
+        exitFullscreen();
+      } else {
+        Navigator.of(context).maybePop();
+      }
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
@@ -303,333 +323,365 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
         : ref.watch(diveProvider(currentDiveId));
     final settings = ref.watch(settingsProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Builder(
-        builder: (context) {
-          if (mediaList.isEmpty) {
-            return Center(
-              child: Text(
-                context.l10n.media_photoViewer_noPhotosAvailable,
-                style: const TextStyle(color: Colors.white),
-              ),
-            );
-          }
-
-          // Non-null once mediaList is known non-empty. Every consumer below
-          // reads the hydrated record: the mini profile, the Perdix gate, the
-          // toolbar's Go-to-dive and write-metadata flags, the bottom
-          // depth/temp/elapsed chips and the info sheet.
-          final currentItem = hydratedItem!;
-          final enrichment = currentItem.enrichment;
-          if (enrichment == null && currentDiveId != null) {
-            _backfillEnrichment(currentDiveId);
-          }
-
-          // Get dive profile for the mini chart overlay
-          final diveProfile = diveAsync.whenOrNull(
-            data: (dive) => dive?.profile ?? [],
-          );
-
-          final dive = diveAsync.value;
-          final profileLength = MediaDiveWindow.profileLengthSeconds(
-            diveProfile ?? const [],
-          );
-          // Whether this item is synced to a moment in the profile, decided
-          // from the enrichment alone (inside the dive-window tolerance, or
-          // pinned by the diver). Media that is not synced can never show
-          // the Perdix face, whatever the analysis would say.
-          final positioned =
-              enrichment != null &&
-              enrichment.isWithinDiveWindow(profileLength);
-          final perdixPrecondition = positioned;
-
-          // Same source-aware profile/analysis pairing as the fullscreen
-          // profile page: analysis curves are read by index, so the profile
-          // passed to the resolver must be the one the analysis was computed
-          // over (multi-computer dives).
-          //
-          // Built ONLY when the face can actually render: a dive-linked,
-          // profile-synced item with the overlay turned on. The watches
-          // below start the per-source profile analysis, and through it the
-          // full Buhlmann pipeline with its recursive residual-CNS/tissue
-          // lookback across the surrounding dives. Watching that
-          // unconditionally ran the whole cascade on the UI isolate for
-          // every dive-linked item the viewer showed, with the result
-          // discarded whenever the overlay was off -- the first ingredient
-          // of the app-wide freeze after viewing media (2026-08 hang
-          // reports). Toggling the overlay on simply rebuilds and starts the
-          // watches then.
-          PerdixFaceResolver? perdixResolver;
-          if (currentDiveId != null &&
-              perdixPrecondition &&
-              settings.perdixOverlayEnabled) {
-            final activeSourceId = ref.watch(
-              activeDiveSourceProvider(currentDiveId),
-            );
-            final analysis = ref
-                .watch(
-                  sourceProfileAnalysisProvider((
-                    diveId: currentDiveId,
-                    sourceId: activeSourceId,
-                  )),
-                )
-                .value;
-            final sourceProfiles =
-                ref.watch(sourceProfilesProvider(currentDiveId)).value ??
-                const {};
-            final dataSources =
-                ref.watch(diveDataSourcesProvider(currentDiveId)).value ??
-                const [];
-            final gasSwitches =
-                ref.watch(gasSwitchesProvider(currentDiveId)).value ?? const [];
-            final tankPressures = ref
-                .watch(activeSourceTankPressuresProvider(currentDiveId))
-                .value;
-            final primarySource =
-                dataSources.where((s) => s.isPrimary).firstOrNull ??
-                dataSources.firstOrNull;
-            final activeSource = activeSourceId == null
-                ? primarySource
-                : dataSources
-                          .where((s) => s.id == activeSourceId)
-                          .firstOrNull ??
-                      primarySource;
-            final activeProfile = activeSource == null
-                ? null
-                : sourceProfiles[activeSource.id];
-            // Sources that never overlap in time are consecutive halves of
-            // one dive a Combine stitched together, not alternative
-            // recordings of it: the face reads the whole dive, not the
-            // active half (#1451). Mirrors the detail and fullscreen pages.
-            final isMultiSource = usesPerSourceRendering(
-              dataSources,
-              sourceProfiles.values,
-            );
-            final perdixProfile = (isMultiSource && activeProfile != null)
-                ? activeProfile.points
-                : dive?.profile ?? const [];
-            // Rebuilt only on page-level setState (page swipes, toggles),
-            // not per video frame; prefix-max and gas segments precompute
-            // here.
-            perdixResolver = PerdixFaceResolver(
-              profile: perdixProfile,
-              analysis: analysis,
-              tanks: dive?.tanks ?? const [],
-              gasSwitches: gasSwitches,
-              tankPressures: tankPressures,
-            );
-          }
-          // Toolbar-toggle visibility, decided the same cheap way in BOTH
-          // toggle states: a synced item and a non-empty merged profile.
-          // Deliberately NOT the resolver's answer. On a multi-computer dive
-          // whose ACTIVE source is metadata-only, the resolver scopes to an
-          // empty bucket and reports unavailable; a toggle that followed it
-          // would vanish the moment the user turned it on, stranding the
-          // setting with no control on this page to turn it back off. The
-          // cheap test's cost is an inert toggle in that case, never a
-          // vanished one. The resolver's own availability still gates the
-          // face mount below.
-          final perdixToggleAvailable =
-              perdixPrecondition && (diveProfile?.isNotEmpty ?? false);
-
-          final viewer = GestureDetector(
-            // Swipe down to close (common pattern for fullscreen viewers)
-            onVerticalDragEnd: (details) {
-              if (details.primaryVelocity != null &&
-                  details.primaryVelocity! > 300) {
-                Navigator.of(context).pop();
-              }
-            },
-            child: Stack(
-              children: [
-                // Photo/video gallery
-                _PhotoGallery(
-                  mediaList: mediaList,
-                  pageController: _pageController,
-                  onPageChanged: (index) {
-                    // Swipes and settles both land here, which is what
-                    // re-syncs the nav target after a gesture.
-                    setState(() {
-                      _currentIndex = index;
-                      _navTargetIndex = index;
-                    });
-                  },
-                  showOverlay: _showOverlay,
-                  onToggleOverlay: () =>
-                      setState(() => _showOverlay = !_showOverlay),
-                  onSetOverlay: (value) => setState(() => _showOverlay = value),
-                  onVideoControllerChanged: _onVideoControllerChanged,
-                  currentIndex: currentIndex,
+    return fullscreenPopScope(
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Builder(
+          builder: (context) {
+            if (mediaList.isEmpty) {
+              // Nothing left to tap means no exit button (a sync can empty the
+              // list under the viewer).
+              exitFullscreenWhenEmpty();
+              return Center(
+                child: Text(
+                  context.l10n.media_photoViewer_noPhotosAvailable,
+                  style: const TextStyle(color: Colors.white),
                 ),
+              );
+            }
 
-                // Transparent tap target to toggle overlays (photos only)
-                // Videos handle their own tap gestures for play/pause
-                if (!currentItem.isVideo)
-                  Positioned.fill(
-                    child: Semantics(
-                      label: context.l10n.media_photoViewer_toggleOverlayLabel,
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.translucent,
-                        onTap: () =>
-                            setState(() => _showOverlay = !_showOverlay),
-                        child: const SizedBox.expand(),
+            // Non-null once mediaList is known non-empty. Every consumer below
+            // reads the hydrated record: the mini profile, the Perdix gate, the
+            // toolbar's Go-to-dive and write-metadata flags, the bottom
+            // depth/temp/elapsed chips and the info sheet.
+            final currentItem = hydratedItem!;
+            final enrichment = currentItem.enrichment;
+            if (enrichment == null && currentDiveId != null) {
+              _backfillEnrichment(currentDiveId);
+            }
+
+            // Get dive profile for the mini chart overlay
+            final diveProfile = diveAsync.whenOrNull(
+              data: (dive) => dive?.profile ?? [],
+            );
+
+            final dive = diveAsync.value;
+            final profileLength = MediaDiveWindow.profileLengthSeconds(
+              diveProfile ?? const [],
+            );
+            // Whether this item is synced to a moment in the profile, decided
+            // from the enrichment alone (inside the dive-window tolerance, or
+            // pinned by the diver). Media that is not synced can never show
+            // the Perdix face, whatever the analysis would say.
+            final positioned =
+                enrichment != null &&
+                enrichment.isWithinDiveWindow(profileLength);
+            final perdixPrecondition = positioned;
+
+            // Same source-aware profile/analysis pairing as the fullscreen
+            // profile page: analysis curves are read by index, so the profile
+            // passed to the resolver must be the one the analysis was computed
+            // over (multi-computer dives).
+            //
+            // Built ONLY when the face can actually render: a dive-linked,
+            // profile-synced item with the overlay turned on. The watches
+            // below start the per-source profile analysis, and through it the
+            // full Buhlmann pipeline with its recursive residual-CNS/tissue
+            // lookback across the surrounding dives. Watching that
+            // unconditionally ran the whole cascade on the UI isolate for
+            // every dive-linked item the viewer showed, with the result
+            // discarded whenever the overlay was off -- the first ingredient
+            // of the app-wide freeze after viewing media (2026-08 hang
+            // reports). Toggling the overlay on simply rebuilds and starts the
+            // watches then.
+            PerdixFaceResolver? perdixResolver;
+            if (currentDiveId != null &&
+                perdixPrecondition &&
+                settings.perdixOverlayEnabled) {
+              final activeSourceId = ref.watch(
+                activeDiveSourceProvider(currentDiveId),
+              );
+              final analysis = ref
+                  .watch(
+                    sourceProfileAnalysisProvider((
+                      diveId: currentDiveId,
+                      sourceId: activeSourceId,
+                    )),
+                  )
+                  .value;
+              final sourceProfiles =
+                  ref.watch(sourceProfilesProvider(currentDiveId)).value ??
+                  const {};
+              final dataSources =
+                  ref.watch(diveDataSourcesProvider(currentDiveId)).value ??
+                  const [];
+              final gasSwitches =
+                  ref.watch(gasSwitchesProvider(currentDiveId)).value ??
+                  const [];
+              final tankPressures = ref
+                  .watch(activeSourceTankPressuresProvider(currentDiveId))
+                  .value;
+              final primarySource =
+                  dataSources.where((s) => s.isPrimary).firstOrNull ??
+                  dataSources.firstOrNull;
+              final activeSource = activeSourceId == null
+                  ? primarySource
+                  : dataSources
+                            .where((s) => s.id == activeSourceId)
+                            .firstOrNull ??
+                        primarySource;
+              final activeProfile = activeSource == null
+                  ? null
+                  : sourceProfiles[activeSource.id];
+              // Sources that never overlap in time are consecutive halves of
+              // one dive a Combine stitched together, not alternative
+              // recordings of it: the face reads the whole dive, not the
+              // active half (#1451). Mirrors the detail and fullscreen pages.
+              final isMultiSource = usesPerSourceRendering(
+                dataSources,
+                sourceProfiles.values,
+              );
+              final perdixProfile = (isMultiSource && activeProfile != null)
+                  ? activeProfile.points
+                  : dive?.profile ?? const [];
+              // Rebuilt only on page-level setState (page swipes, toggles),
+              // not per video frame; prefix-max and gas segments precompute
+              // here.
+              perdixResolver = PerdixFaceResolver(
+                profile: perdixProfile,
+                analysis: analysis,
+                tanks: dive?.tanks ?? const [],
+                gasSwitches: gasSwitches,
+                tankPressures: tankPressures,
+              );
+            }
+            // Toolbar-toggle visibility, decided the same cheap way in BOTH
+            // toggle states: a synced item and a non-empty merged profile.
+            // Deliberately NOT the resolver's answer. On a multi-computer dive
+            // whose ACTIVE source is metadata-only, the resolver scopes to an
+            // empty bucket and reports unavailable; a toggle that followed it
+            // would vanish the moment the user turned it on, stranding the
+            // setting with no control on this page to turn it back off. The
+            // cheap test's cost is an inert toggle in that case, never a
+            // vanished one. The resolver's own availability still gates the
+            // face mount below.
+            final perdixToggleAvailable =
+                perdixPrecondition && (diveProfile?.isNotEmpty ?? false);
+
+            final viewer = GestureDetector(
+              // Swipe down to close (common pattern for fullscreen viewers)
+              onVerticalDragEnd: (details) {
+                if (details.primaryVelocity != null &&
+                    details.primaryVelocity! > 300) {
+                  Navigator.of(context).pop();
+                }
+              },
+              child: Stack(
+                children: [
+                  // Photo/video gallery
+                  _PhotoGallery(
+                    mediaList: mediaList,
+                    pageController: _pageController,
+                    onPageChanged: (index) {
+                      // Swipes and settles both land here, which is what
+                      // re-syncs the nav target after a gesture.
+                      setState(() {
+                        _currentIndex = index;
+                        _navTargetIndex = index;
+                      });
+                      // Controls left up on a paused video have no timer; the
+                      // next page restarts the 3-second hide so they do not
+                      // linger over a photo nobody tapped.
+                      if (isFullscreen && fullscreenControlsVisible) {
+                        revealFullscreenControls(autoHide: true);
+                      }
+                    },
+                    showOverlay: isFullscreen
+                        ? fullscreenControlsVisible
+                        : _showOverlay,
+                    fullscreen: isFullscreen,
+                    onFullscreenTap: toggleFullscreenControls,
+                    onSetOverlay: _onSetOverlay,
+                    onVideoControllerChanged: _onVideoControllerChanged,
+                    currentIndex: currentIndex,
+                  ),
+
+                  // Transparent tap target to toggle overlays (photos only)
+                  // Videos handle their own tap gestures for play/pause
+                  if (!currentItem.isVideo)
+                    Positioned.fill(
+                      child: Semantics(
+                        label:
+                            context.l10n.media_photoViewer_toggleOverlayLabel,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.translucent,
+                          onTap: isFullscreen
+                              ? toggleFullscreenControls
+                              : () => setState(
+                                  () => _showOverlay = !_showOverlay,
+                                ),
+                          child: const SizedBox.expand(),
+                        ),
                       ),
                     ),
-                  ),
 
-                // Overlay controls (app bar and metadata)
-                if (_showOverlay) ...[
-                  // Top app bar
-                  _TopOverlay(
-                    item: currentItem,
-                    currentIndex: currentIndex,
-                    totalCount: mediaList.length,
-                    onClose: () => Navigator.of(context).pop(),
-                    onShare: (anchor) =>
-                        _shareCurrentPhoto(currentItem, anchor),
-                    onWriteMetadata: () => _writeMetadataToPhoto(currentItem),
-                    onTagSpecies: () =>
-                        showMediaSpeciesSheet(context, currentItem),
-                    // The viewer is deliberately NOT popped first: leaving it
-                    // on the stack is what lets Back return the user to the
-                    // photo they launched from, with its page index, zoom and
-                    // overlay toggles intact, rather than to the bare grid.
-                    onGoToDive: widget.showGoToDive && currentDiveId != null
-                        ? () => context.pushOrReturnTo('/dives/$currentDiveId')
-                        : null,
-                    canWriteMetadata:
-                        enrichment?.depthMeters != null && !currentItem.isVideo,
-                    showPerdixToggle: perdixToggleAvailable,
-                    perdixEnabled: settings.perdixOverlayEnabled,
-                    onTogglePerdix: () => ref
-                        .read(settingsProvider.notifier)
-                        .setPerdixOverlayEnabled(
-                          !settings.perdixOverlayEnabled,
-                        ),
-                    onOpenInLightroom: _lightroomWebUrl(currentItem) == null
-                        ? null
-                        : () => unawaited(
-                            launchUrl(
-                              Uri.parse(_lightroomWebUrl(currentItem)!),
-                              mode: LaunchMode.externalApplication,
+                  // Overlay controls (app bar and metadata)
+                  if (_showOverlay && !isFullscreen) ...[
+                    // Top app bar
+                    MediaViewerToolbar(
+                      item: currentItem,
+                      currentIndex: currentIndex,
+                      totalCount: mediaList.length,
+                      onClose: () => Navigator.of(context).pop(),
+                      onEnterFullscreen: enterFullscreen,
+                      onShowInfo: () =>
+                          showMediaInfoSheet(context, currentItem),
+                      onReupload: mediaReuploadAvailable(ref)
+                          ? (anchor) =>
+                                showMediaReuploadMenu(anchor, ref, currentItem)
+                          : null,
+                      onShare: (anchor) =>
+                          _shareCurrentPhoto(currentItem, anchor),
+                      onWriteMetadata: () => _writeMetadataToPhoto(currentItem),
+                      onTagSpecies: () =>
+                          showMediaSpeciesSheet(context, currentItem),
+                      // The viewer is deliberately NOT popped first: leaving it
+                      // on the stack is what lets Back return the user to the
+                      // photo they launched from, with its page index, zoom and
+                      // overlay toggles intact, rather than to the bare grid.
+                      onGoToDive: widget.showGoToDive && currentDiveId != null
+                          ? () =>
+                                context.pushOrReturnTo('/dives/$currentDiveId')
+                          : null,
+                      canWriteMetadata:
+                          enrichment?.depthMeters != null &&
+                          !currentItem.isVideo,
+                      showPerdixToggle: perdixToggleAvailable,
+                      perdixEnabled: settings.perdixOverlayEnabled,
+                      onTogglePerdix: () => ref
+                          .read(settingsProvider.notifier)
+                          .setPerdixOverlayEnabled(
+                            !settings.perdixOverlayEnabled,
+                          ),
+                      onOpenInLightroom: _lightroomWebUrl(currentItem) == null
+                          ? null
+                          : () => unawaited(
+                              launchUrl(
+                                Uri.parse(_lightroomWebUrl(currentItem)!),
+                                mode: LaunchMode.externalApplication,
+                              ),
                             ),
-                          ),
-                  ),
+                    ),
 
-                  // Previous / next controls. Mounted with the rest of the
-                  // chrome, so the tap-to-hide gesture takes them away too.
-                  MediaNavArrows(
-                    currentIndex: currentIndex,
-                    totalCount: mediaList.length,
-                    onPrevious: () => _stepPage(-1),
-                    onNext: () => _stepPage(1),
-                  ),
+                    // Previous / next controls. Mounted with the rest of the
+                    // chrome, so the tap-to-hide gesture takes them away too.
+                    MediaNavArrows(
+                      currentIndex: currentIndex,
+                      totalCount: mediaList.length,
+                      onPrevious: () => _stepPage(-1),
+                      onNext: () => _stepPage(1),
+                    ),
 
-                  // Mini dive profile overlay (lower right)
-                  if (diveProfile != null &&
-                      diveProfile.isNotEmpty &&
-                      positioned)
-                    PositionedMiniProfileOverlay(
-                      profile: diveProfile,
-                      photoElapsedSeconds: enrichment.elapsedSeconds!,
-                      photoDepthMeters: enrichment.depthMeters,
+                    // Mini dive profile overlay (lower right)
+                    if (diveProfile != null &&
+                        diveProfile.isNotEmpty &&
+                        positioned)
+                      PositionedMiniProfileOverlay(
+                        profile: diveProfile,
+                        photoElapsedSeconds: enrichment.elapsedSeconds!,
+                        photoDepthMeters: enrichment.depthMeters,
+                        settings: settings,
+                        visible: _showOverlay,
+                      ),
+
+                    // Bottom metadata
+                    _BottomMetadataOverlay(
+                      item: currentItem,
                       settings: settings,
-                      visible: _showOverlay,
+                      profileLengthSeconds: profileLength,
+                      // Pinning needs a profile to pin against; a dive with
+                      // none has no moments to choose from.
+                      onSetTime: diveProfile == null || diveProfile.isEmpty
+                          ? null
+                          : () => _setTimeInDive(
+                              currentItem,
+                              diveProfile,
+                              settings,
+                            ),
+                      siteName: diveAsync.whenOrNull(
+                        data: (dive) => dive?.site?.name,
+                      ),
+                    ),
+                  ],
+
+                  // Perdix dive computer overlay. Deliberately independent of
+                  // the _showOverlay chrome, which auto-hides during video
+                  // playback exactly when this must stay up.
+                  //
+                  // Mounted ABOVE the chrome so it always wins the pointers
+                  // that drag it: the bottom metadata's gradient Container and
+                  // the mini profile chart both absorb hit tests across their
+                  // full bounds, and either would strand the face where it
+                  // could no longer be picked up. Neither is interactive, so
+                  // nothing is lost by the face shadowing them. The top
+                  // toolbar is the exception -- it does have buttons -- so
+                  // rather than order, the face is kept out of its band
+                  // entirely via topReserve.
+                  //
+                  // The face absorbs pointer events over its own bounds (drags
+                  // move it, taps do nothing); chrome-toggle and video
+                  // play/pause taps work anywhere outside it.
+                  if (!isFullscreen &&
+                      settings.perdixOverlayEnabled &&
+                      perdixResolver != null &&
+                      perdixResolver.isAvailable)
+                    DraggablePerdixOverlay(
+                      // Re-key when the persisted seed first arrives so a late
+                      // settings load re-seeds the position (same trick as the
+                      // fullscreen readout card).
+                      key: ValueKey(
+                        'perdix-${currentItem.id}-'
+                        '${settings.perdixOverlayX}-${settings.perdixOverlayY}',
+                      ),
+                      resolver: perdixResolver,
+                      // Non-null here: the resolver is only ever built for
+                      // items passing perdixPrecondition.
+                      baseElapsedSeconds: enrichment!.elapsedSeconds!,
+                      settings: settings,
+                      topReserve:
+                          MediaQuery.paddingOf(context).top +
+                          kMediaViewerToolbarHeight,
+                      playback: currentItem.isVideo
+                          ? _videoControllers[currentItem.id]
+                          : null,
+                      positionGetter:
+                          currentItem.isVideo &&
+                              _videoControllers[currentItem.id] != null
+                          ? () =>
+                                _videoControllers[currentItem.id]
+                                    ?.value
+                                    .position ??
+                                Duration.zero
+                          : null,
+                      initialFraction:
+                          (settings.perdixOverlayX != null &&
+                              settings.perdixOverlayY != null)
+                          ? Offset(
+                              settings.perdixOverlayX!,
+                              settings.perdixOverlayY!,
+                            )
+                          : null,
+                      onDragEnd: (fraction) => ref
+                          .read(settingsProvider.notifier)
+                          .setPerdixOverlayPosition(fraction.dx, fraction.dy),
                     ),
 
-                  // Bottom metadata
-                  _BottomMetadataOverlay(
-                    item: currentItem,
-                    settings: settings,
-                    profileLengthSeconds: profileLength,
-                    // Pinning needs a profile to pin against; a dive with
-                    // none has no moments to choose from.
-                    onSetTime: diveProfile == null || diveProfile.isEmpty
-                        ? null
-                        : () => _setTimeInDive(
-                            currentItem,
-                            diveProfile,
-                            settings,
-                          ),
-                    siteName: diveAsync.whenOrNull(
-                      data: (dive) => dive?.site?.name,
-                    ),
-                  ),
+                  if (isFullscreen && fullscreenControlsVisible)
+                    MediaFullscreenExitButton(onExit: exitFullscreen),
                 ],
+              ),
+            );
 
-                // Perdix dive computer overlay. Deliberately independent of
-                // the _showOverlay chrome, which auto-hides during video
-                // playback exactly when this must stay up.
-                //
-                // Mounted ABOVE the chrome so it always wins the pointers
-                // that drag it: the bottom metadata's gradient Container and
-                // the mini profile chart both absorb hit tests across their
-                // full bounds, and either would strand the face where it
-                // could no longer be picked up. Neither is interactive, so
-                // nothing is lost by the face shadowing them. The top
-                // toolbar is the exception -- it does have buttons -- so
-                // rather than order, the face is kept out of its band
-                // entirely via topReserve.
-                //
-                // The face absorbs pointer events over its own bounds (drags
-                // move it, taps do nothing); chrome-toggle and video
-                // play/pause taps work anywhere outside it.
-                if (settings.perdixOverlayEnabled &&
-                    perdixResolver != null &&
-                    perdixResolver.isAvailable)
-                  DraggablePerdixOverlay(
-                    // Re-key when the persisted seed first arrives so a late
-                    // settings load re-seeds the position (same trick as the
-                    // fullscreen readout card).
-                    key: ValueKey(
-                      'perdix-${currentItem.id}-'
-                      '${settings.perdixOverlayX}-${settings.perdixOverlayY}',
-                    ),
-                    resolver: perdixResolver,
-                    // Non-null here: the resolver is only ever built for
-                    // items passing perdixPrecondition.
-                    baseElapsedSeconds: enrichment!.elapsedSeconds!,
-                    settings: settings,
-                    topReserve:
-                        MediaQuery.paddingOf(context).top + _topChromeHeight,
-                    playback: currentItem.isVideo
-                        ? _videoControllers[currentItem.id]
-                        : null,
-                    positionGetter:
-                        currentItem.isVideo &&
-                            _videoControllers[currentItem.id] != null
-                        ? () =>
-                              _videoControllers[currentItem.id]
-                                  ?.value
-                                  .position ??
-                              Duration.zero
-                        : null,
-                    initialFraction:
-                        (settings.perdixOverlayX != null &&
-                            settings.perdixOverlayY != null)
-                        ? Offset(
-                            settings.perdixOverlayX!,
-                            settings.perdixOverlayY!,
-                          )
-                        : null,
-                    onDragEnd: (fraction) => ref
-                        .read(settingsProvider.notifier)
-                        .setPerdixOverlayPosition(fraction.dx, fraction.dy),
-                  ),
-              ],
-            ),
-          );
-
-          // Keyboard nav has to wrap the whole viewer to see its key events.
-          // Built as a local above rather than nested inline so the tree it
-          // wraps stays where it is.
-          return Focus(
-            autofocus: true,
-            onKeyEvent: _handleKeyEvent,
-            child: viewer,
-          );
-        },
+            // Keyboard nav has to wrap the whole viewer to see its key events.
+            // Built as a local above rather than nested inline so the tree it
+            // wraps stays where it is.
+            return Focus(
+              autofocus: true,
+              onKeyEvent: _handleKeyEvent,
+              child: viewer,
+            );
+          },
+        ),
       ),
     );
   }
@@ -801,7 +853,13 @@ class _PhotoGallery extends ConsumerWidget {
   final PageController pageController;
   final ValueChanged<int> onPageChanged;
   final bool showOverlay;
-  final VoidCallback onToggleOverlay;
+
+  /// The viewer's fullscreen mode, passed on to video pages.
+  final bool fullscreen;
+
+  /// A tap on a Lightroom-linked video in fullscreen, which has no player of
+  /// its own to report play/pause.
+  final VoidCallback onFullscreenTap;
   final ValueChanged<bool> onSetOverlay;
   final void Function(String mediaId, VideoPlayerController? controller)
   onVideoControllerChanged;
@@ -812,7 +870,8 @@ class _PhotoGallery extends ConsumerWidget {
     required this.pageController,
     required this.onPageChanged,
     required this.showOverlay,
-    required this.onToggleOverlay,
+    required this.fullscreen,
+    required this.onFullscreenTap,
     required this.onSetOverlay,
     required this.onVideoControllerChanged,
     required this.currentIndex,
@@ -839,7 +898,12 @@ class _PhotoGallery extends ConsumerWidget {
             return PhotoViewGalleryPageOptions.customChild(
               minScale: PhotoViewComputedScale.contained,
               maxScale: PhotoViewComputedScale.contained,
-              child: _ConnectorVideoItem(item: item),
+              child: _ConnectorVideoItem(
+                item: item,
+                fullscreen: fullscreen,
+                showControls: showOverlay,
+                onFullscreenTap: onFullscreenTap,
+              ),
             );
           }
           return PhotoViewGalleryPageOptions.customChild(
@@ -848,6 +912,7 @@ class _PhotoGallery extends ConsumerWidget {
             child: _VideoItem(
               item: item,
               showOverlay: showOverlay,
+              fullscreen: fullscreen,
               onSetOverlay: onSetOverlay,
               onControllerChanged: onVideoControllerChanged,
             ),
@@ -888,7 +953,19 @@ class _PhotoItem extends StatelessWidget {
 class _ConnectorVideoItem extends ConsumerWidget {
   final MediaItem item;
 
-  const _ConnectorVideoItem({required this.item});
+  /// In the viewer's fullscreen mode a tap reveals the exit control rather
+  /// than opening Lightroom, and the play badge shows only with the revealed
+  /// controls ([showControls]); the badge itself still opens Lightroom.
+  final bool fullscreen;
+  final bool showControls;
+  final VoidCallback? onFullscreenTap;
+
+  const _ConnectorVideoItem({
+    required this.item,
+    this.fullscreen = false,
+    this.showControls = true,
+    this.onFullscreenTap,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -907,48 +984,46 @@ class _ConnectorVideoItem extends ConsumerWidget {
         : () => unawaited(
             launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
           );
+    final badge = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Semantics(
+          button: url != null,
+          label: context.l10n.media_lightroom_openInLightroom,
+          onTap: onOpen,
+          child: Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.play_arrow, color: Colors.white, size: 48),
+          ),
+        ),
+        if (url != null) ...[
+          const SizedBox(height: 12),
+          // Label already voiced by the Semantics button above.
+          ExcludeSemantics(
+            child: Text(
+              context.l10n.media_lightroom_openInLightroom,
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.85)),
+            ),
+          ),
+        ],
+      ],
+    );
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: onOpen,
+      onTap: fullscreen ? onFullscreenTap : onOpen,
       child: Stack(
         alignment: Alignment.center,
         children: [
           MediaItemView(item: item, fit: BoxFit.contain),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Semantics(
-                button: url != null,
-                label: context.l10n.media_lightroom_openInLightroom,
-                onTap: onOpen,
-                child: Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.play_arrow,
-                    color: Colors.white,
-                    size: 48,
-                  ),
-                ),
-              ),
-              if (url != null) ...[
-                const SizedBox(height: 12),
-                // Label already voiced by the Semantics button above.
-                ExcludeSemantics(
-                  child: Text(
-                    context.l10n.media_lightroom_openInLightroom,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.85),
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
+          if (!fullscreen)
+            badge
+          else if (showControls)
+            GestureDetector(onTap: onOpen, child: badge),
         ],
       ),
     );
@@ -959,6 +1034,11 @@ class _ConnectorVideoItem extends ConsumerWidget {
 class _VideoItem extends ConsumerStatefulWidget {
   final MediaItem item;
   final bool showOverlay;
+
+  /// The viewer's fullscreen mode: the centre play indicator follows the
+  /// controls' visibility, and the controls bar sits at the bottom edge
+  /// because no metadata panel is drawn under it.
+  final bool fullscreen;
   final ValueChanged<bool> onSetOverlay;
 
   /// Reports the live controller (or null on dispose) so the page can drive
@@ -969,6 +1049,7 @@ class _VideoItem extends ConsumerStatefulWidget {
   const _VideoItem({
     required this.item,
     required this.showOverlay,
+    this.fullscreen = false,
     required this.onSetOverlay,
     required this.onControllerChanged,
   });
@@ -1146,7 +1227,8 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
           ),
 
           // Play/pause button overlay (center) - visual indicator only when paused
-          if (!controller.value.isPlaying)
+          if (!controller.value.isPlaying &&
+              (!widget.fullscreen || widget.showOverlay))
             IgnorePointer(
               child: Container(
                 width: 72,
@@ -1168,7 +1250,11 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
             Positioned(
               left: 0,
               right: 0,
-              bottom: 160, // Above the metadata overlay and mini profile
+              // Above the metadata overlay and mini profile; at the edge in
+              // fullscreen, where neither is drawn.
+              bottom: widget.fullscreen
+                  ? MediaQuery.paddingOf(context).bottom + 24
+                  : 160,
               child: _VideoControlsOverlay(controller: controller),
             ),
         ],
@@ -1325,163 +1411,6 @@ class _VideoControlsOverlayState extends State<_VideoControlsOverlay> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Height of [_TopOverlay]'s content below the status bar: its 8 px vertical
-/// padding either side of a default 48 px [IconButton]. The Perdix overlay
-/// reserves this band so the face can never sit on top of the toolbar's
-/// buttons -- keep the two in step if the toolbar's padding changes.
-const double _topChromeHeight = 64;
-
-/// Top overlay with close button, page indicator, share, and write metadata.
-class _TopOverlay extends StatelessWidget {
-  final MediaItem item;
-  final int currentIndex;
-  final int totalCount;
-  final VoidCallback onClose;
-  final void Function(Rect? anchor) onShare;
-  final VoidCallback onWriteMetadata;
-  final VoidCallback onTagSpecies;
-
-  /// Whether the write-dive-data action is offered. Needs enrichment depth to
-  /// have anything to write, and a photo to write it to: videos cannot be
-  /// edited in place, and replacing one would destroy the original
-  /// (issue #1472).
-  final bool canWriteMetadata;
-
-  /// Whether the Perdix overlay toggle is shown (media synced to a profile).
-  final bool showPerdixToggle;
-
-  /// Whether the Perdix overlay is currently enabled (tints the icon).
-  final bool perdixEnabled;
-
-  final VoidCallback onTogglePerdix;
-
-  /// Non-null only for Lightroom-linked items on the connected device.
-  final VoidCallback? onOpenInLightroom;
-
-  /// Non-null when the viewer is cross-dive and the item has a dive link.
-  final VoidCallback? onGoToDive;
-
-  const _TopOverlay({
-    required this.item,
-    required this.currentIndex,
-    required this.totalCount,
-    required this.onClose,
-    required this.onShare,
-    required this.onWriteMetadata,
-    required this.onTagSpecies,
-    required this.canWriteMetadata,
-    required this.showPerdixToggle,
-    required this.perdixEnabled,
-    required this.onTogglePerdix,
-    this.onOpenInLightroom,
-    this.onGoToDive,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.black.withValues(alpha: 0.7), Colors.transparent],
-          ),
-        ),
-        child: SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  tooltip: context.l10n.media_photoViewer_closeTooltip,
-                  onPressed: onClose,
-                ),
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      context.l10n.media_photoViewer_pageIndicator(
-                        currentIndex + 1,
-                        totalCount,
-                      ),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
-                // Jump to the owning dive (cross-dive viewers only)
-                if (onGoToDive != null)
-                  IconButton(
-                    icon: const Icon(Icons.scuba_diving, color: Colors.white),
-                    tooltip: context.l10n.media_viewer_goToDive,
-                    onPressed: onGoToDive,
-                  ),
-                // Write metadata button (only shown if photo has dive data)
-                if (canWriteMetadata)
-                  IconButton(
-                    icon: const Icon(Icons.edit_note, color: Colors.white),
-                    tooltip:
-                        context.l10n.media_photoViewer_writeDiveDataTooltip,
-                    onPressed: onWriteMetadata,
-                  ),
-                // Perdix dive computer overlay toggle (only when the media
-                // can be synced to the dive profile)
-                if (showPerdixToggle)
-                  IconButton(
-                    icon: Icon(
-                      Icons.watch,
-                      color: perdixEnabled
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.white,
-                    ),
-                    tooltip: context.l10n.media_perdixOverlay_toggleTooltip,
-                    onPressed: onTogglePerdix,
-                  ),
-                if (onOpenInLightroom != null)
-                  IconButton(
-                    icon: const Icon(Icons.open_in_new, color: Colors.white),
-                    tooltip: context.l10n.media_lightroom_openInLightroom,
-                    onPressed: onOpenInLightroom,
-                  ),
-                IconButton(
-                  key: const ValueKey('viewer_species'),
-                  icon: const Icon(Icons.sell_outlined, color: Colors.white),
-                  tooltip: context.l10n.media_species_actionTooltip,
-                  onPressed: onTagSpecies,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.info_outline, color: Colors.white),
-                  tooltip: context.l10n.media_info_title,
-                  onPressed: () => showMediaInfoSheet(context, item),
-                ),
-                // Builder so the iPad share popover anchors to this
-                // button: findRenderObject from a Builder's context descends
-                // to the IconButton rather than yielding the whole overlay.
-                Builder(
-                  builder: (buttonContext) => IconButton(
-                    icon: const Icon(Icons.share, color: Colors.white),
-                    tooltip: context.l10n.media_photoViewer_shareTooltip,
-                    onPressed: () => onShare(shareAnchorFrom(buttonContext)),
-                  ),
-                ),
-                MediaReuploadButton(item: item, color: Colors.white),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
