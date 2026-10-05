@@ -144,4 +144,34 @@ void main() {
     final reloaded = (await dives.getDiveById(dive.id))!;
     expect(reloaded.weights.single.amountKg, closeTo(2.5, 1e-9));
   });
+
+  testWidgets('the weights total follows every amount edit (#956)', (
+    tester,
+  ) async {
+    final dive = await dives.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime(2026, 3, 1, 10),
+        weights: const [
+          DiveWeight(
+            id: 'w1',
+            diveId: '',
+            weightType: WeightType.belt,
+            amountKg: 4.0,
+          ),
+        ],
+      ),
+    );
+    await pumpEditor(tester, dive.id);
+    expect(find.text('Total: 4.0 kg'), findsOneWidget);
+
+    // The first edit marks the page dirty, which rebuilds it once anyway;
+    // the second must refresh the total on its own.
+    await tester.enterText(find.widgetWithText(TextFormField, '4'), '5');
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextFormField, '5'), '6');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Total: 6.0 kg'), findsOneWidget);
+  });
 }

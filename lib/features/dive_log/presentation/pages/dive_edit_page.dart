@@ -5328,10 +5328,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     }
   }
 
-  /// Stores an edited weight row in place. No setState: the row keeps its own
-  /// fields current, and the Form's onChanged already marks the page dirty.
+  /// Stores an edited weight row. The row keeps its own fields current, and
+  /// the Form's onChanged marks the page dirty; the page rebuilds only when
+  /// the amount or placement changed, which the Total and "Save as preset"
+  /// above the rows read. A name alone shows nowhere outside its row.
   void _replaceWeight(DiveWeight updated) {
-    _weights = [for (final w in _weights) w.id == updated.id ? updated : w];
+    final previous = _weights.firstWhere((w) => w.id == updated.id);
+    final next = [for (final w in _weights) w.id == updated.id ? updated : w];
+    if (previous.amountKg == updated.amountKg &&
+        previous.weightType == updated.weightType) {
+      _weights = next;
+    } else {
+      setState(() => _weights = next);
+    }
   }
 
   Widget _buildBuddiesSection() {
