@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 
 /// A real Suunto Nautic S dive (18 Aug 2026, 44 min, 21.2 m) exported from
 /// the Suunto app and shared on #1445, trimmed to the channels the importer
@@ -80,5 +81,17 @@ void main() {
       ),
       lessThan(0.5),
     );
+  });
+
+  // The 3D view draws only a route's active range, cut at what looks like a
+  // GPS-fix jump (a Seacraft console's surfacing). Suunto's surface gaps
+  // resume in place, so nothing may be cut from this route.
+  test('keeps the whole route in the 3D path, surface gaps included', () {
+    final points = result.dive!.route!.points;
+
+    expect(NavTrackCorrector.activeRange(points), (
+      start: 0,
+      end: points.length - 1,
+    ));
   });
 }
