@@ -449,4 +449,25 @@ void main() {
       isNot(contains('computer-i')),
     );
   });
+
+  testWidgets('a chosen device that turns Wanted while the sheet is open '
+      'stays chosen (#2025)', (tester) async {
+    final gear = [primaryComputer, backupComputer];
+    await pumpSheet(tester, gear: gear);
+    await chooseComputerCheck(tester);
+    // The template remembers g1, so it is pre-filled.
+    expect(find.text('Primary computer'), findsOneWidget);
+
+    gear[0] = primaryComputer.copyWith(
+      status: EquipmentStatus.wanted,
+      isActive: false,
+    );
+    ProviderScope.containerOf(
+      tester.element(find.text('Computer check')),
+    ).invalidate(allEquipmentProvider);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Primary computer'), findsOneWidget);
+  });
 }

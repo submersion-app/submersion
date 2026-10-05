@@ -12,6 +12,7 @@ import 'package:submersion/features/equipment/presentation/widgets/service_statu
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/domain/services/session_item_composer.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Bottom sheet that starts a pre-dive checklist session: pick a template,
@@ -160,6 +161,48 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
     }
   }
 
+  /// One single-equipment item's device picker. [options] leaves out
+  /// wishlist gear (#2025), but a device already chosen stays listed even if
+  /// it turns Wanted while the sheet is open: a dropdown value missing from
+  /// its items fails Flutter's assertion and would drop the choice.
+  Widget _equipmentDropdown(
+    PreDiveChecklistTemplateItem item,
+    List<EquipmentItem> options,
+    AppLocalizations l10n,
+  ) {
+    final chosen = _equipmentByItemId[item.id];
+    final listed = [
+      ...options,
+      if (chosen != null && !options.any((e) => e.id == chosen.id)) chosen,
+    ];
+    return DropdownButtonFormField<EquipmentItem?>(
+      initialValue: chosen,
+      decoration: InputDecoration(labelText: item.title),
+      items: [
+        DropdownMenuItem<EquipmentItem?>(
+          value: null,
+          child: Text(l10n.preDive_start_noEquipment),
+        ),
+        for (final e in listed)
+          DropdownMenuItem<EquipmentItem?>(
+            value: e.id == chosen?.id ? chosen : e,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ServiceStatusIndicatorFor(
+                  equipmentId: e.id,
+                  density: ServiceIndicatorDensity.dot,
+                ),
+                const SizedBox(width: 6),
+                Flexible(child: Text(e.name, overflow: TextOverflow.ellipsis)),
+              ],
+            ),
+          ),
+      ],
+      onChanged: (e) => setState(() => _equipmentByItemId[item.id] = e),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -241,38 +284,7 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
             ],
             for (final item in _equipmentItems) ...[
               const SizedBox(height: 8),
-              DropdownButtonFormField<EquipmentItem?>(
-                initialValue: _equipmentByItemId[item.id],
-                decoration: InputDecoration(labelText: item.title),
-                items: [
-                  DropdownMenuItem<EquipmentItem?>(
-                    value: null,
-                    child: Text(l10n.preDive_start_noEquipment),
-                  ),
-                  for (final e in equipmentList)
-                    DropdownMenuItem<EquipmentItem?>(
-                      value: e,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ServiceStatusIndicatorFor(
-                            equipmentId: e.id,
-                            density: ServiceIndicatorDensity.dot,
-                          ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              e.name,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-                onChanged: (e) =>
-                    setState(() => _equipmentByItemId[item.id] = e),
-              ),
+              _equipmentDropdown(item, equipmentList, l10n),
             ],
             const SizedBox(height: 16),
             FilledButton(

@@ -136,4 +136,30 @@ void main() {
     expect(find.text('Purchase Price'), findsOneWidget);
     expect(find.text('Expected Price'), findsNothing);
   });
+
+  testWidgets('a wanted item shows no service clocks card', (tester) async {
+    await pump(
+      tester,
+      const EquipmentItem(
+        id: id,
+        name: 'Dream wing',
+        type: EquipmentType.bcd,
+        status: EquipmentStatus.wanted,
+        isActive: false,
+      ),
+    );
+
+    // Service clocks are for gear in the kit; schedules kept from when the
+    // item was owned come back once it is bought.
+    expect(find.text('Service clocks'), findsNothing);
+  });
+
+  testWidgets('owned gear keeps its service clocks card', (tester) async {
+    await pump(
+      tester,
+      const EquipmentItem(id: id, name: 'Wing', type: EquipmentType.bcd),
+    );
+
+    expect(find.text('Service clocks'), findsOneWidget);
+  });
 }

@@ -185,15 +185,19 @@ class _EquipmentDetailContent extends ConsumerWidget {
       }
     }
 
-    consider(ref.watch(equipmentRollupClockProvider).value?[equipmentId]);
-    for (final status
-        in ref.watch(serviceClockStatusesProvider(equipmentId)).value ??
-            const <ServiceClockStatus>[]) {
-      consider((
-        ownerId: equipmentId,
-        ownerName: equipment.name,
-        status: status,
-      ));
+    // Wishlist gear (#2025) is out of service clocks: a schedule kept from
+    // when it was owned shows nothing until the item is bought again.
+    if (!equipment.isWanted) {
+      consider(ref.watch(equipmentRollupClockProvider).value?[equipmentId]);
+      for (final status
+          in ref.watch(serviceClockStatusesProvider(equipmentId)).value ??
+              const <ServiceClockStatus>[]) {
+        consider((
+          ownerId: equipmentId,
+          ownerName: equipment.name,
+          status: status,
+        ));
+      }
     }
     // The avatar still reddens for overdue only, as the list tiles do; a
     // due-soon item keeps the plain avatar and says so in the banner.
@@ -219,16 +223,18 @@ class _EquipmentDetailContent extends ConsumerWidget {
             PassportEntryCard(equipment: equipment),
             const SizedBox(height: 24),
           ],
-          ServiceClocksCard(
-            equipmentId: equipmentId,
-            equipmentType: equipment.type,
-            onLogService: (status) => _showAddServiceDialogForKind(
-              context,
-              ref,
-              serviceKindId: status.kind.id,
+          if (!equipment.isWanted) ...[
+            ServiceClocksCard(
+              equipmentId: equipmentId,
+              equipmentType: equipment.type,
+              onLogService: (status) => _showAddServiceDialogForKind(
+                context,
+                ref,
+                serviceKindId: status.kind.id,
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
+          ],
           ExposureCard(equipmentId: equipmentId),
           // The findings and trend cards carry their own top gap and render
           // nothing when they have nothing to say, so the page never shows
