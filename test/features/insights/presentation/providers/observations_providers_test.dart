@@ -32,6 +32,7 @@ final _inputs = ObservationInputs(
 
 class _CountingLoader extends ObservationInputsLoader {
   int calls = 0;
+  String? lastDiverId;
   @override
   Future<ObservationInputs> load({
     String? diverId,
@@ -39,6 +40,7 @@ class _CountingLoader extends ObservationInputsLoader {
     required DateTime now,
   }) async {
     calls++;
+    lastDiverId = diverId;
     return _inputs;
   }
 }
@@ -121,5 +123,34 @@ void main() {
     );
     await c.read(observationInputsProvider.future);
     expect(loader.calls, 1);
+  });
+
+  test('the dives are the resolved diver\'s, not the raw selection', () async {
+    // No selection yet (or a stale one): the current diver falls back to the
+    // default diver, whose prior experience and dismissals are used, so the
+    // dives must be that diver's too rather than every diver's.
+    await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+    final loader = _CountingLoader();
+    final c = ProviderContainer(
+      overrides: [
+        observationInputsLoaderProvider.overrideWithValue(loader),
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+        currentDiverProvider.overrideWith(
+          (ref) async => Diver(
+            id: 'default-diver',
+            name: 'D',
+            createdAt: DateTime.utc(2020),
+            updatedAt: DateTime.utc(2020),
+          ),
+        ),
+      ],
+    );
+    addTearDown(c.dispose);
+    c.listen(observationInputsProvider, (_, _) {});
+    await c.read(observationInputsProvider.future);
+    expect(loader.lastDiverId, 'default-diver');
   });
 }

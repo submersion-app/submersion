@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/data/repositories/observation_inputs_queries.dart';
@@ -34,14 +33,16 @@ class ObservationInputsLoader {
     final divesFuture = _queries.dives(diverId: diverId);
     final rmvFuture = _insights.getSacVolumePerDive(diverId: diverId);
     final seenFuture = _species.getSeenSpecies(diverId: diverId);
-    final ratesFuture = _insights.getAscentDescentRates(
-      diverId: diverId,
-      filter: DiveFilterState(startDate: windows.recentStart, endDate: now),
-    );
     final dives = await divesFuture;
+    // The ascent rate averages exactly the profiled dives the rule counts:
+    // inside (recentStart, now], by instant. A calendar-day filter would
+    // also take in a dive later today, which the rules treat as future.
+    final rates = await _insights.getAscentDescentRatesForDives([
+      for (final d in dives)
+        if (d.hasProfile && windows.inRecentYear(d.date)) d.id,
+    ]);
     final rmv = await rmvFuture;
     final seen = await seenFuture;
-    final rates = await ratesFuture;
     // A dive dated after now (usually a mistyped year) would otherwise
     // become "the last dive" and silence the dive gap, or hold a record and
     // hide a genuine one. Planned dives are already out of stats scope.

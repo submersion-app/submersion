@@ -2741,7 +2741,26 @@ class InsightsRepository {
             readsFrom: {_db.dives, _db.diveProfileSeries},
           )
           .get();
-      final diveIds = [for (final r in scoped) r.read<String>('id')];
+      return await getAscentDescentRatesForDives([
+        for (final r in scoped) r.read<String>('id'),
+      ]);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get ascent/descent rates',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// [getAscentDescentRates] over exactly [diveIds], for a caller that has
+  /// already chosen its dives by instant rather than by calendar day (the
+  /// Insights observations, #2381). Dives without a primary series add
+  /// nothing; no ids gives nulls.
+  Future<({double? avgAscent, double? avgDescent})>
+  getAscentDescentRatesForDives(List<String> diveIds) async {
+    try {
       if (diveIds.isEmpty) return (avgAscent: null, avgDescent: null);
       var totals = emptyRateTotals;
       for (final chunk in _diveChunks(diveIds)) {
@@ -2755,7 +2774,7 @@ class InsightsRepository {
       return ratesFromTotals(totals);
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to get ascent/descent rates',
+        'Failed to get ascent/descent rates for dives',
         error: e,
         stackTrace: stackTrace,
       );

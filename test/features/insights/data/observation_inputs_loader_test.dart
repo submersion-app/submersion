@@ -161,4 +161,36 @@ void main() {
     expect(inputs.dives.map((d) => d.id), ['d1']);
     expect(inputs.rmvPerDive.map((v) => v.diveId), ['d1']);
   });
+
+  test('the ascent rate covers exactly the dives the rules count', () async {
+    final before = await ObservationInputsLoader().load(diverId: 'A', now: now);
+    // Later today but after now: a whole-day date bound would let this
+    // fast ascent into the average while the rules drop the dive itself.
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion(
+            id: const Value('tonight'),
+            diverId: const Value('A'),
+            diveDateTime: Value(
+              now.add(const Duration(hours: 6)).millisecondsSinceEpoch,
+            ),
+            maxDepth: const Value(30),
+            createdAt: const Value(0),
+            updatedAt: const Value(0),
+          ),
+        );
+    await ProfileSeriesRepository().insertSeries(
+      diveId: 'tonight',
+      samples: [
+        const ProfileSample(timestamp: 0, depth: 30),
+        const ProfileSample(timestamp: 60, depth: 30),
+        const ProfileSample(timestamp: 120, depth: 0),
+      ],
+      now: 0,
+    );
+    final after = await ObservationInputsLoader().load(diverId: 'A', now: now);
+    expect(after.dives.map((d) => d.id), ['d1']);
+    expect(after.recentAscentRate, before.recentAscentRate);
+  });
 }

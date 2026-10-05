@@ -33,13 +33,16 @@ final observationInputsProvider = FutureProvider<ObservationInputs>((
 ) async {
   final loader = ref.watch(observationInputsLoaderProvider);
   final repository = ref.watch(insightsRepositoryProvider);
-  final diverId = ref.watch(currentDiverIdProvider);
   final diverFuture = ref.watch(currentDiverProvider.future);
   ref.invalidateSelfWhen(repository.watchInsightsChanges());
   ref.invalidateSelfWhen(localDayChanges());
+  // The resolved diver (the selection, or the default diver when there is
+  // none or it is stale) scopes the dives, so they belong to the same diver
+  // whose prior experience and dismissals are used. currentDiverProvider
+  // already watches the selection, so a switch rebuilds this.
   final diver = await diverFuture;
   return loader.load(
-    diverId: diverId,
+    diverId: diver?.id,
     diver: diver,
     now: asWallClockUtc(clock.now()),
   );
