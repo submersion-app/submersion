@@ -42,4 +42,24 @@ void main() {
     });
     test('meanOf', () => expect(meanOf([1, 2, 3, 6]), 3));
   });
+
+  group('copyWith', () {
+    test('ObservationDive replaces only what it is given', () {
+      final d = dive('d1', daysAgo(3), maxDepthM: 20, country: 'Egypt');
+      final deeper = d.copyWith(maxDepthM: 30);
+      expect(deeper.maxDepthM, 30);
+      expect(deeper.country, 'Egypt');
+      expect(deeper.id, 'd1');
+      expect(d.copyWith(), d);
+    });
+
+    test('ObservationInputs replaces only what it is given', () {
+      final base = ObservationInputs(now: now, priorDives: 40);
+      final moved = base.copyWith(now: daysAgo(1), recentAscentRate: 11);
+      expect(moved.now, daysAgo(1));
+      expect(moved.recentAscentRate, 11);
+      expect(moved.priorDives, 40);
+      expect(base.copyWith(), base);
+    });
+  });
 }

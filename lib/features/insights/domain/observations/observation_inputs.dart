@@ -40,6 +40,30 @@ class ObservationDive extends Equatable {
     this.buddies = const [],
   });
 
+  ObservationDive copyWith({
+    String? id,
+    DateTime? date,
+    double? maxDepthM,
+    int? runtimeSeconds,
+    double? weightKg,
+    String? siteId,
+    String? siteName,
+    String? country,
+    bool? hasProfile,
+    List<ObservationBuddy>? buddies,
+  }) => ObservationDive(
+    id: id ?? this.id,
+    date: date ?? this.date,
+    maxDepthM: maxDepthM ?? this.maxDepthM,
+    runtimeSeconds: runtimeSeconds ?? this.runtimeSeconds,
+    weightKg: weightKg ?? this.weightKg,
+    siteId: siteId ?? this.siteId,
+    siteName: siteName ?? this.siteName,
+    country: country ?? this.country,
+    hasProfile: hasProfile ?? this.hasProfile,
+    buddies: buddies ?? this.buddies,
+  );
+
   @override
   List<Object?> get props => [
     id,
@@ -106,6 +130,24 @@ class ObservationInputs extends Equatable {
     this.priorTimeSeconds = 0,
     this.recentAscentRate,
   });
+
+  ObservationInputs copyWith({
+    DateTime? now,
+    List<ObservationDive>? dives,
+    List<ObservationValue>? rmvPerDive,
+    List<ObservationSpecies>? species,
+    int? priorDives,
+    int? priorTimeSeconds,
+    double? recentAscentRate,
+  }) => ObservationInputs(
+    now: now ?? this.now,
+    dives: dives ?? this.dives,
+    rmvPerDive: rmvPerDive ?? this.rmvPerDive,
+    species: species ?? this.species,
+    priorDives: priorDives ?? this.priorDives,
+    priorTimeSeconds: priorTimeSeconds ?? this.priorTimeSeconds,
+    recentAscentRate: recentAscentRate ?? this.recentAscentRate,
+  );
 
   /// Start (exclusive) of "the last 12 months".
   DateTime get recentStart => DateTime.utc(

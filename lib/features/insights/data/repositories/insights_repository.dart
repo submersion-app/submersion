@@ -2724,11 +2724,12 @@ class InsightsRepository {
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
+    final List<QueryRow> scoped;
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
-      final scoped = await _db
+      scoped = await _db
           .customSelect(
             // Only dives that actually have a primary series: without this
             // the chunk loop pages over every filtered dive, most of which
@@ -2741,9 +2742,6 @@ class InsightsRepository {
             readsFrom: {_db.dives, _db.diveProfileSeries},
           )
           .get();
-      return await getAscentDescentRatesForDives([
-        for (final r in scoped) r.read<String>('id'),
-      ]);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get ascent/descent rates',
@@ -2752,6 +2750,11 @@ class InsightsRepository {
       );
       rethrow;
     }
+    // Outside the try: the per-dive method logs its own failures, so one
+    // error is logged once.
+    return getAscentDescentRatesForDives([
+      for (final r in scoped) r.read<String>('id'),
+    ]);
   }
 
   /// [getAscentDescentRates] over exactly [diveIds], for a caller that has

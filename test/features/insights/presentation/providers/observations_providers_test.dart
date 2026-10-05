@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -152,5 +154,34 @@ void main() {
     c.listen(observationInputsProvider, (_, _) {});
     await c.read(observationInputsProvider.future);
     expect(loader.lastDiverId, 'default-diver');
+  });
+
+  test('a dismissal arriving on the stream drops the observation', () async {
+    final dismissed = StreamController<Set<String>>();
+    addTearDown(dismissed.close);
+    final c = ProviderContainer(
+      overrides: [
+        observationInputsProvider.overrideWith((ref) async => _inputs),
+        dismissedObservationKeysProvider.overrideWith(
+          (ref) => dismissed.stream,
+        ),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+      ],
+    );
+    addTearDown(c.dispose);
+    c.listen(observationsProvider, (_, _) {});
+    dismissed.add(const {});
+    final before = await c.read(observationsProvider.future);
+    expect(
+      before.map((o) => o.ruleId),
+      contains(ObservationRuleId.busiestMonth),
+    );
+    dismissed.add(const {'busiestMonth:8'});
+    await Future<void>.delayed(Duration.zero);
+    final after = await c.read(observationsProvider.future);
+    expect(
+      after.map((o) => o.ruleId),
+      isNot(contains(ObservationRuleId.busiestMonth)),
+    );
   });
 }
