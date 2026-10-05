@@ -511,22 +511,21 @@ void main() {
       expect(result.format, ImportFormat.unknown);
     });
 
+    // Every fixture, JSON ones included (iNaturalist, bathymetry, crypto
+    // vectors): those are exactly the files a loose JSON check would grab.
     test('does not false-positive on any pinned fixture', () {
-      for (final root in [
-        p.join('test', 'fixtures', 'universal_import'),
-        p.join('test', 'fixtures', 'gps_tracks'),
-      ]) {
-        final dir = Directory(root);
-        if (!dir.existsSync()) continue;
-        for (final entity in dir.listSync(recursive: true)) {
-          if (entity is! File) continue;
-          expect(
-            detector.detect(entity.readAsBytesSync()).format,
-            isNot(ImportFormat.suuntoJson),
-            reason: 'false positive on fixture: ${entity.path}',
-          );
-        }
+      var scanned = 0;
+      final root = Directory(p.join('test', 'fixtures'));
+      for (final entity in root.listSync(recursive: true)) {
+        if (entity is! File) continue;
+        scanned++;
+        expect(
+          detector.detect(entity.readAsBytesSync()).format,
+          isNot(ImportFormat.suuntoJson),
+          reason: 'false positive on fixture: ${entity.path}',
+        );
       }
+      expect(scanned, greaterThan(0));
     });
   });
 }
