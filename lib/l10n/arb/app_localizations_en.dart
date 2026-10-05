@@ -3214,6 +3214,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_currency_muted => 'Muted';
 
   @override
+  String get certifications_currency_noCountedDive =>
+      'No counted dive logged yet';
+
+  @override
   String get certifications_currency_action_log => 'Log refresher';
 
   @override

@@ -98,6 +98,13 @@ void main() {
     expect(attention.count, 1);
   });
 
+  test('a card with no counted dive never counts', () async {
+    final c = _container(certs: ladder);
+    final attention = await c.read(currencyAttentionProvider.future);
+    expect(attention.count, 0);
+    expect(attention.certificationIds, isEmpty);
+  });
+
   test('muted groups never count', () async {
     final c = _container(
       certs: [ladder.first],

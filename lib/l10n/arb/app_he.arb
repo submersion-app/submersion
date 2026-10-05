@@ -963,6 +963,7 @@
   "certifications_currency_anchor_ledgerEvent": "{event} נרשם ב-{date}",
   "certifications_currency_alsoCovers": "חל גם על {names}",
   "certifications_currency_muted": "מושתק",
+  "certifications_currency_noCountedDive": "עדיין לא נרשמה צלילה נספרת",
   "certifications_currency_action_log": "רישום ריענון",
   "certifications_currency_action_interval": "עריכת מרווח",
   "certifications_currency_action_mapping": "אילו צלילות נספרות",

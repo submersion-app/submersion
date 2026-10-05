@@ -3263,6 +3263,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_currency_muted => 'Stummgeschaltet';
 
   @override
+  String get certifications_currency_noCountedDive =>
+      'Noch kein zählender Tauchgang erfasst';
+
+  @override
   String get certifications_currency_action_log => 'Auffrischung erfassen';
 
   @override

@@ -3336,6 +3336,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_currency_muted => 'مكتوم';
 
   @override
+  String get certifications_currency_noCountedDive =>
+      'لم تُسجَّل غطسة محتسبة بعد';
+
+  @override
   String get certifications_currency_action_log => 'تسجيل دورة تنشيطية';
 
   @override

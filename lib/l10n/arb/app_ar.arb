@@ -963,6 +963,7 @@
   "certifications_currency_anchor_ledgerEvent": "تم تسجيل {event} في {date}",
   "certifications_currency_alsoCovers": "يشمل أيضًا {names}",
   "certifications_currency_muted": "مكتوم",
+  "certifications_currency_noCountedDive": "لم تُسجَّل غطسة محتسبة بعد",
   "certifications_currency_action_log": "تسجيل دورة تنشيطية",
   "certifications_currency_action_interval": "تعديل الفترة",
   "certifications_currency_action_mapping": "الغطسات المحتسبة",

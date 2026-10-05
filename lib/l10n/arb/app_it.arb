@@ -963,6 +963,7 @@
   "certifications_currency_anchor_ledgerEvent": "{event} registrato il {date}",
   "certifications_currency_alsoCovers": "Vale anche per {names}",
   "certifications_currency_muted": "Silenziato",
+  "certifications_currency_noCountedDive": "Nessuna immersione valida registrata finora",
   "certifications_currency_action_log": "Registra aggiornamento",
   "certifications_currency_action_interval": "Modifica intervallo",
   "certifications_currency_action_mapping": "Quali immersioni contano",

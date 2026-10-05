@@ -974,6 +974,7 @@
   "certifications_currency_anchor_ledgerEvent": "{event} erfasst am {date}",
   "certifications_currency_alsoCovers": "Gilt auch für {names}",
   "certifications_currency_muted": "Stummgeschaltet",
+  "certifications_currency_noCountedDive": "Noch kein zählender Tauchgang erfasst",
   "certifications_currency_action_log": "Auffrischung erfassen",
   "certifications_currency_action_interval": "Intervall bearbeiten",
   "certifications_currency_action_mapping": "Welche Tauchgänge zählen",

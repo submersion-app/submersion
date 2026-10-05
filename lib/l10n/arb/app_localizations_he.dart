@@ -3206,6 +3206,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_currency_muted => 'מושתק';
 
   @override
+  String get certifications_currency_noCountedDive =>
+      'עדיין לא נרשמה צלילה נספרת';
+
+  @override
   String get certifications_currency_action_log => 'רישום ריענון';
 
   @override

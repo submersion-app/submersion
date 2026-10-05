@@ -415,6 +415,12 @@ than shipping an English connector to every locale.
   the diver switches off.
 - A diver with no dives gets no activity warnings. The last-dive chip
   already says "no dives yet".
+- An activity rule that matches a card but has nothing counted yet (no
+  dives, or none of the counted types and modes, and no logged refresher)
+  keeps a neutral row on the detail page: "No counted dive logged yet". It
+  never warns and never counts for the chip, but it keeps the row's
+  actions, so a mapping narrowed to dives the diver has not logged can
+  still be changed back (decided during review of the PR).
 - Deleting a custom rule leaves inert prefs and intact history, rather than
   cascading away the record of a refresher the diver actually did.
 - Deleting a certification cascades its prefs and events.

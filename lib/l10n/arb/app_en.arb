@@ -2207,6 +2207,10 @@
   "@certifications_currency_muted": {
     "description": "A currency rule the diver muted for this card"
   },
+  "certifications_currency_noCountedDive": "No counted dive logged yet",
+  "@certifications_currency_noCountedDive": {
+    "description": "A currency rule applies to the card but no counted dive or refresher has been logged yet; it never warns"
+  },
   "certifications_currency_action_log": "Log refresher",
   "@certifications_currency_action_log": {
     "description": "Action: log a refresher, renewal or revalidation"

@@ -271,6 +271,16 @@ void main() {
       final pref = (await currency.getPrefs(c.id)).single;
       expect(pref.countedDiveModes, [DiveMode.ccr], reason: c.name);
     }
+
+    // No CCR dive is logged, so nothing starts the clock. The row stays,
+    // says so, warns nothing, and the mapping can still be changed back.
+    expect(find.text('No counted dive logged yet'), findsOneWidget);
+    expect(find.textContaining('Lapsed'), findsNothing);
+    await openMapping();
+    await tester.tap(find.text("Use the rule's default"));
+    await settle(tester);
+    expect((await currency.getPrefs(aow.id)).single.countedDiveModes, isNull);
+    expect(find.textContaining('Lapsed'), findsOneWidget);
   });
 
   testWidgets('the mapping action appears only for activity clocks', (

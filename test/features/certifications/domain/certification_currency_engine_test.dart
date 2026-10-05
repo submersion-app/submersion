@@ -197,11 +197,54 @@ void main() {
   });
 
   group('activity clock', () {
-    test('no dives and no dates means no statuses', () {
-      expect(
-        run(certs: [cert('c')], rules: [padiRefresher], now: DateTime(2026)),
-        isEmpty,
+    test('no dives and no dates means no warning, only a neutral row', () {
+      // The row stays on the detail page so its mapping can still be
+      // changed, but it never warns and never counts for the chip.
+      final s = run(
+        certs: [cert('c')],
+        rules: [padiRefresher],
+        now: DateTime(2026),
+      ).single;
+      expect(s.origin, CurrencyAnchorOrigin.noCountedDive);
+      expect(s.severity, CurrencySeverity.current);
+      expect(s.needsAttention, isFalse);
+      expect(s.hardened, isFalse);
+    });
+
+    test('a mapping no logged dive matches gives the neutral row', () {
+      final s = run(
+        certs: [cert('c')],
+        rules: [padiRefresher],
+        prefs: [
+          pref('c', 'padi_reactivate', modes: const [DiveMode.ccr]),
+        ],
+        activity: DiveActivityIndex(lastDiveAt: DateTime(2020, 1, 1)),
+        now: DateTime(2026),
+      ).single;
+      expect(s.origin, CurrencyAnchorOrigin.noCountedDive);
+      expect(s.needsAttention, isFalse);
+    });
+
+    test('neutral rows sort after every row with a clock', () {
+      final cave = rule(
+        'cave',
+        levels: const [CertificationLevel.cave],
+        lapse: 365,
+        lead: 90,
+        types: const ['cave'],
       );
+      final groups = collapseCurrency(
+        run(
+          certs: [cert('fc', level: CertificationLevel.cave)],
+          rules: [
+            cave,
+            rule('any_cave', levels: const [CertificationLevel.cave]),
+          ],
+          activity: DiveActivityIndex(lastDiveAt: DateTime(2025, 12, 1)),
+          now: DateTime(2026),
+        ),
+      );
+      expect(groups.map((g) => g.representative.rule.id), ['any_cave', 'cave']);
     });
 
     test('severity at the threshold and one day either side', () {

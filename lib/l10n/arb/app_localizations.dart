@@ -5039,6 +5039,12 @@ abstract class AppLocalizations {
   /// **'Muted'**
   String get certifications_currency_muted;
 
+  /// A currency rule applies to the card but no counted dive or refresher has been logged yet; it never warns
+  ///
+  /// In en, this message translates to:
+  /// **'No counted dive logged yet'**
+  String get certifications_currency_noCountedDive;
+
   /// Action: log a refresher, renewal or revalidation
   ///
   /// In en, this message translates to:

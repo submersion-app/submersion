@@ -123,7 +123,23 @@ CredentialCurrency? _evaluate(
   final anchor = rule.clockKind == CurrencyClockKind.date
       ? _dateAnchor(cert, rule, events, lapse)
       : _activityAnchor(cert, rule, pref, events, activity, lapse);
-  if (anchor == null) return null;
+  if (anchor == null) {
+    // A date rule with no date has no clock and no row. An activity rule
+    // with nothing counted yet keeps a neutral row that never warns, so
+    // the diver can still change which dives count.
+    if (rule.clockKind == CurrencyClockKind.date) return null;
+    return CredentialCurrency(
+      certification: cert,
+      rule: rule,
+      severity: CurrencySeverity.current,
+      anchor: today,
+      origin: CurrencyAnchorOrigin.noCountedDive,
+      dueDate: today,
+      lapseDays: lapse,
+      leadDays: lead,
+      muted: muted,
+    );
+  }
 
   final CurrencySeverity severity;
   if (!today.isBefore(anchor.due)) {
@@ -318,5 +334,10 @@ int _groupOrder(CurrencyGroup a, CurrencyGroup b) {
   if (a.muted != b.muted) return a.muted ? 1 : -1;
   final bySeverity = b.severity.index.compareTo(a.severity.index);
   if (bySeverity != 0) return bySeverity;
+  final aNoClock =
+      a.representative.origin == CurrencyAnchorOrigin.noCountedDive;
+  final bNoClock =
+      b.representative.origin == CurrencyAnchorOrigin.noCountedDive;
+  if (aNoClock != bNoClock) return aNoClock ? 1 : -1;
   return a.representative.dueDate.compareTo(b.representative.dueDate);
 }

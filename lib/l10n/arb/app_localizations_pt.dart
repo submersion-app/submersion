@@ -3261,6 +3261,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_currency_muted => 'Silenciado';
 
   @override
+  String get certifications_currency_noCountedDive =>
+      'Ainda não há nenhum mergulho válido registado';
+
+  @override
   String get certifications_currency_action_log => 'Registar reciclagem';
 
   @override

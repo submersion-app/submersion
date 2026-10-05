@@ -147,7 +147,8 @@ class _CurrencyRow extends ConsumerWidget {
                 ? l10n.certifications_currency_muted
                 : _dueText(l10n, s),
           ),
-          Text(_anchorText(l10n, s), style: small),
+          if (s.origin != CurrencyAnchorOrigin.noCountedDive)
+            Text(_anchorText(l10n, s), style: small),
           if (advisory != null && advisory.isNotEmpty)
             Text(advisory, style: small),
           if (others.isNotEmpty)
@@ -195,6 +196,9 @@ class _CurrencyRow extends ConsumerWidget {
   }
 
   String _dueText(AppLocalizations l10n, CredentialCurrency s) {
+    if (s.origin == CurrencyAnchorOrigin.noCountedDive) {
+      return l10n.certifications_currency_noCountedDive;
+    }
     final date = units.formatDate(s.dueDate);
     if (s.severity == CurrencySeverity.lapsed) {
       return l10n.certifications_currency_lapsedSince(date);
@@ -213,6 +217,8 @@ class _CurrencyRow extends ConsumerWidget {
         l10n.certifications_currency_anchor_cardExpiry(date),
       CurrencyAnchorOrigin.cardIssue =>
         l10n.certifications_currency_anchor_cardIssue(date),
+      CurrencyAnchorOrigin.noCountedDive =>
+        l10n.certifications_currency_noCountedDive,
       CurrencyAnchorOrigin.ledgerEvent =>
         l10n.certifications_currency_anchor_ledgerEvent(
           (s.anchorEventType ?? CurrencyEventType.other).label(l10n),

@@ -1050,6 +1050,7 @@
   "certifications_currency_anchor_ledgerEvent": "{date} 记录了{event}",
   "certifications_currency_alsoCovers": "同时适用于 {names}",
   "certifications_currency_muted": "已静音",
+  "certifications_currency_noCountedDive": "尚未记录符合条件的潜水",
   "certifications_currency_action_log": "记录复习",
   "certifications_currency_action_interval": "编辑间隔",
   "certifications_currency_action_mapping": "哪些潜水计入",

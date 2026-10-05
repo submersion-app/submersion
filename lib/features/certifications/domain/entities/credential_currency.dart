@@ -15,6 +15,11 @@ enum CurrencyAnchorOrigin {
   ledgerEvent,
   lastDive,
   lastQualifyingDive,
+
+  /// An activity rule matches the card but no counted dive and no logged
+  /// refresher has started its clock. The status stays current and never
+  /// warns; it exists so the detail page keeps the row and its actions.
+  noCountedDive,
 }
 
 /// One rule evaluated against one certification.

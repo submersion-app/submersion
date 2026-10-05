@@ -963,6 +963,7 @@
   "certifications_currency_anchor_ledgerEvent": "{event} vastgelegd op {date}",
   "certifications_currency_alsoCovers": "Geldt ook voor {names}",
   "certifications_currency_muted": "Gedempt",
+  "certifications_currency_noCountedDive": "Nog geen meetellende duik vastgelegd",
   "certifications_currency_action_log": "Opfrissing vastleggen",
   "certifications_currency_action_interval": "Interval bewerken",
   "certifications_currency_action_mapping": "Welke duiken tellen",

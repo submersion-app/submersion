@@ -3271,6 +3271,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_currency_muted => 'En sourdine';
 
   @override
+  String get certifications_currency_noCountedDive =>
+      'Aucune plongée prise en compte enregistrée pour l\'instant';
+
+  @override
   String get certifications_currency_action_log =>
       'Enregistrer une remise à niveau';
 

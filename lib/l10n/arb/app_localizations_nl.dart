@@ -3241,6 +3241,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_currency_muted => 'Gedempt';
 
   @override
+  String get certifications_currency_noCountedDive =>
+      'Nog geen meetellende duik vastgelegd';
+
+  @override
   String get certifications_currency_action_log => 'Opfrissing vastleggen';
 
   @override

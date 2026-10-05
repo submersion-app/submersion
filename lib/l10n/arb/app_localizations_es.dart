@@ -3262,6 +3262,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get certifications_currency_muted => 'Silenciado';
 
   @override
+  String get certifications_currency_noCountedDive =>
+      'Aún no hay ninguna inmersión válida registrada';
+
+  @override
   String get certifications_currency_action_log => 'Registrar repaso';
 
   @override

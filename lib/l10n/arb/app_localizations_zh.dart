@@ -3095,6 +3095,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_currency_muted => '已静音';
 
   @override
+  String get certifications_currency_noCountedDive => '尚未记录符合条件的潜水';
+
+  @override
   String get certifications_currency_action_log => '记录复习';
 
   @override

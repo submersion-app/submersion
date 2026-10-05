@@ -3254,6 +3254,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_currency_muted => 'Némítva';
 
   @override
+  String get certifications_currency_noCountedDive =>
+      'Még nincs rögzített beszámító merülés';
+
+  @override
   String get certifications_currency_action_log => 'Felfrissítés rögzítése';
 
   @override

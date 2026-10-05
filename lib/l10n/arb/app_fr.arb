@@ -963,6 +963,7 @@
   "certifications_currency_anchor_ledgerEvent": "{event} enregistré le {date}",
   "certifications_currency_alsoCovers": "Couvre aussi {names}",
   "certifications_currency_muted": "En sourdine",
+  "certifications_currency_noCountedDive": "Aucune plongée prise en compte enregistrée pour l'instant",
   "certifications_currency_action_log": "Enregistrer une remise à niveau",
   "certifications_currency_action_interval": "Modifier l'intervalle",
   "certifications_currency_action_mapping": "Plongées prises en compte",
