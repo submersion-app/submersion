@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -108,5 +109,39 @@ void main() {
     expect(ltr[2].dx, greaterThan(ltr[0].dx), reason: 'mark on the right');
     expect(rtl[2].dx, lessThan(rtl[0].dx), reason: 'mark moves to the left');
     expect(rtl[0].dx, greaterThan(ltr[0].dx), reason: 'text moves right');
+  });
+  testWidgets('a real photo and the app icon are drawn in', (tester) async {
+    final png = await tester.runAsync(() async {
+      // A small solid image stands in for a buddy photo.
+      final recorder = ui.PictureRecorder();
+      Canvas(recorder).drawRect(
+        const Rect.fromLTWH(0, 0, 8, 8),
+        Paint()..color = const Color(0xFF336699),
+      );
+      final image = await recorder.endRecording().toImage(8, 8);
+      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+      image.dispose();
+      final withPhoto = ConnectionGraph(
+        nodes: [
+          graph.nodes.first,
+          ConnectionNode(
+            ref: _b('b'),
+            label: 'Bob',
+            diveCount: 2,
+            photo: bytes!.buffer.asUint8List(),
+          ),
+        ],
+        edges: graph.edges,
+      );
+      return ConnectionsShareRenderer.renderWithAssets(
+        graph: withPhoto,
+        frame: frame,
+        highlight: HighlightMode.byKind,
+        groups: GraphGroups.empty,
+        caption: caption,
+      );
+    });
+    expect(_u32(png!, 16), 1080);
+    expect(_u32(png, 20), 1350);
   });
 }
