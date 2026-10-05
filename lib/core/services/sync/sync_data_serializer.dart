@@ -8986,24 +8986,28 @@ class SyncDataSerializer {
   ]) async {
     final keys = deviceLocalSyncColumns[entityType];
     if (keys == null) return const {};
-    final List<Map<String, dynamic>> rows;
-    switch (entityType) {
-      case 'diveComputers':
-        final query = _db.select(_db.diveComputers);
-        if (ids != null) query.where((t) => t.id.isIn(ids));
-        rows = [for (final row in await query.get()) row.toJson()];
-      case 'diverSettings':
-        final query = _db.select(_db.diverSettings);
-        if (ids != null) query.where((t) => t.id.isIn(ids));
-        rows = [for (final row in await query.get()) row.toJson()];
-      default:
-        throw StateError('No device-local column read for $entityType');
+    // Read through the entity's own table, so a new entry in
+    // deviceLocalSyncColumns needs no code here.
+    final table = _syncTableFor(entityType);
+    final idColumn = table.columnsByName['id'];
+    if (idColumn is! GeneratedColumn<String>) {
+      throw StateError('$entityType has no text id column to key by');
     }
+    final query = _db.select(table);
+    if (ids != null) query.where((_) => idColumn.isIn(ids));
+    final rows = [
+      for (final row in await query.get()) (row as DataClass).toJson(),
+    ];
     return {
       for (final row in rows)
         row['id'] as String: {for (final key in keys) key: row[key]},
     };
   }
+
+  /// Forgets what [deleteAllRecords] remembered for a replace-adopt's refill.
+  /// The adopt calls this once the refill is done, so a row that comes back
+  /// in a later sync is new to this device and takes the column defaults.
+  void endAdoptRefill() => _adoptKeptDeviceLocal.clear();
 
   /// Fills each device-local column of [records] with this device's value:
   /// the row it holds, else what a replace-adopt cleared, else nothing (a row

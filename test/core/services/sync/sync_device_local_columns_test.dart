@@ -1,7 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart' show ThemeMode, TimeOfDay;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:path/path.dart' as p;
+import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
@@ -91,6 +96,35 @@ void main() {
       final exported = payload.data.diveComputers.single;
       expect(exported, isNot(contains('bluetoothAddress')));
       expect(exported['name'], 'Perdix');
+    });
+
+    test('a finished adopt forgets the addresses it remembered', () async {
+      await seedComputer();
+      final local = (await storedComputer('c1')).toJson();
+      // The adopted library has no dive computers, so c1 is gone afterwards.
+      const base = SyncPayload(
+        version: syncFormatVersion,
+        exportedAt: 1,
+        deviceId: 'cloud',
+        checksum: '',
+        data: SyncData(),
+        deletions: {},
+      );
+      final tmpDir = await Directory.systemTemp.createTemp('adopt_forget');
+      addTearDown(() => tmpDir.delete(recursive: true));
+      final file = File(p.join(tmpDir.path, 'base.json'));
+      await file.writeAsBytes(utf8.encode(serializer.serializePayload(base)));
+      await SyncService(
+        syncRepository: SyncRepository(),
+        serializer: serializer,
+      ).debugAdoptStreaming([file.path], [base.exportedAt], const []);
+
+      // A later sync brings c1 back: it is new to this device again.
+      await serializer.upsertRecord(
+        'diveComputers',
+        withoutKeys(local, {'bluetoothAddress'}),
+      );
+      expect((await storedComputer('c1')).bluetoothAddress, isNull);
     });
 
     test('a computer new to this device has no address', () async {
@@ -222,6 +256,28 @@ void main() {
       expect(row.gfHigh, 70);
     });
   });
+
+  // A new entry in deviceLocalSyncColumns must work in every path that reads
+  // the device-local values, not throw the first time a sync reaches it.
+  test(
+    'every device-local entity survives the adopt and refill reads',
+    () async {
+      for (final entityType in deviceLocalSyncColumns.keys) {
+        await serializer.deleteAllRecords(entityType);
+        await serializer.upsertRecords(entityType, const []);
+        try {
+          await serializer.upsertRecords(entityType, [
+            {'id': 'absent-$entityType'},
+          ]);
+        } on StateError catch (e) {
+          fail('$entityType: $e');
+        } catch (_) {
+          // A bare row fails the table's own constraints; only the
+          // device-local read must not be the failure.
+        }
+      }
+    },
+  );
 }
 
 Map<String, dynamic> withoutKeys(Map<String, dynamic> row, Set<String> keys) =>
