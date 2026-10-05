@@ -11475,6 +11475,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentType_gearPocket => 'כיס ציוד';
 
   @override
+  String get enum_equipmentType_bag => 'תיק';
+
+  @override
   String get enum_equipmentType_hose => 'צינור';
 
   @override
@@ -29307,6 +29310,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_pocket_mount => 'התקנה';
 
   @override
+  String get attrLabel_bag_style => 'סגנון';
+
+  @override
+  String get attrLabel_capacity_l => 'קיבולת';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'אלומיניום';
 
   @override
@@ -29458,6 +29467,27 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'ירך';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'תיק נסיעות';
+
+  @override
+  String get attrChoice_bag_style_roller => 'טרולי';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'תרמיל גב';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'תיק רשת';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'תיק יבש';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'תיק לווסת';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'שקית איסוף';
 
   @override
   String get attrChoice_bcd_style_jacket => 'ז\'קט';

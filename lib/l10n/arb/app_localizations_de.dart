@@ -11734,6 +11734,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_equipmentType_gearPocket => 'Ausrüstungstasche';
 
   @override
+  String get enum_equipmentType_bag => 'Tasche';
+
+  @override
   String get enum_equipmentType_hose => 'Schlauch';
 
   @override
@@ -29975,6 +29978,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Befestigung';
 
   @override
+  String get attrLabel_bag_style => 'Bauart';
+
+  @override
+  String get attrLabel_capacity_l => 'Fassungsvermögen';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminium';
 
   @override
@@ -30128,6 +30137,27 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Oberschenkel';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'Reisetasche';
+
+  @override
+  String get attrChoice_bag_style_roller => 'Trolley';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'Rucksack';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'Netztasche';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'Packsack';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'Atemreglertasche';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'Sammelbeutel';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

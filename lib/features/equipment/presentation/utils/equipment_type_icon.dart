@@ -123,6 +123,10 @@ IconData equipmentTypeIcon(EquipmentType type) {
       return SubmersionIcons.reel;
     case EquipmentType.dpv:
       return SubmersionIcons.dpv;
+    // An upright suitcase (#2952). It reads as luggage at list size, and a
+    // bag is carried to the dive rather than worn on it.
+    case EquipmentType.bag:
+      return Icons.luggage;
     case EquipmentType.o2Cell:
       return Icons.sensors;
     case EquipmentType.battery:

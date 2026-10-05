@@ -11189,6 +11189,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentType_gearPocket => '装备袋';
 
   @override
+  String get enum_equipmentType_bag => '包';
+
+  @override
   String get enum_equipmentType_hose => '软管';
 
   @override
@@ -28408,6 +28411,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_pocket_mount => '佩戴方式';
 
   @override
+  String get attrLabel_bag_style => '款式';
+
+  @override
+  String get attrLabel_capacity_l => '容量';
+
+  @override
   String get attrChoice_plate_material_aluminum => '铝';
 
   @override
@@ -28559,6 +28568,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => '大腿';
+
+  @override
+  String get attrChoice_bag_style_duffel => '旅行袋';
+
+  @override
+  String get attrChoice_bag_style_roller => '拉杆箱';
+
+  @override
+  String get attrChoice_bag_style_backpack => '背包';
+
+  @override
+  String get attrChoice_bag_style_mesh => '网兜';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => '防水袋';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => '调节器包';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => '收集袋';
 
   @override
   String get attrChoice_bcd_style_jacket => '夹克式';

@@ -11706,6 +11706,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentType_gearPocket => 'Felszerelészseb';
 
   @override
+  String get enum_equipmentType_bag => 'Táska';
+
+  @override
   String get enum_equipmentType_hose => 'Tömlő';
 
   @override
@@ -29890,6 +29893,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Rögzítés';
 
   @override
+  String get attrLabel_bag_style => 'Fazon';
+
+  @override
+  String get attrLabel_capacity_l => 'Kapacitás';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Alumínium';
 
   @override
@@ -30042,6 +30051,27 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Comb';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'Utazótáska';
+
+  @override
+  String get attrChoice_bag_style_roller => 'Gurulós táska';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'Hátizsák';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'Hálós táska';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'Vízhatlan zsák';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'Légzőautomata-táska';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'Gyűjtőzsák';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Mellény';

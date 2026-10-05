@@ -11549,6 +11549,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentType_gearPocket => 'Gear Pocket';
 
   @override
+  String get enum_equipmentType_bag => 'Bag';
+
+  @override
   String get enum_equipmentType_hose => 'Hose';
 
   @override
@@ -29548,6 +29551,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Mount';
 
   @override
+  String get attrLabel_bag_style => 'Style';
+
+  @override
+  String get attrLabel_capacity_l => 'Capacity';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminum';
 
   @override
@@ -29699,6 +29708,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Thigh';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'Duffel';
+
+  @override
+  String get attrChoice_bag_style_roller => 'Roller';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'Backpack';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'Mesh';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'Dry bag';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'Regulator bag';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'Catch bag';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

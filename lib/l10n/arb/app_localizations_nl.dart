@@ -11645,6 +11645,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentType_gearPocket => 'Uitrustingstas';
 
   @override
+  String get enum_equipmentType_bag => 'Tas';
+
+  @override
   String get enum_equipmentType_hose => 'Slang';
 
   @override
@@ -29812,6 +29815,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Bevestiging';
 
   @override
+  String get attrLabel_bag_style => 'Stijl';
+
+  @override
+  String get attrLabel_capacity_l => 'Capaciteit';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Aluminium';
 
   @override
@@ -29964,6 +29973,27 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Dij';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'Plunjezak';
+
+  @override
+  String get attrChoice_bag_style_roller => 'Trolley';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'Rugzak';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'Nettas';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'Droogzak';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'Ademautomaattas';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'Verzamelzakje';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Jacket';

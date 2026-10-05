@@ -73,6 +73,17 @@ class MacDiveValueMapper {
   /// "Shear" or "shears" as a whole word, for [equipmentType].
   static final _shearWord = RegExp(r'\bshears?\b');
 
+  /// A name that ends on "bag", the noun the words before it qualify, for
+  /// [equipmentType] (#2952): a "regulator bag" is a bag, not a regulator.
+  static final _bagHeadNoun = RegExp(r'\bbags?$');
+
+  /// A joining word that hangs a bag off another item ("BCD w/ bag",
+  /// "camera with bag"), so the item, not the bag, is what the name lists.
+  static final _accessoryJoin = RegExp(r'\b(?:with|and)\b|w/|&|\+');
+
+  /// A bag that lifts rather than carries, for [equipmentType] (#2952).
+  static final _liftBag = RegExp(r'\b(?:lift|lifting|salvage)\s+bags?\b');
+
   /// Maps MacDive's free-text equipment type onto [EquipmentType].
   ///
   /// MacDive lets the diver type anything into the field, so real libraries
@@ -84,6 +95,15 @@ class MacDiveValueMapper {
   static EquipmentType? equipmentType(String? raw) {
     final s = raw?.trim().toLowerCase();
     if (s == null || s.isEmpty) return null;
+
+    // Bags (#2952) come first, because the item words that name what a bag
+    // holds ("Reg bag", "Drysuit bag", "Fin bag") would otherwise claim it.
+    // A lift bag is a lift device and files with the SMB. A bare "bag"
+    // anywhere else in a name is weaker and waits at the very bottom.
+    if (_liftBag.hasMatch(s)) return EquipmentType.smb;
+    if (_bagHeadNoun.hasMatch(s) && !_accessoryJoin.hasMatch(s)) {
+      return EquipmentType.bag;
+    }
 
     // Ordered longest-idea-first: "drysuit" must beat "suit", and the
     // regulator family must not swallow "octopus", which is its own type in
@@ -257,6 +277,13 @@ class MacDiveValueMapper {
     // specific item word wins over it. "Pocket knife" stays a knife, "soft
     // pocket weights" stay lead and "BCD w/ pockets" stays a BCD.
     if (s.contains('pocket')) return EquipmentType.gearPocket;
+    if (s.contains('bag') ||
+        s.contains('duffel') ||
+        s.contains('duffle') ||
+        s.contains('luggage') ||
+        s.contains('suitcase')) {
+      return EquipmentType.bag;
+    }
     return EquipmentType.other;
   }
 }

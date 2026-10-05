@@ -65,6 +65,11 @@ enum EquipmentType {
   gloves('Gloves'),
   boots('Boots'),
   dpv('DPV'),
+  // Requested in #2952. A bag carries gear rather than being worn, so it
+  // has no place on the diver figure or in a body order, and adds no mass
+  // to a dive: gear bags, rollers, mesh and dry bags alike, told apart by
+  // the bag_style attribute rather than by types of their own.
+  bag('Bag'),
   // Consumable parts that live inside another item (spec: equipment
   // condition intelligence). Both are children of a parent item and inherit
   // its dives from their install date.

@@ -11875,6 +11875,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentType_gearPocket => 'جيب المعدات';
 
   @override
+  String get enum_equipmentType_bag => 'حقيبة';
+
+  @override
   String get enum_equipmentType_hose => 'خرطوم';
 
   @override
@@ -30498,6 +30501,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_pocket_mount => 'التثبيت';
 
   @override
+  String get attrLabel_bag_style => 'النمط';
+
+  @override
+  String get attrLabel_capacity_l => 'السعة';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'ألومنيوم';
 
   @override
@@ -30649,6 +30658,27 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'الفخذ';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'حقيبة سفر';
+
+  @override
+  String get attrChoice_bag_style_roller => 'حقيبة بعجلات';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'حقيبة ظهر';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'حقيبة شبكية';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'حقيبة جافة';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'حقيبة منظم التنفس';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'كيس جمع';
 
   @override
   String get attrChoice_bcd_style_jacket => 'جاكيت';

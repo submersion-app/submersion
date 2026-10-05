@@ -18973,6 +18973,12 @@ abstract class AppLocalizations {
   /// **'Gear Pocket'**
   String get enum_equipmentType_gearPocket;
 
+  /// No description provided for @enum_equipmentType_bag.
+  ///
+  /// In en, this message translates to:
+  /// **'Bag'**
+  String get enum_equipmentType_bag;
+
   /// No description provided for @enum_equipmentType_hose.
   ///
   /// In en, this message translates to:
@@ -47202,6 +47208,18 @@ abstract class AppLocalizations {
   /// **'Mount'**
   String get attrLabel_pocket_mount;
 
+  /// No description provided for @attrLabel_bag_style.
+  ///
+  /// In en, this message translates to:
+  /// **'Style'**
+  String get attrLabel_bag_style;
+
+  /// No description provided for @attrLabel_capacity_l.
+  ///
+  /// In en, this message translates to:
+  /// **'Capacity'**
+  String get attrLabel_capacity_l;
+
   /// No description provided for @attrChoice_plate_material_aluminum.
   ///
   /// In en, this message translates to:
@@ -47507,6 +47525,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Thigh'**
   String get attrChoice_pocket_mount_thigh;
+
+  /// No description provided for @attrChoice_bag_style_duffel.
+  ///
+  /// In en, this message translates to:
+  /// **'Duffel'**
+  String get attrChoice_bag_style_duffel;
+
+  /// No description provided for @attrChoice_bag_style_roller.
+  ///
+  /// In en, this message translates to:
+  /// **'Roller'**
+  String get attrChoice_bag_style_roller;
+
+  /// No description provided for @attrChoice_bag_style_backpack.
+  ///
+  /// In en, this message translates to:
+  /// **'Backpack'**
+  String get attrChoice_bag_style_backpack;
+
+  /// No description provided for @attrChoice_bag_style_mesh.
+  ///
+  /// In en, this message translates to:
+  /// **'Mesh'**
+  String get attrChoice_bag_style_mesh;
+
+  /// No description provided for @attrChoice_bag_style_dry_bag.
+  ///
+  /// In en, this message translates to:
+  /// **'Dry bag'**
+  String get attrChoice_bag_style_dry_bag;
+
+  /// No description provided for @attrChoice_bag_style_regulator_bag.
+  ///
+  /// In en, this message translates to:
+  /// **'Regulator bag'**
+  String get attrChoice_bag_style_regulator_bag;
+
+  /// No description provided for @attrChoice_bag_style_catch_bag.
+  ///
+  /// In en, this message translates to:
+  /// **'Catch bag'**
+  String get attrChoice_bag_style_catch_bag;
 
   /// No description provided for @attrChoice_bcd_style_jacket.
   ///

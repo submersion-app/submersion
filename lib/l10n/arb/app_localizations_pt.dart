@@ -11731,6 +11731,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_equipmentType_gearPocket => 'Bolso de equipamento';
 
   @override
+  String get enum_equipmentType_bag => 'Bolsa';
+
+  @override
   String get enum_equipmentType_hose => 'Mangueira';
 
   @override
@@ -30026,6 +30029,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Fixação';
 
   @override
+  String get attrLabel_bag_style => 'Estilo';
+
+  @override
+  String get attrLabel_capacity_l => 'Capacidade';
+
+  @override
   String get attrChoice_plate_material_aluminum => 'Alumínio';
 
   @override
@@ -30180,6 +30189,27 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Coxa';
+
+  @override
+  String get attrChoice_bag_style_duffel => 'Bolsa de viagem';
+
+  @override
+  String get attrChoice_bag_style_roller => 'Mala com rodinhas';
+
+  @override
+  String get attrChoice_bag_style_backpack => 'Mochila';
+
+  @override
+  String get attrChoice_bag_style_mesh => 'Bolsa de rede';
+
+  @override
+  String get attrChoice_bag_style_dry_bag => 'Bolsa estanque';
+
+  @override
+  String get attrChoice_bag_style_regulator_bag => 'Bolsa para regulador';
+
+  @override
+  String get attrChoice_bag_style_catch_bag => 'Saco de coleta';
 
   @override
   String get attrChoice_bcd_style_jacket => 'Colete';
