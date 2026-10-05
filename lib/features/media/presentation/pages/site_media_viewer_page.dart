@@ -11,6 +11,7 @@ import 'package:submersion/features/media/data/services/media_share_temp_file.da
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/attachment_details_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/media_nav_arrows.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -214,6 +215,17 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage> {
                     totalCount: mediaList.length,
                     onClose: () => Navigator.of(context).pop(),
                     onShare: (anchor) => _shareCurrentItem(currentItem, anchor),
+                    // Only an attachment is the site's to rename or
+                    // recategorize; a dive photo belongs to its dive. The
+                    // pager keeps capture-time order, so an edit never
+                    // moves the photo out from under the diver.
+                    onEditDetails: widget.scope == SiteViewerScope.attachments
+                        ? () => showAttachmentDetailsSheet(
+                            context,
+                            item: currentItem,
+                            siteId: widget.siteId,
+                          )
+                        : null,
                   ),
                   // Previous / next controls. Mounted with the rest of the
                   // chrome, so the tap-to-hide gesture takes them away too.
@@ -347,12 +359,14 @@ class _TopOverlay extends StatelessWidget {
   final int totalCount;
   final VoidCallback onClose;
   final void Function(Rect? anchor) onShare;
+  final VoidCallback? onEditDetails;
 
   const _TopOverlay({
     required this.currentIndex,
     required this.totalCount,
     required this.onClose,
     required this.onShare,
+    this.onEditDetails,
   });
 
   @override
@@ -395,6 +409,12 @@ class _TopOverlay extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (onEditDetails != null)
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                    tooltip: context.l10n.media_siteAttachment_editDetails,
+                    onPressed: onEditDetails,
+                  ),
                 // Builder so the iPad share popover anchors to this
                 // button: findRenderObject from a Builder's context descends
                 // to the IconButton rather than yielding the whole overlay.
