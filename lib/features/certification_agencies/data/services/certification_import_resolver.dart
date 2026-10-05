@@ -57,24 +57,25 @@ class CertificationImportResolver {
     final lower = t.toLowerCase();
     bool matches(CertificationLevel l) =>
         l.name.toLowerCase() == lower || l.displayName.toLowerCase() == lower;
-    // The agency's own levels first: display names repeat across agencies
-    // ("Advanced Diver" is both BSAC and ACUC).
+    // The agency's own levels first, built-in then custom: display names
+    // repeat across agencies ("Advanced Diver" is both BSAC and ACUC), and a
+    // custom level may share a name with another agency's built-in.
     final builtIn = CertificationAgency.fromId(agencyId);
     if (builtIn != null) {
       for (final l in CertificationLevelCatalog.levelsFor(builtIn)) {
         if (matches(l)) return l.name;
       }
     }
-    for (final l in CertificationLevel.values) {
-      if (matches(l)) return l.name;
-    }
-    final builtInAgency = builtIn != null;
     final custom = (await _repo.getAllLevels()).where(
       (l) =>
           l.agencyId == agencyId &&
-          (l.diverId == diverId || l.isShared || !builtInAgency) &&
+          (l.diverId == diverId || l.isShared || builtIn == null) &&
           l.name.toLowerCase() == lower,
     );
-    return custom.isEmpty ? null : custom.first.id;
+    if (custom.isNotEmpty) return custom.first.id;
+    for (final l in CertificationLevel.values) {
+      if (matches(l)) return l.name;
+    }
+    return null;
   }
 }

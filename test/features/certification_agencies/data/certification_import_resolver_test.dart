@@ -103,4 +103,33 @@ void main() {
       expect(await r.levelId('bsac', 'Advanced Diver'), 'bsacAdvancedDiver');
     },
   );
+
+  // Copilot review on PR #3011: a custom level named after another agency's
+  // built-in must survive export and re-import as itself.
+  test('a custom level wins over a built-in from another agency', () async {
+    final padiCustom = await repo.createLevel(
+      diverId: 'a',
+      agencyId: 'padi',
+      name: 'Advanced Diver',
+      isProgression: true,
+      isShared: false,
+    );
+    final club = await repo.createAgency(
+      diverId: 'a',
+      name: 'Club X',
+      isShared: false,
+    );
+    final clubOpenWater = await repo.createLevel(
+      diverId: 'a',
+      agencyId: club.id,
+      name: 'Open Water',
+      isProgression: true,
+      isShared: false,
+    );
+    final r = resolver();
+    expect(await r.levelId('padi', 'Advanced Diver'), padiCustom.id);
+    expect(await r.levelId(club.id, 'open water'), clubOpenWater.id);
+    // With no custom match, the global built-ins still apply.
+    expect(await r.levelId(club.id, 'Rescue Diver'), 'rescue');
+  });
 }

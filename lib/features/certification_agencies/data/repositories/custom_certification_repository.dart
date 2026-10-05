@@ -325,15 +325,18 @@ class CustomCertificationRepository {
       if (existing.diverId != actingDiverId) {
         throw CertificationNotOwnerException(id);
       }
-      final levels = await (_db.select(
-        _db.customCertificationLevels,
-      )..where((t) => t.agencyId.equals(id))).get();
-      var total = await usage(id);
-      for (final l in levels) {
-        total = total + await usage(l.id);
-      }
-      if (total.isUsed) return total;
-      await _db.transaction(() async {
+      // The usage check and the deletes share one transaction, so a write
+      // that lands between them (a sync pull, another screen) cannot leave a
+      // reference to a deleted row.
+      final refused = await _db.transaction<CertificationUsage?>(() async {
+        final levels = await (_db.select(
+          _db.customCertificationLevels,
+        )..where((t) => t.agencyId.equals(id))).get();
+        var total = await usage(id);
+        for (final l in levels) {
+          total = total + await usage(l.id);
+        }
+        if (total.isUsed) return total;
         for (final l in levels) {
           await (_db.delete(
             _db.customCertificationLevels,
@@ -350,9 +353,11 @@ class CustomCertificationRepository {
           entityType: agencyEntityType,
           recordId: id,
         );
+        return null;
       });
+      if (refused != null) return refused;
       SyncEventBus.notifyLocalChange();
-      _log.info('Deleted custom agency $id and ${levels.length} levels');
+      _log.info('Deleted custom agency $id and its levels');
       return null;
     } catch (e, st) {
       _log.error('Failed to delete agency $id', error: e, stackTrace: st);
@@ -372,15 +377,20 @@ class CustomCertificationRepository {
       if (existing.diverId != actingDiverId) {
         throw CertificationNotOwnerException(id);
       }
-      final used = await usage(id);
-      if (used.isUsed) return used;
-      await (_db.delete(
-        _db.customCertificationLevels,
-      )..where((t) => t.id.equals(id))).go();
-      await _syncRepository.logDeletion(
-        entityType: levelEntityType,
-        recordId: id,
-      );
+      // One transaction for the check and the delete, as in deleteAgency.
+      final refused = await _db.transaction<CertificationUsage?>(() async {
+        final used = await usage(id);
+        if (used.isUsed) return used;
+        await (_db.delete(
+          _db.customCertificationLevels,
+        )..where((t) => t.id.equals(id))).go();
+        await _syncRepository.logDeletion(
+          entityType: levelEntityType,
+          recordId: id,
+        );
+        return null;
+      });
+      if (refused != null) return refused;
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted custom level $id');
       return null;

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/certification_agencies/domain/agency_colors.dart';
 import 'package:submersion/features/certification_agencies/presentation/widgets/agency_swatch.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_color_names.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Card colour choice for a custom agency (issue #690): the tag palette,
 /// each shown as the card gradient it produces.
@@ -22,14 +24,19 @@ class AgencyColorPicker extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: [
-        for (final hex in TagColors.predefined) _swatch(TagColors.fromHex(hex)),
+        for (final hex in TagColors.predefined)
+          _swatch(
+            TagColors.fromHex(hex),
+            equipmentColorName(context.l10n, hex),
+          ),
       ],
     );
   }
 
-  Widget _swatch(Color color) {
+  Widget _swatch(Color color, String name) {
     final argb = color.toARGB32();
     return Semantics(
+      label: name,
       button: true,
       selected: argb == selectedArgb,
       child: InkResponse(
