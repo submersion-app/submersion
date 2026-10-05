@@ -108,11 +108,16 @@ void main() {
     expect(find.byKey(const ValueKey('preset-circle')), findsOneWidget);
     expect(find.text('Custom map'), findsOneWidget);
     expect(find.text('Summary'), findsOneWidget);
-    expect(find.text('Kiyan Griffin'), findsOneWidget);
+    expect(
+      find.text('Kiyan Griffin'),
+      findsNothing,
+      reason: 'standouts moved to the insight strip',
+    );
     expect(
       find.text('Kiyan Griffin and Sharon Patterson, 12 dives'),
-      findsOneWidget,
+      findsNothing,
     );
+    expect(find.text('2 connections'), findsOneWidget);
   });
 
   testWidgets('around mode: search, centre, hops and kind chips', (

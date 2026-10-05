@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_consolidation_builder.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_alignment.dart';
 
 Dive makeDive(
   String id, {
@@ -9,6 +10,7 @@ Dive makeDive(
   int runtimeMin = 30,
   String? diverId = 'diver1',
   String? serial,
+  String? computerId,
   List<DiveTank> tanks = const [],
   List<DiveProfilePoint> profile = const [],
 }) => Dive(
@@ -18,9 +20,42 @@ Dive makeDive(
   entryTime: entry,
   runtime: Duration(minutes: runtimeMin),
   diveComputerSerial: serial,
+  computerId: computerId,
   tanks: tanks,
   profile: profile,
 );
+
+/// A multilevel reef dive sampled every 10 s; [lead] seconds at the surface
+/// first.
+List<DiveProfilePoint> reefProfile({int lead = 0}) {
+  const knots = <(int, double)>[
+    (0, 0),
+    (120, 18),
+    (240, 22),
+    (600, 21),
+    (900, 16),
+    (1300, 14),
+    (1700, 10),
+    (2200, 8),
+    (2400, 5),
+    (2580, 5),
+    (2760, 4.8),
+    (2880, 0),
+  ];
+  double at(int t) {
+    for (var i = 1; i < knots.length; i++) {
+      final (t0, d0) = knots[i - 1];
+      final (t1, d1) = knots[i];
+      if (t <= t1) return d0 + (d1 - d0) * (t - t0) / (t1 - t0);
+    }
+    return 0;
+  }
+
+  return [
+    for (var t = 0; t <= 2880 + lead; t += 10)
+      DiveProfilePoint(timestamp: t, depth: t < lead ? 0 : at(t - lead)),
+  ];
+}
 
 void main() {
   const builder = DiveConsolidationBuilder();
@@ -834,6 +869,153 @@ void main() {
           ),
         ),
       );
+    });
+  });
+
+  group('alignment mode (#552)', () {
+    // 'b' is the same dive on a computer whose clock runs 66 minutes fast
+    // and which logged 40 s at the surface before the descent.
+    List<Dive> skewedPair() => [
+      makeDive(
+        'a',
+        entry: t,
+        runtimeMin: 48,
+        serial: 'A',
+        profile: reefProfile(),
+      ),
+      makeDive(
+        'b',
+        entry: t.add(const Duration(minutes: 66)),
+        runtimeMin: 48,
+        serial: 'B',
+        profile: reefProfile(lead: 40),
+      ),
+    ];
+
+    test('a mode accepts a non-overlapping pair and marks it realigned', () {
+      final result = builder.classify(
+        skewedPair(),
+        alignment: ConsolidationAlignment.bestFit,
+      );
+      expect(result, isA<ConsolidationReady>());
+      expect((result as ConsolidationReady).realignedIds, {'b'});
+    });
+
+    test('a mode still rejects two records from one computer', () {
+      final result = builder.classify([
+        makeDive('a', entry: t, serial: 'SAME'),
+        makeDive('b', entry: t.add(const Duration(hours: 2)), serial: 'SAME'),
+      ], alignment: ConsolidationAlignment.bestFit);
+      expect(
+        (result as ConsolidationInvalid).reason,
+        ConsolidationInvalidReason.sameComputer,
+      );
+    });
+
+    test('two records sharing a computer id are one computer even with no '
+        'serial', () {
+      final result = builder.classify([
+        makeDive('a', entry: t, computerId: 'comp-1'),
+        makeDive(
+          'b',
+          entry: t.add(const Duration(hours: 2)),
+          computerId: 'comp-1',
+        ),
+      ], alignment: ConsolidationAlignment.bestFit);
+      expect(
+        (result as ConsolidationInvalid).reason,
+        ConsolidationInvalidReason.sameComputer,
+      );
+    });
+
+    test('overlapping secondaries are not realigned', () {
+      final result = builder.classify([
+        makeDive('a', entry: t, serial: 'A'),
+        makeDive('b', entry: t.add(const Duration(minutes: 5)), serial: 'B'),
+        makeDive('c', entry: t.add(const Duration(minutes: 90)), serial: 'C'),
+      ], alignment: ConsolidationAlignment.starts);
+      expect((result as ConsolidationReady).realignedIds, {'c'});
+    });
+
+    test('realignedIds follows the chosen primary', () {
+      final dives = [
+        makeDive('a', entry: t, serial: 'A'),
+        makeDive('b', entry: t.add(const Duration(minutes: 20)), serial: 'B'),
+        makeDive('c', entry: t.add(const Duration(minutes: 45)), serial: 'C'),
+      ];
+      final fromA = builder.classify(
+        dives,
+        alignment: ConsolidationAlignment.bestFit,
+      );
+      final fromB = builder.classify(
+        dives,
+        primaryDiveId: 'b',
+        alignment: ConsolidationAlignment.bestFit,
+      );
+      expect((fromA as ConsolidationReady).realignedIds, {'c'});
+      expect((fromB as ConsolidationReady).realignedIds, isEmpty);
+    });
+
+    test(
+      'best fit offsets a skewed secondary by its profile, not its clock',
+      () {
+        final plan = builder.build(
+          skewedPair(),
+          alignment: ConsolidationAlignment.bestFit,
+        );
+        expect(plan.offsetsSeconds['b'], -40);
+        expect(plan.alignments['b']!.isStrongMatch, isTrue);
+        expect(plan.previewSeries['b']!.first.timestamp, -40);
+      },
+    );
+
+    test('align starts offsets the realigned secondary by 0 and keeps the '
+        'best-fit score', () {
+      final plan = builder.build(
+        skewedPair(),
+        alignment: ConsolidationAlignment.starts,
+      );
+      expect(plan.offsetsSeconds['b'], 0);
+      expect(plan.alignments['b']!.offsetSeconds, 0);
+      expect(plan.alignments['b']!.isStrongMatch, isTrue);
+    });
+
+    test('a mixed selection keeps the entry-time offset for an overlapping '
+        'secondary', () {
+      final plan = builder.build([
+        makeDive(
+          'a',
+          entry: t,
+          runtimeMin: 48,
+          serial: 'A',
+          profile: reefProfile(),
+        ),
+        makeDive(
+          'b',
+          entry: t.add(const Duration(minutes: 5)),
+          runtimeMin: 48,
+          serial: 'B',
+          profile: reefProfile(),
+        ),
+        makeDive(
+          'c',
+          entry: t.add(const Duration(minutes: 90)),
+          runtimeMin: 48,
+          serial: 'C',
+          profile: reefProfile(lead: 40),
+        ),
+      ], alignment: ConsolidationAlignment.bestFit);
+      expect(plan.offsetsSeconds['b'], 300);
+      expect(plan.offsetsSeconds['c'], -40);
+      expect(plan.alignments.keys, ['c']);
+    });
+
+    test('without a mode the plan carries no alignments', () {
+      final plan = builder.build([
+        makeDive('a', entry: t, serial: 'A'),
+        makeDive('b', entry: t.add(const Duration(minutes: 5)), serial: 'B'),
+      ]);
+      expect(plan.alignments, isEmpty);
     });
   });
 }

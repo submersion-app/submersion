@@ -171,6 +171,8 @@ class _QueryFilterSheetState extends ConsumerState<QueryFilterSheet> {
                       root: widget.root,
                       value: _query,
                       onChanged: (node) => setState(() => _query = node),
+                      // The query is the whole sheet.
+                      saveNode: _query,
                     ),
                   ],
                 ),

@@ -7,6 +7,8 @@ import 'package:submersion/features/connections/domain/entities/connection_node.
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/layout/layout_frame.dart';
+import 'package:submersion/features/connections/domain/views/highlight_mode.dart';
+import 'package:submersion/features/connections/presentation/canvas/connection_group_colors.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_icons.dart';
 import 'package:submersion/features/connections/presentation/canvas/graph_viewport.dart';
@@ -28,6 +30,8 @@ class ConnectionsPainter extends CustomPainter {
     this.labelZoomThreshold = 0.6,
     this.maxLabelsAtLowZoom = 12,
     this.haloColor,
+    this.highlight = HighlightMode.byKind,
+    this.groupOf = const {},
     Map<NodeRef, TextPainter>? labelCache,
     Map<NodeRef, TextPainter>? dimLabelCache,
     Map<(NodeRef, int), TextPainter>? initialsCache,
@@ -52,6 +56,13 @@ class ConnectionsPainter extends CustomPainter {
   /// null.
   final Color? haloColor;
 
+  /// How nodes and edges are coloured.
+  final HighlightMode highlight;
+
+  /// Each grouped node's group number, largest group first; read in
+  /// [HighlightMode.groups].
+  final Map<NodeRef, int> groupOf;
+
   /// Laid-out text, owned by the canvas state so a frame never re-runs
   /// paragraph layout for every node (measured at about 7 ms per frame for
   /// 160 nodes without the cache). The canvas clears these when the graph or
@@ -74,6 +85,24 @@ class ConnectionsPainter extends CustomPainter {
       case EdgeSelection(:final a, :final b):
         return {a, b};
     }
+  }
+
+  /// A node's fill before any selection dimming.
+  Color fillFor(ConnectionNode n) {
+    if (highlight != HighlightMode.groups) return colors.colorFor(n.ref.kind);
+    final g = groupOf[n.ref];
+    return g != null && g < kConnectionGroupColors.length
+        ? kConnectionGroupColors[g]
+        : kConnectionUngroupedColor;
+  }
+
+  /// An edge's opacity multiplier in Recency mode: 1 for the newest last
+  /// dive in view down to 0.15 for the oldest, linear in time.
+  static double recencyFactor(DateTime last, DateTime newest, DateTime oldest) {
+    final span = newest.difference(oldest).inMilliseconds;
+    if (span <= 0) return 1;
+    final age = newest.difference(last).inMilliseconds;
+    return 1 - 0.85 * (age / span).clamp(0.0, 1.0);
   }
 
   double radiusOf(ConnectionNode n) =>
@@ -112,6 +141,18 @@ class ConnectionsPainter extends CustomPainter {
     };
     final dim = selection != null;
     final ink = labelStyle.color ?? Colors.black;
+    DateTime? newest;
+    DateTime? oldest;
+    if (highlight == HighlightMode.recency) {
+      for (final e in graph.edges) {
+        if (newest == null || e.lastDiveAt.isAfter(newest)) {
+          newest = e.lastDiveAt;
+        }
+        if (oldest == null || e.lastDiveAt.isBefore(oldest)) {
+          oldest = e.lastDiveAt;
+        }
+      }
+    }
 
     for (final e in graph.edges) {
       final a = frame.positions[e.source];
@@ -122,9 +163,13 @@ class ConnectionsPainter extends CustomPainter {
         EdgeSelection(:final a, :final b) => e.touches(a) && e.touches(b),
         null => false,
       };
+      final fade = newest != null && oldest != null
+          ? recencyFactor(e.lastDiveAt, newest, oldest)
+          : 1.0;
       final alpha =
           NodeMetrics.edgeOpacityFor(e.weight, graph.maxWeight) *
-          (dim && !onSelection ? 0.25 : 1);
+          (dim && !onSelection ? 0.25 : 1) *
+          fade;
       final paint = Paint()
         ..color = ink.withValues(alpha: alpha)
         ..strokeWidth =
@@ -150,9 +195,7 @@ class ConnectionsPainter extends CustomPainter {
       if (r < 0.5) continue;
       final isSelected = n.ref == selectedNode;
       final isLit = isSelected || lit.contains(n.ref) || n.ref == hovered;
-      final fill = colors
-          .colorFor(n.ref.kind)
-          .withValues(alpha: dim && !isLit ? 0.35 : 1);
+      final fill = fillFor(n).withValues(alpha: dim && !isLit ? 0.35 : 1);
       canvas.drawCircle(centre, r, Paint()..color = fill);
       discs.add(Rect.fromCircle(center: centre, radius: r));
       final photo = photos[n.ref];
@@ -282,5 +325,7 @@ class ConnectionsPainter extends CustomPainter {
       old.hovered != hovered ||
       !mapEquals(old.photos, photos) ||
       old.labelStyle != labelStyle ||
-      old.haloColor != haloColor;
+      old.haloColor != haloColor ||
+      old.highlight != highlight ||
+      !mapEquals(old.groupOf, groupOf);
 }

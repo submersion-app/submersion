@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
+import 'package:submersion/features/import_wizard/data/adapters/dive_computer_source_details.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_number_conflict_notice.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
@@ -569,6 +570,14 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         type: ImportSourceType.diveComputer,
         displayName: _displayName,
         currentComputerId: computer?.id,
+        details: diveComputerSourceDetails(
+          customName: _customDeviceName,
+          stored: computer,
+          device: _pendingComputerSave?.device,
+          serialNumber: _pendingComputerSave?.serialNumber,
+          firmwareVersion: _pendingComputerSave?.firmwareVersion,
+          reportedProduct: _pendingComputerSave?.reportedProduct,
+        ),
       ),
       groups: {
         ImportEntityType.dives: EntityGroup(

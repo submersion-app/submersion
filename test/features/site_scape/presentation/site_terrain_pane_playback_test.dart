@@ -3,39 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
-import 'package:submersion/features/dive_3d/domain/spatial/site_active_path_overlay_builder.dart';
-import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
 
 import 'site_terrain_pane_test_support.dart';
-
-SiteActivePathOverlay _overlay({
-  PathProvenance provenance = PathProvenance.measured,
-  String? sourceLabel,
-}) => buildSiteActivePathOverlay(
-  path: ReckonedPath(
-    points: const [
-      ReckonedPoint(east: 0, north: 0, depth: 0, timeSeconds: 0),
-      ReckonedPoint(east: 5, north: 0, depth: 8, timeSeconds: 60),
-    ],
-    provenance: provenance,
-    sourceLabel: sourceLabel,
-    minEast: 0,
-    maxEast: 5,
-    minNorth: 0,
-    maxNorth: 0,
-    maxDepth: 8,
-    durationSeconds: 60,
-  ),
-  anchor: (east: 0.0, north: 0.0),
-  projection: SpatialProjection(
-    minEast: -50,
-    maxEast: 50,
-    minNorth: -50,
-    maxNorth: 50,
-    maxDepth: 20,
-  ),
-)!;
 
 void main() {
   testWidgets(
@@ -52,7 +22,7 @@ void main() {
               source: PathOverlaySource.dive,
             )).overrideWith(
               (ref) async => (
-                overlay: _overlay(sourceLabel: 'Seacraft ENC'),
+                overlay: testActivePathOverlay(sourceLabel: 'Seacraft ENC'),
                 hasLinkedRoute: true,
               ),
             ),
@@ -88,7 +58,9 @@ void main() {
             source: PathOverlaySource.dive,
           )).overrideWith(
             (ref) async => (
-              overlay: _overlay(provenance: PathProvenance.deadReckoned),
+              overlay: testActivePathOverlay(
+                provenance: PathProvenance.deadReckoned,
+              ),
               hasLinkedRoute: false,
             ),
           ),
@@ -121,7 +93,8 @@ void main() {
               pathId: 't1',
               source: PathOverlaySource.navTrack,
             )).overrideWith(
-              (ref) async => (overlay: _overlay(), hasLinkedRoute: false),
+              (ref) async =>
+                  (overlay: testActivePathOverlay(), hasLinkedRoute: false),
             ),
           ],
         ),
@@ -185,7 +158,8 @@ void main() {
             pathId: 'd1',
             source: PathOverlaySource.dive,
           )).overrideWith(
-            (ref) async => (overlay: _overlay(), hasLinkedRoute: false),
+            (ref) async =>
+                (overlay: testActivePathOverlay(), hasLinkedRoute: false),
           ),
         ],
       ),
@@ -223,7 +197,8 @@ void main() {
               pathId: 'd1',
               source: PathOverlaySource.dive,
             )).overrideWith(
-              (ref) async => (overlay: _overlay(), hasLinkedRoute: false),
+              (ref) async =>
+                  (overlay: testActivePathOverlay(), hasLinkedRoute: false),
             ),
           ],
         ),

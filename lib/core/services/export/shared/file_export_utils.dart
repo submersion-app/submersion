@@ -182,9 +182,15 @@ String savedFileLocation(Uri uri) =>
 ///
 /// Opens a file picker dialog allowing the user to choose where to save.
 /// Returns the saved file location, or null if the user cancelled.
-Future<String?> saveImageToFile(List<int> pngBytes, String fileName) async {
+/// [dialogTitle] names what is being saved; the default is the dive profile
+/// image, its first caller.
+Future<String?> saveImageToFile(
+  List<int> pngBytes,
+  String fileName, {
+  String dialogTitle = 'Save Profile Image',
+}) async {
   final result = await FilePicker.saveFile(
-    dialogTitle: 'Save Profile Image',
+    dialogTitle: dialogTitle,
     fileName: fileName,
     type: FileType.image,
     bytes: Uint8List.fromList(pngBytes),

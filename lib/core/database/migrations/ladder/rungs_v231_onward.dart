@@ -211,10 +211,16 @@ extension RungsFromV231 on AppDatabase {
       await _assertDistanceUnitColumn();
     }
     if (from < 263) await reportProgress();
+    // v264: diver_settings.default_show_late_gas_switches (issue #2939).
+    // Column only, defaulting on. Re-asserted in beforeOpen.
+    if (from < 264) {
+      await _assertLateGasSwitchSettingColumn();
+    }
+    if (from < 264) await reportProgress();
     // v265: custom certification agencies and levels (issue #690). Table
     // and index only, no backfill: stored agency/level text are built-in
-    // enum names, which stay valid ids. Re-asserted in beforeOpen. 262 and
-    // 264 are held by open branches.
+    // enum names, which stay valid ids. Re-asserted in beforeOpen. 262 is
+    // held by an open branch.
     if (from < 265) {
       await _assertCustomCertificationSchema();
     }

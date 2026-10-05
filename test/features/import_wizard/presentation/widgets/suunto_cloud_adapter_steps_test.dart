@@ -304,18 +304,24 @@ void main() {
       );
       final client = _FakeCloudClient();
       SuuntoCloudClient? signedInWith;
+      String? account;
 
       await tester.pumpWidget(
         _host(
           store: store,
           clientFactory: () => client,
-          child: SuuntoCloudSignInStep(onSignedIn: (c) => signedInWith = c),
+          child: SuuntoCloudSignInStep(
+            onSignedIn: (c) => signedInWith = c,
+            onAccountSignedIn: (email) => account = email,
+          ),
         ),
       );
       await tester.pumpAndSettle();
 
       expect(find.text('Signed in as diver@example.com'), findsOneWidget);
       expect(signedInWith, same(client));
+      // The Review step names this account (#161).
+      expect(account, 'diver@example.com');
       expect(client.sessionKey, 'cached-key');
       // The cached fast path must not re-prompt for a password.
       expect(find.text('Sign In'), findsNothing);

@@ -1942,13 +1942,13 @@ void main() {
       final english = orderIn(const Locale('en'));
       final german = orderIn(const Locale('de'));
       // A type the switch moves several rows, so the viewport (about five
-      // rows) no longer shows it, while it stays within the first dozen rows
-      // in both languages: this checks that the list re-scrolls, not how
-      // far the row-height estimate drifts deep into a long list.
+      // rows) no longer shows it, while it stays near the top in both
+      // languages: this checks that the list re-scrolls, not how far the
+      // row-height estimate drifts deep into a long list.
       int shift(EquipmentType t) =>
           (german.indexOf(t) - english.indexOf(t)).abs();
       final candidates = english.where(
-        (t) => english.indexOf(t) <= 12 && german.indexOf(t) <= 12,
+        (t) => english.indexOf(t) <= 14 && german.indexOf(t) <= 14,
       );
       final type = candidates.reduce((a, b) => shift(a) >= shift(b) ? a : b);
       expect(

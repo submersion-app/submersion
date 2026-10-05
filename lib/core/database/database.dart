@@ -1093,9 +1093,12 @@ class AppDatabase extends _$AppDatabase {
     // stays. Inbound, the generated fromJson ignores the legacy key.
     261,
     263,
+    // v264: diver_settings.default_show_late_gas_switches (issue #2939).
+    // Additive column with a default, so the floor stays.
+    264,
     // v265: custom certification agencies and levels (issue #690). Two new
     // synced tables and an index, no data migration, so the floor stays.
-    // 262 and 264 are held by open branches.
+    // 262 is held by an open branch.
     265,
   ];
 
