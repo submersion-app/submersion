@@ -5455,7 +5455,8 @@ class DiveRepository {
       final rows = await _db
           .customSelect(
             '$_diveTimesSelect WHERE ${clauses.join(' AND ')} '
-            'ORDER BY COALESCE(d.entry_time, d.dive_date_time) DESC LIMIT 1',
+            'ORDER BY COALESCE(d.entry_time, d.dive_date_time) DESC, '
+            'd.dive_number DESC LIMIT 1',
             variables: args,
             readsFrom: {_db.dives, _db.diveProfileSeries},
           )
@@ -5483,6 +5484,23 @@ class DiveRepository {
     DateTime start,
     DateTime end, {
     String? diverId,
+  }) => _diveTimesInRange(start, end, diverId: diverId);
+
+  /// [getDiveTimesInRange] for [diverId], excluding planner rows
+  /// (`isPlanned = true`), for "current state" totals such as the live
+  /// weekly OTU readout: a saved plan has not been dived, so its exposure
+  /// must not count.
+  Future<List<domain.DiveTimes>> getExecutedDiveTimesInRange(
+    DateTime start,
+    DateTime end, {
+    required String diverId,
+  }) => _diveTimesInRange(start, end, diverId: diverId, executedOnly: true);
+
+  Future<List<domain.DiveTimes>> _diveTimesInRange(
+    DateTime start,
+    DateTime end, {
+    String? diverId,
+    bool executedOnly = false,
   }) async {
     final clauses = <String>['d.dive_date_time >= ?', 'd.dive_date_time <= ?'];
     final args = <Variable<Object>>[
@@ -5493,6 +5511,7 @@ class DiveRepository {
       clauses.add('d.diver_id = ?');
       args.add(Variable<String>(diverId));
     }
+    if (executedOnly) clauses.add('d.is_planned = 0');
     final rows = await _db
         .customSelect(
           '$_diveTimesSelect WHERE ${clauses.join(' AND ')} '

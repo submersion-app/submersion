@@ -192,4 +192,63 @@ void main() {
     );
     expect(mostRecent, isNull);
   });
+
+  test('breaks a tie on effective start by the higher dive number', () async {
+    await diver('alice');
+    // Inserted lowest number first, so a tie left to scan order would pick
+    // the wrong dive.
+    for (final (id, number) in [('first', 1), ('second', 2)]) {
+      await repository.createDive(
+        domain.Dive(
+          id: id,
+          diverId: 'alice',
+          diveNumber: number,
+          dateTime: DateTime.utc(2026, 5, 1, 9),
+        ),
+      );
+    }
+
+    final mostRecent = await repository.getMostRecentDiveTimes(
+      diverId: 'alice',
+      notAfter: DateTime.utc(2026, 5, 2),
+    );
+    expect(mostRecent?.id, 'second');
+  });
+
+  test(
+    'getExecutedDiveTimesInRange skips planned dives and other divers',
+    () async {
+      await diver('alice');
+      await diver('bob');
+      await repository.createDive(
+        domain.Dive(
+          id: 'logged',
+          diverId: 'alice',
+          dateTime: DateTime.utc(2026, 5, 1, 9),
+        ),
+      );
+      await repository.createDive(
+        domain.Dive(
+          id: 'planned',
+          diverId: 'alice',
+          dateTime: DateTime.utc(2026, 5, 2, 9),
+          isPlanned: true,
+        ),
+      );
+      await repository.createDive(
+        domain.Dive(
+          id: 'bobs-dive',
+          diverId: 'bob',
+          dateTime: DateTime.utc(2026, 5, 1, 10),
+        ),
+      );
+
+      final dives = await repository.getExecutedDiveTimesInRange(
+        DateTime.utc(2026, 4, 28),
+        DateTime.utc(2026, 5, 5),
+        diverId: 'alice',
+      );
+      expect(dives.map((d) => d.id), ['logged']);
+    },
+  );
 }

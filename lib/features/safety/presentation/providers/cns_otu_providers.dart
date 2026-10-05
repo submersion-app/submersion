@@ -32,6 +32,12 @@ final cnsOtuSnapshotProvider = FutureProvider<CnsOtuSnapshot?>((ref) async {
   // bound must be evaluated in the same frame (see wallClockNowUtc's doc and
   // issue #2587 for why DateTime.now().toUtc() is wrong here).
   final now = NoFlyService.wallClockNowUtc();
+  final nextMidnight = _nextMidnight(now);
+  // Scheduled before the first await, while this ref is certainly live: a
+  // dive write landing mid-build disposes it, and registering the timer's
+  // onDispose afterwards would throw and leave the timer running.
+  _scheduleMidnightRefresh(ref, now, nextMidnight);
+
   final lastDive = await repository.getMostRecentDiveTimes(
     diverId: diverId,
     notAfter: now,
@@ -41,11 +47,9 @@ final cnsOtuSnapshotProvider = FutureProvider<CnsOtuSnapshot?>((ref) async {
   // Independent lookups, run concurrently rather than one after the other.
   final (analysis, weeklyOtu) = await (
     ref.watch(profileAnalysisProvider(lastDive.id).future),
-    _currentWeeklyOtu(ref, repository, diverId, now),
+    _currentWeeklyOtu(ref, repository, diverId, now, nextMidnight),
   ).wait;
   if (analysis == null) return null;
-
-  _scheduleMidnightRefresh(ref, now);
 
   return CnsOtuSnapshot(
     lastDiveId: lastDive.id,
@@ -68,29 +72,41 @@ Future<double> _currentWeeklyOtu(
   DiveRepository repository,
   String diverId,
   DateTime now,
+  DateTime endOfDay,
 ) async {
-  final endOfDay = DateTime.utc(
-    now.year,
-    now.month,
-    now.day,
-  ).add(const Duration(days: 1));
   final sevenDaysAgo = endOfDay.subtract(const Duration(days: 7));
 
-  final weekDives = await repository.getDiveTimesInRange(
+  // Planner rows are excluded: a saved plan has not been dived.
+  final weekDives = await repository.getExecutedDiveTimesInRange(
     sevenDaysAgo,
     endOfDay,
     diverId: diverId,
   );
 
-  double total = 0.0;
-  for (final dive in weekDives) {
-    // Read (not watch) to avoid cascading Riverpod invalidations, matching
-    // the lookback pattern in profile_analysis_provider.dart.
-    final analysis = await ref.read(profileAnalysisProvider(dive.id).future);
-    if (analysis != null) total += analysis.o2Exposure.otu;
-  }
-  return total;
+  // The window runs to the end of today, so it can hold a dive that starts
+  // later than now (logged ahead of time); its OTU has not been accrued yet.
+  // The now-anchored form of weeklyOtuProvider's later-dive guard (#407).
+  final accrued = weekDives.where(
+    (dive) => !(dive.entryTime ?? dive.dateTime).isAfter(now),
+  );
+
+  // Read (not watch) to avoid cascading Riverpod invalidations, matching
+  // the lookback pattern in profile_analysis_provider.dart. The analyses
+  // are independent, so they are awaited together rather than one by one.
+  final analyses = await Future.wait([
+    for (final dive in accrued)
+      ref.read(profileAnalysisProvider(dive.id).future),
+  ]);
+  return analyses.fold<double>(
+    0.0,
+    (total, analysis) => total + (analysis?.o2Exposure.otu ?? 0.0),
+  );
 }
+
+/// Start of the calendar day after [now], in the same wall-clock-as-UTC
+/// frame.
+DateTime _nextMidnight(DateTime now) =>
+    DateTime.utc(now.year, now.month, now.day).add(const Duration(days: 1));
 
 /// The weekly total above is only recomputed when this provider itself
 /// reruns. Nothing writes to the dive table when a day simply ends, so
@@ -98,12 +114,7 @@ Future<double> _currentWeeklyOtu(
 /// of it until the diver's next dive-table write. Mirrors
 /// [noFlyStatusProvider]'s self-scheduled expiry, but on a day boundary
 /// rather than a fixed guideline deadline.
-void _scheduleMidnightRefresh(Ref ref, DateTime now) {
-  final nextMidnight = DateTime.utc(
-    now.year,
-    now.month,
-    now.day,
-  ).add(const Duration(days: 1));
+void _scheduleMidnightRefresh(Ref ref, DateTime now, DateTime nextMidnight) {
   final untilMidnight = nextMidnight.difference(now);
   final timer = Timer(
     untilMidnight + const Duration(seconds: 1),

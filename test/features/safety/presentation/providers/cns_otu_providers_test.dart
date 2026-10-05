@@ -52,10 +52,10 @@ class _StubDiveRepository extends Fake implements DiveRepository {
   }
 
   @override
-  Future<List<DiveTimes>> getDiveTimesInRange(
+  Future<List<DiveTimes>> getExecutedDiveTimesInRange(
     DateTime start,
     DateTime end, {
-    String? diverId,
+    required String diverId,
   }) async {
     weeklyRangeQueried = (start: start, end: end, diverId: diverId);
     return weekDives;
@@ -143,8 +143,9 @@ void main() {
     );
     final repo = _StubDiveRepository(
       lastDive,
-      // A real getDiveTimesInRange query returns every dive in the window,
-      // including the last dive itself -- not just earlier ones.
+      // A real getExecutedDiveTimesInRange query returns every dive in the
+      // window,
+      // including the last dive itself, not just earlier ones.
       weekDives: [earlierThisWeek, lastDive],
     );
     const exposure = O2Exposure(cnsEnd: 42.0, otu: 15.0, otuStart: 5.0);
@@ -211,6 +212,41 @@ void main() {
       expect(snapshot!.lastDiveEnd, entryTime.add(const Duration(minutes: 40)));
     },
   );
+
+  test('weekly OTU skips a dive that starts after now', () async {
+    final diverNotifier = MockCurrentDiverIdNotifier();
+    diverNotifier.setCurrentDiver('diver-1');
+    final lastDive = DiveTimes(
+      id: 'dive-1',
+      dateTime: DateTime.utc(2026, 7, 17, 10),
+    );
+    // Still inside the queried window (which runs to the end of today), but
+    // later than now: its OTU has not been accrued yet.
+    final notYetDived = DiveTimes(
+      id: 'dive-later',
+      dateTime: DateTime.utc(9999, 1, 1),
+    );
+    final repo = _StubDiveRepository(
+      lastDive,
+      weekDives: [notYetDived, lastDive],
+    );
+
+    final container = ProviderContainer(
+      overrides: [
+        diveRepositoryProvider.overrideWithValue(repo),
+        currentDiverIdProvider.overrideWith((ref) => diverNotifier),
+        profileAnalysisProvider.overrideWith(
+          (ref, diveId) async => ProfileAnalysis.empty().copyWith(
+            o2Exposure: O2Exposure(otu: diveId == 'dive-1' ? 15.0 : 200.0),
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final snapshot = await container.read(cnsOtuSnapshotProvider.future);
+    expect(snapshot!.weeklyOtu, 15.0);
+  });
 
   test('returns null when the dive has no analysis', () async {
     final diverNotifier = MockCurrentDiverIdNotifier();
