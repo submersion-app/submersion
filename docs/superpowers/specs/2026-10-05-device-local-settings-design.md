@@ -60,12 +60,22 @@ the serializer and the write paths cannot drift apart.
 - Export: `_exportDiverSettings`, and the single and batch record fetches used
   to publish pending changes and build payloads, strip the `diverSettings`
   columns.
-- Import: `upsertRecord` and `upsertRecords` already strip, then
-  `_withLocalForOmitted` refills the stripped columns from the row this device
-  holds. A payload from an older peer that still carries the columns therefore
-  changes nothing here. A row new to this device takes the column defaults.
-- `_buildRowKeys` already subtracts the device-local columns, so a stripped row
-  is not treated as partial for that reason alone.
+- Import: `upsertRecord` and `upsertRecords` already strip, but stripping
+  alone is not enough. `_buildRowKeys` subtracts the device-local columns, so
+  `_withLocalForOmitted` never refills them, `_withSchemaDefaults` fills their
+  defaults, and the full-row upsert writes those defaults over the local
+  values. (This already happens to `bluetoothAddress`, which is nullable and
+  so is written back as NULL.) A new step after the strip,
+  `_withDeviceLocalFromHere`, refills every device-local column from this
+  device: the current local row, else the replace-adopt snapshot (below), else
+  nothing, so a row new to this device takes the column defaults. The write
+  then stores this device's own values, a no-op for an existing row.
+- Replace-adopt: the streaming path clears each synced table and refills it
+  from the cloud. Before clearing a table with device-local columns,
+  `deleteAllRecords` snapshots those columns by record id; the refill consumes
+  the snapshot for a row whose id comes back. The in-memory path upserts while
+  the local rows still exist, so the local-row refill covers it. Both paths
+  therefore keep this device's values (decision: keep them).
 - Merge and conflict detection: a device-local column must never count as a
   difference between the local and remote copies. The local copy is stripped
   the same way wherever the two are compared.
@@ -121,6 +131,8 @@ Each label is checked against the Settings screens before it goes in.
   - importing a full payload (as an older peer sends) keeps the local values of
     the five columns and applies the synced ones;
   - a row new to this device gets the column defaults;
+  - a replace-adopt (clear, then refill) keeps this device's values;
+  - the same import and adopt checks for `diveComputers.bluetoothAddress`;
   - merge and conflict detection see no difference from device-local columns
     alone.
 - Serializer, `settings`: the three nav keys are not exported, are skipped on
