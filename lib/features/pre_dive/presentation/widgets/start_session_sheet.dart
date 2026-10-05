@@ -200,10 +200,11 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
               initialValue: _template,
               decoration: InputDecoration(
                 labelText: l10n.preDive_start_template,
-                // Says where to bring one back when the diver hid them all.
+                // Says where to bring one back when the diver hid them all,
+                // naming Settings as the navigation labels it.
                 helperText: templates.isEmpty && allTemplates.isNotEmpty
                     ? l10n.preDive_start_allTemplatesHidden(
-                        '${l10n.settings_appBar_title} > '
+                        '${l10n.nav_settings} > '
                         '${l10n.settings_section_manage_title} > '
                         '${l10n.settings_manage_preDiveChecklists}',
                       )

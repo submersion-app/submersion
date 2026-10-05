@@ -131,6 +131,7 @@ void main() {
     WidgetTester tester, {
     MockSettingsNotifier? settings,
     List<PreDiveChecklistTemplate>? templates,
+    Locale locale = const Locale('en'),
   }) async {
     final fakeRepo = _FakeTemplateRepo({
       'plain': [tItem('plain', PreDiveItemType.check)],
@@ -149,7 +150,7 @@ void main() {
     });
     await tester.pumpWidget(
       testApp(
-        locale: const Locale('en'),
+        locale: locale,
         overrides: [
           settingsProvider.overrideWith(
             (ref) => settings ?? MockSettingsNotifier(),
@@ -434,5 +435,23 @@ void main() {
   testWidgets('shows no hint while a checklist is offered', (tester) async {
     await pumpSheet(tester);
     expect(find.textContaining('Every checklist is hidden'), findsNothing);
+  });
+
+  testWidgets('the hint names Settings as the navigation labels it', (
+    tester,
+  ) async {
+    await pumpSheet(
+      tester,
+      locale: const Locale('es'),
+      templates: [template('plain', 'BWRAF', builtIn: true)],
+      settings: MockSettingsNotifier(
+        const AppSettings(
+          hiddenBuiltInIds: {
+            'preDiveTemplates': {'plain'},
+          },
+        ),
+      ),
+    );
+    expect(find.textContaining('Configuración >'), findsOneWidget);
   });
 }
