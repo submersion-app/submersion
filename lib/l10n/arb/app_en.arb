@@ -1978,6 +1978,126 @@
   "@certifications_list_needsAttention_emptySubtitle": {
     "description": "Empty state subtitle when the needs-attention filter matches no certification"
   },
+  "currencyRule_padi_reactivate_name": "PADI refresher (ReActivate)",
+  "@currencyRule_padi_reactivate_name": {
+    "description": "Name of the built-in PADI refresher currency rule"
+  },
+  "currencyRule_ssi_skills_update_name": "SSI Scuba Skills Update",
+  "@currencyRule_ssi_skills_update_name": {
+    "description": "Name of the built-in SSI Scuba Skills Update currency rule; the program name is not translated"
+  },
+  "currencyRule_generic_refresher_name": "Refresher",
+  "@currencyRule_generic_refresher_name": {
+    "description": "Name of the built-in generic refresher currency rule"
+  },
+  "currencyRule_first_aid_24mo_name": "First aid and CPR renewal",
+  "@currencyRule_first_aid_24mo_name": {
+    "description": "Name of the built-in first aid and CPR renewal currency rule"
+  },
+  "currencyRule_pro_membership_annual_name": "Professional membership renewal",
+  "@currencyRule_pro_membership_annual_name": {
+    "description": "Name of the built-in professional membership renewal currency rule"
+  },
+  "currencyRule_gue_revalidation_name": "GUE revalidation",
+  "@currencyRule_gue_revalidation_name": {
+    "description": "Name of the built-in GUE revalidation currency rule"
+  },
+  "currencyRule_ffessm_licence_annual_name": "FFESSM licence and medical certificate",
+  "@currencyRule_ffessm_licence_annual_name": {
+    "description": "Name of the built-in FFESSM licence currency rule"
+  },
+  "currencyRule_cave_currency_name": "Cave currency",
+  "@currencyRule_cave_currency_name": {
+    "description": "Name of the built-in cave currency rule: recent cave diving practice"
+  },
+  "currencyRule_rebreather_currency_name": "Rebreather currency",
+  "@currencyRule_rebreather_currency_name": {
+    "description": "Name of the built-in rebreather currency rule: recent rebreather practice"
+  },
+  "currencyRule_deco_currency_name": "Decompression currency",
+  "@currencyRule_deco_currency_name": {
+    "description": "Name of the built-in decompression currency rule: recent decompression diving practice"
+  },
+  "currencyRule_card_expiry_name": "Card expiry",
+  "@currencyRule_card_expiry_name": {
+    "description": "Name of the currency status that follows the expiry date printed on a card"
+  },
+  "currencyRule_padi_reactivate_advisory": "PADI suggests a ReActivate refresher after six to twelve months out of the water.",
+  "@currencyRule_padi_reactivate_advisory": {
+    "description": "Advisory sentence of the PADI refresher rule; guidance, never a requirement"
+  },
+  "currencyRule_ssi_skills_update_advisory": "SSI suggests a Scuba Skills Update after six to twelve months without diving.",
+  "@currencyRule_ssi_skills_update_advisory": {
+    "description": "Advisory sentence of the SSI Scuba Skills Update rule"
+  },
+  "currencyRule_generic_refresher_advisory": "Most agencies suggest a refresher after six to twelve months without diving.",
+  "@currencyRule_generic_refresher_advisory": {
+    "description": "Advisory sentence of the generic refresher rule"
+  },
+  "currencyRule_first_aid_advisory": "First aid, CPR and oxygen provider credentials typically renew every two years.",
+  "@currencyRule_first_aid_advisory": {
+    "description": "Advisory sentence of the first aid renewal rule"
+  },
+  "currencyRule_pro_membership_advisory": "Professional memberships typically renew every year to keep teaching status active.",
+  "@currencyRule_pro_membership_advisory": {
+    "description": "Advisory sentence of the professional membership rule"
+  },
+  "currencyRule_gue_revalidation_advisory": "GUE ratings are typically revalidated every three years.",
+  "@currencyRule_gue_revalidation_advisory": {
+    "description": "Advisory sentence of the GUE revalidation rule"
+  },
+  "currencyRule_ffessm_licence_advisory": "The FFESSM licence and its medical certificate are renewed every year.",
+  "@currencyRule_ffessm_licence_advisory": {
+    "description": "Advisory sentence of the FFESSM licence rule"
+  },
+  "currencyRule_cave_currency_advisory": "Cave skills fade without practice; a check-out dive is commonly advised after a year away.",
+  "@currencyRule_cave_currency_advisory": {
+    "description": "Advisory sentence of the cave currency rule"
+  },
+  "currencyRule_rebreather_currency_advisory": "Rebreather skills fade quickly; many agencies advise a refresher after six months away.",
+  "@currencyRule_rebreather_currency_advisory": {
+    "description": "Advisory sentence of the rebreather currency rule"
+  },
+  "currencyRule_deco_currency_advisory": "Decompression procedures are commonly refreshed after a year without a decompression dive.",
+  "@currencyRule_deco_currency_advisory": {
+    "description": "Advisory sentence of the decompression currency rule"
+  },
+  "currencyRule_card_expiry_advisory": "The expiry date printed on this card.",
+  "@currencyRule_card_expiry_advisory": {
+    "description": "Advisory sentence of the card expiry status"
+  },
+  "certifications_currency_status_current": "Current",
+  "@certifications_currency_status_current": {
+    "description": "Currency severity: the credential is current"
+  },
+  "certifications_currency_status_dueSoon": "Due soon",
+  "@certifications_currency_status_dueSoon": {
+    "description": "Currency severity: a refresher or renewal is due soon"
+  },
+  "certifications_currency_status_lapsed": "Lapsed",
+  "@certifications_currency_status_lapsed": {
+    "description": "Currency severity: the refresher or renewal interval has passed"
+  },
+  "certifications_currency_eventType_refresher": "Refresher",
+  "@certifications_currency_eventType_refresher": {
+    "description": "Currency ledger event type: a refresher course or dive"
+  },
+  "certifications_currency_eventType_renewal": "Renewal",
+  "@certifications_currency_eventType_renewal": {
+    "description": "Currency ledger event type: a renewal"
+  },
+  "certifications_currency_eventType_revalidation": "Revalidation",
+  "@certifications_currency_eventType_revalidation": {
+    "description": "Currency ledger event type: an agency revalidation"
+  },
+  "certifications_currency_eventType_skillsUpdate": "Skills update",
+  "@certifications_currency_eventType_skillsUpdate": {
+    "description": "Currency ledger event type: a skills update"
+  },
+  "certifications_currency_eventType_other": "Other",
+  "@certifications_currency_eventType_other": {
+    "description": "Currency ledger event type: anything else"
+  },
   "certifications_detail_action_delete": "Delete",
   "certifications_detail_appBar_title": "Certification",
   "certifications_detail_courseCompleted": "Completed",
@@ -3091,7 +3211,7 @@
   "settings_homeChips_insurance": "Insurance",
   "settings_homeChips_noFly": "No-fly timer",
   "settings_homeChips_lastDive": "Dive currency",
-  "settings_homeChips_certifications": "Certification expiry",
+  "settings_homeChips_certifications": "Certification currency",
   "settings_homeChips_trip": "Upcoming trip",
   "settings_homeChips_checklist": "Active checklist",
   "settings_homeChips_course": "Course progress",
@@ -3099,8 +3219,9 @@
   "settings_homeChips_backup": "Backup age",
   "settings_homeChips_sync": "Sync status",
   "settings_homeChips_dataQuality": "Data quality",
-  "dashboard_gauges_certsExpiring": "{count} certifications expiring",
-  "@dashboard_gauges_certsExpiring": {
+  "dashboard_gauges_certsNeedAttention": "{count, plural, =1{{count} certification needs attention} other{{count} certifications need attention}}",
+  "@dashboard_gauges_certsNeedAttention": {
+    "description": "Home strip chip: how many certifications need a refresher or renewal",
     "placeholders": {
       "count": {
         "type": "int"

@@ -3015,6 +3015,112 @@ class AppLocalizationsHu extends AppLocalizations {
       'Minden képesítés érvényes vagy némítva van.';
 
   @override
+  String get currencyRule_padi_reactivate_name =>
+      'PADI felfrissítés (ReActivate)';
+
+  @override
+  String get currencyRule_ssi_skills_update_name => 'SSI Scuba Skills Update';
+
+  @override
+  String get currencyRule_generic_refresher_name => 'Felfrissítés';
+
+  @override
+  String get currencyRule_first_aid_24mo_name =>
+      'Elsősegély és újraélesztés megújítása';
+
+  @override
+  String get currencyRule_pro_membership_annual_name =>
+      'Szakmai tagság megújítása';
+
+  @override
+  String get currencyRule_gue_revalidation_name => 'GUE újraminősítés';
+
+  @override
+  String get currencyRule_ffessm_licence_annual_name =>
+      'FFESSM licenc és orvosi igazolás';
+
+  @override
+  String get currencyRule_cave_currency_name => 'Barlangi merülési gyakorlat';
+
+  @override
+  String get currencyRule_rebreather_currency_name => 'Rebreather gyakorlat';
+
+  @override
+  String get currencyRule_deco_currency_name => 'Dekompressziós gyakorlat';
+
+  @override
+  String get currencyRule_card_expiry_name => 'Kártya lejárata';
+
+  @override
+  String get currencyRule_padi_reactivate_advisory =>
+      'A PADI hat-tizenkét hónap kihagyás után ReActivate felfrissítést javasol.';
+
+  @override
+  String get currencyRule_ssi_skills_update_advisory =>
+      'Az SSI hat-tizenkét hónap merülés nélkül Scuba Skills Update képzést javasol.';
+
+  @override
+  String get currencyRule_generic_refresher_advisory =>
+      'A legtöbb szervezet hat-tizenkét hónap merülés nélkül felfrissítést javasol.';
+
+  @override
+  String get currencyRule_first_aid_advisory =>
+      'Az elsősegély-, újraélesztési és oxigénadagolási képesítések jellemzően kétévente újulnak meg.';
+
+  @override
+  String get currencyRule_pro_membership_advisory =>
+      'A szakmai tagságok jellemzően évente újulnak meg, hogy az oktatói státusz aktív maradjon.';
+
+  @override
+  String get currencyRule_gue_revalidation_advisory =>
+      'A GUE minősítéseket jellemzően háromévente újraminősítik.';
+
+  @override
+  String get currencyRule_ffessm_licence_advisory =>
+      'Az FFESSM licenc és az orvosi igazolás évente megújul.';
+
+  @override
+  String get currencyRule_cave_currency_advisory =>
+      'A barlangi készségek gyakorlás nélkül elhalványulnak; egy év kihagyás után általában ellenőrző merülést javasolnak.';
+
+  @override
+  String get currencyRule_rebreather_currency_advisory =>
+      'A rebreather készségek gyorsan elhalványulnak; sok szervezet hat hónap kihagyás után felfrissítést javasol.';
+
+  @override
+  String get currencyRule_deco_currency_advisory =>
+      'A dekompressziós eljárásokat általában egy év dekompressziós merülés nélkül felfrissítik.';
+
+  @override
+  String get currencyRule_card_expiry_advisory =>
+      'A kártyán feltüntetett lejárati dátum.';
+
+  @override
+  String get certifications_currency_status_current => 'Érvényes';
+
+  @override
+  String get certifications_currency_status_dueSoon => 'Hamarosan esedékes';
+
+  @override
+  String get certifications_currency_status_lapsed => 'Lejárt';
+
+  @override
+  String get certifications_currency_eventType_refresher => 'Felfrissítés';
+
+  @override
+  String get certifications_currency_eventType_renewal => 'Megújítás';
+
+  @override
+  String get certifications_currency_eventType_revalidation => 'Újraminősítés';
+
+  @override
+  String get certifications_currency_eventType_skillsUpdate =>
+      'Készségfrissítés';
+
+  @override
+  String get certifications_currency_eventType_other => 'Egyéb';
+
+  @override
   String get certifications_detail_action_delete => 'Törlés';
 
   @override
@@ -4970,7 +5076,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_homeChips_lastDive => 'Merülési naprakészség';
 
   @override
-  String get settings_homeChips_certifications => 'Minősítések lejárata';
+  String get settings_homeChips_certifications => 'Képesítések érvényessége';
 
   @override
   String get settings_homeChips_trip => 'Közelgő utazás';
@@ -4994,8 +5100,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_homeChips_dataQuality => 'Adatminőség';
 
   @override
-  String dashboard_gauges_certsExpiring(int count) {
-    return '$count minősítés hamarosan lejár';
+  String dashboard_gauges_certsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count képesítés figyelmet igényel',
+      one: '$count képesítés figyelmet igényel',
+    );
+    return '$_temp0';
   }
 
   @override

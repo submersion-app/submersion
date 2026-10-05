@@ -3021,6 +3021,111 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tutte le certificazioni sono aggiornate o silenziate.';
 
   @override
+  String get currencyRule_padi_reactivate_name =>
+      'Aggiornamento PADI (ReActivate)';
+
+  @override
+  String get currencyRule_ssi_skills_update_name => 'SSI Scuba Skills Update';
+
+  @override
+  String get currencyRule_generic_refresher_name => 'Aggiornamento';
+
+  @override
+  String get currencyRule_first_aid_24mo_name => 'Rinnovo primo soccorso e RCP';
+
+  @override
+  String get currencyRule_pro_membership_annual_name =>
+      'Rinnovo dell\'iscrizione professionale';
+
+  @override
+  String get currencyRule_gue_revalidation_name => 'Riconvalida GUE';
+
+  @override
+  String get currencyRule_ffessm_licence_annual_name =>
+      'Licenza FFESSM e certificato medico';
+
+  @override
+  String get currencyRule_cave_currency_name => 'Pratica in grotta';
+
+  @override
+  String get currencyRule_rebreather_currency_name => 'Pratica con rebreather';
+
+  @override
+  String get currencyRule_deco_currency_name => 'Pratica di decompressione';
+
+  @override
+  String get currencyRule_card_expiry_name => 'Scadenza della tessera';
+
+  @override
+  String get currencyRule_padi_reactivate_advisory =>
+      'PADI suggerisce un aggiornamento ReActivate dopo sei-dodici mesi fuori dall\'acqua.';
+
+  @override
+  String get currencyRule_ssi_skills_update_advisory =>
+      'SSI suggerisce uno Scuba Skills Update dopo sei-dodici mesi senza immersioni.';
+
+  @override
+  String get currencyRule_generic_refresher_advisory =>
+      'La maggior parte delle didattiche suggerisce un aggiornamento dopo sei-dodici mesi senza immersioni.';
+
+  @override
+  String get currencyRule_first_aid_advisory =>
+      'I brevetti di primo soccorso, RCP e somministrazione di ossigeno si rinnovano di solito ogni due anni.';
+
+  @override
+  String get currencyRule_pro_membership_advisory =>
+      'Le iscrizioni professionali si rinnovano di solito ogni anno per mantenere attivo lo status di istruttore.';
+
+  @override
+  String get currencyRule_gue_revalidation_advisory =>
+      'I brevetti GUE vengono di solito riconvalidati ogni tre anni.';
+
+  @override
+  String get currencyRule_ffessm_licence_advisory =>
+      'La licenza FFESSM e il relativo certificato medico si rinnovano ogni anno.';
+
+  @override
+  String get currencyRule_cave_currency_advisory =>
+      'Le abilità in grotta si perdono senza pratica; dopo un anno di pausa si consiglia di solito un\'immersione di verifica.';
+
+  @override
+  String get currencyRule_rebreather_currency_advisory =>
+      'Le abilità con il rebreather si perdono in fretta; molte didattiche consigliano un aggiornamento dopo sei mesi di pausa.';
+
+  @override
+  String get currencyRule_deco_currency_advisory =>
+      'Le procedure di decompressione vengono di solito ripassate dopo un anno senza immersioni con decompressione.';
+
+  @override
+  String get currencyRule_card_expiry_advisory =>
+      'La data di scadenza riportata su questa tessera.';
+
+  @override
+  String get certifications_currency_status_current => 'In regola';
+
+  @override
+  String get certifications_currency_status_dueSoon => 'In scadenza';
+
+  @override
+  String get certifications_currency_status_lapsed => 'Scaduto';
+
+  @override
+  String get certifications_currency_eventType_refresher => 'Aggiornamento';
+
+  @override
+  String get certifications_currency_eventType_renewal => 'Rinnovo';
+
+  @override
+  String get certifications_currency_eventType_revalidation => 'Riconvalida';
+
+  @override
+  String get certifications_currency_eventType_skillsUpdate =>
+      'Ripasso abilità';
+
+  @override
+  String get certifications_currency_eventType_other => 'Altro';
+
+  @override
   String get certifications_detail_action_delete => 'Elimina';
 
   @override
@@ -4981,7 +5086,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_homeChips_lastDive => 'Attualità delle immersioni';
 
   @override
-  String get settings_homeChips_certifications => 'Scadenza certificazioni';
+  String get settings_homeChips_certifications =>
+      'Validità delle certificazioni';
 
   @override
   String get settings_homeChips_trip => 'Prossimo viaggio';
@@ -5005,8 +5111,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_homeChips_dataQuality => 'Qualità dei dati';
 
   @override
-  String dashboard_gauges_certsExpiring(int count) {
-    return '$count certificazioni in scadenza';
+  String dashboard_gauges_certsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count certificazioni richiedono attenzione',
+      one: '$count certificazione richiede attenzione',
+    );
+    return '$_temp0';
   }
 
   @override

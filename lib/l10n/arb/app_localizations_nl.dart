@@ -3002,6 +3002,112 @@ class AppLocalizationsNl extends AppLocalizations {
       'Alle certificeringen zijn actueel of gedempt.';
 
   @override
+  String get currencyRule_padi_reactivate_name =>
+      'PADI-opfrissing (ReActivate)';
+
+  @override
+  String get currencyRule_ssi_skills_update_name => 'SSI Scuba Skills Update';
+
+  @override
+  String get currencyRule_generic_refresher_name => 'Opfrissing';
+
+  @override
+  String get currencyRule_first_aid_24mo_name =>
+      'Verlenging eerste hulp en reanimatie';
+
+  @override
+  String get currencyRule_pro_membership_annual_name =>
+      'Verlenging professioneel lidmaatschap';
+
+  @override
+  String get currencyRule_gue_revalidation_name => 'GUE-hervalidatie';
+
+  @override
+  String get currencyRule_ffessm_licence_annual_name =>
+      'FFESSM-licentie en medische verklaring';
+
+  @override
+  String get currencyRule_cave_currency_name => 'Grotduikpraktijk';
+
+  @override
+  String get currencyRule_rebreather_currency_name => 'Rebreatherpraktijk';
+
+  @override
+  String get currencyRule_deco_currency_name => 'Decompressiepraktijk';
+
+  @override
+  String get currencyRule_card_expiry_name => 'Vervaldatum kaart';
+
+  @override
+  String get currencyRule_padi_reactivate_advisory =>
+      'PADI raadt een ReActivate-opfrissing aan na zes tot twaalf maanden niet duiken.';
+
+  @override
+  String get currencyRule_ssi_skills_update_advisory =>
+      'SSI raadt een Scuba Skills Update aan na zes tot twaalf maanden niet duiken.';
+
+  @override
+  String get currencyRule_generic_refresher_advisory =>
+      'De meeste organisaties raden een opfrissing aan na zes tot twaalf maanden niet duiken.';
+
+  @override
+  String get currencyRule_first_aid_advisory =>
+      'Eerstehulp-, reanimatie- en zuurstofbrevetten worden meestal om de twee jaar verlengd.';
+
+  @override
+  String get currencyRule_pro_membership_advisory =>
+      'Professionele lidmaatschappen worden meestal jaarlijks verlengd om de instructeursstatus actief te houden.';
+
+  @override
+  String get currencyRule_gue_revalidation_advisory =>
+      'GUE-brevetten worden meestal om de drie jaar gehervalideerd.';
+
+  @override
+  String get currencyRule_ffessm_licence_advisory =>
+      'De FFESSM-licentie en de medische verklaring worden elk jaar verlengd.';
+
+  @override
+  String get currencyRule_cave_currency_advisory =>
+      'Grotvaardigheden vervagen zonder oefening; na een jaar pauze wordt meestal een controleduik aangeraden.';
+
+  @override
+  String get currencyRule_rebreather_currency_advisory =>
+      'Rebreathervaardigheden vervagen snel; veel organisaties raden na zes maanden pauze een opfrissing aan.';
+
+  @override
+  String get currencyRule_deco_currency_advisory =>
+      'Decompressieprocedures worden meestal opgefrist na een jaar zonder decompressieduik.';
+
+  @override
+  String get currencyRule_card_expiry_advisory =>
+      'De vervaldatum die op deze kaart staat.';
+
+  @override
+  String get certifications_currency_status_current => 'Actueel';
+
+  @override
+  String get certifications_currency_status_dueSoon => 'Binnenkort';
+
+  @override
+  String get certifications_currency_status_lapsed => 'Verlopen';
+
+  @override
+  String get certifications_currency_eventType_refresher => 'Opfrissing';
+
+  @override
+  String get certifications_currency_eventType_renewal => 'Verlenging';
+
+  @override
+  String get certifications_currency_eventType_revalidation => 'Hervalidatie';
+
+  @override
+  String get certifications_currency_eventType_skillsUpdate =>
+      'Vaardigheden-update';
+
+  @override
+  String get certifications_currency_eventType_other => 'Overig';
+
+  @override
   String get certifications_detail_action_delete => 'Verwijderen';
 
   @override
@@ -4949,7 +5055,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_homeChips_lastDive => 'Duikactualiteit';
 
   @override
-  String get settings_homeChips_certifications => 'Verloop van certificeringen';
+  String get settings_homeChips_certifications => 'Geldigheid certificeringen';
 
   @override
   String get settings_homeChips_trip => 'Aankomende reis';
@@ -4973,8 +5079,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_homeChips_dataQuality => 'Datakwaliteit';
 
   @override
-  String dashboard_gauges_certsExpiring(int count) {
-    return '$count certificeringen verlopen bijna';
+  String dashboard_gauges_certsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count certificeringen vragen aandacht',
+      one: '$count certificering vraagt aandacht',
+    );
+    return '$_temp0';
   }
 
   @override

@@ -3025,6 +3025,111 @@ class AppLocalizationsDe extends AppLocalizations {
       'Alle Zertifizierungen sind aktuell oder stummgeschaltet.';
 
   @override
+  String get currencyRule_padi_reactivate_name =>
+      'PADI-Auffrischung (ReActivate)';
+
+  @override
+  String get currencyRule_ssi_skills_update_name => 'SSI Scuba Skills Update';
+
+  @override
+  String get currencyRule_generic_refresher_name => 'Auffrischung';
+
+  @override
+  String get currencyRule_first_aid_24mo_name =>
+      'Erneuerung Erste Hilfe und HLW';
+
+  @override
+  String get currencyRule_pro_membership_annual_name =>
+      'Verlängerung der Profi-Mitgliedschaft';
+
+  @override
+  String get currencyRule_gue_revalidation_name => 'GUE-Revalidierung';
+
+  @override
+  String get currencyRule_ffessm_licence_annual_name =>
+      'FFESSM-Lizenz und ärztliches Attest';
+
+  @override
+  String get currencyRule_cave_currency_name => 'Höhlentauch-Praxis';
+
+  @override
+  String get currencyRule_rebreather_currency_name => 'Rebreather-Praxis';
+
+  @override
+  String get currencyRule_deco_currency_name => 'Deko-Praxis';
+
+  @override
+  String get currencyRule_card_expiry_name => 'Kartenablauf';
+
+  @override
+  String get currencyRule_padi_reactivate_advisory =>
+      'PADI empfiehlt nach sechs bis zwölf Monaten ohne Tauchgang eine ReActivate-Auffrischung.';
+
+  @override
+  String get currencyRule_ssi_skills_update_advisory =>
+      'SSI empfiehlt nach sechs bis zwölf Monaten ohne Tauchgang ein Scuba Skills Update.';
+
+  @override
+  String get currencyRule_generic_refresher_advisory =>
+      'Die meisten Verbände empfehlen nach sechs bis zwölf Monaten ohne Tauchgang eine Auffrischung.';
+
+  @override
+  String get currencyRule_first_aid_advisory =>
+      'Nachweise für Erste Hilfe, HLW und Sauerstoffgabe werden in der Regel alle zwei Jahre erneuert.';
+
+  @override
+  String get currencyRule_pro_membership_advisory =>
+      'Profi-Mitgliedschaften werden in der Regel jährlich verlängert, damit der Ausbilderstatus aktiv bleibt.';
+
+  @override
+  String get currencyRule_gue_revalidation_advisory =>
+      'GUE-Brevets werden in der Regel alle drei Jahre revalidiert.';
+
+  @override
+  String get currencyRule_ffessm_licence_advisory =>
+      'Die FFESSM-Lizenz und das ärztliche Attest werden jedes Jahr erneuert.';
+
+  @override
+  String get currencyRule_cave_currency_advisory =>
+      'Höhlentauchfertigkeiten lassen ohne Übung nach; nach einem Jahr Pause wird meist ein Check-out-Tauchgang empfohlen.';
+
+  @override
+  String get currencyRule_rebreather_currency_advisory =>
+      'Rebreather-Fertigkeiten lassen schnell nach; viele Verbände empfehlen nach sechs Monaten Pause eine Auffrischung.';
+
+  @override
+  String get currencyRule_deco_currency_advisory =>
+      'Dekompressionsabläufe werden üblicherweise nach einem Jahr ohne Deko-Tauchgang aufgefrischt.';
+
+  @override
+  String get currencyRule_card_expiry_advisory =>
+      'Das auf dieser Karte angegebene Ablaufdatum.';
+
+  @override
+  String get certifications_currency_status_current => 'Aktuell';
+
+  @override
+  String get certifications_currency_status_dueSoon => 'Bald fällig';
+
+  @override
+  String get certifications_currency_status_lapsed => 'Abgelaufen';
+
+  @override
+  String get certifications_currency_eventType_refresher => 'Auffrischung';
+
+  @override
+  String get certifications_currency_eventType_renewal => 'Verlängerung';
+
+  @override
+  String get certifications_currency_eventType_revalidation => 'Revalidierung';
+
+  @override
+  String get certifications_currency_eventType_skillsUpdate => 'Skills-Update';
+
+  @override
+  String get certifications_currency_eventType_other => 'Sonstiges';
+
+  @override
   String get certifications_detail_action_delete => 'Löschen';
 
   @override
@@ -4992,7 +5097,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_homeChips_lastDive => 'Tauchaktualität';
 
   @override
-  String get settings_homeChips_certifications => 'Ablauf von Zertifizierungen';
+  String get settings_homeChips_certifications =>
+      'Gültigkeit der Zertifizierungen';
 
   @override
   String get settings_homeChips_trip => 'Anstehende Reise';
@@ -5016,8 +5122,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_homeChips_dataQuality => 'Datenqualität';
 
   @override
-  String dashboard_gauges_certsExpiring(int count) {
-    return '$count Zertifizierungen laufen ab';
+  String dashboard_gauges_certsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zertifizierungen erfordern Aufmerksamkeit',
+      one: '$count Zertifizierung erfordert Aufmerksamkeit',
+    );
+    return '$_temp0';
   }
 
   @override

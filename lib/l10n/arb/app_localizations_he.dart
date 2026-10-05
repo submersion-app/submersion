@@ -2971,6 +2971,110 @@ class AppLocalizationsHe extends AppLocalizations {
       'כל ההסמכות בתוקף או מושתקות.';
 
   @override
+  String get currencyRule_padi_reactivate_name => 'ריענון PADI (ReActivate)';
+
+  @override
+  String get currencyRule_ssi_skills_update_name => 'SSI Scuba Skills Update';
+
+  @override
+  String get currencyRule_generic_refresher_name => 'ריענון';
+
+  @override
+  String get currencyRule_first_aid_24mo_name => 'חידוש עזרה ראשונה והחייאה';
+
+  @override
+  String get currencyRule_pro_membership_annual_name => 'חידוש חברות מקצועית';
+
+  @override
+  String get currencyRule_gue_revalidation_name => 'תיקוף מחדש GUE';
+
+  @override
+  String get currencyRule_ffessm_licence_annual_name =>
+      'רישיון FFESSM ואישור רפואי';
+
+  @override
+  String get currencyRule_cave_currency_name => 'כשירות שוטפת במערות';
+
+  @override
+  String get currencyRule_rebreather_currency_name =>
+      'כשירות שוטפת ב-Rebreather';
+
+  @override
+  String get currencyRule_deco_currency_name => 'כשירות שוטפת בדקומפרסיה';
+
+  @override
+  String get currencyRule_card_expiry_name => 'תפוגת הכרטיס';
+
+  @override
+  String get currencyRule_padi_reactivate_advisory =>
+      'PADI ממליצה על ריענון ReActivate לאחר שישה עד שנים עשר חודשים מחוץ למים.';
+
+  @override
+  String get currencyRule_ssi_skills_update_advisory =>
+      'SSI ממליצה על Scuba Skills Update לאחר שישה עד שנים עשר חודשים ללא צלילה.';
+
+  @override
+  String get currencyRule_generic_refresher_advisory =>
+      'רוב הארגונים ממליצים על ריענון לאחר שישה עד שנים עשר חודשים ללא צלילה.';
+
+  @override
+  String get currencyRule_first_aid_advisory =>
+      'הסמכות עזרה ראשונה, החייאה ומתן חמצן מתחדשות בדרך כלל כל שנתיים.';
+
+  @override
+  String get currencyRule_pro_membership_advisory =>
+      'חברות מקצועית מתחדשת בדרך כלל מדי שנה כדי לשמור על מעמד הדרכה פעיל.';
+
+  @override
+  String get currencyRule_gue_revalidation_advisory =>
+      'דירוגי GUE מתוקפים מחדש בדרך כלל כל שלוש שנים.';
+
+  @override
+  String get currencyRule_ffessm_licence_advisory =>
+      'רישיון FFESSM והאישור הרפואי שלו מתחדשים מדי שנה.';
+
+  @override
+  String get currencyRule_cave_currency_advisory =>
+      'מיומנויות מערות נשחקות ללא תרגול; נהוג להמליץ על צלילת בדיקה לאחר שנה של הפסקה.';
+
+  @override
+  String get currencyRule_rebreather_currency_advisory =>
+      'מיומנויות Rebreather נשחקות מהר; ארגונים רבים ממליצים על ריענון לאחר שישה חודשים של הפסקה.';
+
+  @override
+  String get currencyRule_deco_currency_advisory =>
+      'נהוג לרענן נוהלי דקומפרסיה לאחר שנה ללא צלילת דקומפרסיה.';
+
+  @override
+  String get currencyRule_card_expiry_advisory =>
+      'תאריך התפוגה המודפס על הכרטיס.';
+
+  @override
+  String get certifications_currency_status_current => 'בתוקף';
+
+  @override
+  String get certifications_currency_status_dueSoon => 'בקרוב';
+
+  @override
+  String get certifications_currency_status_lapsed => 'פג תוקף';
+
+  @override
+  String get certifications_currency_eventType_refresher => 'ריענון';
+
+  @override
+  String get certifications_currency_eventType_renewal => 'חידוש';
+
+  @override
+  String get certifications_currency_eventType_revalidation => 'תיקוף מחדש';
+
+  @override
+  String get certifications_currency_eventType_skillsUpdate =>
+      'עדכון מיומנויות';
+
+  @override
+  String get certifications_currency_eventType_other => 'אחר';
+
+  @override
   String get certifications_detail_action_delete => 'מחק';
 
   @override
@@ -4871,7 +4975,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_homeChips_lastDive => 'עדכניות צלילה';
 
   @override
-  String get settings_homeChips_certifications => 'תפוגת הסמכות';
+  String get settings_homeChips_certifications => 'תוקף הסמכות';
 
   @override
   String get settings_homeChips_trip => 'טיול קרוב';
@@ -4895,8 +4999,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_homeChips_dataQuality => 'איכות נתונים';
 
   @override
-  String dashboard_gauges_certsExpiring(int count) {
-    return '$count הסמכות עומדות לפוג';
+  String dashboard_gauges_certsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count הסמכות דורשות תשומת לב',
+      one: 'הסמכה אחת דורשת תשומת לב',
+    );
+    return '$_temp0';
   }
 
   @override

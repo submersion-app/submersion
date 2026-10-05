@@ -4643,6 +4643,186 @@ abstract class AppLocalizations {
   /// **'Every certification is current or muted.'**
   String get certifications_list_needsAttention_emptySubtitle;
 
+  /// Name of the built-in PADI refresher currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'PADI refresher (ReActivate)'**
+  String get currencyRule_padi_reactivate_name;
+
+  /// Name of the built-in SSI Scuba Skills Update currency rule; the program name is not translated
+  ///
+  /// In en, this message translates to:
+  /// **'SSI Scuba Skills Update'**
+  String get currencyRule_ssi_skills_update_name;
+
+  /// Name of the built-in generic refresher currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Refresher'**
+  String get currencyRule_generic_refresher_name;
+
+  /// Name of the built-in first aid and CPR renewal currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'First aid and CPR renewal'**
+  String get currencyRule_first_aid_24mo_name;
+
+  /// Name of the built-in professional membership renewal currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Professional membership renewal'**
+  String get currencyRule_pro_membership_annual_name;
+
+  /// Name of the built-in GUE revalidation currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'GUE revalidation'**
+  String get currencyRule_gue_revalidation_name;
+
+  /// Name of the built-in FFESSM licence currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'FFESSM licence and medical certificate'**
+  String get currencyRule_ffessm_licence_annual_name;
+
+  /// Name of the built-in cave currency rule: recent cave diving practice
+  ///
+  /// In en, this message translates to:
+  /// **'Cave currency'**
+  String get currencyRule_cave_currency_name;
+
+  /// Name of the built-in rebreather currency rule: recent rebreather practice
+  ///
+  /// In en, this message translates to:
+  /// **'Rebreather currency'**
+  String get currencyRule_rebreather_currency_name;
+
+  /// Name of the built-in decompression currency rule: recent decompression diving practice
+  ///
+  /// In en, this message translates to:
+  /// **'Decompression currency'**
+  String get currencyRule_deco_currency_name;
+
+  /// Name of the currency status that follows the expiry date printed on a card
+  ///
+  /// In en, this message translates to:
+  /// **'Card expiry'**
+  String get currencyRule_card_expiry_name;
+
+  /// Advisory sentence of the PADI refresher rule; guidance, never a requirement
+  ///
+  /// In en, this message translates to:
+  /// **'PADI suggests a ReActivate refresher after six to twelve months out of the water.'**
+  String get currencyRule_padi_reactivate_advisory;
+
+  /// Advisory sentence of the SSI Scuba Skills Update rule
+  ///
+  /// In en, this message translates to:
+  /// **'SSI suggests a Scuba Skills Update after six to twelve months without diving.'**
+  String get currencyRule_ssi_skills_update_advisory;
+
+  /// Advisory sentence of the generic refresher rule
+  ///
+  /// In en, this message translates to:
+  /// **'Most agencies suggest a refresher after six to twelve months without diving.'**
+  String get currencyRule_generic_refresher_advisory;
+
+  /// Advisory sentence of the first aid renewal rule
+  ///
+  /// In en, this message translates to:
+  /// **'First aid, CPR and oxygen provider credentials typically renew every two years.'**
+  String get currencyRule_first_aid_advisory;
+
+  /// Advisory sentence of the professional membership rule
+  ///
+  /// In en, this message translates to:
+  /// **'Professional memberships typically renew every year to keep teaching status active.'**
+  String get currencyRule_pro_membership_advisory;
+
+  /// Advisory sentence of the GUE revalidation rule
+  ///
+  /// In en, this message translates to:
+  /// **'GUE ratings are typically revalidated every three years.'**
+  String get currencyRule_gue_revalidation_advisory;
+
+  /// Advisory sentence of the FFESSM licence rule
+  ///
+  /// In en, this message translates to:
+  /// **'The FFESSM licence and its medical certificate are renewed every year.'**
+  String get currencyRule_ffessm_licence_advisory;
+
+  /// Advisory sentence of the cave currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Cave skills fade without practice; a check-out dive is commonly advised after a year away.'**
+  String get currencyRule_cave_currency_advisory;
+
+  /// Advisory sentence of the rebreather currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Rebreather skills fade quickly; many agencies advise a refresher after six months away.'**
+  String get currencyRule_rebreather_currency_advisory;
+
+  /// Advisory sentence of the decompression currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Decompression procedures are commonly refreshed after a year without a decompression dive.'**
+  String get currencyRule_deco_currency_advisory;
+
+  /// Advisory sentence of the card expiry status
+  ///
+  /// In en, this message translates to:
+  /// **'The expiry date printed on this card.'**
+  String get currencyRule_card_expiry_advisory;
+
+  /// Currency severity: the credential is current
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get certifications_currency_status_current;
+
+  /// Currency severity: a refresher or renewal is due soon
+  ///
+  /// In en, this message translates to:
+  /// **'Due soon'**
+  String get certifications_currency_status_dueSoon;
+
+  /// Currency severity: the refresher or renewal interval has passed
+  ///
+  /// In en, this message translates to:
+  /// **'Lapsed'**
+  String get certifications_currency_status_lapsed;
+
+  /// Currency ledger event type: a refresher course or dive
+  ///
+  /// In en, this message translates to:
+  /// **'Refresher'**
+  String get certifications_currency_eventType_refresher;
+
+  /// Currency ledger event type: a renewal
+  ///
+  /// In en, this message translates to:
+  /// **'Renewal'**
+  String get certifications_currency_eventType_renewal;
+
+  /// Currency ledger event type: an agency revalidation
+  ///
+  /// In en, this message translates to:
+  /// **'Revalidation'**
+  String get certifications_currency_eventType_revalidation;
+
+  /// Currency ledger event type: a skills update
+  ///
+  /// In en, this message translates to:
+  /// **'Skills update'**
+  String get certifications_currency_eventType_skillsUpdate;
+
+  /// Currency ledger event type: anything else
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get certifications_currency_eventType_other;
+
   /// No description provided for @certifications_detail_action_delete.
   ///
   /// In en, this message translates to:
@@ -7887,7 +8067,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_homeChips_certifications.
   ///
   /// In en, this message translates to:
-  /// **'Certification expiry'**
+  /// **'Certification currency'**
   String get settings_homeChips_certifications;
 
   /// No description provided for @settings_homeChips_trip.
@@ -7932,11 +8112,11 @@ abstract class AppLocalizations {
   /// **'Data quality'**
   String get settings_homeChips_dataQuality;
 
-  /// No description provided for @dashboard_gauges_certsExpiring.
+  /// Home strip chip: how many certifications need a refresher or renewal
   ///
   /// In en, this message translates to:
-  /// **'{count} certifications expiring'**
-  String dashboard_gauges_certsExpiring(int count);
+  /// **'{count, plural, =1{{count} certification needs attention} other{{count} certifications need attention}}'**
+  String dashboard_gauges_certsNeedAttention(int count);
 
   /// No description provided for @dashboard_gauges_tripCountdown.
   ///

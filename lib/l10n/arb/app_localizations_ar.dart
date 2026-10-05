@@ -3100,6 +3100,110 @@ class AppLocalizationsAr extends AppLocalizations {
       'جميع الشهادات سارية أو مكتومة.';
 
   @override
+  String get currencyRule_padi_reactivate_name => 'تنشيط PADI (ReActivate)';
+
+  @override
+  String get currencyRule_ssi_skills_update_name => 'SSI Scuba Skills Update';
+
+  @override
+  String get currencyRule_generic_refresher_name => 'دورة تنشيطية';
+
+  @override
+  String get currencyRule_first_aid_24mo_name =>
+      'تجديد الإسعافات الأولية والإنعاش القلبي الرئوي';
+
+  @override
+  String get currencyRule_pro_membership_annual_name => 'تجديد العضوية المهنية';
+
+  @override
+  String get currencyRule_gue_revalidation_name => 'إعادة تصديق GUE';
+
+  @override
+  String get currencyRule_ffessm_licence_annual_name =>
+      'رخصة FFESSM والشهادة الطبية';
+
+  @override
+  String get currencyRule_cave_currency_name => 'الممارسة في الكهوف';
+
+  @override
+  String get currencyRule_rebreather_currency_name =>
+      'الممارسة بجهاز إعادة التنفس';
+
+  @override
+  String get currencyRule_deco_currency_name => 'ممارسة تخفيف الضغط';
+
+  @override
+  String get currencyRule_card_expiry_name => 'انتهاء صلاحية البطاقة';
+
+  @override
+  String get currencyRule_padi_reactivate_advisory =>
+      'تقترح PADI دورة ReActivate التنشيطية بعد ستة إلى اثني عشر شهرًا بعيدًا عن الماء.';
+
+  @override
+  String get currencyRule_ssi_skills_update_advisory =>
+      'تقترح SSI دورة Scuba Skills Update بعد ستة إلى اثني عشر شهرًا دون غوص.';
+
+  @override
+  String get currencyRule_generic_refresher_advisory =>
+      'تقترح معظم الوكالات دورة تنشيطية بعد ستة إلى اثني عشر شهرًا دون غوص.';
+
+  @override
+  String get currencyRule_first_aid_advisory =>
+      'تُجدَّد شهادات الإسعافات الأولية والإنعاش القلبي الرئوي ومزود الأكسجين عادةً كل عامين.';
+
+  @override
+  String get currencyRule_pro_membership_advisory =>
+      'تُجدَّد العضويات المهنية عادةً كل عام للحفاظ على صفة التدريس نشطة.';
+
+  @override
+  String get currencyRule_gue_revalidation_advisory =>
+      'يُعاد تصديق تصنيفات GUE عادةً كل ثلاث سنوات.';
+
+  @override
+  String get currencyRule_ffessm_licence_advisory =>
+      'تُجدَّد رخصة FFESSM وشهادتها الطبية كل عام.';
+
+  @override
+  String get currencyRule_cave_currency_advisory =>
+      'تتلاشى مهارات الكهوف دون ممارسة؛ ويُنصح عادةً بغطسة تقييم بعد عام من الانقطاع.';
+
+  @override
+  String get currencyRule_rebreather_currency_advisory =>
+      'تتلاشى مهارات جهاز إعادة التنفس بسرعة؛ وتنصح وكالات كثيرة بدورة تنشيطية بعد ستة أشهر من الانقطاع.';
+
+  @override
+  String get currencyRule_deco_currency_advisory =>
+      'يُوصى عادةً بتنشيط إجراءات تخفيف الضغط بعد عام دون غطسة تخفيف ضغط.';
+
+  @override
+  String get currencyRule_card_expiry_advisory =>
+      'تاريخ انتهاء الصلاحية المطبوع على هذه البطاقة.';
+
+  @override
+  String get certifications_currency_status_current => 'ساري';
+
+  @override
+  String get certifications_currency_status_dueSoon => 'مستحق قريبًا';
+
+  @override
+  String get certifications_currency_status_lapsed => 'منتهي';
+
+  @override
+  String get certifications_currency_eventType_refresher => 'دورة تنشيطية';
+
+  @override
+  String get certifications_currency_eventType_renewal => 'تجديد';
+
+  @override
+  String get certifications_currency_eventType_revalidation => 'إعادة تصديق';
+
+  @override
+  String get certifications_currency_eventType_skillsUpdate => 'تحديث المهارات';
+
+  @override
+  String get certifications_currency_eventType_other => 'أخرى';
+
+  @override
   String get certifications_detail_action_delete => 'حذف';
 
   @override
@@ -5053,7 +5157,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_homeChips_lastDive => 'حداثة الغطس';
 
   @override
-  String get settings_homeChips_certifications => 'انتهاء الشهادات';
+  String get settings_homeChips_certifications => 'صلاحية الشهادات';
 
   @override
   String get settings_homeChips_trip => 'الرحلة القادمة';
@@ -5077,8 +5181,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_homeChips_dataQuality => 'جودة البيانات';
 
   @override
-  String dashboard_gauges_certsExpiring(int count) {
-    return '$count شهادات على وشك الانتهاء';
+  String dashboard_gauges_certsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count شهادة تحتاج إلى انتباه',
+      many: '$count شهادة تحتاج إلى انتباه',
+      few: '$count شهادات تحتاج إلى انتباه',
+      two: 'شهادتان تحتاجان إلى انتباه',
+      one: 'شهادة واحدة تحتاج إلى انتباه',
+    );
+    return '$_temp0';
   }
 
   @override

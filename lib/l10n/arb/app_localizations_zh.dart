@@ -2869,6 +2869,101 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_list_needsAttention_emptySubtitle => '所有证书均有效或已静音。';
 
   @override
+  String get currencyRule_padi_reactivate_name => 'PADI 复习课程（ReActivate）';
+
+  @override
+  String get currencyRule_ssi_skills_update_name => 'SSI Scuba Skills Update';
+
+  @override
+  String get currencyRule_generic_refresher_name => '复习课程';
+
+  @override
+  String get currencyRule_first_aid_24mo_name => '急救与心肺复苏续证';
+
+  @override
+  String get currencyRule_pro_membership_annual_name => '专业会员续期';
+
+  @override
+  String get currencyRule_gue_revalidation_name => 'GUE 重新认证';
+
+  @override
+  String get currencyRule_ffessm_licence_annual_name => 'FFESSM 执照与体检证明';
+
+  @override
+  String get currencyRule_cave_currency_name => '洞穴潜水近期经验';
+
+  @override
+  String get currencyRule_rebreather_currency_name => '循环呼吸器近期经验';
+
+  @override
+  String get currencyRule_deco_currency_name => '减压潜水近期经验';
+
+  @override
+  String get currencyRule_card_expiry_name => '证卡到期';
+
+  @override
+  String get currencyRule_padi_reactivate_advisory =>
+      'PADI 建议在离开水下六到十二个月后参加 ReActivate 复习课程。';
+
+  @override
+  String get currencyRule_ssi_skills_update_advisory =>
+      'SSI 建议在六到十二个月未潜水后参加 Scuba Skills Update。';
+
+  @override
+  String get currencyRule_generic_refresher_advisory =>
+      '大多数潜水机构建议在六到十二个月未潜水后参加复习课程。';
+
+  @override
+  String get currencyRule_first_aid_advisory => '急救、心肺复苏和供氧员资质通常每两年更新一次。';
+
+  @override
+  String get currencyRule_pro_membership_advisory => '专业会员资格通常每年续期，以保持教学身份有效。';
+
+  @override
+  String get currencyRule_gue_revalidation_advisory => 'GUE 资质通常每三年重新认证一次。';
+
+  @override
+  String get currencyRule_ffessm_licence_advisory => 'FFESSM 执照及其体检证明每年更新。';
+
+  @override
+  String get currencyRule_cave_currency_advisory =>
+      '洞穴技能缺乏练习会退化；通常建议中断一年后进行一次检核潜水。';
+
+  @override
+  String get currencyRule_rebreather_currency_advisory =>
+      '循环呼吸器技能退化很快；许多机构建议中断六个月后参加复习课程。';
+
+  @override
+  String get currencyRule_deco_currency_advisory => '通常在一年未进行减压潜水后复习减压程序。';
+
+  @override
+  String get currencyRule_card_expiry_advisory => '此证卡上印的到期日期。';
+
+  @override
+  String get certifications_currency_status_current => '有效';
+
+  @override
+  String get certifications_currency_status_dueSoon => '即将到期';
+
+  @override
+  String get certifications_currency_status_lapsed => '已失效';
+
+  @override
+  String get certifications_currency_eventType_refresher => '复习课程';
+
+  @override
+  String get certifications_currency_eventType_renewal => '续证';
+
+  @override
+  String get certifications_currency_eventType_revalidation => '重新认证';
+
+  @override
+  String get certifications_currency_eventType_skillsUpdate => '技能更新';
+
+  @override
+  String get certifications_currency_eventType_other => '其他';
+
+  @override
   String get certifications_detail_action_delete => '删除';
 
   @override
@@ -4738,7 +4833,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_homeChips_lastDive => '潜水近期度';
 
   @override
-  String get settings_homeChips_certifications => '证书到期';
+  String get settings_homeChips_certifications => '证书有效性';
 
   @override
   String get settings_homeChips_trip => '即将出行';
@@ -4762,8 +4857,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_homeChips_dataQuality => '数据质量';
 
   @override
-  String dashboard_gauges_certsExpiring(int count) {
-    return '$count 个证书即将到期';
+  String dashboard_gauges_certsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个证书需要关注',
+      one: '$count 个证书需要关注',
+    );
+    return '$_temp0';
   }
 
   @override

@@ -2979,6 +2979,109 @@ class AppLocalizationsEn extends AppLocalizations {
       'Every certification is current or muted.';
 
   @override
+  String get currencyRule_padi_reactivate_name => 'PADI refresher (ReActivate)';
+
+  @override
+  String get currencyRule_ssi_skills_update_name => 'SSI Scuba Skills Update';
+
+  @override
+  String get currencyRule_generic_refresher_name => 'Refresher';
+
+  @override
+  String get currencyRule_first_aid_24mo_name => 'First aid and CPR renewal';
+
+  @override
+  String get currencyRule_pro_membership_annual_name =>
+      'Professional membership renewal';
+
+  @override
+  String get currencyRule_gue_revalidation_name => 'GUE revalidation';
+
+  @override
+  String get currencyRule_ffessm_licence_annual_name =>
+      'FFESSM licence and medical certificate';
+
+  @override
+  String get currencyRule_cave_currency_name => 'Cave currency';
+
+  @override
+  String get currencyRule_rebreather_currency_name => 'Rebreather currency';
+
+  @override
+  String get currencyRule_deco_currency_name => 'Decompression currency';
+
+  @override
+  String get currencyRule_card_expiry_name => 'Card expiry';
+
+  @override
+  String get currencyRule_padi_reactivate_advisory =>
+      'PADI suggests a ReActivate refresher after six to twelve months out of the water.';
+
+  @override
+  String get currencyRule_ssi_skills_update_advisory =>
+      'SSI suggests a Scuba Skills Update after six to twelve months without diving.';
+
+  @override
+  String get currencyRule_generic_refresher_advisory =>
+      'Most agencies suggest a refresher after six to twelve months without diving.';
+
+  @override
+  String get currencyRule_first_aid_advisory =>
+      'First aid, CPR and oxygen provider credentials typically renew every two years.';
+
+  @override
+  String get currencyRule_pro_membership_advisory =>
+      'Professional memberships typically renew every year to keep teaching status active.';
+
+  @override
+  String get currencyRule_gue_revalidation_advisory =>
+      'GUE ratings are typically revalidated every three years.';
+
+  @override
+  String get currencyRule_ffessm_licence_advisory =>
+      'The FFESSM licence and its medical certificate are renewed every year.';
+
+  @override
+  String get currencyRule_cave_currency_advisory =>
+      'Cave skills fade without practice; a check-out dive is commonly advised after a year away.';
+
+  @override
+  String get currencyRule_rebreather_currency_advisory =>
+      'Rebreather skills fade quickly; many agencies advise a refresher after six months away.';
+
+  @override
+  String get currencyRule_deco_currency_advisory =>
+      'Decompression procedures are commonly refreshed after a year without a decompression dive.';
+
+  @override
+  String get currencyRule_card_expiry_advisory =>
+      'The expiry date printed on this card.';
+
+  @override
+  String get certifications_currency_status_current => 'Current';
+
+  @override
+  String get certifications_currency_status_dueSoon => 'Due soon';
+
+  @override
+  String get certifications_currency_status_lapsed => 'Lapsed';
+
+  @override
+  String get certifications_currency_eventType_refresher => 'Refresher';
+
+  @override
+  String get certifications_currency_eventType_renewal => 'Renewal';
+
+  @override
+  String get certifications_currency_eventType_revalidation => 'Revalidation';
+
+  @override
+  String get certifications_currency_eventType_skillsUpdate => 'Skills update';
+
+  @override
+  String get certifications_currency_eventType_other => 'Other';
+
+  @override
   String get certifications_detail_action_delete => 'Delete';
 
   @override
@@ -4901,7 +5004,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_homeChips_lastDive => 'Dive currency';
 
   @override
-  String get settings_homeChips_certifications => 'Certification expiry';
+  String get settings_homeChips_certifications => 'Certification currency';
 
   @override
   String get settings_homeChips_trip => 'Upcoming trip';
@@ -4925,8 +5028,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_homeChips_dataQuality => 'Data quality';
 
   @override
-  String dashboard_gauges_certsExpiring(int count) {
-    return '$count certifications expiring';
+  String dashboard_gauges_certsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count certifications need attention',
+      one: '$count certification needs attention',
+    );
+    return '$_temp0';
   }
 
   @override
