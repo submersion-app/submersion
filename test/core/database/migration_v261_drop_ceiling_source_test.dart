@@ -29,12 +29,12 @@ Future<Set<String>> _diverSettingsColumns(AppDatabase db) async {
 }
 
 void main() {
-  test('v261 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 261);
+  test('v261 is in the ladder', () {
+    // Relaxed once v263 (distance unit) landed on top; the newest rung owns
+    // the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(261));
     expect(AppDatabase.migrationVersions, contains(261));
-    expect(AppDatabase.migrationStepCount(260), 1);
+    expect(AppDatabase.migrationStepCount(260), greaterThanOrEqualTo(1));
   });
 
   test('the drop does not move the sync floor', () {

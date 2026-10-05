@@ -104,6 +104,28 @@ enum AltitudeUnit {
   }
 }
 
+/// Horizontal geographic distance: how far a site, a chamber or a tide
+/// station is, and how long a surface track runs (issue #2030). Independent
+/// of the depth unit, so a diver can log depth in feet and read distances in
+/// kilometres.
+enum DistanceUnit {
+  kilometers('km'),
+  miles('mi');
+
+  final String symbol;
+  const DistanceUnit(this.symbol);
+
+  /// International mile, exact.
+  static const double _kilometersPerMile = 1.609344;
+
+  double convert(double value, DistanceUnit to) {
+    if (this == to) return value;
+    if (this == kilometers && to == miles) return value / _kilometersPerMile;
+    if (this == miles && to == kilometers) return value * _kilometersPerMile;
+    return value;
+  }
+}
+
 /// Time format preference (12-hour vs 24-hour)
 enum TimeFormat {
   twelveHour('12-hour', 'h:mm a'),

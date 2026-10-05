@@ -204,5 +204,12 @@ extension RungsFromV231 on AppDatabase {
       await _dropDefaultCeilingSourceColumn();
     }
     if (from < 261) await reportProgress();
+    // v263: diver_settings.distance_unit (issue #2030), backfilled from each
+    // diver's depth unit as the column is added. Re-asserted in beforeOpen.
+    // 262 is held by an open branch (#2991).
+    if (from < 263) {
+      await _assertDistanceUnitColumn();
+    }
+    if (from < 263) await reportProgress();
   }
 }

@@ -219,6 +219,13 @@ class DiveRepository {
       .tableUpdates(TableUpdateQuery.allOf(_diveListTables))
       .debounce(changeTickDebounce);
 
+  /// The tables [getStatistics] and [getRecords] read, by SQL name, before
+  /// any filter joins: the dives themselves and the `dive_sites` JOIN that
+  /// names Most Visited Sites and each record's site. A provider built on
+  /// either query ticks on all of these plus the filter's own tables, so a
+  /// site rename (a `dive_sites`-only write) refreshes the names it shows.
+  static const Set<String> statisticsTickTables = {'dives', 'dive_sites'};
+
   /// The tables the dive list renders from, by SQL name: the summary row,
   /// its site and trip joins, the safety badge, and the row chips (tag
   /// membership and names, the dive-type junction; type NAMES resolve
