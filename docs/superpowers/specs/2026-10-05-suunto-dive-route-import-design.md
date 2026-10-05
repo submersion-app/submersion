@@ -148,10 +148,32 @@ pending and notifies the sync bus.
 
 ### 5. Display
 
-No renderer changes. `spatialReckonedPathProvider` already prefers the
-primary route through `NavTrackPathAdapter`, so the provenance chip shows a
-recorded route instead of "Estimated path". The dive detail Route section
-lists the route with the existing "Suunto" source label.
+`spatialReckonedPathProvider` already prefers the primary route through
+`NavTrackPathAdapter`, so the provenance chip shows a recorded route instead
+of "Estimated path". The dive detail Route section lists the route with the
+existing "Suunto" source label.
+
+**Route-scale scene** (follow-up from the reporter's test of the draft PR).
+The dive's 3D scene is built on the bathymetry tile, about 8 km across.
+Everything in it is sized in scene units, which then mean hundreds of
+metres: the ribbon was about 128 m wide and each pin about 80 m. An 80 m
+route was therefore a dot, and zooming the camera in only magnified that.
+A camera-only fit was tried and reverted for this reason.
+
+A dive whose path is a measured route now gets a scene at the route's own
+scale:
+
+- `SpatialSitePage` sends it to the standalone dive scene, even at a site
+  with terrain. Switching the route off makes the path an estimate again
+  and brings back the site seascape.
+- `spatialGeometryProvider` resamples the tile onto the route's padded
+  window (`routeWindowGrid`). It uses bilinear depths, keeps the source and
+  resolution, and pads by the same amount the scene builder pads the path,
+  so the scene frame is exactly that window. Ribbon, pins, axes and
+  contours are then at route scale.
+- The satellite drape is framed on the whole tile, so it is left off there.
+- At 115 m bathymetry cells the seafloor under a 100 m window is nearly
+  flat. That is accurate: the data has no finer detail.
 
 ## Testing
 

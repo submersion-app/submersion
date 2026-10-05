@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
+import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
@@ -51,6 +53,8 @@ void main() {
               pathId: 'd1',
               source: PathOverlaySource.dive,
             )).overrideWith((ref) async => null),
+            // No measured route: the dive stays in the site's seascape.
+            spatialReckonedPathProvider('d1').overrideWith((ref) async => null),
           ],
           child: const SpatialSitePage(diveId: 'd1'),
         ),
@@ -66,6 +70,9 @@ void main() {
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
+      // The route check (is the dive's path a measured route?) settles one
+      // frame after the site scene.
+      await tester.pump(const Duration(milliseconds: 50));
 
       final pane = tester.widget<SiteTerrainPane>(find.byType(SiteTerrainPane));
       expect(pane.siteId, 'site-1');
@@ -73,6 +80,56 @@ void main() {
       expect((pane.playbackContext as DivePlaybackContext).diveId, 'd1');
     },
   );
+
+  // A measured route spans metres inside the site's kilometres-wide tile:
+  // its dive gets the route-scale standalone scene, even at a site that has
+  // terrain (#1445).
+  testWidgets('a dive with a measured route uses the route-scale scene', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          diveProvider('d1').overrideWith(
+            (ref) async => Dive(
+              id: 'd1',
+              dateTime: DateTime.utc(2026, 7, 28),
+              site: _site,
+            ),
+          ),
+          siteSeascapeProvider(
+            'site-1',
+          ).overrideWith((ref) async => readyState()),
+          spatialReckonedPathProvider('d1').overrideWith(
+            (ref) async => const ReckonedPath(
+              points: [
+                ReckonedPoint(east: 0, north: 0, depth: 2, timeSeconds: 0),
+                ReckonedPoint(east: 30, north: 40, depth: 18, timeSeconds: 600),
+              ],
+              provenance: PathProvenance.measured,
+              minEast: 0,
+              maxEast: 30,
+              minNorth: 0,
+              maxNorth: 40,
+              maxDepth: 18,
+              durationSeconds: 600,
+            ),
+          ),
+          spatialGeometryProvider('d1').overrideWith((ref) async => null),
+        ],
+        child: const SpatialSitePage(diveId: 'd1'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.byType(SiteTerrainPane), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
 
   testWidgets('a dive with no site keeps the standalone implementation', (
     tester,
