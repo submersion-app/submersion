@@ -72,6 +72,7 @@ import 'package:submersion/shared/widgets/max_width_fraction.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
+import 'package:submersion/features/equipment/presentation/widgets/move_equipment_sheet.dart';
 
 /// Content widget for the equipment list, used in master-detail layout.
 class EquipmentListContent extends ConsumerStatefulWidget {
@@ -545,6 +546,35 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           ref,
           equipmentIds: _selectedIds.toList(),
         ),
+      ),
+      BulkAction(
+        id: 'moveToLocation',
+        icon: Icons.move_down,
+        label: context.l10n.equipment_location_bulkAction,
+        onInvoke: () async {
+          final ids = _selectedIds;
+          final messenger = ScaffoldMessenger.of(context);
+          final errorColor = Theme.of(context).colorScheme.error;
+          try {
+            final moved = await showMoveEquipmentFlow(
+              context,
+              ref,
+              items: [
+                for (final e in equipment)
+                  if (ids.contains(e.id)) e,
+              ],
+            );
+            return moved == null
+                ? BulkActionOutcome.cancelled
+                : BulkActionOutcome.completed;
+          } catch (e) {
+            // Keep the selection so the diver can try again.
+            messenger.showSnackBar(
+              SnackBar(content: Text('$e'), backgroundColor: errorColor),
+            );
+            return BulkActionOutcome.failed;
+          }
+        },
       ),
       BulkAction(
         id: 'printLabels',

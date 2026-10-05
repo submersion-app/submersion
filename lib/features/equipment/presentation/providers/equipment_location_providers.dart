@@ -44,8 +44,7 @@ final currentEquipmentLocationsProvider =
       final places = await ref.watch(allEquipmentLocationsByIdProvider.future);
       final current = await moves.getCurrentLocationIds();
       return {
-        for (final entry in current.entries)
-          if (places[entry.value] case final place?) entry.key: place,
+        for (final entry in current.entries) entry.key: ?places[entry.value],
       };
     });
 

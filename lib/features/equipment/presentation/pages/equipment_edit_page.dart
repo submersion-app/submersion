@@ -15,8 +15,11 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_location_field.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_tags_field.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -78,6 +81,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   /// compares against. Tags live beside the entity, not on it, so they load
   /// on their own.
   List<Tag> _selectedTags = [];
+
+  /// A new item's first place (v267); null leaves it with no location.
+  EquipmentLocation? _initialLocation;
   Set<String> _originalTagIds = {};
 
   /// Set once an edit's stored tags are read. Until then (and for good, if
@@ -564,6 +570,18 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             }),
           ),
           const SizedBox(height: 24),
+          // Location (new items only): an existing item changes place
+          // through Move, so every change lands in its history.
+          if (!widget.isEditing) ...[
+            EquipmentLocationField(
+              value: _initialLocation,
+              onChanged: (loc) => setState(() {
+                _initialLocation = loc;
+                _hasChanges = true;
+              }),
+            ),
+            const SizedBox(height: 24),
+          ],
           // Advanced (buoyancy metadata for weight prediction)
           _buildAdvancedSection(context),
           const SizedBox(height: 24),
@@ -1126,6 +1144,16 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           tagIds: tagsChanged ? tagIds : null,
         );
         savedId = newEquipment.id;
+        final place = _initialLocation;
+        if (place != null) {
+          await ref
+              .read(equipmentLocationMoveRepositoryProvider)
+              .recordMoves(
+                equipmentIds: [savedId],
+                locationId: place.id,
+                movedAt: DateTime.now(),
+              );
+        }
       }
 
       if (mounted) {
