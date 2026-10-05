@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
+import 'package:submersion/features/connections/presentation/widgets/year_play_pill.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// First-to-last dive year of the log; dragging writes a whole-year date
@@ -36,12 +37,19 @@ class _YearRangeSliderState extends ConsumerState<YearRangeSlider> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            context.l10n.connections_yearRange_label(
-              values.start.round(),
-              values.end.round(),
-            ),
-            style: Theme.of(context).textTheme.labelMedium,
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  context.l10n.connections_yearRange_label(
+                    values.start.round(),
+                    values.end.round(),
+                  ),
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+              ),
+              const YearPlayButton(),
+            ],
           ),
           RangeSlider(
             min: span.first.toDouble(),
