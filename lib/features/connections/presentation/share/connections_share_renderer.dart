@@ -30,6 +30,7 @@ abstract final class ConnectionsShareRenderer {
 
   /// [render] after decoding the graph's buddy photos and the app icon. Any
   /// that fail to load are left out (initials, no icon), never an error.
+  /// [fontFamily] is the app's text font, so the image reads like the app.
   static Future<Uint8List> renderWithAssets({
     required ConnectionGraph graph,
     required LayoutFrame frame,
@@ -37,6 +38,7 @@ abstract final class ConnectionsShareRenderer {
     required GraphGroups groups,
     required ConnectionsShareCaption caption,
     String appIconAsset = 'assets/icon/icon.png',
+    String? fontFamily,
   }) async {
     final photos = <NodeRef, ui.Image>{};
     ui.Image? icon;
@@ -72,6 +74,7 @@ abstract final class ConnectionsShareRenderer {
         caption: caption,
         photos: photos,
         appIcon: icon,
+        fontFamily: fontFamily,
       );
     } finally {
       for (final img in photos.values) {
@@ -89,6 +92,7 @@ abstract final class ConnectionsShareRenderer {
     required ConnectionsShareCaption caption,
     Map<NodeRef, ui.Image> photos = const {},
     ui.Image? appIcon,
+    String? fontFamily,
   }) async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder)..scale(pixelRatio);
@@ -117,7 +121,7 @@ abstract final class ConnectionsShareRenderer {
         palette,
         palette.of('connections') ?? ink,
       ),
-      labelStyle: const TextStyle(fontSize: 9, color: ink),
+      labelStyle: TextStyle(fontSize: 9, color: ink, fontFamily: fontFamily),
       photos: photos,
       labelZoomThreshold: 0,
       haloColor: background,
@@ -126,7 +130,7 @@ abstract final class ConnectionsShareRenderer {
     ).paint(canvas, mapSize);
     canvas.restore();
 
-    _paintCaption(canvas, size, caption, appIcon);
+    _paintCaption(canvas, size, caption, appIcon, fontFamily);
 
     final picture = recorder.endRecording();
     final image = await picture.toImage(
@@ -147,6 +151,7 @@ abstract final class ConnectionsShareRenderer {
     Size size,
     ConnectionsShareCaption caption,
     ui.Image? icon,
+    String? fontFamily,
   ) {
     final top = size.height - _captionHeight + 10;
     const markWidth = 110.0;
@@ -159,19 +164,33 @@ abstract final class ConnectionsShareRenderer {
     )..layout(maxWidth: textWidth);
     final title = text(
       caption.title,
-      const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: ink),
+      TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: ink,
+        fontFamily: fontFamily,
+      ),
     );
     final details = text(
       caption.details,
-      TextStyle(fontSize: 10, color: ink.withValues(alpha: 0.75)),
+      TextStyle(
+        fontSize: 10,
+        color: ink.withValues(alpha: 0.75),
+        fontFamily: fontFamily,
+      ),
     );
     title.paint(canvas, Offset(16, top));
     details.paint(canvas, Offset(16, top + title.height + 2));
 
     final name = TextPainter(
-      text: const TextSpan(
+      text: TextSpan(
         text: 'Submersion',
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: ink),
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: ink,
+          fontFamily: fontFamily,
+        ),
       ),
       textDirection: TextDirection.ltr,
     )..layout();

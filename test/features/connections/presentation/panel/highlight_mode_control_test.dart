@@ -72,12 +72,13 @@ void main() {
     expect(find.text('Buddies'), findsOneWidget);
     expect(find.text('Recent'), findsOneWidget);
   });
+
   testWidgets('the recency fade follows the reading direction', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const Directionality(
+        home: Directionality(
           textDirection: TextDirection.rtl,
           child: Material(child: HighlightKey(mode: HighlightMode.recency)),
         ),

@@ -228,6 +228,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     );
     final frame = _layout.frame;
     final groups = _groups;
+    final fontFamily = Theme.of(context).textTheme.bodyMedium?.fontFamily;
     return shareConnectionsImage(
       context,
       render: () => ConnectionsShareRenderer.renderWithAssets(
@@ -236,6 +237,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         highlight: view.highlight,
         groups: groups,
         caption: caption,
+        fontFamily: fontFamily,
       ),
     );
   }

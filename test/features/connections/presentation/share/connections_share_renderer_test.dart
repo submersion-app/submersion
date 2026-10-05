@@ -72,6 +72,7 @@ void main() {
         groups: GraphGroups.empty,
         caption: caption,
         appIconAsset: 'assets/icon/missing.png',
+        fontFamily: 'NoSuchFont',
       ),
     );
     expect(_u32(png!, 16), 1080);
