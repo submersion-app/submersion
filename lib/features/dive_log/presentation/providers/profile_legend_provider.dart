@@ -101,7 +101,7 @@ class ProfileLegendState {
 
   /// Whether secondary-axis metric overlays follow the visible depth window
   /// when zoomed, instead of magnifying with the depth axis and potentially
-  /// leaving the viewport. Seeds from the device-local
+  /// leaving the viewport. Seeds from the diver's saved
   /// [AppSettings.profileMetricsFollowViewport]; this is a rendering mode, not
   /// a series toggle, so it is excluded from [activeSecondaryCount].
   final bool metricsFollowViewport;

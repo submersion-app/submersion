@@ -297,7 +297,7 @@ final expiringCertificationCountProvider = FutureProvider<int>((ref) async {
 // ============================================================================
 
 /// Runtime-scoped certification list view mode. Initialized from the saved
-/// setting (v261), and overridden by the list's menu without changing the
+/// setting (v262), and overridden by the list's menu without changing the
 /// saved default.
 ///
 /// Uses `ref.read()` (not `ref.watch()`) for the same reason as

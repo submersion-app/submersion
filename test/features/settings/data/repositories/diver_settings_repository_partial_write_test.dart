@@ -131,7 +131,7 @@ void main() {
         base.copyWith(pscrRatio: 50),
       ),
       isFalse,
-      reason: 'the pSCR ratio is a column since v261 (issue #2948)',
+      reason: 'the pSCR ratio is a column since v262 (issue #2948)',
     );
     expect(
       DiverSettingsRepository.storesSameSettings(

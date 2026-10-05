@@ -2,7 +2,7 @@ part of '../app_database_migrations.dart';
 
 /// Diver profiles and diver settings.
 extension DiverMigrations on AppDatabase {
-  /// v261: diver_settings columns for settings that now sync (issue #2948).
+  /// v262: diver_settings columns for settings that now sync (issue #2948).
   /// The two view modes are not null with a 'detailed' default; the two
   /// moved preferences are nullable with no default, so null marks a row
   /// that has never held a value. Idempotent, so it is safe to call from

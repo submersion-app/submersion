@@ -197,13 +197,14 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankSharedComputerIds();
     }
     if (from < 260) await reportProgress();
-    // v261: diver_settings columns for settings that now sync (issue
+    // v262: diver_settings columns for settings that now sync (issue
     // #2948): certification and course list view modes, and the profile
     // "metrics follow viewport" and pSCR ratio prefs. Column only; each
-    // device adopts its old pref on load. Re-asserted in beforeOpen.
-    if (from < 261) {
+    // device adopts its old pref on load. Re-asserted in beforeOpen. 261
+    // is held by an open branch (#2985).
+    if (from < 262) {
       await _assertSyncedDeviceSettingsColumns();
     }
-    if (from < 261) await reportProgress();
+    if (from < 262) await reportProgress();
   }
 }

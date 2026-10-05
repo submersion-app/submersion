@@ -9,7 +9,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 import '../../helpers/test_database.dart';
 
-/// Since v261 the pSCR ratio and "metrics follow viewport" are per-diver
+/// Since v262 the pSCR ratio and "metrics follow viewport" are per-diver
 /// (synced, issue #2948). A row that has never held one adopts this
 /// device's old pref; the pref is kept so every diver can adopt it.
 void main() {
@@ -78,14 +78,22 @@ void main() {
     expect(prefs.getDouble(SettingsKeys.pscrRatio), 40.0);
   });
 
-  test('a pref equal to the default is still written', () async {
-    await containerWith({
+  test('a pref equal to the default is not adopted', () async {
+    // Before v262 every save wrote both prefs, so a default-valued pref is
+    // no sign of a choice. Writing it would stamp a fresh clock and let
+    // this device's 100 overwrite a ratio chosen on another device.
+    final container = await containerWith({
       SettingsKeys.pscrRatio: 100.0,
       SettingsKeys.profileMetricsFollowViewport: false,
     });
 
-    expect((await row('d1')).pscrRatio, 100.0);
-    expect((await row('d1')).profileMetricsFollowViewport, isFalse);
+    expect(container.read(settingsProvider).pscrRatio, 100.0);
+    expect(
+      container.read(settingsProvider).profileMetricsFollowViewport,
+      isFalse,
+    );
+    expect((await row('d1')).pscrRatio, isNull);
+    expect((await row('d1')).profileMetricsFollowViewport, isNull);
   });
 
   test('no pref leaves the columns unset and reads the defaults', () async {

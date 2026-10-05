@@ -6,7 +6,7 @@ import 'package:submersion/core/database/tank_shared_computer_backfill.dart';
 
 void main() {
   test('v260 is in the ladder', () {
-    // Relaxed once v261 landed on top; the newest rung owns the exact
+    // Relaxed once v262 landed on top; the newest rung owns the exact
     // assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(260));
     expect(AppDatabase.migrationVersions, contains(260));

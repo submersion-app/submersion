@@ -5,7 +5,7 @@ import 'package:submersion/features/settings/data/repositories/diver_settings_re
 
 import '../../../../helpers/test_database.dart';
 
-/// v261 (issue #2948): pSCR ratio and "metrics follow viewport" moved from
+/// v262 (issue #2948): pSCR ratio and "metrics follow viewport" moved from
 /// device-local prefs into nullable diver_settings columns.
 void main() {
   late AppDatabase db;
@@ -54,11 +54,12 @@ void main() {
 
   test('adopting writes values equal to the defaults too', () async {
     await repository.createSettingsForDiver('d1');
-    await repository.adoptDeviceLocalValues(
+    final adopted = await repository.adoptDeviceLocalValues(
       'd1',
       pscrRatio: 100.0,
       profileMetricsFollowViewport: false,
     );
+    expect(adopted, isTrue);
     expect((await row()).pscrRatio, 100.0);
     expect((await row()).profileMetricsFollowViewport, isFalse);
     final unset = await repository.unsetAdoptableColumns('d1');
@@ -72,6 +73,28 @@ void main() {
     final loaded = await repository.getSettingsForDiver('d1');
     expect(loaded!.pscrRatio, 40.0);
     expect((await row()).profileMetricsFollowViewport, isNull);
+  });
+
+  test('adopting never overwrites a value the row already holds', () async {
+    // A sync can land between the load's probe and its adoption write; the
+    // synced value must win over this device's pref.
+    await repository.createSettingsForDiver('d1');
+    await db.customStatement(
+      'UPDATE diver_settings SET pscr_ratio = 15.0, '
+      'profile_metrics_follow_viewport = 0',
+    );
+    final before = (await row()).updatedAt;
+
+    final adopted = await repository.adoptDeviceLocalValues(
+      'd1',
+      pscrRatio: 40.0,
+      profileMetricsFollowViewport: true,
+    );
+
+    expect(adopted, isFalse);
+    expect((await row()).pscrRatio, 15.0);
+    expect((await row()).profileMetricsFollowViewport, isFalse);
+    expect((await row()).updatedAt, before);
   });
 
   test('adopting queues the row for sync', () async {

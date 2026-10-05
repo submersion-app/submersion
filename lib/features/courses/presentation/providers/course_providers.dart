@@ -360,7 +360,7 @@ final inProgressCourseCountProvider = FutureProvider<int>((ref) async {
 
 /// Runtime-scoped course list view mode. Same contract as
 /// [certificationListViewModeProvider]: seeded once from the saved setting
-/// (v261) with `ref.read`, overridden by the list's menu for the session.
+/// (v262) with `ref.read`, overridden by the list's menu for the session.
 final courseListViewModeProvider = StateProvider<ListViewMode>((ref) {
   return ref.read(settingsProvider).courseListViewMode;
 });

@@ -6,7 +6,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 
 import '../../../helpers/test_database.dart';
 
-/// The v261 columns (issue #2948) ride the generic diverSettings row, so
+/// The v262 columns (issue #2948) ride the generic diverSettings row, so
 /// they reach other devices with no serializer change, and a payload from a
 /// peer that predates them still applies.
 void main() {
@@ -46,8 +46,8 @@ void main() {
       (db.select(db.diverSettings)..where((t) => t.id.equals(id))).getSingle();
 
   test('all four columns export and re-import unchanged', () async {
-    await insertRow('ds-261');
-    final exported = await serializer.fetchRecord('diverSettings', 'ds-261');
+    await insertRow('ds-262');
+    final exported = await serializer.fetchRecord('diverSettings', 'ds-262');
     expect(exported!['certificationListViewMode'], 'table');
     expect(exported['courseListViewMode'], 'table');
     expect(exported['profileMetricsFollowViewport'], true);
@@ -55,17 +55,42 @@ void main() {
 
     await (db.delete(
       db.diverSettings,
-    )..where((t) => t.id.equals('ds-261'))).go();
+    )..where((t) => t.id.equals('ds-262'))).go();
     await serializer.upsertRecord('diverSettings', exported);
 
-    final row = await readRow('ds-261');
+    final row = await readRow('ds-262');
     expect(row.certificationListViewMode, 'table');
     expect(row.courseListViewMode, 'table');
     expect(row.profileMetricsFollowViewport, isTrue);
     expect(row.pscrRatio, 40.0);
   });
 
-  test('a pre-v261 payload without the columns still applies', () async {
+  for (final batch in [false, true]) {
+    test('an incoming null never clears a local pSCR ratio or viewport '
+        'choice (${batch ? 'batch' : 'single'})', () async {
+      // Null means "never held a value" (v262), so a peer that has none
+      // carries no choice; this device's value stays.
+      await insertRow('ds-null');
+      final exported = await serializer.fetchRecord('diverSettings', 'ds-null');
+      final peer = Map<String, dynamic>.from(exported!)
+        ..['pscrRatio'] = null
+        ..['profileMetricsFollowViewport'] = null
+        ..['gfHigh'] = 70;
+
+      if (batch) {
+        await serializer.upsertRecords('diverSettings', [peer]);
+      } else {
+        await serializer.upsertRecord('diverSettings', peer);
+      }
+
+      final row = await readRow('ds-null');
+      expect(row.gfHigh, 70);
+      expect(row.pscrRatio, 40.0);
+      expect(row.profileMetricsFollowViewport, isTrue);
+    });
+  }
+
+  test('a pre-v262 payload without the columns still applies', () async {
     await insertRow('ds-260');
     final exported = await serializer.fetchRecord('diverSettings', 'ds-260');
     final legacy = Map<String, dynamic>.from(exported!)

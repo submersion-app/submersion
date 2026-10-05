@@ -74,7 +74,7 @@ class DiverSettingsRepository {
   }
 
   /// Which of the diver's settings columns that adopt a device-local pref
-  /// (v261, issue #2948) have never held a value. A missing row counts as
+  /// (v262, issue #2948) have never held a value. A missing row counts as
   /// unset for both: the load creates it with both columns null.
   Future<({bool pscrRatio, bool profileMetricsFollowViewport})>
   unsetAdoptableColumns(String diverId) async {
@@ -87,34 +87,56 @@ class DiverSettingsRepository {
     );
   }
 
-  /// Stores this device's pref values into the diver's row (v261, issue
-  /// #2948), each non-null one, whether or not it equals the default. The
-  /// diff in [updateSettingsForDiver] cannot do this: a null column reads
-  /// as the default, so adopting a default-valued pref would look like no
-  /// change and leave the column null. Queued for sync like any other write.
-  Future<void> adoptDeviceLocalValues(
+  /// Stores this device's pref values into the diver's row (v262, issue
+  /// #2948), each non-null one, whether or not it equals the default, and
+  /// only into a column that is still null: a value a sync applied since the
+  /// caller probed always wins. The diff in [updateSettingsForDiver] cannot
+  /// do this: a null column reads as the default, so a default-valued pref
+  /// would look like no change. Returns whether any column was written;
+  /// only then is the row queued for sync.
+  Future<bool> adoptDeviceLocalValues(
     String diverId, {
     double? pscrRatio,
     bool? profileMetricsFollowViewport,
   }) async {
-    if (pscrRatio == null && profileMetricsFollowViewport == null) return;
+    if (pscrRatio == null && profileMetricsFollowViewport == null) {
+      return false;
+    }
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(
-        _db.diverSettings,
-      )..where((t) => t.diverId.equals(diverId))).write(
-        DiverSettingsCompanion(
-          pscrRatio: pscrRatio == null
-              ? const Value.absent()
-              : Value(pscrRatio),
-          profileMetricsFollowViewport: profileMetricsFollowViewport == null
-              ? const Value.absent()
-              : Value(profileMetricsFollowViewport),
-          updatedAt: Value(now),
-        ),
-      );
+      var written = 0;
+      if (pscrRatio != null) {
+        written +=
+            await (_db.update(_db.diverSettings)..where(
+                  (t) => t.diverId.equals(diverId) & t.pscrRatio.isNull(),
+                ))
+                .write(
+                  DiverSettingsCompanion(
+                    pscrRatio: Value(pscrRatio),
+                    updatedAt: Value(now),
+                  ),
+                );
+      }
+      if (profileMetricsFollowViewport != null) {
+        written +=
+            await (_db.update(_db.diverSettings)..where(
+                  (t) =>
+                      t.diverId.equals(diverId) &
+                      t.profileMetricsFollowViewport.isNull(),
+                ))
+                .write(
+                  DiverSettingsCompanion(
+                    profileMetricsFollowViewport: Value(
+                      profileMetricsFollowViewport,
+                    ),
+                    updatedAt: Value(now),
+                  ),
+                );
+      }
+      if (written == 0) return false;
       await _markSettingsPending(diverId, now);
       _log.info('Adopted device-local settings for diver: $diverId');
+      return true;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to adopt device-local settings for diver: $diverId',
@@ -708,7 +730,7 @@ class DiverSettingsRepository {
         row.certificationListViewMode,
       ),
       courseListViewMode: ListViewMode.fromName(row.courseListViewMode),
-      // Null: the row has never held a value (v261); read the default.
+      // Null: the row has never held a value (v262); read the default.
       pscrRatio: row.pscrRatio ?? 100.0,
       profileMetricsFollowViewport: row.profileMetricsFollowViewport ?? false,
       mapStyle: MapStyle.fromName(row.mapStyle),

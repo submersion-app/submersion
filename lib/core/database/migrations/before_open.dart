@@ -26,7 +26,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // consolidated dive that arrived since with nothing recorded.
     await _assertTankSharedComputerIds();
 
-    // v261 backstop: the synced view mode and device-preference columns.
+    // v262 backstop: the synced view mode and device-preference columns.
     await _assertSyncedDeviceSettingsColumns();
 
     // v237 backstop: the dive figure switch.
@@ -134,17 +134,7 @@ extension BeforeOpenBackstops on AppDatabase {
 
     // v114 backstop: re-assert sync_peer_cursors.applied_hlc_high and the
     // deletion_log unique index.
-    final peerCursorCols = await customSelect(
-      "PRAGMA table_info('sync_peer_cursors')",
-    ).get();
-    final hasAppliedHlcHigh = peerCursorCols.any(
-      (c) => c.read<String>('name') == 'applied_hlc_high',
-    );
-    if (peerCursorCols.isNotEmpty && !hasAppliedHlcHigh) {
-      await customStatement(
-        'ALTER TABLE sync_peer_cursors ADD COLUMN applied_hlc_high TEXT',
-      );
-    }
+    await _addColumnIfMissing('sync_peer_cursors', 'applied_hlc_high', 'TEXT');
     await ensureDeletionLogIndex();
 
     // v120 backstop: re-assert planner Subsurface-parity columns.

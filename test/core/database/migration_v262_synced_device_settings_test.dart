@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// v261: diver_settings columns for settings that now sync (issue #2948):
+/// v262: diver_settings columns for settings that now sync (issue #2948):
 /// the certification and course list view modes, and the profile "metrics
 /// follow viewport" and pSCR ratio preferences, which were device-local.
 void main() {
@@ -38,12 +38,14 @@ void main() {
     'pscr_ratio',
   ];
 
-  test('v261 is the current schema version and is in the ladder', () {
+  test('v262 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 261);
-    expect(AppDatabase.migrationVersions, contains(261));
-    expect(AppDatabase.migrationStepCount(260), 1);
+    expect(AppDatabase.currentSchemaVersion, 262);
+    expect(AppDatabase.migrationVersions, contains(262));
+    // 261 is claimed by an open branch (#2985); counting from it holds
+    // whether or not that rung has landed below this one.
+    expect(AppDatabase.migrationStepCount(261), 1);
   });
 
   test('the columns are additive, so the sync floor does not move', () {
@@ -68,14 +70,14 @@ void main() {
     }
   });
 
-  test('a database stranded before v261 gains the columns', () async {
+  test('a database stranded before v262 gains the columns', () async {
     final db = AppDatabase(strandedAt(null));
     addTearDown(db.close);
     expect((await settingsColumns(db)).keys, containsAll(newColumns));
   });
 
   test(
-    'a database already at v261 without them regains them via beforeOpen',
+    'a database already at v262 without them regains them via beforeOpen',
     () async {
       final db = AppDatabase(strandedAt(AppDatabase.currentSchemaVersion));
       addTearDown(db.close);

@@ -4,7 +4,7 @@
 
 **Goal:** Persist the certification and course list view modes in `diver_settings`, and move the "profile metrics follow viewport" and pSCR ratio preferences from SharedPreferences into `diver_settings` so they sync, adopting each device's existing value.
 
-**Architecture:** One schema rung (v261) adds four `diver_settings` columns. The two view modes follow the six existing view-mode columns end to end. The two moved preferences are nullable columns: null means "never held a value", and on load a null column adopts this device's pref through a dedicated forced write, so the value syncs even when it equals the default.
+**Architecture:** One schema rung (v262) adds four `diver_settings` columns. The two view modes follow the six existing view-mode columns end to end. The two moved preferences are nullable columns: null means "never held a value", and on load a null column adopts this device's pref through a dedicated forced write, so the value syncs even when it equals the default.
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod (StateNotifier), SharedPreferences, flutter_test.
 
@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Schema version 261; `minimumCompatibleSchemaVersion` stays 240.
+- Schema version 262; `minimumCompatibleSchemaVersion` stays 240.
 - Columns: `certification_list_view_mode TEXT NOT NULL DEFAULT 'detailed'`, `course_list_view_mode TEXT NOT NULL DEFAULT 'detailed'`, `profile_metrics_follow_viewport INTEGER` (nullable), `pscr_ratio REAL` (nullable).
 - Null `pscr_ratio` reads as `100.0`; null `profile_metrics_follow_viewport` reads as `false`.
 - Rule: a diver row with no value adopts this device's pref if one exists, otherwise reads the default. Prefs are not removed.
@@ -26,12 +26,12 @@
 1. A pref equal to the default (pSCR 100, viewport off) must still be written into a null column, or the column stays null and a peer's value cannot be told apart from "unset". Pinned in Task 4.
 2. A row that already holds a value must win over a stale pref on a second device. Pinned in Task 4.
 3. A payload from an older peer (v240 to v260) omits the new columns: the view modes must land as `detailed` and the nullable columns as null without failing the import. Pinned in Task 5.
-4. A database restored from a backup at v261 that lacks the columns must regain them on open (backstop). Pinned in Task 1.
+4. A database restored from a backup at v262 that lacks the columns must regain them on open (backstop). Pinned in Task 1.
 5. A session override from the certification or course list menu must survive an unrelated settings write (the provider seeds with `ref.read`). Pinned in Task 2.
 
 ---
 
-### Task 1: Schema v261 columns, rung and backstop
+### Task 1: Schema v262 columns, rung and backstop
 
 **Files:**
 - Modify: `lib/core/database/tables/diver_tables.dart` (after `diveCenterListViewMode`, around :311)
@@ -39,7 +39,7 @@
 - Modify: `lib/core/database/migrations/ladder/rungs_v231_onward.dart` (after the v260 block)
 - Modify: `lib/core/database/migrations/before_open.dart` (next to the v237 backstop)
 - Modify: `lib/core/database/database.dart` (`currentSchemaVersion` :235, `migrationVersions` end :1085)
-- Create: `test/core/database/migration_v261_synced_device_settings_test.dart`
+- Create: `test/core/database/migration_v262_synced_device_settings_test.dart`
 - Modify: `test/core/database/migration_v260_tank_shared_computers_test.dart:11`
 
 **Interfaces:**
@@ -53,7 +53,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// v261: diver_settings columns for settings that now sync (issue #2948):
+/// v262: diver_settings columns for settings that now sync (issue #2948):
 /// the certification and course list view modes, and the profile "metrics
 /// follow viewport" and pSCR ratio preferences, which were device-local.
 void main() {
@@ -88,11 +88,11 @@ void main() {
     'pscr_ratio',
   ];
 
-  test('v261 is the current schema version and is in the ladder', () {
+  test('v262 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 261);
-    expect(AppDatabase.migrationVersions, contains(261));
+    expect(AppDatabase.currentSchemaVersion, 262);
+    expect(AppDatabase.migrationVersions, contains(262));
     expect(AppDatabase.migrationStepCount(260), 1);
   });
 
@@ -118,13 +118,13 @@ void main() {
     }
   });
 
-  test('a database stranded before v261 gains the columns', () async {
+  test('a database stranded before v262 gains the columns', () async {
     final db = AppDatabase(strandedAt(null));
     addTearDown(db.close);
     expect((await settingsColumns(db)).keys, containsAll(newColumns));
   });
 
-  test('a database already at v261 without them regains them via '
+  test('a database already at v262 without them regains them via '
       'beforeOpen', () async {
     final db = AppDatabase(strandedAt(AppDatabase.currentSchemaVersion));
     addTearDown(db.close);
@@ -135,20 +135,20 @@ void main() {
 
 - [ ] **Step 2: Run it to verify it fails**
 
-Run: `flutter test test/core/database/migration_v261_synced_device_settings_test.dart`
+Run: `flutter test test/core/database/migration_v262_synced_device_settings_test.dart`
 Expected: FAIL (`currentSchemaVersion` is 260; columns missing).
 
 - [ ] **Step 3: Add the Drift columns** in `diver_tables.dart`, directly after `diveCenterListViewMode`:
 
 ```dart
-  /// v261 (issue #2948): the certification and course list view modes,
+  /// v262 (issue #2948): the certification and course list view modes,
   /// which were in-memory only and reset on every restart.
   TextColumn get certificationListViewMode =>
       text().withDefault(const Constant('detailed'))();
   TextColumn get courseListViewMode =>
       text().withDefault(const Constant('detailed'))();
 
-  /// v261 (issue #2948): profile metric overlays follow the zoomed depth
+  /// v262 (issue #2948): profile metric overlays follow the zoomed depth
   /// window, and the passive-SCR ratio. Both were device-local prefs.
   /// Nullable ON PURPOSE: null marks a row that has never held a value,
   /// which is what lets each device adopt its old pref into it (see
@@ -160,7 +160,7 @@ Expected: FAIL (`currentSchemaVersion` is 260; columns missing).
 - [ ] **Step 4: Add the helper** at the top of `extension DiverMigrations` in `diver_migrations.dart`:
 
 ```dart
-  /// v261: diver_settings columns for settings that now sync (issue #2948).
+  /// v262: diver_settings columns for settings that now sync (issue #2948).
   /// The two view modes are not null with a 'detailed' default; the two
   /// moved preferences are nullable with no default, so null marks a row
   /// that has never held a value. Idempotent, so it is safe to call from
@@ -188,45 +188,45 @@ Expected: FAIL (`currentSchemaVersion` is 260; columns missing).
 - [ ] **Step 5: Add the rung** after the v260 block in `rungs_v231_onward.dart`:
 
 ```dart
-    // v261: diver_settings columns for settings that now sync (issue
+    // v262: diver_settings columns for settings that now sync (issue
     // #2948): certification and course list view modes, and the profile
     // "metrics follow viewport" and pSCR ratio prefs. Column only; each
     // device adopts its old pref on load. Re-asserted in beforeOpen.
-    if (from < 261) {
+    if (from < 262) {
       await _assertSyncedDeviceSettingsColumns();
     }
-    if (from < 261) await reportProgress();
+    if (from < 262) await reportProgress();
 ```
 
 - [ ] **Step 6: Add the backstop** in `before_open.dart`, directly above `// v237 backstop: the dive figure switch.`:
 
 ```dart
-    // v261 backstop: the synced view mode and device-preference columns.
+    // v262 backstop: the synced view mode and device-preference columns.
     await _assertSyncedDeviceSettingsColumns();
 
 ```
 
-- [ ] **Step 7: Bump the version** in `database.dart`: set `static const int currentSchemaVersion = 261;` and append to `migrationVersions` after `260,`:
+- [ ] **Step 7: Bump the version** in `database.dart`: set `static const int currentSchemaVersion = 262;` and append to `migrationVersions` after `260,`:
 
 ```dart
-    // v261: diver_settings certification/course list view modes and the
+    // v262: diver_settings certification/course list view modes and the
     // formerly device-local profile "metrics follow viewport" and pSCR
     // ratio (issue #2948). Additive columns, so the floor stays.
-    261,
+    262,
 ```
 
-- [ ] **Step 8: Relax the v260 tripwire** in `migration_v260_tank_shared_computers_test.dart`: replace `expect(AppDatabase.currentSchemaVersion, 260);` with `expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(260));` and change its comment to `// Relaxed once v261 landed on top; the newest rung owns the exact assertion.`
+- [ ] **Step 8: Relax the v260 tripwire** in `migration_v260_tank_shared_computers_test.dart`: replace `expect(AppDatabase.currentSchemaVersion, 260);` with `expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(260));` and change its comment to `// Relaxed once v262 landed on top; the newest rung owns the exact assertion.`
 
 - [ ] **Step 9: Regenerate and run**
 
-Run: `dart run build_runner build --delete-conflicting-outputs` then `flutter test test/core/database/migration_v261_synced_device_settings_test.dart test/core/database/migration_v260_tank_shared_computers_test.dart test/core/database/migration_v237_show_dive_figure_test.dart`
+Run: `dart run build_runner build --delete-conflicting-outputs` then `flutter test test/core/database/migration_v262_synced_device_settings_test.dart test/core/database/migration_v260_tank_shared_computers_test.dart test/core/database/migration_v237_show_dive_figure_test.dart`
 Expected: PASS. Then `grep -rln "\b260\b" test | xargs grep -ln "user_version\|currentSchemaVersion"` and confirm only the v260 test pins 260 as "current".
 
 - [ ] **Step 10: Commit**
 
 ```bash
-git add lib/core/database/tables/diver_tables.dart lib/core/database/migrations/helpers/diver_migrations.dart lib/core/database/migrations/ladder/rungs_v231_onward.dart lib/core/database/migrations/before_open.dart lib/core/database/database.dart test/core/database/migration_v261_synced_device_settings_test.dart test/core/database/migration_v260_tank_shared_computers_test.dart
-git commit -m "feat(settings): add v261 diver_settings columns for synced view and device settings"
+git add lib/core/database/tables/diver_tables.dart lib/core/database/migrations/helpers/diver_migrations.dart lib/core/database/migrations/ladder/rungs_v231_onward.dart lib/core/database/migrations/before_open.dart lib/core/database/database.dart test/core/database/migration_v262_synced_device_settings_test.dart test/core/database/migration_v260_tank_shared_computers_test.dart
+git commit -m "feat(settings): add v262 diver_settings columns for synced view and device settings"
 ```
 
 ---
@@ -474,7 +474,7 @@ Expected: compile FAIL (`certificationListViewMode` not defined on AppSettings).
 - [ ] **Step 5: AppSettings fields.** In `settings_providers.dart`, after `final ListViewMode diveCenterListViewMode;`:
 
 ```dart
-  /// Certification and course list view modes (v261, issue #2948).
+  /// Certification and course list view modes (v262, issue #2948).
   final ListViewMode certificationListViewMode;
   final ListViewMode courseListViewMode;
 ```
@@ -557,7 +557,7 @@ Insert (`createSettingsForDiver`), after `diveCenterListViewMode: Value(s.diveCe
 
 ```dart
 /// Runtime-scoped certification list view mode. Initialized from the saved
-/// setting (v261), and overridden by the list's menu without changing the
+/// setting (v262), and overridden by the list's menu without changing the
 /// saved default.
 ///
 /// Uses `ref.read()` (not `ref.watch()`) for the same reason as
@@ -573,7 +573,7 @@ and in `course_providers.dart`:
 ```dart
 /// Runtime-scoped course list view mode. Same contract as
 /// [certificationListViewModeProvider]: seeded once from the saved setting
-/// (v261) with `ref.read`, overridden by the list's menu for the session.
+/// (v262) with `ref.read`, overridden by the list's menu for the session.
 final courseListViewModeProvider = StateProvider<ListViewMode>((ref) {
   return ref.read(settingsProvider).courseListViewMode;
 });
@@ -637,7 +637,7 @@ import 'package:submersion/features/settings/data/repositories/diver_settings_re
 
 import '../../../../helpers/test_database.dart';
 
-/// v261 (issue #2948): pSCR ratio and "metrics follow viewport" moved from
+/// v262 (issue #2948): pSCR ratio and "metrics follow viewport" moved from
 /// device-local prefs into nullable diver_settings columns.
 void main() {
   late AppDatabase db;
@@ -729,7 +729,7 @@ Expected: compile FAIL (`unsetAdoptableColumns` not defined).
 
 ```dart
   /// Which of the diver's settings columns that adopt a device-local pref
-  /// (v261, issue #2948) have never held a value. A missing row counts as
+  /// (v262, issue #2948) have never held a value. A missing row counts as
   /// unset for both: the load creates it with both columns null.
   Future<({bool pscrRatio, bool profileMetricsFollowViewport})>
   unsetAdoptableColumns(String diverId) async {
@@ -742,7 +742,7 @@ Expected: compile FAIL (`unsetAdoptableColumns` not defined).
     );
   }
 
-  /// Stores this device's pref values into the diver's row (v261, issue
+  /// Stores this device's pref values into the diver's row (v262, issue
   /// #2948), each non-null one, whether or not it equals the default. The
   /// diff in [updateSettingsForDiver] cannot do this: a null column reads
   /// as the default, so adopting a default-valued pref would look like no
@@ -809,7 +809,7 @@ Expected: compile FAIL (`unsetAdoptableColumns` not defined).
 `_mapRowToAppSettings`, after the Task 2 view-mode lines:
 
 ```dart
-      // Null: the row has never held a value (v261); read the default.
+      // Null: the row has never held a value (v262); read the default.
       pscrRatio: row.pscrRatio ?? 100.0,
       profileMetricsFollowViewport: row.profileMetricsFollowViewport ?? false,
 ```
@@ -855,7 +855,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 import '../../helpers/test_database.dart';
 
-/// Since v261 the pSCR ratio and "metrics follow viewport" are per-diver
+/// Since v262 the pSCR ratio and "metrics follow viewport" are per-diver
 /// (synced, issue #2948). A row that has never held one adopts this
 /// device's old pref; the pref is kept so every diver can adopt it.
 void main() {
@@ -1055,7 +1055,7 @@ Expected: FAIL (columns stay null; prefs are still written with a diver; synced 
 - [ ] **Step 4: `_loadSettings`.** Replace the pSCR/viewport pref reads:
 
 ```dart
-    // Since v261 the pSCR ratio and "metrics follow viewport" are per-diver
+    // Since v262 the pSCR ratio and "metrics follow viewport" are per-diver
     // (synced, issue #2948). These prefs are the store while no diver
     // exists, and the value a diver row that has never held one adopts.
     final pscrRatioPref = prefs.getDouble(SettingsKeys.pscrRatio);
@@ -1069,7 +1069,7 @@ In the no-diver branch use `pscrRatio: pscrRatioPref ?? 100.0,` and `profileMetr
 In the diver branch, directly before `// Load settings from database`:
 
 ```dart
-    // A row with no pSCR ratio or viewport choice yet (pre-v261, or a new
+    // A row with no pSCR ratio or viewport choice yet (pre-v262, or a new
     // diver) adopts this device's pref, if it has one.
     final unset = await _repository.unsetAdoptableColumns(diverId);
     final adoptPscrRatio = unset.pscrRatio ? pscrRatioPref : null;
@@ -1101,7 +1101,7 @@ In the `state = settings.copyWith(...)` call that follows, delete the `pscrRatio
 
 ```dart
         // No diver yet: these prefs are the pSCR ratio's and viewport
-        // choice's only store; a diver row adopts them on load (v261).
+        // choice's only store; a diver row adopts them on load (v262).
         await prefs.setDouble(SettingsKeys.pscrRatio, state.pscrRatio);
         await prefs.setBool(
           SettingsKeys.profileMetricsFollowViewport,
@@ -1116,7 +1116,7 @@ Update the comment above the remaining pref writes from "Device-local preference
 - [ ] **Step 7: Comments.** In `SettingsKeys`, replace the pSCR key comment context and the viewport comment:
 
 ```dart
-  // pSCR ratio and profile "metrics follow viewport" (below): since v261
+  // pSCR ratio and profile "metrics follow viewport" (below): since v262
   // per-diver and synced (issue #2948). The prefs are only the store while
   // no diver exists, and the value a diver row with none adopts.
   static const String pscrRatio = 'pscr_ratio';
@@ -1124,12 +1124,12 @@ Update the comment above the remaining pref writes from "Device-local preference
 
 ```dart
   // Whether profile-chart metric overlays follow the visible depth window
-  // when zoomed. Per-diver since v261; see [pscrRatio].
+  // when zoomed. Per-diver since v262; see [pscrRatio].
   static const String profileMetricsFollowViewport =
       'profile_metrics_follow_viewport';
 ```
 
-And the `AppSettings.pscrRatio` doc: replace "A device-local planning preference describing the diver's pSCR unit" with "A per-diver planning preference (synced since v261) describing the diver's pSCR unit". Update the load comment "pSCR ratio is a device-local planning preference ..." block, which Step 4 replaced.
+And the `AppSettings.pscrRatio` doc: replace "A device-local planning preference describing the diver's pSCR unit" with "A per-diver planning preference (synced since v262) describing the diver's pSCR unit". Update the load comment "pSCR ratio is a device-local planning preference ..." block, which Step 4 replaced.
 
 - [ ] **Step 8: Run the tests**
 
@@ -1165,7 +1165,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 
 import '../../../helpers/test_database.dart';
 
-/// The v261 columns (issue #2948) ride the generic diverSettings row, so
+/// The v262 columns (issue #2948) ride the generic diverSettings row, so
 /// they reach other devices with no serializer change, and a payload from a
 /// peer that predates them still applies.
 void main() {
@@ -1205,8 +1205,8 @@ void main() {
       (db.select(db.diverSettings)..where((t) => t.id.equals(id))).getSingle();
 
   test('all four columns export and re-import unchanged', () async {
-    await insertRow('ds-261');
-    final exported = await serializer.fetchRecord('diverSettings', 'ds-261');
+    await insertRow('ds-262');
+    final exported = await serializer.fetchRecord('diverSettings', 'ds-262');
     expect(exported!['certificationListViewMode'], 'table');
     expect(exported['courseListViewMode'], 'table');
     expect(exported['profileMetricsFollowViewport'], true);
@@ -1214,17 +1214,17 @@ void main() {
 
     await (db.delete(
       db.diverSettings,
-    )..where((t) => t.id.equals('ds-261'))).go();
+    )..where((t) => t.id.equals('ds-262'))).go();
     await serializer.upsertRecord('diverSettings', exported);
 
-    final row = await readRow('ds-261');
+    final row = await readRow('ds-262');
     expect(row.certificationListViewMode, 'table');
     expect(row.courseListViewMode, 'table');
     expect(row.profileMetricsFollowViewport, isTrue);
     expect(row.pscrRatio, 40.0);
   });
 
-  test('a pre-v261 payload without the columns still applies', () async {
+  test('a pre-v262 payload without the columns still applies', () async {
     await insertRow('ds-260');
     final exported = await serializer.fetchRecord('diverSettings', 'ds-260');
     final legacy = Map<String, dynamic>.from(exported!)
@@ -1255,7 +1255,7 @@ Expected: PASS already (generic row export and `_withSchemaDefaults`). If the le
 - [ ] **Step 3: Seed the defaults** in `_applyDiverSettingDefaults`, after `'diveCenterListViewMode': 'detailed',`:
 
 ```dart
-      // v261: seed them so payloads predating the columns hydrate.
+      // v262: seed them so payloads predating the columns hydrate.
       'certificationListViewMode': 'detailed',
       'courseListViewMode': 'detailed',
 ```
@@ -1269,7 +1269,7 @@ Expected: PASS.
 
 ```bash
 git add lib/core/services/sync/sync_data_serializer.dart test/core/services/sync/sync_diver_settings_device_prefs_test.dart
-git commit -m "test(sync): cover the v261 diver_settings columns in sync payloads"
+git commit -m "test(sync): cover the v262 diver_settings columns in sync payloads"
 ```
 
 ---

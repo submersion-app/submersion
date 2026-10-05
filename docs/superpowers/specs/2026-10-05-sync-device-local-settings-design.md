@@ -24,7 +24,7 @@ The remaining gaps:
 | Home layout (hidden chips, card order, hidden cards) | Stays device-local | Phone and desktop show different amounts of the dashboard |
 | O2 cell unit, Perdix overlay | Stays device-local | Out of scope; the overlay position is screen-specific |
 
-## Data model (schema v261)
+## Data model (schema v262)
 
 One rung adds four `diver_settings` columns, re-asserted by the
 `before_open.dart` backstop:
@@ -51,25 +51,32 @@ One rung adds four `diver_settings` columns, re-asserted by the
 - Import: `_withSchemaDefaults` fills the two NOT NULL view modes for payloads
   from older versions; they are also added to `_applyDiverSettingDefaults`
   following the house convention.
-- A payload from an older version carries null for the two nullable columns.
-  The receiving device then re-adopts its own pref value (see below), so no
-  device ever shows an empty value.
+- A payload from an older version omits the two nullable columns, and the
+  import keeps this device's value for an omitted key. An explicit null in
+  either of them is treated the same way: null means "never held a value",
+  so it carries no choice and must not clear a value this device holds.
 
 ## Adoption of the existing device-local values
 
-Rule: **a diver row with no value adopts this device's pref if one exists,
-otherwise it reads the default.** This covers every diver that exists at
-upgrade, divers created later on the device, and a value set while no diver
-existed.
+Rule: **a diver row with no value adopts this device's pref if it differs
+from the default, otherwise it reads the default.** This covers every diver
+that exists at upgrade, divers created later on the device, and a value set
+while no diver existed.
+
+Revised after the final review: before v262 every save wrote both prefs, so
+almost every device holds pSCR 100 and viewport off without the diver having
+chosen them. Adopting such a value would stamp a fresh clock on the whole row,
+so the device upgraded last would overwrite a ratio chosen on another device
+(and its stale copies of every other setting would win too). A default-valued
+pref is therefore never adopted; the column stays null and reads the default.
 
 - **Load with a diver.** Before `getOrCreateSettingsForDiver`, a repository
   probe reports which of the two nullable columns are null for this diver
-  (mirroring `hasSeascapeAppearance`). For each null column whose pref exists,
-  the loaded settings take the pref value, and the adopted columns are written
-  through immediately so they sync. The write is forced for the adopted
-  columns: `_persisted` maps null to the default, so a pref equal to the
-  default would otherwise look unchanged to the diff and the column would stay
-  null.
+  (mirroring `hasSeascapeAppearance`). For each null column whose pref differs
+  from the default, the value is written through immediately so it syncs. The
+  write bypasses the save diff (which cannot see a change in a null column)
+  and fills a column only while it is still null, so a value a sync applied
+  after the probe wins; the load then re-reads the row.
 - **The prefs are not removed**, so every other diver on the device can adopt
   them too.
 - **A column that holds a value always wins** over the pref.
@@ -103,14 +110,14 @@ The same chain as the six existing lists:
 
 ## Testing
 
-- **Migration** (`migration_v261_*_test.dart`, v237 template): ladder
+- **Migration** (`migration_v262_*_test.dart`, v237 template): ladder
   membership and order, unchanged sync floor, fresh-database column
   definitions, a v260 database gains the columns, the backstop restores them.
   The v260 test's exact version assertion relaxes to `>= 260`.
 - **Repository**: round trip of the four fields; null maps to `100.0` and
   `false`; the null-column probe.
 - **Notifier adoption** (seascape test pattern): an empty row adopts the pref
-  and writes it, including a pref equal to the default; a stored value wins
+  and writes it; a pref equal to the default is not adopted; a stored value wins
   over a stale pref; a second diver also adopts; a new diver adopts; with a
   diver the setters write the row and not prefs; with no diver the prefs stay
   the store.

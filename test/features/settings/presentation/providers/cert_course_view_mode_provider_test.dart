@@ -8,7 +8,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import '../../../../helpers/mock_providers.dart';
 
 /// The certification and course list view modes are saved per diver since
-/// v261 (issue #2948). Each list's runtime provider seeds from the saved
+/// v262 (issue #2948). Each list's runtime provider seeds from the saved
 /// value once, like the other lists, so the list menu can override it for
 /// the session.
 void main() {
