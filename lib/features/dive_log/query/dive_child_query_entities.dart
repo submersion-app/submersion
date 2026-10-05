@@ -84,6 +84,8 @@ final weightQueryEntity = QueryEntity(
       enumValues: [for (final v in WeightType.values) v.name],
     ),
     _text('weights', 'notes', 'notes'),
+    // The diver's own name for a weight, e.g. "Top pocket" (issue #956).
+    _text('weights', 'label', 'label'),
   ],
 );
 
