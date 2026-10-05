@@ -178,6 +178,10 @@ class DiverSettingsRepository {
               equipmentListViewMode: Value(s.equipmentListViewMode.name),
               buddyListViewMode: Value(s.buddyListViewMode.name),
               diveCenterListViewMode: Value(s.diveCenterListViewMode.name),
+              certificationListViewMode: Value(
+                s.certificationListViewMode.name,
+              ),
+              courseListViewMode: Value(s.courseListViewMode.name),
               mapStyle: Value(s.mapStyle.name),
               siteMatchSensitivity: Value(s.siteMatchSensitivity.name),
               trimTankPressureAtSurfacing: Value(s.trimTankPressureAtSurfacing),
@@ -434,6 +438,8 @@ class DiverSettingsRepository {
     equipmentListViewMode: Value(settings.equipmentListViewMode.name),
     buddyListViewMode: Value(settings.buddyListViewMode.name),
     diveCenterListViewMode: Value(settings.diveCenterListViewMode.name),
+    certificationListViewMode: Value(settings.certificationListViewMode.name),
+    courseListViewMode: Value(settings.courseListViewMode.name),
     mapStyle: Value(settings.mapStyle.name),
     siteMatchSensitivity: Value(settings.siteMatchSensitivity.name),
     trimTankPressureAtSurfacing: Value(settings.trimTankPressureAtSurfacing),
@@ -640,6 +646,10 @@ class DiverSettingsRepository {
       equipmentListViewMode: ListViewMode.fromName(row.equipmentListViewMode),
       buddyListViewMode: ListViewMode.fromName(row.buddyListViewMode),
       diveCenterListViewMode: ListViewMode.fromName(row.diveCenterListViewMode),
+      certificationListViewMode: ListViewMode.fromName(
+        row.certificationListViewMode,
+      ),
+      courseListViewMode: ListViewMode.fromName(row.courseListViewMode),
       mapStyle: MapStyle.fromName(row.mapStyle),
       siteMatchSensitivity: SiteMatchSensitivity.fromName(
         row.siteMatchSensitivity,

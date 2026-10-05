@@ -364,6 +364,10 @@ class AppSettings {
   /// Which layout to use for the dive center list
   final ListViewMode diveCenterListViewMode;
 
+  /// Certification and course list view modes (v261, issue #2948).
+  final ListViewMode certificationListViewMode;
+  final ListViewMode courseListViewMode;
+
   /// Which map tile style to use
   final MapStyle mapStyle;
 
@@ -643,6 +647,8 @@ class AppSettings {
     this.equipmentListViewMode = ListViewMode.detailed,
     this.buddyListViewMode = ListViewMode.detailed,
     this.diveCenterListViewMode = ListViewMode.detailed,
+    this.certificationListViewMode = ListViewMode.detailed,
+    this.courseListViewMode = ListViewMode.detailed,
     this.mapStyle = MapStyle.openStreetMap,
     this.siteMatchSensitivity = SiteMatchSensitivity.balanced,
     this.trimTankPressureAtSurfacing = true,
@@ -825,6 +831,8 @@ class AppSettings {
     ListViewMode? equipmentListViewMode,
     ListViewMode? buddyListViewMode,
     ListViewMode? diveCenterListViewMode,
+    ListViewMode? certificationListViewMode,
+    ListViewMode? courseListViewMode,
     MapStyle? mapStyle,
     SiteMatchSensitivity? siteMatchSensitivity,
     bool? trimTankPressureAtSurfacing,
@@ -990,6 +998,9 @@ class AppSettings {
       buddyListViewMode: buddyListViewMode ?? this.buddyListViewMode,
       diveCenterListViewMode:
           diveCenterListViewMode ?? this.diveCenterListViewMode,
+      certificationListViewMode:
+          certificationListViewMode ?? this.certificationListViewMode,
+      courseListViewMode: courseListViewMode ?? this.courseListViewMode,
       mapStyle: mapStyle ?? this.mapStyle,
       siteMatchSensitivity: siteMatchSensitivity ?? this.siteMatchSensitivity,
       trimTankPressureAtSurfacing:
@@ -2206,6 +2217,16 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setDiveCenterListViewMode(ListViewMode mode) async {
     state = state.copyWith(diveCenterListViewMode: mode);
+    await _saveSettings();
+  }
+
+  Future<void> setCertificationListViewMode(ListViewMode mode) async {
+    state = state.copyWith(certificationListViewMode: mode);
+    await _saveSettings();
+  }
+
+  Future<void> setCourseListViewMode(ListViewMode mode) async {
+    state = state.copyWith(courseListViewMode: mode);
     await _saveSettings();
   }
 
