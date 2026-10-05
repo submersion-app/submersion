@@ -55,10 +55,13 @@ class SiteAttachmentGroups extends StatelessWidget {
       }
       for (final item in group.large) {
         children.add(
+          // Keyed on the Column's direct child, where Flutter matches keys, so
+          // a recategorized card keeps its element instead of inheriting a
+          // neighbour's.
           Padding(
+            key: ValueKey('large-${item.id}'),
             padding: const EdgeInsets.only(bottom: 8),
             child: SiteAttachmentLargeCard(
-              key: ValueKey('large-${item.id}'),
               item: item,
               isSelectionMode: isSelectionMode,
               isSelected: selection.value.isChecked(item.id),

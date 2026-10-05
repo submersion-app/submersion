@@ -122,6 +122,26 @@ void main() {
     expect(find.byType(Image), findsOneWidget);
   });
 
+  testWidgets('the PDF page decodes at the card width, not the bucket', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pump(
+      tester,
+      testMediaItem(mediaType: MediaType.document, originalFilename: 'map.pdf'),
+      preview: PdfPagePreview(jpeg: onePixelPng(), pageCount: 1),
+    );
+    final provider = tester.widget<Image>(find.byType(Image)).image;
+    expect(provider, isA<ResizeImage>());
+    final cardWidth = tester
+        .getSize(find.byType(SiteAttachmentLargeCard))
+        .width;
+    // The body sits inside the card's 1 px outline on each side.
+    expect((provider as ResizeImage).width, closeTo(cardWidth, 2));
+  });
+
   testWidgets('a PDF that cannot render falls back to the document row', (
     tester,
   ) async {

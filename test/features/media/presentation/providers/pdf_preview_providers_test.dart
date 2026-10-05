@@ -92,6 +92,27 @@ void main() {
       expect(renders.single.$2, 1536);
     });
 
+    test('a render survives an unwatched gap', () async {
+      final renders = <(Uint8List?, int)>[];
+      final c = container(
+        resolved: ResolvedAssetResult(
+          bytes: Uint8List.fromList([4]),
+          status: ResolutionStatus.resolved,
+        ),
+        renders: renders,
+      );
+
+      // Nobody listens: a card rebuilding at another size, or the diver
+      // stepping away mid-render. The render must still land, not be thrown
+      // away by auto-disposal halfway through.
+      final preview = await c.read(
+        pdfLargePreviewProvider((item: pdf, maxDimension: 2048)).future,
+      );
+
+      expect(preview, isNotNull);
+      expect(renders.single.$2, 2048);
+    });
+
     test('an unavailable PDF yields no preview and renders nothing', () async {
       final renders = <(Uint8List?, int)>[];
       final c = container(

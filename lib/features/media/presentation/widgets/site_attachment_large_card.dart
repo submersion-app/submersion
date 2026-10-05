@@ -88,7 +88,13 @@ class SiteAttachmentLargeCard extends ConsumerWidget {
             .when(
               data: (preview) => preview == null
                   ? const SizedBox.shrink()
-                  : _PdfPage(preview: preview, maxHeight: maxHeight),
+                  : _PdfPage(
+                      preview: preview,
+                      maxHeight: maxHeight,
+                      cacheWidth:
+                          (width * MediaQuery.devicePixelRatioOf(context))
+                              .round(),
+                    ),
               loading: () => SizedBox(
                 height: width * 0.6,
                 child: const Center(
@@ -128,10 +134,19 @@ class SiteAttachmentLargeCard extends ConsumerWidget {
 }
 
 class _PdfPage extends StatelessWidget {
-  const _PdfPage({required this.preview, required this.maxHeight});
+  const _PdfPage({
+    required this.preview,
+    required this.maxHeight,
+    required this.cacheWidth,
+  });
 
   final PdfPagePreview preview;
   final double maxHeight;
+
+  /// Decode width: the card's physical width. The render comes from a size
+  /// bucket up to twice that, and decoding the full bucket would hold a
+  /// bitmap far larger than anything drawn.
+  final int cacheWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -144,6 +159,7 @@ class _PdfPage extends StatelessWidget {
             child: Image.memory(
               preview.jpeg,
               fit: BoxFit.contain,
+              cacheWidth: cacheWidth,
               gaplessPlayback: true,
             ),
           ),

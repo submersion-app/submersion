@@ -1,6 +1,7 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/pdf_page_renderer.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/providers/media_byte_retention.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 
@@ -24,6 +25,12 @@ int pdfPreviewBucket(double logicalWidth, double devicePixelRatio) {
 /// (issue #1039). Null when the PDF cannot be read or rendered here.
 final pdfLargePreviewProvider = FutureProvider.autoDispose
     .family<PdfPagePreview?, PdfPreviewRequest>((ref, request) async {
+      // Held past an unwatched gap (a card rebuilding at another size, the
+      // diver stepping away mid-render): without it auto-disposal lands
+      // between the awaits, the bytes read below fails on a dead ref, and
+      // the finished render is thrown away. The preview is a few hundred
+      // kilobytes, so the thumbnail window fits.
+      retainFor(ref, thumbnailRetention);
       final service = ref.watch(pdfThumbnailServiceProvider);
       return service.previewFor(
         request.item,
