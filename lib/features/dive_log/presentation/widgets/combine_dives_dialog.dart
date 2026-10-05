@@ -70,10 +70,6 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
   /// replaces the overlap test.
   bool _mergeAvailable = false;
 
-  /// Whether the records look like one dive from different computers, which
-  /// preselects Merge and shows a hint.
-  bool _looksLikeSameDive = false;
-
   CombineMode _mode = CombineMode.join;
 
   /// How a secondary that does not overlap the primary is lined up.
@@ -118,14 +114,22 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
     );
     if (consolidation is! ConsolidationReady) return;
     _mergeAvailable = true;
-    final plan = _planFor();
-    // classify() rejects a repeated serial, so a serial on every dive is what
-    // proves each record came from a different computer.
-    _looksLikeSameDive =
-        dives.every((d) => (d.diveComputerSerial ?? '').isNotEmpty) &&
-        plan.alignments.isNotEmpty &&
-        plan.alignments.values.every((a) => a.isStrongMatch);
-    if (_looksLikeSameDive) _mode = CombineMode.merge;
+    if (_looksLikeSameDive()) _mode = CombineMode.merge;
+  }
+
+  /// Whether the records look like one dive from different computers, judged
+  /// against the primary currently chosen (the hint must not outlive a
+  /// primary it was not checked against).
+  ///
+  /// classify() rejects a repeated serial, so a serial on every dive is what
+  /// proves each record came from a different computer.
+  bool _looksLikeSameDive() {
+    if (!_dives!.every((d) => (d.diveComputerSerial ?? '').isNotEmpty)) {
+      return false;
+    }
+    final alignments = _planFor().alignments;
+    return alignments.isNotEmpty &&
+        alignments.values.every((a) => a.isStrongMatch);
   }
 
   DiveConsolidationPlan _planFor() {
@@ -143,7 +147,7 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
 
   Widget _modeSelector() => CombineModeSelector(
     mode: _mode,
-    showSameDiveHint: _looksLikeSameDive,
+    showSameDiveHint: _looksLikeSameDive(),
     onChanged: (mode) => setState(() => _mode = mode),
   );
 

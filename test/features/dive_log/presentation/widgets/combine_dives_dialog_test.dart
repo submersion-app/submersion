@@ -29,6 +29,7 @@ domain.Dive diveAt(
   List<domain.DiveProfilePoint> profile = const [],
   String? diveComputerModel,
   String? diveComputerSerial,
+  String? computerId,
 }) => domain.Dive(
   id: id,
   diverId: diverId,
@@ -38,6 +39,7 @@ domain.Dive diveAt(
   profile: profile,
   diveComputerModel: diveComputerModel,
   diveComputerSerial: diveComputerSerial,
+  computerId: computerId,
 );
 
 /// A short descend-bottom-ascend profile for the given [runtimeMin].
@@ -602,6 +604,81 @@ void main() {
 
       expect(find.text('Merge as another computer'), findsNothing);
       expect(find.text('Combine into one dive'), findsOneWidget);
+    });
+
+    testWidgets('no Merge choice when both dives share a computer id but '
+        'carry no serial', (tester) async {
+      final dives = _skewedPair(serialB: null);
+      await pumpCombineDialog(
+        tester,
+        dives: [
+          dives.first.copyWith(diveComputerSerial: '', computerId: 'comp-1'),
+          dives.last.copyWith(computerId: 'comp-1'),
+        ],
+      );
+
+      expect(find.text('Merge as another computer'), findsNothing);
+      expect(find.text('Combine into one dive'), findsOneWidget);
+    });
+
+    testWidgets('the same-dive hint follows the chosen primary', (
+      tester,
+    ) async {
+      // 'a' matches both others within tolerance, but 'b' and 'c' carry
+      // opposite depth-sensor offsets, so they do not match each other.
+      List<domain.DiveProfilePoint> biased(double bias) => [
+        for (final p in _reef())
+          domain.DiveProfilePoint(
+            timestamp: p.timestamp,
+            depth: p.depth > 1 ? p.depth + bias : p.depth,
+          ),
+      ];
+      await pumpCombineDialog(
+        tester,
+        dives: [
+          diveAt(
+            'a',
+            DateTime.utc(2026, 7, 1, 9),
+            runtimeMin: 48,
+            diveComputerModel: 'Perdix',
+            diveComputerSerial: 'serial-a',
+            profile: _reef(),
+          ),
+          diveAt(
+            'b',
+            DateTime.utc(2026, 7, 1, 10, 6),
+            runtimeMin: 48,
+            diveComputerModel: 'Teric',
+            diveComputerSerial: 'serial-b',
+            profile: biased(0.9),
+          ),
+          diveAt(
+            'c',
+            DateTime.utc(2026, 7, 1, 11, 30),
+            runtimeMin: 48,
+            diveComputerModel: 'Suunto',
+            diveComputerSerial: 'serial-c',
+            profile: biased(-0.9),
+          ),
+        ],
+      );
+      expect(find.text(_sameDiveHint), findsOneWidget);
+
+      // Three radio tiles plus the alignment controls run past the
+      // dialog's scroll viewport; an off-screen tap would hit the barrier
+      // and dismiss the dialog, passing this test for the wrong reason.
+      await tester.ensureVisible(find.textContaining('Teric'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('Teric'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<RadioGroup<String>>(find.byType(RadioGroup<String>))
+            .groupValue,
+        'b',
+      );
+      expect(find.text(_sameDiveHint), findsNothing);
     });
 
     testWidgets('switching to Join shows the sequential preview', (

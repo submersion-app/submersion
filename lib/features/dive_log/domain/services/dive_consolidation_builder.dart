@@ -130,13 +130,17 @@ class DiveConsolidationBuilder {
     if (dives.map((d) => d.diverId).toSet().length > 1) {
       return const ConsolidationInvalid(ConsolidationInvalidReason.mixedDivers);
     }
-    // Two records from the same physical computer are a re-download, not a
-    // second computer. Serial is the only computer identity on the domain
-    // entity; the service re-checks the computerId FK on the raw rows.
+    // Two records from the same physical computer are a re-download or a
+    // dive it split in two, not a second computer. Judged by serial and by
+    // the linked computer, since either can be missing; the service
+    // re-checks the computerId FK on the raw rows before writing.
     final serials = <String>{};
+    final computerIds = <String>{};
     for (final d in dives) {
       final serial = d.diveComputerSerial;
-      if (serial != null && serial.isNotEmpty && !serials.add(serial)) {
+      final computerId = d.computerId;
+      if ((serial != null && serial.isNotEmpty && !serials.add(serial)) ||
+          (computerId != null && !computerIds.add(computerId))) {
         return const ConsolidationInvalid(
           ConsolidationInvalidReason.sameComputer,
         );

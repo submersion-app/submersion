@@ -83,6 +83,18 @@ class DiveConsolidationService {
       throw ArgumentError('targetDiveId not in selection');
     }
 
+    // Rejected here with the reason first, like the FK guard below, so
+    // callers can map the message: build() would throw a generic one.
+    final classification = _builder.classify(
+      dives,
+      primaryDiveId: targetDiveId,
+      alignment: alignment,
+    );
+    if (classification is ConsolidationInvalid) {
+      throw ArgumentError(
+        '${classification.reason.name}: selection cannot be consolidated',
+      );
+    }
     final plan = _builder.build(
       dives,
       primaryDiveId: targetDiveId,

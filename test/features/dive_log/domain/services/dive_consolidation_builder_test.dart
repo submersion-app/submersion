@@ -10,6 +10,7 @@ Dive makeDive(
   int runtimeMin = 30,
   String? diverId = 'diver1',
   String? serial,
+  String? computerId,
   List<DiveTank> tanks = const [],
   List<DiveProfilePoint> profile = const [],
 }) => Dive(
@@ -19,6 +20,7 @@ Dive makeDive(
   entryTime: entry,
   runtime: Duration(minutes: runtimeMin),
   diveComputerSerial: serial,
+  computerId: computerId,
   tanks: tanks,
   profile: profile,
 );
@@ -903,6 +905,22 @@ void main() {
       final result = builder.classify([
         makeDive('a', entry: t, serial: 'SAME'),
         makeDive('b', entry: t.add(const Duration(hours: 2)), serial: 'SAME'),
+      ], alignment: ConsolidationAlignment.bestFit);
+      expect(
+        (result as ConsolidationInvalid).reason,
+        ConsolidationInvalidReason.sameComputer,
+      );
+    });
+
+    test('two records sharing a computer id are one computer even with no '
+        'serial', () {
+      final result = builder.classify([
+        makeDive('a', entry: t, computerId: 'comp-1'),
+        makeDive(
+          'b',
+          entry: t.add(const Duration(hours: 2)),
+          computerId: 'comp-1',
+        ),
       ], alignment: ConsolidationAlignment.bestFit);
       expect(
         (result as ConsolidationInvalid).reason,
