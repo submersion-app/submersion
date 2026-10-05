@@ -225,7 +225,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // A profile's hidden shared trips and sites (v250, issue #2594)
     TripHides,
     SiteHides,
-    // Certification currency (v262, issue #2267)
+    // Certification currency (v266, issue #2267)
     CertificationCurrencyRules,
     CertificationCurrencyPrefs,
     CertificationCurrencyEvents,
@@ -238,7 +238,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 262;
+  static const int currentSchemaVersion = 266;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1095,12 +1095,14 @@ class AppDatabase extends _$AppDatabase {
     // column default, so nothing it applies is lost or misread and the floor
     // stays. Inbound, the generated fromJson ignores the legacy key.
     261,
-    // v262: certification currency (issue #2267): the rule catalog with its
+    263,
+    // v266: certification currency (issue #2267): the rule catalog with its
     // built-in seed, per certification overrides and the event ledger. New
     // synced tables only, so the floor stays. Built-in rules are reference
     // data, re-seeded by INSERT OR IGNORE from onCreate, the rung and
-    // beforeOpen. Renumbered from 261, which main shipped first (#767).
-    262,
+    // beforeOpen. Renumbered from 261 and then 262 while this was open;
+    // 262, 264 and 265 are held by open branches.
+    266,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

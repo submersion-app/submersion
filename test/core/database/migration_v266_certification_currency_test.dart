@@ -2,9 +2,9 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// v262 (issue #2267): the certification currency tables and the seeded
+/// v266 (issue #2267): the certification currency tables and the seeded
 /// built-in rule catalog.
-NativeDatabase setupDb({int userVersion = 261}) {
+NativeDatabase setupDb({int userVersion = 263}) {
   return NativeDatabase.memory(
     setup: (rawDb) {
       rawDb.execute('PRAGMA user_version = $userVersion');
@@ -47,16 +47,16 @@ Future<Set<String>> columnsOf(AppDatabase db, String table) async {
 }
 
 void main() {
-  test('v262 is the current schema version and is in the ladder', () {
+  test('v266 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 262);
-    expect(AppDatabase.migrationVersions, contains(262));
-    expect(AppDatabase.migrationStepCount(261), 1);
+    expect(AppDatabase.currentSchemaVersion, 266);
+    expect(AppDatabase.migrationVersions, contains(266));
+    expect(AppDatabase.migrationStepCount(263), 1);
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 
-  test('a v261 database upgrades and gains the three tables', () async {
+  test('a v263 database upgrades and gains the three tables', () async {
     final db = AppDatabase(setupDb());
     addTearDown(db.close);
 

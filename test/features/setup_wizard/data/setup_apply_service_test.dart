@@ -67,6 +67,7 @@ void main() {
       expect(stored!.depthUnit, DepthUnit.feet);
       expect(stored.pressureUnit, PressureUnit.psi);
       expect(stored.weightUnit, WeightUnit.pounds);
+      expect(stored.distanceUnit, DistanceUnit.miles);
 
       // Current diver persisted to prefs.
       expect(prefs.getString(currentDiverIdKey), divers.single.id);
@@ -170,6 +171,7 @@ void main() {
       );
       expect(stored!.depthUnit, DepthUnit.feet);
       expect(stored.volumeUnit, VolumeUnit.cubicFeet);
+      expect(stored.distanceUnit, DistanceUnit.miles);
     },
   );
 

@@ -204,12 +204,19 @@ extension RungsFromV231 on AppDatabase {
       await _dropDefaultCeilingSourceColumn();
     }
     if (from < 261) await reportProgress();
-    // v262: certification currency (issue #2267). Three synced tables and
+    // v263: diver_settings.distance_unit (issue #2030), backfilled from each
+    // diver's depth unit as the column is added. Re-asserted in beforeOpen.
+    // 262 is held by an open branch (#2991).
+    if (from < 263) {
+      await _assertDistanceUnitColumn();
+    }
+    if (from < 263) await reportProgress();
+    // v266: certification currency (issue #2267). Three synced tables and
     // the seeded built-in rule catalog, no backfill. Re-asserted in
-    // beforeOpen. 261 is diver_settings.default_ceiling_source (#767).
-    if (from < 262) {
+    // beforeOpen. 262, 264 and 265 are held by open branches.
+    if (from < 266) {
       await _assertCertificationCurrencySchema();
     }
-    if (from < 262) await reportProgress();
+    if (from < 266) await reportProgress();
   }
 }

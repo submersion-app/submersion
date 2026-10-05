@@ -2,7 +2,7 @@ part of '../app_database_migrations.dart';
 
 /// Certification currency: the rule catalog, its overrides and its ledger.
 extension CertificationCurrencyMigrations on AppDatabase {
-  /// v262 (issue #2267): the certification currency tables and the built-in
+  /// v266 (issue #2267): the certification currency tables and the built-in
   /// rule catalog. Idempotent; called from the rung AND the beforeOpen
   /// backstop. Parallel branches have collided on this ladder before, and a
   /// device that upgraded across a collision can arrive with the rung

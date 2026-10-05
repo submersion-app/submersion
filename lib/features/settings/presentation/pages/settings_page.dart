@@ -16,6 +16,7 @@ import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
+import 'package:submersion/features/settings/presentation/widgets/altitude_distance_unit_pickers.dart';
 import 'package:submersion/features/settings/presentation/widgets/notification_permission_card.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
@@ -520,6 +521,28 @@ class _UnitsSectionContent extends ConsumerWidget {
                   value: settings.weightUnit.symbol,
                   onTap: () =>
                       _showWeightUnitPicker(context, ref, settings.weightUnit),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: context.l10n.settings_units_altitude,
+                  value: settings.altitudeUnit.symbol,
+                  onTap: () => showAltitudeUnitPicker(
+                    context,
+                    ref,
+                    settings.altitudeUnit,
+                  ),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: context.l10n.settings_units_distance,
+                  value: settings.distanceUnit.symbol,
+                  onTap: () => showDistanceUnitPicker(
+                    context,
+                    ref,
+                    settings.distanceUnit,
+                  ),
                 ),
                 const Divider(height: 1),
                 _buildUnitTile(

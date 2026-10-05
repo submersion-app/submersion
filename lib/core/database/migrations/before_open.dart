@@ -30,8 +30,8 @@ extension BeforeOpenBackstops on AppDatabase {
     // consolidated dive that arrived since with nothing recorded.
     await _assertTankSharedComputerIds();
 
-    // v237 backstop: the dive figure switch.
-    await _assertShowDiveFigureColumn();
+    // v263 and v237 backstops: the distance unit and the dive figure switch.
+    await _assertDiverSettingsDisplayColumns();
 
     // v229 backstop: the per-set diver figure switch.
     await _assertEquipmentSetShowFigureColumn();
@@ -200,7 +200,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // would resurrect user-deleted schedules.
     await _assertServiceLedgerSchema();
 
-    // v262 backstop: the certification currency tables and their seeded
+    // v266 backstop: the certification currency tables and their seeded
     // built-in rules (issue #2267). Sync adopt clears every synced entity
     // and refills from an export that omits built-ins, so this re-seed is
     // what keeps the catalog alive across an adopt.
