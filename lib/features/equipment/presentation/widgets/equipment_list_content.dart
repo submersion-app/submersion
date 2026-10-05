@@ -526,7 +526,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         id: 'retire',
         icon: Icons.archive,
         label: context.l10n.equipment_menu_retireEquipment,
-        isEnabled: (ids) => everyChecked(ids, (e) => e.isActive),
+        // Wishlist gear (#2025) is not owned, so it cannot be retired, even
+        // on an imported row whose isActive was left true.
+        isEnabled: (ids) => everyChecked(ids, (e) => e.isActive && !e.isWanted),
         onInvoke: () => _applyRetirement(retire: true),
       ),
       BulkAction(

@@ -53,10 +53,15 @@ void main() {
     expect(departedStatusOf(item(EquipmentStatus.needsService)), isNull);
   });
 
-  test('wanted gear has not departed: it never joined the kit (#2025)', () {
+  test('wanted gear is badged as Wanted, never as Retired (#2025)', () {
+    // A wishlist part still linked into an assembly must not read as fitted.
     expect(
       departedStatusOf(item(EquipmentStatus.wanted, isActive: false)),
-      isNull,
+      EquipmentStatus.wanted,
+    );
+    expect(
+      departedStatusOf(item(EquipmentStatus.wanted)),
+      EquipmentStatus.wanted,
     );
   });
 }

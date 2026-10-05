@@ -49,8 +49,10 @@ counted as Retired.
 - `EquipmentRepository.getRetiredEquipment`: exclude `wanted`.
 - `EquipmentRepository.getEquipmentByStatus(retired)`: the `isActive=false`
   branch excludes `wanted`.
-- `departedStatusOf` (`equipment_departed_status.dart`): returns null for
-  Wanted. The item never left the kit; it has not joined it yet.
+- `departedStatusOf` (`equipment_departed_status.dart`): returns Wanted for a
+  Wanted item, so a wishlist part still linked into an assembly is badged
+  Wanted on the components and part-of lists, never Retired and never
+  unbadged as if fitted.
 - Edit page status init for legacy rows: an inactive row keeps `wanted` rather
   than being folded into Retired.
 - `reactivateEquipment`: unchanged in effect; Wanted is not a terminal status
@@ -142,7 +144,7 @@ pt, zh):
   `getRetiredEquipment`; returned by `getEquipmentByStatus(wanted)`; not
   returned by `getEquipmentByStatus(retired)`; mark-as-purchased flips status
   and `isActive`, sets today's date when empty, keeps an existing date.
-- Unit: `departedStatusOf` returns null for Wanted; `isFitted` is false.
+- Unit: `departedStatusOf` returns Wanted for Wanted; `isFitted` is false.
 - Filter query: default view excludes Wanted; Wanted chip returns only Wanted.
 - Set apply: a Wanted member is skipped.
 - Widgets: edit form hides and relabels while Wanted and restores the fields

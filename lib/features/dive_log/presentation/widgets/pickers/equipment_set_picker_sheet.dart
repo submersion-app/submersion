@@ -80,12 +80,7 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
                   final set = sets[index];
                   return _EquipmentSetTile(
                     set: set,
-                    // A member on the wishlist (#2025) stays in the set but
-                    // is never handed to a dive, plan or rig.
-                    onTap: (items) => onSetSelected(set, [
-                      for (final item in items)
-                        if (!item.isWanted) item,
-                    ]),
+                    onTap: (items) => onSetSelected(set, items),
                   );
                 },
               );
@@ -121,7 +116,13 @@ class _EquipmentSetTile extends ConsumerWidget {
         if (setWithItems == null) {
           return const SizedBox.shrink();
         }
-        final items = setWithItems.items ?? [];
+        // A member on the wishlist (#2025) stays in the set but is never
+        // handed to a dive, plan or rig, so the tile counts, lists and
+        // enables on the members it will actually apply.
+        final items = [
+          for (final item in setWithItems.items ?? const <EquipmentItem>[])
+            if (!item.isWanted) item,
+        ];
         return ListTile(
           leading: CircleAvatar(
             backgroundColor: Theme.of(context).colorScheme.primaryContainer,

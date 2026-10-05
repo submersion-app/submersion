@@ -119,6 +119,32 @@ void main() {
     expect(pickedItems?.map((i) => i.id), ['e1', 'e2']);
   });
 
+  testWidgets('a set tile counts only members it will apply (#2025)', (
+    tester,
+  ) async {
+    const wish = EquipmentItem(
+      id: 'e3',
+      name: 'Dream wing',
+      type: EquipmentType.bcd,
+      status: EquipmentStatus.wanted,
+      isActive: false,
+    );
+    var called = false;
+    await _pump(
+      tester,
+      sets: [
+        _set('s1', 'Tropical', [_regulator, wish, _mask]),
+        _set('s2', 'Wishlist', [wish]),
+      ],
+      onSetSelected: (_, _) => called = true,
+    );
+
+    expect(find.text('2 items: Apeks XTX50, Low Volume Mask'), findsOneWidget);
+    // A set of wishlist gear applies nothing, so it reads and acts empty.
+    await tester.tap(find.text('Wishlist'));
+    expect(called, isFalse);
+  });
+
   testWidgets('an empty set is rendered disabled', (tester) async {
     var called = false;
     await _pump(

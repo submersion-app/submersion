@@ -13,10 +13,11 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 /// or not, because the gear is gone either way and "Lost" is the more
 /// useful prompt to swap it.
 ///
-/// Wanted gear (#2025) is inactive but has not left the kit; it never
-/// joined it, so it gets no departed badge.
+/// Wanted gear (#2025) never joined the kit, but it is just as absent from
+/// it, so it is badged Wanted (never Retired): a wishlist part still linked
+/// into an assembly must not read as fitted.
 EquipmentStatus? departedStatusOf(EquipmentItem item) {
-  if (item.status == EquipmentStatus.wanted) return null;
+  if (item.isWanted) return EquipmentStatus.wanted;
   if (item.status == EquipmentStatus.sold) return EquipmentStatus.sold;
   if (item.status == EquipmentStatus.lost) return EquipmentStatus.lost;
   if (item.status == EquipmentStatus.retired || !item.isActive) {

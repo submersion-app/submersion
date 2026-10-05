@@ -769,6 +769,33 @@ void main() {
       );
     });
 
+    testWidgets('retire is not offered for wishlist gear left active (#2025)', (
+      tester,
+    ) async {
+      final widget = await host([
+        _makeEquipment(
+          id: 'w2',
+          name: 'Imported Wish',
+          status: EquipmentStatus.wanted,
+        ),
+      ]);
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      await enterSelectionViaMenu(tester);
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<IconButton>(
+              find.byKey(const ValueKey('selection_action_retire')),
+            )
+            .onPressed,
+        isNull,
+      );
+    });
+
     testWidgets('cancelling deletes nothing and keeps the selection', (
       tester,
     ) async {
