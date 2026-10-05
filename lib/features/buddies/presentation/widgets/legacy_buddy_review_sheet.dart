@@ -139,6 +139,9 @@ class _LegacyBuddyReviewSheetState
                   link: _links[i],
                   roles: roles,
                   hiddenRoleIds: hiddenRoleIds,
+                  keepRoleIds: {
+                    for (final planned in widget.plan.links) planned.roleId,
+                  },
                   onRoleChanged: (roleId) =>
                       _update(_replaced(i, _links[i].copyWith(roleId: roleId))),
                   onUseSuggestion: () => _useSuggestion(i),

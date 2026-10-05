@@ -86,4 +86,23 @@ void main() {
     final context = tester.element(find.byKey(bwrafKey));
     expect(tile.textColor, Theme.of(context).disabledColor);
   });
+
+  testWidgets(
+    'the Show label lines up on desktop too',
+    variant: const TargetPlatformVariant({
+      TargetPlatform.macOS,
+      TargetPlatform.windows,
+      TargetPlatform.linux,
+    }),
+    (tester) async {
+      await pump(tester);
+      expect(
+        tester.getCenter(find.text('Show')).dx,
+        moreOrLessEquals(
+          tester.getCenter(find.byKey(bwrafKey)).dx,
+          epsilon: 0.5,
+        ),
+      );
+    },
+  );
 }

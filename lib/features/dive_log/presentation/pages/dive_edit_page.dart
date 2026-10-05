@@ -295,6 +295,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   List<String> _selectedDiveTypeIds = const ['recreational'];
 
+  /// The dive's types and roles as loaded, offered by the pickers even when
+  /// hidden (issue #401) so a change to one can be undone in place.
+  List<String> _loadedDiveTypeIds = const [];
+  Set<String> _loadedRoleIds = const {};
+
   /// The dive types the assigned site added (issue #2037) and the diver has
   /// not touched since: what the next site assignment may take back.
   Set<String> _siteAddedDiveTypeIds = const {};
@@ -877,6 +882,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _isPlanned = dive.isPlanned;
           _hasPrimarySource = hasPrimarySource;
           _diverRoleId = dive.diverRoleId;
+          _loadedRoleIds = {..._loadedRoleIds, ?dive.diverRoleId};
           _diveNumberController.text = dive.diveNumber != null
               ? _seedInt(dive.diveNumber!)
               : '';
@@ -931,6 +937,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _notesController.text = dive.notes;
           _nameController.text = dive.name ?? '';
           _selectedDiveTypeIds = List.from(dive.diveTypeIds);
+          _loadedDiveTypeIds = List.unmodifiable(dive.diveTypeIds);
           _selectedVisibility = dive.visibility ?? Visibility.unknown;
           _visibilityController.text = dive.visibilityMeters != null
               ? _seedDecimal(units.convertDepth(dive.visibilityMeters!), 0)
@@ -1095,6 +1102,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       setState(() {
         _selectedBuddies = buddies;
         _originalBuddyIds = buddies.map((b) => b.buddy.id).toSet();
+        _loadedRoleIds = {
+          ..._loadedRoleIds,
+          for (final b in buddies) b.role.id,
+        };
       });
     }
   }
@@ -1607,6 +1618,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         hiddenBuiltInIdsProvider(BuiltInCatalog.diveRoles),
       ),
       selectedRoleId: _bulkBuddyRoleId(item.id),
+      keepRoleIds: [_existingBuddyRoleIds[item.id]],
       onCreateCustomRole: (name) => ref
           .read(diveRoleListNotifierProvider.notifier)
           .addDiveRoleByName(name),
@@ -2549,6 +2561,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
       child: DiveTypeMultiSelectField(
         selectedTypeIds: _selectedDiveTypeIds,
+        keepTypeIds: _loadedDiveTypeIds,
         onChanged: (ids) {
           setState(() {
             _selectedDiveTypeIds = ids;
@@ -5417,6 +5430,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         child: BuddyPicker(
           diveId: widget.diveId,
           selectedBuddies: _selectedBuddies,
+          keepRoleIds: _loadedRoleIds,
           diverRoleId: _diverRoleId,
           onDiverRoleChanged: (roleId) {
             _markDirty();

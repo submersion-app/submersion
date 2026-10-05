@@ -36,6 +36,7 @@ Widget _harness({
   String? selectedRoleId,
   Future<DiveRole?> Function(String name)? onCreateCustomRole,
   Set<String> hiddenRoleIds = const {},
+  List<String> keepRoleIds = const [],
 }) {
   return MaterialApp(
     localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -54,6 +55,7 @@ Widget _harness({
                 selectedRoleId: selectedRoleId,
                 onCreateCustomRole: onCreateCustomRole,
                 hiddenRoleIds: hiddenRoleIds,
+                keepRoleIds: keepRoleIds,
               );
               onResult(result);
             },
@@ -193,5 +195,20 @@ void main() {
     await _open(tester);
     expect(find.text('Buddy'), findsOneWidget);
     expect(find.text('Rear Guard'), findsNothing);
+  });
+
+  testWidgets('keeps a hidden role the record had, even once changed', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _harness(
+        onResult: (_) {},
+        hiddenRoleIds: {DiveRole.rearGuardId},
+        selectedRoleId: DiveRole.buddyId,
+        keepRoleIds: [DiveRole.rearGuardId],
+      ),
+    );
+    await _open(tester);
+    expect(find.text('Rear Guard'), findsOneWidget);
   });
 }

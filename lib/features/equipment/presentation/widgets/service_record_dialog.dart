@@ -52,6 +52,10 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
   final _notesController = TextEditingController();
   DateTime? _nextServiceDue;
   String? _serviceKindId;
+
+  /// The kind the record had when the dialog opened, offered even when
+  /// hidden (issue #401) so picking another one can be undone.
+  String? _initialServiceKindId;
   bool _isSaving = false;
 
   /// Diver preference for the service-type dropdown: narrow it to the kinds
@@ -104,6 +108,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
       _initialCurrencyCode = _fallbackCurrencyCode();
     }
     _currencyController.text = _initialCurrencyCode;
+    _initialServiceKindId = _serviceKindId;
   }
 
   /// The code to store when the currency field is left blank: the diver's
@@ -206,7 +211,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
         hiddenKinds,
         isBuiltIn: (k) => k.isBuiltIn,
         idOf: (k) => k.id,
-        keep: [_serviceKindId],
+        keep: [_serviceKindId, _initialServiceKindId],
       );
       return [
         ...shown,

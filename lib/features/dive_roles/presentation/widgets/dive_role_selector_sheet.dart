@@ -27,13 +27,17 @@ Future<DiveRoleSelection?> showDiveRoleSelector(
   /// Built-in roles the diver hid from the pickers (issue #401). The
   /// selected role stays even when hidden.
   Set<String> hiddenRoleIds = const {},
+
+  /// Roles to offer even when hidden: the ones the record had when its
+  /// editor opened, so a change can be undone in place.
+  Iterable<String?> keepRoleIds = const [],
 }) {
   final shownRoles = visibleBuiltIns(
     roles,
     hiddenRoleIds,
     isBuiltIn: (r) => r.isBuiltIn,
     idOf: (r) => r.id,
-    keep: [selectedRoleId],
+    keep: [selectedRoleId, ...keepRoleIds],
   );
   final orderedRoles = [
     ...shownRoles.where((r) => credentialRoleIds.contains(r.id)),

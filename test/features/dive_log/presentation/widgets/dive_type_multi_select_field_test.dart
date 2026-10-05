@@ -26,6 +26,7 @@ void main() {
     required ValueChanged<List<String>> onChanged,
     bool allowEmpty = false,
     MockSettingsNotifier? settings,
+    List<String> keepTypeIds = const [],
   }) {
     return ProviderScope(
       overrides: [
@@ -48,6 +49,7 @@ void main() {
             selectedTypeIds: selected,
             onChanged: onChanged,
             allowEmpty: allowEmpty,
+            keepTypeIds: keepTypeIds,
           ),
         ),
       ),
@@ -415,5 +417,30 @@ void main() {
     final night = find.widgetWithText(CheckboxListTile, 'Night');
     expect(night, findsOneWidget);
     expect(tester.widget<CheckboxListTile>(night).value, isTrue);
+  });
+
+  testWidgets('a hidden type the dive had stays after it is unticked', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      harness(
+        selected: ['shore'],
+        onChanged: (_) {},
+        keepTypeIds: const ['night'],
+        settings: MockSettingsNotifier(
+          const AppSettings(
+            hiddenBuiltInIds: {
+              'diveTypes': {'night'},
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(InputDecorator));
+    await tester.pumpAndSettle();
+    final night = find.widgetWithText(CheckboxListTile, 'Night');
+    expect(night, findsOneWidget);
+    expect(tester.widget<CheckboxListTile>(night).value, isFalse);
   });
 }

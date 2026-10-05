@@ -165,33 +165,38 @@ class _TemplateTile extends ConsumerWidget {
                     !shown,
                   ),
             ),
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              switch (value) {
-                case 'open':
-                  context.push('/pre-dive-checklists/${template.id}/edit');
-                case 'clone':
-                  _clone(context, ref);
-                case 'delete':
-                  _confirmDelete(context, ref);
-              }
-            },
-            itemBuilder: (context) => [
-              if (template.isBuiltIn)
+          // A fixed 48-wide slot: the header's trailingInset assumes it, and
+          // on desktop the button alone shrinks to 40.
+          SizedBox(
+            width: kMinInteractiveDimension,
+            child: PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'open':
+                    context.push('/pre-dive-checklists/${template.id}/edit');
+                  case 'clone':
+                    _clone(context, ref);
+                  case 'delete':
+                    _confirmDelete(context, ref);
+                }
+              },
+              itemBuilder: (context) => [
+                if (template.isBuiltIn)
+                  PopupMenuItem(
+                    value: 'open',
+                    child: Text(l10n.preDive_templates_view),
+                  ),
                 PopupMenuItem(
-                  value: 'open',
-                  child: Text(l10n.preDive_templates_view),
+                  value: 'clone',
+                  child: Text(l10n.preDive_templates_clone),
                 ),
-              PopupMenuItem(
-                value: 'clone',
-                child: Text(l10n.preDive_templates_clone),
-              ),
-              if (!template.isBuiltIn)
-                PopupMenuItem(
-                  value: 'delete',
-                  child: Text(l10n.preDive_templates_delete),
-                ),
-            ],
+                if (!template.isBuiltIn)
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Text(l10n.preDive_templates_delete),
+                  ),
+              ],
+            ),
           ),
         ],
       ),

@@ -22,7 +22,11 @@ void main() {
     builtIn(DiveRole.soloId, 'Solo'),
   ];
 
-  Future<void> pump(WidgetTester tester, String roleId) async {
+  Future<void> pump(
+    WidgetTester tester,
+    String roleId, {
+    Set<String> keepRoleIds = const {},
+  }) async {
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -35,6 +39,7 @@ void main() {
             ),
             roles: roles,
             hiddenRoleIds: {DiveRole.soloId, DiveRole.instructorId},
+            keepRoleIds: keepRoleIds,
             onRoleChanged: (_) {},
             onUseSuggestion: () {},
             onEditName: () {},
@@ -59,6 +64,14 @@ void main() {
     tester,
   ) async {
     await pump(tester, DiveRole.instructorId);
+    expect(find.text('Instructor'), findsWidgets);
+    expect(find.text('Solo'), findsNothing);
+  });
+
+  testWidgets('the role the planner chose stays after it is changed', (
+    tester,
+  ) async {
+    await pump(tester, DiveRole.buddyId, keepRoleIds: {DiveRole.instructorId});
     expect(find.text('Instructor'), findsWidgets);
     expect(find.text('Solo'), findsNothing);
   });

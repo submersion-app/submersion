@@ -27,6 +27,7 @@ class DiveTypeMultiSelectField extends ConsumerWidget {
     required this.onChanged,
     this.labelText,
     this.allowEmpty = false,
+    this.keepTypeIds = const [],
   });
 
   /// The currently selected dive-type slugs (>= 1 by invariant).
@@ -41,6 +42,11 @@ class DiveTypeMultiSelectField extends ConsumerWidget {
   /// >= 1 invariant only applies to a single dive's own type set, not to the
   /// "which types to add/remove/replace" selection in bulk mode.
   final bool allowEmpty;
+
+  /// Types to offer even when hidden from the pickers (issue #401): the ones
+  /// the dive had when the editor opened, so unticking one and reopening the
+  /// checklist can undo it.
+  final List<String> keepTypeIds;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -87,7 +93,7 @@ class DiveTypeMultiSelectField extends ConsumerWidget {
           hidden,
           isBuiltIn: (t) => t.isBuiltIn,
           idOf: (t) => t.id,
-          keep: selectedTypeIds,
+          keep: [...selectedTypeIds, ...keepTypeIds],
         ),
         label,
       ),

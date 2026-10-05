@@ -78,4 +78,15 @@ void main() {
     await pumpDialog(tester, serviceKindId: 'vip');
     expect(find.text('Visual inspection (VIP)'), findsWidgets);
   });
+
+  testWidgets("the record's hidden kind stays offered after another pick", (
+    tester,
+  ) async {
+    await pumpDialog(tester, serviceKindId: 'vip');
+    await tester.tap(find.text('Hydrostatic test').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('service-record-service-type')));
+    await tester.pumpAndSettle();
+    expect(find.text('Visual inspection (VIP)'), findsWidgets);
+  });
 }

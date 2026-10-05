@@ -37,6 +37,10 @@ class BuddyPicker extends ConsumerWidget {
   final String? diverRoleId;
   final ValueChanged<String?>? onDiverRoleChanged;
 
+  /// Roles offered even when hidden from the pickers (issue #401): the ones
+  /// the dive had when the editor opened.
+  final Set<String> keepRoleIds;
+
   const BuddyPicker({
     super.key,
     this.diveId,
@@ -44,6 +48,7 @@ class BuddyPicker extends ConsumerWidget {
     required this.onChanged,
     this.diverRoleId,
     this.onDiverRoleChanged,
+    this.keepRoleIds = const {},
   });
 
   @override
@@ -84,12 +89,14 @@ class BuddyPicker extends ConsumerWidget {
                 _MeChip(
                   diverRoleId: diverRoleId,
                   onChanged: onDiverRoleChanged!,
+                  keepRoleIds: keepRoleIds,
                 ),
               ...selectedBuddies.map((bwr) {
                 return _BuddyChip(
                   buddyWithRole: bwr,
                   roles: roles,
                   hiddenRoleIds: hiddenRoleIds,
+                  keepRoleIds: keepRoleIds,
                   onCreateCustomRole: (name) =>
                       _createCustomRole(context, ref, name),
                   onRemove: () {
@@ -195,6 +202,9 @@ class _BuddyChip extends StatelessWidget {
 
   /// Built-in roles hidden from the pickers (issue #401).
   final Set<String> hiddenRoleIds;
+
+  /// Roles offered even when hidden.
+  final Set<String> keepRoleIds;
   final VoidCallback onRemove;
   final ValueChanged<DiveRole> onRoleChanged;
   final Future<DiveRole?> Function(String name) onCreateCustomRole;
@@ -206,6 +216,7 @@ class _BuddyChip extends StatelessWidget {
     required this.onRoleChanged,
     required this.onCreateCustomRole,
     this.hiddenRoleIds = const {},
+    this.keepRoleIds = const {},
   });
 
   @override
@@ -246,6 +257,7 @@ class _BuddyChip extends StatelessWidget {
       title: context.l10n.buddies_picker_selectRole(buddyWithRole.buddy.name),
       roles: roles,
       hiddenRoleIds: hiddenRoleIds,
+      keepRoleIds: keepRoleIds,
       selectedRoleId: buddyWithRole.role.id,
       onCreateCustomRole: onCreateCustomRole,
     );
@@ -260,7 +272,14 @@ class _MeChip extends ConsumerWidget {
   final String? diverRoleId;
   final ValueChanged<String?> onChanged;
 
-  const _MeChip({required this.diverRoleId, required this.onChanged});
+  const _MeChip({
+    required this.diverRoleId,
+    required this.onChanged,
+    this.keepRoleIds = const {},
+  });
+
+  /// Roles offered even when hidden.
+  final Set<String> keepRoleIds;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -315,6 +334,7 @@ class _MeChip extends ConsumerWidget {
           hiddenRoleIds: ref.read(
             hiddenBuiltInIdsProvider(BuiltInCatalog.diveRoles),
           ),
+          keepRoleIds: keepRoleIds,
           allowNone: true,
           selectedRoleId: diverRoleId,
         );

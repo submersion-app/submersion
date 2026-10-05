@@ -24,6 +24,7 @@ class LegacyBuddyReviewRow extends StatelessWidget {
     required this.onChooseExisting,
     required this.onRemove,
     this.hiddenRoleIds = const {},
+    this.keepRoleIds = const {},
   });
 
   final PlannedLink link;
@@ -37,6 +38,10 @@ class LegacyBuddyReviewRow extends StatelessWidget {
   /// Built-in roles hidden from the pickers (issue #401); the row's own role
   /// stays.
   final Set<String> hiddenRoleIds;
+
+  /// Roles offered even when hidden: the ones the planner chose, so a
+  /// changed row can be set back.
+  final Set<String> keepRoleIds;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +57,7 @@ class LegacyBuddyReviewRow extends StatelessWidget {
       hiddenRoleIds,
       isBuiltIn: (r) => r.isBuiltIn,
       idOf: (r) => r.id,
-      keep: [link.roleId],
+      keep: [link.roleId, ...keepRoleIds],
     );
     final options = [
       ...shown,
