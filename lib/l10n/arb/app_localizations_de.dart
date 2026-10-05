@@ -8055,6 +8055,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get setup_units_altitude => 'Höhe';
 
   @override
+  String get setup_units_distance => 'Entfernung';
+
+  @override
   String get setup_units_dateFormat => 'Datumsformat';
 
   @override
@@ -8987,6 +8990,17 @@ class AppLocalizationsDe extends AppLocalizations {
       one: 'Tauchgang',
     );
     return '$count $_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total Tauchgängen',
+      one: '$total Tauchgang',
+    );
+    return 'Gefiltert: fasst $shown von $_temp0 zusammen';
   }
 
   @override
@@ -20984,6 +20998,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_summary_weight => 'Gewicht';
 
   @override
+  String get settings_summary_altitude => 'Höhe';
+
+  @override
+  String get settings_summary_distance => 'Entfernung';
+
+  @override
   String get settings_units_custom => 'Benutzerdefiniert';
 
   @override
@@ -21135,6 +21155,30 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'Pfund (lbs)';
+
+  @override
+  String get settings_units_altitude => 'Höhe';
+
+  @override
+  String get settings_units_altitude_feet => 'Fuß (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'Meter (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'Höheneinheit';
+
+  @override
+  String get settings_units_distance => 'Entfernung';
+
+  @override
+  String get settings_units_distance_kilometers => 'Kilometer (km)';
+
+  @override
+  String get settings_units_distance_miles => 'Meilen (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'Entfernungseinheit';
 
   @override
   String get settings_updates_automaticUpdates => 'Automatische Updates';

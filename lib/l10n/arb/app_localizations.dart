@@ -12841,6 +12841,12 @@ abstract class AppLocalizations {
   /// **'Altitude'**
   String get setup_units_altitude;
 
+  /// No description provided for @setup_units_distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get setup_units_distance;
+
   /// No description provided for @setup_units_dateFormat.
   ///
   /// In en, this message translates to:
@@ -14394,6 +14400,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} {count, plural, =1{dive} other{dives}}'**
   String diveLog_summary_diveCount(int count);
+
+  /// Line under the Dive Log Summary title while the dive list is filtered: the summary covers {shown} of the diver's {total} logged dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Filtered: summarizing {shown} of {total, plural, =1{{total} dive} other{{total} dives}}'**
+  String diveLog_summary_filteredBanner(int shown, int total);
 
   /// No description provided for @diveLog_summary_overview.
   ///
@@ -33726,6 +33738,18 @@ abstract class AppLocalizations {
   /// **'Weight'**
   String get settings_summary_weight;
 
+  /// No description provided for @settings_summary_altitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude'**
+  String get settings_summary_altitude;
+
+  /// No description provided for @settings_summary_distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get settings_summary_distance;
+
   /// No description provided for @settings_units_custom.
   ///
   /// In en, this message translates to:
@@ -34013,6 +34037,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pounds (lbs)'**
   String get settings_units_weight_pounds;
+
+  /// No description provided for @settings_units_altitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude'**
+  String get settings_units_altitude;
+
+  /// No description provided for @settings_units_altitude_feet.
+  ///
+  /// In en, this message translates to:
+  /// **'Feet (ft)'**
+  String get settings_units_altitude_feet;
+
+  /// No description provided for @settings_units_altitude_meters.
+  ///
+  /// In en, this message translates to:
+  /// **'Meters (m)'**
+  String get settings_units_altitude_meters;
+
+  /// No description provided for @settings_units_dialog_altitudeUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude Unit'**
+  String get settings_units_dialog_altitudeUnit;
+
+  /// No description provided for @settings_units_distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get settings_units_distance;
+
+  /// No description provided for @settings_units_distance_kilometers.
+  ///
+  /// In en, this message translates to:
+  /// **'Kilometers (km)'**
+  String get settings_units_distance_kilometers;
+
+  /// No description provided for @settings_units_distance_miles.
+  ///
+  /// In en, this message translates to:
+  /// **'Miles (mi)'**
+  String get settings_units_distance_miles;
+
+  /// No description provided for @settings_units_dialog_distanceUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance Unit'**
+  String get settings_units_dialog_distanceUnit;
 
   /// No description provided for @settings_updates_automaticUpdates.
   ///

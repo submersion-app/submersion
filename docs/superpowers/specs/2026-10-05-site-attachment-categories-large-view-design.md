@@ -36,8 +36,8 @@ opened to be read, and attachments cannot be grouped.
 ### Columns
 
 Two nullable text columns on `media`, added by the next free schema rung
-(shipped as v263: main reached v261 while this was open and v262 is claimed
-by another branch, so the ladder reads 260, 261, 263):
+(shipped as v266: main took v261 and v263 while this was open, and 262,
+264 and 265 are claimed by other branches):
 
 | Column | Values | Null means |
 | --- | --- | --- |
@@ -178,9 +178,10 @@ Written first, per TDD.
 - **Repository:** `setAttachmentDetails` touches only the passed columns and
   marks the row pending; `setSiteCategory` is atomic over many ids and leaves
   overrides and names alone; `updateMedia` and insert preserve the columns.
-- **Migration:** upgrading from v262 to v263 adds both columns; the backstop
-  heals a database already at v263 that is missing them. The test pins
-  `migrationStepCount(262) == 1`, so it holds whether or not v262 lands first.
+- **Migration:** upgrading from v265 to v266 adds both columns; the backstop
+  heals a database already at v266 that is missing them. The test pins
+  `migrationStepCount(265) == 1`, so it holds whether or not the open claims
+  below it land first.
 - **Sync:** a serializer export and import round-trips `site_category` and
   `display_size`.
 - **PDF service:** `largeRenderFor` caches per size and returns the page count,

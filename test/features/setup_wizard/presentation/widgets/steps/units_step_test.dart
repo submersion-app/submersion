@@ -145,6 +145,7 @@ void main() {
     await tapUnit('setup-unit-volume-cuft');
     await tapUnit('setup-unit-weight-lbs');
     await tapUnit('setup-unit-altitude-ft');
+    await tapUnit('setup-unit-distance-mi');
     await tapUnit('setup-unit-gasconsumption-sac');
 
     final s = container
@@ -156,6 +157,7 @@ void main() {
     expect(s.volumeUnit, VolumeUnit.cubicFeet);
     expect(s.weightUnit, WeightUnit.pounds);
     expect(s.altitudeUnit, AltitudeUnit.feet);
+    expect(s.distanceUnit, DistanceUnit.miles);
     expect(s.gasConsumptionDisplay, GasConsumptionDisplay.sac);
 
     // Date-format dropdown fires its onChanged too.

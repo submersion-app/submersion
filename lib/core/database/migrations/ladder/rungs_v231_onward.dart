@@ -204,13 +204,21 @@ extension RungsFromV231 on AppDatabase {
       await _dropDefaultCeilingSourceColumn();
     }
     if (from < 261) await reportProgress();
-    // v263: media.site_category and media.display_size (issue #1039).
-    // Columns only, no backfill: null is an uncategorized tile, which is how
-    // every existing attachment already renders. Re-asserted in beforeOpen.
-    // 262 is claimed by an open branch.
+    // v263: diver_settings.distance_unit (issue #2030), backfilled from each
+    // diver's depth unit as the column is added. Re-asserted in beforeOpen.
+    // 262 is held by an open branch (#2991).
     if (from < 263) {
-      await _assertMediaSiteAttachmentColumns();
+      await _assertDistanceUnitColumn();
     }
     if (from < 263) await reportProgress();
+    // v266: media.site_category and media.display_size (issue #1039).
+    // Columns only, no backfill: null is an uncategorized tile, which is how
+    // every existing attachment already renders. Re-asserted in beforeOpen.
+    // Renumbered from 263 (main shipped #2030 there); 264 and 265 are
+    // claimed by open branches.
+    if (from < 266) {
+      await _assertMediaSiteAttachmentColumns();
+    }
+    if (from < 266) await reportProgress();
   }
 }
