@@ -204,9 +204,16 @@ extension RungsFromV231 on AppDatabase {
       await _dropDefaultCeilingSourceColumn();
     }
     if (from < 261) await reportProgress();
+    // v263: diver_settings.distance_unit (issue #2030), backfilled from each
+    // diver's depth unit as the column is added. Re-asserted in beforeOpen.
+    // 262 is held by an open branch (#2991).
+    if (from < 263) {
+      await _assertDistanceUnitColumn();
+    }
+    if (from < 263) await reportProgress();
     // v265: custom certification agencies and levels (issue #690). Table
     // and index only, no backfill: stored agency/level text are built-in
-    // enum names, which stay valid ids. Re-asserted in beforeOpen. 262 to
+    // enum names, which stay valid ids. Re-asserted in beforeOpen. 262 and
     // 264 are held by open branches.
     if (from < 265) {
       await _assertCustomCertificationSchema();

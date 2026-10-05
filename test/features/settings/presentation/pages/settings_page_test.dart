@@ -224,6 +224,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setAltitudeUnit(AltitudeUnit unit) async =>
       state = state.copyWith(altitudeUnit: unit);
   @override
+  Future<void> setDistanceUnit(DistanceUnit unit) async =>
+      state = state.copyWith(distanceUnit: unit);
+  @override
   Future<void> setCoordinateFormat(CoordinateFormat format) async =>
       state = state.copyWith(coordinateFormat: format);
   @override

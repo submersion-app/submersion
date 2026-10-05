@@ -14,8 +14,7 @@ import '../../../../helpers/test_database.dart';
 
 /// Issue #1028: personal records on the Insights tab must follow the tab's
 /// filter, the way every other panel on that page already does. The unfiltered
-/// [diveRecordsProvider] stays as-is for the dive-log summary widget, which is
-/// not an Insights-tab surface.
+/// [diveRecordsProvider] stays as-is for surfaces outside the Insights tab.
 void main() {
   late AppDatabase db;
 
@@ -103,7 +102,7 @@ void main() {
         records.deepestDive!.diveId,
         'deep',
         reason:
-            'the dive-log summary widget reads diveRecordsProvider and has no '
+            'surfaces outside the Insights tab read diveRecordsProvider and '
             'filter UI of its own; the Insights filter must not reach it',
       );
     },

@@ -76,7 +76,9 @@ void main() {
   test('v265 is the current schema version and in the ladder', () {
     expect(AppDatabase.currentSchemaVersion, 265);
     expect(AppDatabase.migrationVersions, contains(265));
-    expect(AppDatabase.migrationStepCount(261), 1);
+    expect(AppDatabase.migrationVersions.last, 265);
+    // 264 is held by an open branch, so from 263 this is one step.
+    expect(AppDatabase.migrationStepCount(263), 1);
     // Additive rung: new synced tables never raise the floor.
     expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(265));
   });

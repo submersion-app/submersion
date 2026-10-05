@@ -28,4 +28,26 @@ void main() {
       );
     });
   });
+
+  group('DistanceUnit', () {
+    test('symbols are km and mi', () {
+      expect(DistanceUnit.kilometers.symbol, 'km');
+      expect(DistanceUnit.miles.symbol, 'mi');
+    });
+
+    test('converts kilometres to miles and back', () {
+      expect(
+        DistanceUnit.kilometers.convert(1.609344, DistanceUnit.miles),
+        closeTo(1.0, 1e-9),
+      );
+      expect(
+        DistanceUnit.miles.convert(10, DistanceUnit.kilometers),
+        closeTo(16.09344, 1e-9),
+      );
+    });
+
+    test('is identity for same-unit conversion', () {
+      expect(DistanceUnit.miles.convert(3.5, DistanceUnit.miles), 3.5);
+    });
+  });
 }

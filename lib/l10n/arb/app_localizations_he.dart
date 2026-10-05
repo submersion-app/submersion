@@ -7977,6 +7977,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_units_altitude => 'גובה';
 
   @override
+  String get setup_units_distance => 'מרחק';
+
+  @override
   String get setup_units_dateFormat => 'תבנית תאריך';
 
   @override
@@ -8891,6 +8894,17 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'צלילה',
     );
     return '$count $_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total צלילות',
+      one: 'צלילה אחת',
+    );
+    return 'מסונן: סיכום של $shown מתוך $_temp0';
   }
 
   @override
@@ -20549,6 +20563,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_summary_weight => 'משקל';
 
   @override
+  String get settings_summary_altitude => 'גובה';
+
+  @override
+  String get settings_summary_distance => 'מרחק';
+
+  @override
   String get settings_units_custom => 'מותאם אישית';
 
   @override
@@ -20699,6 +20719,30 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'ליברות (lbs)';
+
+  @override
+  String get settings_units_altitude => 'גובה';
+
+  @override
+  String get settings_units_altitude_feet => 'רגל (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'מטרים (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'יחידת גובה';
+
+  @override
+  String get settings_units_distance => 'מרחק';
+
+  @override
+  String get settings_units_distance_kilometers => 'קילומטרים (km)';
+
+  @override
+  String get settings_units_distance_miles => 'מיילים (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'יחידת מרחק';
 
   @override
   String get settings_updates_automaticUpdates => 'עדכונים אוטומטיים';

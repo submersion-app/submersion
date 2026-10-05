@@ -1092,9 +1092,10 @@ class AppDatabase extends _$AppDatabase {
     // column default, so nothing it applies is lost or misread and the floor
     // stays. Inbound, the generated fromJson ignores the legacy key.
     261,
+    263,
     // v265: custom certification agencies and levels (issue #690). Two new
     // synced tables and an index, no data migration, so the floor stays.
-    // 262 to 264 are held by open branches.
+    // 262 and 264 are held by open branches.
     265,
   ];
 

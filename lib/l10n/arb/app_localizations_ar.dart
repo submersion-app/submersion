@@ -8275,6 +8275,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setup_units_altitude => 'الارتفاع';
 
   @override
+  String get setup_units_distance => 'المسافة';
+
+  @override
   String get setup_units_dateFormat => 'تنسيق التاريخ';
 
   @override
@@ -9218,6 +9221,20 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'غوصة واحدة',
     );
     return '$_temp0';
+  }
+
+  @override
+  String diveLog_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total غوصة',
+      many: '$total غوصة',
+      few: '$total غوصات',
+      two: 'غوصتين',
+      one: 'غوصة واحدة',
+    );
+    return 'مُصفّى: ملخص $shown من $_temp0';
   }
 
   @override
@@ -21270,6 +21287,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_summary_weight => 'الوزن';
 
   @override
+  String get settings_summary_altitude => 'الارتفاع';
+
+  @override
+  String get settings_summary_distance => 'المسافة';
+
+  @override
   String get settings_units_custom => 'مخصص';
 
   @override
@@ -21420,6 +21443,30 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'أرطال (lbs)';
+
+  @override
+  String get settings_units_altitude => 'الارتفاع';
+
+  @override
+  String get settings_units_altitude_feet => 'أقدام (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'أمتار (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'وحدة الارتفاع';
+
+  @override
+  String get settings_units_distance => 'المسافة';
+
+  @override
+  String get settings_units_distance_kilometers => 'كيلومترات (km)';
+
+  @override
+  String get settings_units_distance_miles => 'أميال (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'وحدة المسافة';
 
   @override
   String get settings_updates_automaticUpdates => 'التحديثات التلقائية';

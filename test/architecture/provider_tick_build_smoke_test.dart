@@ -45,6 +45,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_summary_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -455,6 +456,14 @@ void main() {
     (
       name: 'diveStatisticsProvider',
       read: (c) => c.read(diveStatisticsProvider.future),
+    ),
+    (
+      name: 'diveListScopedStatisticsProvider',
+      read: (c) => c.read(diveListScopedStatisticsProvider.future),
+    ),
+    (
+      name: 'diveListScopedRecordsProvider',
+      read: (c) => c.read(diveListScopedRecordsProvider.future),
     ),
     (name: 'divesProvider', read: (c) => c.read(divesProvider.future)),
     (
