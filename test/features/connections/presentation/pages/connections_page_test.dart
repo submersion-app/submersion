@@ -14,6 +14,7 @@ import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/entities/saved_connection_map.dart';
 import 'package:submersion/features/connections/domain/views/connection_presets.dart';
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
+import 'package:submersion/features/connections/domain/views/highlight_mode.dart';
 import 'package:submersion/features/connections/presentation/canvas/connections_painter.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/connections/presentation/pages/connections_page.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/saved_connection_maps_provider.dart';
+import 'package:submersion/features/connections/presentation/providers/year_play_provider.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -618,5 +620,56 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(budgets.toSet(), {ConnectionsPage.compactBudget});
+  });
+  testWidgets('the insight strip selects and switches to groups', (
+    tester,
+  ) async {
+    final c = await _pump(tester);
+    expect(find.byKey(const ValueKey('connections-insights')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('insight-strongestPair')));
+    await tester.pump();
+    expect(
+      c.read(connectionsSelectionProvider),
+      EdgeSelection(_b('jane'), _b('ken')),
+    );
+    await tester.ensureVisible(find.byKey(const ValueKey('insight-groups')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('insight-groups')));
+    await tester.pump();
+    expect(c.read(connectionsViewProvider).highlight, HighlightMode.groups);
+    final paint = tester.widget<CustomPaint>(
+      find.byKey(const ValueKey('connections-canvas-paint')),
+    );
+    final painter = paint.painter! as ConnectionsPainter;
+    expect(painter.highlight, HighlightMode.groups);
+    expect(painter.groupOf.length, 2);
+  });
+
+  testWidgets('the play pill sits on the canvas and a load moves play on', (
+    tester,
+  ) async {
+    final c = await _pump(
+      tester,
+      size: _phone,
+      // Like the real provider, the graph reloads when the filter changes;
+      // play waits for that reload before its next beat.
+      graph: (ref, budget) {
+        ref.watch(connectionsFilterProvider);
+        return _graph;
+      },
+    );
+    expect(find.byKey(const ValueKey('year-play-pill')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('year-play-button')));
+    await tester.pump();
+    expect(c.read(yearPlayProvider), 2019);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(YearPlayNotifier.beat);
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(
+      c.read(yearPlayProvider),
+      2020,
+      reason: 'the reload settled and the beat passed',
+    );
+    c.read(yearPlayProvider.notifier).pause();
   });
 }

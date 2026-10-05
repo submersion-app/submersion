@@ -6,6 +6,9 @@ import 'package:submersion/features/connections/data/repositories/connections_re
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/domain/insights/graph_insights.dart';
+import 'package:submersion/features/connections/domain/insights/label_propagation.dart';
+import 'package:submersion/features/connections/domain/views/highlight_mode.dart';
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
 import 'package:submersion/features/connections/presentation/canvas/connections_canvas.dart';
@@ -18,9 +21,12 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/saved_connection_maps_provider.dart';
+import 'package:submersion/features/connections/presentation/providers/year_play_provider.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_empty_state.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_legend.dart';
 import 'package:submersion/features/connections/presentation/widgets/hidden_nodes_chip.dart';
+import 'package:submersion/features/connections/presentation/widgets/insight_strip.dart';
+import 'package:submersion/features/connections/presentation/widgets/year_play_pill.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -37,6 +43,9 @@ class ConnectionsPage extends ConsumerStatefulWidget {
   @override
   ConsumerState<ConnectionsPage> createState() => _ConnectionsPageState();
 }
+
+/// Where canvas overlays start, under the insight strip.
+const double _belowStrip = InsightStrip.height + 16;
 
 class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     with SingleTickerProviderStateMixin {
@@ -70,6 +79,21 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     _localizedFrom = source;
     _localizedIn = l10n;
     return _localized = localizeGraph(source, l10n);
+  }
+
+  /// Groups and insights for the last graph and focus, so a rebuild reuses
+  /// them (label propagation runs once per laid-out graph).
+  ConnectionGraph? _storyFrom;
+  NodeRef? _storyFocus;
+  GraphGroups _groups = GraphGroups.empty;
+  List<InsightTile> _insights = const [];
+
+  void _story(ConnectionGraph graph, NodeRef? focus) {
+    if (identical(graph, _storyFrom) && focus == _storyFocus) return;
+    _storyFrom = graph;
+    _storyFocus = focus;
+    _groups = LabelPropagation.communities(graph);
+    _insights = GraphInsights.of(graph, focus: focus, groups: _groups);
   }
 
   /// The phone sheet's height as a fraction of the body; the canvas fits
@@ -256,6 +280,10 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         _warnFocusMissing();
       }
       if (!next.isLoading && next.hasValue) _dropStaleSelection(next.value!);
+      // Year play steps to the next year only once this one has loaded.
+      if (!next.isLoading) {
+        ref.read(yearPlayProvider.notifier).loadSettled(failed: next.hasError);
+      }
     });
     ref.listen<GraphSelection?>(connectionsSelectionProvider, _onSelection);
     // A saved map edited or deleted elsewhere (sync, another device) must
@@ -277,7 +305,10 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     final showCanvas =
         held != null && !view.isAroundWithoutFocus && !graph.isEmpty;
     final animate = _hadGraph && !MediaQuery.disableAnimationsOf(context);
-    if (showCanvas) _syncLayout(graph, focus, animate: animate);
+    if (showCanvas) {
+      _syncLayout(graph, focus, animate: animate);
+      _story(graph, focus);
+    }
     final reloadFailed =
         held != null &&
         graphAsync.hasError &&
@@ -326,6 +357,8 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
               semanticsLabel: _semanticsLabel(graph, selection),
               animate: animate,
               bottomInset: bottomInset,
+              highlight: view.highlight,
+              groupOf: _groups.groupOf,
               onSelect: (s) =>
                   ref.read(connectionsSelectionProvider.notifier).state = s,
               onFocus: (node) {
@@ -337,10 +370,25 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
               },
             ),
           ),
+          Positioned(
+            key: const ValueKey('connections-insights'),
+            left: 0,
+            right: 0,
+            top: 8,
+            child: InsightStrip(
+              graph: graph,
+              tiles: _insights,
+              onSelect: (s) =>
+                  ref.read(connectionsSelectionProvider.notifier).state = s,
+              onGroups: () => ref
+                  .read(connectionsViewProvider.notifier)
+                  .update((s) => s.withHighlight(HighlightMode.groups)),
+            ),
+          ),
           if (!wide)
             Positioned(
               left: 12,
-              top: 12,
+              top: _belowStrip,
               child: Card(
                 child: Padding(
                   padding: const EdgeInsets.all(8),
@@ -348,13 +396,15 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
                     kinds: kinds,
                     colors: colors,
                     showTitle: false,
+                    highlight: view.highlight,
+                    groupCount: _groups.count,
                   ),
                 ),
               ),
             ),
           Positioned(
             right: 12,
-            top: 12,
+            top: _belowStrip,
             child: HiddenNodesChip(
               count: graph.hiddenNodeCount,
               onShowAll: budget >= ConnectionsPage.maxBudget
@@ -366,7 +416,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
             Positioned(
               left: 12,
               right: 12,
-              top: 56,
+              top: _belowStrip + 44,
               child: Card(
                 key: const ValueKey('connections-reload-error'),
                 child: Padding(
@@ -384,6 +434,11 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
                 ),
               ),
             ),
+          Positioned(
+            left: 12,
+            bottom: bottomInset + 12,
+            child: const YearPlayPill(),
+          ),
           if (graphAsync.isLoading)
             Positioned(
               left: 0,
@@ -403,7 +458,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
 
     Widget panel({ScrollController? scrollController, bool compact = false}) =>
         ConnectionsPanel(
-          viewTab: ViewTab(graph: graph),
+          viewTab: ViewTab(graph: graph, groupCount: _groups.count),
           graph: graph,
           scrollController: scrollController,
           compact: compact,
