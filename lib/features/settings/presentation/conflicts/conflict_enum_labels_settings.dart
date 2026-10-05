@@ -54,6 +54,10 @@ final ConflictEnumLabeler altitudeUnitLabeler = enumLabeler(
   AltitudeUnit.values,
   (l, v) => v.symbol,
 );
+final ConflictEnumLabeler distanceUnitLabeler = enumLabeler(
+  DistanceUnit.values,
+  (l, v) => v.symbol,
+);
 
 /// A date pattern ("MM/DD/YYYY") is offered as the pattern itself.
 final ConflictEnumLabeler dateFormatLabeler = enumLabeler(
