@@ -38,8 +38,6 @@ setup wizard can set it. Manage > Units has no Altitude tile.
 - `setMetric()` / `setImperial()` set distance alongside the other units.
 - `SettingsNotifier.setDistanceUnit(DistanceUnit)` persists through the usual
   `_saveSettings()` path.
-- `distanceUnitProvider`, a `select` on `settingsProvider`, like
-  `altitudeUnitProvider`.
 - `SetupWizardDraft.applyingUnitPreset` sets distance in both presets, and
   `SetupApplyService` applies it with `setDistanceUnit`.
 

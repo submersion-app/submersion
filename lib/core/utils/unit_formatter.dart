@@ -138,10 +138,14 @@ class UnitFormatter {
           : km.round().toString();
       return '$text km';
     }
-    final feet = meters * 3.28084;
-    const feetPerMile = 5280.0;
-    if (feet < feetPerMile) return '${feet.round()} ft';
-    final miles = feet / feetPerMile;
+    final miles = DistanceUnit.kilometers.convert(
+      meters / 1000,
+      DistanceUnit.miles,
+    );
+    if (miles < 1) {
+      final feet = DepthUnit.meters.convert(meters, DepthUnit.feet);
+      return '${feet.round()} ft';
+    }
     final text = miles < 10
         ? formatFixedForDisplay(miles, 1)
         : miles.round().toString();

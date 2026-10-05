@@ -2677,10 +2677,6 @@ final altitudeUnitProvider = Provider<AltitudeUnit>((ref) {
   return ref.watch(settingsProvider.select((s) => s.altitudeUnit));
 });
 
-final distanceUnitProvider = Provider<DistanceUnit>((ref) {
-  return ref.watch(settingsProvider.select((s) => s.distanceUnit));
-});
-
 final coordinateFormatProvider = Provider<CoordinateFormat>((ref) {
   return ref.watch(settingsProvider.select((s) => s.coordinateFormat));
 });
