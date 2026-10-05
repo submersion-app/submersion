@@ -18,6 +18,9 @@ class BulkEditSnapshot {
   /// re-expanded (issue #1487).
   final Map<String, List<GearProvenance>>? priorGear;
   final Map<String, List<BuddyWithRole>>? priorBuddies;
+
+  /// Each dive's resolved diver role set before a `DiverRolesOp` (#1221).
+  final Map<String, List<String>>? priorDiverRoleIds;
   final Map<String, List<DiveTank>>? priorTanks; // Drift DiveTanks rows
 
   /// Prior tank rows captured for a `TankSpecsOp`. Restored in place by row id
@@ -34,6 +37,7 @@ class BulkEditSnapshot {
     this.priorDiveTypeIds,
     this.priorGear,
     this.priorBuddies,
+    this.priorDiverRoleIds,
     this.priorTanks,
     this.priorTankSpecRows,
     this.priorWeights,

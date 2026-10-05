@@ -26,8 +26,8 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
-import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_list_display.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/widgets/dive_role_selector_sheet.dart';
@@ -1319,13 +1319,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   final Map<String, Buddy> _buddyById = {};
 
   /// Roles the user picked in the buddy picker during this edit. Membership
-  /// alone never lands here, so an entry means "apply this role" (#893).
-  final Map<String, DiveRole> _buddyRoleById = {};
+  /// alone never lands here, so an entry means "apply these roles" (#893,
+  /// several since #1221).
+  final Map<String, List<DiveRole>> _buddyRoleById = {};
 
-  /// Role id each buddy already carries on every selected dive that has them,
-  /// so filling in the missing links reuses it instead of the default Buddy.
-  /// Buddies with a mix of roles across the selection are absent.
+  /// Role set each buddy already carries on every selected dive that has
+  /// them, so filling in the missing links reuses it instead of the default
+  /// Buddy. Buddies with a mix of sets across the selection are absent.
   final Map<String, List<String>> _existingBuddyRoleIds = {};
+
+  /// The diver's own role set every selected dive shares, or null when the
+  /// dives disagree ([_diverRolesMixed]); shown as the My role placeholder.
+  List<String>? _existingDiverRoleIds;
+  bool _diverRolesMixed = false;
   List<BulkMembershipItem> _buddyMembers = [];
   MembershipDelta _buddyDelta = MembershipDelta.empty;
 
@@ -1463,7 +1469,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       diveCenterId: _selectedDiveCenter?.id,
       tripId: _selectedTrip?.id,
       courseId: _selectedCourse?.id,
-      diverRoleId: _diverRoleIds.firstOrNull,
       rating: _rating > 0 ? _rating : null,
       isFavorite: _bulkFavorite,
       excludedFromStats: _bulkExcludedFromStats,
@@ -1552,6 +1557,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     ).joinedLocalizedNames(context.l10n);
   }
 
+  /// What the My role row says before a set is staged: Mixed when the
+  /// selected dives' sets differ, the shared set when they agree.
+  String _bulkDiverRolePlaceholder() {
+    final l10n = context.l10n;
+    if (_diverRolesMixed) return l10n.diveLog_bulkEdit_buddyRoleMixed;
+    final shared = _existingDiverRoleIds;
+    if (shared == null || shared.isEmpty) return l10n.diveLog_edit_row_notSet;
+    final rolesById =
+        ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
+    return rolesForIds(shared, rolesById).joinedLocalizedNames(l10n);
+  }
+
   Future<void> _showBulkDiverRolePicker() async {
     // Awaited rather than read off the AsyncValue: nothing here watches the
     // role list, so a plain read can hand back a still-loading empty list.
@@ -1571,27 +1588,25 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     });
   }
 
-  /// The role id to show for a buddy row, or null when the selection has no
+  /// The role ids to show for a buddy row, or null when the selection has no
   /// single answer: the buddy's links disagree across the selected dives, so
   /// [_existingBuddyRoleIds] (unanimous only) has nothing for them.
-  String? _bulkBuddyRoleId(String id) {
+  List<String>? _bulkBuddyRoleIds(String id) {
     final picked = _buddyRoleById[id];
-    if (picked != null) return picked.id;
+    if (picked != null) return [for (final r in picked) r.id];
     final existing = _existingBuddyRoleIds[id];
-    if (existing != null) return existing.first;
+    if (existing != null) return existing;
     // Not on any selected dive yet (a fresh picker add): the link the save
     // will create defaults to Buddy, so say so rather than "Mixed".
-    return (_buddyCounts[id] ?? 0) == 0 ? DiveRole.buddyId : null;
+    return (_buddyCounts[id] ?? 0) == 0 ? const [DiveRole.buddyId] : null;
   }
 
   String _bulkBuddyRoleLabel(String id) {
     final rolesById =
         ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
-    final roleId = _bulkBuddyRoleId(id);
-    if (roleId == null) return context.l10n.diveLog_bulkEdit_buddyRoleMixed;
-    return (rolesById[roleId] ?? DiveRole.synthetic(roleId)).localizedName(
-      context.l10n,
-    );
+    final roleIds = _bulkBuddyRoleIds(id);
+    if (roleIds == null) return context.l10n.diveLog_bulkEdit_buddyRoleMixed;
+    return rolesForIds(roleIds, rolesById).joinedLocalizedNames(context.l10n);
   }
 
   Future<void> _showBulkBuddyRolePicker(BulkMembershipItem item) async {
@@ -1601,18 +1616,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       context,
       title: context.l10n.buddies_picker_selectRole(item.label),
       roles: roles,
-      selectedRoleIds: [?_bulkBuddyRoleId(item.id)],
+      selectedRoleIds: _bulkBuddyRoleIds(item.id) ?? const [],
       onCreateCustomRole: (name) => ref
           .read(diveRoleListNotifierProvider.notifier)
           .addDiveRoleByName(name),
     );
-    final role = selection == null
-        ? null
-        : (selection.firstOrNull ?? DiveRole.builtInBuddy());
-    if (role == null || !mounted) return;
+    if (selection == null || !mounted) return;
     setState(() {
       _markDirty();
-      _buddyRoleById[item.id] = role;
+      _buddyRoleById[item.id] = selection.isEmpty
+          ? [DiveRole.builtInBuddy()]
+          : selection;
     });
   }
 
@@ -1729,12 +1743,21 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           counts: _buddyCounts,
           onAdd: _bulkAddBuddies,
           onChanged: (d) => setState(() => _buddyDelta = d),
-          // Each dive_buddies link carries a role, so the row needs an
-          // affordance membership alone cannot express (#1220).
-          trailingBuilder: (item) => TextButton(
-            key: ValueKey('buddy-role-${item.id}'),
-            onPressed: () => _showBulkBuddyRolePicker(item),
-            child: Text(_bulkBuddyRoleLabel(item.id)),
+          // Each dive_buddies link carries roles, so the row needs an
+          // affordance membership alone cannot express (#1220). It sits under
+          // the name, not in the trailing slot, because a set of roles can be
+          // long (#1221, as #2276 did for assembly chips).
+          detailBuilder: (item) => Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton(
+              key: ValueKey('buddy-role-${item.id}'),
+              onPressed: () => _showBulkBuddyRolePicker(item),
+              child: Text(
+                _bulkBuddyRoleLabel(item.id),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ),
         ),
         // The diver's own role is a scalar column, not a membership row, so it
@@ -1745,7 +1768,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           FormRow.picker(
             label: l10n.diveLog_bulkEdit_fieldMyRole,
             value: _bulkDiverRoleLabel(),
-            placeholder: l10n.diveLog_edit_row_notSet,
+            placeholder: _bulkDiverRolePlaceholder(),
             onTap: _showBulkDiverRolePicker,
             onClear: _diverRoleIds.isEmpty
                 ? null
@@ -1784,6 +1807,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   List<BulkCollectionOp> _collectCollectionOps() {
     final ops = <BulkCollectionOp>[];
+    if (_bulkEnabled.contains(BulkField.diverRole)) {
+      ops.add(DiverRolesOp(roleIds: _diverRoleIds));
+    }
     if (_tagDelta.addIds.isNotEmpty) {
       ops.add(TagsOp(mode: BulkCollectionMode.add, tagIds: _tagDelta.addIds));
     }
@@ -2243,7 +2269,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       return;
     }
 
-    final scalarFields = Set<BulkField>.from(_bulkEnabled);
+    // The My role gate rides DiverRolesOp (#1221), not a scalar column.
+    final scalarFields = Set<BulkField>.from(_bulkEnabled)
+      ..remove(BulkField.diverRole);
     String? notesAppend;
     if (_bulkEnabled.contains(BulkField.notes) && _bulkNotesAppend) {
       scalarFields.remove(BulkField.notes);
@@ -4209,6 +4237,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final buddyRepo = ref.read(buddyRepositoryProvider);
     final buddyCounts = await buddyRepo.buddyCountsForDives(ids);
     final buddyRoles = await buddyRepo.unanimousBuddyRolesForDives(ids);
+    final diverRoleSets = await DiveRoleLinkRepository().diverRoleIdsForDives(
+      ids,
+    );
 
     final equip = await EquipmentRepository().getEquipmentByIds(
       equipCounts.keys.toList(),
@@ -4259,6 +4290,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ),
       ]..sort(byLabel);
       _buddyCounts = buddyCounts;
+      final distinctDiverSets = {
+        for (final set in diverRoleSets.values) set.join('|'),
+      };
+      _diverRolesMixed = distinctDiverSets.length > 1;
+      _existingDiverRoleIds = _diverRolesMixed
+          ? null
+          : diverRoleSets.values.firstOrNull;
       _buddyById
         ..clear()
         ..addAll(buddyMap);
@@ -4491,7 +4529,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       final existing = _buddyMembers.map((e) => e.id).toSet();
       for (final bwr in buddies) {
         _buddyById[bwr.buddy.id] = bwr.buddy;
-        _buddyRoleById[bwr.buddy.id] = bwr.primaryRole;
+        _buddyRoleById[bwr.buddy.id] = bwr.roles;
       }
       _buddyMembers = [
         ..._buddyMembers,
@@ -4515,19 +4553,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
-    roles: [_roleForBuddy(id)],
+    roles: _rolesForBuddy(id),
   );
 
-  /// A picked role wins; otherwise reuse the role the buddy already has across
+  /// Picked roles win; otherwise reuse the set the buddy already has across
   /// the selection so a membership-only add cannot demote them to Buddy. Only
-  /// the id reaches the database, so an unresolved id stays synthetic (#893).
-  DiveRole _roleForBuddy(String id) {
+  /// the ids reach the database, so unresolved ids stay synthetic (#893).
+  List<DiveRole> _rolesForBuddy(String id) {
     final picked = _buddyRoleById[id];
     if (picked != null) return picked;
     final existing = _existingBuddyRoleIds[id];
     return existing == null
-        ? DiveRole.builtInBuddy()
-        : DiveRole.synthetic(existing.first);
+        ? [DiveRole.builtInBuddy()]
+        : [for (final r in existing) DiveRole.synthetic(r)];
   }
 
   void _saveEquipmentAsSet() {

@@ -6,6 +6,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_service.dart';
@@ -614,6 +615,73 @@ void main() {
         ),
       ),
       throwsUnsupportedError,
+    );
+  });
+
+  group('role sets (#1221)', () {
+    test(
+      'DiverRolesOp replaces the set on every dive; undo restores',
+      () async {
+        await seed('d1');
+        await seed('d2');
+        final roleLinks = DiveRoleLinkRepository();
+        await roleLinks.writeDiverRoles('d1', ['diveMaster', 'diveGuide']);
+        await roleLinks.writeDiverRoles('d2', ['instructor']);
+
+        final snap = await service.apply(
+          const BulkEditRequest(
+            diveIds: ['d1', 'd2'],
+            ops: [
+              DiverRolesOp(roleIds: ['safetyDiver', 'supportDiver']),
+            ],
+          ),
+        );
+        expect(await roleLinks.diverRoleIdsForDives(['d1', 'd2']), {
+          'd1': ['supportDiver', 'safetyDiver'],
+          'd2': ['supportDiver', 'safetyDiver'],
+        });
+
+        await service.undo(snap);
+        expect(await roleLinks.diverRoleIdsForDives(['d1', 'd2']), {
+          'd1': ['diveGuide', 'diveMaster'],
+          'd2': ['instructor'],
+        });
+      },
+    );
+
+    test(
+      'a buddy role update rewrites the set where the buddy is linked',
+      () async {
+        await seed('d1');
+        await seed('d2');
+        await seedBuddy('ana');
+        await buddyRepo.setBuddiesForDive('d1', [bwrRole('ana', 'diveMaster')]);
+
+        await service.apply(
+          BulkEditRequest(
+            diveIds: const ['d1', 'd2'],
+            ops: [
+              BuddiesOp(
+                mode: BulkCollectionMode.update,
+                buddies: [
+                  domain.BuddyWithRole(
+                    buddy: bwr('ana').buddy,
+                    roles: [
+                      DiveRole.synthetic('diveGuide'),
+                      DiveRole.synthetic('diveMaster'),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+        expect((await buddyRepo.getBuddiesForDive('d1')).single.roleIds, [
+          'diveGuide',
+          'diveMaster',
+        ]);
+        expect(await buddyRepo.getBuddiesForDive('d2'), isEmpty);
+      },
     );
   });
 }

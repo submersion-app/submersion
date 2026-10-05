@@ -271,6 +271,129 @@ void main() {
       );
     });
 
+    Future<void> pumpBulkDives(WidgetTester tester, List<String> ids) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: buildOverrides(overrides).cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DiveEditPage(bulkDiveIds: ids, embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Finder myRoleGate() => find.ancestor(
+      of: find.text('My role'),
+      matching: find.byType(BulkFieldGate),
+    );
+
+    testWidgets('the My role gate replaces the set on every dive (#1221)', (
+      tester,
+    ) async {
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(
+          id: 'my-roles-1',
+          diverRoleIds: const [DiveRole.instructorId],
+        ),
+      );
+      final d2 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'my-roles-2'),
+      );
+      await pumpBulkDives(tester, [d1.id, d2.id]);
+
+      await tester.ensureVisible(myRoleGate());
+      await tester.tap(
+        find.descendant(of: myRoleGate(), matching: find.byType(Checkbox)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(of: myRoleGate(), matching: find.byType(FormRow)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Divemaster'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Dive Guide'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Done').last);
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      for (final id in [d1.id, d2.id]) {
+        expect((await repository.getDiveById(id))!.diverRoleIds, [
+          DiveRole.diveGuideId,
+          DiveRole.diveMasterId,
+        ]);
+      }
+    });
+
+    testWidgets('My role reads Mixed when the dives\' sets differ (#1221)', (
+      tester,
+    ) async {
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(
+          id: 'mixed-roles-1',
+          diverRoleIds: const [DiveRole.instructorId],
+        ),
+      );
+      final d2 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(
+          id: 'mixed-roles-2',
+          diverRoleIds: const [DiveRole.diveGuideId, DiveRole.diveMasterId],
+        ),
+      );
+      await pumpBulkDives(tester, [d1.id, d2.id]);
+
+      await tester.ensureVisible(myRoleGate());
+      expect(
+        find.descendant(of: myRoleGate(), matching: find.text('Mixed')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('My role shows the set every dive shares (#1221)', (
+      tester,
+    ) async {
+      final ids = <String>[];
+      for (final id in ['shared-roles-1', 'shared-roles-2']) {
+        ids.add(
+          (await repository.createDive(
+            createTestDiveWithBottomTime().copyWith(
+              id: id,
+              diverRoleIds: const [DiveRole.diveGuideId, DiveRole.diveMasterId],
+            ),
+          )).id,
+        );
+      }
+      await pumpBulkDives(tester, ids);
+
+      await tester.ensureVisible(myRoleGate());
+      expect(
+        find.descendant(
+          of: myRoleGate(),
+          matching: find.text('Dive Guide, Divemaster'),
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('a buddy row shows its role and changes it on every link', (
       tester,
     ) async {

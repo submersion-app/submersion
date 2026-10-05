@@ -7,6 +7,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart' as de;
@@ -29,6 +30,7 @@ class BulkDiveEditService {
   final BuddyRepository _buddyRepo;
   final SpeciesRepository _speciesRepo;
   final _sync = SyncRepository();
+  final _roleLinks = DiveRoleLinkRepository();
 
   AppDatabase get _db => DatabaseService.instance.database;
 
@@ -49,6 +51,7 @@ class BulkDiveEditService {
     Map<String, List<String>>? priorDiveTypeIds;
     Map<String, List<GearProvenance>>? priorGear;
     Map<String, List<BuddyWithRole>>? priorBuddies;
+    Map<String, List<String>>? priorDiverRoleIds;
     Map<String, List<DiveTank>>? priorTanks;
     List<DiveTank>? priorTankSpecRows;
     Map<String, List<DiveWeight>>? priorWeights;
@@ -101,6 +104,8 @@ class BulkDiveEditService {
           priorBuddies = {
             for (final id in ids) id: await _buddyRepo.getBuddiesForDive(id),
           };
+        case DiverRolesOp():
+          priorDiverRoleIds = await _roleLinks.diverRoleIdsForDives(ids);
         case TanksOp():
           final rows = await (_db.select(
             _db.diveTanks,
@@ -153,6 +158,7 @@ class BulkDiveEditService {
       priorDiveTypeIds: priorDiveTypeIds,
       priorGear: priorGear,
       priorBuddies: priorBuddies,
+      priorDiverRoleIds: priorDiverRoleIds,
       priorTanks: priorTanks,
       priorTankSpecRows: priorTankSpecRows,
       priorWeights: priorWeights,
@@ -181,6 +187,12 @@ class BulkDiveEditService {
         );
       }
 
+      final diverRoles = snapshot.priorDiverRoleIds;
+      if (diverRoles != null) {
+        for (final id in ids) {
+          await _roleLinks.writeDiverRoles(id, diverRoles[id] ?? const []);
+        }
+      }
       final tags = snapshot.priorTagIds;
       if (tags != null) {
         for (final id in ids) {
@@ -299,6 +311,11 @@ class BulkDiveEditService {
             // that SHOULD travel with membership still rides
             // add + overwriteRole (#893).
             await _buddyRepo.bulkUpdateBuddyRoles(ids, buddies);
+        }
+      case DiverRolesOp(:final roleIds):
+        final now = DateTime.now().millisecondsSinceEpoch;
+        for (final id in ids) {
+          await _roleLinks.writeDiverRoles(id, roleIds, now: now);
         }
       // Owned collections never support remove; reject it explicitly so a
       // misconstructed op fails fast instead of silently doing an add. Tanks

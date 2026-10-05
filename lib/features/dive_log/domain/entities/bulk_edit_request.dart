@@ -56,6 +56,14 @@ class BuddiesOp extends BulkCollectionOp {
   });
 }
 
+/// The diver's own roles on every selected dive, replaced by [roleIds]
+/// (issue #1221). Replace is the only mode: the gated "My role" row sets
+/// exactly the picked set, as every gated field does.
+class DiverRolesOp extends BulkCollectionOp {
+  final List<String> roleIds;
+  const DiverRolesOp({required this.roleIds});
+}
+
 class TanksOp extends BulkCollectionOp {
   final BulkCollectionMode mode; // add | replace
   final List<DiveTank> tanks;
