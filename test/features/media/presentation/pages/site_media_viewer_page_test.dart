@@ -130,6 +130,16 @@ void main() {
     expect(find.byTooltip('Edit details'), findsOneWidget);
   });
 
+  testWidgets('Edit details opens the sheet for the current photo', (
+    tester,
+  ) async {
+    await pumpViewer(tester, initialMediaId: 'm2');
+    await tester.tap(find.byTooltip('Edit details'));
+    await tester.pumpAndSettle();
+    expect(find.text('Attachment details'), findsOneWidget);
+    expect(find.text('wall.png'), findsWidgets);
+  });
+
   testWidgets('the dive photos viewer does not', (tester) async {
     await pumpViewer(
       tester,
