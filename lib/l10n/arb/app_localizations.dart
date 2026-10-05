@@ -31450,6 +31450,12 @@ abstract class AppLocalizations {
   /// **'Not set'**
   String get settings_conflict_notSet;
 
+  /// No description provided for @settings_conflict_otherDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Other device'**
+  String get settings_conflict_otherDevice;
+
   /// No description provided for @settings_conflict_previous_tooltip.
   ///
   /// In en, this message translates to:
@@ -31707,6 +31713,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Same'**
   String get settings_conflict_same;
+
+  /// No description provided for @settings_conflict_thisDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get settings_conflict_thisDevice;
 
   /// No description provided for @settings_conflict_title.
   ///

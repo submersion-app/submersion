@@ -19672,6 +19672,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_notSet => 'Not set';
 
   @override
+  String get settings_conflict_otherDevice => 'Other device';
+
+  @override
   String get settings_conflict_previous_tooltip => 'Conflicto anterior';
 
   @override
@@ -19814,6 +19817,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_same => 'Same';
+
+  @override
+  String get settings_conflict_thisDevice => 'This device';
 
   @override
   String get settings_conflict_title => 'Resolver conflictos';
