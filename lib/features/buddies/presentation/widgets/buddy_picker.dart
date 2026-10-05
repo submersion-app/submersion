@@ -235,11 +235,13 @@ class _BuddyChip extends StatelessWidget {
       context,
       title: context.l10n.buddies_picker_selectRole(buddyWithRole.buddy.name),
       roles: roles,
-      selectedRoleId: buddyWithRole.primaryRole.id,
+      selectedRoleIds: buddyWithRole.roleIds,
       onCreateCustomRole: onCreateCustomRole,
     );
-    if (selection?.role != null) {
-      onRoleChanged(selection!.role!);
+    if (selection != null) {
+      onRoleChanged(
+        selection.isEmpty ? DiveRole.builtInBuddy() : selection.first,
+      );
     }
   }
 }
@@ -301,11 +303,11 @@ class _MeChip extends ConsumerWidget {
           context,
           title: context.l10n.buddies_picker_selectMyRole,
           roles: roles,
-          allowNone: true,
-          selectedRoleId: diverRoleId,
+          allowEmpty: true,
+          selectedRoleIds: [?diverRoleId],
         );
         if (selection != null) {
-          onChanged(selection.role?.id);
+          onChanged(selection.firstOrNull?.id);
         }
       },
     );
@@ -742,8 +744,11 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
       credentialRoleIds: _professionalRoleIds(certs),
       onCreateCustomRole: _createCustomRole,
     );
-    if (selection?.role != null) {
-      _addBuddy(buddy, selection!.role!);
+    if (selection != null) {
+      _addBuddy(
+        buddy,
+        selection.isEmpty ? DiveRole.builtInBuddy() : selection.first,
+      );
     }
   }
 

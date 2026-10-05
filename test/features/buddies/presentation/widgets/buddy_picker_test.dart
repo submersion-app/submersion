@@ -305,8 +305,10 @@ void main() {
       await tester.tap(find.text('Alice Smith'));
       await tester.pumpAndSettle();
 
-      // Select "Instructor" role
+      // Tick "Instructor" and confirm the role sheet
       await tester.tap(find.text('Instructor'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Done').last);
       await tester.pumpAndSettle();
 
       // Alice should now be selected (check icon visible)
@@ -496,6 +498,8 @@ void main() {
       await tester.tap(find.text('Alice Smith'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Instructor'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Done').last);
       await tester.pumpAndSettle();
 
       // Tap "Done" -- it's the TextButton in the sheet header. The sheet

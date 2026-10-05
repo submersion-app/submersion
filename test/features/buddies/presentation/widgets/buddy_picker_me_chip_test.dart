@@ -132,6 +132,8 @@ void main() {
 
     await tester.tap(find.text('Rear Guard'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
 
     expect(changed, DiveRole.rearGuardId);
   });
@@ -153,6 +155,8 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('No role'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
 
     expect(changed, isNull);

@@ -193,14 +193,17 @@ void main() {
       final instructorCenter = tester.getCenter(find.text('Instructor')).dy;
       expect(buddyCenter, lessThan(instructorCenter));
 
-      // Buddy row (no professional cert) uses the default person icon.
+      // Buddy row (no professional cert) carries no credential badge.
       final buddyTile = find.ancestor(
         of: find.text('Buddy'),
-        matching: find.byType(ListTile),
+        matching: find.byType(CheckboxListTile),
       );
       expect(
-        find.descendant(of: buddyTile, matching: find.byIcon(Icons.person)),
-        findsOneWidget,
+        find.descendant(
+          of: buddyTile,
+          matching: find.byIcon(Icons.workspace_premium),
+        ),
+        findsNothing,
       );
     });
   });

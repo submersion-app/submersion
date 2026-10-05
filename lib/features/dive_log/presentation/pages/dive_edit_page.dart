@@ -1558,13 +1558,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       context,
       title: context.l10n.buddies_picker_selectMyRole,
       roles: roles,
-      allowNone: true,
-      selectedRoleId: _diverRoleId,
+      allowEmpty: true,
+      selectedRoleIds: [?_diverRoleId],
     );
     if (selection == null || !mounted) return;
     setState(() {
       _markDirty();
-      _diverRoleId = selection.role?.id;
+      _diverRoleId = selection.firstOrNull?.id;
     });
   }
 
@@ -1598,12 +1598,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       context,
       title: context.l10n.buddies_picker_selectRole(item.label),
       roles: roles,
-      selectedRoleId: _bulkBuddyRoleId(item.id),
+      selectedRoleIds: [?_bulkBuddyRoleId(item.id)],
       onCreateCustomRole: (name) => ref
           .read(diveRoleListNotifierProvider.notifier)
           .addDiveRoleByName(name),
     );
-    final role = selection?.role;
+    final role = selection == null
+        ? null
+        : (selection.firstOrNull ?? DiveRole.builtInBuddy());
     if (role == null || !mounted) return;
     setState(() {
       _markDirty();

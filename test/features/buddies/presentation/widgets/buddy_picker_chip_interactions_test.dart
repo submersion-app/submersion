@@ -98,7 +98,11 @@ void main() {
     await tester.tap(find.text('Alice'));
     await tester.pumpAndSettle();
 
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'Buddy'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Rear Guard'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
 
     expect(changed, isNotNull);
@@ -149,6 +153,10 @@ void main() {
     await tester.tap(
       find.descendant(of: find.byType(AlertDialog), matching: find.text('Add')),
     );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'Buddy'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
 
     expect(changed, isNotNull);
@@ -242,6 +250,10 @@ void main() {
     await tester.tap(
       find.descendant(of: find.byType(AlertDialog), matching: find.text('Add')),
     );
+    await tester.pumpAndSettle();
+
+    // The role sheet's Done adds Alice with the custom role ticked.
+    await tester.tap(find.text('Done').last);
     await tester.pumpAndSettle();
 
     // Alice is now selected with the custom role; Done returns the list.

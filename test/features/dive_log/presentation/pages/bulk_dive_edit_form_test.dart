@@ -23,6 +23,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/role_sheet.dart';
 
 void main() {
   group('DiveEditPage bulk mode', () {
@@ -184,8 +185,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Role selector: pick Instructor instead of the default Buddy role.
-        await tester.tap(find.text('Instructor'));
-        await tester.pumpAndSettle();
+        await pickOnlyRole(tester, 'Instructor');
 
         await tester.tap(find.text('Done'));
         await tester.pumpAndSettle();
@@ -253,8 +253,7 @@ void main() {
         find.descendant(of: roleGate, matching: find.byType(FormRow)),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Instructor'));
-      await tester.pumpAndSettle();
+      await pickOnlyRole(tester, 'Instructor');
 
       await tester.ensureVisible(find.text('Save'));
       await tester.tap(find.text('Save'));
@@ -329,8 +328,7 @@ void main() {
 
       await tester.tap(roleButton);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Instructor'));
-      await tester.pumpAndSettle();
+      await pickOnlyRole(tester, 'Instructor');
       expect(
         find.descendant(of: roleButton, matching: find.text('Instructor')),
         findsOneWidget,
@@ -399,8 +397,7 @@ void main() {
       await tester.ensureVisible(roleButton);
       await tester.tap(roleButton);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Instructor'));
-      await tester.pumpAndSettle();
+      await pickOnlyRole(tester, 'Instructor');
 
       await tester.ensureVisible(find.text('Save'));
       await tester.tap(find.text('Save'));
@@ -485,8 +482,7 @@ void main() {
       await tester.tap(find.text(buddy.name).last);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Instructor'));
-      await tester.pumpAndSettle();
+      await pickOnlyRole(tester, 'Instructor');
       await tester.tap(find.text('Done'));
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, 'Add').last);
