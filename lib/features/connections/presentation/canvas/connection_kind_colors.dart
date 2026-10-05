@@ -15,13 +15,20 @@ class ConnectionKindColors {
     final theme = Theme.of(context);
     final palette = FeatureAccentColors.resolve(theme);
     final fallback = palette.of('connections') ?? theme.colorScheme.primary;
-    return ConnectionKindColors({
-      for (final kind in ConnectionKind.values)
-        if (kind.accentFeatureId != null &&
-            palette.of(kind.accentFeatureId!) != null)
-          kind: palette.of(kind.accentFeatureId!)!,
-    }, fallback);
+    return ConnectionKindColors.fromPalette(palette, fallback);
   }
+
+  /// The kind colours [palette] gives, for a surface that is not the current
+  /// theme (the share image always uses the dark palette).
+  factory ConnectionKindColors.fromPalette(
+    FeatureAccentColors palette,
+    Color fallback,
+  ) => ConnectionKindColors({
+    for (final kind in ConnectionKind.values)
+      if (kind.accentFeatureId != null &&
+          palette.of(kind.accentFeatureId!) != null)
+        kind: palette.of(kind.accentFeatureId!)!,
+  }, fallback);
 
   Color colorFor(ConnectionKind kind) => _colors[kind] ?? fallback;
 }

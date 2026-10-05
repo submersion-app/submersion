@@ -247,7 +247,7 @@ extension BuddyMigrations on AppDatabase {
   /// v103 backstop: the dive_roles table, its built-in seed and the
   /// dives.diver_role column (all DDL idempotent). The seed is guarded on
   /// the divers FK parent existing, which only matters for minimal
-  /// test-fixture databases. Moved here from beforeOpen beside the v264
+  /// test-fixture databases. Moved here from beforeOpen beside the v267
   /// role junctions.
   Future<void> _assertDiveRoleVocabularySchema() async {
     await Migrator(this).createTable(diveRoles);
@@ -263,9 +263,9 @@ extension BuddyMigrations on AppDatabase {
     }
   }
 
-  /// v264: the role junctions (issue #1221). Table-only, no backfill: an
+  /// v267: the role junctions (issue #1221). Table-only, no backfill: an
   /// existing dive resolves to its scalar role (DiveRoleSet.resolve), so no
-  /// row is minted per device. Idempotent; called from the v264 rung and the
+  /// row is minted per device. Idempotent; called from the v267 rung and the
   /// beforeOpen backstop. Skipped on a partial fixture without parents.
   Future<void> _assertDiveRoleLinkSchema() async {
     for (final parent in const ['dives', 'buddies']) {

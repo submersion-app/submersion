@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/services/ccr_gas_schedule.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart'
     as divers;
@@ -145,6 +146,56 @@ void main() {
         ],
       );
       expect(resolveCcrDiluentMix(dive).o2, 18);
+    });
+
+    test('skips an untagged pure-O2 tank in the positional fallback', () {
+      // File imports leave the O2 supply untagged (back gas); taking it as
+      // the diluent would load the loop with no inert gas at all.
+      final dive = makeDive(
+        tanks: const [
+          DiveTank(id: 'o2', gasMix: GasMix(o2: 100)),
+          DiveTank(id: 'dil', gasMix: GasMix(o2: 21, he: 35)),
+        ],
+      );
+      expect(resolveCcrDiluentMix(dive).he, 35);
+    });
+
+    test('resolves from the analysed computer tanks when given', () {
+      final dive = makeDive(
+        tanks: [
+          tank(const GasMix(o2: 10, he: 50), TankRole.diluent),
+          const DiveTank(
+            id: 'mine',
+            gasMix: GasMix(o2: 21, he: 35),
+            role: TankRole.diluent,
+          ),
+        ],
+      );
+      expect(resolveCcrDiluentMix(dive, tanks: [dive.tanks[1]]).he, 35);
+    });
+
+    test('prefers an untagged diluent over a tagged open-circuit cylinder', () {
+      // The switch classifier reads Deco/Stage as open circuit and an
+      // untagged cylinder as the diluent; the seed must agree with it.
+      final dive = makeDive(
+        tanks: [
+          tank(const GasMix(o2: 50), TankRole.deco),
+          const DiveTank(id: 'dil', gasMix: GasMix(o2: 21, he: 35)),
+        ],
+      );
+      expect(resolveCcrDiluentMix(dive).he, 35);
+    });
+
+    test('falls back to a tagged open-circuit cylinder when no diluent is '
+        'known, skipping the O2 supply and bailouts', () {
+      final dive = makeDive(
+        tanks: [
+          tank(const GasMix(o2: 100), TankRole.oxygenSupply),
+          tank(const GasMix(o2: 21, he: 35), TankRole.bailout),
+          tank(const GasMix(o2: 50), TankRole.deco),
+        ],
+      );
+      expect(resolveCcrDiluentMix(dive).o2, 50);
     });
 
     test('defaults to air with no usable tanks', () {
@@ -1421,5 +1472,82 @@ void main() {
         expect(ccr!.ttsCurve![3], greaterThan(legacy!.ttsCurve![3]));
       },
     );
+  });
+
+  group('buildAvailableGases forCcrBailout', () {
+    final dive = makeDive(
+      diveMode: DiveMode.ccr,
+      tanks: const [
+        DiveTank(id: 'dil', gasMix: GasMix(), role: TankRole.diluent),
+        DiveTank(
+          id: 'o2',
+          gasMix: GasMix(o2: 100),
+          role: TankRole.oxygenSupply,
+        ),
+        DiveTank(
+          id: 'bail',
+          gasMix: GasMix(o2: 21, he: 35),
+          role: TankRole.bailout,
+        ),
+        DiveTank(id: 'deco', gasMix: GasMix(o2: 50), role: TankRole.deco),
+      ],
+    );
+
+    for (final gasSet in AscentGasSet.values) {
+      test('drops the diluent but keeps the O2 supply (${gasSet.name})', () {
+        final gases = buildAvailableGases(
+          dive,
+          maxPpO2: 1.6,
+          gasSet: gasSet,
+          forCcrBailout: true,
+        );
+        expect(gases.map((g) => g.fO2), [
+          closeTo(1.0, 1e-9),
+          closeTo(0.21, 1e-9),
+          closeTo(0.5, 1e-9),
+        ]);
+      });
+    }
+
+    test('uses only the given tanks', () {
+      final gases = buildAvailableGases(
+        dive,
+        maxPpO2: 1.6,
+        gasSet: AscentGasSet.allCarried,
+        forCcrBailout: true,
+        tanks: [dive.tanks[2]],
+      );
+      expect(gases.map((g) => g.fO2), [closeTo(0.21, 1e-9)]);
+    });
+
+    // An untagged (back gas) cylinder is read the way the CCR switch
+    // classifier reads it: pure O2 is the O2 supply, anything else the
+    // diluent.
+    final untaggedDive = makeDive(
+      diveMode: DiveMode.ccr,
+      tanks: const [
+        DiveTank(id: 'dil', gasMix: GasMix(o2: 32)),
+        DiveTank(id: 'o2', gasMix: GasMix(o2: 100)),
+        DiveTank(
+          id: 'bail',
+          gasMix: GasMix(o2: 21, he: 35),
+          role: TankRole.bailout,
+        ),
+      ],
+    );
+    for (final gasSet in AscentGasSet.values) {
+      test('reads untagged cylinders as the CCR roles (${gasSet.name})', () {
+        final gases = buildAvailableGases(
+          untaggedDive,
+          maxPpO2: 1.6,
+          gasSet: gasSet,
+          forCcrBailout: true,
+        );
+        expect(gases.map((g) => g.fO2), [
+          closeTo(1.0, 1e-9),
+          closeTo(0.21, 1e-9),
+        ]);
+      });
+    }
   });
 }

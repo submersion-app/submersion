@@ -15,6 +15,7 @@ void main() {
         SiteDetailSectionId.diveStatistics,
         SiteDetailSectionId.description,
         SiteDetailSectionId.location,
+        SiteDetailSectionId.seascape,
         SiteDetailSectionId.depth,
         SiteDetailSectionId.altitude,
         SiteDetailSectionId.features,
@@ -42,6 +43,7 @@ void main() {
           SiteDetailSectionId.diveStatistics: 'Dives at this Site',
           SiteDetailSectionId.description: 'Description',
           SiteDetailSectionId.location: 'Location',
+          SiteDetailSectionId.seascape: 'Site Seascape',
           SiteDetailSectionId.depth: 'Depth Range',
           SiteDetailSectionId.altitude: 'Altitude',
           SiteDetailSectionId.features: 'Features',
@@ -187,6 +189,44 @@ void main() {
         ids.indexOf(SiteDetailSectionId.altitude),
         ids.indexOf(SiteDetailSectionId.depth) + 1,
       );
+    });
+
+    test('an order saved before the seascape card existed gains it, '
+        'visible, right after Location', () {
+      // Every card a v1.8.1 diver could have saved, rearranged, with
+      // Location moved to the top and Notes hidden.
+      final saved = [
+        const SiteDetailSectionConfig(
+          id: SiteDetailSectionId.location,
+          visible: true,
+        ),
+        for (final id in SiteDetailSectionId.values.reversed)
+          if (id != SiteDetailSectionId.location &&
+              id != SiteDetailSectionId.seascape)
+            SiteDetailSectionConfig(
+              id: id,
+              visible: id != SiteDetailSectionId.notes,
+            ),
+      ];
+      final result = SiteDetailSectionConfig.sectionsFromJson(
+        SiteDetailSectionConfig.sectionsToJson(saved),
+      );
+      final ids = _ids(result);
+
+      expect(ids.take(2), [
+        SiteDetailSectionId.location,
+        SiteDetailSectionId.seascape,
+      ]);
+      expect(
+        result.firstWhere((s) => s.id == SiteDetailSectionId.seascape).visible,
+        isTrue,
+      );
+      // The diver's own choices survive the insertion.
+      expect(
+        result.firstWhere((s) => s.id == SiteDetailSectionId.notes).visible,
+        isFalse,
+      );
+      expect(ids.last, SiteDetailSectionId.diveStatistics);
     });
 
     test('moveRenderedSection leaves unrendered cards in place', () {

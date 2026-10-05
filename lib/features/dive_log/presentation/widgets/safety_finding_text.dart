@@ -39,6 +39,14 @@ String safetyFindingTitle(
       // localized template owns every word; no baked-in English "GF" token.
       '${units.settings.gfHigh}%',
     ),
+    // A switch late by time alone can cost no deco; "added 0s of deco"
+    // would contradict itself.
+    SafetyRuleId.lateGasSwitch =>
+      value != null && value.round() == 0
+          ? l10n.safetyReview_lateGasSwitch_noCost_title
+          : l10n.safetyReview_lateGasSwitch_title(
+              value == null ? unknown : _formatSeconds(value.round()),
+            ),
   };
 }
 
@@ -56,6 +64,7 @@ String safetyRuleLabel(SafetyRuleId rule, AppLocalizations l10n) {
       l10n.safetySettings_rule_omittedSafetyStop,
     SafetyRuleId.sawtoothProfile => l10n.safetySettings_rule_sawtoothProfile,
     SafetyRuleId.highSurfaceGf => l10n.safetySettings_rule_highSurfaceGf,
+    SafetyRuleId.lateGasSwitch => l10n.safetySettings_rule_lateGasSwitch,
   };
 }
 

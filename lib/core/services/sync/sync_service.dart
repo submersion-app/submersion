@@ -13,6 +13,7 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
+import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/media_resolution_hints.dart';
@@ -423,7 +424,12 @@ class SyncService {
     for (final record in conflictRecords) {
       if (record.conflictData != null) {
         try {
-          final remoteData = _parseConflictData(record.conflictData!);
+          // A conflict stored before a column became device-local may still
+          // carry it; fetchRecord strips the local side the same way.
+          final remoteData = withoutDeviceLocalColumns(
+            record.entityType,
+            _parseConflictData(record.conflictData!),
+          );
           final localData = await _serializer.fetchRecord(
             record.entityType,
             record.recordId,
@@ -2366,6 +2372,10 @@ class SyncService {
             );
             continue;
           }
+          // A device-local settings key never syncs (issue #2947), so a
+          // peer's tombstone for one neither deletes this device's value nor
+          // raises a conflict, as the merge treats a live copy.
+          if (isDeviceLocalRecord(entityType, recordId)) continue;
           if (pendingByEntity[entityType]?.contains(recordId) == true) {
             continue;
           }
@@ -3108,6 +3118,11 @@ class SyncService {
           continue;
         }
 
+        // A device-local settings key never syncs (issue #2947). A peer on
+        // an older build may still send one; it neither applies nor raises
+        // a conflict for a value that stays on each device.
+        if (isDeviceLocalRecord(entityType, recordId)) continue;
+
         // A locally pending row used to skip the peer's copy outright, and
         // the changeset cursor still advanced past it, so the peer's update
         // was lost for good: a newer edit made elsewhere never landed here,
@@ -3142,7 +3157,7 @@ class SyncService {
         // or resurrect an orphan. A NOT NULL (cascade) child is skipped; a
         // nullable (set-null) reference is cleared so the row survives detached
         // (e.g. a photo whose dive was deleted keeps the photo, sans dive link).
-        var recordToApply = _withoutDeviceLocalFields(entityType, record);
+        var recordToApply = withoutDeviceLocalColumns(entityType, record);
         var droppedByParent = false;
         for (final ref in entityParentRefs) {
           final parentId = record[ref.field];
@@ -3517,20 +3532,6 @@ class SyncService {
     );
   }
 
-  /// BLE identifiers are host-specific and must never cross the sync boundary.
-  static Map<String, dynamic> _withoutDeviceLocalFields(
-    String entityType,
-    Map<String, dynamic> data,
-  ) {
-    if (entityType != 'diveComputers' ||
-        !data.containsKey('bluetoothAddress')) {
-      return data;
-    }
-    final copy = Map<String, dynamic>.from(data);
-    copy.remove('bluetoothAddress');
-    return copy;
-  }
-
   Future<Map<String, Set<String>>> _pendingRecordMap() async {
     final records = await _syncRepository.getPendingRecords();
     final map = <String, Set<String>>{};
@@ -3750,7 +3751,7 @@ class SyncService {
       return;
     }
 
-    final remoteData = _withoutDeviceLocalFields(
+    final remoteData = withoutDeviceLocalColumns(
       entityType,
       _parseConflictData(match.conflictData!),
     );
@@ -3816,17 +3817,8 @@ class SyncService {
         break;
 
       case ConflictResolution.keepBoth:
-        if (isDeletion) {
-          await _syncRepository.clearConflict(
-            entityType: entityType,
-            recordId: recordId,
-          );
-          await _markPendingForConflict(entityType, recordId);
-          break;
-        }
-        final newId = _duplicateId(entityType, remoteData);
-        if (newId != null) {
-          remoteData['id'] = newId;
+        if (keepBothMakesCopy(entityType, remoteData)) {
+          remoteData['id'] = _uuid.v4();
           await _serializer.upsertRecord(entityType, remoteData);
           await _serializer.alignLinkedRouteOwners();
         }
@@ -3853,11 +3845,18 @@ class SyncService {
     );
   }
 
-  String? _duplicateId(String entityType, Map<String, dynamic> record) {
-    if (entityType == 'settings') return null;
-    if (record['id'] == null) return null;
-    return _uuid.v4();
-  }
+  /// Whether resolving with [ConflictResolution.keepBoth] copies the remote
+  /// row under a new id. It cannot for a deletion, for a row with no `id` of
+  /// its own (a composite-key junction) or for `settings`; there Keep both
+  /// keeps the local row only. The conflict dialog reads this to decide
+  /// whether to offer Keep both, so the offer and the outcome cannot drift.
+  static bool keepBothMakesCopy(
+    String entityType,
+    Map<String, dynamic> remoteData,
+  ) =>
+      entityType != 'settings' &&
+      remoteData['_deleted'] != true &&
+      remoteData['id'] != null;
 
   /// Reset sync state (for debugging or account changes).
   ///
@@ -4740,6 +4739,24 @@ class SyncService {
   /// record id is skipped exactly as the in-memory path does. Enforced by
   /// sync_adopt_streaming_parity_test.dart.
   Future<void> _adoptApplyStreaming({
+    required List<String> baseFilePaths,
+    required List<int> baseExportedAt,
+    required List<SyncPayload> changesets,
+  }) async {
+    try {
+      await _adoptApplyStreamingRows(
+        baseFilePaths: baseFilePaths,
+        baseExportedAt: baseExportedAt,
+        changesets: changesets,
+      );
+    } finally {
+      // The device-local values the table clears remembered belong to this
+      // adopt's refill only (issue #2947).
+      _serializer.endAdoptRefill();
+    }
+  }
+
+  Future<void> _adoptApplyStreamingRows({
     required List<String> baseFilePaths,
     required List<int> baseExportedAt,
     required List<SyncPayload> changesets,

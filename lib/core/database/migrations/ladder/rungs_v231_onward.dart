@@ -211,12 +211,18 @@ extension RungsFromV231 on AppDatabase {
       await _assertDistanceUnitColumn();
     }
     if (from < 263) await reportProgress();
-    // v264: the role junctions (issue #1221), several roles per person on a
-    // dive. Table-only rung, no backfill; re-asserted in beforeOpen. 262 is held
-    // by an open branch (#2991).
+    // v264: diver_settings.default_show_late_gas_switches (issue #2939).
+    // Column only, defaulting on. Re-asserted in beforeOpen.
     if (from < 264) {
-      await _assertDiveRoleLinkSchema();
+      await _assertLateGasSwitchSettingColumn();
     }
     if (from < 264) await reportProgress();
+    // v267: the role junctions (issue #1221), several roles per person on a
+    // dive. Table-only rung, no backfill; re-asserted in beforeOpen. 265 and
+    // 266 are held by open branches (#3011, #3001), 262 by #2991.
+    if (from < 267) {
+      await _assertDiveRoleLinkSchema();
+    }
+    if (from < 267) await reportProgress();
   }
 }

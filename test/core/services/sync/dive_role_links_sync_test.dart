@@ -6,7 +6,7 @@ import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_
 import '../../../helpers/test_database.dart';
 
 /// Sync of the role junctions `dive_diver_roles` and `dive_buddy_roles`
-/// (v262, issue #1221).
+/// (v267, issue #1221).
 void main() {
   late AppDatabase db;
   late SyncDataSerializer serializer;

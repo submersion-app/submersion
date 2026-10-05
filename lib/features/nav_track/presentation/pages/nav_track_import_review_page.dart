@@ -8,7 +8,7 @@ import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';

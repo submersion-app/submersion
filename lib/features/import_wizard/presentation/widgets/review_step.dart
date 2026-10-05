@@ -6,6 +6,7 @@ import 'package:submersion/features/import_wizard/domain/models/duplicate_action
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/entity_review_list.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/import_source_card.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/planned_dive_picker_sheet.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -18,9 +19,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The review step of the import wizard.
 ///
-/// Always renders a [TabBar] with one tab per entity type, each with a count
-/// badge. A bottom bar shows aggregate counts and an "Import Selected" button
-/// that calls [onImport].
+/// An [ImportSourceCard] at the top names where the import came from (issue
+/// #161). Below it, always renders a [TabBar] with one tab per entity type,
+/// each with a count badge. A bottom bar shows aggregate counts and an
+/// "Import Selected" button that calls [onImport].
 class ReviewStep extends ConsumerWidget {
   /// Fired when the user taps "Import Selected".
   final VoidCallback onImport;
@@ -265,94 +267,107 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
 
     return DefaultTabController(
       length: widget.types.length,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Builder(
-            builder: (context) {
-              final tabController = DefaultTabController.of(context);
-              return ListenableBuilder(
-                listenable: tabController,
-                builder: (context, _) {
-                  final showOptionsButton =
-                      hasDives &&
-                      (widget.types.length == 1 ||
-                          tabController.index ==
-                              widget.types.indexOf(ImportEntityType.dives));
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: TabBar(
-                          labelPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                          ),
-                          indicatorWeight: 3,
-                          indicatorSize: TabBarIndicatorSize.label,
-                          indicatorColor: colorScheme.primary,
-                          labelColor: colorScheme.primary,
-                          unselectedLabelColor: colorScheme.onSurfaceVariant,
-                          labelStyle: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                          unselectedLabelStyle: theme.textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w500),
-                          tabs: [
-                            for (final type in widget.types)
-                              Tab(
-                                height: 36,
-                                text: _tabLabel(
-                                  type,
-                                  widget.bundle.groups[type]!.items.length,
+      child: LayoutBuilder(
+        builder: (context, constraints) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // The card takes fixed height from the list below it, so a step
+            // too short to spare it (a landscape phone) goes without; the
+            // AppBar still names the source (issue #161).
+            if (constraints.maxHeight >=
+                MediaQuery.textScalerOf(context).scale(_minHeightForSourceCard))
+              ImportSourceCard(source: widget.bundle.source),
+            Builder(
+              builder: (context) {
+                final tabController = DefaultTabController.of(context);
+                return ListenableBuilder(
+                  listenable: tabController,
+                  builder: (context, _) {
+                    final showOptionsButton =
+                        hasDives &&
+                        (widget.types.length == 1 ||
+                            tabController.index ==
+                                widget.types.indexOf(ImportEntityType.dives));
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: TabBar(
+                            labelPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                            ),
+                            indicatorWeight: 3,
+                            indicatorSize: TabBarIndicatorSize.label,
+                            indicatorColor: colorScheme.primary,
+                            labelColor: colorScheme.primary,
+                            unselectedLabelColor: colorScheme.onSurfaceVariant,
+                            labelStyle: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                            unselectedLabelStyle: theme.textTheme.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w500),
+                            tabs: [
+                              for (final type in widget.types)
+                                Tab(
+                                  height: 36,
+                                  text: _tabLabel(
+                                    type,
+                                    widget.bundle.groups[type]!.items.length,
+                                  ),
                                 ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      if (showOptionsButton)
-                        TextButton.icon(
-                          icon: const Icon(Icons.tune, size: 18),
-                          label: Text(
-                            context.l10n.universalImport_label_options,
+                            ],
                           ),
-                          onPressed: () => _showImportOptions(context),
                         ),
-                    ],
-                  );
-                },
-              );
-            },
-          ),
-          Expanded(
-            child: TabBarView(
-              children: [
-                for (final type in widget.types)
-                  _EntityTab(
-                    type: type,
-                    scrollController: _scrollControllerFor(type),
-                    bundle: widget.bundle,
-                    state: widget.state,
-                    notifier: widget.notifier,
-                    projectedDiveNumbers: type == ImportEntityType.dives
-                        ? widget.projectedDiveNumbers
-                        : null,
-                  ),
-              ],
+                        if (showOptionsButton)
+                          TextButton.icon(
+                            icon: const Icon(Icons.tune, size: 18),
+                            label: Text(
+                              context.l10n.universalImport_label_options,
+                            ),
+                            onPressed: () => _showImportOptions(context),
+                          ),
+                      ],
+                    );
+                  },
+                );
+              },
             ),
-          ),
-          Builder(
-            builder: (ctx) => _BottomBar(
-              counts: widget.counts,
-              onImport: widget.onImport,
-              onBack: widget.onBack,
-              hasPendingReviews: widget.state.hasPendingReviews,
-              totalPending: widget.state.totalPending,
-              onReviewPending: () => _revealPending(ctx),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  for (final type in widget.types)
+                    _EntityTab(
+                      type: type,
+                      scrollController: _scrollControllerFor(type),
+                      bundle: widget.bundle,
+                      state: widget.state,
+                      notifier: widget.notifier,
+                      projectedDiveNumbers: type == ImportEntityType.dives
+                          ? widget.projectedDiveNumbers
+                          : null,
+                    ),
+                ],
+              ),
             ),
-          ),
-        ],
+            Builder(
+              builder: (ctx) => _BottomBar(
+                counts: widget.counts,
+                onImport: widget.onImport,
+                onBack: widget.onBack,
+                hasPendingReviews: widget.state.hasPendingReviews,
+                totalPending: widget.state.totalPending,
+                onReviewPending: () => _revealPending(ctx),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+
+  /// The Review step height, at 1x text, below which the source card is
+  /// left out. The tab row, bottom bar and card together take about 200 at
+  /// 1x; this keeps room for at least a row of the list beside them.
+  static const _minHeightForSourceCard = 320.0;
 
   String _tabLabel(ImportEntityType type, int count) {
     return '${_typeDisplayName(type)} ($count)';

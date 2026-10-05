@@ -134,6 +134,65 @@ void main() {
       expect(sourceInfo.cnsActual, MetricDataSource.computer);
     });
 
+    // Issue #2545: an OSTC logs CNS only on every Nth sample, and the native
+    // download stores the samples in between with a null CNS. The curve must
+    // hold the last computer reading rather than fall back to the calculated
+    // value between readings.
+    test('cnsSource: computer holds the last reading between sparse '
+        'computer CNS samples', () {
+      const firstReading = 20;
+      const divisor = 6;
+      final sparse = <DiveProfilePoint>[
+        for (int i = 0; i < baseProfile.length; i++)
+          i >= firstReading && (i - firstReading) % divisor == 0
+              // Far from any calculated value, so a fallback is unmistakable.
+              ? baseProfile[i].copyWith(cns: 80.0 + i / 100)
+              : baseProfile[i],
+      ];
+
+      final (result, sourceInfo) = overlayComputerDecoData(
+        baseAnalysis,
+        sparse,
+        cnsSource: MetricDataSource.computer,
+      );
+
+      final curve = result.cnsCurve!;
+      for (int i = 0; i < firstReading; i++) {
+        expect(
+          curve[i],
+          closeTo(baseAnalysis.cnsCurve![i], 0.001),
+          reason: 'before the first reading the calculated value stands in',
+        );
+      }
+      double? held;
+      for (int i = firstReading; i < sparse.length; i++) {
+        held = sparse[i].cns ?? held;
+        expect(
+          curve[i],
+          held,
+          reason: 'sample $i must hold the last computer reading',
+        );
+      }
+      expect(sourceInfo.cnsActual, MetricDataSource.computer);
+    });
+
+    test('cnsSource: computer with a single header CNS reading keeps the '
+        'calculated curve', () {
+      final headerOnly = [
+        baseProfile.first.copyWith(cns: 12.0),
+        ...baseProfile.skip(1),
+      ];
+
+      final (result, sourceInfo) = overlayComputerDecoData(
+        baseAnalysis,
+        headerOnly,
+        cnsSource: MetricDataSource.computer,
+      );
+
+      expect(result.cnsCurve, baseAnalysis.cnsCurve);
+      expect(sourceInfo.cnsActual, MetricDataSource.calculated);
+    });
+
     test('defaults to calculated for all metrics', () {
       final profileWithCns = <DiveProfilePoint>[];
       for (int i = 0; i < baseProfile.length; i++) {

@@ -251,6 +251,7 @@ void main() {
           showMaxDepthMarker: false,
           showPressureMarkers: false,
           showGasSwitchMarkers: false,
+          showLateGasSwitches: false,
           showPhotoMarkers: false,
         );
         expect(isolatedState.activeSecondaryCount, 1);
@@ -263,6 +264,7 @@ void main() {
           showMaxDepthMarker: false,
           showPressureMarkers: false,
           showGasSwitchMarkers: false,
+          showLateGasSwitches: false,
           showPhotoMarkers: false,
           showCeiling: false,
           showDecoStops: false,
@@ -405,6 +407,7 @@ void main() {
         showMaxDepthMarker: false,
         showPressureMarkers: false,
         showGasSwitchMarkers: false,
+        showLateGasSwitches: false,
         showPhotoMarkers: false,
       );
       expect(state.activeSecondaryCount, 1);

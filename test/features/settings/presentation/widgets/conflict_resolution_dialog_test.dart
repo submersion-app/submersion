@@ -9,23 +9,35 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
-/// Widget coverage for the Resolve Conflicts dialog's data preview (#1031).
-/// Junction and relation entities carry nothing but foreign keys, so the
-/// preview has to lead with the resolved references; showing raw UUIDs and an
-/// epoch timestamp gives the user nothing to decide with.
+/// Widget coverage for the Resolve Conflicts dialog (#1031, #694): it names
+/// both devices, lists every field the versions disagree on, and says what
+/// each choice keeps and discards.
 void main() {
   final diveDate = DateTime(2026, 3, 28, 10, 0);
 
-  Future<void> pumpDialog(WidgetTester tester, SyncConflict conflict) async {
+  Future<void> pumpDialog(
+    WidgetTester tester,
+    SyncConflict conflict, {
+    Size size = const Size(600, 1200),
+  }) async {
     final base = await getBaseOverrides();
-    await tester.binding.setSurfaceSize(const Size(600, 1200));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    // The view, not the surface: MediaQuery reads the view's size, and the
+    // dialog chooses full screen from MediaQuery.
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = size;
+    addTearDown(tester.view.reset);
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           ...base,
           conflictsProvider.overrideWith((ref) async => [conflict]),
+          peerDeviceNamesProvider.overrideWith(
+            (ref) => Stream.value(const {'peer-id': 'Windows PC'}),
+          ),
+          conflictLocalDeviceProvider.overrideWith(
+            (ref) async => (id: 'local-id', name: 'Pixel 8'),
+          ),
         ],
         child: const MaterialApp(
           // Pinned so the English literals asserted below cannot depend on
@@ -39,6 +51,39 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  /// The dialog's card, not the Dialog widget, which fills the screen.
+  Size cardSize(WidgetTester tester) => tester.getSize(
+    find
+        .descendant(of: find.byType(Dialog), matching: find.byType(Material))
+        .first,
+  );
+
+  Future<void> expandUnchanged(WidgetTester tester) async {
+    await tester.tap(find.textContaining('the same'));
+    await tester.pumpAndSettle();
+  }
+
+  final diveConflict = SyncConflict(
+    entityType: 'dives',
+    recordId: 'd-1',
+    localData: const {
+      'id': 'd-1',
+      'name': 'Blue Hole',
+      'waterTemp': 26.0,
+      'notes': 'Saw a turtle.',
+      'hlc': '1786556582600:0:local-id',
+    },
+    remoteData: const {
+      'id': 'd-1',
+      'name': 'Blue Hole',
+      'waterTemp': 27.0,
+      'notes': 'Saw two turtles.',
+      'hlc': '1786556582600:0:peer-id',
+    },
+    localModified: DateTime(2026, 3, 28),
+    remoteModified: DateTime(2026, 3, 29),
+  );
 
   SyncConflict diveTagConflict({
     String localTagName = 'Wreck',
@@ -98,19 +143,18 @@ void main() {
   ) async {
     await pumpDialog(tester, diveTagConflict());
 
-    expect(find.text('Tag:'), findsNWidgets(2));
-    expect(find.text('Dive:'), findsNWidgets(2));
+    expect(find.text('Tag'), findsOneWidget);
     expect(find.text('Wreck'), findsOneWidget);
     expect(find.text('Night dive'), findsOneWidget);
-    // "Blue Hole (28/03/2026)": the dive is named by its site and dated.
-    // Both sides render one, on top of the composed header title.
-    expect(find.textContaining('Blue Hole ('), findsNWidgets(2));
+    // The dive is the same on both sides, so it is with the unchanged fields:
+    // named by its site and dated.
+    await expandUnchanged(tester);
+    expect(find.textContaining('Blue Hole ('), findsOneWidget);
   });
 
-  testWidgets('never shows a raw uuid or epoch millis in the preview', (
-    tester,
-  ) async {
+  testWidgets('never shows a raw uuid or epoch millis', (tester) async {
     await pumpDialog(tester, diveTagConflict());
+    await expandUnchanged(tester);
 
     expect(find.textContaining('a7136f77'), findsNothing);
     expect(find.textContaining('889cb873'), findsNothing);
@@ -129,7 +173,7 @@ void main() {
     tester,
   ) async {
     // A dive tank carries no name, date, or any other anchor unless the diver
-    // named it. The reference still exists, so the preview must identify it
+    // named it. The reference still exists, so the dialog must identify it
     // rather than claim it was deleted.
     await pumpDialog(
       tester,
@@ -165,7 +209,7 @@ void main() {
   testWidgets('describes the conflicting record in the header', (tester) async {
     await pumpDialog(tester, diveTagConflict());
 
-    expect(find.text('Blue Hole \u2022 Wreck'), findsOneWidget);
+    expect(find.text('Blue Hole • Wreck'), findsOneWidget);
     expect(find.text('Dive Tags'), findsOneWidget);
     expect(find.textContaining('7600a6e8'), findsNothing);
   });
@@ -196,7 +240,7 @@ void main() {
         entityType: 'dives',
         recordId: 'd-1',
         localData: const {'id': 'd-1', 'maxDepth': 30.48},
-        remoteData: const {'id': 'd-1', 'maxDepth': 30.48},
+        remoteData: const {'id': 'd-1', 'maxDepth': 31.0},
         localModified: DateTime(2026, 3, 28),
         remoteModified: DateTime(2026, 3, 29),
       ),
@@ -204,17 +248,14 @@ void main() {
 
     // The mock settings default to metres, so the stored metres carry a unit
     // rather than printing as a bare number.
-    expect(find.text('30.5m'), findsNWidgets(2));
+    expect(find.text('30.5m'), findsOneWidget);
+    expect(find.text('31.0m'), findsOneWidget);
     expect(find.text('30.48'), findsNothing);
   });
 
-  testWidgets('dates an epoch column but leaves a duration alone', (
+  testWidgets('lists the differing column and keeps a duration readable', (
     tester,
   ) async {
-    // bottomTime and createdAt both end in a time-ish word, but bottomTime is
-    // seconds and createdAt is Unix millis. Only the magnitude tells them
-    // apart, so a naive name-only rule would date a 45-minute bottom time to
-    // 1970.
     await pumpDialog(
       tester,
       SyncConflict(
@@ -222,12 +263,14 @@ void main() {
         recordId: 'd-1',
         localData: const {
           'id': 'd-1',
+          'name': 'Blue Hole',
           'diveNumber': 12,
           'bottomTime': 2700,
           'createdAt': 1786556582600,
         },
         remoteData: const {
           'id': 'd-1',
+          'name': 'Blue Hole',
           'diveNumber': 13,
           'bottomTime': 2700,
           'createdAt': 1786556582600,
@@ -237,33 +280,44 @@ void main() {
       ),
     );
 
-    expect(find.text('45min'), findsNWidgets(2));
+    expect(find.text('What differs (1)'), findsOneWidget);
+    expect(find.text('12'), findsOneWidget);
+    expect(find.text('13'), findsOneWidget);
+    await expandUnchanged(tester);
+    expect(find.text('45min'), findsOneWidget);
     expect(find.textContaining('1786556582600'), findsNothing);
     expect(find.textContaining('2700'), findsNothing);
   });
 
-  testWidgets('shows nothing at all for a side with no data', (tester) async {
+  testWidgets('a local deletion is named and shows the remote record', (
+    tester,
+  ) async {
     await pumpDialog(
       tester,
       SyncConflict(
-        entityType: 'diveTags',
-        recordId: 'dt-1',
+        entityType: 'diveSites',
+        recordId: 's-1',
         localData: const {},
-        remoteData: const {'id': 'dt-1', 'tagId': 't-1'},
+        remoteData: const {
+          'id': 's-1',
+          'name': 'The Arch',
+          'hlc': '1786556582600:0:peer-id',
+        },
         localModified: DateTime(2026, 3, 28),
         remoteModified: DateTime(2026, 3, 29),
       ),
     );
 
-    expect(find.text('No data available'), findsOneWidget);
+    expect(find.text('Pixel 8 deleted this record.'), findsOneWidget);
+    // Once in the header, once in the values the other device still has.
+    expect(find.text('The Arch'), findsNWidgets(2));
+    expect(find.textContaining('diveSites #'), findsNothing);
+    expect(find.text('Keep Both'), findsNothing);
   });
 
-  testWidgets('falls back to raw columns when a finding cannot be read', (
+  testWidgets('renders a quality finding as its localized message', (
     tester,
   ) async {
-    // params is not valid JSON, so the localized sentence cannot be built.
-    // Hiding detectorId and params only makes sense when the sentence
-    // replaced them; without it the user would be left with nothing at all.
     await pumpDialog(
       tester,
       SyncConflict(
@@ -276,8 +330,7 @@ void main() {
           'category': 'profile',
           'severity': 'warning',
           'status': 'open',
-          'params': 'not json at all',
-          'createdAt': 1786556582600,
+          'params': '{"depth":42.0,"atSeconds":185}',
         },
         remoteData: const {
           'id': 'qf-1',
@@ -286,223 +339,122 @@ void main() {
           'category': 'profile',
           'severity': 'critical',
           'status': 'open',
-          'params': 'not json at all',
-          'createdAt': 1786556582600,
+          'params': '{"depth":42.0,"atSeconds":185}',
         },
         localModified: DateTime(2026, 3, 28),
         remoteModified: DateTime(2026, 3, 29),
       ),
     );
-
-    expect(find.text('Finding:'), findsNothing);
-    expect(find.text('detectorId:'), findsNWidgets(2));
-    expect(find.text('depth_spike'), findsNWidgets(2));
-  });
-
-  testWidgets('falls back to raw columns for an unreadable finding category', (
-    tester,
-  ) async {
-    // A category written by a newer schema is not a value this build knows.
-    await pumpDialog(
-      tester,
-      SyncConflict(
-        entityType: 'qualityFindings',
-        recordId: 'qf-2',
-        localData: const {
-          'id': 'qf-2',
-          'detectorId': 'depth_spike',
-          'category': 'somethingNewer',
-          'severity': 'warning',
-          'status': 'open',
-          'params': '{}',
-        },
-        remoteData: const {
-          'id': 'qf-2',
-          'detectorId': 'depth_spike',
-          'category': 'somethingNewer',
-          'severity': 'critical',
-          'status': 'open',
-          'params': '{}',
-        },
-        localModified: DateTime(2026, 3, 28),
-        remoteModified: DateTime(2026, 3, 29),
-      ),
-    );
-
-    expect(find.text('Finding:'), findsNothing);
-    expect(find.text('detectorId:'), findsNWidgets(2));
-  });
-
-  testWidgets('shows the column that actually differs between the sides', (
-    tester,
-  ) async {
-    // The whole point of the dialog is choosing between two versions. A
-    // record with a recognizable field must not hide the column the two sides
-    // disagree about just because that column is not on the preferred list.
-    await pumpDialog(
-      tester,
-      SyncConflict(
-        entityType: 'dives',
-        recordId: 'd-1',
-        localData: const {'id': 'd-1', 'name': 'Blue Hole', 'diveNumber': 12},
-        remoteData: const {'id': 'd-1', 'name': 'Blue Hole', 'diveNumber': 13},
-        localModified: DateTime(2026, 3, 28),
-        remoteModified: DateTime(2026, 3, 29),
-      ),
-    );
-
-    expect(find.text('diveNumber:'), findsNWidgets(2));
-    expect(find.text('12'), findsOneWidget);
-    expect(find.text('13'), findsOneWidget);
-  });
-
-  testWidgets('names a conflict from the remote side when the local row is '
-      'gone', (tester) async {
-    await pumpDialog(
-      tester,
-      SyncConflict(
-        entityType: 'diveSites',
-        recordId: 's-1',
-        localData: const {},
-        remoteData: const {'id': 's-1', 'name': 'The Arch'},
-        localModified: DateTime(2026, 3, 28),
-        remoteModified: DateTime(2026, 3, 29),
-      ),
-    );
-
-    // Once in the header, once in the remote preview.
-    expect(find.text('The Arch'), findsNWidgets(2));
-    expect(find.textContaining('diveSites #'), findsNothing);
-  });
-
-  testWidgets('renders a detector that dates its finding', (tester) async {
-    // A second detector, to show the preview inherits every detector's copy
-    // from the data-quality renderer rather than special-casing depth spikes.
-    // clock_offset formats its stored epoch through the diver's date format.
-    await pumpDialog(
-      tester,
-      SyncConflict(
-        entityType: 'qualityFindings',
-        recordId: 'qf-clock',
-        localData: const {
-          'id': 'qf-clock',
-          'detectorId': 'clock_offset',
-          'detectorVersion': 1,
-          'category': 'time',
-          'severity': 'warning',
-          'status': 'open',
-          'params': '{"entryTimeMs":-2208988800000}',
-        },
-        remoteData: const {
-          'id': 'qf-clock',
-          'detectorId': 'clock_offset',
-          'detectorVersion': 1,
-          'category': 'time',
-          'severity': 'critical',
-          'status': 'open',
-          'params': '{"entryTimeMs":-2208988800000}',
-        },
-        localModified: DateTime(2026, 3, 28),
-        remoteModified: DateTime(2026, 3, 29),
-      ),
-    );
-
-    expect(find.textContaining('Clock & timezone'), findsNWidgets(2));
-    expect(find.textContaining('dated before 1950'), findsNWidgets(2));
-    expect(find.textContaining('1900'), findsNWidgets(2));
-  });
-
-  testWidgets('falls back to raw columns for a finding missing a column', (
-    tester,
-  ) async {
-    // A row that reached this device without a category at all. Without the
-    // guard the cast throws and takes the whole dialog down with it, leaving
-    // the conflict unresolvable.
-    await pumpDialog(
-      tester,
-      SyncConflict(
-        entityType: 'qualityFindings',
-        recordId: 'qf-3',
-        localData: const {
-          'id': 'qf-3',
-          'detectorId': 'depth_spike',
-          'severity': 'warning',
-          'status': 'open',
-          'params': '{}',
-        },
-        remoteData: const {
-          'id': 'qf-3',
-          'detectorId': 'depth_spike',
-          'severity': 'critical',
-          'status': 'open',
-          'params': '{}',
-        },
-        localModified: DateTime(2026, 3, 28),
-        remoteModified: DateTime(2026, 3, 29),
-      ),
-    );
-
-    expect(tester.takeException(), isNull);
-    expect(find.text('Finding:'), findsNothing);
-    expect(find.text('detectorId:'), findsNWidgets(2));
-  });
-
-  testWidgets('renders a quality finding as its localized message', (
-    tester,
-  ) async {
-    final finding = SyncConflict(
-      entityType: 'qualityFindings',
-      recordId: 'qf-1',
-      localData: const {
-        'id': 'qf-1',
-        'diveId': '889cb873-5517-41dc-8545-4bdb59307c38',
-        'detectorId': 'depth_spike',
-        'detectorVersion': 1,
-        'category': 'profile',
-        'severity': 'warning',
-        'status': 'open',
-        'params': '{"depth":42.0,"atSeconds":185}',
-        'createdAt': 1786556582600,
-        'updatedAt': 1786556582600,
-      },
-      remoteData: const {
-        'id': 'qf-1',
-        'diveId': '889cb873-5517-41dc-8545-4bdb59307c38',
-        'detectorId': 'depth_spike',
-        'detectorVersion': 1,
-        'category': 'profile',
-        'severity': 'critical',
-        'status': 'open',
-        'params': '{"depth":42.0,"atSeconds":185}',
-        'createdAt': 1786556582600,
-        'updatedAt': 1786556582600,
-      },
-      localModified: DateTime(2026, 3, 28),
-      remoteModified: DateTime(2026, 3, 29),
-      localReferences: [
-        ConflictReference(
-          field: 'diveId',
-          targetType: 'dives',
-          recordId: '889cb873-5517-41dc-8545-4bdb59307c38',
-          name: 'Blue Hole',
-          timestamp: diveDate,
-        ),
-      ],
-      remoteReferences: [
-        ConflictReference(
-          field: 'diveId',
-          targetType: 'dives',
-          recordId: '889cb873-5517-41dc-8545-4bdb59307c38',
-          name: 'Blue Hole',
-          timestamp: diveDate,
-        ),
-      ],
-    );
-
-    await pumpDialog(tester, finding);
+    await expandUnchanged(tester);
 
     expect(find.textContaining('Depth spike'), findsWidgets);
     expect(find.textContaining('params'), findsNothing);
     expect(find.textContaining('detectorId'), findsNothing);
+  });
+
+  testWidgets('chips name the devices and Keep both is offered', (
+    tester,
+  ) async {
+    await pumpDialog(tester, diveConflict);
+
+    expect(find.text('Keep Pixel 8'), findsOneWidget);
+    expect(find.text('Keep Windows PC'), findsOneWidget);
+    expect(find.text('Keep Both'), findsOneWidget);
+    expect(find.text('Choose which version to keep.'), findsOneWidget);
+  });
+
+  testWidgets('picking a version states what it discards', (tester) async {
+    await pumpDialog(tester, diveConflict);
+    await tester.tap(find.text('Keep Pixel 8'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining("Windows PC's values for"), findsOneWidget);
+    expect(find.textContaining('are discarded'), findsOneWidget);
+  });
+
+  testWidgets('Keep both is hidden for a row with no id of its own', (
+    tester,
+  ) async {
+    await pumpDialog(
+      tester,
+      SyncConflict(
+        entityType: 'diveEquipment',
+        recordId: 'd-1|e-1',
+        localData: const {'diveId': 'd-1', 'equipmentId': 'e-1', 'notes': 'a'},
+        remoteData: const {'diveId': 'd-1', 'equipmentId': 'e-1', 'notes': 'b'},
+        localModified: DateTime(2026, 3, 28),
+        remoteModified: DateTime(2026, 3, 29),
+      ),
+    );
+
+    expect(find.text('Keep Both'), findsNothing);
+  });
+
+  testWidgets('a phone-width window gets a full-screen dialog', (tester) async {
+    await pumpDialog(tester, diveConflict, size: const Size(390, 844));
+
+    expect(cardSize(tester), const Size(390, 844));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the next conflict opens collapsed and at the top', (
+    tester,
+  ) async {
+    SyncConflict site(String id, String name) => SyncConflict(
+      entityType: 'diveSites',
+      recordId: id,
+      localData: {'id': id, 'name': name, 'country': 'Belize', 'notes': 'a'},
+      remoteData: {'id': id, 'name': name, 'country': 'Belize', 'notes': 'b'},
+      localModified: DateTime(2026, 3, 28),
+      remoteModified: DateTime(2026, 3, 29),
+    );
+    final base = await getBaseOverrides();
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1280, 900);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          conflictsProvider.overrideWith(
+            (ref) async => [site('s-1', 'Reef'), site('s-2', 'Wall')],
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: ConflictResolutionDialog()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await expandUnchanged(tester);
+    expect(find.text('Belize'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.chevron_right));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Wall'), findsWidgets);
+    expect(find.text('Belize'), findsNothing);
+  });
+
+  testWidgets('the choices span the dialog width', (tester) async {
+    await pumpDialog(tester, diveConflict, size: const Size(1280, 900));
+
+    expect(
+      tester
+          .getSize(find.byKey(const Key('conflict-resolution-options')))
+          .width,
+      cardSize(tester).width,
+    );
+  });
+
+  testWidgets('a wide window keeps a centred dialog up to 720 wide', (
+    tester,
+  ) async {
+    await pumpDialog(tester, diveConflict, size: const Size(1280, 900));
+
+    expect(cardSize(tester).width, lessThanOrEqualTo(720));
   });
 }

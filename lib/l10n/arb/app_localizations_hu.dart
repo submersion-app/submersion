@@ -170,6 +170,100 @@ class AppLocalizationsHu extends AppLocalizations {
   String get connections_summary_strongestPair => 'Legerősebb pár';
 
   @override
+  String get connections_insight_newest => 'Legújabb kapcsolat';
+
+  @override
+  String get connections_insight_drifting => 'Eltávolodók';
+
+  @override
+  String get connections_insight_groups => 'Csoportok';
+
+  @override
+  String connections_insight_groupsValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count csoport',
+      one: '$count csoport',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_insight_pair(String a, String b) {
+    return '$a és $b';
+  }
+
+  @override
+  String connections_insight_since(String label, String date) {
+    return '$label, $date óta';
+  }
+
+  @override
+  String connections_insight_last(String label, String date) {
+    return '$label, utoljára $date';
+  }
+
+  @override
+  String connections_insight_closestValue(String label, String together) {
+    return '$label, $together';
+  }
+
+  @override
+  String get connections_highlight_title => 'Színezés';
+
+  @override
+  String get connections_highlight_byKind => 'Típus';
+
+  @override
+  String get connections_highlight_groups => 'Csoportok';
+
+  @override
+  String get connections_highlight_recency => 'Frissesség';
+
+  @override
+  String get connections_legend_group => 'Szín: csoport';
+
+  @override
+  String get connections_legend_recent => 'Friss';
+
+  @override
+  String get connections_legend_old => 'Régi';
+
+  @override
+  String get connections_yearPlay_play => 'Évek lejátszása';
+
+  @override
+  String get connections_yearPlay_pause => 'Szünet';
+
+  @override
+  String get connections_share_tooltip => 'Kép megosztása';
+
+  @override
+  String get connections_share_sheetTitle => 'Térképkép megosztása';
+
+  @override
+  String get connections_share_saveTitle => 'Térképkép mentése';
+
+  @override
+  String get connections_share_failed => 'Nem sikerült létrehozni a képet';
+
+  @override
+  String connections_share_aroundName(String label) {
+    return '$label körül';
+  }
+
+  @override
+  String connections_share_allDives(int first, int last) {
+    return 'Minden merülés, $first és $last között';
+  }
+
+  @override
+  String connections_share_details(String range, String counts) {
+    return '$range. $counts';
+  }
+
+  @override
   String get connections_summary_title => 'Összegzés';
 
   @override
@@ -1393,6 +1487,19 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get o2Toxicity_thisDive => 'Ez a merülés';
+
+  @override
+  String get o2Toxicity_lastDive => 'Utolsó merülés';
+
+  @override
+  String o2Toxicity_lastDiveStart(String percent) {
+    return 'Utolsó merülés előtt: $percent%';
+  }
+
+  @override
+  String o2Toxicity_lastDiveDelta(String percent) {
+    return 'Utolsó merülés: +$percent%';
+  }
 
   @override
   String get o2Toxicity_weekly => 'Heti';
@@ -5926,6 +6033,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'A kiválasztott merülések különböző búvárokhoz tartoznak, ezért nem vonhatók össze.';
 
   @override
+  String get diveLog_combine_modeJoin => 'Összefűzés egy merüléssé';
+
+  @override
+  String get diveLog_combine_modeJoinShort => 'Összefűzés';
+
+  @override
+  String get diveLog_combine_modeMerge => 'Összevonás másik számítógépként';
+
+  @override
+  String get diveLog_combine_modeMergeShort => 'Összevonás';
+
+  @override
   String get diveLog_combine_profilePreview => 'Összevont profil';
 
   @override
@@ -5967,6 +6086,26 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => 'Elsődleges';
 
   @override
+  String get diveLog_consolidate_alignBestFit => 'Legjobb illeszkedés';
+
+  @override
+  String get diveLog_consolidate_alignStarts => 'Kezdetek igazítása';
+
+  @override
+  String get diveLog_consolidate_alignStartsShort => 'Kezdetek';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel => 'Felvételek igazítása';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      'Ezek a felvételek időben nem fedik egymást, így valószínűleg az egyik számítógép órája rosszul jár. A merülés az elsődleges számítógép idejét tartja meg.';
+
+  @override
+  String get diveLog_consolidate_clockNoteShort =>
+      'Valószínűleg az egyik számítógép órája rosszul jár.';
+
+  @override
   String get diveLog_consolidate_confirm =>
       'Megtartás egyetlen merülésként mindkét számítógéppel';
 
@@ -5981,6 +6120,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'Ezek a merülések ugyanattól a búvárszámítógéptől származnak, ezért így nem vonhatók össze.';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      'Az egyik felvételnek nincs összevethető mélységprofilja, ezért a kezdete az elsődleges számítógépéhez igazodik.';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint =>
+      'Ezek a profilok ugyanannak a merülésnek tűnnek, amelyet két számítógép rögzített.';
 
   @override
   String get diveLog_consolidate_selectPrimary => 'Elsődleges búvárszámítógép';
@@ -6277,6 +6424,41 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_detail_section_customFields => 'Custom Fields';
+
+  @override
+  String get diveLog_gasSwitches_title => 'Gázváltások';
+
+  @override
+  String get diveLog_gasSwitches_onTime => 'Minden gázváltás időben';
+
+  @override
+  String diveLog_gasSwitches_lateRow(
+    String actual,
+    String ideal,
+    String delay,
+  ) {
+    return 'Váltás $actual mélységben $ideal helyett, $delay késés';
+  }
+
+  @override
+  String diveLog_gasSwitches_missedRow(String ideal) {
+    return 'Nincs váltás (ideális: $ideal)';
+  }
+
+  @override
+  String diveLog_gasSwitches_extraDeco(String extra) {
+    return '+$extra dekó';
+  }
+
+  @override
+  String diveLog_gasSwitches_total(String extra) {
+    return 'Összes többlet dekó: $extra';
+  }
+
+  @override
+  String diveLog_gasSwitches_lateRowTime(String delay, String actual) {
+    return 'Váltás $delay késéssel $actual mélységben';
+  }
 
   @override
   String get diveLog_detail_section_decoStatus => 'Dekó állapot';
@@ -7221,6 +7403,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_clearWeekdays => 'Hét napjai törlése';
 
   @override
+  String get diveLog_filter_clearSite => 'Merülőhely-szűrő törlése';
+
+  @override
   String get diveLog_filter_dateSeparator => '–';
 
   @override
@@ -7272,10 +7457,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_filter_searchComputersHint =>
       'Gépelj a búvárcomputerek kereséséhez';
-
-  @override
-  String get diveLog_filter_searchSitesHint =>
-      'Gépelj a merülőhelyek kereséséhez';
 
   @override
   String get diveLog_filter_searchTypesHint =>
@@ -7358,6 +7539,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_gasDensity => 'Gáz sűrűség';
+
+  @override
+  String get diveLog_legend_label_lateGasSwitches => 'Késői gázváltások';
 
   @override
   String get diveLog_legend_label_gasSwitches => 'Gázcserélések';
@@ -9237,6 +9421,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tooltip_tts => 'TTS';
 
   @override
+  String get diveLog_tooltip_lateSwitch => 'Késői váltás';
+
+  @override
+  String get diveLog_tooltip_missedSwitch => 'Kihagyott váltás';
+
+  @override
+  String get diveLog_tooltip_switchDelay => 'Késés';
+
+  @override
+  String get diveLog_tooltip_extraDeco => 'Többlet dekó';
+
+  @override
   String get diveLog_tooltip_gtr => 'GTR';
 
   @override
@@ -10636,6 +10832,32 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_list_sort_title => 'Helyszínek rendezése';
 
   @override
+  String get diveSites_group_noCountry => 'Nincs ország';
+
+  @override
+  String diveSites_group_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülőhely',
+      one: '1 merülőhely',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveSites_picker_nearby => 'A közelben';
+
+  @override
+  String get diveSites_list_groupBy => 'Csoportosítás';
+
+  @override
+  String get diveSites_list_groupBy_location => 'Ország és régió';
+
+  @override
+  String get diveSites_list_groupBy_none => 'Nincs';
+
+  @override
   String diveSites_list_tile_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11738,6 +11960,24 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentType_strobe => 'Vaku';
 
   @override
+  String get enum_equipmentType_lens => 'Objektív';
+
+  @override
+  String get enum_equipmentType_port => 'Port';
+
+  @override
+  String get enum_equipmentType_trayHandle => 'Tálca / Markolat';
+
+  @override
+  String get enum_equipmentType_armClamp => 'Kar / Bilincs';
+
+  @override
+  String get enum_equipmentType_videoLight => 'Videólámpa';
+
+  @override
+  String get enum_equipmentType_floatArm => 'Úszókar / Úszó';
+
+  @override
   String get enum_equipmentType_undersuit => 'Alsóöltözet';
 
   @override
@@ -11805,6 +12045,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_eventSeverity_alert => 'Riasztás';
+
+  @override
+  String get enum_eventSeverity_info => 'Információ';
 
   @override
   String get enum_eventSeverity_warning => 'Figyelmeztetés';
@@ -17683,6 +17926,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_viewer_goToDive => 'Ugrás a merüléshez';
 
   @override
+  String get media_viewer_enterFullscreen => 'Teljes képernyő';
+
+  @override
+  String get media_viewer_exitFullscreen => 'Kilépés a teljes képernyőből';
+
+  @override
+  String get media_viewer_moreOptions => 'További lehetőségek';
+
+  @override
   String get nav_home => 'Főoldal';
 
   @override
@@ -18180,6 +18432,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Gázváltás jelölők megjelenítés';
 
   @override
+  String get settings_appearance_lateGasSwitches => 'Késői gázváltások';
+
+  @override
+  String get settings_appearance_lateGasSwitches_subtitle =>
+      'A késői és kihagyott dekó gázváltások jelölése a profilon';
+
+  @override
   String get settings_appearance_gasTimeline => 'Gáz idővonal';
 
   @override
@@ -18307,6 +18566,15 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String safetyReview_lateGasSwitch_title(String extra) {
+    return 'Egy késői vagy kihagyott gázváltás $extra dekót adott hozzá';
+  }
+
+  @override
+  String get safetyReview_lateGasSwitch_noCost_title =>
+      'Egy gázváltás késett, de nem adott hozzá dekót';
+
+  @override
   String safetyReview_timeRange(String start, String end) {
     return '$start–$end időpontban';
   }
@@ -18431,6 +18699,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get safetySettings_rule_sawtoothProfile => 'Fűrészfog-profilok';
+
+  @override
+  String get safetySettings_rule_lateGasSwitch => 'Késői gázváltás';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -18781,6 +19052,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get siteDetailSection_location_description =>
       'Ország, régió, víztest, GPS-koordináták';
+
+  @override
+  String get siteDetailSection_seascape_description =>
+      'A merülőhely körüli víz alatti domborzat 3D nézete';
 
   @override
   String get siteDetailSection_depth_description =>
@@ -19576,7 +19851,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_cancel => 'Mégse';
 
   @override
-  String get settings_conflict_chooseResolution => 'Feloldás választása';
+  String get settings_conflict_changed => 'Módosult';
+
+  @override
+  String get settings_conflict_chooseVersion =>
+      'Válaszd ki, melyik verziót tartod meg.';
 
   @override
   String get settings_conflict_close => 'Bezárás';
@@ -19585,8 +19864,44 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_close_tooltip => 'Ütközés párbeszéd bezárása';
 
   @override
+  String get settings_conflict_consequence_deleteHere =>
+      'Ezen az eszközön is törli a rekordot.';
+
+  @override
+  String settings_conflict_consequence_keep(
+    String kept,
+    String discarded,
+    String fields,
+  ) {
+    return 'Megtartott verzió: $kept. Elvetett értékek ($discarded): $fields.';
+  }
+
+  @override
+  String settings_conflict_consequence_keepBoth(String local, String remote) {
+    return 'Megtartott verzió: $local. A másik verzió ($remote) külön másolatként kerül mellé.';
+  }
+
+  @override
+  String settings_conflict_consequence_keepRecord(String device) {
+    return 'Megtartja a rekordot ezekkel az értékekkel: $device.';
+  }
+
+  @override
+  String get settings_conflict_consequence_nothingLost =>
+      'A két verzió egyezik, így semmi sem vész el.';
+
+  @override
+  String get settings_conflict_consequence_staysDeleted =>
+      'A rekord ezen az eszközön törölve marad.';
+
+  @override
   String settings_conflict_counterLabel(Object current, Object total) {
     return '$current. ütközés a(z) $total közül';
+  }
+
+  @override
+  String settings_conflict_deletedValues(String device) {
+    return 'A rekord így szerepel itt: $device';
   }
 
   @override
@@ -19595,20 +19910,1957 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_conflict_fieldHeader => 'Mező';
+
+  @override
+  String get settings_conflict_field_accentListIcons => 'Színes listaikonok';
+
+  @override
+  String get settings_conflict_field_accentNavIcons =>
+      'Színes navigációs ikonok';
+
+  @override
+  String get settings_conflict_field_accentSectionHeaders =>
+      'Színes szakaszfejlécek';
+
+  @override
+  String get settings_conflict_field_accessNotes => 'Megközelítési jegyzetek';
+
+  @override
+  String get settings_conflict_field_accountIdentifier => 'Fiók';
+
+  @override
+  String get settings_conflict_field_additionalCredentials =>
+      'További minősítések';
+
+  @override
+  String get settings_conflict_field_airBreakBreakSeconds =>
+      'Levegőszünet hossza';
+
+  @override
+  String get settings_conflict_field_airBreakO2Seconds =>
+      'Oxigénidő a levegőszünetek között';
+
+  @override
+  String get settings_conflict_field_allergies => 'Allergiák';
+
+  @override
+  String get settings_conflict_field_altitudeUnit => 'Magasság mértékegysége';
+
+  @override
+  String get settings_conflict_field_amountKg => 'Súly';
+
+  @override
+  String get settings_conflict_field_analyzedHe => 'Mért hélium';
+
+  @override
+  String get settings_conflict_field_analyzedO2 => 'Mért oxigén';
+
+  @override
+  String get settings_conflict_field_analyzer => 'Elemző';
+
+  @override
+  String get settings_conflict_field_anchorDate => 'Számolás kezdete';
+
+  @override
+  String get settings_conflict_field_anchorLatitude =>
+      'Útvonal kezdőpontjának szélessége';
+
+  @override
+  String get settings_conflict_field_anchorLongitude =>
+      'Útvonal kezdőpontjának hosszúsága';
+
+  @override
+  String get settings_conflict_field_anchorSetAt => 'Kezdő dátum beállítva';
+
+  @override
+  String get settings_conflict_field_applicableTypes => 'Javasolt ehhez';
+
+  @override
+  String get settings_conflict_field_appliesToDives => 'Merüléseknél elérhető';
+
+  @override
+  String get settings_conflict_field_appliesToEquipment =>
+      'Felszerelésnél elérhető';
+
+  @override
+  String get settings_conflict_field_appliesToSites =>
+      'Merülőhelyeknél elérhető';
+
+  @override
+  String get settings_conflict_field_applyDefaultTankToImports =>
+      'Alapértelmezett palack importált merüléseknél';
+
+  @override
+  String get settings_conflict_field_ascentGasSet =>
+      'Feljövetelhez használt gázok';
+
+  @override
+  String get settings_conflict_field_ascentRate => 'Feljövetel sebessége';
+
+  @override
+  String get settings_conflict_field_ascentRateCritical =>
+      'Kritikus feljövetelsebesség';
+
+  @override
+  String get settings_conflict_field_ascentRateWarning =>
+      'Feljövetelsebesség figyelmeztetés';
+
+  @override
+  String get settings_conflict_field_assumedVo2 =>
+      'Feltételezett oxigénfogyasztás';
+
+  @override
+  String get settings_conflict_field_attrKey => 'Tulajdonság';
+
+  @override
+  String get settings_conflict_field_autoApplyOnComputerImport =>
+      'Búvárkomputer-importnál alkalmazva';
+
+  @override
+  String get settings_conflict_field_autoAttach => 'Automatikusan ütemezve';
+
+  @override
+  String get settings_conflict_field_autoTagImports =>
+      'Importált merülések címkézése';
+
+  @override
+  String get settings_conflict_field_avgSpeed => 'Átlagsebesség';
+
+  @override
+  String get settings_conflict_field_batteryReserveFraction =>
+      'Akkumulátortartalék';
+
+  @override
+  String get settings_conflict_field_bboxHeight => 'Keret magassága';
+
+  @override
+  String get settings_conflict_field_bboxWidth => 'Keret szélessége';
+
+  @override
+  String get settings_conflict_field_bboxX => 'Keret bal széle';
+
+  @override
+  String get settings_conflict_field_bboxY => 'Keret felső széle';
+
+  @override
+  String get settings_conflict_field_bearingDeg => 'Irányszög fokban';
+
+  @override
+  String get settings_conflict_field_bestMixEndMeters =>
+      'Legjobb keverék narkotikus mélysége';
+
+  @override
+  String get settings_conflict_field_bloodType => 'Vércsoport';
+
+  @override
+  String get settings_conflict_field_bluetoothAddress => 'Bluetooth-cím';
+
+  @override
+  String get settings_conflict_field_boatCaptain => 'Kapitány';
+
+  @override
+  String get settings_conflict_field_boatName => 'Hajó neve';
+
+  @override
+  String get settings_conflict_field_bookmarkRef => 'Fájlhozzáférés';
+
+  @override
+  String get settings_conflict_field_bottleLabel => 'Palackszám';
+
+  @override
+  String get settings_conflict_field_buddyListViewMode =>
+      'Merülőtárs-lista nézete';
+
+  @override
+  String get settings_conflict_field_builtinKey => 'Beépített sablon';
+
+  @override
+  String get settings_conflict_field_buoyancyKg => 'Felhajtóerő';
+
+  @override
+  String get settings_conflict_field_byteCount => 'Fájlméret bájtban';
+
+  @override
+  String get settings_conflict_field_bytes => 'Fájl tartalma';
+
+  @override
+  String get settings_conflict_field_cabinType => 'Kabin típusa';
+
+  @override
+  String get settings_conflict_field_capacity => 'Férőhely';
+
+  @override
+  String get settings_conflict_field_caption => 'Képaláírás';
+
+  @override
+  String get settings_conflict_field_cardColorGradientEnd =>
+      'Kártyaszínátmenet vége';
+
+  @override
+  String get settings_conflict_field_cardColorGradientPreset =>
+      'Kártyaszínátmenet';
+
+  @override
+  String get settings_conflict_field_cardColorGradientStart =>
+      'Kártyaszínátmenet eleje';
+
+  @override
+  String get settings_conflict_field_ccrDiluentModPpO2 =>
+      'CCR-diluens MOD ppO2-je';
+
+  @override
+  String get settings_conflict_field_ccrSetpointHigh => 'Magas CCR-setpoint';
+
+  @override
+  String get settings_conflict_field_ccrSetpointLow => 'Alacsony CCR-setpoint';
+
+  @override
+  String get settings_conflict_field_channelIndex => 'Csatorna';
+
+  @override
+  String get settings_conflict_field_checklistTemplateItems_category =>
+      'Kategória';
+
+  @override
+  String get settings_conflict_field_city => 'Város';
+
+  @override
+  String get settings_conflict_field_cloudAssetId => 'Felhőben tárolt fotó';
+
+  @override
+  String get settings_conflict_field_cns => 'CNS';
+
+  @override
+  String get settings_conflict_field_cnsWarningThreshold =>
+      'CNS figyelmeztetési küszöb';
+
+  @override
+  String get settings_conflict_field_codecVersion => 'Formátum verziója';
+
+  @override
+  String get settings_conflict_field_coldWaterThresholdC => 'Hidegvízi küszöb';
+
+  @override
+  String get settings_conflict_field_color => 'Szín';
+
+  @override
+  String get settings_conflict_field_commonName => 'Köznapi név';
+
+  @override
+  String get settings_conflict_field_completedAt => 'Befejezve';
+
+  @override
+  String get settings_conflict_field_compressedLevel => 'Tömörítés';
+
+  @override
+  String get settings_conflict_field_compressedSizeBytes =>
+      'Tömörített méret bájtban';
+
+  @override
+  String get settings_conflict_field_computerModel => 'Búvárkomputer modellje';
+
+  @override
+  String get settings_conflict_field_computerSerial =>
+      'Búvárkomputer sorozatszáma';
+
+  @override
+  String get settings_conflict_field_computerTissueJson =>
+      'Búvárkomputer szövetadatai';
+
+  @override
+  String get settings_conflict_field_conditionDisabledRules =>
+      'Kikapcsolt felszerelés-ellenőrzések';
+
+  @override
+  String get settings_conflict_field_conditionEngineEnabled =>
+      'Felszerelés állapotának ellenőrzése';
+
+  @override
+  String get settings_conflict_field_configJson => 'Beállítások';
+
+  @override
+  String get settings_conflict_field_connectedAccounts_kind => 'Szolgáltatás';
+
+  @override
+  String get settings_conflict_field_connectionType => 'Kapcsolat';
+
+  @override
+  String get settings_conflict_field_contentHash => 'Tartalom ujjlenyomata';
+
+  @override
+  String get settings_conflict_field_contentSizeBytes => 'Méret bájtban';
+
+  @override
+  String get settings_conflict_field_contributingFactors =>
+      'Közrejátszó tényezők';
+
+  @override
+  String get settings_conflict_field_coordinateFormat => 'Koordinátaformátum';
+
+  @override
+  String get settings_conflict_field_cost => 'Költség';
+
+  @override
+  String get settings_conflict_field_count => 'Darabszám';
+
+  @override
+  String get settings_conflict_field_country => 'Ország';
+
+  @override
+  String get settings_conflict_field_courseRequirements_kind =>
+      'Követelmény típusa';
+
+  @override
+  String get settings_conflict_field_credentialsHostId =>
+      'Bejelentkezési kiszolgáló';
+
+  @override
+  String get settings_conflict_field_currency => 'Pénznem';
+
+  @override
+  String get settings_conflict_field_currentSetsTowardDeg =>
+      'Áramlás iránya fokban';
+
+  @override
+  String get settings_conflict_field_currentSpeedMps => 'Áramlás sebessége';
+
+  @override
+  String get settings_conflict_field_customReminderDays => 'Emlékeztető napok';
+
+  @override
+  String get settings_conflict_field_customReminderEnabled =>
+      'Egyéni emlékeztetők';
+
+  @override
+  String get settings_conflict_field_cylinderFills_source => 'Rögzítés módja';
+
+  @override
+  String get settings_conflict_field_date => 'Dátum';
+
+  @override
+  String get settings_conflict_field_dateFormat => 'Dátumformátum';
+
+  @override
+  String get settings_conflict_field_dayNumber => 'Nap sorszáma';
+
+  @override
+  String get settings_conflict_field_dayType => 'Nap típusa';
+
+  @override
+  String get settings_conflict_field_decoStopIncrement =>
+      'Dekómegállók távolsága';
+
+  @override
+  String get settings_conflict_field_decoSwitchDepth =>
+      'Dekógázra váltás mélysége';
+
+  @override
+  String get settings_conflict_field_deepDiveThresholdM =>
+      'Mélymerülési küszöb';
+
+  @override
+  String get settings_conflict_field_defaultCategory =>
+      'Alapértelmezett kategória';
+
+  @override
+  String get settings_conflict_field_defaultCeilingSource =>
+      'Plafon adatforrása';
+
+  @override
+  String get settings_conflict_field_defaultCnsSource => 'CNS adatforrása';
+
+  @override
+  String get settings_conflict_field_defaultCost => 'Alapértelmezett költség';
+
+  @override
+  String get settings_conflict_field_defaultCurrency =>
+      'Alapértelmezett pénznem';
+
+  @override
+  String get settings_conflict_field_defaultCurrentSetsTowardDeg =>
+      'Alapértelmezett áramlásirány fokban';
+
+  @override
+  String get settings_conflict_field_defaultCurrentSpeedMps =>
+      'Alapértelmezett áramlássebesség';
+
+  @override
+  String get settings_conflict_field_defaultDecoStopSource =>
+      'Dekómegállók adatforrása';
+
+  @override
+  String get settings_conflict_field_defaultDiveType =>
+      'Alapértelmezett merüléstípus';
+
+  @override
+  String get settings_conflict_field_defaultGtrSource => 'GTR adatforrása';
+
+  @override
+  String get settings_conflict_field_defaultIntervalDays =>
+      'Alapértelmezett időköz napokban';
+
+  @override
+  String get settings_conflict_field_defaultIntervalDives =>
+      'Alapértelmezett időköz merülésekben';
+
+  @override
+  String get settings_conflict_field_defaultIntervalHours =>
+      'Alapértelmezett időköz órákban';
+
+  @override
+  String get settings_conflict_field_defaultNdlSource => 'NDL adatforrása';
+
+  @override
+  String get settings_conflict_field_defaultPlannerWaterType =>
+      'Tervező alapértelmezett víztípusa';
+
+  @override
+  String get settings_conflict_field_defaultRightAxisMetric =>
+      'Profil jobb tengelye';
+
+  @override
+  String get settings_conflict_field_defaultShowAscentRateLine =>
+      'A profil mutatja a feljövetel sebességét';
+
+  @override
+  String get settings_conflict_field_defaultShowCns =>
+      'A profil mutatja a CNS-t';
+
+  @override
+  String get settings_conflict_field_defaultShowEstimatedTankPressure =>
+      'A profil mutatja a becsült palacknyomást';
+
+  @override
+  String get settings_conflict_field_defaultShowEvents =>
+      'A profil mutatja az eseményeket';
+
+  @override
+  String get settings_conflict_field_defaultShowGasDensity =>
+      'A profil mutatja a gázsűrűséget';
+
+  @override
+  String get settings_conflict_field_defaultShowGasSwitchMarkers =>
+      'A profil mutatja a gázváltásokat';
+
+  @override
+  String get settings_conflict_field_defaultShowGasTimeline =>
+      'A profil mutatja a gázok idővonalát';
+
+  @override
+  String get settings_conflict_field_defaultShowGf =>
+      'A profil mutatja a gradiensfaktort';
+
+  @override
+  String get settings_conflict_field_defaultShowGtr =>
+      'A profil mutatja a GTR-t';
+
+  @override
+  String get settings_conflict_field_defaultShowHeartRate =>
+      'A profil mutatja a pulzust';
+
+  @override
+  String get settings_conflict_field_defaultShowMeanDepth =>
+      'A profil mutatja az átlagmélységet';
+
+  @override
+  String get settings_conflict_field_defaultShowO2CellMv =>
+      'A profil mutatja az O2-cellák millivoltját';
+
+  @override
+  String get settings_conflict_field_defaultShowOtu =>
+      'A profil mutatja az OTU-t';
+
+  @override
+  String get settings_conflict_field_defaultShowPhotoMarkers =>
+      'A profil mutatja a fotókat';
+
+  @override
+  String get settings_conflict_field_defaultShowPpHe =>
+      'A profil mutatja a ppHe-t';
+
+  @override
+  String get settings_conflict_field_defaultShowPpN2 =>
+      'A profil mutatja a ppN2-t';
+
+  @override
+  String get settings_conflict_field_defaultShowPpO2 =>
+      'A profil mutatja a ppO2-t';
+
+  @override
+  String get settings_conflict_field_defaultShowPressure =>
+      'A profil mutatja a palacknyomást';
+
+  @override
+  String get settings_conflict_field_defaultShowSac =>
+      'A profil mutatja a gázfogyasztást';
+
+  @override
+  String get settings_conflict_field_defaultShowSurfaceGf =>
+      'A profil mutatja a felszíni gradiensfaktort';
+
+  @override
+  String get settings_conflict_field_defaultShowTemperature =>
+      'A profil mutatja a hőmérsékletet';
+
+  @override
+  String get settings_conflict_field_defaultShowTts =>
+      'A profil mutatja a felszínig hátralévő időt';
+
+  @override
+  String get settings_conflict_field_defaultStartPressure =>
+      'Alapértelmezett kezdőnyomás';
+
+  @override
+  String get settings_conflict_field_defaultStartPressureBar =>
+      'Alapértelmezett kezdőnyomás';
+
+  @override
+  String get settings_conflict_field_defaultTankPreset =>
+      'Alapértelmezett palacksablon';
+
+  @override
+  String get settings_conflict_field_defaultTankVolume =>
+      'Alapértelmezett palacktérfogat';
+
+  @override
+  String get settings_conflict_field_defaultTtsSource =>
+      'Felszínig hátralévő idő adatforrása';
+
+  @override
+  String get settings_conflict_field_depth => 'Mélység';
+
+  @override
+  String get settings_conflict_field_depthM => 'Mélység';
+
+  @override
+  String get settings_conflict_field_depthMeters => 'Mélység';
+
+  @override
+  String get settings_conflict_field_depthUnit => 'Mélység mértékegysége';
+
+  @override
+  String get settings_conflict_field_descentRate => 'Lemerülés sebessége';
+
+  @override
+  String get settings_conflict_field_description => 'Leírás';
+
+  @override
+  String get settings_conflict_field_descriptorModel =>
+      'Búvárkomputer modellszáma';
+
+  @override
+  String get settings_conflict_field_descriptorProduct =>
+      'Búvárkomputer terméke';
+
+  @override
+  String get settings_conflict_field_descriptorVendor =>
+      'Búvárkomputer gyártója';
+
+  @override
+  String get settings_conflict_field_detectorId => 'Ellenőrzés';
+
+  @override
+  String get settings_conflict_field_detectorVersion => 'Ellenőrzés verziója';
+
+  @override
+  String get settings_conflict_field_deviationDepthDelta =>
+      'Vészhelyzeti többletmélység';
+
+  @override
+  String get settings_conflict_field_deviationTimeMinutes =>
+      'Vészhelyzeti többletidő';
+
+  @override
+  String get settings_conflict_field_deviceName => 'Rögzítve ezen';
+
+  @override
+  String get settings_conflict_field_diluentHe => 'Diluens héliuma';
+
+  @override
+  String get settings_conflict_field_diluentO2 => 'Diluens oxigénje';
+
+  @override
+  String get settings_conflict_field_disembarkLatitude =>
+      'Kiszállás szélessége';
+
+  @override
+  String get settings_conflict_field_disembarkLongitude =>
+      'Kiszállás hosszúsága';
+
+  @override
+  String get settings_conflict_field_disembarkPort => 'Kiszállási kikötő';
+
+  @override
+  String get settings_conflict_field_dismissedAt => 'Elvetve';
+
+  @override
+  String get settings_conflict_field_displayHint => 'Megjelenítési tipp';
+
+  @override
+  String get settings_conflict_field_displayName => 'Megjelenített név';
+
+  @override
+  String get settings_conflict_field_distanceM => 'Távolság';
+
+  @override
+  String get settings_conflict_field_diveCenterListViewMode =>
+      'Búvárközpont-lista nézete';
+
+  @override
+  String get settings_conflict_field_diveComputerFirmware =>
+      'Búvárkomputer firmware-e';
+
+  @override
+  String get settings_conflict_field_diveComputerSerial =>
+      'Búvárkomputer sorozatszáma';
+
+  @override
+  String get settings_conflict_field_diveCount => 'Merülések száma';
+
+  @override
+  String get settings_conflict_field_diveDetailLayout =>
+      'Merülésrészletek elrendezése';
+
+  @override
+  String get settings_conflict_field_diveDetailSections =>
+      'Merülésrészletek szakaszai';
+
+  @override
+  String get settings_conflict_field_diveListViewMode => 'Merüléslista nézete';
+
+  @override
+  String get settings_conflict_field_diveModeOverride =>
+      'Légzési mód ebben a szakaszban';
+
+  @override
+  String get settings_conflict_field_diveOperator => 'Merülésszervező';
+
+  @override
+  String get settings_conflict_field_divePlanSegments_type => 'Szakasz';
+
+  @override
+  String get settings_conflict_field_divePlanTanks_role => 'Palack szerepe';
+
+  @override
+  String get settings_conflict_field_diveProfileEvents_severity => 'Súlyosság';
+
+  @override
+  String get settings_conflict_field_diveProfileEvents_source => 'Forrás';
+
+  @override
+  String get settings_conflict_field_diveSafetyFindings_severity => 'Súlyosság';
+
+  @override
+  String get settings_conflict_field_diversSharingCylinders =>
+      'Palackot megosztó búvárok';
+
+  @override
+  String get settings_conflict_field_divesPerDayTarget => 'Napi merülési cél';
+
+  @override
+  String get settings_conflict_field_divingSince => 'Merül ekkor óta';
+
+  @override
+  String get settings_conflict_field_dueDate => 'Esedékes';
+
+  @override
+  String get settings_conflict_field_dueOffsetDays =>
+      'Esedékes ennyi nappal az út előtt';
+
+  @override
+  String get settings_conflict_field_duration => 'Időtartam';
+
+  @override
+  String get settings_conflict_field_durationSeconds => 'Időtartam';
+
+  @override
+  String get settings_conflict_field_elapsedSeconds => 'Merülési idő';
+
+  @override
+  String get settings_conflict_field_embarkLatitude => 'Beszállás szélessége';
+
+  @override
+  String get settings_conflict_field_embarkLongitude => 'Beszállás hosszúsága';
+
+  @override
+  String get settings_conflict_field_embarkPort => 'Beszállási kikötő';
+
+  @override
+  String get settings_conflict_field_emergencyContact2Name =>
+      'Második vészhelyzeti kapcsolat';
+
+  @override
+  String get settings_conflict_field_emergencyContact2Phone =>
+      'Második vészhelyzeti kapcsolat telefonja';
+
+  @override
+  String get settings_conflict_field_emergencyContact2Relation =>
+      'Kapcsolat a második vészhelyzeti kapcsolattal';
+
+  @override
+  String get settings_conflict_field_emergencyContactName =>
+      'Vészhelyzeti kapcsolat';
+
+  @override
+  String get settings_conflict_field_emergencyContactPhone =>
+      'Vészhelyzeti kapcsolat telefonja';
+
+  @override
+  String get settings_conflict_field_emergencyContactRelation =>
+      'Kapcsolat a vészhelyzeti kapcsolattal';
+
+  @override
+  String get settings_conflict_field_emergencyRegion => 'Vészhelyzeti régió';
+
+  @override
+  String get settings_conflict_field_enabled => 'Bekapcsolva';
+
+  @override
+  String get settings_conflict_field_endDepth => 'Végső mélység';
+
+  @override
+  String get settings_conflict_field_endLatitude => 'Végpont szélessége';
+
+  @override
+  String get settings_conflict_field_endLimit => 'Narkotikus mélység határa';
+
+  @override
+  String get settings_conflict_field_endLongitude => 'Végpont hosszúsága';
+
+  @override
+  String get settings_conflict_field_endMode => 'Útvonal vége';
+
+  @override
+  String get settings_conflict_field_endTime => 'Befejezés ideje';
+
+  @override
+  String get settings_conflict_field_endTimestamp => 'Vége (merülési idő)';
+
+  @override
+  String get settings_conflict_field_engineVersion => 'Elemzés verziója';
+
+  @override
+  String get settings_conflict_field_entryKey => 'Bejegyzés';
+
+  @override
+  String get settings_conflict_field_entryLatitude => 'Beszállás szélessége';
+
+  @override
+  String get settings_conflict_field_entryLongitude => 'Beszállás hosszúsága';
+
+  @override
+  String get settings_conflict_field_entryTime => 'Vízbeszállás ideje';
+
+  @override
+  String get settings_conflict_field_environment => 'Környezet';
+
+  @override
+  String get settings_conflict_field_equipmentComponents_role => 'Szerep';
+
+  @override
+  String get settings_conflict_field_equipmentFindings_severity => 'Súlyosság';
+
+  @override
+  String get settings_conflict_field_equipmentListViewMode =>
+      'Felszereléslista nézete';
+
+  @override
+  String get settings_conflict_field_equipmentObservations_status => 'Állapot';
+
+  @override
+  String get settings_conflict_field_equipmentOwnershipEvents_kind => 'Esemény';
+
+  @override
+  String get settings_conflict_field_equipmentSetName => 'Felszerelésszett';
+
+  @override
+  String get settings_conflict_field_eventType => 'Esemény';
+
+  @override
+  String get settings_conflict_field_evidence => 'Bizonyíték';
+
+  @override
+  String get settings_conflict_field_evidenceFingerprint =>
+      'Bizonyíték ujjlenyomata';
+
+  @override
+  String get settings_conflict_field_excludedFromGasStats =>
+      'Kihagyva a gázstatisztikából';
+
+  @override
+  String get settings_conflict_field_excludedFromStats =>
+      'Kihagyva a statisztikából';
+
+  @override
+  String get settings_conflict_field_exitLatitude => 'Kiszállás szélessége';
+
+  @override
+  String get settings_conflict_field_exitLongitude => 'Kiszállás hosszúsága';
+
+  @override
+  String get settings_conflict_field_exitTime => 'Vízből kiszállás ideje';
+
+  @override
+  String get settings_conflict_field_expectedDives => 'Várható merülések';
+
+  @override
+  String get settings_conflict_field_expectedRuntimeMinutes =>
+      'Várható merülési idő merülésenként';
+
+  @override
+  String get settings_conflict_field_exposureIntervals => 'Terhelési időközök';
+
+  @override
+  String get settings_conflict_field_fetchedAt => 'Lekérve';
+
+  @override
+  String get settings_conflict_field_fieldKey => 'Egyéni mező';
+
+  @override
+  String get settings_conflict_field_fieldValue => 'Egyéni mező értéke';
+
+  @override
+  String get settings_conflict_field_fileName => 'Fájlnév';
+
+  @override
+  String get settings_conflict_field_filePath => 'Fájl';
+
+  @override
+  String get settings_conflict_field_fileType => 'Fájltípus';
+
+  @override
+  String get settings_conflict_field_fillClosesAt => 'Töltés eddig';
+
+  @override
+  String get settings_conflict_field_fillOpensAt => 'Töltés ettől';
+
+  @override
+  String get settings_conflict_field_filledAt => 'Feltöltve';
+
+  @override
+  String get settings_conflict_field_filterJson => 'Szűrő';
+
+  @override
+  String get settings_conflict_field_finalAscentRate =>
+      'Utolsó feljövetel sebessége';
+
+  @override
+  String get settings_conflict_field_firmwareVersion => 'Firmware';
+
+  @override
+  String get settings_conflict_field_firstDepth => 'Első mérés mélysége';
+
+  @override
+  String get settings_conflict_field_format => 'Formátum';
+
+  @override
+  String get settings_conflict_field_gasConsumptionDisplay =>
+      'Gázfogyasztás megjelenítése';
+
+  @override
+  String get settings_conflict_field_gasHe => 'Hélium';
+
+  @override
+  String get settings_conflict_field_gasO2 => 'Oxigén';
+
+  @override
+  String get settings_conflict_field_gasSwitchStopSeconds =>
+      'Gázváltási megálló';
+
+  @override
+  String get settings_conflict_field_gearType => 'Felszerelés típusa';
+
+  @override
+  String get settings_conflict_field_groupTripsInDiveList =>
+      'Utak csoportosítva a merüléslistában';
+
+  @override
+  String get settings_conflict_field_gtrReservePressure => 'GTR tartaléknyomás';
+
+  @override
+  String get settings_conflict_field_hasDecoStop => 'Van dekómegálló';
+
+  @override
+  String get settings_conflict_field_hasDecoType => 'Vannak dekóadatok';
+
+  @override
+  String get settings_conflict_field_hasPositiveCeiling => 'Van plafon';
+
+  @override
+  String get settings_conflict_field_hePercent => 'Hélium';
+
+  @override
+  String get settings_conflict_field_headingDeg => 'Irány fokban';
+
+  @override
+  String get settings_conflict_field_headingOffsetDeg =>
+      'Iránykorrekció fokban';
+
+  @override
+  String get settings_conflict_field_height => 'Magasság pixelben';
+
+  @override
+  String get settings_conflict_field_heightCm => 'Testmagasság';
+
+  @override
+  String get settings_conflict_field_heightMeters => 'Árapály magassága';
+
+  @override
+  String get settings_conflict_field_hiddenChamberIds => 'Elrejtett dekókamrák';
+
+  @override
+  String get settings_conflict_field_hiddenTankPresetIds =>
+      'Elrejtett palacksablonok';
+
+  @override
+  String get settings_conflict_field_highO2ThresholdPercent =>
+      'Magas oxigén küszöbe';
+
+  @override
+  String get settings_conflict_field_highTideHeight => 'Dagály magassága';
+
+  @override
+  String get settings_conflict_field_highTideTime => 'Dagály';
+
+  @override
+  String get settings_conflict_field_imageData => 'Kép';
+
+  @override
+  String get settings_conflict_field_importId => 'Importazonosító';
+
+  @override
+  String get settings_conflict_field_importVersion => 'Import verziója';
+
+  @override
+  String get settings_conflict_field_importedAt => 'Importálva';
+
+  @override
+  String get settings_conflict_field_incidents_category => 'Kategória';
+
+  @override
+  String get settings_conflict_field_incidents_severity => 'Súlyosság';
+
+  @override
+  String get settings_conflict_field_inputsHash => 'Használt beállítások';
+
+  @override
+  String get settings_conflict_field_insuranceEmergencyPhone =>
+      'Biztosító vészvonala';
+
+  @override
+  String get settings_conflict_field_insuranceExpiryDate =>
+      'Biztosítás lejárata';
+
+  @override
+  String get settings_conflict_field_insurancePhone => 'Biztosító telefonja';
+
+  @override
+  String get settings_conflict_field_insurancePolicyNumber => 'Kötvényszám';
+
+  @override
+  String get settings_conflict_field_insuranceProvider => 'Biztosító';
+
+  @override
+  String get settings_conflict_field_intermediateAscentRate =>
+      'Feljövetel sebessége a mély megállók között';
+
+  @override
+  String get settings_conflict_field_intervalDays => 'Időköz napokban';
+
+  @override
+  String get settings_conflict_field_intervalDives => 'Időköz merülésekben';
+
+  @override
+  String get settings_conflict_field_intervalHours => 'Időköz órákban';
+
+  @override
+  String get settings_conflict_field_isBuiltIn => 'Beépített';
+
+  @override
+  String get settings_conflict_field_isCustom => 'Egyéni';
+
+  @override
+  String get settings_conflict_field_isDefault => 'Alapértelmezett';
+
+  @override
+  String get settings_conflict_field_isDone => 'Kész';
+
+  @override
+  String get settings_conflict_field_isOrphaned => 'Hiányzó fájl';
+
+  @override
+  String get settings_conflict_field_isPackage => 'Csomag része';
+
+  @override
+  String get settings_conflict_field_isPlanned => 'Tervezett merülés';
+
+  @override
+  String get settings_conflict_field_isPrimary => 'Elsődleges';
+
+  @override
+  String get settings_conflict_field_isRequired => 'Kötelező';
+
+  @override
+  String get settings_conflict_field_isShared => 'Megosztva';
+
+  @override
+  String get settings_conflict_field_isTravelGas => 'Utazógáz';
+
+  @override
+  String get settings_conflict_field_issueTags => 'Problémák';
+
+  @override
+  String get settings_conflict_field_itemType => 'Elem típusa';
+
+  @override
+  String get settings_conflict_field_label => 'Címke';
+
+  @override
+  String get settings_conflict_field_lastDepth => 'Utolsó mérés mélysége';
+
+  @override
+  String get settings_conflict_field_lastDiveFingerprint =>
+      'Utoljára letöltött merülés';
+
+  @override
+  String get settings_conflict_field_lastDownloadTimestamp => 'Utolsó letöltés';
+
+  @override
+  String get settings_conflict_field_lastParsedAt => 'Utolsó beolvasás';
+
+  @override
+  String get settings_conflict_field_lastStopDepth => 'Utolsó megálló mélysége';
+
+  @override
+  String get settings_conflict_field_lastSweepAt => 'Utolsó ellenőrzés';
+
+  @override
+  String get settings_conflict_field_lastVerifiedAt => 'Utoljára megerősítve';
+
+  @override
+  String get settings_conflict_field_latitude => 'Szélesség';
+
+  @override
+  String get settings_conflict_field_leadAdjustmentKg => 'Szükséges extra ólom';
+
+  @override
+  String get settings_conflict_field_lessonsLearned => 'Tanulságok';
+
+  @override
+  String get settings_conflict_field_libdivecomputerVersion =>
+      'libdivecomputer verziója';
+
+  @override
+  String get settings_conflict_field_linkMode => 'Összekapcsolva';
+
+  @override
+  String get settings_conflict_field_localPath => 'Helyi fájl';
+
+  @override
+  String get settings_conflict_field_locale => 'Nyelv';
+
+  @override
+  String get settings_conflict_field_longitude => 'Hosszúság';
+
+  @override
+  String get settings_conflict_field_loopO2Avg => 'Hurok átlagos ppO2-je';
+
+  @override
+  String get settings_conflict_field_loopO2Max => 'Hurok legnagyobb ppO2-je';
+
+  @override
+  String get settings_conflict_field_loopO2Min => 'Hurok legkisebb ppO2-je';
+
+  @override
+  String get settings_conflict_field_loopVolume => 'Hurok térfogata';
+
+  @override
+  String get settings_conflict_field_lowTideHeight => 'Apály magassága';
+
+  @override
+  String get settings_conflict_field_lowTideTime => 'Apály';
+
+  @override
+  String get settings_conflict_field_manifestUrl => 'Hírcsatorna címe';
+
+  @override
+  String get settings_conflict_field_manualElapsedSeconds =>
+      'Merülési idő, kézzel megadva';
+
+  @override
+  String get settings_conflict_field_manufacturer => 'Gyártó';
+
+  @override
+  String get settings_conflict_field_matchConfidence => 'Egyezés';
+
+  @override
+  String get settings_conflict_field_material => 'Palack anyaga';
+
+  @override
+  String get settings_conflict_field_maxAscentRate =>
+      'Legnagyobb feljövetelsebesség';
+
+  @override
+  String get settings_conflict_field_maxDescentRate =>
+      'Legnagyobb lemerülési sebesség';
+
+  @override
+  String get settings_conflict_field_maxSpeed => 'Végsebesség';
+
+  @override
+  String get settings_conflict_field_measuredAt => 'Mérve';
+
+  @override
+  String get settings_conflict_field_medicalClearanceExpiryDate =>
+      'Orvosi alkalmasság lejárata';
+
+  @override
+  String get settings_conflict_field_medicalNotes => 'Orvosi jegyzetek';
+
+  @override
+  String get settings_conflict_field_medications => 'Gyógyszerek';
+
+  @override
+  String get settings_conflict_field_mergeSourceSlot =>
+      'Helyzet az összevont források között';
+
+  @override
+  String get settings_conflict_field_mode => 'Légzési mód';
+
+  @override
+  String get settings_conflict_field_name => 'Név';
+
+  @override
+  String get settings_conflict_field_narrative => 'Mi történt';
+
+  @override
+  String get settings_conflict_field_noFlyPreset => 'Repülési tilalom szabálya';
+
+  @override
+  String get settings_conflict_field_note => 'Jegyzet';
+
+  @override
+  String get settings_conflict_field_notedAt => 'Feljegyezve';
+
+  @override
+  String get settings_conflict_field_notificationsEnabled => 'Értesítések';
+
+  @override
+  String get settings_conflict_field_o2Narcotic =>
+      'Oxigén narkotikusnak számítva';
+
+  @override
+  String get settings_conflict_field_o2Percent => 'Oxigén';
+
+  @override
+  String get settings_conflict_field_observedAt => 'Megfigyelve';
+
+  @override
+  String get settings_conflict_field_occurredAt => 'Megtörtént';
+
+  @override
+  String get settings_conflict_field_operatorName => 'Üzemeltető';
+
+  @override
+  String get settings_conflict_field_originalFilename => 'Eredeti fájlnév';
+
+  @override
+  String get settings_conflict_field_outingId => 'Kirándulás';
+
+  @override
+  String get settings_conflict_field_overdueServices => 'Esedékes szervizek';
+
+  @override
+  String get settings_conflict_field_params => 'Részletek';
+
+  @override
+  String get settings_conflict_field_parkingInfo => 'Parkolás';
+
+  @override
+  String get settings_conflict_field_passportId => 'Palackútlevél';
+
+  @override
+  String get settings_conflict_field_phone => 'Telefon';
+
+  @override
+  String get settings_conflict_field_photo => 'Fotó';
+
+  @override
+  String get settings_conflict_field_photoBack => 'Kártya hátoldala';
+
+  @override
+  String get settings_conflict_field_photoBackPath => 'Kártya hátoldala';
+
+  @override
+  String get settings_conflict_field_photoFront => 'Kártya előlapja';
+
+  @override
+  String get settings_conflict_field_photoFrontPath => 'Kártya előlapja';
+
+  @override
+  String get settings_conflict_field_photoPath => 'Fotó';
+
+  @override
+  String get settings_conflict_field_placeNameLanguage => 'Helynevek nyelve';
+
+  @override
+  String get settings_conflict_field_plannedDives => 'Tervezett merülések';
+
+  @override
+  String get settings_conflict_field_plannedWeightKg => 'Tervezett ólom';
+
+  @override
+  String get settings_conflict_field_plannedWeightPlacement =>
+      'Ólom tervezett elosztása';
+
+  @override
+  String get settings_conflict_field_platformAssetId => 'Fotótár eleme';
+
+  @override
+  String get settings_conflict_field_pointCount => 'Pontok száma';
+
+  @override
+  String get settings_conflict_field_points => 'Útvonalpontok';
+
+  @override
+  String get settings_conflict_field_pollIntervalSeconds =>
+      'Ellenőrzés gyakorisága';
+
+  @override
+  String get settings_conflict_field_portName => 'Kikötő';
+
+  @override
+  String get settings_conflict_field_ppO2Bottom => 'Fenékidő ppO2';
+
+  @override
+  String get settings_conflict_field_ppO2Deco => 'Dekó ppO2';
+
+  @override
+  String get settings_conflict_field_ppO2MaxDeco => 'Legnagyobb dekó ppO2';
+
+  @override
+  String get settings_conflict_field_ppO2MaxWorking => 'Legnagyobb munka ppO2';
+
+  @override
+  String get settings_conflict_field_preDiveChecklistTemplates_category =>
+      'Kategória';
+
+  @override
+  String get settings_conflict_field_preDiveSessions_status => 'Állapot';
+
+  @override
+  String get settings_conflict_field_presetJson => 'Előbeállítás';
+
+  @override
+  String get settings_conflict_field_presetName => 'Palacksablon';
+
+  @override
+  String get settings_conflict_field_pressure => 'Nyomás';
+
+  @override
+  String get settings_conflict_field_pressureBar => 'Nyomás';
+
+  @override
+  String get settings_conflict_field_pressureUnit => 'Nyomás mértékegysége';
+
+  @override
+  String get settings_conflict_field_priorDiveCount =>
+      'Merülések a napló előtt';
+
+  @override
+  String get settings_conflict_field_priorDiveTimeSeconds =>
+      'Merülési idő a napló előtt';
+
+  @override
+  String get settings_conflict_field_problemSolvingMinutes =>
+      'Problémamegoldási idő';
+
+  @override
+  String get settings_conflict_field_provider => 'Szolgáltató';
+
+  @override
+  String get settings_conflict_field_providerType => 'Tárhelyszolgáltató';
+
+  @override
+  String get settings_conflict_field_purchaseCurrency => 'Vásárlás pénzneme';
+
+  @override
+  String get settings_conflict_field_qualityFindings_category => 'Kategória';
+
+  @override
+  String get settings_conflict_field_qualityFindings_severity => 'Súlyosság';
+
+  @override
+  String get settings_conflict_field_qualityFindings_status => 'Állapot';
+
+  @override
+  String get settings_conflict_field_queryJson => 'Lekérdezés';
+
+  @override
+  String get settings_conflict_field_radiusMeters => 'Sugár';
+
+  @override
+  String get settings_conflict_field_rate => 'Sebesség';
+
+  @override
+  String get settings_conflict_field_rateOfChange => 'Változás üteme';
+
+  @override
+  String get settings_conflict_field_rawData => 'Búvárkomputer nyers adatai';
+
+  @override
+  String get settings_conflict_field_rawFingerprint =>
+      'Búvárkomputer ujjlenyomata';
+
+  @override
+  String get settings_conflict_field_reminderTime => 'Emlékeztető ideje';
+
+  @override
+  String get settings_conflict_field_remoteAssetId => 'Távoli elem';
+
+  @override
+  String get settings_conflict_field_remoteCompressedUploadedAt =>
+      'Tömörített másolat feltöltve';
+
+  @override
+  String get settings_conflict_field_remoteThumbUploadedAt =>
+      'Bélyegkép feltöltve';
+
+  @override
+  String get settings_conflict_field_remoteUploadedAt => 'Feltöltve';
+
+  @override
+  String get settings_conflict_field_reservePressure => 'Tartaléknyomás';
+
+  @override
+  String get settings_conflict_field_retainInLibrary =>
+      'Megtartva a könyvtárban';
+
+  @override
+  String get settings_conflict_field_returnFlightAt => 'Visszaút járata';
+
+  @override
+  String get settings_conflict_field_reviewedAt => 'Átnézve';
+
+  @override
+  String get settings_conflict_field_roleSource => 'Szerepet beállította';
+
+  @override
+  String get settings_conflict_field_ruleId => 'Szabály';
+
+  @override
+  String get settings_conflict_field_sacBottom =>
+      'Gázfogyasztás a fenékidő alatt';
+
+  @override
+  String get settings_conflict_field_sacDeco => 'Gázfogyasztás dekó alatt';
+
+  @override
+  String get settings_conflict_field_sacFactor => 'Gázfogyasztási szorzó';
+
+  @override
+  String get settings_conflict_field_sacStressed =>
+      'Gázfogyasztás stresszhelyzetben';
+
+  @override
+  String get settings_conflict_field_safetyReviewDisabledRules =>
+      'Kikapcsolt biztonsági ellenőrzések';
+
+  @override
+  String get settings_conflict_field_safetyReviewEnabled =>
+      'Biztonsági ellenőrzés';
+
+  @override
+  String get settings_conflict_field_salinityPpt => 'Sótartalom ezrelékben';
+
+  @override
+  String get settings_conflict_field_sampleCount => 'Mérések száma';
+
+  @override
+  String get settings_conflict_field_samples => 'Profil mérései';
+
+  @override
+  String get settings_conflict_field_scientificName => 'Tudományos név';
+
+  @override
+  String get settings_conflict_field_scooterBurnSeconds => 'Robogó üzemideje';
+
+  @override
+  String get settings_conflict_field_scooterName => 'Robogó';
+
+  @override
+  String get settings_conflict_field_scooterSpeedMps => 'Robogó sebessége';
+
+  @override
+  String get settings_conflict_field_scrAdditionRatio => 'SCR adagolási arány';
+
+  @override
+  String get settings_conflict_field_scrInjectionRate =>
+      'SCR adagolási sebesség';
+
+  @override
+  String get settings_conflict_field_scrOrificeSize => 'SCR fúvókaméret';
+
+  @override
+  String get settings_conflict_field_scrType => 'SCR típusa';
+
+  @override
+  String get settings_conflict_field_scrubberDurationMinutes =>
+      'Mésztöltet élettartama';
+
+  @override
+  String get settings_conflict_field_scrubberRemainingMinutes =>
+      'Mésztöltet hátralévő ideje';
+
+  @override
+  String get settings_conflict_field_scrubberType => 'Mésztöltet típusa';
+
+  @override
+  String get settings_conflict_field_seascapeAppearance =>
+      'Víz alatti táj megjelenése';
+
+  @override
+  String get settings_conflict_field_seascapeVerticalExaggerationOverrides =>
+      'Víz alatti táj függőleges léptéke';
+
+  @override
+  String get settings_conflict_field_section => 'Szakasz';
+
+  @override
+  String get settings_conflict_field_serviceCategory => 'Szerviz típusa';
+
+  @override
+  String get settings_conflict_field_serviceDate => 'Szerviz dátuma';
+
+  @override
+  String get settings_conflict_field_serviceReminderDays =>
+      'Szervizemlékeztető napjai';
+
+  @override
+  String get settings_conflict_field_setpointBar => 'Setpoint';
+
+  @override
+  String get settings_conflict_field_setpointSwitchDepth =>
+      'Setpoint-váltás mélysége';
+
+  @override
+  String get settings_conflict_field_settings_key => 'Beállítás';
+
+  @override
+  String get settings_conflict_field_settings_value => 'Érték';
+
+  @override
+  String get settings_conflict_field_shallowAscentRate =>
+      'Feljövetel sebessége a sekély megállók között';
+
+  @override
+  String get settings_conflict_field_sharedComputerIds =>
+      'Megosztva komputerekkel';
+
+  @override
+  String get settings_conflict_field_shoreSwimM => 'Úszás a partig';
+
+  @override
+  String get settings_conflict_field_shoreWalkM => 'Gyaloglás a partig';
+
+  @override
+  String get settings_conflict_field_shortName => 'Rövid név';
+
+  @override
+  String get settings_conflict_field_showAscentRateColors =>
+      'Feljövetelsebesség színei';
+
+  @override
+  String get settings_conflict_field_showCeilingOnProfile =>
+      'A profil mutatja a plafont';
+
+  @override
+  String get settings_conflict_field_showDataSourceBadges =>
+      'Adatforrás jelölései';
+
+  @override
+  String get settings_conflict_field_showDecoStopsOnProfile =>
+      'A profil mutatja a dekómegállókat';
+
+  @override
+  String get settings_conflict_field_showDepthColoredDiveCards =>
+      'Merüléskártyák mélység szerint színezve';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneBuddies =>
+      'Részletpanel a merülőtársakhoz';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneCertifications =>
+      'Részletpanel a minősítésekhez';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneCourses =>
+      'Részletpanel a tanfolyamokhoz';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneDiveCenters =>
+      'Részletpanel a búvárközpontokhoz';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneDives =>
+      'Részletpanel a merülésekhez';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneEquipment =>
+      'Részletpanel a felszereléshez';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneSites =>
+      'Részletpanel a merülőhelyekhez';
+
+  @override
+  String get settings_conflict_field_showDetailsPaneTrips =>
+      'Részletpanel az utakhoz';
+
+  @override
+  String get settings_conflict_field_showDiveFigure => 'Búváralak';
+
+  @override
+  String get settings_conflict_field_showFigure => 'Megjelenik a búváralakon';
+
+  @override
+  String get settings_conflict_field_showInDetailHeader =>
+      'Megjelenik a merülés fejlécében';
+
+  @override
+  String get settings_conflict_field_showInListView =>
+      'Megjelenik a merüléslistában';
+
+  @override
+  String get settings_conflict_field_showMapBackgroundOnDiveCards =>
+      'Térkép a merüléskártyák mögött';
+
+  @override
+  String get settings_conflict_field_showMapBackgroundOnSiteCards =>
+      'Térkép a merülőhely-kártyák mögött';
+
+  @override
+  String get settings_conflict_field_showMaxDepthMarker =>
+      'A profil mutatja a legnagyobb mélységet';
+
+  @override
+  String get settings_conflict_field_showNdlOnProfile =>
+      'A profil mutatja az NDL-t';
+
+  @override
+  String get settings_conflict_field_showPressureThresholdMarkers =>
+      'A profil mutatja a nyomásküszöböket';
+
+  @override
+  String get settings_conflict_field_showProfilePanelInTableView =>
+      'Profilpanel táblázatnézetben';
+
+  @override
+  String get settings_conflict_field_signatureType => 'Aláírás típusa';
+
+  @override
+  String get settings_conflict_field_signedRecord => 'Aláírt töltési bizonylat';
+
+  @override
+  String get settings_conflict_field_signerName => 'Aláírta';
+
+  @override
+  String get settings_conflict_field_siteDetailLayout =>
+      'Merülőhely-részletek elrendezése';
+
+  @override
+  String get settings_conflict_field_siteDetailSections =>
+      'Merülőhely-részletek szakaszai';
+
+  @override
+  String get settings_conflict_field_siteFeatures_type => 'Jellemző típusa';
+
+  @override
+  String get settings_conflict_field_siteListViewMode =>
+      'Merülőhely-lista nézete';
+
+  @override
+  String get settings_conflict_field_siteSuggestionDismissedAt =>
+      'Merülőhely-javaslat elvetve';
+
+  @override
+  String get settings_conflict_field_size => 'Méret';
+
+  @override
+  String get settings_conflict_field_sortOrder => 'Sorrend';
+
+  @override
+  String get settings_conflict_field_source => 'Forrás';
+
+  @override
+  String get settings_conflict_field_sourceDiverKey => 'Búvár a forrásnaplóban';
+
+  @override
+  String get settings_conflict_field_sourceFileFormat => 'Forrásfájl formátuma';
+
+  @override
+  String get settings_conflict_field_sourceFileName => 'Forrásfájl neve';
+
+  @override
+  String get settings_conflict_field_sourceFormat => 'Forrás formátuma';
+
+  @override
+  String get settings_conflict_field_sourceItemId => 'Kapcsolt elem';
+
+  @override
+  String get settings_conflict_field_sourceRef => 'Forrásfájl vagy -eszköz';
+
+  @override
+  String get settings_conflict_field_sourceTankIndex =>
+      'Palack száma a forrásnaplóban';
+
+  @override
+  String get settings_conflict_field_sourceType => 'Forrás';
+
+  @override
+  String get settings_conflict_field_sourceUuid => 'Forrásazonosító';
+
+  @override
+  String get settings_conflict_field_sourceValueNumber => 'Referenciaérték';
+
+  @override
+  String get settings_conflict_field_spec => 'Kapcsolati térkép';
+
+  @override
+  String get settings_conflict_field_species_category => 'Kategória';
+
+  @override
+  String get settings_conflict_field_startDateTime => 'Tervezett kezdés';
+
+  @override
+  String get settings_conflict_field_startDepth => 'Kezdő mélység';
+
+  @override
+  String get settings_conflict_field_startTime => 'Kezdés ideje';
+
+  @override
+  String get settings_conflict_field_startTimestamp => 'Kezdete (merülési idő)';
+
+  @override
+  String get settings_conflict_field_startedAt => 'Elkezdve';
+
+  @override
+  String get settings_conflict_field_state => 'Állapot';
+
+  @override
+  String get settings_conflict_field_stationKey => 'Töltőállomás kulcsa';
+
+  @override
+  String get settings_conflict_field_stationName => 'Töltőállomás';
+
+  @override
+  String get settings_conflict_field_stopMinimumsJson =>
+      'Megállók minimális ideje';
+
+  @override
+  String get settings_conflict_field_strictOrder => 'Elemek kötött sorrendben';
+
+  @override
+  String get settings_conflict_field_subject => 'Keresés helye';
+
+  @override
+  String get settings_conflict_field_summaryMaxDepth =>
+      'Tervezett legnagyobb mélység';
+
+  @override
+  String get settings_conflict_field_summaryRuntimeSeconds =>
+      'Tervezett merülési idő';
+
+  @override
+  String get settings_conflict_field_summaryTtsSeconds =>
+      'Tervezett idő a felszínig';
+
+  @override
+  String get settings_conflict_field_surfaceConditions =>
+      'Felszíni körülmények';
+
+  @override
+  String get settings_conflict_field_surfaceSwimLimitM =>
+      'Leghosszabb felszíni úszás';
+
+  @override
+  String get settings_conflict_field_swimSpeedMps => 'Úszási sebesség';
+
+  @override
+  String get settings_conflict_field_takenAt => 'Készült';
+
+  @override
+  String get settings_conflict_field_tankMaterial => 'Palack anyaga';
+
+  @override
+  String get settings_conflict_field_tankName => 'Palack neve';
+
+  @override
+  String get settings_conflict_field_tankOrder => 'Palack sorrendje';
+
+  @override
+  String get settings_conflict_field_tankRole => 'Palack szerepe';
+
+  @override
+  String get settings_conflict_field_targetCount => 'Cél';
+
+  @override
+  String get settings_conflict_field_taxonomyClass => 'Rendszertani osztály';
+
+  @override
+  String get settings_conflict_field_temperatureC => 'Hőmérséklet';
+
+  @override
+  String get settings_conflict_field_temperatureCelsius => 'Hőmérséklet';
+
+  @override
+  String get settings_conflict_field_temperatureUnit =>
+      'Hőmérséklet mértékegysége';
+
+  @override
+  String get settings_conflict_field_templateName => 'Ellenőrzőlista-sablon';
+
+  @override
+  String get settings_conflict_field_themeMode => 'Téma';
+
+  @override
+  String get settings_conflict_field_themePreset => 'Színtéma';
+
+  @override
+  String get settings_conflict_field_thickness => 'Vastagság';
+
+  @override
+  String get settings_conflict_field_thumbnailGeneratedAt =>
+      'Bélyegkép elkészült';
+
+  @override
+  String get settings_conflict_field_tideState => 'Árapály';
+
+  @override
+  String get settings_conflict_field_timeFormat => 'Időformátum';
+
+  @override
+  String get settings_conflict_field_timeOffsetSeconds => 'Időeltolás';
+
+  @override
+  String get settings_conflict_field_timestamp => 'Merülési idő';
+
+  @override
+  String get settings_conflict_field_timestampOffsetSeconds => 'Időeltolás';
+
+  @override
+  String get settings_conflict_field_tissueColorScheme => 'Szövetek színei';
+
+  @override
+  String get settings_conflict_field_tissueVizMode => 'Szövetdiagram';
+
+  @override
+  String get settings_conflict_field_title => 'Cím';
+
+  @override
+  String get settings_conflict_field_totalDistance => 'Teljes távolság';
+
+  @override
+  String get settings_conflict_field_towBurnFactor =>
+      'Fogyasztási szorzó vontatáskor';
+
+  @override
+  String get settings_conflict_field_towSpeedFactor =>
+      'Sebességszorzó vontatáskor';
+
+  @override
+  String get settings_conflict_field_transmitterSerial => 'Jeladó sorozatszáma';
+
+  @override
+  String get settings_conflict_field_trimEndTime => 'Levágott vég';
+
+  @override
+  String get settings_conflict_field_trimStartTime => 'Levágott eleje';
+
+  @override
+  String get settings_conflict_field_trimTankPressureAtSurfacing =>
+      'Palacknyomás levágva felszínre érkezéskor';
+
+  @override
+  String get settings_conflict_field_tripChecklistItems_category => 'Kategória';
+
+  @override
+  String get settings_conflict_field_tripCylinderEvents_kind => 'Esemény';
+
+  @override
+  String get settings_conflict_field_tripListViewMode => 'Útlista nézete';
+
+  @override
+  String get settings_conflict_field_tripServiceLeadDays =>
+      'Szervizfigyelmeztetés ennyi nappal az út előtt';
+
+  @override
+  String get settings_conflict_field_trustFraction =>
+      'Útvonal megbízható része';
+
+  @override
+  String get settings_conflict_field_turnPressureFraction =>
+      'Fordulónyomás aránya';
+
+  @override
+  String get settings_conflict_field_turnPressureRule =>
+      'Fordulónyomás szabálya';
+
+  @override
+  String get settings_conflict_field_tzOffsetMinutes =>
+      'Időzóna-eltolás percben';
+
+  @override
+  String get settings_conflict_field_uploadFactsHlc => 'Feltöltési napló';
+
+  @override
+  String get settings_conflict_field_url => 'Cím';
+
+  @override
+  String get settings_conflict_field_usageDuration => 'Belélegzett idő';
+
+  @override
+  String get settings_conflict_field_useDiveComputerCnsData =>
+      'CNS a búvárkomputerből';
+
+  @override
+  String get settings_conflict_field_value => 'Érték';
+
+  @override
+  String get settings_conflict_field_valueLabel => 'Érték címkéje';
+
+  @override
+  String get settings_conflict_field_valueMax => 'Legnagyobb várt érték';
+
+  @override
+  String get settings_conflict_field_valueMin => 'Legkisebb várt érték';
+
+  @override
+  String get settings_conflict_field_valueNum => 'Érték';
+
+  @override
+  String get settings_conflict_field_valueNumber => 'Leolvasott érték';
+
+  @override
+  String get settings_conflict_field_valueText => 'Érték';
+
+  @override
+  String get settings_conflict_field_valueUnit => 'Mértékegység';
+
+  @override
+  String get settings_conflict_field_verdict => 'Értékelés';
+
+  @override
+  String get settings_conflict_field_verifyFactsHlc => 'Ellenőrzési napló';
+
+  @override
+  String get settings_conflict_field_vesselName => 'Hajó';
+
+  @override
+  String get settings_conflict_field_vesselType => 'Hajó típusa';
+
+  @override
+  String get settings_conflict_field_viewMode => 'Nézet';
+
+  @override
+  String get settings_conflict_field_visibilityScaleExcellentM =>
+      'Kiváló látótávolság ettől';
+
+  @override
+  String get settings_conflict_field_visibilityScaleGoodM =>
+      'Jó látótávolság ettől';
+
+  @override
+  String get settings_conflict_field_visibilityScaleModerateM =>
+      'Közepes látótávolság ettől';
+
+  @override
+  String get settings_conflict_field_volume => 'Térfogat';
+
+  @override
+  String get settings_conflict_field_volumeL => 'Térfogat';
+
+  @override
+  String get settings_conflict_field_volumeLiters => 'Térfogat';
+
+  @override
+  String get settings_conflict_field_volumeUnit => 'Térfogat mértékegysége';
+
+  @override
+  String get settings_conflict_field_walkSpeedMps => 'Gyaloglási sebesség';
+
+  @override
+  String get settings_conflict_field_weatherCode => 'Időjáráskód';
+
+  @override
+  String get settings_conflict_field_weatherFetchedAt => 'Időjárás lekérve';
+
+  @override
+  String get settings_conflict_field_weatherSource => 'Időjárás forrása';
+
+  @override
+  String get settings_conflict_field_weightAmount => 'Ólom';
+
+  @override
+  String get settings_conflict_field_weightKg => 'Súly';
+
+  @override
+  String get settings_conflict_field_weightType => 'Ólom típusa';
+
+  @override
+  String get settings_conflict_field_weightUnit => 'Súly mértékegysége';
+
+  @override
+  String get settings_conflict_field_weightingFeedback => 'Súlyozás';
+
+  @override
+  String get settings_conflict_field_weightingFeedbackKg => 'Súlyozás eltérése';
+
+  @override
+  String get settings_conflict_field_width => 'Szélesség pixelben';
+
+  @override
+  String get settings_conflict_field_windDirection => 'Szélirány';
+
+  @override
+  String get settings_conflict_field_workingPressure => 'Üzemi nyomás';
+
+  @override
+  String get settings_conflict_field_workingPressureBar => 'Üzemi nyomás';
+
+  @override
+  String get settings_conflict_finerThanShown =>
+      'Az eltérés kisebb annál, amit ez a nézet mutat.';
+
+  @override
   String get settings_conflict_keepBoth => 'Mindkettő megtartása';
 
   @override
-  String get settings_conflict_keepLocal => 'Helyi megtartása';
+  String settings_conflict_keepDevice(String device) {
+    return 'Megtartás: $device';
+  }
 
   @override
-  String get settings_conflict_keepRemote => 'Távoli megtartása';
+  String settings_conflict_localDeleted(String device) {
+    return 'Törölve ezen: $device';
+  }
 
   @override
-  String get settings_conflict_localVersion => 'Helyi változat';
+  String settings_conflict_modifiedBy(String device, String time) {
+    return '$device · módosítva $time';
+  }
 
   @override
-  String settings_conflict_modified(Object time) {
-    return 'Módosítva: $time';
+  String settings_conflict_moreFields(String fields, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count',
+      one: '$count',
+    );
+    return '$fields és még $_temp0';
   }
 
   @override
@@ -19622,10 +21874,20 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_noConflicts_title => 'Nincsenek ütközések';
 
   @override
-  String get settings_conflict_noDataAvailable => 'Nincs elérhető adat';
+  String get settings_conflict_notSet => 'Nincs megadva';
+
+  @override
+  String get settings_conflict_otherDevice => 'Másik eszköz';
 
   @override
   String get settings_conflict_previous_tooltip => 'Előző ütközés';
+
+  @override
+  String get settings_conflict_ref_appliedSet => 'Szettből alkalmazva';
+
+  @override
+  String get settings_conflict_ref_attachedThrough =>
+      'Csatlakoztatva ezen keresztül';
 
   @override
   String get settings_conflict_ref_buddy => 'Búvártárs';
@@ -19635,6 +21897,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_checklistTemplate => 'Ellenőrzőlista sablon';
+
+  @override
+  String get settings_conflict_ref_component => 'Alkatrész';
 
   @override
   String get settings_conflict_ref_connectedAccount => 'Csatlakoztatott fiók';
@@ -19665,6 +21930,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Merülési terv';
 
   @override
+  String get settings_conflict_ref_diveRole => 'Merülési szerep';
+
+  @override
   String get settings_conflict_ref_diveSite => 'Merülőhely';
 
   @override
@@ -19684,6 +21952,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_importedFile => 'Importált fájl';
+
+  @override
+  String get settings_conflict_ref_installedIn => 'Beépítve ebbe';
 
   @override
   String get settings_conflict_ref_instructor => 'Oktató';
@@ -19717,7 +21988,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Merülés előtti ellenőrzőlista';
 
   @override
+  String get settings_conflict_ref_regulator => 'Légzőautomata';
+
+  @override
   String get settings_conflict_ref_relatedDive => 'Kapcsolódó merülés';
+
+  @override
+  String get settings_conflict_ref_samePerson => 'Ugyanaz a személy, mint';
 
   @override
   String get settings_conflict_ref_serviceKind => 'Szerviz típusa';
@@ -19744,13 +22021,24 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_ref_tank => 'Palack';
 
   @override
+  String get settings_conflict_ref_transmitter => 'Jeladó';
+
+  @override
   String get settings_conflict_ref_trip => 'Utazás';
 
   @override
   String get settings_conflict_ref_tripCylinder => 'Utazási palack';
 
   @override
-  String get settings_conflict_remoteVersion => 'Távoli változat';
+  String get settings_conflict_ref_weightPreset => 'Ólomsablon';
+
+  @override
+  String get settings_conflict_ref_yourRole => 'A te szereped';
+
+  @override
+  String settings_conflict_remoteDeleted(String device) {
+    return 'Törölve ezen: $device';
+  }
 
   @override
   String settings_conflict_resolved(int count) {
@@ -19764,7 +22052,215 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_conflict_same => 'Egyező';
+
+  @override
+  String get settings_conflict_sameContent =>
+      'A két verzió tartalma azonos; csak a mentés időpontja tér el. Bármelyiket választod, minden megmarad.';
+
+  @override
+  String settings_conflict_sameFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mező egyezik',
+      one: '$count mező egyezik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_conflict_textDiffHint =>
+      'A kiemelt szavak csak abban a verzióban szerepelnek.';
+
+  @override
+  String get settings_conflict_thisDevice => 'Ez az eszköz';
+
+  @override
   String get settings_conflict_title => 'Ütközések feloldása';
+
+  @override
+  String get enum_tissueVizMode_heatMap => 'Hőtérkép';
+
+  @override
+  String get enum_tissueVizMode_stackedArea => 'Halmozott területek';
+
+  @override
+  String get enum_tissueColorScheme_classic => 'Klasszikus';
+
+  @override
+  String get enum_tissueColorScheme_thermal => 'Hőkamerás';
+
+  @override
+  String get enum_manifestFormat_atom => 'Atom';
+
+  @override
+  String get enum_manifestFormat_csv => 'CSV';
+
+  @override
+  String get enum_manifestFormat_json => 'JSON';
+
+  @override
+  String get enum_requirementKind_checklist => 'Ellenőrzőlista';
+
+  @override
+  String get enum_requirementKind_dive => 'Merülések';
+
+  @override
+  String get enum_preDiveSessionStatus_aborted => 'Megszakítva';
+
+  @override
+  String get enum_preDiveSessionStatus_completed => 'Befejezve';
+
+  @override
+  String get enum_preDiveSessionStatus_inProgress => 'Folyamatban';
+
+  @override
+  String get enum_preDiveItemType_cellLinearity => 'Cellák linearitása';
+
+  @override
+  String get enum_preDiveItemType_check => 'Ellenőrzés';
+
+  @override
+  String get enum_preDiveItemType_equipment => 'Felszerelés';
+
+  @override
+  String get enum_preDiveItemType_equipmentSet => 'Felszerelésszett';
+
+  @override
+  String get enum_preDiveItemType_value => 'Érték';
+
+  @override
+  String get enum_preDiveItemState_done => 'Kész';
+
+  @override
+  String get enum_preDiveItemState_flagged => 'Megjelölve';
+
+  @override
+  String get enum_preDiveItemState_pending => 'Függőben';
+
+  @override
+  String get enum_preDiveItemState_skipped => 'Kihagyva';
+
+  @override
+  String get enum_planMode_pscr => 'Passzív félig zárt rebreather';
+
+  @override
+  String get enum_missionEnvironment_openWater => 'Nyílt víz';
+
+  @override
+  String get enum_missionEnvironment_overhead => 'Zárt fedésű környezet';
+
+  @override
+  String get enum_ownershipEventKind_shared => 'Megosztva';
+
+  @override
+  String get enum_ownershipEventKind_transferred => 'Átadva';
+
+  @override
+  String get enum_ownershipEventKind_unshared => 'Megosztás megszüntetve';
+
+  @override
+  String get enum_fillSource_file => 'Fájl';
+
+  @override
+  String get enum_fillSource_issued => 'A töltőállomás állította ki';
+
+  @override
+  String get enum_fillSource_link => 'Hivatkozás';
+
+  @override
+  String get enum_fillSource_manual => 'Kézzel megadva';
+
+  @override
+  String get enum_fillSource_nfc => 'NFC-címke';
+
+  @override
+  String get enum_fillSource_qr => 'QR-kód';
+
+  @override
+  String get enum_tripCylinderEventKind_adjustment => 'Módosítás';
+
+  @override
+  String get enum_tripCylinderEventKind_fill => 'Töltés';
+
+  @override
+  String get enum_weatherSource_manual => 'Kézi';
+
+  @override
+  String get enum_weatherSource_openMeteo => 'Open-Meteo';
+
+  @override
+  String get enum_tankRoleSource_transmitterName => 'Jeladó neve';
+
+  @override
+  String get enum_safetySeverity_caution => 'Óvatosság';
+
+  @override
+  String get enum_safetySeverity_info => 'Információ';
+
+  @override
+  String get enum_safetySeverity_significant => 'Jelentős';
+
+  @override
+  String get enum_qualityStatus_dismissed => 'Elvetve';
+
+  @override
+  String get enum_qualityStatus_open => 'Nyitott';
+
+  @override
+  String get enum_qualityStatus_resolved => 'Megoldva';
+
+  @override
+  String get enum_qualitySeverity_critical => 'Kritikus';
+
+  @override
+  String get enum_qualitySeverity_info => 'Információ';
+
+  @override
+  String get enum_qualitySeverity_warning => 'Figyelmeztetés';
+
+  @override
+  String get enum_qualityCategory_duplicate => 'Ismétlődés';
+
+  @override
+  String get enum_qualityCategory_gas => 'Gáz';
+
+  @override
+  String get enum_qualityCategory_pressure => 'Nyomás';
+
+  @override
+  String get enum_qualityCategory_profile => 'Profil';
+
+  @override
+  String get enum_qualityCategory_source => 'Forrás';
+
+  @override
+  String get enum_qualityCategory_tank => 'Palack';
+
+  @override
+  String get enum_qualityCategory_temperature => 'Hőmérséklet';
+
+  @override
+  String get enum_qualityCategory_time => 'Idő';
+
+  @override
+  String get enum_eventSource_computed => 'Számított';
+
+  @override
+  String get enum_eventSource_imported => 'Importált';
+
+  @override
+  String get enum_eventSource_user => 'Általad hozzáadva';
+
+  @override
+  String settings_conflict_whatDiffers(int count) {
+    return 'Eltérések ($count)';
+  }
+
+  @override
+  String get settings_conflict_whitespaceOnly =>
+      'Csak a szóközök vagy a sortörések térnek el.';
 
   @override
   String get settings_data_appDefaultLocation =>
@@ -22580,6 +25076,27 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String importWizard_source_fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fájl',
+      one: '$count fájl',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importWizard_source_firmware(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String importWizard_source_fromApp(String app) {
+    return 'forrás: $app';
+  }
 
   @override
   String importWizard_photos_foundCount(int count) {
@@ -29943,6 +32460,24 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_pocket_mount => 'Rögzítés';
 
   @override
+  String get attrLabel_lens_type => 'Objektív típusa';
+
+  @override
+  String get attrLabel_focal_length_mm => 'Gyújtótávolság (mm)';
+
+  @override
+  String get attrLabel_port_type => 'Port típusa';
+
+  @override
+  String get attrLabel_tray_style => 'Fazon';
+
+  @override
+  String get attrLabel_arm_length_m => 'Kar hossza';
+
+  @override
+  String get attrLabel_guide_number_m => 'Kulcsszám';
+
+  @override
   String get attrLabel_bag_style => 'Fazon';
 
   @override
@@ -30101,6 +32636,33 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_pocket_mount_thigh => 'Comb';
+
+  @override
+  String get attrChoice_lens_type_camera_lens => 'Fényképezőgép-objektív';
+
+  @override
+  String get attrChoice_lens_type_wet_lens => 'Nedves előtétlencse';
+
+  @override
+  String get attrChoice_lens_type_diopter => 'Közelítő lencse (dioptria)';
+
+  @override
+  String get attrChoice_port_type_dome => 'Dóm';
+
+  @override
+  String get attrChoice_port_type_flat => 'Sík';
+
+  @override
+  String get attrChoice_port_type_macro => 'Makró';
+
+  @override
+  String get attrChoice_tray_style_single_handle => 'Egy markolat';
+
+  @override
+  String get attrChoice_tray_style_double_handle => 'Két markolat';
+
+  @override
+  String get attrChoice_tray_style_pistol_grip => 'Pisztolymarkolat';
 
   @override
   String get attrChoice_bag_style_duffel => 'Utazótáska';
@@ -30413,6 +32975,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Repülés merülés után';
 
   @override
+  String get safetySettings_cnsOtuHeader => 'Jelenlegi CNS/OTU terhelés';
+
+  @override
   String get safetySettings_noFlyPreset_standard => 'Normál (12/18/24 ó)';
 
   @override
@@ -30460,6 +33025,31 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get safetyHub_noFly_clear_subtitle =>
       'Nincs aktív repülési korlátozás';
+
+  @override
+  String get safetyHub_cnsOtu_clear_title => 'Nincs aktív terhelés';
+
+  @override
+  String get safetyHub_cnsOtu_clear_subtitle =>
+      'A CNS és az OTU lecsengett az utolsó merülés óta';
+
+  @override
+  String safetyHub_cnsOtu_sinceLastDive(String duration) {
+    return 'Az utolsó merülés $duration ezelőtt ért véget';
+  }
+
+  @override
+  String safetyHub_cnsOtu_elapsedDaysHours(int days, int hours) {
+    return '${days}n $hoursó';
+  }
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_title =>
+      'Az utolsó merülésnek nincs profilja';
+
+  @override
+  String get safetyHub_cnsOtu_noProfile_body =>
+      'Mélységprofil nélkül a CNS% és az OTU nem számítható ki. Az alábbi összesítések nem tartalmazzák.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -30896,6 +33486,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get planning_card_noFly_subtitle =>
       'Irányadó visszaszámlálás az utolsó merüléseidtől';
+
+  @override
+  String get planning_card_cnsOtu_subtitle =>
+      'Élő csökkenés az utolsó merülés óta';
 
   @override
   String get settings_section_safety_title => 'Biztonság';
