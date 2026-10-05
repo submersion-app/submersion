@@ -1423,4 +1423,36 @@ void main() {
       },
     );
   });
+
+  group('buildAvailableGases excludeLoopCylinders', () {
+    test('drops the diluent and the O2 supply', () {
+      final dive = makeDive(
+        diveMode: DiveMode.ccr,
+        tanks: const [
+          DiveTank(id: 'dil', gasMix: GasMix(), role: TankRole.diluent),
+          DiveTank(
+            id: 'o2',
+            gasMix: GasMix(o2: 100),
+            role: TankRole.oxygenSupply,
+          ),
+          DiveTank(
+            id: 'bail',
+            gasMix: GasMix(o2: 21, he: 35),
+            role: TankRole.bailout,
+          ),
+          DiveTank(id: 'deco', gasMix: GasMix(o2: 50), role: TankRole.deco),
+        ],
+      );
+      final gases = buildAvailableGases(
+        dive,
+        maxPpO2: 1.6,
+        gasSet: AscentGasSet.allCarried,
+        excludeLoopCylinders: true,
+      );
+      expect(gases.map((g) => g.fO2), [
+        closeTo(0.21, 1e-9),
+        closeTo(0.5, 1e-9),
+      ]);
+    });
+  });
 }

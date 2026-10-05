@@ -298,12 +298,18 @@ GasMix resolveCcrDiluentMix(Dive dive) {
 /// taken out, so the inspired inert pressure is ambient less that ppO2, split
 /// by the supply's He:N2 ratio: the CCR model with the supply as diluent.
 ///
+/// [gasSwitches] are this computer's recorded switches and [tanks] the
+/// cylinders it breathed (default every tank); on CCR they switch the diluent
+/// or bail out (issue #577). SCR ignores them.
+///
 /// Null for open-circuit and gauge dives, which are not loop dives.
 @visibleForTesting
 List<ProfileGasSegment>? buildRebreatherProfileGasSegments(
   Dive dive, {
   required List<DiveProfilePoint> profile,
   required RebreatherPpO2? rebreatherPpO2,
+  List<GasSwitchWithTank> gasSwitches = const [],
+  List<DiveTank>? tanks,
 }) {
   final timestamps = [for (final p in profile) p.timestamp];
   switch (dive.diveMode) {
@@ -313,6 +319,7 @@ List<ProfileGasSegment>? buildRebreatherProfileGasSegments(
         loopPpO2Curve: rebreatherPpO2?.curve,
         diluentMix: resolveCcrDiluentMix(dive),
         fallbackSetpoint: dive.setpointHigh ?? dive.setpointLow,
+        gasChanges: classifyCcrGasChanges(gasSwitches, tanks ?? dive.tanks),
       );
     case DiveMode.scr:
       final measured = profile.any(
@@ -353,8 +360,14 @@ List<AvailableGas> buildAvailableGases(
   Dive dive, {
   required double maxPpO2,
   required AscentGasSet gasSet,
+  bool excludeLoopCylinders = false,
 }) {
   bool keep(DiveTank t) {
+    // A bailout ascent cannot breathe the loop's own cylinders.
+    if (excludeLoopCylinders &&
+        (t.role == TankRole.diluent || t.role == TankRole.oxygenSupply)) {
+      return false;
+    }
     if (gasSet == AscentGasSet.allCarried) return true;
     return t.role == TankRole.backGas ||
         t.role == TankRole.deco ||
@@ -1268,18 +1281,15 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
             profile,
             measuredOnly: dive.diveMode == DiveMode.scr,
           );
-    final gasSegments = switch (dive.diveMode) {
-      DiveMode.oc => buildProfileGasSegments(
-        dive,
-        // Scope switches to this computer's own gas plan: on a multi-source
-        // dive, getGasSwitchesForDive returns every computer's switches on
-        // its own clock, and mixing another computer's timestamps into this
-        // source's schedule can produce a non-monotonic list that
-        // BuhlmannAlgorithm rejects outright (#garmin-cloud-merge-analysis-
-        // blank), silently blanking every decompression/gas overlay. A
-        // switch must go to a tank this computer breathed, and be its own
-        // or unattributed: a cylinder two computers share carries both
-        // computers' switches (#2560).
+    // Scope switches to this computer's own gas plan: on a multi-source
+    // dive, getGasSwitchesForDive returns every computer's switches on its
+    // own clock, and mixing another computer's timestamps into this source's
+    // schedule can produce a non-monotonic list that BuhlmannAlgorithm
+    // rejects outright (#garmin-cloud-merge-analysis-blank), silently
+    // blanking every decompression/gas overlay. A switch must go to a tank
+    // this computer breathed, and be its own or unattributed: a cylinder two
+    // computers share carries both computers' switches (#2560).
+    Future<List<GasSwitchWithTank>> scopedGasSwitches() async =>
         (await repository.getGasSwitchesForDive(diveId))
             .where(
               (gs) =>
@@ -1287,31 +1297,51 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
                   (tankIds.contains(gs.gasSwitch.tankId) &&
                       gs.gasSwitch.appliesTo(computerId)),
             )
-            .toList(),
+            .toList();
+    final gasSegments = switch (dive.diveMode) {
+      DiveMode.oc => buildProfileGasSegments(
+        dive,
+        await scopedGasSwitches(),
         tanks: tanks,
         // A secondary computer's own bucket on a multi-source dive can
         // start before the merged timeline's zero point (it was switched on
         // earlier); seed the schedule there instead of a hardcoded 0.
         startTimestamp: timestamps.isEmpty ? 0 : timestamps.first,
       ),
+      // A CCR diver's switches change the diluent or bail out (#577).
+      DiveMode.ccr => buildRebreatherProfileGasSegments(
+        dive,
+        profile: profile,
+        rebreatherPpO2: rebreatherPpO2,
+        gasSwitches: await scopedGasSwitches(),
+        tanks: tanks,
+      ),
       // Gauge dives return a profile-only analysis before this point; they
       // take the rebreather arm only for exhaustiveness (it returns null).
-      DiveMode.ccr ||
-      DiveMode.scr ||
-      DiveMode.gauge => buildRebreatherProfileGasSegments(
+      DiveMode.scr || DiveMode.gauge => buildRebreatherProfileGasSegments(
         dive,
         profile: profile,
         rebreatherPpO2: rebreatherPpO2,
       ),
     };
     final ascentMaxPpO2 = inputs.ppO2MaxDeco;
-    final ascentGases = dive.diveMode == DiveMode.oc
-        ? buildAvailableGases(
-            dive,
-            maxPpO2: ascentMaxPpO2,
-            gasSet: inputs.ascentGasSet,
-          )
-        : null;
+    // OC ascends on its carried gases; a CCR dive that bailed out ascends
+    // from its bailout samples on the open-circuit cylinders it carried.
+    final ascentGases = switch (dive.diveMode) {
+      DiveMode.oc => buildAvailableGases(
+        dive,
+        maxPpO2: ascentMaxPpO2,
+        gasSet: inputs.ascentGasSet,
+      ),
+      DiveMode.ccr when hasOpenCircuitBailout(gasSegments) =>
+        buildAvailableGases(
+          dive,
+          maxPpO2: ascentMaxPpO2,
+          gasSet: inputs.ascentGasSet,
+          excludeLoopCylinders: true,
+        ),
+      _ => null,
+    };
     // Run Buhlmann analysis on a background isolate to keep UI responsive
     _log.debug(
       'Analyzing profile for dive $diveId with ${depths.length} points, '
@@ -1367,6 +1397,24 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       inputsFingerprint: inputs.fingerprint,
     );
 
+    // After a bailout the chart's ppO2 is the gas breathed, not the cells'
+    // reading of the abandoned loop (#577).
+    final displayedPpO2 =
+        rebreatherPpO2 != null &&
+            dive.diveMode == DiveMode.ccr &&
+            hasOpenCircuitBailout(gasSegments)
+        ? (
+            curve: breathedPpO2Curve(
+              loopCurve: rebreatherPpO2.curve,
+              analysedCurve: analysis.ppO2Curve,
+              timestamps: timestamps,
+              segments: gasSegments!,
+            ),
+            fromSensorAverage: rebreatherPpO2.fromSensorAverage,
+            sensorCurves: rebreatherPpO2.sensorCurves,
+          )
+        : rebreatherPpO2;
+
     // Overlay computer-reported deco data where available
     final (overlaid, sourceInfo) = overlayComputerDecoData(
       analysis,
@@ -1378,7 +1426,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       cnsSource: cnsSource,
       decoStopSource: decoStopSource,
       gtrSource: gtrSource,
-      rebreatherPpO2: rebreatherPpO2,
+      rebreatherPpO2: displayedPpO2,
       measuredPpO2Only: dive.diveMode == DiveMode.scr,
     );
 

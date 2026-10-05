@@ -196,3 +196,23 @@ bool _sameGas(ProfileGasSegment a, ProfileGasSegment b) =>
     a.fHe == b.fHe &&
     a.setpoint == b.setpoint &&
     a.loopHoldsSetpoint == b.loopHoldsSetpoint;
+
+/// The ppO2 a CCR diver breathed at each sample, for display: the loop's own
+/// resolved [loopCurve] while on the loop, and the analysed open-circuit ppO2
+/// ([analysedCurve], ambient x FO2) on samples after a bailout, where the O2
+/// cells read a loop no longer breathed (issue #577).
+List<double> breathedPpO2Curve({
+  required List<double> loopCurve,
+  required List<double> analysedCurve,
+  required List<int> timestamps,
+  required List<ProfileGasSegment> segments,
+}) {
+  return List<double>.generate(timestamps.length, (i) {
+    var active = segments.first;
+    for (final segment in segments) {
+      if (segment.startTimestamp > timestamps[i]) break;
+      active = segment;
+    }
+    return active.setpoint == null ? analysedCurve[i] : loopCurve[i];
+  });
+}

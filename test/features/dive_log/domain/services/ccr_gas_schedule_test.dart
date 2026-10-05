@@ -314,4 +314,19 @@ void main() {
       );
     });
   });
+
+  group('breathedPpO2Curve', () {
+    test('loop ppO2 on the loop, the analysed ppO2 after a bailout', () {
+      final curve = breathedPpO2Curve(
+        loopCurve: const [1.3, 1.3, 1.3, 1.3],
+        analysedCurve: const [9.9, 9.9, 1.55, 1.55],
+        timestamps: const [0, 60, 120, 180],
+        segments: const [
+          ProfileGasSegment(startTimestamp: 0, fN2: 0.79, setpoint: 1.3),
+          ProfileGasSegment(startTimestamp: 120, fN2: 0.5),
+        ],
+      );
+      expect(curve, [1.3, 1.3, 1.55, 1.55]);
+    });
+  });
 }

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 
 /// Issue #2593: the gas schedule a rebreather dive's tissues load from. Null
@@ -190,6 +191,64 @@ void main() {
 
       expect(segmentsFor(dive), isNull, reason: mode.name);
     }
+  });
+
+  group('gas switches (issue #577)', () {
+    const bailout = DiveTank(
+      id: 'bail',
+      gasMix: GasMix(o2: 50),
+      role: TankRole.bailout,
+    );
+    final toBailout = GasSwitchWithTank(
+      gasSwitch: GasSwitch(
+        id: 's1',
+        diveId: 'ccr',
+        timestamp: 1200,
+        tankId: 'bail',
+        createdAt: DateTime.utc(2026, 10, 5),
+      ),
+      tankName: 'Bailout',
+      gasMix: 'EAN50',
+      o2Fraction: 0.5,
+    );
+
+    test('CCR breathes the bailout cylinder open circuit after the switch', () {
+      final dive = Dive(
+        id: 'ccr',
+        dateTime: DateTime.utc(2026, 10, 5),
+        diveMode: DiveMode.ccr,
+        tanks: const [o2, diluent, bailout],
+        profile: profile(setpoint: 1.3),
+      );
+      final segments = buildRebreatherProfileGasSegments(
+        dive,
+        profile: dive.profile,
+        rebreatherPpO2: resolveRebreatherPpO2(dive.profile),
+        gasSwitches: [toBailout],
+      )!;
+      expect(segments, hasLength(2));
+      expect(segments[1].startTimestamp, 1200);
+      expect(segments[1].setpoint, isNull);
+      expect(segments[1].fN2, closeTo(0.5, 1e-9));
+    });
+
+    test('SCR ignores gas switches', () {
+      final dive = Dive(
+        id: 'scr',
+        dateTime: DateTime.utc(2026, 10, 5),
+        diveMode: DiveMode.scr,
+        tanks: const [supply, bailout],
+        profile: profile(ppO2: 1.0),
+      );
+      final segments = buildRebreatherProfileGasSegments(
+        dive,
+        profile: dive.profile,
+        rebreatherPpO2: resolveRebreatherPpO2(dive.profile, measuredOnly: true),
+        gasSwitches: [toBailout],
+      )!;
+      expect(segments, hasLength(1));
+      expect(segments.single.setpoint, isNotNull);
+    });
   });
 }
 
