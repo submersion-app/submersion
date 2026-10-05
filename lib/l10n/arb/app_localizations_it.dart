@@ -7291,9 +7291,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Digita per cercare i computer';
 
   @override
-  String get diveLog_filter_searchSitesHint => 'Digita per cercare i siti';
-
-  @override
   String get diveLog_filter_searchTypesHint => 'Digita per cercare i tipi';
 
   @override

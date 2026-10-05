@@ -11575,12 +11575,6 @@ abstract class AppLocalizations {
   /// **'Type to search computers'**
   String get diveLog_filter_searchComputersHint;
 
-  /// No description provided for @diveLog_filter_searchSitesHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Type to search sites'**
-  String get diveLog_filter_searchSitesHint;
-
   /// No description provided for @diveLog_filter_searchTypesHint.
   ///
   /// In en, this message translates to:

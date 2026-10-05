@@ -7124,9 +7124,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_searchComputersHint => 'הקלד כדי לחפש מחשבי צלילה';
 
   @override
-  String get diveLog_filter_searchSitesHint => 'הקלד כדי לחפש אתרים';
-
-  @override
   String get diveLog_filter_searchTypesHint => 'הקלד כדי לחפש סוגים';
 
   @override

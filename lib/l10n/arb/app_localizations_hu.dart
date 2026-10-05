@@ -7277,10 +7277,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Gépelj a búvárcomputerek kereséséhez';
 
   @override
-  String get diveLog_filter_searchSitesHint =>
-      'Gépelj a merülőhelyek kereséséhez';
-
-  @override
   String get diveLog_filter_searchTypesHint =>
       'Gépelj a merüléstípusok kereséséhez';
 

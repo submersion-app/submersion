@@ -7292,9 +7292,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Escribe para buscar ordenadores';
 
   @override
-  String get diveLog_filter_searchSitesHint => 'Escribe para buscar puntos';
-
-  @override
   String get diveLog_filter_searchTypesHint => 'Escribe para buscar tipos';
 
   @override

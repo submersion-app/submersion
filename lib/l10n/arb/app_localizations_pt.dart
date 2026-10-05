@@ -7294,9 +7294,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Digite para buscar computadores';
 
   @override
-  String get diveLog_filter_searchSitesHint => 'Digite para buscar pontos';
-
-  @override
   String get diveLog_filter_searchTypesHint => 'Digite para buscar tipos';
 
   @override

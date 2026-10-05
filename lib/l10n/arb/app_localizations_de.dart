@@ -7289,10 +7289,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tippen, um Computer zu suchen';
 
   @override
-  String get diveLog_filter_searchSitesHint =>
-      'Tippen, um Tauchplätze zu suchen';
-
-  @override
   String get diveLog_filter_searchTypesHint =>
       'Tippen, um Tauchgangstypen zu suchen';
 

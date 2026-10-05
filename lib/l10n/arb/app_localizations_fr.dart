@@ -7312,10 +7312,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Saisissez pour rechercher des ordinateurs';
 
   @override
-  String get diveLog_filter_searchSitesHint =>
-      'Saisissez pour rechercher des sites';
-
-  @override
   String get diveLog_filter_searchTypesHint =>
       'Saisissez pour rechercher des types';
 
