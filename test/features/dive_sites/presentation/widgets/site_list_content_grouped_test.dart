@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -55,6 +56,8 @@ Future<void> _pumpGrouped(
   ListViewMode viewMode = ListViewMode.detailed,
   SiteGroupBy groupBy = SiteGroupBy.location,
   String? selectedId,
+  String? highlightedId,
+  List<SiteWithDiveCount>? sites,
   bool showAppBar = true,
 }) async {
   tester.view.devicePixelRatio = 1.0;
@@ -72,11 +75,11 @@ Future<void> _pumpGrouped(
           (ref) => MockCurrentDiverIdNotifier(),
         ),
         sortedSitesWithCountsProvider.overrideWithValue(
-          AsyncValue.data(_sites),
+          AsyncValue.data(sites ?? _sites),
         ),
         siteListNotifierProvider.overrideWith((ref) => _MockSiteListNotifier()),
         siteListViewModeProvider.overrideWith((ref) => viewMode),
-        highlightedSiteIdProvider.overrideWith((ref) => null),
+        highlightedSiteIdProvider.overrideWith((ref) => highlightedId),
         siteGroupByProvider.overrideWith((ref) => groupBy),
       ],
       child: SiteListContent(showAppBar: showAppBar, selectedId: selectedId),
@@ -196,5 +199,34 @@ void main() {
     await _pumpGrouped(tester, viewMode: ListViewMode.table);
     expect(_header('Australia'), findsNothing);
     expect(find.text('Cod Hole'), findsOneWidget);
+  });
+
+  testWidgets('shift-click never selects sites in a collapsed group', (
+    tester,
+  ) async {
+    await _pumpGrouped(
+      tester,
+      showAppBar: false,
+      highlightedId: 'au1',
+      sites: [
+        _site('au1', 'Cod Hole', country: 'Australia'),
+        _site('bz1', 'Great Blue Hole', country: 'Belize'),
+        _site('bz2', 'Turneffe Wall', country: 'Belize'),
+        _site('eg1', 'Blue Hole', country: 'Egypt'),
+      ],
+    );
+    await tester.tap(_header('Australia'));
+    await tester.pumpAndSettle();
+    await tester.tap(_header('Egypt'));
+    await tester.pumpAndSettle();
+    expect(find.text('Great Blue Hole'), findsNothing);
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.tap(find.text('Blue Hole'));
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.pumpAndSettle();
+
+    // Belize stays collapsed, so its two sites are not part of the range.
+    expect(find.text('2 selected'), findsOneWidget);
   });
 }

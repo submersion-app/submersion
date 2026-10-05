@@ -1191,11 +1191,15 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     final grouped = _groupedView(sites);
     final rows = grouped?.rows;
     final expanded = grouped?.expanded ?? const <String>{};
-    // Range selection follows what the diver sees, so grouped it walks the
-    // sites in group order.
+    // Range selection follows what the diver sees: grouped, it walks only
+    // the sites on screen, so a shift-click across a collapsed country never
+    // checks the sites hidden inside it.
     final orderedSites = grouped == null
         ? sites
-        : [for (final g in grouped.groups) ...g.allItems];
+        : [
+            for (final row in grouped.rows)
+              if (row is SiteRow<SiteWithDiveCount>) row.item,
+          ];
 
     return RefreshIndicator(
       onRefresh: () async {

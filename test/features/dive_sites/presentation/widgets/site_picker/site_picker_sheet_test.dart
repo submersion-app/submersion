@@ -429,4 +429,16 @@ void main() {
     expect(find.textContaining('mi away'), findsOneWidget);
     expect(find.textContaining('km'), findsNothing);
   });
+
+  // Only the Nearby section is ordered by distance; with nothing within
+  // 50 km the list is purely by country, so the caption would be false.
+  testWidgets('no distance caption when no site is nearby', (tester) async {
+    await _pump(
+      tester,
+      sites: const [_farSite, _noGpsSite],
+      diveLocation: const GeoPoint(10.0, 10.0),
+    );
+    expect(find.text('Nearby'), findsNothing);
+    expect(find.text('Sorted by distance from this dive'), findsNothing);
+  });
 }

@@ -292,10 +292,16 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
     final units = UnitFormatter(ref.watch(settingsProvider));
     final colorScheme = Theme.of(context).colorScheme;
     final query = SiteQuery(_searchQuery);
+    // Only the Nearby section is ordered by distance, so the caption that
+    // says so shows only when that section has sites in it.
+    final hasNearby = (sitesAsync.value ?? const <DiveSite>[]).any(
+      (site) =>
+          (_distanceToSite(site) ?? double.infinity) < _nearbyRadiusMeters,
+    );
 
     return Column(
       children: [
-        _buildHeader(context, colorScheme),
+        _buildHeader(context, colorScheme, hasNearby: hasNearby),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           child: TextField(
@@ -355,7 +361,11 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, ColorScheme colorScheme) {
+  Widget _buildHeader(
+    BuildContext context,
+    ColorScheme colorScheme, {
+    required bool hasNearby,
+  }) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -369,7 +379,7 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
                   context.l10n.diveLog_sitePicker_title,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
-                if (_anchor != null)
+                if (hasNearby)
                   Row(
                     children: [
                       Icon(
