@@ -161,7 +161,6 @@ class DiverSettingsRepository {
               o2Narcotic: Value(s.o2Narcotic),
               endLimit: Value(s.endLimit),
               defaultNdlSource: Value(s.defaultNdlSource.toInt()),
-              defaultCeilingSource: Value(s.defaultCeilingSource.toInt()),
               defaultDecoStopSource: Value(s.defaultDecoStopSource.toInt()),
               defaultTtsSource: Value(s.defaultTtsSource.toInt()),
               defaultCnsSource: Value(s.defaultCnsSource.toInt()),
@@ -417,7 +416,6 @@ class DiverSettingsRepository {
     o2Narcotic: Value(settings.o2Narcotic),
     endLimit: Value(settings.endLimit),
     defaultNdlSource: Value(settings.defaultNdlSource.toInt()),
-    defaultCeilingSource: Value(settings.defaultCeilingSource.toInt()),
     defaultDecoStopSource: Value(settings.defaultDecoStopSource.toInt()),
     defaultTtsSource: Value(settings.defaultTtsSource.toInt()),
     defaultCnsSource: Value(settings.defaultCnsSource.toInt()),
@@ -620,7 +618,6 @@ class DiverSettingsRepository {
       o2Narcotic: row.o2Narcotic,
       endLimit: row.endLimit,
       defaultNdlSource: MetricDataSource.fromInt(row.defaultNdlSource),
-      defaultCeilingSource: MetricDataSource.fromInt(row.defaultCeilingSource),
       defaultDecoStopSource: MetricDataSource.fromInt(
         row.defaultDecoStopSource,
       ),

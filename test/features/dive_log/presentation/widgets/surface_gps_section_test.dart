@@ -26,7 +26,25 @@ Dive _dive() => Dive(
   ),
 );
 
-Future<void> _pump(WidgetTester tester, {MapController? controller}) async {
+/// A dive whose only location is its site's coordinates: no GPS fixes.
+Dive _siteOnlyDive() => Dive(
+  id: 'site-only',
+  diveNumber: 2,
+  dateTime: DateTime(2026, 5, 22, 9, 14),
+  maxDepth: 30.0,
+  site: const DiveSite(
+    id: 'site-1',
+    name: 'Blue Hole',
+    location: GeoPoint(12.34000, 98.76000),
+  ),
+);
+
+Future<void> _pump(
+  WidgetTester tester, {
+  MapController? controller,
+  Dive? dive,
+  bool expanded = true,
+}) async {
   final overrides = await getBaseOverrides();
   await tester.binding.setSurfaceSize(const Size(600, 1200));
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -39,14 +57,17 @@ Future<void> _pump(WidgetTester tester, {MapController? controller}) async {
     ProviderScope(
       overrides: [
         ...overrides,
-        surfaceGpsSectionExpandedProvider.overrideWithValue(true),
+        surfaceGpsSectionExpandedProvider.overrideWithValue(expanded),
       ],
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SingleChildScrollView(
-            child: SurfaceGpsSection(dive: _dive(), controller: controller),
+            child: SurfaceGpsSection(
+              dive: dive ?? _dive(),
+              controller: controller,
+            ),
           ),
         ),
       ),
@@ -118,5 +139,55 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(DiveLocationsMapPage), findsOneWidget);
+  });
+
+  testWidgets('a GPS dive keeps the Surface GPS title', (tester) async {
+    await _pump(tester);
+
+    expect(find.text('Surface GPS'), findsOneWidget);
+    expect(find.text('Location'), findsNothing);
+  });
+
+  group('site-only dive', () {
+    testWidgets('is titled Location and maps the site alone', (tester) async {
+      await _pump(tester, dive: _siteOnlyDive());
+
+      expect(find.text('Location'), findsOneWidget);
+      expect(find.text('Surface GPS'), findsNothing);
+      expect(find.byType(FlutterMap), findsOneWidget);
+      expect(find.byKey(const ValueKey('gps-coord-site')), findsOneWidget);
+      expect(find.text('12.340000° N, 98.760000° E'), findsOneWidget);
+      expect(find.byKey(const ValueKey('gps-coord-entry')), findsNothing);
+      expect(find.byKey(const ValueKey('gps-coord-exit')), findsNothing);
+      expect(find.textContaining('Drift'), findsNothing);
+      expect(find.byKey(const ValueKey('gps-expand')), findsOneWidget);
+    });
+
+    testWidgets('shows the site name as the collapsed subtitle', (
+      tester,
+    ) async {
+      await _pump(tester, dive: _siteOnlyDive(), expanded: false);
+
+      expect(find.text('Location'), findsOneWidget);
+      expect(find.text('Blue Hole'), findsOneWidget);
+      expect(find.text('Entry point recorded'), findsNothing);
+      expect(find.text('Exit point recorded'), findsNothing);
+    });
+
+    testWidgets('the expand button opens the fullscreen map of the site', (
+      tester,
+    ) async {
+      await _pump(tester, dive: _siteOnlyDive());
+
+      await tester.tap(find.byKey(const ValueKey('gps-expand')));
+      await tester.pumpAndSettle();
+
+      final page = tester.widget<DiveLocationsMapPage>(
+        find.byType(DiveLocationsMapPage),
+      );
+      expect(page.site, const GeoPoint(12.34000, 98.76000));
+      expect(page.entry, isNull);
+      expect(page.exit, isNull);
+    });
   });
 }

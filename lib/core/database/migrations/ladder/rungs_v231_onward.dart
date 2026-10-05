@@ -197,5 +197,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankSharedComputerIds();
     }
     if (from < 260) await reportProgress();
+    // v261: drop diver_settings.default_ceiling_source (issue #767), unread
+    // since the ceiling line lost its source toggle (#755). Re-asserted in
+    // beforeOpen.
+    if (from < 261) {
+      await _dropDefaultCeilingSourceColumn();
+    }
+    if (from < 261) await reportProgress();
   }
 }
