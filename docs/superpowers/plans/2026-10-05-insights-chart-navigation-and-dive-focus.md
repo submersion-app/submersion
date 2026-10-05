@@ -2875,10 +2875,10 @@ void main() {
       ),
     );
     final dry = await equipment.createEquipment(
-      EquipmentItem(id: 'dry', name: 'Dry', type: EquipmentType.drysuit),
+      const EquipmentItem(id: 'dry', name: 'Dry', type: EquipmentType.drysuit),
     );
     final bare = await equipment.createEquipment(
-      EquipmentItem(id: 'w?', name: 'Old', type: EquipmentType.wetsuit),
+      const EquipmentItem(id: 'w?', name: 'Old', type: EquipmentType.wetsuit),
     );
     await dives.createDive(
       domain.Dive(id: 'wet', dateTime: DateTime(2025, 3, 1), gear: looseGear([wet])),
