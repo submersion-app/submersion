@@ -24,6 +24,9 @@ enum FieldKind {
   altitude,
   heightCm,
   ascentRate,
+
+  /// A gas rate in litres per minute (SAC, RMV).
+  rmv,
   latitude,
   longitude,
   percent,
@@ -35,6 +38,9 @@ enum FieldKind {
 
   /// A real instant, shown in the device's time zone.
   dateTime,
+
+  /// A real instant stored as Unix seconds rather than milliseconds.
+  epochSeconds,
 
   /// A dive computer's clock stored flagged UTC (`dives.dive_date_time`):
   /// shown as the stored digits, never shifted to the device's zone.

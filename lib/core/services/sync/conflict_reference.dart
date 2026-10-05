@@ -122,6 +122,7 @@ class ConflictReferenceResolver {
     'componentEquipmentId': 'equipment',
     'transmitterEquipmentId': 'equipment',
     'diveComputerId': 'diveComputers',
+    'linkedDiverId': 'divers',
     'sessionId': 'preDiveSessions',
     'templateId': 'checklistTemplates',
   };

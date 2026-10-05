@@ -134,4 +134,32 @@ void main() {
     );
     expect(conflictFieldFor('equipment', 'purchaseDate').kind, FieldKind.date);
   });
+
+  test('people and planning fields', () {
+    expect(
+      conflictFieldFor('diverWeightEntries', 'heightCm').kind,
+      FieldKind.heightCm,
+    );
+    expect(
+      conflictFieldFor('certifications', 'level').kind,
+      FieldKind.enumValue,
+    );
+    expect(
+      conflictFieldFor('certifications', 'agency').kind,
+      FieldKind.enumValue,
+    );
+    expect(
+      conflictFieldFor('preDiveSessions', 'status').kind,
+      FieldKind.enumValue,
+    );
+    expect(
+      conflictFieldFor('courseRequirements', 'kind').kind,
+      FieldKind.enumValue,
+    );
+    expect(
+      conflictFieldFor('divePlans', 'startDateTime').kind,
+      FieldKind.epochSeconds,
+    );
+    expect(conflictFieldFor('divePlans', 'sacBottom').kind, FieldKind.rmv);
+  });
 }

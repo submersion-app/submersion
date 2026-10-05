@@ -1,6 +1,7 @@
 import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/dive_log_fields.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/equipment_fields.dart';
+import 'package:submersion/features/settings/presentation/conflicts/catalogue/people_planning_fields.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/site_trip_fields.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_reference_labels.dart';
@@ -23,6 +24,7 @@ final Map<String, ConflictField> conflictFieldCatalogue = _merge([
   diveLogFields,
   siteTripFields,
   equipmentFields,
+  peoplePlanningFields,
 ]);
 
 /// Entity-specific meanings, keyed `'<entityType>.<column>'`. Checked before
@@ -31,6 +33,7 @@ final Map<String, ConflictField> conflictFieldOverrides = _merge([
   diveLogOverrides,
   siteTripOverrides,
   equipmentOverrides,
+  peoplePlanningOverrides,
 ]);
 
 Map<String, ConflictField> _merge(List<Map<String, ConflictField>> maps) {

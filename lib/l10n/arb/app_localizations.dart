@@ -31460,6 +31460,30 @@ abstract class AppLocalizations {
   /// **'Access notes'**
   String get settings_conflict_field_accessNotes;
 
+  /// No description provided for @settings_conflict_field_additionalCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional credentials'**
+  String get settings_conflict_field_additionalCredentials;
+
+  /// No description provided for @settings_conflict_field_airBreakBreakSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Air break length'**
+  String get settings_conflict_field_airBreakBreakSeconds;
+
+  /// No description provided for @settings_conflict_field_airBreakO2Seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Oxygen time between air breaks'**
+  String get settings_conflict_field_airBreakO2Seconds;
+
+  /// No description provided for @settings_conflict_field_allergies.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergies'**
+  String get settings_conflict_field_allergies;
+
   /// No description provided for @settings_conflict_field_amountKg.
   ///
   /// In en, this message translates to:
@@ -31532,6 +31556,12 @@ abstract class AppLocalizations {
   /// **'Offered on dive sites'**
   String get settings_conflict_field_appliesToSites;
 
+  /// No description provided for @settings_conflict_field_ascentRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent rate'**
+  String get settings_conflict_field_ascentRate;
+
   /// No description provided for @settings_conflict_field_assumedVo2.
   ///
   /// In en, this message translates to:
@@ -31562,11 +31592,29 @@ abstract class AppLocalizations {
   /// **'Average speed'**
   String get settings_conflict_field_avgSpeed;
 
+  /// No description provided for @settings_conflict_field_batteryReserveFraction.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery reserve'**
+  String get settings_conflict_field_batteryReserveFraction;
+
   /// No description provided for @settings_conflict_field_bearingDeg.
   ///
   /// In en, this message translates to:
   /// **'Bearing in degrees'**
   String get settings_conflict_field_bearingDeg;
+
+  /// No description provided for @settings_conflict_field_bestMixEndMeters.
+  ///
+  /// In en, this message translates to:
+  /// **'Best mix narcotic depth'**
+  String get settings_conflict_field_bestMixEndMeters;
+
+  /// No description provided for @settings_conflict_field_bloodType.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood type'**
+  String get settings_conflict_field_bloodType;
 
   /// No description provided for @settings_conflict_field_bluetoothAddress.
   ///
@@ -31591,6 +31639,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Bottle number'**
   String get settings_conflict_field_bottleLabel;
+
+  /// No description provided for @settings_conflict_field_builtinKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in template'**
+  String get settings_conflict_field_builtinKey;
 
   /// No description provided for @settings_conflict_field_buoyancyKg.
   ///
@@ -31718,11 +31772,29 @@ abstract class AppLocalizations {
   /// **'Country'**
   String get settings_conflict_field_country;
 
+  /// No description provided for @settings_conflict_field_courseRequirements_kind.
+  ///
+  /// In en, this message translates to:
+  /// **'Requirement type'**
+  String get settings_conflict_field_courseRequirements_kind;
+
   /// No description provided for @settings_conflict_field_currency.
   ///
   /// In en, this message translates to:
   /// **'Currency'**
   String get settings_conflict_field_currency;
+
+  /// No description provided for @settings_conflict_field_currentSetsTowardDeg.
+  ///
+  /// In en, this message translates to:
+  /// **'Current direction in degrees'**
+  String get settings_conflict_field_currentSetsTowardDeg;
+
+  /// No description provided for @settings_conflict_field_currentSpeedMps.
+  ///
+  /// In en, this message translates to:
+  /// **'Current speed'**
+  String get settings_conflict_field_currentSpeedMps;
 
   /// No description provided for @settings_conflict_field_customReminderDays.
   ///
@@ -31760,6 +31832,12 @@ abstract class AppLocalizations {
   /// **'Day type'**
   String get settings_conflict_field_dayType;
 
+  /// No description provided for @settings_conflict_field_decoSwitchDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco gas switch depth'**
+  String get settings_conflict_field_decoSwitchDepth;
+
   /// No description provided for @settings_conflict_field_defaultCategory.
   ///
   /// In en, this message translates to:
@@ -31777,6 +31855,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Default currency'**
   String get settings_conflict_field_defaultCurrency;
+
+  /// No description provided for @settings_conflict_field_defaultCurrentSetsTowardDeg.
+  ///
+  /// In en, this message translates to:
+  /// **'Default current direction in degrees'**
+  String get settings_conflict_field_defaultCurrentSetsTowardDeg;
+
+  /// No description provided for @settings_conflict_field_defaultCurrentSpeedMps.
+  ///
+  /// In en, this message translates to:
+  /// **'Default current speed'**
+  String get settings_conflict_field_defaultCurrentSpeedMps;
 
   /// No description provided for @settings_conflict_field_defaultIntervalDays.
   ///
@@ -31808,11 +31898,23 @@ abstract class AppLocalizations {
   /// **'Depth'**
   String get settings_conflict_field_depth;
 
+  /// No description provided for @settings_conflict_field_depthM.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get settings_conflict_field_depthM;
+
   /// No description provided for @settings_conflict_field_depthMeters.
   ///
   /// In en, this message translates to:
   /// **'Depth'**
   String get settings_conflict_field_depthMeters;
+
+  /// No description provided for @settings_conflict_field_descentRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Descent rate'**
+  String get settings_conflict_field_descentRate;
 
   /// No description provided for @settings_conflict_field_description.
   ///
@@ -31849,6 +31951,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Check version'**
   String get settings_conflict_field_detectorVersion;
+
+  /// No description provided for @settings_conflict_field_deviationDepthDelta.
+  ///
+  /// In en, this message translates to:
+  /// **'Contingency extra depth'**
+  String get settings_conflict_field_deviationDepthDelta;
+
+  /// No description provided for @settings_conflict_field_deviationTimeMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Contingency extra time'**
+  String get settings_conflict_field_deviationTimeMinutes;
 
   /// No description provided for @settings_conflict_field_deviceName.
   ///
@@ -31898,6 +32012,12 @@ abstract class AppLocalizations {
   /// **'Display name'**
   String get settings_conflict_field_displayName;
 
+  /// No description provided for @settings_conflict_field_distanceM.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get settings_conflict_field_distanceM;
+
   /// No description provided for @settings_conflict_field_diveComputerFirmware.
   ///
   /// In en, this message translates to:
@@ -31916,11 +32036,29 @@ abstract class AppLocalizations {
   /// **'Dive count'**
   String get settings_conflict_field_diveCount;
 
+  /// No description provided for @settings_conflict_field_diveModeOverride.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathing mode for this segment'**
+  String get settings_conflict_field_diveModeOverride;
+
   /// No description provided for @settings_conflict_field_diveOperator.
   ///
   /// In en, this message translates to:
   /// **'Dive operator'**
   String get settings_conflict_field_diveOperator;
+
+  /// No description provided for @settings_conflict_field_divePlanSegments_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Segment'**
+  String get settings_conflict_field_divePlanSegments_type;
+
+  /// No description provided for @settings_conflict_field_divePlanTanks_role.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank role'**
+  String get settings_conflict_field_divePlanTanks_role;
 
   /// No description provided for @settings_conflict_field_diveProfileEvents_severity.
   ///
@@ -31951,6 +32089,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Target dives per day'**
   String get settings_conflict_field_divesPerDayTarget;
+
+  /// No description provided for @settings_conflict_field_divingSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Diving since'**
+  String get settings_conflict_field_divingSince;
 
   /// No description provided for @settings_conflict_field_dueDate.
   ///
@@ -31994,11 +32138,53 @@ abstract class AppLocalizations {
   /// **'Embark port'**
   String get settings_conflict_field_embarkPort;
 
+  /// No description provided for @settings_conflict_field_emergencyContact2Name.
+  ///
+  /// In en, this message translates to:
+  /// **'Second emergency contact'**
+  String get settings_conflict_field_emergencyContact2Name;
+
+  /// No description provided for @settings_conflict_field_emergencyContact2Phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Second emergency contact phone'**
+  String get settings_conflict_field_emergencyContact2Phone;
+
+  /// No description provided for @settings_conflict_field_emergencyContact2Relation.
+  ///
+  /// In en, this message translates to:
+  /// **'Second emergency contact relation'**
+  String get settings_conflict_field_emergencyContact2Relation;
+
+  /// No description provided for @settings_conflict_field_emergencyContactName.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency contact'**
+  String get settings_conflict_field_emergencyContactName;
+
+  /// No description provided for @settings_conflict_field_emergencyContactPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency contact phone'**
+  String get settings_conflict_field_emergencyContactPhone;
+
+  /// No description provided for @settings_conflict_field_emergencyContactRelation.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency contact relation'**
+  String get settings_conflict_field_emergencyContactRelation;
+
   /// No description provided for @settings_conflict_field_enabled.
   ///
   /// In en, this message translates to:
   /// **'Enabled'**
   String get settings_conflict_field_enabled;
+
+  /// No description provided for @settings_conflict_field_endDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'End depth'**
+  String get settings_conflict_field_endDepth;
 
   /// No description provided for @settings_conflict_field_endLatitude.
   ///
@@ -32054,6 +32240,12 @@ abstract class AppLocalizations {
   /// **'Entry time'**
   String get settings_conflict_field_entryTime;
 
+  /// No description provided for @settings_conflict_field_environment.
+  ///
+  /// In en, this message translates to:
+  /// **'Environment'**
+  String get settings_conflict_field_environment;
+
   /// No description provided for @settings_conflict_field_equipmentComponents_role.
   ///
   /// In en, this message translates to:
@@ -32077,6 +32269,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Event'**
   String get settings_conflict_field_equipmentOwnershipEvents_kind;
+
+  /// No description provided for @settings_conflict_field_equipmentSetName.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment set'**
+  String get settings_conflict_field_equipmentSetName;
 
   /// No description provided for @settings_conflict_field_eventType.
   ///
@@ -32186,6 +32384,12 @@ abstract class AppLocalizations {
   /// **'Filled'**
   String get settings_conflict_field_filledAt;
 
+  /// No description provided for @settings_conflict_field_finalAscentRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Final ascent rate'**
+  String get settings_conflict_field_finalAscentRate;
+
   /// No description provided for @settings_conflict_field_firmwareVersion.
   ///
   /// In en, this message translates to:
@@ -32197,6 +32401,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'First sample depth'**
   String get settings_conflict_field_firstDepth;
+
+  /// No description provided for @settings_conflict_field_gasHe.
+  ///
+  /// In en, this message translates to:
+  /// **'Helium'**
+  String get settings_conflict_field_gasHe;
+
+  /// No description provided for @settings_conflict_field_gasO2.
+  ///
+  /// In en, this message translates to:
+  /// **'Oxygen'**
+  String get settings_conflict_field_gasO2;
+
+  /// No description provided for @settings_conflict_field_gasSwitchStopSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas switch stop'**
+  String get settings_conflict_field_gasSwitchStopSeconds;
 
   /// No description provided for @settings_conflict_field_gearType.
   ///
@@ -32228,11 +32450,23 @@ abstract class AppLocalizations {
   /// **'Helium'**
   String get settings_conflict_field_hePercent;
 
+  /// No description provided for @settings_conflict_field_headingDeg.
+  ///
+  /// In en, this message translates to:
+  /// **'Heading in degrees'**
+  String get settings_conflict_field_headingDeg;
+
   /// No description provided for @settings_conflict_field_headingOffsetDeg.
   ///
   /// In en, this message translates to:
   /// **'Heading correction in degrees'**
   String get settings_conflict_field_headingOffsetDeg;
+
+  /// No description provided for @settings_conflict_field_heightCm.
+  ///
+  /// In en, this message translates to:
+  /// **'Height'**
+  String get settings_conflict_field_heightCm;
 
   /// No description provided for @settings_conflict_field_heightMeters.
   ///
@@ -32287,6 +32521,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings used'**
   String get settings_conflict_field_inputsHash;
+
+  /// No description provided for @settings_conflict_field_insuranceEmergencyPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance emergency line'**
+  String get settings_conflict_field_insuranceEmergencyPhone;
+
+  /// No description provided for @settings_conflict_field_insuranceExpiryDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance expiry'**
+  String get settings_conflict_field_insuranceExpiryDate;
+
+  /// No description provided for @settings_conflict_field_insurancePhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance phone'**
+  String get settings_conflict_field_insurancePhone;
+
+  /// No description provided for @settings_conflict_field_insurancePolicyNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance policy number'**
+  String get settings_conflict_field_insurancePolicyNumber;
+
+  /// No description provided for @settings_conflict_field_insuranceProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance provider'**
+  String get settings_conflict_field_insuranceProvider;
+
+  /// No description provided for @settings_conflict_field_intermediateAscentRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent rate between deep stops'**
+  String get settings_conflict_field_intermediateAscentRate;
 
   /// No description provided for @settings_conflict_field_intervalDays.
   ///
@@ -32348,17 +32618,35 @@ abstract class AppLocalizations {
   /// **'Primary'**
   String get settings_conflict_field_isPrimary;
 
+  /// No description provided for @settings_conflict_field_isRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get settings_conflict_field_isRequired;
+
   /// No description provided for @settings_conflict_field_isShared.
   ///
   /// In en, this message translates to:
   /// **'Shared'**
   String get settings_conflict_field_isShared;
 
+  /// No description provided for @settings_conflict_field_isTravelGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel gas'**
+  String get settings_conflict_field_isTravelGas;
+
   /// No description provided for @settings_conflict_field_issueTags.
   ///
   /// In en, this message translates to:
   /// **'Issues'**
   String get settings_conflict_field_issueTags;
+
+  /// No description provided for @settings_conflict_field_itemType.
+  ///
+  /// In en, this message translates to:
+  /// **'Item type'**
+  String get settings_conflict_field_itemType;
 
   /// No description provided for @settings_conflict_field_label.
   ///
@@ -32389,6 +32677,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last read'**
   String get settings_conflict_field_lastParsedAt;
+
+  /// No description provided for @settings_conflict_field_lastStopDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Last stop depth'**
+  String get settings_conflict_field_lastStopDepth;
 
   /// No description provided for @settings_conflict_field_latitude.
   ///
@@ -32492,11 +32786,41 @@ abstract class AppLocalizations {
   /// **'Top speed'**
   String get settings_conflict_field_maxSpeed;
 
+  /// No description provided for @settings_conflict_field_measuredAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Measured'**
+  String get settings_conflict_field_measuredAt;
+
+  /// No description provided for @settings_conflict_field_medicalClearanceExpiryDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical clearance expiry'**
+  String get settings_conflict_field_medicalClearanceExpiryDate;
+
+  /// No description provided for @settings_conflict_field_medicalNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical notes'**
+  String get settings_conflict_field_medicalNotes;
+
+  /// No description provided for @settings_conflict_field_medications.
+  ///
+  /// In en, this message translates to:
+  /// **'Medications'**
+  String get settings_conflict_field_medications;
+
   /// No description provided for @settings_conflict_field_mergeSourceSlot.
   ///
   /// In en, this message translates to:
   /// **'Position among merged sources'**
   String get settings_conflict_field_mergeSourceSlot;
+
+  /// No description provided for @settings_conflict_field_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathing mode'**
+  String get settings_conflict_field_mode;
 
   /// No description provided for @settings_conflict_field_name.
   ///
@@ -32521,6 +32845,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Noted'**
   String get settings_conflict_field_notedAt;
+
+  /// No description provided for @settings_conflict_field_o2Narcotic.
+  ///
+  /// In en, this message translates to:
+  /// **'Oxygen counted as narcotic'**
+  String get settings_conflict_field_o2Narcotic;
 
   /// No description provided for @settings_conflict_field_o2Percent.
   ///
@@ -32552,6 +32882,12 @@ abstract class AppLocalizations {
   /// **'Outing'**
   String get settings_conflict_field_outingId;
 
+  /// No description provided for @settings_conflict_field_overdueServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue services'**
+  String get settings_conflict_field_overdueServices;
+
   /// No description provided for @settings_conflict_field_params.
   ///
   /// In en, this message translates to:
@@ -32576,6 +32912,36 @@ abstract class AppLocalizations {
   /// **'Phone'**
   String get settings_conflict_field_phone;
 
+  /// No description provided for @settings_conflict_field_photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get settings_conflict_field_photo;
+
+  /// No description provided for @settings_conflict_field_photoBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Card back'**
+  String get settings_conflict_field_photoBack;
+
+  /// No description provided for @settings_conflict_field_photoBackPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Card back'**
+  String get settings_conflict_field_photoBackPath;
+
+  /// No description provided for @settings_conflict_field_photoFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Card front'**
+  String get settings_conflict_field_photoFront;
+
+  /// No description provided for @settings_conflict_field_photoFrontPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Card front'**
+  String get settings_conflict_field_photoFrontPath;
+
   /// No description provided for @settings_conflict_field_photoPath.
   ///
   /// In en, this message translates to:
@@ -32587,6 +32953,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Planned dives'**
   String get settings_conflict_field_plannedDives;
+
+  /// No description provided for @settings_conflict_field_plannedWeightKg.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned weight'**
+  String get settings_conflict_field_plannedWeightKg;
+
+  /// No description provided for @settings_conflict_field_plannedWeightPlacement.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned weight placement'**
+  String get settings_conflict_field_plannedWeightPlacement;
 
   /// No description provided for @settings_conflict_field_pointCount.
   ///
@@ -32606,6 +32984,30 @@ abstract class AppLocalizations {
   /// **'Port'**
   String get settings_conflict_field_portName;
 
+  /// No description provided for @settings_conflict_field_ppO2Bottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom ppO2'**
+  String get settings_conflict_field_ppO2Bottom;
+
+  /// No description provided for @settings_conflict_field_ppO2Deco.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco ppO2'**
+  String get settings_conflict_field_ppO2Deco;
+
+  /// No description provided for @settings_conflict_field_preDiveChecklistTemplates_category.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get settings_conflict_field_preDiveChecklistTemplates_category;
+
+  /// No description provided for @settings_conflict_field_preDiveSessions_status.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get settings_conflict_field_preDiveSessions_status;
+
   /// No description provided for @settings_conflict_field_presetName.
   ///
   /// In en, this message translates to:
@@ -32623,6 +33025,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pressure'**
   String get settings_conflict_field_pressureBar;
+
+  /// No description provided for @settings_conflict_field_priorDiveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives before this log'**
+  String get settings_conflict_field_priorDiveCount;
+
+  /// No description provided for @settings_conflict_field_priorDiveTimeSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive time before this log'**
+  String get settings_conflict_field_priorDiveTimeSeconds;
+
+  /// No description provided for @settings_conflict_field_problemSolvingMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Problem-solving time'**
+  String get settings_conflict_field_problemSolvingMinutes;
 
   /// No description provided for @settings_conflict_field_provider.
   ///
@@ -32660,6 +33080,12 @@ abstract class AppLocalizations {
   /// **'Radius'**
   String get settings_conflict_field_radiusMeters;
 
+  /// No description provided for @settings_conflict_field_rate.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate'**
+  String get settings_conflict_field_rate;
+
   /// No description provided for @settings_conflict_field_rateOfChange.
   ///
   /// In en, this message translates to:
@@ -32677,6 +33103,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive computer fingerprint'**
   String get settings_conflict_field_rawFingerprint;
+
+  /// No description provided for @settings_conflict_field_reservePressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Reserve pressure'**
+  String get settings_conflict_field_reservePressure;
 
   /// No description provided for @settings_conflict_field_returnFlightAt.
   ///
@@ -32702,6 +33134,36 @@ abstract class AppLocalizations {
   /// **'Rule'**
   String get settings_conflict_field_ruleId;
 
+  /// No description provided for @settings_conflict_field_sacBottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom gas consumption'**
+  String get settings_conflict_field_sacBottom;
+
+  /// No description provided for @settings_conflict_field_sacDeco.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco gas consumption'**
+  String get settings_conflict_field_sacDeco;
+
+  /// No description provided for @settings_conflict_field_sacFactor.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas consumption factor'**
+  String get settings_conflict_field_sacFactor;
+
+  /// No description provided for @settings_conflict_field_sacStressed.
+  ///
+  /// In en, this message translates to:
+  /// **'Stressed gas consumption'**
+  String get settings_conflict_field_sacStressed;
+
+  /// No description provided for @settings_conflict_field_salinityPpt.
+  ///
+  /// In en, this message translates to:
+  /// **'Salinity in parts per thousand'**
+  String get settings_conflict_field_salinityPpt;
+
   /// No description provided for @settings_conflict_field_sampleCount.
   ///
   /// In en, this message translates to:
@@ -32719,6 +33181,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Scientific name'**
   String get settings_conflict_field_scientificName;
+
+  /// No description provided for @settings_conflict_field_scooterBurnSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Scooter burn time'**
+  String get settings_conflict_field_scooterBurnSeconds;
+
+  /// No description provided for @settings_conflict_field_scooterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Scooter'**
+  String get settings_conflict_field_scooterName;
+
+  /// No description provided for @settings_conflict_field_scooterSpeedMps.
+  ///
+  /// In en, this message translates to:
+  /// **'Scooter speed'**
+  String get settings_conflict_field_scooterSpeedMps;
 
   /// No description provided for @settings_conflict_field_scrAdditionRatio.
   ///
@@ -32762,6 +33242,12 @@ abstract class AppLocalizations {
   /// **'Scrubber type'**
   String get settings_conflict_field_scrubberType;
 
+  /// No description provided for @settings_conflict_field_section.
+  ///
+  /// In en, this message translates to:
+  /// **'Section'**
+  String get settings_conflict_field_section;
+
   /// No description provided for @settings_conflict_field_serviceCategory.
   ///
   /// In en, this message translates to:
@@ -32774,11 +33260,41 @@ abstract class AppLocalizations {
   /// **'Service date'**
   String get settings_conflict_field_serviceDate;
 
+  /// No description provided for @settings_conflict_field_setpointBar.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint'**
+  String get settings_conflict_field_setpointBar;
+
+  /// No description provided for @settings_conflict_field_setpointSwitchDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint switch depth'**
+  String get settings_conflict_field_setpointSwitchDepth;
+
+  /// No description provided for @settings_conflict_field_shallowAscentRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent rate between shallow stops'**
+  String get settings_conflict_field_shallowAscentRate;
+
   /// No description provided for @settings_conflict_field_sharedComputerIds.
   ///
   /// In en, this message translates to:
   /// **'Shared with computers'**
   String get settings_conflict_field_sharedComputerIds;
+
+  /// No description provided for @settings_conflict_field_shoreSwimM.
+  ///
+  /// In en, this message translates to:
+  /// **'Shore swim'**
+  String get settings_conflict_field_shoreSwimM;
+
+  /// No description provided for @settings_conflict_field_shoreWalkM.
+  ///
+  /// In en, this message translates to:
+  /// **'Shore walk'**
+  String get settings_conflict_field_shoreWalkM;
 
   /// No description provided for @settings_conflict_field_shortName.
   ///
@@ -32864,6 +33380,12 @@ abstract class AppLocalizations {
   /// **'Source format'**
   String get settings_conflict_field_sourceFormat;
 
+  /// No description provided for @settings_conflict_field_sourceItemId.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked item'**
+  String get settings_conflict_field_sourceItemId;
+
   /// No description provided for @settings_conflict_field_sourceRef.
   ///
   /// In en, this message translates to:
@@ -32882,11 +33404,29 @@ abstract class AppLocalizations {
   /// **'Source ID'**
   String get settings_conflict_field_sourceUuid;
 
+  /// No description provided for @settings_conflict_field_sourceValueNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference reading'**
+  String get settings_conflict_field_sourceValueNumber;
+
   /// No description provided for @settings_conflict_field_species_category.
   ///
   /// In en, this message translates to:
   /// **'Category'**
   String get settings_conflict_field_species_category;
+
+  /// No description provided for @settings_conflict_field_startDateTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned start'**
+  String get settings_conflict_field_startDateTime;
+
+  /// No description provided for @settings_conflict_field_startDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Start depth'**
+  String get settings_conflict_field_startDepth;
 
   /// No description provided for @settings_conflict_field_startTime.
   ///
@@ -32900,6 +33440,18 @@ abstract class AppLocalizations {
   /// **'Starts at (time into dive)'**
   String get settings_conflict_field_startTimestamp;
 
+  /// No description provided for @settings_conflict_field_startedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Started'**
+  String get settings_conflict_field_startedAt;
+
+  /// No description provided for @settings_conflict_field_state.
+  ///
+  /// In en, this message translates to:
+  /// **'State'**
+  String get settings_conflict_field_state;
+
   /// No description provided for @settings_conflict_field_stationKey.
   ///
   /// In en, this message translates to:
@@ -32912,11 +33464,53 @@ abstract class AppLocalizations {
   /// **'Fill station'**
   String get settings_conflict_field_stationName;
 
+  /// No description provided for @settings_conflict_field_stopMinimumsJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum stop times'**
+  String get settings_conflict_field_stopMinimumsJson;
+
+  /// No description provided for @settings_conflict_field_strictOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Items in a fixed order'**
+  String get settings_conflict_field_strictOrder;
+
+  /// No description provided for @settings_conflict_field_summaryMaxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned maximum depth'**
+  String get settings_conflict_field_summaryMaxDepth;
+
+  /// No description provided for @settings_conflict_field_summaryRuntimeSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned runtime'**
+  String get settings_conflict_field_summaryRuntimeSeconds;
+
+  /// No description provided for @settings_conflict_field_summaryTtsSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned time to surface'**
+  String get settings_conflict_field_summaryTtsSeconds;
+
   /// No description provided for @settings_conflict_field_surfaceConditions.
   ///
   /// In en, this message translates to:
   /// **'Surface conditions'**
   String get settings_conflict_field_surfaceConditions;
+
+  /// No description provided for @settings_conflict_field_surfaceSwimLimitM.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest surface swim'**
+  String get settings_conflict_field_surfaceSwimLimitM;
+
+  /// No description provided for @settings_conflict_field_swimSpeedMps.
+  ///
+  /// In en, this message translates to:
+  /// **'Swim speed'**
+  String get settings_conflict_field_swimSpeedMps;
 
   /// No description provided for @settings_conflict_field_tankMaterial.
   ///
@@ -32942,6 +33536,12 @@ abstract class AppLocalizations {
   /// **'Tank role'**
   String get settings_conflict_field_tankRole;
 
+  /// No description provided for @settings_conflict_field_targetCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get settings_conflict_field_targetCount;
+
   /// No description provided for @settings_conflict_field_taxonomyClass.
   ///
   /// In en, this message translates to:
@@ -32953,6 +33553,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Temperature'**
   String get settings_conflict_field_temperatureC;
+
+  /// No description provided for @settings_conflict_field_templateName.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist template'**
+  String get settings_conflict_field_templateName;
 
   /// No description provided for @settings_conflict_field_thickness.
   ///
@@ -32990,6 +33596,18 @@ abstract class AppLocalizations {
   /// **'Total distance'**
   String get settings_conflict_field_totalDistance;
 
+  /// No description provided for @settings_conflict_field_towBurnFactor.
+  ///
+  /// In en, this message translates to:
+  /// **'Tow burn factor'**
+  String get settings_conflict_field_towBurnFactor;
+
+  /// No description provided for @settings_conflict_field_towSpeedFactor.
+  ///
+  /// In en, this message translates to:
+  /// **'Tow speed factor'**
+  String get settings_conflict_field_towSpeedFactor;
+
   /// No description provided for @settings_conflict_field_transmitterSerial.
   ///
   /// In en, this message translates to:
@@ -33026,6 +33644,18 @@ abstract class AppLocalizations {
   /// **'Trusted share of the route'**
   String get settings_conflict_field_trustFraction;
 
+  /// No description provided for @settings_conflict_field_turnPressureFraction.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn pressure share'**
+  String get settings_conflict_field_turnPressureFraction;
+
+  /// No description provided for @settings_conflict_field_turnPressureRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn pressure rule'**
+  String get settings_conflict_field_turnPressureRule;
+
   /// No description provided for @settings_conflict_field_tzOffsetMinutes.
   ///
   /// In en, this message translates to:
@@ -33044,17 +33674,47 @@ abstract class AppLocalizations {
   /// **'Value'**
   String get settings_conflict_field_value;
 
+  /// No description provided for @settings_conflict_field_valueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Value label'**
+  String get settings_conflict_field_valueLabel;
+
+  /// No description provided for @settings_conflict_field_valueMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest expected value'**
+  String get settings_conflict_field_valueMax;
+
+  /// No description provided for @settings_conflict_field_valueMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowest expected value'**
+  String get settings_conflict_field_valueMin;
+
   /// No description provided for @settings_conflict_field_valueNum.
   ///
   /// In en, this message translates to:
   /// **'Value'**
   String get settings_conflict_field_valueNum;
 
+  /// No description provided for @settings_conflict_field_valueNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading'**
+  String get settings_conflict_field_valueNumber;
+
   /// No description provided for @settings_conflict_field_valueText.
   ///
   /// In en, this message translates to:
   /// **'Value'**
   String get settings_conflict_field_valueText;
+
+  /// No description provided for @settings_conflict_field_valueUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get settings_conflict_field_valueUnit;
 
   /// No description provided for @settings_conflict_field_verdict.
   ///
@@ -33091,6 +33751,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Volume'**
   String get settings_conflict_field_volumeLiters;
+
+  /// No description provided for @settings_conflict_field_walkSpeedMps.
+  ///
+  /// In en, this message translates to:
+  /// **'Walking speed'**
+  String get settings_conflict_field_walkSpeedMps;
 
   /// No description provided for @settings_conflict_field_weatherCode.
   ///
@@ -33458,6 +34124,12 @@ abstract class AppLocalizations {
   /// **'Related dive'**
   String get settings_conflict_ref_relatedDive;
 
+  /// No description provided for @settings_conflict_ref_samePerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Same person as'**
+  String get settings_conflict_ref_samePerson;
+
   /// No description provided for @settings_conflict_ref_serviceKind.
   ///
   /// In en, this message translates to:
@@ -33589,6 +34261,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resolve Conflicts'**
   String get settings_conflict_title;
+
+  /// No description provided for @enum_requirementKind_checklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist'**
+  String get enum_requirementKind_checklist;
+
+  /// No description provided for @enum_requirementKind_dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get enum_requirementKind_dive;
+
+  /// No description provided for @enum_preDiveSessionStatus_aborted.
+  ///
+  /// In en, this message translates to:
+  /// **'Aborted'**
+  String get enum_preDiveSessionStatus_aborted;
+
+  /// No description provided for @enum_preDiveSessionStatus_completed.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get enum_preDiveSessionStatus_completed;
+
+  /// No description provided for @enum_preDiveSessionStatus_inProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get enum_preDiveSessionStatus_inProgress;
+
+  /// No description provided for @enum_preDiveItemType_cellLinearity.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell linearity'**
+  String get enum_preDiveItemType_cellLinearity;
+
+  /// No description provided for @enum_preDiveItemType_check.
+  ///
+  /// In en, this message translates to:
+  /// **'Check'**
+  String get enum_preDiveItemType_check;
+
+  /// No description provided for @enum_preDiveItemType_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get enum_preDiveItemType_equipment;
+
+  /// No description provided for @enum_preDiveItemType_equipmentSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment set'**
+  String get enum_preDiveItemType_equipmentSet;
+
+  /// No description provided for @enum_preDiveItemType_value.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get enum_preDiveItemType_value;
+
+  /// No description provided for @enum_preDiveItemState_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get enum_preDiveItemState_done;
+
+  /// No description provided for @enum_preDiveItemState_flagged.
+  ///
+  /// In en, this message translates to:
+  /// **'Flagged'**
+  String get enum_preDiveItemState_flagged;
+
+  /// No description provided for @enum_preDiveItemState_pending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get enum_preDiveItemState_pending;
+
+  /// No description provided for @enum_preDiveItemState_skipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get enum_preDiveItemState_skipped;
+
+  /// No description provided for @enum_planMode_pscr.
+  ///
+  /// In en, this message translates to:
+  /// **'Passive semi-closed rebreather'**
+  String get enum_planMode_pscr;
+
+  /// No description provided for @enum_missionEnvironment_openWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Open water'**
+  String get enum_missionEnvironment_openWater;
+
+  /// No description provided for @enum_missionEnvironment_overhead.
+  ///
+  /// In en, this message translates to:
+  /// **'Overhead'**
+  String get enum_missionEnvironment_overhead;
 
   /// No description provided for @enum_ownershipEventKind_shared.
   ///

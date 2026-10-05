@@ -13,6 +13,7 @@ import 'package:submersion/features/weight_planner/presentation/widgets/weight_e
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 export 'conflict_enum_labels_equipment.dart';
+export 'conflict_enum_labels_people.dart';
 export 'conflict_enum_labels_sites.dart';
 
 /// Builds a labeler for an enum stored by name (or by [storedAs]). An unknown

@@ -39,6 +39,8 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_component;
     case 'transmitterEquipmentId':
       return l10n.settings_conflict_ref_transmitter;
+    case 'linkedDiverId':
+      return l10n.settings_conflict_ref_samePerson;
   }
   switch (reference.targetType) {
     case 'dives':

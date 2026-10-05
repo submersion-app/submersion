@@ -28,6 +28,12 @@ String formatConflictValue({
       final moment = _instant(value);
       if (moment == null) return value.toString();
       return units.formatDateTime(moment, l10n: l10n);
+    case FieldKind.epochSeconds:
+      if (value is! int) return value.toString();
+      return units.formatDateTime(
+        DateTime.fromMillisecondsSinceEpoch(value * 1000),
+        l10n: l10n,
+      );
     case FieldKind.wallClock:
       final clock = _wallClock(value);
       if (clock == null) return value.toString();
@@ -67,6 +73,7 @@ String formatConflictValue({
     FieldKind.altitude => units.formatAltitude(number),
     FieldKind.heightCm => units.formatHeight(number),
     FieldKind.ascentRate => units.formatDepthRate(number),
+    FieldKind.rmv => units.formatRmv(number),
     FieldKind.latitude => units.formatLatitude(number),
     FieldKind.longitude => units.formatLongitude(number),
     FieldKind.percent => '${_trim(number)}%',

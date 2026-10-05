@@ -103,6 +103,28 @@ void main() {
     expect(ownershipEventKindLabeler(l10n, 'transferred'), 'Transferred');
   });
 
+  test('people and planning enums', () {
+    expect(
+      certificationAgencyLabeler(l10n, 'padi'),
+      isNot(anyOf(isNull, 'padi')),
+    );
+    expect(
+      certificationLevelLabeler(l10n, 'openWater'),
+      isNot(anyOf(isNull, 'openWater')),
+    );
+    expect(planModeLabeler(l10n, 'ccr'), l10n.enum_diveMode_ccr);
+    expect(planModeLabeler(l10n, 'pscr'), 'Passive semi-closed rebreather');
+    expect(
+      turnPressureRuleLabeler(l10n, 'thirds'),
+      l10n.plannerCanvas_turnRule_thirds,
+    );
+    expect(missionEnvironmentLabeler(l10n, 'openWater'), 'Open water');
+    expect(requirementKindLabeler(l10n, 'checklist'), 'Checklist');
+    expect(preDiveSessionStatusLabeler(l10n, 'aborted'), 'Aborted');
+    expect(preDiveItemStateLabeler(l10n, 'flagged'), 'Flagged');
+    expect(preDiveItemTypeLabeler(l10n, 'cellLinearity'), 'Cell linearity');
+  });
+
   test('returns null for a value this build does not know', () {
     expect(entryMethodLabeler(l10n, 'jetpack'), isNull);
     expect(entryMethodLabeler(l10n, ''), isNull);

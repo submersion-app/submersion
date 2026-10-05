@@ -135,6 +135,10 @@ void main() {
     );
   });
 
+  test('a gas rate in litres per minute follows the volume unit', () {
+    expect(fmt(imperial, FieldKind.rmv, 18.0), imperial.formatRmv(18.0));
+  });
+
   test('ratios, coordinates and partial pressure', () {
     expect(fmt(metric, FieldKind.percent, 32.0), '32%');
     expect(fmt(metric, FieldKind.percent, 32.5), '32.5%');
@@ -237,6 +241,18 @@ void main() {
       expect(
         fmt(metric, FieldKind.date, day.millisecondsSinceEpoch),
         metric.formatDate(day),
+      );
+    });
+
+    test('an epoch in seconds is a moment, not a 1970 date', () {
+      final when = DateTime(2026, 3, 28, 10);
+      expect(
+        fmt(
+          metric,
+          FieldKind.epochSeconds,
+          when.millisecondsSinceEpoch ~/ 1000,
+        ),
+        metric.formatDateTime(when, l10n: l10n),
       );
     });
 

@@ -130,6 +130,7 @@ void main() {
         ('parentEquipmentId', 'equipment', 'Installed in'),
         ('componentEquipmentId', 'equipment', 'Component'),
         ('transmitterEquipmentId', 'equipment', 'Transmitter'),
+        ('linkedDiverId', 'divers', 'Same person as'),
       ]) {
         expect(
           conflictReferenceLabel(l10n, ref(field: field, targetType: target)),
