@@ -3346,6 +3346,8 @@
   "enum_certificationLevel_rescue": "Plongeur sauveteur",
   "enum_certificationLevel_sidemount": "Sidemount",
   "enum_certificationLevel_techDiver": "Plongeur technique",
+  "enum_certificationLevel_firstAid": "Premiers secours / RCP",
+  "enum_certificationLevel_oxygenProvider": "Oxygénothérapie de secours",
   "enum_certificationLevel_trimix": "Trimix",
   "enum_certificationLevel_wreck": "Épave",
   "enum_certificationLevel_masterDiver": "Plongeur Master",

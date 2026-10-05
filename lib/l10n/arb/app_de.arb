@@ -3458,6 +3458,8 @@
   "enum_certificationLevel_rescue": "Rescue Diver",
   "enum_certificationLevel_sidemount": "Sidemount",
   "enum_certificationLevel_techDiver": "Tech Diver",
+  "enum_certificationLevel_firstAid": "Erste Hilfe / HLW",
+  "enum_certificationLevel_oxygenProvider": "Notfall-Sauerstoff Provider",
   "enum_certificationLevel_trimix": "Trimix",
   "enum_certificationLevel_wreck": "Wracktauchen",
   "enum_certificationLevel_masterDiver": "Master Diver",

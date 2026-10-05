@@ -11482,6 +11482,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_certificationLevel_techDiver => 'Tech Diver';
 
   @override
+  String get enum_certificationLevel_firstAid => 'Erste Hilfe / HLW';
+
+  @override
+  String get enum_certificationLevel_oxygenProvider =>
+      'Notfall-Sauerstoff Provider';
+
+  @override
   String get enum_certificationLevel_trimix => 'Trimix';
 
   @override

@@ -18481,6 +18481,18 @@ abstract class AppLocalizations {
   /// **'Tech Diver'**
   String get enum_certificationLevel_techDiver;
 
+  /// Certification level: a first aid and CPR credential
+  ///
+  /// In en, this message translates to:
+  /// **'First Aid / CPR'**
+  String get enum_certificationLevel_firstAid;
+
+  /// Certification level: an emergency oxygen provider credential
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency Oxygen Provider'**
+  String get enum_certificationLevel_oxygenProvider;
+
   /// No description provided for @enum_certificationLevel_trimix.
   ///
   /// In en, this message translates to:

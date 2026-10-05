@@ -10938,6 +10938,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_certificationLevel_techDiver => '技术潜水员';
 
   @override
+  String get enum_certificationLevel_firstAid => '急救 / 心肺复苏';
+
+  @override
+  String get enum_certificationLevel_oxygenProvider => '紧急供氧员';
+
+  @override
   String get enum_certificationLevel_trimix => '三混气';
 
   @override

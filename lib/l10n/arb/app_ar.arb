@@ -3447,6 +3447,8 @@
   "enum_certificationLevel_rescue": "غواص إنقاذ",
   "enum_certificationLevel_sidemount": "تعليق جانبي",
   "enum_certificationLevel_techDiver": "غواص تقني",
+  "enum_certificationLevel_firstAid": "الإسعافات الأولية / الإنعاش القلبي الرئوي",
+  "enum_certificationLevel_oxygenProvider": "مزود الأكسجين في حالات الطوارئ",
   "enum_certificationLevel_trimix": "ترايمكس",
   "enum_certificationLevel_wreck": "غوص حطام",
   "enum_certificationLevel_masterDiver": "غواص ماستر",

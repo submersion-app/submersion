@@ -3346,6 +3346,8 @@
   "enum_certificationLevel_rescue": "Mentő búvár",
   "enum_certificationLevel_sidemount": "Sidemount",
   "enum_certificationLevel_techDiver": "Technikai búvár",
+  "enum_certificationLevel_firstAid": "Elsősegély / újraélesztés",
+  "enum_certificationLevel_oxygenProvider": "Vészhelyzeti oxigénadagolás",
   "enum_certificationLevel_trimix": "Trimix",
   "enum_certificationLevel_wreck": "Roncs",
   "enum_certificationLevel_masterDiver": "Mesterbúvár",

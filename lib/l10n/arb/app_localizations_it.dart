@@ -11478,6 +11478,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_certificationLevel_techDiver => 'Subacqueo tecnico';
 
   @override
+  String get enum_certificationLevel_firstAid => 'Primo soccorso / RCP';
+
+  @override
+  String get enum_certificationLevel_oxygenProvider =>
+      'Fornitore di ossigeno di emergenza';
+
+  @override
   String get enum_certificationLevel_trimix => 'Trimix';
 
   @override

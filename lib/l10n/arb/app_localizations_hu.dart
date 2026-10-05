@@ -11455,6 +11455,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_certificationLevel_techDiver => 'Technikai búvár';
 
   @override
+  String get enum_certificationLevel_firstAid => 'Elsősegély / újraélesztés';
+
+  @override
+  String get enum_certificationLevel_oxygenProvider =>
+      'Vészhelyzeti oxigénadagolás';
+
+  @override
   String get enum_certificationLevel_trimix => 'Trimix';
 
   @override

@@ -41,6 +41,9 @@ extension CertificationLevelDisplay on CertificationLevel {
     CertificationLevel.sidemount => l10n.enum_certificationLevel_sidemount,
     CertificationLevel.rebreather => l10n.enum_certificationLevel_rebreather,
     CertificationLevel.techDiver => l10n.enum_certificationLevel_techDiver,
+    CertificationLevel.firstAid => l10n.enum_certificationLevel_firstAid,
+    CertificationLevel.oxygenProvider =>
+      l10n.enum_certificationLevel_oxygenProvider,
     CertificationLevel.masterDiver => l10n.enum_certificationLevel_masterDiver,
     CertificationLevel.assistantInstructor =>
       l10n.enum_certificationLevel_assistantInstructor,

@@ -11393,6 +11393,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_certificationLevel_techDiver => 'Technisch duiker';
 
   @override
+  String get enum_certificationLevel_firstAid => 'Eerste hulp / reanimatie';
+
+  @override
+  String get enum_certificationLevel_oxygenProvider =>
+      'Noodzuurstof-verstrekker';
+
+  @override
   String get enum_certificationLevel_trimix => 'Trimix';
 
   @override

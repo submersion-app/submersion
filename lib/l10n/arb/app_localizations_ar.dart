@@ -11624,6 +11624,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_certificationLevel_techDiver => 'غواص تقني';
 
   @override
+  String get enum_certificationLevel_firstAid =>
+      'الإسعافات الأولية / الإنعاش القلبي الرئوي';
+
+  @override
+  String get enum_certificationLevel_oxygenProvider =>
+      'مزود الأكسجين في حالات الطوارئ';
+
+  @override
   String get enum_certificationLevel_trimix => 'ترايمكس';
 
   @override

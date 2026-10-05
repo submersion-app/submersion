@@ -11224,6 +11224,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_certificationLevel_techDiver => 'צולל טכני';
 
   @override
+  String get enum_certificationLevel_firstAid => 'עזרה ראשונה / החייאה';
+
+  @override
+  String get enum_certificationLevel_oxygenProvider => 'ספק חמצן חירום';
+
+  @override
   String get enum_certificationLevel_trimix => 'טרימיקס';
 
   @override

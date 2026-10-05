@@ -3447,6 +3447,8 @@
   "enum_certificationLevel_rescue": "Buzo de rescate",
   "enum_certificationLevel_sidemount": "Sidemount",
   "enum_certificationLevel_techDiver": "Buzo técnico",
+  "enum_certificationLevel_firstAid": "Primeros auxilios / RCP",
+  "enum_certificationLevel_oxygenProvider": "Proveedor de oxígeno de emergencia",
   "enum_certificationLevel_trimix": "Trimix",
   "enum_certificationLevel_wreck": "Naufragio",
   "enum_certificationLevel_masterDiver": "Buceador Máster",

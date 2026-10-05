@@ -11479,6 +11479,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_certificationLevel_techDiver => 'Mergulhador Técnico';
 
   @override
+  String get enum_certificationLevel_firstAid => 'Primeiros socorros / RCP';
+
+  @override
+  String get enum_certificationLevel_oxygenProvider =>
+      'Fornecedor de oxigénio de emergência';
+
+  @override
   String get enum_certificationLevel_trimix => 'Trimix';
 
   @override

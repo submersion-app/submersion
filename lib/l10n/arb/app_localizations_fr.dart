@@ -11513,6 +11513,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_certificationLevel_techDiver => 'Plongeur technique';
 
   @override
+  String get enum_certificationLevel_firstAid => 'Premiers secours / RCP';
+
+  @override
+  String get enum_certificationLevel_oxygenProvider =>
+      'Oxygénothérapie de secours';
+
+  @override
   String get enum_certificationLevel_trimix => 'Trimix';
 
   @override

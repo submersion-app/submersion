@@ -3447,6 +3447,8 @@
   "enum_certificationLevel_rescue": "Mergulhador de Resgate",
   "enum_certificationLevel_sidemount": "Sidemount",
   "enum_certificationLevel_techDiver": "Mergulhador Técnico",
+  "enum_certificationLevel_firstAid": "Primeiros socorros / RCP",
+  "enum_certificationLevel_oxygenProvider": "Fornecedor de oxigénio de emergência",
   "enum_certificationLevel_trimix": "Trimix",
   "enum_certificationLevel_wreck": "Naufrágio",
   "enum_certificationLevel_masterDiver": "Mergulhador Master",

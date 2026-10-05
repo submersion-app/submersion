@@ -3346,6 +3346,8 @@
   "enum_certificationLevel_rescue": "צולל חילוץ",
   "enum_certificationLevel_sidemount": "סיידמאונט",
   "enum_certificationLevel_techDiver": "צולל טכני",
+  "enum_certificationLevel_firstAid": "עזרה ראשונה / החייאה",
+  "enum_certificationLevel_oxygenProvider": "ספק חמצן חירום",
   "enum_certificationLevel_trimix": "טרימיקס",
   "enum_certificationLevel_wreck": "ספינה טרופה",
   "enum_certificationLevel_masterDiver": "צוללן מאסטר",
