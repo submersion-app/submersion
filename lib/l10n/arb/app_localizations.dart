@@ -18829,6 +18829,12 @@ abstract class AppLocalizations {
   /// **'Boat Entry'**
   String get enum_entryMethod_boat;
 
+  /// No description provided for @enum_entryMethod_frontRoll.
+  ///
+  /// In en, this message translates to:
+  /// **'Front Roll'**
+  String get enum_entryMethod_frontRoll;
+
   /// No description provided for @enum_entryMethod_giantStride.
   ///
   /// In en, this message translates to:
@@ -19008,6 +19014,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gear Pocket'**
   String get enum_equipmentType_gearPocket;
+
+  /// No description provided for @enum_equipmentType_bag.
+  ///
+  /// In en, this message translates to:
+  /// **'Bag'**
+  String get enum_equipmentType_bag;
 
   /// No description provided for @enum_equipmentType_hose.
   ///
@@ -29776,13 +29788,13 @@ abstract class AppLocalizations {
   /// No description provided for @diveDetailSection_surfaceGps_name.
   ///
   /// In en, this message translates to:
-  /// **'Surface GPS'**
+  /// **'Location'**
   String get diveDetailSection_surfaceGps_name;
 
   /// No description provided for @diveDetailSection_surfaceGps_description.
   ///
   /// In en, this message translates to:
-  /// **'GPS entry/exit points and surface drift'**
+  /// **'Map of the dive site, GPS entry/exit points and surface drift'**
   String get diveDetailSection_surfaceGps_description;
 
   /// No description provided for @diveLog_detail_section_surfaceGps.
@@ -29790,6 +29802,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Surface GPS'**
   String get diveLog_detail_section_surfaceGps;
+
+  /// Title of the dive detail map card when the dive has no GPS fix and only its dive site has coordinates
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get diveLog_detail_section_location;
 
   /// No description provided for @diveLog_detail_surfaceGps_entry.
   ///
@@ -45061,7 +45079,7 @@ abstract class AppLocalizations {
   /// Body text of the merge confirmation dialog.
   ///
   /// In en, this message translates to:
-  /// **'All dives, certifications, gear, and other data from {count} duplicate {count, plural, one{profile} other{profiles}} will be moved onto \"{name}\". This cannot be undone automatically.'**
+  /// **'All dives, certifications, gear, and other data from {count} duplicate {count, plural, one{profile} other{profiles}} will be moved onto \"{name}\". You can undo this right after merging.'**
   String settings_cloudSync_duplicateDivers_confirmBody(int count, String name);
 
   /// Cancel button on the merge confirmation dialog.
@@ -47238,6 +47256,18 @@ abstract class AppLocalizations {
   /// **'Mount'**
   String get attrLabel_pocket_mount;
 
+  /// No description provided for @attrLabel_bag_style.
+  ///
+  /// In en, this message translates to:
+  /// **'Style'**
+  String get attrLabel_bag_style;
+
+  /// No description provided for @attrLabel_capacity_l.
+  ///
+  /// In en, this message translates to:
+  /// **'Capacity'**
+  String get attrLabel_capacity_l;
+
   /// No description provided for @attrChoice_plate_material_aluminum.
   ///
   /// In en, this message translates to:
@@ -47543,6 +47573,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Thigh'**
   String get attrChoice_pocket_mount_thigh;
+
+  /// No description provided for @attrChoice_bag_style_duffel.
+  ///
+  /// In en, this message translates to:
+  /// **'Duffel'**
+  String get attrChoice_bag_style_duffel;
+
+  /// No description provided for @attrChoice_bag_style_roller.
+  ///
+  /// In en, this message translates to:
+  /// **'Roller'**
+  String get attrChoice_bag_style_roller;
+
+  /// No description provided for @attrChoice_bag_style_backpack.
+  ///
+  /// In en, this message translates to:
+  /// **'Backpack'**
+  String get attrChoice_bag_style_backpack;
+
+  /// No description provided for @attrChoice_bag_style_mesh.
+  ///
+  /// In en, this message translates to:
+  /// **'Mesh'**
+  String get attrChoice_bag_style_mesh;
+
+  /// No description provided for @attrChoice_bag_style_dry_bag.
+  ///
+  /// In en, this message translates to:
+  /// **'Dry bag'**
+  String get attrChoice_bag_style_dry_bag;
+
+  /// No description provided for @attrChoice_bag_style_regulator_bag.
+  ///
+  /// In en, this message translates to:
+  /// **'Regulator bag'**
+  String get attrChoice_bag_style_regulator_bag;
+
+  /// No description provided for @attrChoice_bag_style_catch_bag.
+  ///
+  /// In en, this message translates to:
+  /// **'Catch bag'**
+  String get attrChoice_bag_style_catch_bag;
 
   /// No description provided for @attrChoice_bcd_style_jacket.
   ///
