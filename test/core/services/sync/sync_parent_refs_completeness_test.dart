@@ -101,6 +101,8 @@ void main() {
     'dive_dive_types': 'diveDiveTypes',
     'site_types': 'siteTypes',
     'site_site_types': 'siteSiteTypes',
+    'dive_diver_roles': 'diveDiverRoles',
+    'dive_buddy_roles': 'diveBuddyRoles',
     'site_tags': 'siteTags',
     'equipment_tags': 'equipmentTags',
     'equipment_shares': 'equipmentShares',

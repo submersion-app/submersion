@@ -1585,6 +1585,16 @@ class SyncService {
             records: data.diveDiveTypes,
             hasUpdatedAt: false,
           ),
+          (
+            type: 'diveDiverRoles',
+            records: data.diveDiverRoles,
+            hasUpdatedAt: false,
+          ),
+          (
+            type: 'diveBuddyRoles',
+            records: data.diveBuddyRoles,
+            hasUpdatedAt: false,
+          ),
           (type: 'diveBuddies', records: data.diveBuddies, hasUpdatedAt: false),
           (
             type: 'diveProfiles',
@@ -2595,6 +2605,8 @@ class SyncService {
     'diveDataSources': false,
     'siteSpecies': false,
     'siteSiteTypes': false,
+    'diveDiverRoles': false,
+    'diveBuddyRoles': false,
     'siteTags': false,
     'equipmentTags': false,
     'equipmentShares': false,
@@ -2770,6 +2782,11 @@ class SyncService {
       (field: 'tagId', parent: 'tags', nullable: false),
     ],
     'diveDiveTypes': [(field: 'diveId', parent: 'dives', nullable: false)],
+    'diveDiverRoles': [(field: 'diveId', parent: 'dives', nullable: false)],
+    'diveBuddyRoles': [
+      (field: 'diveId', parent: 'dives', nullable: false),
+      (field: 'buddyId', parent: 'buddies', nullable: false),
+    ],
     'diveProfileEvents': [
       (field: 'diveId', parent: 'dives', nullable: false),
       (field: 'computerId', parent: 'diveComputers', nullable: true),

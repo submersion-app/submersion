@@ -158,6 +158,8 @@ class SyncRepository {
     'diveDataSources': (table: 'dive_data_sources', pk: 'id'),
     'siteSpecies': (table: 'site_species', pk: 'id'),
     'siteSiteTypes': (table: 'site_site_types', pk: 'id'),
+    'diveDiverRoles': (table: 'dive_diver_roles', pk: 'id'),
+    'diveBuddyRoles': (table: 'dive_buddy_roles', pk: 'id'),
     'siteTags': (table: 'site_tags', pk: 'id'),
     'equipmentTags': (table: 'equipment_tags', pk: 'id'),
     'equipmentShares': (table: 'equipment_shares', pk: 'id'),
