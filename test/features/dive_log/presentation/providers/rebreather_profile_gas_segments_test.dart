@@ -232,6 +232,40 @@ void main() {
       expect(segments[1].fN2, closeTo(0.5, 1e-9));
     });
 
+    test('a switch before the first sample does not leave the classifier '
+        'bailed out', () {
+      // The builder drops a pre-profile switch; the classifier must too, or
+      // a later O2-supply switch reads as open circuit on O2 at depth.
+      final dive = Dive(
+        id: 'ccr',
+        dateTime: DateTime.utc(2026, 10, 5),
+        diveMode: DiveMode.ccr,
+        tanks: const [o2, diluent, bailout],
+        profile: profile(setpoint: 1.3),
+      );
+      GasSwitchWithTank at(String id, int t, String tankId, double fO2) =>
+          GasSwitchWithTank(
+            gasSwitch: GasSwitch(
+              id: id,
+              diveId: 'ccr',
+              timestamp: t,
+              tankId: tankId,
+              createdAt: DateTime.utc(2026, 10, 5),
+            ),
+            tankName: tankId,
+            gasMix: tankId,
+            o2Fraction: fO2,
+          );
+      final segments = buildRebreatherProfileGasSegments(
+        dive,
+        profile: dive.profile,
+        rebreatherPpO2: resolveRebreatherPpO2(dive.profile),
+        gasSwitches: [at('pre', -60, 'bail', 0.5), at('o2', 1200, 'o2', 1.0)],
+      )!;
+      expect(segments, hasLength(1));
+      expect(segments.single.setpoint, 1.3);
+    });
+
     test('SCR ignores gas switches', () {
       final dive = Dive(
         id: 'scr',

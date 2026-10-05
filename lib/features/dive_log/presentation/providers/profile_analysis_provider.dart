@@ -319,7 +319,13 @@ List<ProfileGasSegment>? buildRebreatherProfileGasSegments(
         loopPpO2Curve: rebreatherPpO2?.curve,
         diluentMix: resolveCcrDiluentMix(dive),
         fallbackSetpoint: dive.setpointHigh ?? dive.setpointLow,
-        gasChanges: classifyCcrGasChanges(gasSwitches, tanks ?? dive.tanks),
+        // A switch before the first sample is one the builder drops; the
+        // classifier must not run its loop/OC state through it either.
+        gasChanges: classifyCcrGasChanges([
+          for (final s in gasSwitches)
+            if (timestamps.isEmpty || s.gasSwitch.timestamp >= timestamps.first)
+              s,
+        ], tanks ?? dive.tanks),
       );
     case DiveMode.scr:
       final measured = profile.any(

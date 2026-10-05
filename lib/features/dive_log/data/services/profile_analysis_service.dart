@@ -827,7 +827,9 @@ class ProfileAnalysisService {
         } else {
           loopPpO2 = List<double>.filled(depths.length, 0.0);
         }
-        ppO2Curve = gasSegments == null
+        // Only a bailout (a segment with no setpoint) changes the curve.
+        ppO2Curve =
+            gasSegments == null || gasSegments.every((s) => s.setpoint != null)
             ? loopPpO2
             : _withOpenCircuitPpO2(
                 depths: depths,
