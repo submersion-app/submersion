@@ -525,6 +525,92 @@ void main() {
     });
   });
 
+  group('final review fixes', () {
+    test("another diver's refresher never resets this diver's rule", () {
+      // Events on a certification that is not being evaluated (another
+      // diver's card in the same library) must not count.
+      final s = run(
+        certs: [cert('mine')],
+        rules: [padiRefresher],
+        events: [
+          event('theirs', DateTime(2026, 2, 1), ruleId: 'padi_reactivate'),
+        ],
+        activity: DiveActivityIndex(lastDiveAt: DateTime(2024, 1, 1)),
+        now: DateTime(2026, 3, 1),
+      ).single;
+      expect(s.origin, CurrencyAnchorOrigin.lastDive);
+      expect(s.severity, CurrencySeverity.lapsed);
+    });
+
+    final mine = rule(
+      'mine',
+      agencies: const [CertificationAgency.padi],
+      lapse: 200,
+      lead: 30,
+      builtIn: false,
+      supersedes: 'padi_reactivate',
+    );
+
+    test('a superseding rule keeps the mute set on the built-in', () {
+      final s = run(
+        certs: [cert('c')],
+        rules: [padiRefresher, mine],
+        prefs: [pref('c', 'padi_reactivate', muted: true)],
+        activity: DiveActivityIndex(lastDiveAt: DateTime(2020, 1, 1)),
+        now: DateTime(2026, 1, 1),
+      ).single;
+      expect(s.rule.id, 'mine');
+      expect(s.muted, isTrue);
+    });
+
+    test("a superseding rule's own pref wins over the built-in's", () {
+      final s = run(
+        certs: [cert('c')],
+        rules: [padiRefresher, mine],
+        prefs: [pref('c', 'padi_reactivate', muted: true), pref('c', 'mine')],
+        activity: DiveActivityIndex(lastDiveAt: DateTime(2020, 1, 1)),
+        now: DateTime(2026, 1, 1),
+      ).single;
+      expect(s.muted, isFalse);
+    });
+
+    test(
+      'a superseding rule counts refreshers logged against the built-in',
+      () {
+        final s = run(
+          certs: [cert('c')],
+          rules: [padiRefresher, mine],
+          events: [
+            event('c', DateTime(2025, 12, 1), ruleId: 'padi_reactivate'),
+          ],
+          activity: DiveActivityIndex(lastDiveAt: DateTime(2020, 1, 1)),
+          now: DateTime(2026, 1, 1),
+        ).single;
+        expect(s.origin, CurrencyAnchorOrigin.ledgerEvent);
+        expect(s.severity, CurrencySeverity.current);
+      },
+    );
+
+    test('a card expiry event never moves the due date', () {
+      // The synthesized card-expiry status follows the printed date alone;
+      // a renewed card is a new expiry date on the card.
+      final s = run(
+        certs: [
+          cert(
+            'nx',
+            level: CertificationLevel.nitrox,
+            expires: DateTime(2025, 1, 1),
+          ),
+        ],
+        rules: const [],
+        events: [event('nx', DateTime(2025, 6, 1), ruleId: kCardExpiryRuleId)],
+        now: DateTime(2026, 1, 1),
+      ).single;
+      expect(s.origin, CurrencyAnchorOrigin.cardExpiry);
+      expect(s.dueDate, DateTime(2025, 1, 1));
+    });
+  });
+
   group('collapsing and ordering', () {
     test(
       'cards sharing a rule and an anchor collapse to the most advanced',

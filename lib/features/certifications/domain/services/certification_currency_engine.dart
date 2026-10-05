@@ -42,7 +42,26 @@ List<CredentialCurrency> evaluateCurrency({
     for (final r in rules)
       if (!(r.isBuiltIn && superseded.contains(r.id))) r,
   ];
-  final prefByKey = {for (final p in prefs) (p.certificationId, p.ruleId): p};
+  // Only the evaluated certifications' prefs and events count: in a
+  // multi-diver library another diver's refresher must not reset this
+  // diver's rule.
+  final certIds = {for (final c in certifications) c.id};
+  final prefByKey = {
+    for (final p in prefs)
+      if (certIds.contains(p.certificationId)) (p.certificationId, p.ruleId): p,
+  };
+  final scopedEvents = [
+    for (final e in events)
+      if (certIds.contains(e.certificationId)) e,
+  ];
+  // A custom rule that supersedes a built-in inherits the built-in's prefs
+  // and events, so copying a rule in Manage keeps the diver's mutes,
+  // overrides and logged refreshers. Its own pref wins.
+  CurrencyPref? prefFor(String certId, CurrencyRule rule) =>
+      prefByKey[(certId, rule.id)] ??
+      (rule.supersedesRuleId == null
+          ? null
+          : prefByKey[(certId, rule.supersedesRuleId!)]);
 
   final out = <CredentialCurrency>[];
   for (final cert in certifications) {
@@ -55,8 +74,8 @@ List<CredentialCurrency> evaluateCurrency({
       final status = _evaluate(
         cert,
         rule,
-        prefByKey[(cert.id, rule.id)],
-        events,
+        prefFor(cert.id, rule),
+        scopedEvents,
         activity,
         today,
       );
@@ -69,7 +88,7 @@ List<CredentialCurrency> evaluateCurrency({
         cert,
         _cardExpiryRule,
         prefByKey[(cert.id, kCardExpiryRuleId)],
-        events,
+        scopedEvents,
         activity,
         today,
       );
@@ -153,10 +172,14 @@ _Anchor? _dateAnchor(
       eventType: null,
     ));
   }
-  final own = _newest([
-    for (final e in events)
-      if (e.certificationId == cert.id && e.ruleId == rule.id) e,
-  ]);
+  // The synthesized card-expiry status follows the printed date alone: a
+  // renewed card is a new expiry date on the card, not a ledger event.
+  final own = rule.id == kCardExpiryRuleId
+      ? null
+      : _newest([
+          for (final e in events)
+            if (e.certificationId == cert.id && _resets(e, rule)) e,
+        ]);
   if (own != null) {
     final day = calendarDay(own.eventDate);
     candidates.add((
@@ -202,7 +225,7 @@ _Anchor? _activityAnchor(
 
   final event = _newest([
     for (final e in events)
-      if (e.ruleId == rule.id ||
+      if (_resets(e, rule) ||
           (e.ruleId == null && e.certificationId == cert.id))
         e,
   ]);
@@ -227,6 +250,12 @@ _Anchor? _activityAnchor(
     eventType: null,
   );
 }
+
+/// Whether [e] was logged against [rule], or against the built-in it
+/// supersedes.
+bool _resets(CurrencyEvent e, CurrencyRule rule) =>
+    e.ruleId != null &&
+    (e.ruleId == rule.id || e.ruleId == rule.supersedesRuleId);
 
 CurrencyEvent? _newest(List<CurrencyEvent> events) {
   if (events.isEmpty) return null;

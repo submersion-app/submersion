@@ -100,6 +100,7 @@ final currencyGroupsProvider = FutureProvider<List<CurrencyGroup>>(
 );
 
 class CurrencyAttention {
+  /// Distinct certifications needing attention.
   final int count;
   final bool anyLapsed;
   final bool anyHardened;
@@ -122,11 +123,15 @@ final currencyAttentionProvider = FutureProvider<CurrencyAttention>((
     for (final g in await ref.watch(currencyGroupsProvider.future))
       if (g.needsAttention) g,
   ];
+  final ids = {for (final g in groups) ...g.certificationIds};
+  // The chip counts certifications, each once, matching the list it opens:
+  // one refresher row covering three cards is three, and a card needing two
+  // refreshers is one.
   return CurrencyAttention(
-    count: groups.length,
+    count: ids.length,
     anyLapsed: groups.any((g) => g.severity == CurrencySeverity.lapsed),
     anyHardened: groups.any((g) => g.hardened),
-    certificationIds: {for (final g in groups) ...g.certificationIds},
+    certificationIds: ids,
   );
 });
 

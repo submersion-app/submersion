@@ -70,12 +70,32 @@ void main() {
     _cert('res', CertificationLevel.rescue),
   ];
 
-  test('attention counts collapsed groups, not cards', () async {
+  test('attention counts the certifications it names, each once', () async {
+    // One collapsed refresher row covers OW, AOW and Rescue. The chip says
+    // "certifications", and the list it opens shows these three cards, so
+    // the count is three, not one row.
     final c = _container(certs: ladder, lastDive: DateTime(2020, 1, 1));
     final attention = await c.read(currencyAttentionProvider.future);
-    expect(attention.count, 1);
+    expect(attention.count, 3);
     expect(attention.anyLapsed, isTrue);
     expect(attention.certificationIds, {'ow', 'aow', 'res'});
+  });
+
+  test('a card needing attention twice counts once', () async {
+    // The nitrox card lapses on its expiry; give it the refresher too.
+    final c = _container(
+      certs: [
+        _cert(
+          'ow',
+          CertificationLevel.openWater,
+          expires: DateTime(2021, 1, 1),
+        ),
+      ],
+      lastDive: DateTime(2020, 1, 1),
+    );
+    final attention = await c.read(currencyAttentionProvider.future);
+    expect(attention.certificationIds, {'ow'});
+    expect(attention.count, 1);
   });
 
   test('muted groups never count', () async {

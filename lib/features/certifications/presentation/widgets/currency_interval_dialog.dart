@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/certifications/domain/entities/currency_rule.dart';
+import 'package:submersion/features/certifications/domain/services/certification_currency_engine.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
@@ -61,6 +62,10 @@ class _CurrencyIntervalDialogState extends State<_CurrencyIntervalDialog> {
         _ => null,
       };
 
+  /// The card-expiry status lapses on the printed date itself, so only its
+  /// warning lead can be tuned.
+  bool get _hasLapse => widget.rule.id != kCardExpiryRuleId;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -72,33 +77,36 @@ class _CurrencyIntervalDialogState extends State<_CurrencyIntervalDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextFormField(
-                controller: _lapse,
-                keyboardType: TextInputType.number,
-                validator: numberValidator(
-                  context,
-                  integer: true,
-                  allowNegative: false,
-                  check: (v) {
-                    if (v < 1) return l10n.numberInput_invalidWholeNumber;
-                    // A blank lead inherits the rule's; a lapse shorter
-                    // than that would read due soon from day one. A typed
-                    // lead is checked on its own field.
-                    if (_read(_lead) != null) return null;
-                    return v < widget.rule.leadDays
-                        ? l10n.certifications_currency_intervalDialog_leadTooLong
-                        : null;
-                  },
+              if (_hasLapse) ...[
+                TextFormField(
+                  controller: _lapse,
+                  keyboardType: TextInputType.number,
+                  validator: numberValidator(
+                    context,
+                    integer: true,
+                    allowNegative: false,
+                    check: (v) {
+                      if (v < 1) return l10n.numberInput_invalidWholeNumber;
+                      // A blank lead inherits the rule's; a lapse shorter
+                      // than that would read due soon from day one. A typed
+                      // lead is checked on its own field.
+                      if (_read(_lead) != null) return null;
+                      return v < widget.rule.leadDays
+                          ? l10n.certifications_currency_intervalDialog_leadTooLong
+                          : null;
+                    },
+                  ),
+                  decoration: InputDecoration(
+                    labelText:
+                        l10n.certifications_currency_intervalDialog_lapse,
+                    helperText: l10n
+                        .certifications_currency_intervalDialog_inheritHint(
+                          '${widget.rule.lapseDays}',
+                        ),
+                  ),
                 ),
-                decoration: InputDecoration(
-                  labelText: l10n.certifications_currency_intervalDialog_lapse,
-                  helperText: l10n
-                      .certifications_currency_intervalDialog_inheritHint(
-                        '${widget.rule.lapseDays}',
-                      ),
-                ),
-              ),
-              const SizedBox(height: 12),
+                const SizedBox(height: 12),
+              ],
               TextFormField(
                 controller: _lead,
                 keyboardType: TextInputType.number,
@@ -107,6 +115,7 @@ class _CurrencyIntervalDialogState extends State<_CurrencyIntervalDialog> {
                   integer: true,
                   allowNegative: false,
                   check: (v) {
+                    if (!_hasLapse) return null;
                     final lapse = _read(_lapse) ?? widget.rule.lapseDays;
                     return v > lapse
                         ? l10n.certifications_currency_intervalDialog_leadTooLong
@@ -133,7 +142,7 @@ class _CurrencyIntervalDialogState extends State<_CurrencyIntervalDialog> {
         FilledButton(
           onPressed: () {
             if (!(_formKey.currentState?.validate() ?? false)) return;
-            final lapse = _read(_lapse);
+            final lapse = _hasLapse ? _read(_lapse) : null;
             final lead = _read(_lead);
             Navigator.of(context).pop((lapse: lapse, lead: lead));
           },

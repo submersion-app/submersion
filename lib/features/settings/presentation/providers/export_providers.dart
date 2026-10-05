@@ -333,9 +333,6 @@ class ExportNotifier extends StateNotifier<ExportState> {
     }
   }
 
-  /// The active diver's gear check-ins. The export's equipment and dives
-  /// are scoped to that diver, and a shared item can carry another diver's
-  /// check-in, so an unscoped read would put it in this diver's file.
   /// The certification currency rows a full backup of [certifications]
   /// carries (issue #2267).
   Future<CurrencyBackupData> _currencyBackup(
@@ -347,6 +344,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
     events: await _ref.read(currencyEventsProvider.future),
   );
 
+  /// The active diver's gear check-ins. The export's equipment and dives
+  /// are scoped to that diver, and a shared item can carry another diver's
+  /// check-in, so an unscoped read would put it in this diver's file.
   Future<List<EquipmentObservation>> _diverObservations() async {
     final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
     return _ref

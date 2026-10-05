@@ -9,6 +9,7 @@ import 'package:submersion/features/certifications/domain/entities/credential_cu
 import 'package:submersion/features/certifications/domain/entities/currency_event.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_pref.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_rule.dart';
+import 'package:submersion/features/certifications/domain/services/certification_currency_engine.dart';
 import 'package:submersion/features/certifications/presentation/currency_rule_display.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_currency_providers.dart';
 import 'package:submersion/features/certifications/presentation/utils/currency_severity_colors.dart';
@@ -164,10 +165,13 @@ class _CurrencyRow extends ConsumerWidget {
       trailing: PopupMenuButton<CurrencyRowAction>(
         onSelected: (action) => _onAction(context, ref, action),
         itemBuilder: (context) => [
-          PopupMenuItem(
-            value: CurrencyRowAction.log,
-            child: Text(l10n.certifications_currency_action_log),
-          ),
+          // A renewed card is a new expiry date on the card: the ledger
+          // cannot move a printed date, so the card-expiry row logs nothing.
+          if (s.rule.id != kCardExpiryRuleId)
+            PopupMenuItem(
+              value: CurrencyRowAction.log,
+              child: Text(l10n.certifications_currency_action_log),
+            ),
           PopupMenuItem(
             value: CurrencyRowAction.interval,
             child: Text(l10n.certifications_currency_action_interval),
@@ -306,6 +310,7 @@ class _CurrencyRow extends ConsumerWidget {
     for (final m in group.members) {
       final existing =
           await _pref(ref, m.certification.id, m.rule.id) ??
+          await _inheritedPref(ref, m) ??
           CurrencyPref(
             id: '',
             certificationId: m.certification.id,
@@ -315,6 +320,33 @@ class _CurrencyRow extends ConsumerWidget {
           );
       await repo.upsertPref(change(existing));
     }
+  }
+
+  /// The superseded built-in's pref for [m], carried onto the custom rule
+  /// as a new row, so the first edit of a copied rule keeps the mute and
+  /// overrides the engine was already applying through it.
+  static Future<CurrencyPref?> _inheritedPref(
+    WidgetRef ref,
+    CredentialCurrency m,
+  ) async {
+    final supersedes = m.rule.supersedesRuleId;
+    if (supersedes == null) return null;
+    final inherited = await _pref(ref, m.certification.id, supersedes);
+    if (inherited == null) return null;
+    return _rebuild(
+      CurrencyPref(
+        id: '',
+        certificationId: inherited.certificationId,
+        ruleId: m.rule.id,
+        muted: inherited.muted,
+        createdAt: inherited.createdAt,
+        updatedAt: inherited.updatedAt,
+      ),
+      lapse: inherited.lapseDaysOverride,
+      lead: inherited.leadDaysOverride,
+      types: inherited.countedDiveTypeIds,
+      modes: inherited.countedDiveModes,
+    );
   }
 }
 

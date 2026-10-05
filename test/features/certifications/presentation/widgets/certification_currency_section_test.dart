@@ -9,6 +9,8 @@ import 'package:submersion/features/certifications/data/repositories/certificati
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_event.dart';
+import 'package:submersion/features/certifications/domain/entities/currency_pref.dart';
+import 'package:submersion/features/certifications/domain/entities/currency_rule.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_currency_section.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -268,6 +270,80 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
     await settle(tester);
     expect((await currency.getEvents(aow.id)).length, 1);
+  });
+
+  testWidgets(
+    'a card expiry row offers no log action and edits only the lead',
+    (tester) async {
+      // A renewed card is a new expiry date on the card; the ledger cannot
+      // move a printed date, and the lapse is the date itself.
+      final nitrox = await addCert(
+        'Nitrox',
+        CertificationAgency.padi,
+        CertificationLevel.nitrox,
+        expires: DateTime.now().add(const Duration(days: 30)),
+      );
+      await pump(tester, nitrox);
+      expect(find.text('Card expiry'), findsOneWidget);
+      await openMenu(tester);
+      expect(find.text('Log refresher'), findsNothing);
+      await tester.tap(find.text('Edit interval').last);
+      await settle(tester);
+      expect(find.byType(TextFormField), findsOneWidget);
+      await tester.enterText(find.byType(TextFormField), '10');
+      await tester.tap(find.text('Save'));
+      await settle(tester);
+      final pref = (await currency.getPrefs(nitrox.id)).single;
+      expect(pref.ruleId, 'card_expiry');
+      expect(pref.leadDaysOverride, 10);
+      expect(pref.lapseDaysOverride, isNull);
+    },
+  );
+
+  testWidgets("editing a superseding rule keeps the built-in's mute", (
+    tester,
+  ) async {
+    await currency.createRule(
+      CurrencyRule(
+        id: 'mine',
+        diverId: 'me',
+        name: 'My refresher',
+        clockKind: CurrencyClockKind.activity,
+        agencies: const [CertificationAgency.padi],
+        lapseDays: 200,
+        leadDays: 30,
+        supersedesRuleId: 'padi_reactivate',
+        createdAt: t0,
+        updatedAt: t0,
+      ),
+    );
+    for (final c in [ow, aow]) {
+      await currency.upsertPref(
+        CurrencyPref(
+          id: '',
+          certificationId: c.id,
+          ruleId: 'padi_reactivate',
+          muted: true,
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+      );
+    }
+    await pump(tester, aow);
+    expect(find.text('Muted'), findsOneWidget);
+    await openMenu(tester);
+    await tester.tap(find.text('Edit interval').last);
+    await settle(tester);
+    await tester.enterText(find.byType(TextFormField).first, '300');
+    await tester.tap(find.text('Save'));
+    await settle(tester);
+
+    final mine = (await currency.getPrefs(
+      aow.id,
+    )).singleWhere((p) => p.ruleId == 'mine');
+    expect(mine.lapseDaysOverride, 300);
+    expect(mine.muted, isTrue, reason: 'the inherited mute is carried over');
+    expect(find.text('Muted'), findsOneWidget);
   });
 
   testWidgets('the section is absent when nothing applies or is logged', (
