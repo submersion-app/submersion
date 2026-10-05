@@ -1002,11 +1002,12 @@ class BuhlmannAlgorithm {
   /// [gasSegments] must be non-empty and sorted by [startTimestamp].
   /// Each segment becomes active from its start timestamp onward until
   /// superseded by the next segment.
-  /// [ascentGasPlan] optionally overrides the ascent gas selection for TTS
-  /// and deco-schedule calculations. Null reproduces the legacy per-sample
-  /// single-gas behavior for open-circuit segments; for a segment carrying a
-  /// [ProfileGasSegment.setpoint], null instead derives the loop itself as
-  /// the ascent plan (see [_loopAscentPlanFor]).
+  /// [ascentGasPlan] optionally sets the ascent gas selection for TTS and
+  /// deco-schedule calculations on open-circuit segments; null reproduces the
+  /// legacy per-sample single-gas behavior. A segment carrying a
+  /// [ProfileGasSegment.setpoint] always ascends on the loop itself (see
+  /// [_loopAscentPlanFor]), so a CCR dive that bails out ascends on the loop
+  /// before the bailout and on [ascentGasPlan] after it.
   List<DecoStatus> processProfileWithGasSegments({
     required List<double> depths,
     required List<int> timestamps,
@@ -1119,7 +1120,11 @@ class BuhlmannAlgorithm {
           fN2: sampleGas.fN2,
           fHe: sampleGas.fHe,
           safetyStopTimeAccumulated: safetyStopTimeAccumulated,
-          ascentGas: ascentGasPlan ?? _loopAscentPlanFor(sampleGas, depths[i]),
+          // A loop sample ascends on the loop; a bailout (open-circuit)
+          // sample on the supplied plan (issue #577).
+          ascentGas: sampleGas.setpoint != null
+              ? _loopAscentPlanFor(sampleGas, depths[i])
+              : ascentGasPlan,
           breathing: _breathingFor(sampleGas),
         ),
       );
