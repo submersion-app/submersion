@@ -43863,6 +43863,58 @@ class AppLocalizationsHu extends AppLocalizations {
       'Víz alatti nyomvonal áttekintése';
 
   @override
+  String get suuntoJson_handoff_recognized => 'Suunto merülésexport felismerve';
+
+  @override
+  String get suuntoJson_handoff_description =>
+      'Ezt a fájlt a Suunto alkalmazásból exportálták. A Suunto-importáló ugyanúgy olvassa be, mint a Suunto Cloud-importálás, a merülés rögzített útvonalával együtt.';
+
+  @override
+  String get suuntoJson_handoff_importButton => 'Suunto merülés importálása';
+
+  @override
+  String get suuntoFile_step_title => 'Suunto alkalmazás exportjai';
+
+  @override
+  String get suuntoFile_step_description =>
+      'Válassz ki egy vagy több, a Suunto alkalmazásból JSON-ként exportált merülést. Az útvonallal rögzített merülések azt is magukkal hozzák.';
+
+  @override
+  String get suuntoFile_step_chooseFiles => 'Fájlok kiválasztása';
+
+  @override
+  String suuntoFile_step_readyCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés importálásra kész',
+      one: '$count merülés importálásra kész',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get suuntoFile_step_routeIncluded => 'Rögzített útvonallal';
+
+  @override
+  String get suuntoFile_step_noRoute => 'Nincs rögzített útvonal';
+
+  @override
+  String get suuntoFile_rejection_notJson => 'Nem JSON-fájl';
+
+  @override
+  String get suuntoFile_rejection_notSuuntoExport =>
+      'Nem Suunto alkalmazás exportja';
+
+  @override
+  String get suuntoFile_rejection_notADive =>
+      'Nem merülés (más tevékenységtípus)';
+
+  @override
+  String get universalImport_summary_importWithSuunto =>
+      'Importálás a Suunto-importálóval';
+
+  @override
   String get navTrack_section_trackTitle => 'Víz alatti nyomvonal';
 
   @override

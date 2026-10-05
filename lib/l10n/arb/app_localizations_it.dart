@@ -44043,6 +44043,59 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navTrack_handoff_reviewTrackButton => 'Rivedi traccia subacquea';
 
   @override
+  String get suuntoJson_handoff_recognized =>
+      'Esportazione di immersione Suunto riconosciuta';
+
+  @override
+  String get suuntoJson_handoff_description =>
+      'Questo file è stato esportato dall\'app Suunto. L\'importatore Suunto lo legge come l\'importazione da Suunto Cloud, incluso il percorso registrato dell\'immersione.';
+
+  @override
+  String get suuntoJson_handoff_importButton => 'Importa immersione Suunto';
+
+  @override
+  String get suuntoFile_step_title => 'Esportazioni dell\'app Suunto';
+
+  @override
+  String get suuntoFile_step_description =>
+      'Scegli una o più immersioni esportate dall\'app Suunto in formato JSON. Le immersioni registrate con un percorso lo portano con sé.';
+
+  @override
+  String get suuntoFile_step_chooseFiles => 'Scegli file';
+
+  @override
+  String suuntoFile_step_readyCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni pronte da importare',
+      one: '$count immersione pronta da importare',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get suuntoFile_step_routeIncluded => 'Include il percorso registrato';
+
+  @override
+  String get suuntoFile_step_noRoute => 'Nessun percorso registrato';
+
+  @override
+  String get suuntoFile_rejection_notJson => 'Non è un file JSON';
+
+  @override
+  String get suuntoFile_rejection_notSuuntoExport =>
+      'Non è un\'esportazione dell\'app Suunto';
+
+  @override
+  String get suuntoFile_rejection_notADive =>
+      'Non è un\'immersione (altro tipo di attività)';
+
+  @override
+  String get universalImport_summary_importWithSuunto =>
+      'Importa con l\'importatore Suunto';
+
+  @override
   String get navTrack_section_trackTitle => 'Traccia subacquea';
 
   @override

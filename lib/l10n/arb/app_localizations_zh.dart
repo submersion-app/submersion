@@ -41431,6 +41431,54 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_handoff_reviewTrackButton => '查看水下轨迹';
 
   @override
+  String get suuntoJson_handoff_recognized => '已识别 Suunto 潜水导出文件';
+
+  @override
+  String get suuntoJson_handoff_description =>
+      '此文件由 Suunto 应用导出。Suunto 导入器会以与 Suunto Cloud 导入相同的方式读取它，包括该潜水记录的轨迹。';
+
+  @override
+  String get suuntoJson_handoff_importButton => '导入 Suunto 潜水';
+
+  @override
+  String get suuntoFile_step_title => 'Suunto 应用导出文件';
+
+  @override
+  String get suuntoFile_step_description =>
+      '选择一个或多个从 Suunto 应用以 JSON 格式导出的潜水。带有记录轨迹的潜水会一并导入轨迹。';
+
+  @override
+  String get suuntoFile_step_chooseFiles => '选择文件';
+
+  @override
+  String suuntoFile_step_readyCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水可导入',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get suuntoFile_step_routeIncluded => '包含记录的轨迹';
+
+  @override
+  String get suuntoFile_step_noRoute => '无记录的轨迹';
+
+  @override
+  String get suuntoFile_rejection_notJson => '不是 JSON 文件';
+
+  @override
+  String get suuntoFile_rejection_notSuuntoExport => '不是 Suunto 应用导出文件';
+
+  @override
+  String get suuntoFile_rejection_notADive => '不是潜水（其他活动类型）';
+
+  @override
+  String get universalImport_summary_importWithSuunto => '使用 Suunto 导入器导入';
+
+  @override
   String get navTrack_section_trackTitle => '水下轨迹';
 
   @override

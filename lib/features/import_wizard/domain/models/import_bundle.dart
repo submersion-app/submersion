@@ -23,6 +23,9 @@ enum ImportSourceType {
   /// A Suunto cloud (app.suunto.com) import.
   suuntoCloud,
 
+  /// A Suunto app JSON export file import.
+  suuntoFile,
+
   /// A Garmin Connect cloud import.
   garminCloud,
 

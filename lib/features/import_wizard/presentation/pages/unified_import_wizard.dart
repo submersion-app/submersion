@@ -389,6 +389,7 @@ class _UnifiedImportWizardBodyState
     // skipped.
     if (widget.adapter.sourceType == ImportSourceType.diveComputer ||
         widget.adapter.sourceType == ImportSourceType.suuntoCloud ||
+        widget.adapter.sourceType == ImportSourceType.suuntoFile ||
         widget.adapter.sourceType == ImportSourceType.garminCloud) {
       ref.invalidate(allDiveComputersProvider);
     }

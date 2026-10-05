@@ -183,6 +183,8 @@ import 'package:submersion/features/import_wizard/data/adapters/dive_computer_ad
 import 'package:submersion/features/import_wizard/data/adapters/divelogs_import_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/garmin_cloud_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_cloud_adapter.dart';
+import 'package:submersion/features/import_wizard/data/adapters/suunto_file_adapter.dart';
+import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_route_writer.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.dart';
@@ -1002,6 +1004,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'importFromCloudSuunto',
                 builder: (context, state) =>
                     const _SuuntoCloudImportWizardRoute(),
+              ),
+              GoRoute(
+                path: 'import-file/suunto',
+                name: 'importFromFileSuunto',
+                builder: (context, state) => _SuuntoFileImportWizardRoute(
+                  initialFiles: state.extra is List<SuuntoJsonFile>
+                      ? state.extra! as List<SuuntoJsonFile>
+                      : const [],
+                ),
               ),
               GoRoute(
                 path: 'import-cloud/garmin',
@@ -1948,6 +1959,39 @@ class _SuuntoCloudImportWizardRoute extends ConsumerWidget {
           repository: ref.watch(navTrackRepositoryProvider),
         ),
         ref: ref,
+      ),
+    );
+  }
+}
+
+/// Wrapper that creates a [SuuntoFileAdapter] with dependencies from
+/// Riverpod, for importing Suunto app JSON exports (issue #1445), opened
+/// with the files a hand-off, share or drop already chose.
+class _SuuntoFileImportWizardRoute extends ConsumerWidget {
+  const _SuuntoFileImportWizardRoute({required this.initialFiles});
+
+  final List<SuuntoJsonFile> initialFiles;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final diverId = ref.watch(currentDiverIdProvider) ?? '';
+    final importService = ref.watch(diveImportServiceProvider);
+    final computerRepo = ref.watch(diveComputerRepositoryProvider);
+    final diveRepo = ref.watch(diveRepositoryProvider);
+    final consolidationService = ref.watch(diveConsolidationServiceProvider);
+
+    return UnifiedImportWizard(
+      adapter: SuuntoFileAdapter(
+        importService: importService,
+        computerRepository: computerRepo,
+        diveRepository: diveRepo,
+        consolidationService: consolidationService,
+        diverId: diverId,
+        routeWriter: SuuntoRouteWriter(
+          repository: ref.watch(navTrackRepositoryProvider),
+        ),
+        ref: ref,
+        initialFiles: initialFiles,
       ),
     );
   }

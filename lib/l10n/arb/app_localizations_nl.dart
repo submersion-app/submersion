@@ -43769,6 +43769,58 @@ class AppLocalizationsNl extends AppLocalizations {
   String get navTrack_handoff_reviewTrackButton => 'Onderwatertrack bekijken';
 
   @override
+  String get suuntoJson_handoff_recognized => 'Suunto-duikexport herkend';
+
+  @override
+  String get suuntoJson_handoff_description =>
+      'Dit bestand is geëxporteerd uit de Suunto-app. De Suunto-import leest het op dezelfde manier als de Suunto Cloud-import, inclusief de opgenomen route van de duik.';
+
+  @override
+  String get suuntoJson_handoff_importButton => 'Suunto-duik importeren';
+
+  @override
+  String get suuntoFile_step_title => 'Suunto-app-exports';
+
+  @override
+  String get suuntoFile_step_description =>
+      'Kies een of meer duiken die als JSON uit de Suunto-app zijn geëxporteerd. Duiken die met een route zijn opgenomen, nemen die mee.';
+
+  @override
+  String get suuntoFile_step_chooseFiles => 'Bestanden kiezen';
+
+  @override
+  String suuntoFile_step_readyCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken klaar om te importeren',
+      one: '$count duik klaar om te importeren',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get suuntoFile_step_routeIncluded => 'Inclusief opgenomen route';
+
+  @override
+  String get suuntoFile_step_noRoute => 'Geen opgenomen route';
+
+  @override
+  String get suuntoFile_rejection_notJson => 'Geen JSON-bestand';
+
+  @override
+  String get suuntoFile_rejection_notSuuntoExport =>
+      'Geen export uit de Suunto-app';
+
+  @override
+  String get suuntoFile_rejection_notADive =>
+      'Geen duik (ander activiteitstype)';
+
+  @override
+  String get universalImport_summary_importWithSuunto =>
+      'Importeren met de Suunto-import';
+
+  @override
   String get navTrack_section_trackTitle => 'Onderwatertrack';
 
   @override

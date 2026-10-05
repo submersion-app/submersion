@@ -69573,6 +69573,84 @@ abstract class AppLocalizations {
   /// **'Review underwater track'**
   String get navTrack_handoff_reviewTrackButton;
 
+  /// No description provided for @suuntoJson_handoff_recognized.
+  ///
+  /// In en, this message translates to:
+  /// **'Suunto dive export recognised'**
+  String get suuntoJson_handoff_recognized;
+
+  /// No description provided for @suuntoJson_handoff_description.
+  ///
+  /// In en, this message translates to:
+  /// **'This file was exported from the Suunto app. The Suunto importer reads it the same way as the Suunto Cloud import, including the dive\'s recorded route.'**
+  String get suuntoJson_handoff_description;
+
+  /// No description provided for @suuntoJson_handoff_importButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Suunto dive'**
+  String get suuntoJson_handoff_importButton;
+
+  /// No description provided for @suuntoFile_step_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Suunto app exports'**
+  String get suuntoFile_step_title;
+
+  /// No description provided for @suuntoFile_step_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose one or more dives exported from the Suunto app as JSON. Dives recorded with a route bring it along.'**
+  String get suuntoFile_step_description;
+
+  /// No description provided for @suuntoFile_step_chooseFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose files'**
+  String get suuntoFile_step_chooseFiles;
+
+  /// No description provided for @suuntoFile_step_readyCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive ready to import} other{{count} dives ready to import}}'**
+  String suuntoFile_step_readyCount(num count);
+
+  /// No description provided for @suuntoFile_step_routeIncluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes recorded route'**
+  String get suuntoFile_step_routeIncluded;
+
+  /// No description provided for @suuntoFile_step_noRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'No recorded route'**
+  String get suuntoFile_step_noRoute;
+
+  /// No description provided for @suuntoFile_rejection_notJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a JSON file'**
+  String get suuntoFile_rejection_notJson;
+
+  /// No description provided for @suuntoFile_rejection_notSuuntoExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a Suunto app export'**
+  String get suuntoFile_rejection_notSuuntoExport;
+
+  /// No description provided for @suuntoFile_rejection_notADive.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a dive (another activity type)'**
+  String get suuntoFile_rejection_notADive;
+
+  /// No description provided for @universalImport_summary_importWithSuunto.
+  ///
+  /// In en, this message translates to:
+  /// **'Import with Suunto importer'**
+  String get universalImport_summary_importWithSuunto;
+
   /// No description provided for @navTrack_section_trackTitle.
   ///
   /// In en, this message translates to:
