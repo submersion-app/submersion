@@ -308,10 +308,14 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
     final units = UnitFormatter(ref.watch(settingsProvider));
     final colorScheme = Theme.of(context).colorScheme;
     final query = SiteQuery(_searchQuery);
+    final sites = sitesAsync.value ?? const <DiveSite>[];
+    final index = _searchIndexFor(sites);
+    bool matches(DiveSite site) => query.matches(index[site.id]!);
     // Only the Nearby section is ordered by distance, so the caption that
-    // says so shows only when that section has sites in it.
-    final hasNearby = (sitesAsync.value ?? const <DiveSite>[]).any(
+    // says so shows only when that section has sites in it after the search.
+    final hasNearby = sites.any(
       (site) =>
+          (query.isEmpty || matches(site)) &&
           (_distanceToSite(site) ?? double.infinity) < _nearbyRadiusMeters,
     );
 
@@ -344,8 +348,7 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
         if (!query.isEmpty)
           Builder(
             builder: (context) {
-              final sites = sitesAsync.value ?? const <DiveSite>[];
-              final hidden = sites.where((s) => !query.matchesSite(s)).toList();
+              final hidden = sites.where((s) => !matches(s)).toList();
               final match = findSimilar(
                 _searchQuery,
                 hidden.map((s) => s.name),

@@ -474,4 +474,20 @@ void main() {
     expect(find.text('Nearby'), findsNothing);
     expect(find.text('Sorted by distance from this dive'), findsNothing);
   });
+
+  testWidgets('a search that hides every nearby site drops the caption', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      sites: const [_nearSite, _farSite],
+      diveLocation: const GeoPoint(10.0, 10.0),
+    );
+    expect(find.text('Sorted by distance from this dive'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'blue');
+    await tester.pumpAndSettle();
+    expect(find.text('Nearby'), findsNothing);
+    expect(find.text('Sorted by distance from this dive'), findsNothing);
+  });
 }
