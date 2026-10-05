@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart' show Value;
+import 'package:flutter/material.dart' show ThemeMode, TimeOfDay;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -99,6 +100,59 @@ void main() {
       isNotEmpty,
     );
   });
+
+  test('a device-local change stamps no clock and queues nothing', () async {
+    final settings = await repository.createSettingsForDiver('d1');
+    final before = await storedRow();
+    final pendingBefore = await SyncRepository().getPendingRecords();
+
+    await repository.updateSettingsForDiver(
+      'd1',
+      settings.copyWith(
+        themeMode: ThemeMode.dark,
+        notificationsEnabled: false,
+        reminderTime: const TimeOfDay(hour: 6, minute: 15),
+      ),
+      previous: settings,
+    );
+
+    final after = await storedRow();
+    expect(after.themeMode, 'dark');
+    expect(after.notificationsEnabled, isFalse);
+    expect(after.reminderTime, '06:15');
+    expect(after.updatedAt, before.updatedAt);
+    expect(after.hlc, before.hlc);
+    expect(
+      (await SyncRepository().getPendingRecords()).length,
+      pendingBefore.length,
+    );
+  });
+
+  test(
+    'a change mixing device-local and synced columns stamps and queues',
+    () async {
+      final settings = await repository.createSettingsForDiver('d1');
+      final before = await storedRow();
+
+      await repository.updateSettingsForDiver(
+        'd1',
+        settings.copyWith(themeMode: ThemeMode.dark, gfLow: 40),
+        previous: settings,
+      );
+
+      final after = await storedRow();
+      expect(after.themeMode, 'dark');
+      expect(after.gfLow, 40);
+      expect(after.hlc, isNot(before.hlc));
+      final pending = await SyncRepository().getPendingRecords();
+      expect(
+        pending.where(
+          (r) => r.entityType == 'diverSettings' && r.recordId == after.id,
+        ),
+        isNotEmpty,
+      );
+    },
+  );
 
   test('without a previous copy every column is written', () async {
     final settings = await repository.createSettingsForDiver('d1');

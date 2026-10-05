@@ -261,7 +261,7 @@ class DiverSettings extends Table {
   /// #2305), JSON list of preset slugs. Null or absent = none hidden.
   TextColumn get hiddenTankPresetIds => text().nullable()();
 
-  /// v264: built-in catalog entries the diver hid from the pickers (issue
+  /// v266: built-in catalog entries the diver hid from the pickers (issue
   /// #401), a JSON object of catalog key to id list. Null or absent = none
   /// hidden.
   TextColumn get hiddenBuiltInIds => text().nullable()();
@@ -364,6 +364,10 @@ class DiverSettings extends Table {
   BoolColumn get defaultShowOtu =>
       boolean().withDefault(const Constant(false))();
   BoolColumn get defaultShowGasSwitchMarkers =>
+      boolean().withDefault(const Constant(true))();
+
+  /// v264: shade late and missed deco gas switches on the profile (#2939).
+  BoolColumn get defaultShowLateGasSwitches =>
       boolean().withDefault(const Constant(true))();
   BoolColumn get defaultShowGasTimeline =>
       boolean().withDefault(const Constant(false))();

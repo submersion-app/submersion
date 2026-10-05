@@ -33,6 +33,7 @@ void main() {
     QueryNode? value,
     ValueChanged<QueryNode?> onChanged, {
     VoidCallback? onSave,
+    bool? canSave,
   }) => MaterialApp(
     home: Scaffold(
       body: SingleChildScrollView(
@@ -42,6 +43,7 @@ void main() {
           onChanged: onChanged,
           strings: strings,
           onSave: onSave,
+          canSave: canSave,
         ),
       ),
     ),
@@ -104,6 +106,33 @@ void main() {
     await tester.pumpWidget(host(tree, (_) {}, onSave: () => saved++));
     await tester.tap(find.text('Save query'));
     expect(saved, 1);
+  });
+
+  // #2989: a caller whose Save stores more than the editor's own tree (a
+  // whole filter with GUI axes) enables it without a typed query.
+  testWidgets('canSave overrides the query-only enablement', (tester) async {
+    var saved = 0;
+    ButtonStyleButton save() => tester.widget<ButtonStyleButton>(
+      find.ancestor(
+        of: find.text('Save query'),
+        matching: find.bySubtype<ButtonStyleButton>(),
+      ),
+    );
+    await tester.pumpWidget(
+      host(null, (_) {}, onSave: () => saved++, canSave: true),
+    );
+    expect(save().enabled, isTrue);
+    await tester.tap(find.text('Save query'));
+    expect(saved, 1);
+    final tree = ConditionNode(
+      FieldPath(['depth']),
+      QueryOp.gt,
+      const NumberValue(30, null),
+    );
+    await tester.pumpWidget(
+      host(tree, (_) {}, onSave: () => saved++, canSave: false),
+    );
+    expect(save().enabled, isFalse);
   });
 
   testWidgets('no onSave hides the button', (tester) async {

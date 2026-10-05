@@ -6,12 +6,14 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/utils/filter_option_search.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/searchable_filter_dropdown.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_field.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// The Refine panel's Location group (#2773): dive site, trip and dive
-/// center, each a type-ahead that also matches where the place is.
+/// The Refine panel's Location group (#2773): the dive site, picked from the
+/// shared site picker sheet (#1080), and trip and dive center, each a
+/// type-ahead that also matches where the place is.
 class RefineLocationGroup extends ConsumerWidget {
   const RefineLocationGroup({
     super.key,
@@ -46,26 +48,8 @@ class RefineLocationGroup extends ConsumerWidget {
             .when(
               loading: () => const LinearProgressIndicator(),
               error: (_, _) => Text(l10n.diveLog_filter_errorLoadingSites),
-              data: (sites) => SearchableFilterDropdown<String>(
+              data: (_) => SitePickerField(
                 value: draft.siteId,
-                labelText: l10n.diveLog_search_label_diveSite,
-                allOptionLabel: l10n.diveLog_filter_allSites,
-                searchHintText: l10n.diveLog_filter_searchSitesHint,
-                icon: Icons.location_on,
-                options: [
-                  for (final site in sites)
-                    FilterDropdownOption(
-                      value: site.id,
-                      label: site.name,
-                      // A country or region finds the site too.
-                      searchText: buildFilterSearchText([
-                        site.name,
-                        site.locationString,
-                        site.country,
-                        site.region,
-                      ]),
-                    ),
-                ],
                 onChanged: (v) => onChanged(
                   draft.copyWith(siteId: v, clearSiteId: v == null),
                 ),

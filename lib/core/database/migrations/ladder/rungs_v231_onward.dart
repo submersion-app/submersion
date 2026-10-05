@@ -211,11 +211,18 @@ extension RungsFromV231 on AppDatabase {
       await _assertDistanceUnitColumn();
     }
     if (from < 263) await reportProgress();
-    // v264: diver_settings.hidden_built_in_ids (issue #401). Column-only
-    // rung, no backfill: null reads back as "nothing hidden".
+    // v264: diver_settings.default_show_late_gas_switches (issue #2939).
+    // Column only, defaulting on. Re-asserted in beforeOpen.
     if (from < 264) {
-      await _assertHiddenBuiltInIdsColumn();
+      await _assertLateGasSwitchSettingColumn();
     }
     if (from < 264) await reportProgress();
+    // v266: diver_settings.hidden_built_in_ids (issue #401). Column-only
+    // rung, no backfill: null reads back as "nothing hidden". 265 is held by
+    // an open branch (#3011).
+    if (from < 266) {
+      await _assertHiddenBuiltInIdsColumn();
+    }
+    if (from < 266) await reportProgress();
   }
 }

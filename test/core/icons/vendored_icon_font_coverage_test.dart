@@ -88,6 +88,12 @@ void main() {
       'tank_band': SubmersionIcons.tankBand,
       'weight_pocket': SubmersionIcons.weightPocket,
       'gear_pocket': SubmersionIcons.gearPocket,
+      'lens': SubmersionIcons.lens,
+      'port': SubmersionIcons.port,
+      'tray_handle': SubmersionIcons.trayHandle,
+      'arm_clamp': SubmersionIcons.armClamp,
+      'video_light': SubmersionIcons.videoLight,
+      'float_arm': SubmersionIcons.floatArm,
     };
     final cmap = cmaps[SubmersionIcons.fontFamily]!;
     for (final entry in drawn.entries) {

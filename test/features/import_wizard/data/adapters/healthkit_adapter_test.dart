@@ -119,6 +119,22 @@ void main() {
   // -------------------------------------------------------------------------
 
   group('buildBundle()', () {
+    test('names Apple Health and the fetched range (#161)', () async {
+      adapter.setParsedDives(
+        [makeDive()],
+        range: DateTimeRange(
+          start: DateTime(2026, 9, 5),
+          end: DateTime(2026, 10, 5, 23, 59),
+        ),
+      );
+
+      final details = (await adapter.buildBundle()).source.details;
+
+      expect(details.title, 'Apple Health');
+      expect(details.rangeStart, DateTime(2026, 9, 5));
+      expect(details.rangeEnd, DateTime(2026, 10, 5, 23, 59));
+    });
+
     test('returns bundle with dives group', () async {
       final dive = makeDive();
       adapter.setParsedDives([dive]);

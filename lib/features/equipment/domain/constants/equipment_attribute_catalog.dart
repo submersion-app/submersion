@@ -268,6 +268,17 @@ abstract final class EquipmentAttributeCatalog {
     kind: AttributeKind.number,
     dimension: AttributeDimension.depthM,
   );
+  // A video light (#1997) is specced like a dive light, so it shares the
+  // light's definitions: one key, one label, one filter.
+  static const _lumens = EquipmentAttributeDef(
+    key: 'lumens',
+    kind: AttributeKind.number,
+  );
+  static const _beamType = EquipmentAttributeDef(
+    key: 'beam_type',
+    kind: AttributeKind.choice,
+    choiceKeys: ['spot', 'flood', 'adjustable'],
+  );
 
   static const Map<EquipmentType, List<EquipmentAttributeDef>> _byType = {
     EquipmentType.wetsuit: [
@@ -583,17 +594,58 @@ abstract final class EquipmentAttributeCatalog {
         choiceKeys: ['belt', 'integrated', 'trim', 'ankle'],
       ),
     ],
-    EquipmentType.light: [
-      EquipmentAttributeDef(key: 'lumens', kind: AttributeKind.number),
+    EquipmentType.light: [_lumens, _beamType],
+    EquipmentType.camera: [_depthRating],
+    // The camera's parts (#1997).
+    EquipmentType.lens: [
       EquipmentAttributeDef(
-        key: 'beam_type',
+        key: 'lens_type',
         kind: AttributeKind.choice,
-        choiceKeys: ['spot', 'flood', 'adjustable'],
+        choiceKeys: ['camera_lens', 'wet_lens', 'diopter'],
+      ),
+      // Quoted in millimetres in every unit system, so not a converted
+      // length.
+      EquipmentAttributeDef(key: 'focal_length_mm', kind: AttributeKind.number),
+    ],
+    EquipmentType.port: [
+      EquipmentAttributeDef(
+        key: 'port_type',
+        kind: AttributeKind.choice,
+        choiceKeys: ['dome', 'flat', 'macro'],
+      ),
+      _depthRating,
+    ],
+    EquipmentType.housing: [_depthRating],
+    EquipmentType.trayHandle: [
+      EquipmentAttributeDef(
+        key: 'tray_style',
+        kind: AttributeKind.choice,
+        choiceKeys: ['single_handle', 'double_handle', 'pistol_grip'],
       ),
     ],
-    EquipmentType.camera: [_depthRating],
-    EquipmentType.housing: [_depthRating],
-    EquipmentType.strobe: [_depthRating],
+    // Stored in metres, shown in cm or inches: arms are sold as 8" or 20 cm.
+    EquipmentType.armClamp: [
+      EquipmentAttributeDef(
+        key: 'arm_length_m',
+        kind: AttributeKind.number,
+        dimension: AttributeDimension.shortLengthM,
+      ),
+    ],
+    EquipmentType.strobe: [
+      _depthRating,
+      // The power figure every strobe is compared by: a distance at ISO 100,
+      // quoted in metres (GN 20) or feet (GN 66) for the same strobe, so it
+      // is stored in metres and shown in the diver's length unit.
+      EquipmentAttributeDef(
+        key: 'guide_number_m',
+        kind: AttributeKind.number,
+        dimension: AttributeDimension.lengthM,
+      ),
+    ],
+    EquipmentType.videoLight: [_lumens, _beamType, _depthRating],
+    // What the float lifts. It trims the rig, not the diver, so the buoyancy
+    // model reads it only for a BCD and never for a float.
+    EquipmentType.floatArm: [_liftCapacity],
     EquipmentType.dpv: [
       EquipmentAttributeDef(
         key: 'dpv_style',

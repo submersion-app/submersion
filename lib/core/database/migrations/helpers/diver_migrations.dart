@@ -174,14 +174,14 @@ extension DiverMigrations on AppDatabase {
   }
 
   /// The beforeOpen backstop for both hidden-picker-entry columns: v227's
-  /// tank presets (#2305) and v264's built-in catalog entries (#401). One
+  /// tank presets (#2305) and v266's built-in catalog entries (#401). One
   /// call keeps before_open.dart inside its line budget.
   Future<void> _assertHiddenPickerEntryColumns() async {
     await _assertHiddenTankPresetIdsColumn();
     await _assertHiddenBuiltInIdsColumn();
   }
 
-  /// v264: diver_settings.hidden_built_in_ids (issue #401). PRAGMA-guarded
+  /// v266: diver_settings.hidden_built_in_ids (issue #401). PRAGMA-guarded
   /// and idempotent so both onUpgrade and the beforeOpen backstop can call it.
   Future<void> _assertHiddenBuiltInIdsColumn() =>
       _addColumnIfMissing('diver_settings', 'hidden_built_in_ids', 'TEXT');
@@ -601,5 +601,22 @@ extension DiverMigrations on AppDatabase {
       'ALTER TABLE diver_settings ADD COLUMN '
       'auto_tag_imports INTEGER NOT NULL DEFAULT 1',
     );
+  }
+
+  /// v264: diver_settings.default_show_late_gas_switches (issue #2939).
+  /// Column only, defaulting on; re-asserted in beforeOpen.
+  Future<void> _assertLateGasSwitchSettingColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('default_show_late_gas_switches')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN default_show_late_gas_switches '
+        'INTEGER NOT NULL DEFAULT 1 '
+        'CHECK (default_show_late_gas_switches IN (0, 1))',
+      );
+    }
   }
 }

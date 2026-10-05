@@ -727,6 +727,81 @@ void main() {
     expect(painter.pitchDegrees, 22);
   });
 
+  // Inline in a scrolling page (the Site Details card), the viewport must
+  // take the input it is given, and the page must not take it as well.
+  group('inside a scrolling page', () {
+    Future<ScrollController> pumpInScrollingPage(WidgetTester tester) async {
+      final controller = ScrollController();
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              controller: controller,
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 400,
+                    child: Dive3dInteractiveViewport(
+                      scene: buildScene(),
+                      scrubPosition: ValueNotifier(0.0),
+                      visibleOverlays: SceneOverlay.values.toSet(),
+                    ),
+                  ),
+                  const SizedBox(height: 2000),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      return controller;
+    }
+
+    Offset insideViewport(WidgetTester tester) {
+      final rect = tester.getRect(find.byType(Dive3dInteractiveViewport));
+      // Left of centre, clear of the zoom buttons on the right edge.
+      return Offset(rect.left + rect.width * 0.3, rect.center.dy);
+    }
+
+    testWidgets('a wheel tick zooms the camera and leaves the page', (
+      tester,
+    ) async {
+      final controller = await pumpInScrollingPage(tester);
+      final before = scenePainterOf(tester).zoom;
+
+      final mouse = TestPointer(1, PointerDeviceKind.mouse);
+      await tester.sendEventToBinding(mouse.hover(insideViewport(tester)));
+      await tester.sendEventToBinding(mouse.scroll(const Offset(0, -120)));
+      await tester.pump();
+
+      expect(scenePainterOf(tester).zoom, greaterThan(before));
+      expect(controller.offset, 0);
+    });
+
+    testWidgets('a trackpad pinch zooms the camera and leaves the page', (
+      tester,
+    ) async {
+      final controller = await pumpInScrollingPage(tester);
+      final before = scenePainterOf(tester).zoom;
+
+      final pad = TestPointer(2, PointerDeviceKind.trackpad);
+      final at = insideViewport(tester);
+      await tester.sendEventToBinding(pad.panZoomStart(at));
+      await tester.sendEventToBinding(
+        pad.panZoomUpdate(at, pan: const Offset(0, -60), scale: 1.5),
+      );
+      await tester.sendEventToBinding(pad.panZoomEnd());
+      await tester.pump();
+
+      expect(scenePainterOf(tester).zoom, greaterThan(before));
+      expect(controller.offset, 0);
+    });
+  });
+
   group('onZoomSettled', () {
     testWidgets('fires once with the final zoom after 300ms of no further '
         'zoom change', (tester) async {

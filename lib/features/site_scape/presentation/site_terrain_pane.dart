@@ -6,7 +6,6 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_lod.dart';
-import 'package:submersion/features/bathymetry/presentation/bathymetry_labels.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
@@ -16,7 +15,9 @@ import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_con
 import 'package:submersion/features/dive_3d/domain/spatial/site_active_path_overlay_builder.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/site_scape/presentation/patch_aware_hover_picker.dart';
+import 'package:submersion/features/site_scape/presentation/seascape_source_chip.dart';
 import 'package:submersion/features/site_scape/presentation/path_provenance_chip.dart';
+import 'package:submersion/features/site_scape/presentation/size_reporter.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_info_sheet.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_surface.dart';
@@ -65,6 +66,10 @@ class SiteTerrainPane extends ConsumerStatefulWidget {
   ConsumerState<SiteTerrainPane> createState() => _SiteTerrainPaneState();
 }
 
+/// Narrowest the top-left overlay column may get beside the docked card
+/// before it moves below the card instead.
+const double _minOverlayColumnWidth = 160;
+
 class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
     with SingleTickerProviderStateMixin {
   // Parked at 0 for the plain site view (no timeline there); driven by
@@ -73,6 +78,14 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
   // [_player] itself is only ever created below when there is a context to
   // play back, so the site-only path pays nothing for it.
   final ValueNotifier<double> _scrub = ValueNotifier(0);
+
+  /// The docked control card's laid-out size, and whether it held the
+  /// pane's own actions then (it gains them when the scene is ready). Its
+  /// width depends on the host's [SiteTerrainPane.leadingActions]; the
+  /// scene's top-left overlays lay out around it, and stay hidden until it
+  /// has been measured in its ready form.
+  final ValueNotifier<({Size size, bool withOwnActions})?> _dock =
+      ValueNotifier(null);
   final ValueNotifier<ScenePick?> _hoverPick = ValueNotifier(null);
 
   /// Which grid the CURRENT [_hoverPick] value's row/col indices refer to
@@ -175,6 +188,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
   void dispose() {
     _player?.dispose();
     _scrub.dispose();
+    _dock.dispose();
     _hoverPick.dispose();
     _hoverPickGrid.dispose();
     super.dispose();
@@ -191,46 +205,53 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
     // inject the way back to 2D through leadingActions, and a site whose
     // seascape comes back empty would otherwise be a dead end. The pane's
     // own actions still need a scene, so they appear only when ready.
+    final ownActions = stateAsync.valueOrNull is SiteSeascapeReady;
     return Stack(
       fit: StackFit.expand,
       children: [
         _paneBody(stateAsync, appearance, depthUnit),
-        if (widget.leadingActions.isNotEmpty ||
-            stateAsync.valueOrNull is SiteSeascapeReady)
+        if (widget.leadingActions.isNotEmpty || ownActions)
           Positioned(
             top: 8,
             right: 8,
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ...widget.leadingActions,
-                    if (stateAsync.valueOrNull is SiteSeascapeReady) ...[
-                      IconButton(
-                        key: const ValueKey('seascapeAppearanceButton'),
-                        icon: const Icon(Icons.tune, size: 20),
-                        tooltip: context.l10n.dive3d_seascape_appearance,
-                        onPressed: () => showTerrainAppearanceSheet(
-                          context,
-                          siteId: widget.siteId,
+            child: SizeReporter(
+              onChange: (size) =>
+                  _dock.value = (size: size, withOwnActions: ownActions),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ...widget.leadingActions,
+                      if (ownActions) ...[
+                        IconButton(
+                          key: const ValueKey('seascapeAppearanceButton'),
+                          icon: const Icon(Icons.tune, size: 20),
+                          tooltip: context.l10n.dive3d_seascape_appearance,
+                          onPressed: () => showTerrainAppearanceSheet(
+                            context,
+                            siteId: widget.siteId,
+                          ),
                         ),
-                      ),
-                      IconButton(
-                        key: const ValueKey('seascapeChartToggle'),
-                        icon: Icon(
-                          _chartMode ? Icons.view_in_ar : Icons.map_outlined,
-                          size: 20,
+                        IconButton(
+                          key: const ValueKey('seascapeChartToggle'),
+                          icon: Icon(
+                            _chartMode ? Icons.view_in_ar : Icons.map_outlined,
+                            size: 20,
+                          ),
+                          tooltip: _chartMode
+                              ? context.l10n.dive3d_seascape_orbitView
+                              : context.l10n.dive3d_seascape_chartView,
+                          onPressed: () =>
+                              setState(() => _chartMode = !_chartMode),
                         ),
-                        tooltip: _chartMode
-                            ? context.l10n.dive3d_seascape_orbitView
-                            : context.l10n.dive3d_seascape_chartView,
-                        onPressed: () =>
-                            setState(() => _chartMode = !_chartMode),
-                      ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -425,17 +446,6 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                             },
                           ),
                         ),
-                        Positioned(
-                          top: 8,
-                          left: 8,
-                          right: 8,
-                          child: _sourceChip(
-                            patch?.grid.sourceId ?? sourceId,
-                            patch?.grid.resolutionMeters ?? resolutionMeters,
-                            stage,
-                            depthUnit,
-                          ),
-                        ),
                         // top: 8, right: 8 is already the pane's docked
                         // appearance/chart-mode card (see build() above),
                         // which paints over anything at that same position
@@ -447,47 +457,94 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                             right: 8,
                             child: _detailLimitHint(context),
                           ),
-                        // Sits below the source chip at top: 8 -- only the
-                        // dive variant has a provenance to caption; a route
-                        // IS the recorded path, nothing to caption. A dive
-                        // with no usable path says so, as the standalone
-                        // view does, instead of silently showing the site.
-                        if (playbackContext is DivePlaybackContext &&
-                            (activePathAsync?.hasSettled ?? false))
-                          Positioned(
-                            top: 40,
+                        // One column, so a caption that wraps on a narrow
+                        // pane pushes the others down rather than running
+                        // into them. It sits beside the docked card (see
+                        // build() above, which paints over this Stack), or
+                        // below it on a pane too narrow for both, and is
+                        // hidden until the card is measured with the pane's
+                        // own actions, so no frame draws it underneath.
+                        ValueListenableBuilder(
+                          valueListenable: _dock,
+                          builder: (context, dock, column) => Positioned(
+                            top: 8,
                             left: 8,
                             right: 8,
-                            child: activePath == null
-                                ? SeascapeCaptionChip(
-                                    label: context.l10n.dive3d_spatial_noPath,
-                                  )
-                                : PathProvenanceChip(
-                                    overlay: activePath.overlay,
+                            child: dock == null || !dock.withOwnActions
+                                ? const SizedBox.shrink()
+                                : LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      final dockWidth = dock.size.width + 8;
+                                      final beside =
+                                          constraints.maxWidth - dockWidth >=
+                                          _minOverlayColumnWidth;
+                                      return Padding(
+                                        padding: beside
+                                            ? EdgeInsets.only(right: dockWidth)
+                                            : EdgeInsets.only(
+                                                top: dock.size.height + 8,
+                                              ),
+                                        child: column,
+                                      );
+                                    },
                                   ),
                           ),
-                        // The legend describes the depth ramp; a photographed
-                        // surface has no ramp to explain. It sits LEFT because the
-                        // viewport's zoom column owns the right edge, and on a
-                        // phone-sized pane a right-hand legend covers the +/-
-                        // buttons outright (issue #1188).
-                        if (appearance.surfaceMode !=
-                            SeascapeSurfaceMode.imagery)
-                          Positioned(
-                            top: 72,
-                            left: 8,
-                            child: SeascapeDepthLegend(
-                              maxDepthMeters: axisInputs.maxDepth,
-                              hasLand: grid.depthsMeters.any(
-                                (d) => d == null || d <= 0,
+                          // Lined up on the physical left, as the docked card
+                          // and the zoom column are fixed to the physical
+                          // right; only the alignment, not the text inside.
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            textDirection: TextDirection.ltr,
+                            children: [
+                              SeascapeSourceChip(
+                                sourceId: patch?.grid.sourceId ?? sourceId,
+                                resolutionMeters:
+                                    patch?.grid.resolutionMeters ??
+                                    resolutionMeters,
+                                stage: stage,
+                                depthUnit: depthUnit,
                               ),
-                              appearance: appearance,
-                              displayUnitInMeters: depthUnit == DepthUnit.feet
-                                  ? 0.3048
-                                  : 1.0,
-                              depthSymbol: depthUnit.symbol,
-                            ),
+                              // Only the dive variant has a provenance to
+                              // caption; a route IS the recorded path. A dive
+                              // with no usable path says so, as the standalone
+                              // view does, instead of silently showing the site.
+                              if (playbackContext is DivePlaybackContext &&
+                                  (activePathAsync?.hasSettled ?? false)) ...[
+                                const SizedBox(height: 8),
+                                activePath == null
+                                    ? SeascapeCaptionChip(
+                                        label:
+                                            context.l10n.dive3d_spatial_noPath,
+                                      )
+                                    : PathProvenanceChip(
+                                        overlay: activePath.overlay,
+                                      ),
+                              ],
+                              // The legend describes the depth ramp; a
+                              // photographed surface has no ramp to explain.
+                              // It sits LEFT because the viewport's zoom column
+                              // owns the right edge, and on a phone-sized pane
+                              // a right-hand legend covers the +/- buttons
+                              // outright (issue #1188).
+                              if (appearance.surfaceMode !=
+                                  SeascapeSurfaceMode.imagery) ...[
+                                const SizedBox(height: 8),
+                                SeascapeDepthLegend(
+                                  maxDepthMeters: axisInputs.maxDepth,
+                                  hasLand: grid.depthsMeters.any(
+                                    (d) => d == null || d <= 0,
+                                  ),
+                                  appearance: appearance,
+                                  displayUnitInMeters:
+                                      depthUnit == DepthUnit.feet
+                                      ? 0.3048
+                                      : 1.0,
+                                  depthSymbol: depthUnit.symbol,
+                                ),
+                              ],
+                            ],
                           ),
+                        ),
                         if (imagery != null)
                           Positioned(
                             bottom: 8,
@@ -623,56 +680,6 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
         units.depthSymbol,
       ),
       depthTitle: context.l10n.divePlanner_label_depthAxis(units.depthSymbol),
-    );
-  }
-
-  Widget _sourceChip(
-    String sourceId,
-    double resolutionMeters,
-    BathymetryLodStage stage,
-    DepthUnit depthUnit,
-  ) {
-    // Surfaces the active LOD stage (see bathymetry_lod.dart) so a diver
-    // can tell why the terrain just got sharper (or why it stopped
-    // getting sharper) without needing to know the underlying zoom
-    // threshold. The span respects the diver's own depth unit, like every
-    // other measurement on this pane (legend, axes).
-    final stageName = switch (stage) {
-      BathymetryLodStage.overview =>
-        context.l10n.dive3d_seascape_lodStageOverview,
-      BathymetryLodStage.medium => context.l10n.dive3d_seascape_lodStageMedium,
-      BathymetryLodStage.fine => context.l10n.dive3d_seascape_lodStageFine,
-      BathymetryLodStage.superFine =>
-        context.l10n.dive3d_seascape_lodStageSuperFine,
-    };
-    final spanDisplay = DepthUnit.meters.convert(stage.spanMeters, depthUnit);
-    final stageLabelText = context.l10n.dive3d_seascape_lodStageLabel(
-      stageName,
-      '${spanDisplay.round()} ${depthUnit.symbol}',
-    );
-    return Align(
-      alignment: Alignment.topLeft,
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 360),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.info_outline, size: 14),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                '${context.l10n.dive3d_seascape_seafloorSource(bathymetrySourceDisplayName(sourceId), resolutionMeters.round().toString())} · $stageLabelText',
-                style: Theme.of(context).textTheme.labelSmall,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

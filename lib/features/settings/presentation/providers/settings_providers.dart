@@ -469,6 +469,9 @@ class AppSettings {
   /// Default visibility for gas switch markers on dive profile
   final bool defaultShowGasSwitchMarkers;
 
+  /// Shade late and missed deco gas switches on the profile (#2939).
+  final bool defaultShowLateGasSwitches;
+
   /// Default visibility for photo markers on dive profile
   final bool defaultShowPhotoMarkers;
 
@@ -684,6 +687,7 @@ class AppSettings {
     this.defaultShowCns = false,
     this.defaultShowOtu = false,
     this.defaultShowGasSwitchMarkers = true,
+    this.defaultShowLateGasSwitches = true,
     this.defaultShowPhotoMarkers = true,
     this.defaultShowGasTimeline = false,
     this.defaultShowO2CellMv = false,
@@ -869,6 +873,7 @@ class AppSettings {
     bool? defaultShowCns,
     bool? defaultShowOtu,
     bool? defaultShowGasSwitchMarkers,
+    bool? defaultShowLateGasSwitches,
     bool? defaultShowPhotoMarkers,
     bool? defaultShowGasTimeline,
     bool? defaultShowO2CellMv,
@@ -1046,6 +1051,8 @@ class AppSettings {
       defaultShowOtu: defaultShowOtu ?? this.defaultShowOtu,
       defaultShowGasSwitchMarkers:
           defaultShowGasSwitchMarkers ?? this.defaultShowGasSwitchMarkers,
+      defaultShowLateGasSwitches:
+          defaultShowLateGasSwitches ?? this.defaultShowLateGasSwitches,
       defaultShowPhotoMarkers:
           defaultShowPhotoMarkers ?? this.defaultShowPhotoMarkers,
       defaultShowGasTimeline:
@@ -2416,6 +2423,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  Future<void> setDefaultShowLateGasSwitches(bool value) async {
+    state = state.copyWith(defaultShowLateGasSwitches: value);
+    await _saveSettings();
+  }
+
   Future<void> setDefaultShowPhotoMarkers(bool value) async {
     state = state.copyWith(defaultShowPhotoMarkers: value);
     await _saveSettings();
@@ -2972,6 +2984,12 @@ final defaultShowOtuProvider = Provider<bool>((ref) {
 final defaultShowGasSwitchMarkersProvider = Provider<bool>((ref) {
   return ref.watch(
     settingsProvider.select((s) => s.defaultShowGasSwitchMarkers),
+  );
+});
+
+final defaultShowLateGasSwitchesProvider = Provider<bool>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.defaultShowLateGasSwitches),
   );
 });
 

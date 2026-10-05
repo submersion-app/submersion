@@ -35,6 +35,7 @@ class QueryEditor extends StatefulWidget {
     required this.onChanged,
     required this.strings,
     this.onSave,
+    this.canSave,
     this.describeError,
   });
 
@@ -43,8 +44,13 @@ class QueryEditor extends StatefulWidget {
   final ValueChanged<QueryNode?> onChanged;
   final QueryEditorStrings strings;
 
-  /// Shown as a Save button when set; enabled while [value] is not null.
+  /// Shown as a Save button when set; enabled per [canSave].
   final VoidCallback? onSave;
+
+  /// Whether Save is enabled; while [value] is not null when unset. A
+  /// caller whose Save stores more than this editor's tree (a whole filter,
+  /// its other controls included) says so here (#2989).
+  final bool? canSave;
 
   /// How the text tab words a parse or validation error; the engine's
   /// English message when null.
@@ -87,7 +93,9 @@ class _QueryEditorState extends State<QueryEditor>
                 child: FilledButton.tonalIcon(
                   icon: const Icon(Icons.bookmark_add_outlined),
                   label: Text(strings.save),
-                  onPressed: widget.value == null ? null : widget.onSave,
+                  onPressed: (widget.canSave ?? widget.value != null)
+                      ? widget.onSave
+                      : null,
                 ),
               ),
           ],

@@ -65,6 +65,9 @@ class OptimalOcAscentGas extends AscentGasPlan {
   final List<AvailableGas> _gases;
   final double maxPpO2;
 
+  /// The gases this plan chooses from, in the order given.
+  List<AvailableGas> get gases => _gases;
+
   @override
   AscentGas gasForDepth(double depthMeters) {
     AvailableGas? best;

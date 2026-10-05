@@ -1,4 +1,5 @@
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_alignment.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 
 /// Why a consolidation was rejected outright.
@@ -24,11 +25,20 @@ class ConsolidationInvalid extends DiveConsolidationClassification {
 /// A selection ready to be consolidated: the same physical dive recorded by
 /// multiple dive computers.
 class ConsolidationReady extends DiveConsolidationClassification {
-  const ConsolidationReady({required this.primary, required this.secondaries});
+  const ConsolidationReady({
+    required this.primary,
+    required this.secondaries,
+    this.realignedIds = const {},
+  });
   final Dive primary;
 
   /// Chronological by entry time; excludes [primary].
   final List<Dive> secondaries;
+
+  /// Secondaries that do not overlap [primary] in time, accepted only because
+  /// an alignment mode was given. Their clocks are not trusted, so `build`
+  /// places them by that mode instead of by entry time (#552).
+  final Set<String> realignedIds;
 }
 
 /// Everything the consolidation service needs to persist the merge.
@@ -39,6 +49,7 @@ class DiveConsolidationPlan {
     required this.offsetsSeconds,
     required this.tankMerges,
     required this.previewSeries,
+    this.alignments = const {},
   });
 
   final Dive primary;
@@ -55,6 +66,10 @@ class DiveConsolidationPlan {
 
   /// Dive id -> depth series shifted onto the primary timeline (preview).
   final Map<String, List<DiveProfilePoint>> previewSeries;
+
+  /// Realigned secondary id -> where the alignment placed it and how well
+  /// its profile matches the primary's. Empty without an alignment mode.
+  final Map<String, ProfileAlignmentResult> alignments;
 }
 
 class DiveConsolidationBuilder {
@@ -101,9 +116,13 @@ class DiveConsolidationBuilder {
     return aStart.isBefore(bEnd) && bStart.isBefore(aEnd);
   }
 
+  /// [alignment] null rejects a secondary that does not overlap the primary
+  /// in time. With a mode, that secondary is accepted and listed in
+  /// [ConsolidationReady.realignedIds] for `build` to align.
   DiveConsolidationClassification classify(
     List<Dive> dives, {
     String? primaryDiveId,
+    ConsolidationAlignment? alignment,
   }) {
     if (dives.length < 2) {
       return const ConsolidationInvalid(ConsolidationInvalidReason.tooFewDives);
@@ -111,13 +130,17 @@ class DiveConsolidationBuilder {
     if (dives.map((d) => d.diverId).toSet().length > 1) {
       return const ConsolidationInvalid(ConsolidationInvalidReason.mixedDivers);
     }
-    // Two records from the same physical computer are a re-download, not a
-    // second computer. Serial is the only computer identity on the domain
-    // entity; the service re-checks the computerId FK on the raw rows.
+    // Two records from the same physical computer are a re-download or a
+    // dive it split in two, not a second computer. Judged by serial and by
+    // the linked computer, since either can be missing; the service
+    // re-checks the computerId FK on the raw rows before writing.
     final serials = <String>{};
+    final computerIds = <String>{};
     for (final d in dives) {
       final serial = d.diveComputerSerial;
-      if (serial != null && serial.isNotEmpty && !serials.add(serial)) {
+      final computerId = d.computerId;
+      if ((serial != null && serial.isNotEmpty && !serials.add(serial)) ||
+          (computerId != null && !computerIds.add(computerId))) {
         return const ConsolidationInvalid(
           ConsolidationInvalidReason.sameComputer,
         );
@@ -135,14 +158,21 @@ class DiveConsolidationBuilder {
       for (final d in sorted)
         if (d.id != primary.id) d,
     ];
+    final realigned = <String>{};
     for (final s in secondaries) {
-      if (!_overlaps(primary, s)) {
+      if (_overlaps(primary, s)) continue;
+      if (alignment == null) {
         return const ConsolidationInvalid(
           ConsolidationInvalidReason.notOverlapping,
         );
       }
+      realigned.add(s.id);
     }
-    return ConsolidationReady(primary: primary, secondaries: secondaries);
+    return ConsolidationReady(
+      primary: primary,
+      secondaries: secondaries,
+      realignedIds: realigned,
+    );
   }
 
   /// Whether two tanks are the same physical cylinder, judged by their
@@ -198,8 +228,16 @@ class DiveConsolidationBuilder {
     return (primary - secondary).abs() <= _pressureToleranceBar;
   }
 
-  DiveConsolidationPlan build(List<Dive> dives, {String? primaryDiveId}) {
-    final classification = classify(dives, primaryDiveId: primaryDiveId);
+  DiveConsolidationPlan build(
+    List<Dive> dives, {
+    String? primaryDiveId,
+    ConsolidationAlignment? alignment,
+  }) {
+    final classification = classify(
+      dives,
+      primaryDiveId: primaryDiveId,
+      alignment: alignment,
+    );
     if (classification is! ConsolidationReady) {
       throw ArgumentError(
         'build() requires a consolidatable selection; got $classification',
@@ -208,12 +246,23 @@ class DiveConsolidationBuilder {
     final primary = classification.primary;
     final secondaries = classification.secondaries;
 
+    // A realigned secondary's clock disagrees with the primary's by more
+    // than the dive lasted, so its entry time would reproduce that error.
+    // The best-fit score is kept under "starts" too, so the same-dive hint
+    // does not change when the user flips the toggle.
+    final alignments = <String, ProfileAlignmentResult>{
+      for (final s in secondaries)
+        if (classification.realignedIds.contains(s.id))
+          s.id: _aligned(primary, s, alignment!),
+    };
     final offsets = <String, int>{
       primary.id: 0,
       for (final s in secondaries)
-        s.id: s.effectiveEntryTime
-            .difference(primary.effectiveEntryTime)
-            .inSeconds,
+        s.id:
+            alignments[s.id]?.offsetSeconds ??
+            s.effectiveEntryTime
+                .difference(primary.effectiveEntryTime)
+                .inSeconds,
     };
 
     // Each secondary claims primary tanks independently: three computers on
@@ -268,6 +317,22 @@ class DiveConsolidationBuilder {
       offsetsSeconds: offsets,
       tankMerges: tankMerges,
       previewSeries: preview,
+      alignments: alignments,
     );
+  }
+
+  ProfileAlignmentResult _aligned(
+    Dive primary,
+    Dive secondary,
+    ConsolidationAlignment alignment,
+  ) {
+    final fit = const ProfileAligner().align(
+      primary.profile,
+      secondary.profile,
+    );
+    return switch (alignment) {
+      ConsolidationAlignment.bestFit => fit,
+      ConsolidationAlignment.starts => fit.copyWith(offsetSeconds: 0),
+    };
   }
 }

@@ -26,6 +26,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
@@ -216,6 +217,7 @@ class DiverSettingsRepository {
               defaultShowCns: Value(s.defaultShowCns),
               defaultShowOtu: Value(s.defaultShowOtu),
               defaultShowGasSwitchMarkers: Value(s.defaultShowGasSwitchMarkers),
+              defaultShowLateGasSwitches: Value(s.defaultShowLateGasSwitches),
               defaultShowPhotoMarkers: Value(s.defaultShowPhotoMarkers),
               defaultShowGasTimeline: Value(s.defaultShowGasTimeline),
               defaultShowO2CellMv: Value(s.defaultShowO2CellMv),
@@ -281,7 +283,9 @@ class DiverSettingsRepository {
   /// changed since (issue #2946). Given [previous], the settings this caller
   /// last read or stored, only the columns where [settings] differs from it
   /// are written, and nothing at all (no new clock, nothing queued to sync)
-  /// when none does. Without it every column is written.
+  /// when none does. Without it every column is written. A change to
+  /// device-local columns alone ([deviceLocalSyncColumns]) is written
+  /// without a new clock and queues nothing.
   Future<void> updateSettingsForDiver(
     String diverId,
     AppSettings settings, {
@@ -293,6 +297,19 @@ class DiverSettingsRepository {
           ? columns
           : _changedColumns(_storedColumns(previous).toColumns(false), columns);
       if (changed.isEmpty) return;
+      // A device-local value never syncs (issue #2947). Stamping the row
+      // for one would republish this device's copy of every synced column
+      // with a newer clock, which could undo a peer's change, so only the
+      // value is written.
+      if (changed.keys.every(
+        (name) => isDeviceLocalColumn('diverSettings', name),
+      )) {
+        await (_db.update(_db.diverSettings)
+              ..where((t) => t.diverId.equals(diverId)))
+            .write(RawValuesInsertable<DiverSetting>(changed));
+        _log.info('Updated device-local settings for diver: $diverId');
+        return;
+      }
       final now = DateTime.now().millisecondsSinceEpoch;
 
       await (_db.update(
@@ -467,6 +484,7 @@ class DiverSettingsRepository {
     defaultShowCns: Value(settings.defaultShowCns),
     defaultShowOtu: Value(settings.defaultShowOtu),
     defaultShowGasSwitchMarkers: Value(settings.defaultShowGasSwitchMarkers),
+    defaultShowLateGasSwitches: Value(settings.defaultShowLateGasSwitches),
     defaultShowPhotoMarkers: Value(settings.defaultShowPhotoMarkers),
     defaultShowGasTimeline: Value(settings.defaultShowGasTimeline),
     defaultShowO2CellMv: Value(settings.defaultShowO2CellMv),
@@ -676,6 +694,7 @@ class DiverSettingsRepository {
       defaultShowCns: row.defaultShowCns,
       defaultShowOtu: row.defaultShowOtu,
       defaultShowGasSwitchMarkers: row.defaultShowGasSwitchMarkers,
+      defaultShowLateGasSwitches: row.defaultShowLateGasSwitches,
       defaultShowPhotoMarkers: row.defaultShowPhotoMarkers,
       defaultShowGasTimeline: row.defaultShowGasTimeline,
       defaultShowO2CellMv: row.defaultShowO2CellMv,

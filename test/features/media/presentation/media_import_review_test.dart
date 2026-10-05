@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/domain/entities/import_candidate.dart';
@@ -194,6 +195,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Choose site'));
     await tester.pumpAndSettle();
+    // The shared, searchable site picker (#1080).
+    expect(find.byKey(sitePickerListKey), findsOneWidget);
     await tester.tap(find.text('Blue Hole'));
     await tester.pumpAndSettle();
 
