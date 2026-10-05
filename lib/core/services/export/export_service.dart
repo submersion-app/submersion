@@ -296,6 +296,7 @@ class ExportService {
     Diver? diver,
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
+    Map<String, DiveRole> diveRolesById = const {},
   }) => _pdf.generateDivePdfBytes(
     dives,
     dates: dates,
@@ -307,6 +308,7 @@ class ExportService {
     diverPhoto: diverPhoto,
     title: title,
     diveTypesById: diveTypesById,
+    diveRolesById: diveRolesById,
   );
 
   Future<String> exportDivesToPdf(
@@ -320,6 +322,7 @@ class ExportService {
     Diver? diver,
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
+    Map<String, DiveRole> diveRolesById = const {},
   }) => _pdf.exportDivesToPdf(
     dives,
     dates: dates,
@@ -331,6 +334,7 @@ class ExportService {
     diverPhoto: diverPhoto,
     title: title,
     diveTypesById: diveTypesById,
+    diveRolesById: diveRolesById,
   );
 
   Future<String?> saveDivesToPdfFile(
@@ -344,6 +348,7 @@ class ExportService {
     Diver? diver,
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
+    Map<String, DiveRole> diveRolesById = const {},
   }) => _pdf.saveDivesToPdfFile(
     dives,
     dates: dates,
@@ -355,6 +360,7 @@ class ExportService {
     diverPhoto: diverPhoto,
     title: title,
     diveTypesById: diveTypesById,
+    diveRolesById: diveRolesById,
   );
 
   Future<String?> savePdfBytesToFile(List<int> bytes, String fileName) =>

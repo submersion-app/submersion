@@ -3395,6 +3395,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         diver: diver,
         diverPhoto: diverPhoto,
         diveTypesById: diveTypesById,
+        diveRolesById: await diveRoleMapOrEmpty(
+          ref.read(diveRoleMapProvider.future),
+        ),
       );
 
       // Close loading dialog BEFORE opening file picker to avoid navigator lock issues

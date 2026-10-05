@@ -42,6 +42,8 @@ import 'package:submersion/features/settings/presentation/providers/csv_unit_mod
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
@@ -887,6 +889,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       final diveTypesById = format == _BulkExportFormat.uddf
           ? const <String, DiveTypeEntity>{}
           : await diveTypesByIdOrEmpty(ref.read(diveTypesByIdProvider.future));
+      final diveRolesById = format == _BulkExportFormat.pdf
+          ? await diveRoleMapOrEmpty(ref.read(diveRoleMapProvider.future))
+          : const <String, DiveRole>{};
       if (!mounted) return BulkActionOutcome.cancelled;
 
       if (!keepDialogForDelivery) {
@@ -908,6 +913,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   diver: diver,
                   diverPhoto: diverPhoto,
                   diveTypesById: diveTypesById,
+                  diveRolesById: diveRolesById,
                 )
               : await exportService.saveDivesToPdfFile(
                   selectedDives,
@@ -918,6 +924,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   diver: diver,
                   diverPhoto: diverPhoto,
                   diveTypesById: diveTypesById,
+                  diveRolesById: diveRolesById,
                 ),
         _BulkExportFormat.csv =>
           sharing

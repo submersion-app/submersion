@@ -107,6 +107,7 @@ class _RecordingExportService implements ExportService {
     Diver? diver,
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
+    Map<String, DiveRole> diveRolesById = const {},
   }) {
     pdfOptions = options;
     pdfDiver = diver;
@@ -127,6 +128,7 @@ class _RecordingExportService implements ExportService {
     Diver? diver,
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
+    Map<String, DiveRole> diveRolesById = const {},
   }) {
     pdfOptions = options;
     pdfDiver = diver;
@@ -146,6 +148,7 @@ class _RecordingExportService implements ExportService {
     List<Dive> dives, {
     CsvExportUnits units = CsvExportUnits.metric,
     Map<String, DiveTypeEntity> diveTypesById = const {},
+    Map<String, DiveRole> diveRolesById = const {},
   }) {
     csvDives = dives;
     csvUnits = units;
@@ -159,6 +162,7 @@ class _RecordingExportService implements ExportService {
     required String dialogTitle,
     CsvExportUnits units = CsvExportUnits.metric,
     Map<String, DiveTypeEntity> diveTypesById = const {},
+    Map<String, DiveRole> diveRolesById = const {},
   }) {
     csvDives = dives;
     csvSaveTitle = dialogTitle;

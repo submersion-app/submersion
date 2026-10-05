@@ -104,4 +104,43 @@ void main() {
       );
     });
   });
+
+  group('several roles per person (#1221)', () {
+    DiveRole builtIn(String id) => DiveRole(
+      id: id,
+      name: id,
+      isBuiltIn: true,
+      createdAt: epoch,
+      updatedAt: epoch,
+    );
+
+    test("a buddy's line names every role", () async {
+      final both = BuddyWithRole(
+        buddy: Buddy(id: 'b', name: 'Bea', createdAt: epoch, updatedAt: epoch),
+        roles: [
+          builtIn(DiveRole.instructorId),
+          builtIn(DiveRole.safetyDiverId),
+        ],
+      );
+      final text = pdfVisibleText(await render(teamDive(buddies: [both])));
+      expect(text, contains('Instructor, Safety Diver'));
+    });
+
+    test("the diver's own roles print", () async {
+      final dive = teamDive().copyWith(
+        diverRoleIds: const [DiveRole.diveGuideId, DiveRole.diveMasterId],
+      );
+      final bytes = await PdfTemplateDetailed().buildPdf(
+        dives: [dive],
+        pageSize: PdfPageSize.a4,
+        dates: PdfDateFormatter(
+          dateFormat: DateFormatPreference.ddmmyyyy,
+          timeFormat: TimeFormat.twentyFourHour,
+        ),
+        units: const UnitFormatter(AppSettings()),
+        diveRolesById: {for (final id in DiveRole.builtInIds) id: builtIn(id)},
+      );
+      expect(pdfVisibleText(bytes), contains('Dive Guide, Divemaster'));
+    });
+  });
 }

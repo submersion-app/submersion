@@ -659,6 +659,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       diverPhoto: diverPhoto,
       includeVerificationAreas: exportOptions.includeVerificationAreas,
       diveTypesById: await _diveTypesById(),
+      // The diver's own roles print by name (#1221).
+      diveRolesById: await diveRoleMapOrEmpty(
+        _ref.read(diveRoleMapProvider.future),
+      ),
     );
   }
 

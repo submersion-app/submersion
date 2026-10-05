@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/dive_role_list_display.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
@@ -28,7 +30,6 @@ import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
-import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 
@@ -56,6 +57,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     bool includeVerificationAreas = false,
     EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
     Map<String, DiveTypeEntity> diveTypesById = const {},
+    Map<String, DiveRole> diveRolesById = const {},
     Map<String, String> equipmentSetNamesById = const {},
     DateTime? generatedAt,
     PdfLocalization? localization,
@@ -153,6 +155,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
             includeVerificationAreas: includeVerificationAreas,
             gearArrangement: gearArrangement,
             diveTypesById: diveTypesById,
+            diveRolesById: diveRolesById,
             equipmentSetNamesById: equipmentSetNamesById,
           ),
         ),
@@ -189,6 +192,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     required bool includeVerificationAreas,
     required EquipmentArrangement gearArrangement,
     required Map<String, DiveTypeEntity> diveTypesById,
+    required Map<String, DiveRole> diveRolesById,
     required Map<String, String> equipmentSetNamesById,
   }) {
     final chart = profile == null
@@ -216,7 +220,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         l10n.pdf_sectionWeather,
         _weatherFields(dive, units: units, l10n: l10n),
       ),
-      ..._section(l10n.pdf_sectionTeam, _teamFields(dive, l10n)),
+      ..._section(l10n.pdf_sectionTeam, _teamFields(dive, l10n, diveRolesById)),
       ..._section(
         l10n.pdf_sectionEquipment,
         _equipmentFields(
@@ -506,10 +510,24 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
   /// Once the `dive_buddies` junction holds anyone it is authoritative, and the
   /// legacy [Dive.buddy] / [Dive.diveMaster] text is stale (#1864). This is the
   /// same rule as the dive list's Buddy and Dive Master columns.
-  List<_Field> _teamFields(Dive dive, AppLocalizations l10n) {
+  List<_Field> _teamFields(
+    Dive dive,
+    AppLocalizations l10n,
+    Map<String, DiveRole> diveRolesById,
+  ) {
     return [
+      // The diver's own roles (#1221), then each person with every role
+      // they held, comma-joined.
+      if (dive.diverRoleIds.isNotEmpty)
+        _Field(
+          rolesForIds(
+            dive.diverRoleIds,
+            diveRolesById,
+          ).joinedLocalizedNames(l10n),
+          l10n.buddies_picker_me,
+        ),
       for (final buddy in dive.buddies)
-        _Field(buddy.primaryRole.localizedName(l10n), buddy.buddy.name),
+        _Field(buddy.roles.joinedLocalizedNames(l10n), buddy.buddy.name),
       if (dive.buddies.isEmpty && dive.buddy != null)
         _Field(l10n.pdf_buddy, dive.buddy!),
       if (dive.buddies.isEmpty && dive.diveMaster != null)
