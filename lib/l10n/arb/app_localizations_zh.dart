@@ -40123,6 +40123,33 @@ class AppLocalizationsZh extends AppLocalizations {
       'Chart overview. Drag the highlighted window to scroll through time.';
 
   @override
+  String get insights_trend_range_tooltip => 'Visible range';
+
+  @override
+  String get insights_trend_range_all => 'All';
+
+  @override
+  String get insights_trend_range_years5 => 'Last 5 years';
+
+  @override
+  String get insights_trend_range_years2 => 'Last 2 years';
+
+  @override
+  String get insights_trend_range_year1 => 'Last year';
+
+  @override
+  String get insights_trend_range_months6 => 'Last 6 months';
+
+  @override
+  String get insights_trend_range_months3 => 'Last 3 months';
+
+  @override
+  String get insights_trend_range_custom => 'Custom';
+
+  @override
+  String get insights_trend_range_customPick => 'Custom range...';
+
+  @override
   String get diveLog_edit_excludeFromStats => '从统计中排除';
 
   @override

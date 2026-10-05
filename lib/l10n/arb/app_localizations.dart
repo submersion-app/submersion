@@ -67495,6 +67495,60 @@ abstract class AppLocalizations {
   /// **'Chart overview. Drag the highlighted window to scroll through time.'**
   String get insights_trend_overview_semanticLabel;
 
+  /// No description provided for @insights_trend_range_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Visible range'**
+  String get insights_trend_range_tooltip;
+
+  /// No description provided for @insights_trend_range_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get insights_trend_range_all;
+
+  /// No description provided for @insights_trend_range_years5.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 5 years'**
+  String get insights_trend_range_years5;
+
+  /// No description provided for @insights_trend_range_years2.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 2 years'**
+  String get insights_trend_range_years2;
+
+  /// No description provided for @insights_trend_range_year1.
+  ///
+  /// In en, this message translates to:
+  /// **'Last year'**
+  String get insights_trend_range_year1;
+
+  /// No description provided for @insights_trend_range_months6.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 6 months'**
+  String get insights_trend_range_months6;
+
+  /// No description provided for @insights_trend_range_months3.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 3 months'**
+  String get insights_trend_range_months3;
+
+  /// No description provided for @insights_trend_range_custom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get insights_trend_range_custom;
+
+  /// No description provided for @insights_trend_range_customPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom range...'**
+  String get insights_trend_range_customPick;
+
   /// Checkbox: exclude this dive from all statistics
   ///
   /// In en, this message translates to:

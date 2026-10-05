@@ -26151,6 +26151,15 @@
   "insights_trend_tooltip_lowest": "Lowest",
   "insights_trend_tooltip_highest": "Highest",
   "insights_trend_overview_semanticLabel": "Chart overview. Drag the highlighted window to scroll through time.",
+  "insights_trend_range_tooltip": "Visible range",
+  "insights_trend_range_all": "All",
+  "insights_trend_range_years5": "Last 5 years",
+  "insights_trend_range_years2": "Last 2 years",
+  "insights_trend_range_year1": "Last year",
+  "insights_trend_range_months6": "Last 6 months",
+  "insights_trend_range_months3": "Last 3 months",
+  "insights_trend_range_custom": "Custom",
+  "insights_trend_range_customPick": "Custom range...",
   "diveLog_edit_excludeFromStats": "Exclude from statistics",
   "@diveLog_edit_excludeFromStats": {
     "description": "Checkbox: exclude this dive from all statistics"
