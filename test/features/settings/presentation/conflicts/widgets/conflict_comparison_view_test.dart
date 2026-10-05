@@ -134,7 +134,7 @@ void main() {
     // a listed difference with the same value on both sides.
     await _pump(
       tester,
-      ConflictComparison(
+      const ConflictComparison(
         state: ConflictComparisonState.differing,
         differences: [
           FieldDifference(

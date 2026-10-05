@@ -52,7 +52,9 @@ void main() {
   test('a long list of fields is cut short', () {
     final many = ConflictComparison(
       state: ConflictComparisonState.differing,
-      differences: [for (final l in ['A', 'B', 'C', 'D', 'E']) d(l)],
+      differences: [
+        for (final l in ['A', 'B', 'C', 'D', 'E']) d(l),
+      ],
     );
     expect(
       text(many, ConflictResolution.keepLocal),
