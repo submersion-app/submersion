@@ -8082,6 +8082,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get setup_units_altitude => 'Altitude';
 
   @override
+  String get setup_units_distance => 'Distance';
+
+  @override
   String get setup_units_dateFormat => 'Format de date';
 
   @override
@@ -20981,6 +20984,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_summary_weight => 'Poids';
 
   @override
+  String get settings_summary_altitude => 'Altitude';
+
+  @override
+  String get settings_summary_distance => 'Distance';
+
+  @override
   String get settings_units_custom => 'Personnalisé';
 
   @override
@@ -21132,6 +21141,30 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_units_weight_pounds => 'Livres (lbs)';
+
+  @override
+  String get settings_units_altitude => 'Altitude';
+
+  @override
+  String get settings_units_altitude_feet => 'Pieds (ft)';
+
+  @override
+  String get settings_units_altitude_meters => 'Mètres (m)';
+
+  @override
+  String get settings_units_dialog_altitudeUnit => 'Unité d\'altitude';
+
+  @override
+  String get settings_units_distance => 'Distance';
+
+  @override
+  String get settings_units_distance_kilometers => 'Kilomètres (km)';
+
+  @override
+  String get settings_units_distance_miles => 'Miles (mi)';
+
+  @override
+  String get settings_units_dialog_distanceUnit => 'Unité de distance';
 
   @override
   String get settings_updates_automaticUpdates => 'Mises à jour automatiques';
