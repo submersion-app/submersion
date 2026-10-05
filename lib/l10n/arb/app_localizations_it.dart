@@ -20269,6 +20269,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Brevetti aggiuntivi';
 
   @override
+  String get settings_conflict_field_advisoryKey => 'Consiglio integrato';
+
+  @override
   String get settings_conflict_field_airBreakBreakSeconds =>
       'Durata della pausa ad aria';
 
@@ -21955,6 +21958,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_conflict_field_summaryTtsSeconds =>
       'Tempo di risalita previsto';
+
+  @override
+  String get settings_conflict_field_supersedesRuleId =>
+      'Sostituisce la regola integrata';
 
   @override
   String get settings_conflict_field_surfaceConditions =>

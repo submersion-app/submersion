@@ -19257,6 +19257,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_additionalCredentials => '其他资质';
 
   @override
+  String get settings_conflict_field_advisoryKey => '内置建议';
+
+  @override
   String get settings_conflict_field_airBreakBreakSeconds => '空气休息时长';
 
   @override
@@ -20733,6 +20736,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_summaryTtsSeconds => '计划上升至水面时间';
+
+  @override
+  String get settings_conflict_field_supersedesRuleId => '替换内置规则';
 
   @override
   String get settings_conflict_field_surfaceConditions => '水面状况';

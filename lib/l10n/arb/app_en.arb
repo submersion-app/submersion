@@ -12535,6 +12535,10 @@
   "settings_conflict_field_accessNotes": "Access notes",
   "settings_conflict_field_accountIdentifier": "Account",
   "settings_conflict_field_additionalCredentials": "Additional credentials",
+  "settings_conflict_field_advisoryKey": "Built-in advice",
+  "@settings_conflict_field_advisoryKey": {
+    "description": "Sync conflict field label: which built-in advice text a certification currency rule shows."
+  },
   "settings_conflict_field_airBreakBreakSeconds": "Air break length",
   "settings_conflict_field_airBreakO2Seconds": "Oxygen time between air breaks",
   "settings_conflict_field_allergies": "Allergies",
@@ -13026,6 +13030,10 @@
   "settings_conflict_field_summaryMaxDepth": "Planned maximum depth",
   "settings_conflict_field_summaryRuntimeSeconds": "Planned runtime",
   "settings_conflict_field_summaryTtsSeconds": "Planned time to surface",
+  "settings_conflict_field_supersedesRuleId": "Replaces built-in rule",
+  "@settings_conflict_field_supersedesRuleId": {
+    "description": "Sync conflict field label: the built-in certification currency rule that a custom rule replaces."
+  },
   "settings_conflict_field_surfaceConditions": "Surface conditions",
   "settings_conflict_field_surfaceSwimLimitM": "Longest surface swim",
   "settings_conflict_field_swimSpeedMps": "Swim speed",

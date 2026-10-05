@@ -20502,6 +20502,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_additionalCredentials => 'مؤهلات إضافية';
 
   @override
+  String get settings_conflict_field_advisoryKey => 'النصيحة المدمجة';
+
+  @override
   String get settings_conflict_field_airBreakBreakSeconds =>
       'مدة استراحة الهواء';
 
@@ -22094,6 +22097,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_summaryTtsSeconds =>
       'الوقت المخطط حتى السطح';
+
+  @override
+  String get settings_conflict_field_supersedesRuleId =>
+      'يحل محل القاعدة المدمجة';
 
   @override
   String get settings_conflict_field_surfaceConditions => 'الأحوال على السطح';

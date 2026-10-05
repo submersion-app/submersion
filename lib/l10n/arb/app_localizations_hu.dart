@@ -20202,6 +20202,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'További minősítések';
 
   @override
+  String get settings_conflict_field_advisoryKey => 'Beépített tanács';
+
+  @override
   String get settings_conflict_field_airBreakBreakSeconds =>
       'Levegőszünet hossza';
 
@@ -21844,6 +21847,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_summaryTtsSeconds =>
       'Tervezett idő a felszínig';
+
+  @override
+  String get settings_conflict_field_supersedesRuleId =>
+      'Beépített szabályt helyettesít';
 
   @override
   String get settings_conflict_field_surfaceConditions =>

@@ -19799,6 +19799,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_additionalCredentials => 'הסמכות נוספות';
 
   @override
+  String get settings_conflict_field_advisoryKey => 'עצה מובנית';
+
+  @override
   String get settings_conflict_field_airBreakBreakSeconds => 'משך הפסקת האוויר';
 
   @override
@@ -21378,6 +21381,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_summaryTtsSeconds =>
       'זמן מתוכנן עד פני המים';
+
+  @override
+  String get settings_conflict_field_supersedesRuleId => 'מחליף כלל מובנה';
 
   @override
   String get settings_conflict_field_surfaceConditions => 'תנאים בפני המים';

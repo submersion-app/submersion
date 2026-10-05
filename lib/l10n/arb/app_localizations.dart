@@ -32366,6 +32366,12 @@ abstract class AppLocalizations {
   /// **'Additional credentials'**
   String get settings_conflict_field_additionalCredentials;
 
+  /// Sync conflict field label: which built-in advice text a certification currency rule shows.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in advice'**
+  String get settings_conflict_field_advisoryKey;
+
   /// No description provided for @settings_conflict_field_airBreakBreakSeconds.
   ///
   /// In en, this message translates to:
@@ -35311,6 +35317,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Planned time to surface'**
   String get settings_conflict_field_summaryTtsSeconds;
+
+  /// Sync conflict field label: the built-in certification currency rule that a custom rule replaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaces built-in rule'**
+  String get settings_conflict_field_supersedesRuleId;
 
   /// No description provided for @settings_conflict_field_surfaceConditions.
   ///

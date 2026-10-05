@@ -19954,6 +19954,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Additional credentials';
 
   @override
+  String get settings_conflict_field_advisoryKey => 'Built-in advice';
+
+  @override
   String get settings_conflict_field_airBreakBreakSeconds => 'Air break length';
 
   @override
@@ -21558,6 +21561,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_summaryTtsSeconds =>
       'Planned time to surface';
+
+  @override
+  String get settings_conflict_field_supersedesRuleId =>
+      'Replaces built-in rule';
 
   @override
   String get settings_conflict_field_surfaceConditions => 'Surface conditions';

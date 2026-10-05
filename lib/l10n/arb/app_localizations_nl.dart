@@ -20127,6 +20127,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_additionalCredentials => 'Extra brevetten';
 
   @override
+  String get settings_conflict_field_advisoryKey => 'Ingebouwd advies';
+
+  @override
   String get settings_conflict_field_airBreakBreakSeconds =>
       'Duur van de luchtpauze';
 
@@ -21787,6 +21790,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_summaryTtsSeconds =>
       'Geplande tijd tot de oppervlakte';
+
+  @override
+  String get settings_conflict_field_supersedesRuleId =>
+      'Vervangt ingebouwde regel';
 
   @override
   String get settings_conflict_field_surfaceConditions =>

@@ -20327,6 +20327,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Qualifications supplémentaires';
 
   @override
+  String get settings_conflict_field_advisoryKey => 'Conseil intégré';
+
+  @override
   String get settings_conflict_field_airBreakBreakSeconds =>
       'Durée de la pause air';
 
@@ -22008,6 +22011,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_summaryTtsSeconds =>
       'Temps de remontée prévu';
+
+  @override
+  String get settings_conflict_field_supersedesRuleId =>
+      'Remplace la règle intégrée';
 
   @override
   String get settings_conflict_field_surfaceConditions =>

@@ -20243,6 +20243,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Weitere Qualifikationen';
 
   @override
+  String get settings_conflict_field_advisoryKey => 'Integrierter Hinweis';
+
+  @override
   String get settings_conflict_field_airBreakBreakSeconds =>
       'Länge der Luftpause';
 
@@ -21904,6 +21907,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_summaryTtsSeconds =>
       'Geplante Zeit bis zur Oberfläche';
+
+  @override
+  String get settings_conflict_field_supersedesRuleId =>
+      'Ersetzt integrierte Regel';
 
   @override
   String get settings_conflict_field_surfaceConditions =>

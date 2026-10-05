@@ -20267,6 +20267,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Titulaciones adicionales';
 
   @override
+  String get settings_conflict_field_advisoryKey => 'Consejo integrado';
+
+  @override
   String get settings_conflict_field_airBreakBreakSeconds =>
       'Duración de la pausa de aire';
 
@@ -21951,6 +21954,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_summaryTtsSeconds =>
       'Tiempo hasta la superficie previsto';
+
+  @override
+  String get settings_conflict_field_supersedesRuleId =>
+      'Sustituye a la regla integrada';
 
   @override
   String get settings_conflict_field_surfaceConditions =>
