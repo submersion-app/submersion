@@ -290,6 +290,7 @@ class PdfSharedComponents {
   /// fit on one page silently lost the remainder (#1017).
   static List<pw.Widget> buildCertificationCardsBody({
     required List<Certification> certifications,
+    CertificationCatalog? certificationCatalog,
     required PdfDateFormatter dates,
     required AppLocalizations l10n,
     Diver? diver,
@@ -320,6 +321,7 @@ class PdfSharedComponents {
           cert,
           dates: dates,
           l10n: l10n,
+          catalog: certificationCatalog ?? CertificationCatalog.builtInOnly,
           isHighlighted:
               highlightAgency != null &&
               cert.agency.toLowerCase().contains(highlightAgency.toLowerCase()),
@@ -332,6 +334,7 @@ class PdfSharedComponents {
   static pw.Widget _buildCertificationCard(
     Certification cert, {
     required PdfDateFormatter dates,
+    required CertificationCatalog catalog,
     required AppLocalizations l10n,
     bool isHighlighted = false,
     PdfColor accentColor = PdfColors.blue800,
@@ -377,7 +380,7 @@ class PdfSharedComponents {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      certificationTitle(cert),
+                      certificationTitle(cert, catalog: catalog),
                       style: pw.TextStyle(
                         fontSize: 14,
                         fontWeight: pw.FontWeight.bold,
@@ -386,9 +389,7 @@ class PdfSharedComponents {
                     ),
                     pw.SizedBox(height: 4),
                     pw.Text(
-                      CertificationCatalog.builtInOnly
-                          .agency(cert.agency)
-                          .localizedName(l10n),
+                      catalog.agency(cert.agency).localizedName(l10n),
                       style: const pw.TextStyle(
                         fontSize: 12,
                         color: PdfColors.grey600,

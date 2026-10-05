@@ -6,6 +6,33 @@ import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_agency.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_level.dart';
+
+final _customCatalog = CertificationCatalog(
+  agencies: [
+    CustomCertificationAgency(
+      id: 'club-x',
+      diverId: 'a',
+      name: 'Club X',
+      colorArgb: 0xFF3B82F6,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    ),
+  ],
+  levels: [
+    CustomCertificationLevel(
+      id: 'ice-diver',
+      diverId: 'a',
+      agencyId: 'padi',
+      name: 'Ice Diver',
+      isProgression: false,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    ),
+  ],
+);
 
 void main() {
   // A UnitFormatter backed by metric default settings.
@@ -472,5 +499,31 @@ void main() {
         'PADI',
       );
     });
+  });
+
+  test('formats custom agencies and levels by name (issue #690)', () {
+    final adapter = BuddyFieldAdapter.withCatalog(_customCatalog);
+    const units = UnitFormatter(AppSettings());
+    expect(
+      adapter.formatValue(BuddyField.certificationAgency, 'club-x', units),
+      'Club X',
+    );
+    expect(
+      adapter.formatValue(BuddyField.certificationLevel, 'ice-diver', units),
+      'Ice Diver',
+    );
+    expect(
+      adapter.formatValue(BuddyField.certificationAgency, 'padi', units),
+      'PADI',
+    );
+    // The shared instance knows built-ins only.
+    expect(
+      BuddyFieldAdapter.instance.formatValue(
+        BuddyField.certificationAgency,
+        'club-x',
+        units,
+      ),
+      'Unknown agency',
+    );
   });
 }

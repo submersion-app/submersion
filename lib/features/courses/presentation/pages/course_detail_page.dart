@@ -19,8 +19,9 @@ import 'package:submersion/features/courses/presentation/providers/course_provid
 import 'package:submersion/features/courses/presentation/widgets/course_requirements_section.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 class CourseDetailPage extends ConsumerWidget {
   final String courseId;
@@ -36,6 +37,7 @@ class CourseDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final courseAsync = ref.watch(courseByIdProvider(courseId));
     final divesAsync = ref.watch(courseDivesProvider(courseId));
 
@@ -86,7 +88,7 @@ class CourseDetailPage extends ConsumerWidget {
                   _buildDetailRow(
                     context,
                     context.l10n.courses_label_agency,
-                    CertificationCatalog.builtInOnly
+                    context.certificationCatalog
                         .agency(course.agency)
                         .localizedName(context.l10n),
                     Icons.business,
@@ -462,7 +464,7 @@ class CourseDetailPage extends ConsumerWidget {
                         child: Center(
                           child: Text(
                             _abbreviateAgency(
-                              CertificationCatalog.builtInOnly
+                              context.certificationCatalog
                                   .agency(cert.agency)
                                   .localizedName(context.l10n),
                             ),
@@ -476,7 +478,7 @@ class CourseDetailPage extends ConsumerWidget {
                       ),
                       title: Text(cert.name),
                       subtitle: Text(
-                        CertificationCatalog.builtInOnly
+                        context.certificationCatalog
                             .agency(cert.agency)
                             .localizedName(context.l10n),
                       ),
@@ -741,6 +743,7 @@ class CourseDetailPage extends ConsumerWidget {
         ),
         units: UnitFormatter(settings),
         localization: localization,
+        catalog: ref.read(certificationCatalogSyncProvider),
       );
 
       // Dismiss loading

@@ -43,7 +43,9 @@ class CertificationCardRenderer {
     required Certification certification,
     required String diverName,
     required AppLocalizations l10n,
+    CertificationCatalog? catalog,
   }) async {
+    final cat = catalog ?? CertificationCatalog.builtInOnly;
     try {
       const width = 800.0;
       const height = width / _cardAspectRatio;
@@ -52,16 +54,10 @@ class CertificationCardRenderer {
       final canvas = Canvas(recorder, const Rect.fromLTWH(0, 0, width, height));
 
       final primaryColor = ui.Color(
-        CertificationCatalog.builtInOnly
-            .agency(certification.agency)
-            .primaryColor
-            .toARGB32(),
+        cat.agency(certification.agency).primaryColor.toARGB32(),
       );
       final secondaryColor = ui.Color(
-        CertificationCatalog.builtInOnly
-            .agency(certification.agency)
-            .secondaryColor
-            .toARGB32(),
+        cat.agency(certification.agency).secondaryColor.toARGB32(),
       );
 
       // Draw gradient background
@@ -83,9 +79,7 @@ class CertificationCardRenderer {
       // Draw agency name at top
       _drawText(
         canvas: canvas,
-        text: CertificationCatalog.builtInOnly
-            .agency(certification.agency)
-            .localizedName(l10n),
+        text: cat.agency(certification.agency).localizedName(l10n),
         x: 32,
         y: 32,
         fontSize: 24,
@@ -97,7 +91,7 @@ class CertificationCardRenderer {
       // Draw certification name (large, centered vertically)
       _drawText(
         canvas: canvas,
-        text: certificationTitleL10n(certification, l10n),
+        text: certificationTitleL10n(certification, l10n, catalog: cat),
         x: 32,
         y: height * 0.35,
         fontSize: 32,
@@ -108,7 +102,11 @@ class CertificationCardRenderer {
 
       // Only when the title above is a custom name -- otherwise it already
       // contains the certification.
-      final subtitle = certificationSubtitleL10n(certification, l10n);
+      final subtitle = certificationSubtitleL10n(
+        certification,
+        l10n,
+        catalog: cat,
+      );
       if (subtitle != null) {
         _drawText(
           canvas: canvas,
@@ -297,7 +295,9 @@ class CertificationCardRenderer {
     required String diverName,
     required AppLocalizations l10n,
     required DateFormatPreference dateFormat,
+    CertificationCatalog? catalog,
   }) async {
+    final cat = catalog ?? CertificationCatalog.builtInOnly;
     try {
       const width = 1200.0;
       const height = 800.0;
@@ -307,10 +307,7 @@ class CertificationCardRenderer {
       final canvas = Canvas(recorder, const Rect.fromLTWH(0, 0, width, height));
 
       final agencyColor = ui.Color(
-        CertificationCatalog.builtInOnly
-            .agency(certification.agency)
-            .primaryColor
-            .toARGB32(),
+        cat.agency(certification.agency).primaryColor.toARGB32(),
       );
 
       // Draw white background
@@ -348,9 +345,7 @@ class CertificationCardRenderer {
       // Draw agency name at top
       _drawCenteredText(
         canvas: canvas,
-        text: CertificationCatalog.builtInOnly
-            .agency(certification.agency)
-            .localizedName(l10n),
+        text: cat.agency(certification.agency).localizedName(l10n),
         y: 60,
         width: width,
         fontSize: 48,
@@ -404,7 +399,7 @@ class CertificationCardRenderer {
       // Draw certification name
       _drawCenteredText(
         canvas: canvas,
-        text: certificationTitleL10n(certification, l10n),
+        text: certificationTitleL10n(certification, l10n, catalog: cat),
         y: 390,
         width: width,
         fontSize: 40,
@@ -414,7 +409,11 @@ class CertificationCardRenderer {
 
       // Only when the title above is a custom name -- otherwise it already
       // contains the certification.
-      final subtitle = certificationSubtitleL10n(certification, l10n);
+      final subtitle = certificationSubtitleL10n(
+        certification,
+        l10n,
+        catalog: cat,
+      );
       if (subtitle != null) {
         _drawCenteredText(
           canvas: canvas,

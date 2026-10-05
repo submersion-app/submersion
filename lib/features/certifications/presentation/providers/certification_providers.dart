@@ -73,8 +73,10 @@ final certificationSortProvider =
 /// Apply sorting to a list of certifications
 List<Certification> applyCertificationSorting(
   List<Certification> certifications,
-  SortState<CertificationSortField> sort,
-) {
+  SortState<CertificationSortField> sort, {
+  CertificationCatalog? catalog,
+}) {
+  final cat = catalog ?? CertificationCatalog.builtInOnly;
   final sorted = List<Certification>.from(certifications);
 
   sorted.sort((a, b) {
@@ -92,12 +94,10 @@ List<Certification> applyCertificationSorting(
           b.issueDate ?? DateTime(1900),
         );
       case CertificationSortField.agency:
-        comparison = CertificationCatalog.builtInOnly
+        comparison = cat
             .agency(a.agency)
             .interchangeName
-            .compareTo(
-              CertificationCatalog.builtInOnly.agency(b.agency).interchangeName,
-            );
+            .compareTo(cat.agency(b.agency).interchangeName);
     }
 
     if (invertForText) {

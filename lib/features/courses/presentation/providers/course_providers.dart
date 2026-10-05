@@ -66,8 +66,10 @@ final courseSortProvider = StateProvider<SortState<CourseSortField>>(
 /// Apply sorting to a list of courses
 List<Course> applyCourseSorting(
   List<Course> courses,
-  SortState<CourseSortField> sort,
-) {
+  SortState<CourseSortField> sort, {
+  CertificationCatalog? catalog,
+}) {
+  final cat = catalog ?? CertificationCatalog.builtInOnly;
   final sorted = List<Course>.from(courses);
 
   sorted.sort((a, b) {
@@ -83,12 +85,10 @@ List<Course> applyCourseSorting(
       case CourseSortField.startDate:
         comparison = a.startDate.compareTo(b.startDate);
       case CourseSortField.agency:
-        comparison = CertificationCatalog.builtInOnly
+        comparison = cat
             .agency(a.agency)
             .interchangeName
-            .compareTo(
-              CertificationCatalog.builtInOnly.agency(b.agency).interchangeName,
-            );
+            .compareTo(cat.agency(b.agency).interchangeName);
       case CourseSortField.status:
         // In progress first, then completed (by completion date)
         if (a.isInProgress && !b.isInProgress) {

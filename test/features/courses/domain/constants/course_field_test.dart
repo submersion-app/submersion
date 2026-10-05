@@ -6,6 +6,33 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/courses/domain/constants/course_field.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_agency.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_level.dart';
+
+final _customCatalog = CertificationCatalog(
+  agencies: [
+    CustomCertificationAgency(
+      id: 'club-x',
+      diverId: 'a',
+      name: 'Club X',
+      colorArgb: 0xFF3B82F6,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    ),
+  ],
+  levels: [
+    CustomCertificationLevel(
+      id: 'ice-diver',
+      diverId: 'a',
+      agencyId: 'padi',
+      name: 'Ice Diver',
+      isProgression: false,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    ),
+  ],
+);
 
 void main() {
   // A UnitFormatter backed by metric default settings.
@@ -491,5 +518,21 @@ void main() {
         }
       }
     });
+  });
+
+  test('formats custom agencies and levels by name (issue #690)', () {
+    final adapter = CourseFieldAdapter.withCatalog(_customCatalog);
+    const units = UnitFormatter(AppSettings());
+    expect(adapter.formatValue(CourseField.agency, 'club-x', units), 'Club X');
+    expect(adapter.formatValue(CourseField.agency, 'padi', units), 'PADI');
+    // The shared instance knows built-ins only.
+    expect(
+      CourseFieldAdapter.instance.formatValue(
+        CourseField.agency,
+        'club-x',
+        units,
+      ),
+      'Unknown agency',
+    );
   });
 }

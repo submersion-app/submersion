@@ -160,7 +160,15 @@ enum CourseField implements EntityField {
 /// table infrastructure.
 class CourseFieldAdapter extends EntityFieldAdapter<Course, CourseField> {
   static final CourseFieldAdapter instance = CourseFieldAdapter._();
-  CourseFieldAdapter._();
+  CourseFieldAdapter._({CertificationCatalog? catalog})
+    : _catalog = catalog ?? CertificationCatalog.builtInOnly;
+
+  /// An adapter that names custom agencies and levels from [catalog]
+  /// (issue #690). The shared [instance] knows built-ins only.
+  factory CourseFieldAdapter.withCatalog(CertificationCatalog catalog) =>
+      CourseFieldAdapter._(catalog: catalog);
+
+  final CertificationCatalog _catalog;
 
   static const List<CourseField> _allFields = CourseField.values;
 
@@ -198,10 +206,7 @@ class CourseFieldAdapter extends EntityFieldAdapter<Course, CourseField> {
   String formatValue(CourseField field, dynamic value, UnitFormatter units) {
     if (value == null) return '--';
     return switch (field) {
-      CourseField.agency =>
-        CertificationCatalog.builtInOnly
-            .agency(value as String)
-            .interchangeName,
+      CourseField.agency => _catalog.agency(value as String).interchangeName,
       CourseField.startDate => units.formatDate(value as DateTime),
       CourseField.completionDate => units.formatDate(value as DateTime),
       CourseField.durationDays => '${value as int} days',

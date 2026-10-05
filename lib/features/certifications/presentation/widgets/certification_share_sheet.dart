@@ -14,6 +14,7 @@ import 'package:submersion/features/certifications/presentation/services/certifi
 import 'package:submersion/features/certifications/presentation/services/certification_file_names.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 
 /// Bottom sheet for sharing a certification as an image.
 ///
@@ -65,7 +66,11 @@ class _CertificationShareSheetState
 
             // Subtitle with certification name
             Text(
-              certificationTitleL10n(widget.certification, context.l10n),
+              certificationTitleL10n(
+                widget.certification,
+                context.l10n,
+                catalog: context.certificationCatalog,
+              ),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -107,6 +112,7 @@ class _CertificationShareSheetState
         certification: widget.certification,
         diverName: widget.diverName,
         l10n: context.l10n,
+        catalog: context.certificationCatalog,
       );
       if (bytes == null) {
         throw Exception('Failed to generate card image');
@@ -149,6 +155,7 @@ class _CertificationShareSheetState
         diverName: widget.diverName,
         l10n: context.l10n,
         dateFormat: ref.read(dateFormatProvider),
+        catalog: context.certificationCatalog,
       );
       if (bytes == null) {
         throw Exception('Failed to generate certificate image');

@@ -5,8 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
-import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Summary widget shown when no course is selected in master-detail layout.
 class CourseSummaryWidget extends ConsumerWidget {
@@ -14,6 +15,7 @@ class CourseSummaryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final coursesAsync = ref.watch(courseListNotifierProvider);
 
     return Scaffold(
@@ -220,7 +222,7 @@ class CourseSummaryWidget extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 subtitle: Text(
-                  CertificationCatalog.builtInOnly
+                  context.certificationCatalog
                       .agency(course.agency)
                       .localizedName(context.l10n),
                 ),

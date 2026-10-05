@@ -54,6 +54,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 export 'package:submersion/core/services/export/models/blender_invoice_export_data.dart';
 export 'package:submersion/core/services/export/models/export_service_record.dart';
@@ -293,6 +294,7 @@ class ExportService {
     String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     Diver? diver,
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
@@ -303,6 +305,7 @@ class ExportService {
     options: options,
     profiles: profiles,
     certifications: certifications,
+    certificationCatalog: certificationCatalog,
     diver: diver,
     diverPhoto: diverPhoto,
     title: title,
@@ -317,6 +320,7 @@ class ExportService {
     String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     Diver? diver,
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
@@ -327,6 +331,7 @@ class ExportService {
     options: options,
     profiles: profiles,
     certifications: certifications,
+    certificationCatalog: certificationCatalog,
     diver: diver,
     diverPhoto: diverPhoto,
     title: title,
@@ -341,6 +346,7 @@ class ExportService {
     String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     Diver? diver,
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
@@ -351,6 +357,7 @@ class ExportService {
     options: options,
     profiles: profiles,
     certifications: certifications,
+    certificationCatalog: certificationCatalog,
     diver: diver,
     diverPhoto: diverPhoto,
     title: title,
@@ -396,12 +403,14 @@ class ExportService {
     required PdfDateFormatter dates,
     required UnitFormatter units,
     PdfLocalization? localization,
+    CertificationCatalog? catalog,
   }) => _pdfCourse.exportCourseTrainingLogToPdf(
     course,
     trainingDives,
     dates: dates,
     units: units,
     localization: localization,
+    catalog: catalog,
   );
 
   // ==================== Excel Export ====================
@@ -586,6 +595,7 @@ class ExportService {
     List<EquipmentItem>? equipment,
     List<Buddy>? buddies,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     List<DiveCenter>? diveCenters,
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
@@ -656,6 +666,7 @@ class ExportService {
     List<EquipmentItem>? equipment,
     List<Buddy>? buddies,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     List<DiveCenter>? diveCenters,
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,

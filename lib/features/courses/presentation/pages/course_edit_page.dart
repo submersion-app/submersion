@@ -15,9 +15,10 @@ import 'package:submersion/features/certifications/presentation/widgets/certific
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
-import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 class CourseEditPage extends ConsumerStatefulWidget {
   final String? courseId;
@@ -98,6 +99,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(certificationCatalogSyncProvider);
     if (_isEditing) {
       final courseAsync = ref.watch(courseByIdProvider(widget.courseId!));
       return courseAsync.when(
@@ -161,7 +163,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
                 DropdownMenuItem(
                   value: _agency,
                   child: Text(
-                    CertificationCatalog.builtInOnly
+                    context.certificationCatalog
                         .agency(_agency)
                         .localizedName(context.l10n),
                   ),

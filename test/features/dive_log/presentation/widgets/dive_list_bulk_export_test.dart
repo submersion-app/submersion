@@ -41,6 +41,7 @@ import '../../../../helpers/dive_participants.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/test_app.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 Dive _dive(String id, {DiveSite? site}) {
   final dt = DateTime(2026, 1, 1, id.hashCode % 12);
@@ -104,6 +105,7 @@ class _RecordingExportService implements ExportService {
     String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     Diver? diver,
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
@@ -124,6 +126,7 @@ class _RecordingExportService implements ExportService {
     String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     Diver? diver,
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},

@@ -18,8 +18,9 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_ecard.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
-import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 class CertificationDetailPage extends ConsumerStatefulWidget {
   final String certificationId;
@@ -125,6 +126,7 @@ class _CertificationDetailContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final units = UnitFormatter(ref.watch(settingsProvider));
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
@@ -182,7 +184,13 @@ class _CertificationDetailContent extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(certificationTitleL10n(certification, context.l10n)),
+        title: Text(
+          certificationTitleL10n(
+            certification,
+            context.l10n,
+            catalog: context.certificationCatalog,
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
@@ -243,7 +251,7 @@ class _CertificationDetailContent extends ConsumerWidget {
             child: Center(
               child: Text(
                 _abbreviateAgency(
-                  CertificationCatalog.builtInOnly
+                  context.certificationCatalog
                       .agency(certification.agency)
                       .localizedName(context.l10n),
                 ),
@@ -262,13 +270,17 @@ class _CertificationDetailContent extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  certificationTitleL10n(certification, context.l10n),
+                  certificationTitleL10n(
+                    certification,
+                    context.l10n,
+                    catalog: context.certificationCatalog,
+                  ),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  CertificationCatalog.builtInOnly
+                  context.certificationCatalog
                       .agency(certification.agency)
                       .localizedName(context.l10n),
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -448,7 +460,7 @@ class _CertificationDetailContent extends ConsumerWidget {
             child: Center(
               child: Text(
                 _agencyBadge(
-                  CertificationCatalog.builtInOnly
+                  context.certificationCatalog
                       .agency(certification.agency)
                       .localizedName(context.l10n),
                 ),
@@ -462,13 +474,17 @@ class _CertificationDetailContent extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            certificationTitleL10n(certification, context.l10n),
+            certificationTitleL10n(
+              certification,
+              context.l10n,
+              catalog: context.certificationCatalog,
+            ),
             style: Theme.of(context).textTheme.headlineSmall,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
           Text(
-            CertificationCatalog.builtInOnly
+            context.certificationCatalog
                 .agency(certification.agency)
                 .localizedName(context.l10n),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -505,7 +521,7 @@ class _CertificationDetailContent extends ConsumerWidget {
             IconDetailRow(
               icon: Icons.business,
               label: context.l10n.certifications_detail_label_agency,
-              value: CertificationCatalog.builtInOnly
+              value: context.certificationCatalog
                   .agency(certification.agency)
                   .localizedName(context.l10n),
             ),
@@ -513,7 +529,7 @@ class _CertificationDetailContent extends ConsumerWidget {
               IconDetailRow(
                 icon: Icons.workspace_premium,
                 label: context.l10n.certifications_detail_label_certification,
-                value: CertificationCatalog.builtInOnly
+                value: context.certificationCatalog
                     .level(certification.level!)
                     .localizedName(context.l10n),
               ),
@@ -523,13 +539,13 @@ class _CertificationDetailContent extends ConsumerWidget {
                 label: context.l10n.certifications_detail_label_alsoRecognized,
                 value: certification.additionalCredentials
                     .map((c) {
-                      final a = CertificationCatalog.builtInOnly
+                      final a = context.certificationCatalog
                           .agency(c.agency)
                           .localizedName(context.l10n);
                       final level = c.level;
                       final l = level == null
                           ? null
-                          : CertificationCatalog.builtInOnly
+                          : context.certificationCatalog
                                 .level(level)
                                 .localizedName(context.l10n);
                       return l == null ? a : '$a $l';
@@ -715,7 +731,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
                       subtitle: Text(
-                        '${CertificationCatalog.builtInOnly.agency(course.agency).localizedName(context.l10n)} - ${course.isCompleted ? context.l10n.certifications_detail_courseCompleted : context.l10n.certifications_detail_courseInProgress}',
+                        '${context.certificationCatalog.agency(course.agency).localizedName(context.l10n)} - ${course.isCompleted ? context.l10n.certifications_detail_courseCompleted : context.l10n.certifications_detail_courseInProgress}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -801,7 +817,11 @@ class _CertificationDetailContent extends ConsumerWidget {
           label: context.l10n
               .certifications_detail_semanticLabel_photoTapToView(
                 label,
-                certificationTitleL10n(certification, context.l10n),
+                certificationTitleL10n(
+                  certification,
+                  context.l10n,
+                  catalog: context.certificationCatalog,
+                ),
               ),
           child: GestureDetector(
             onTap: () => _showFullscreenPhoto(context, imageData, label),
@@ -870,7 +890,11 @@ class _CertificationDetailContent extends ConsumerWidget {
             title: Text(
               context.l10n.certifications_detail_photo_fullscreenTitle(
                 label,
-                certificationTitleL10n(certification, context.l10n),
+                certificationTitleL10n(
+                  certification,
+                  context.l10n,
+                  catalog: context.certificationCatalog,
+                ),
               ),
             ),
           ),
@@ -936,7 +960,11 @@ class _CertificationDetailContent extends ConsumerWidget {
             title: Text(context.l10n.certifications_detail_dialog_deleteTitle),
             content: Text(
               context.l10n.certifications_detail_dialog_deleteContent(
-                certificationTitleL10n(certification, context.l10n),
+                certificationTitleL10n(
+                  certification,
+                  context.l10n,
+                  catalog: context.certificationCatalog,
+                ),
               ),
             ),
             actions: [

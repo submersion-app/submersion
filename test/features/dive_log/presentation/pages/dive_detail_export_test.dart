@@ -34,6 +34,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_
 
 import '../../../../helpers/dive_participants.dart';
 import '../../../../helpers/mock_providers.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Records which delivery the single-dive export sheet chose.
 ///
@@ -88,6 +89,7 @@ class _RecordingExportService implements ExportService {
     String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     Diver? diver,
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},

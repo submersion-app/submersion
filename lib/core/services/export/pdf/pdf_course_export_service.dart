@@ -33,7 +33,9 @@ class PdfCourseExportService {
     required PdfDateFormatter dates,
     required UnitFormatter units,
     PdfLocalization? localization,
+    CertificationCatalog? catalog,
   }) async {
+    final cat = catalog ?? CertificationCatalog.builtInOnly;
     final loc = localization ?? PdfLocalization.english();
     final l10n = loc.l10n;
     // Month names and AM/PM in the log's language (#2252).
@@ -86,9 +88,7 @@ class PdfCourseExportService {
               ),
               pw.SizedBox(height: 15),
               pw.Text(
-                CertificationCatalog.builtInOnly
-                    .agency(course.agency)
-                    .localizedName(l10n),
+                cat.agency(course.agency).localizedName(l10n),
                 style: const pw.TextStyle(
                   fontSize: 18,
                   color: PdfColors.grey700,
@@ -183,7 +183,7 @@ class PdfCourseExportService {
               ),
               pw.SizedBox(height: 5),
               pw.Text(
-                '${course.name} - ${CertificationCatalog.builtInOnly.agency(course.agency).localizedName(l10n)}',
+                '${course.name} - ${cat.agency(course.agency).localizedName(l10n)}',
                 style: const pw.TextStyle(
                   fontSize: 12,
                   color: PdfColors.grey600,

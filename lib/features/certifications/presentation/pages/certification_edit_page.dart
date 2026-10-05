@@ -21,6 +21,8 @@ import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 class CertificationEditPage extends ConsumerStatefulWidget {
   final String? certificationId;
@@ -406,7 +408,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
   }
 
   /// Built-in and custom agencies and levels (issue #690).
-  CertificationCatalog get _catalog => CertificationCatalog.builtInOnly;
+  CertificationCatalog get _catalog => context.certificationCatalog;
 
   String _agencyAt(int i) => i == 0 ? _agency : _extraCredentials[i - 1].agency;
   String? _levelAt(int i) => i == 0 ? _level : _extraCredentials[i - 1].level;
@@ -588,6 +590,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(certificationCatalogSyncProvider);
     final body = _isLoading
         ? const Center(child: CircularProgressIndicator())
         : SingleChildScrollView(
@@ -631,6 +634,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                         _agency,
                         _level,
                         context.l10n,
+                        catalog: context.certificationCatalog,
                       ),
                       helperText:
                           context.l10n.certifications_edit_helper_nameOnCard,
@@ -1179,6 +1183,7 @@ class _DatePickerField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final units = UnitFormatter(ref.watch(settingsProvider));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

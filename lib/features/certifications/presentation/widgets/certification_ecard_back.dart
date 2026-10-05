@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_card_photo.dart';
-import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 
 /// The back face of the certification card.
 ///
@@ -92,7 +92,7 @@ class CertificationEcardBack extends StatelessWidget {
                   Center(
                     child: Text(
                       context.l10n.certifications_ecard_label_certifiedBy(
-                        CertificationCatalog.builtInOnly
+                        context.certificationCatalog
                             .agency(certification.agency)
                             .localizedName(context.l10n),
                       ),

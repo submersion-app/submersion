@@ -6,8 +6,8 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_card_photo.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
-import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 
 /// The front face of the certification card.
 ///
@@ -33,7 +33,7 @@ class CertificationEcardFront extends StatelessWidget {
       return CertificationCardPhoto(
         bytes: photo,
         badge: _buildStatusBadge(context),
-        infoLines: _buildInfoLines(context.l10n),
+        infoLines: _buildInfoLines(context),
       );
     }
     return _buildGeneratedFront(context);
@@ -44,16 +44,16 @@ class CertificationEcardFront extends StatelessWidget {
   /// The scrim covers the part of a physical card that prints the holder's name
   /// and number, so repeating them here loses nothing and keeps the text legible
   /// when the photo is dim or blurry.
-  List<String> _buildInfoLines(AppLocalizations l10n) {
+  List<String> _buildInfoLines(BuildContext context) {
+    final l10n = context.l10n;
+    final catalog = context.certificationCatalog;
     final cardNumber = certification.cardNumber;
 
     // certificationTitle, not the raw name: a stored name that merely repeats
     // agency and level would otherwise render as "PADI - PADI : Open Water".
     final headline = [
-      CertificationCatalog.builtInOnly
-          .agency(certification.agency)
-          .localizedName(l10n),
-      certificationTitleL10n(certification, l10n),
+      catalog.agency(certification.agency).localizedName(l10n),
+      certificationTitleL10n(certification, l10n, catalog: catalog),
     ].where((value) => value.isNotEmpty).join('  -  ');
 
     final detail = [
@@ -65,9 +65,7 @@ class CertificationEcardFront extends StatelessWidget {
   }
 
   Widget _buildGeneratedFront(BuildContext context) {
-    final agency = CertificationCatalog.builtInOnly.agency(
-      certification.agency,
-    );
+    final agency = context.certificationCatalog.agency(certification.agency);
 
     return Container(
       decoration: BoxDecoration(
@@ -127,7 +125,7 @@ class CertificationEcardFront extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            CertificationCatalog.builtInOnly
+            context.certificationCatalog
                 .agency(certification.agency)
                 .localizedName(context.l10n),
             style: const TextStyle(

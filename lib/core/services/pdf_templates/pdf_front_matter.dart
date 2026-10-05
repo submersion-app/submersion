@@ -37,6 +37,7 @@ class PdfFrontMatter {
     required AppLocalizations l10n,
     required int diveCount,
     List<Certification> certifications = const [],
+    CertificationCatalog? certificationCatalog,
     Uint8List? photoBytes,
     PdfColor accentColor = PdfColors.blue800,
   }) {
@@ -59,7 +60,12 @@ class PdfFrontMatter {
         ),
         pw.SizedBox(height: 8),
         ...certifications.map(
-          (cert) => _buildCertificationLine(cert, dates, l10n),
+          (cert) => _buildCertificationLine(
+            cert,
+            dates,
+            l10n,
+            certificationCatalog ?? CertificationCatalog.builtInOnly,
+          ),
         ),
       ],
     ];
@@ -71,6 +77,7 @@ class PdfFrontMatter {
     required AppLocalizations l10n,
     required int diveCount,
     List<Certification> certifications = const [],
+    CertificationCatalog? certificationCatalog,
     Uint8List? photoBytes,
     PdfColor accentColor = PdfColors.blue800,
   }) {
@@ -117,7 +124,12 @@ class PdfFrontMatter {
           ),
           pw.SizedBox(height: 8),
           ...certifications.map(
-            (cert) => _buildCertificationLine(cert, dates, l10n),
+            (cert) => _buildCertificationLine(
+              cert,
+              dates,
+              l10n,
+              certificationCatalog ?? CertificationCatalog.builtInOnly,
+            ),
           ),
         ],
       ],
@@ -158,6 +170,7 @@ class PdfFrontMatter {
     Certification cert,
     PdfDateFormatter dates,
     AppLocalizations l10n,
+    CertificationCatalog catalog,
   ) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 4),
@@ -180,7 +193,8 @@ class PdfFrontMatter {
           // twice.
           pw.Expanded(
             child: pw.Text(
-              '${CertificationCatalog.builtInOnly.agency(cert.agency).localizedName(l10n)} - ${certificationTitle(cert)}',
+              '${catalog.agency(cert.agency).localizedName(l10n)} - '
+              '${certificationTitle(cert, catalog: catalog)}',
               style: const pw.TextStyle(fontSize: 10),
             ),
           ),

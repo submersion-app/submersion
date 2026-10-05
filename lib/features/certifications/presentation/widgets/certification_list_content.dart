@@ -35,8 +35,9 @@ import 'package:submersion/features/query/presentation/widgets/query_chips_frame
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_list_count_provider.dart';
-import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Content widget for the certification list, used in master-detail layout.
 class CertificationListContent extends ConsumerStatefulWidget {
@@ -186,6 +187,7 @@ class _CertificationListContentState
     final visibleCerts = applyCertificationSorting(
       certificationsAsync.value ?? const [],
       sort,
+      catalog: context.certificationCatalog,
     );
     final visibleIds = visibleCerts.map((c) => c.id).toList();
 
@@ -201,7 +203,11 @@ class _CertificationListContentState
       return _withQueryChips(
         certificationsAsync.when(
           data: (certifications) {
-            final sorted = applyCertificationSorting(certifications, sort);
+            final sorted = applyCertificationSorting(
+              certifications,
+              sort,
+              catalog: context.certificationCatalog,
+            );
             return sorted.isEmpty
                 ? _buildEmptyState(context)
                 : _buildCertificationList(context, ref, sorted);
@@ -458,7 +464,9 @@ class _CertificationListContentState
         return EntityTableView<Certification, CertificationField>(
           entities: certifications,
           idExtractor: (c) => c.id,
-          adapter: CertificationFieldAdapter.instance,
+          adapter: CertificationFieldAdapter.withCatalog(
+            context.certificationCatalog,
+          ),
           config: config,
           units: units,
           onSortFieldChanged: notifier.setSortField,
@@ -795,6 +803,7 @@ class CertificationListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));
 
@@ -808,7 +817,11 @@ class CertificationListTile extends ConsumerWidget {
         : '';
     // Only non-null when a custom name owns the title, so the level is spoken
     // exactly once either way.
-    final level = certificationSubtitleL10n(certification, context.l10n);
+    final level = certificationSubtitleL10n(
+      certification,
+      context.l10n,
+      catalog: context.certificationCatalog,
+    );
     final levelLabel = level != null ? ', $level' : '';
 
     return Semantics(
@@ -816,8 +829,8 @@ class CertificationListTile extends ConsumerWidget {
       // it would leave "Open Water" with no issuing agency. The title is
       // derived rather than raw so the agency is not said twice.
       label:
-          '${CertificationCatalog.builtInOnly.agency(certification.agency).localizedName(context.l10n)} '
-          '${certificationTitleL10n(certification, context.l10n)}'
+          '${context.certificationCatalog.agency(certification.agency).localizedName(context.l10n)} '
+          '${certificationTitleL10n(certification, context.l10n, catalog: context.certificationCatalog)}'
           '$levelLabel$issueDateLabel$statusLabel',
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -832,7 +845,13 @@ class CertificationListTile extends ConsumerWidget {
             onChanged: onCheckChanged,
             child: _buildLeadingIcon(context),
           ),
-          title: Text(certificationTitleL10n(certification, context.l10n)),
+          title: Text(
+            certificationTitleL10n(
+              certification,
+              context.l10n,
+              catalog: context.certificationCatalog,
+            ),
+          ),
           subtitle: _buildSubtitle(context, units),
           trailing: _buildTrailing(context),
         ),
@@ -851,7 +870,7 @@ class CertificationListTile extends ConsumerWidget {
       child: Center(
         child: Text(
           _agencyBadge(
-            CertificationCatalog.builtInOnly
+            context.certificationCatalog
                 .agency(certification.agency)
                 .localizedName(context.l10n),
           ),
@@ -869,7 +888,13 @@ class CertificationListTile extends ConsumerWidget {
     final parts = <String>[];
     // Carries the level too when the title is a custom name, which is the
     // only place the level can show on this tile.
-    parts.add(certificationCredentialsLineL10n(certification, context.l10n));
+    parts.add(
+      certificationCredentialsLineL10n(
+        certification,
+        context.l10n,
+        catalog: context.certificationCatalog,
+      ),
+    );
     if (certification.issueDate != null) {
       parts.add(units.formatDate(certification.issueDate));
     }

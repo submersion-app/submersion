@@ -168,7 +168,15 @@ class CertificationFieldAdapter
     extends EntityFieldAdapter<Certification, CertificationField> {
   static final CertificationFieldAdapter instance =
       CertificationFieldAdapter._();
-  CertificationFieldAdapter._();
+  CertificationFieldAdapter._({CertificationCatalog? catalog})
+    : _catalog = catalog ?? CertificationCatalog.builtInOnly;
+
+  /// An adapter that names custom agencies and levels from [catalog]
+  /// (issue #690). The shared [instance] knows built-ins only.
+  factory CertificationFieldAdapter.withCatalog(CertificationCatalog catalog) =>
+      CertificationFieldAdapter._(catalog: catalog);
+
+  final CertificationCatalog _catalog;
 
   static const List<CertificationField> _allFields = CertificationField.values;
 
@@ -216,11 +224,9 @@ class CertificationFieldAdapter
       // Ids are enum names or custom ids (issue #690); show the name, not
       // the id, so the column reads "Open Water" rather than "openWater".
       CertificationField.agency =>
-        CertificationCatalog.builtInOnly
-            .agency(value as String)
-            .interchangeName,
+        _catalog.agency(value as String).interchangeName,
       CertificationField.level =>
-        CertificationCatalog.builtInOnly.level(value as String).interchangeName,
+        _catalog.level(value as String).interchangeName,
       CertificationField.issueDate => units.formatDate(value as DateTime),
       CertificationField.expiryDate => units.formatDate(value as DateTime),
       _ => value is String ? (value.isEmpty ? '--' : value) : value.toString(),

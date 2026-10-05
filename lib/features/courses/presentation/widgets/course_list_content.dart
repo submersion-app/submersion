@@ -34,6 +34,8 @@ import 'package:submersion/features/query/presentation/widgets/query_chips_frame
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/courses/presentation/providers/course_list_count_provider.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Content widget for the course list
 class CourseListContent extends ConsumerStatefulWidget {
@@ -124,6 +126,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(certificationCatalogSyncProvider);
     final viewMode = ref.watch(courseListViewModeProvider);
     final coursesAsync = ref.watch(filteredCoursesProvider);
 
@@ -259,7 +262,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
   List<Course> _visibleCourses(
     List<Course> courses,
     SortState<CourseSortField> sort,
-  ) => applyCourseSorting(courses, sort);
+  ) => applyCourseSorting(courses, sort, catalog: context.certificationCatalog);
 
   /// Course-specific extras. Select-all, deselect-all and delete come from
   /// SelectionAppBar.
@@ -434,7 +437,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
         return EntityTableView<Course, CourseField>(
           entities: courses,
           idExtractor: (c) => c.id,
-          adapter: CourseFieldAdapter.instance,
+          adapter: CourseFieldAdapter.withCatalog(context.certificationCatalog),
           config: config,
           units: units,
           onSortFieldChanged: notifier.setSortField,
