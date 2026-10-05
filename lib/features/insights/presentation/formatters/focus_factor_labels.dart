@@ -1,4 +1,6 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
@@ -55,6 +57,27 @@ String focusNumericValue(
 const _monthKeys = [
   '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', //
 ];
+
+/// A signed difference between two numeric factor values, in display units.
+///
+/// A temperature difference is a delta: 2 C warmer is 3.6 F warmer, so it
+/// scales without the 32-degree offset a reading's conversion applies.
+String focusNumericDifference(
+  FocusFactorId id,
+  double difference,
+  UnitFormatter units,
+  AppLocalizations l10n,
+) {
+  final sign = difference >= 0 ? '+' : '-';
+  final magnitude = difference.abs();
+  if (id == FocusFactorId.waterTemp) {
+    final scaled = units.settings.temperatureUnit == TemperatureUnit.fahrenheit
+        ? magnitude * 9 / 5
+        : magnitude;
+    return '$sign${formatFixedForDisplay(scaled, 1)}${units.temperatureSymbol}';
+  }
+  return '$sign${focusNumericValue(id, magnitude, units, l10n)}';
+}
 
 String _month(int month, AppLocalizations l10n) => [
   l10n.insights_timePatterns_month_jan,

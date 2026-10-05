@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/insights/presentation/widgets/focus/focus_factors_table.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
@@ -12,8 +14,14 @@ void main() {
   setUp(() async => setUpTestDatabase());
   tearDown(() async => tearDownTestDatabase());
 
-  Future<void> pump(WidgetTester tester, FocusFactorReport report) async {
-    final overrides = await getBaseOverrides();
+  Future<void> pump(
+    WidgetTester tester,
+    FocusFactorReport report, {
+    AppSettings settings = const AppSettings(),
+  }) async {
+    final overrides = await getBaseOverrides(
+      settingsNotifier: MockSettingsNotifier(settings),
+    );
     await tester.pumpWidget(
       ProviderScope(
         overrides: overrides,
@@ -117,5 +125,30 @@ void main() {
       ),
     );
     expect(find.text('Not recorded'), findsOneWidget);
+  });
+
+  testWidgets('a Fahrenheit temperature difference is a delta, not a reading', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      const FocusFactorReport(
+        tooFewDives: false,
+        factors: [
+          NumericFactor(
+            id: FocusFactorId.waterTemp,
+            groupCovered: 3,
+            groupSize: 3,
+            groupMean: 26,
+            baselineMean: 24,
+            standsOut: false,
+          ),
+        ],
+      ),
+      settings: const AppSettings(temperatureUnit: TemperatureUnit.fahrenheit),
+    );
+    // 2 C warmer is 3.6 F warmer; converting the delta as a reading gives 35.6.
+    expect(find.textContaining('+3.6'), findsOneWidget);
+    expect(find.textContaining('35.6'), findsNothing);
   });
 }

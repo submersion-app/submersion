@@ -99,7 +99,7 @@ class _FactorRow extends StatelessWidget {
           ),
           if (difference != null)
             Text(
-              '${difference >= 0 ? '+' : '-'}${focusNumericValue(factor.id, difference.abs(), units, l10n)}',
+              focusNumericDifference(factor.id, difference, units, l10n),
               style: muted,
             ),
         ],
