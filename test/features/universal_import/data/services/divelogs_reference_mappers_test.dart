@@ -48,6 +48,8 @@ void main() {
         'Tasche': EquipmentType.bag,
         'Tauchtasche': EquipmentType.bag,
         'Bleitasche': EquipmentType.weights,
+        // German for a flashlight; the light row must stay above the bag's.
+        'Taschenlampe': EquipmentType.light,
         'Lift bag': EquipmentType.smb,
         'Hebesack': EquipmentType.smb,
       };

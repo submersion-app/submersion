@@ -290,6 +290,8 @@ void main() {
         // A trailing note does not hand the bag back to what it holds.
         'Regulator bag (Apeks)': EquipmentType.bag,
         'Fin bag (large)': EquipmentType.bag,
+        // ...even when the note itself names a joining word.
+        'Regulator bag (with strap)': EquipmentType.bag,
       };
       holders.forEach((input, expected) {
         expect(

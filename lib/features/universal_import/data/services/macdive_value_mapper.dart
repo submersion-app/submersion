@@ -75,8 +75,12 @@ class MacDiveValueMapper {
 
   /// A name that ends on "bag", the noun the words before it qualify, for
   /// [equipmentType] (#2952): a "regulator bag" is a bag, not a regulator.
-  /// A trailing note in parentheses ("Fin bag (large)") does not move it.
-  static final _bagHeadNoun = RegExp(r'\bbags?(?:\s*\([^)]*\))?$');
+  static final _bagHeadNoun = RegExp(r'\bbags?$');
+
+  /// A trailing note in parentheses ("Fin bag (large)"), set aside before
+  /// the bag checks so neither its position nor its words move the head
+  /// noun.
+  static final _trailingNote = RegExp(r'\s*\([^)]*\)$');
 
   /// A joining word that hangs a bag off another item ("BCD w/ bag",
   /// "camera with bag"), so the item, not the bag, is what the name lists.
@@ -103,7 +107,8 @@ class MacDiveValueMapper {
     // A lift bag is a lift device and files with the SMB. A bare "bag"
     // anywhere else in a name is weaker and waits at the very bottom.
     if (_liftBag.hasMatch(s)) return EquipmentType.smb;
-    if (_bagHeadNoun.hasMatch(s) && !_accessoryJoin.hasMatch(s)) {
+    final head = s.replaceFirst(_trailingNote, '');
+    if (_bagHeadNoun.hasMatch(head) && !_accessoryJoin.hasMatch(head)) {
       return EquipmentType.bag;
     }
 
