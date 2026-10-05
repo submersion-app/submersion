@@ -113,6 +113,16 @@ void main() {
     expect(result.windows.where((w) => identical(w.gas, ean50)), isEmpty);
   });
 
+  test('a gas whose MOD the final ascent never reaches is not assessed', () {
+    // A recording that ends at 22.5 m: below EAN50's 23 m hysteresis line,
+    // but never at or above its 22 m MOD, and nowhere near O2's 6 m.
+    final result = detect([
+      seg(0, 0.21),
+    ], profile: sampleProfile([(0, 0), (120, 40), (1500, 40), (1610, 22.5)]));
+    expect(result.assessedGasCount, 0);
+    expect(result.windows, isEmpty);
+  });
+
   test('air breaks after an on-time O2 switch open no window', () {
     final result = detect([
       seg(0, 0.21),

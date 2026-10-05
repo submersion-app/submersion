@@ -46,8 +46,9 @@ class SwitchWindowDetection {
 /// (OptimalOcAscentGas over the gases already eligible) would breathe there.
 ///
 /// A gas is assessed only once the dive has been deeper than its MOD plus
-/// [modHysteresisMeters]; it becomes eligible from the first sample after the
-/// last such sample, so a mid-dive excursion never opens a window. A sample is
+/// [modHysteresisMeters]; it becomes eligible at the first sample after the
+/// last such sample that is at or above the MOD, so a mid-dive excursion never
+/// opens a window. A sample is
 /// behind when the ideal gas is richer than the breathed one and the diver has
 /// not breathed the ideal gas since it became eligible: a return to a leaner
 /// gas after switching is an air break, not a late switch.
@@ -63,8 +64,15 @@ SwitchWindowDetection detectSwitchWindows({
   for (var g = 0; g < gases.length; g++) {
     final threshold = gases[g].maxPpO2Mod + modHysteresisMeters;
     final lastDeep = depths.lastIndexWhere((d) => d > threshold);
-    if (lastDeep < 0 || lastDeep + 1 >= n) continue;
-    idealIndex[g] = lastDeep + 1;
+    if (lastDeep < 0) continue;
+    // The ideal point is the first sample after that crossing which is at or
+    // above the MOD itself, not merely inside the hysteresis band. A gas the
+    // final ascent never brings to its MOD (a recording that stops between
+    // the two) has nothing to judge, so it is not assessed.
+    final mod = gases[g].maxPpO2Mod + 1e-9;
+    final first = depths.indexWhere((d) => d <= mod, lastDeep + 1);
+    if (first < 0) continue;
+    idealIndex[g] = first;
   }
   if (idealIndex.isEmpty) {
     return const SwitchWindowDetection(assessedGasCount: 0, windows: []);

@@ -81,8 +81,9 @@ For each available gas `g` with MOD `M(g)`:
   assessed. An 18 m dive carrying EAN50 is not flagged for leaving it clipped
   off during the bottom phase. The 1 m hysteresis absorbs waves and sensor
   noise at a stop near the MOD.
-- `idealTimestamp(g)` is the timestamp of the first sample after the last
-  sample deeper than `M(g) + 1.0 m`.
+- `idealTimestamp(g)` is the timestamp of the first sample at or above
+  `M(g)` after the last sample deeper than `M(g) + 1.0 m`. A gas with no such
+  sample (a recording that stops inside the hysteresis band) is not assessed.
 - `idealDepth(g)` is `min(M(g), depth at idealTimestamp(g))`.
 
 This makes the "final ascent" a per-gas property, so a multi-level dive that
