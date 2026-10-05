@@ -167,6 +167,7 @@ Widget _buildWidget({
   VoidCallback? onComplete,
   void Function(String)? onError,
   VoidCallback? onImportPartial,
+  ThemeData? theme,
 }) {
   return ProviderScope(
     overrides: [
@@ -181,6 +182,7 @@ Widget _buildWidget({
       }),
     ],
     child: MaterialApp(
+      theme: theme,
       // Pinned because every assertion below matches an English literal.
       // flutter_test forwards the HOST machine's locale list rather than a
       // fixed en_US, and this app supports eleven locales, so on a developer
@@ -584,6 +586,43 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('EAN32'), findsOneWidget);
+    });
+
+    // Issue #2956: under Console dark, tertiary fell back to secondary, the
+    // same navy as the card, so the gas label painted invisibly and pushed the
+    // deco text sideways by its width.
+    testWidgets('gas mix label stays visible when tertiary matches the card', (
+      tester,
+    ) async {
+      const card = Color(0xFF1A2230);
+      final theme = ThemeData(
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFF4AE0C0),
+          tertiary: card,
+        ),
+        cardTheme: const CardThemeData(color: card),
+      );
+      final dives = [
+        _makeDive(
+          diveNumber: 1,
+          tanks: const [DownloadedTank(index: 0, o2Percent: 100.0)],
+        ),
+      ];
+
+      await tester.pumpWidget(
+        _buildWidget(
+          theme: theme,
+          initialState: DownloadState(
+            phase: DownloadPhase.complete,
+            progress: DownloadProgress.complete(1),
+            downloadedDives: dives,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final label = tester.widget<Text>(find.text('EAN100'));
+      expect(label.style?.color, isNot(card));
     });
 
     testWidgets('does not show gas mix chip for air tanks', (tester) async {

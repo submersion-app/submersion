@@ -1,0 +1,70 @@
+import 'dart:async';
+import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/theme/app_theme_registry.dart';
+
+import '../../helpers/google_fonts_settle.dart';
+
+/// WCAG relative contrast ratio between two opaque colours.
+double _contrast(Color a, Color b) {
+  final la = a.computeLuminance();
+  final lb = b.computeLuminance();
+  return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
+}
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  // Force-initialize the theme finals inside a guarded zone so the expected
+  // google_fonts load errors (fonts are not bundled in test assets) do not
+  // escape as unhandled async exceptions. Mirrors app_theme_registry_test.
+  setUpAll(() async {
+    final originalDebugPrint = debugPrint;
+    debugPrint = (String? message, {int? wrapWidth}) {};
+    try {
+      await runZonedGuarded(
+        () async {
+          // ignore: unnecessary_statements
+          AppThemeRegistry.presets;
+          // Bounded: a font load another file left pending never finishes.
+          await settleGoogleFonts();
+        },
+        (error, stack) {
+          // Silently absorb google_fonts errors in the test environment.
+        },
+      );
+    } finally {
+      debugPrint = originalDebugPrint;
+    }
+  });
+
+  // Issue #2956: Console dark set no tertiary, so it fell back to secondary,
+  // which is the same navy as its cards. Every label painted in tertiary on a
+  // card vanished, leaving blank gaps in the dive computer download list.
+  // The floor sits below WCAG's 3:1 on purpose: it guards against a label
+  // vanishing (Console dark was 1:1), not against a faint brand colour.
+  // Tropical light's coral is about 2.8:1 by design.
+  const floor = 2.5;
+
+  test('every preset paints tertiary legibly on its cards', () {
+    for (final preset in AppThemeRegistry.presets) {
+      for (final theme in [preset.lightTheme, preset.darkTheme]) {
+        final scheme = theme.colorScheme;
+        final card = theme.cardTheme.color ?? scheme.surfaceContainerLow;
+        final mode = theme.brightness.name;
+        expect(
+          _contrast(scheme.tertiary, card),
+          greaterThanOrEqualTo(floor),
+          reason: '${preset.id} $mode: tertiary on card is unreadable',
+        );
+        expect(
+          _contrast(scheme.tertiary, scheme.surface),
+          greaterThanOrEqualTo(floor),
+          reason: '${preset.id} $mode: tertiary on surface is unreadable',
+        );
+      }
+    }
+  });
+}

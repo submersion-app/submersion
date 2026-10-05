@@ -674,11 +674,14 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
             children: [
               for (final detail in details)
                 Text(detail, style: theme.textTheme.bodySmall),
+              // Primary, not tertiary: a hand-built preset without its own
+              // tertiary falls back to secondary, which can be the card colour
+              // itself, painting the label invisibly (issue #2956).
               if (gasMixes.isNotEmpty)
                 Text(
                   gasMixes.join(', '),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.tertiary,
+                    color: colorScheme.primary,
                   ),
                 ),
               if (dive.decoAlgorithm != null)
