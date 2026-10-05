@@ -5939,6 +5939,12 @@ class AppLocalizationsEs extends AppLocalizations {
       'Las inmersiones seleccionadas pertenecen a buceadores diferentes y no se pueden combinar.';
 
   @override
+  String get diveLog_combine_modeJoin => 'Unir en una inmersión';
+
+  @override
+  String get diveLog_combine_modeMerge => 'Fusionar como otro ordenador';
+
+  @override
   String get diveLog_combine_profilePreview => 'Perfil combinado';
 
   @override
@@ -5979,6 +5985,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => 'Principal';
 
   @override
+  String get diveLog_consolidate_alignBestFit => 'Mejor ajuste';
+
+  @override
+  String get diveLog_consolidate_alignStarts => 'Alinear inicios';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel => 'Alinear los registros por';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      'Estos registros no se superponen en el tiempo, así que probablemente el reloj de un ordenador está mal. La inmersión conserva la hora del ordenador principal.';
+
+  @override
   String get diveLog_consolidate_confirm =>
       'Mantener como una sola inmersión con ambos ordenadores';
 
@@ -5993,6 +6012,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'Estas inmersiones son del mismo ordenador de buceo y no se pueden fusionar de esta manera.';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      'Un registro no tiene perfil de profundidad para comparar, así que su inicio se alinea con el del principal.';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint =>
+      'Estos perfiles parecen la misma inmersión registrada por dos ordenadores.';
 
   @override
   String get diveLog_consolidate_selectPrimary =>

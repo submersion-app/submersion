@@ -9401,6 +9401,18 @@ abstract class AppLocalizations {
   /// **'The selected dives belong to different divers and can\'t be combined.'**
   String get diveLog_combine_mixedDivers;
 
+  /// No description provided for @diveLog_combine_modeJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Join into one dive'**
+  String get diveLog_combine_modeJoin;
+
+  /// No description provided for @diveLog_combine_modeMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge as another computer'**
+  String get diveLog_combine_modeMerge;
+
   /// No description provided for @diveLog_combine_profilePreview.
   ///
   /// In en, this message translates to:
@@ -9453,6 +9465,30 @@ abstract class AppLocalizations {
   /// **'Primary'**
   String get diveLog_computerSource_badge_primary;
 
+  /// No description provided for @diveLog_consolidate_alignBestFit.
+  ///
+  /// In en, this message translates to:
+  /// **'Best fit'**
+  String get diveLog_consolidate_alignBestFit;
+
+  /// No description provided for @diveLog_consolidate_alignStarts.
+  ///
+  /// In en, this message translates to:
+  /// **'Align starts'**
+  String get diveLog_consolidate_alignStarts;
+
+  /// No description provided for @diveLog_consolidate_alignmentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Line up the records by'**
+  String get diveLog_consolidate_alignmentLabel;
+
+  /// No description provided for @diveLog_consolidate_clockNote.
+  ///
+  /// In en, this message translates to:
+  /// **'These records don\'t overlap in time, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.'**
+  String get diveLog_consolidate_clockNote;
+
   /// No description provided for @diveLog_consolidate_confirm.
   ///
   /// In en, this message translates to:
@@ -9476,6 +9512,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These dives are from the same dive computer and can\'t be merged this way.'**
   String get diveLog_consolidate_error_sameComputer;
+
+  /// No description provided for @diveLog_consolidate_noProfileFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'A record has no depth profile to match, so its start is lined up with the primary\'s.'**
+  String get diveLog_consolidate_noProfileFallback;
+
+  /// No description provided for @diveLog_consolidate_sameDiveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'These profiles look like the same dive recorded by two computers.'**
+  String get diveLog_consolidate_sameDiveHint;
 
   /// No description provided for @diveLog_consolidate_selectPrimary.
   ///

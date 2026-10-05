@@ -5937,6 +5937,12 @@ class AppLocalizationsIt extends AppLocalizations {
       'Le immersioni selezionate appartengono a subacquei diversi e non possono essere unite.';
 
   @override
+  String get diveLog_combine_modeJoin => 'Concatena in un\'unica immersione';
+
+  @override
+  String get diveLog_combine_modeMerge => 'Unisci come un altro computer';
+
+  @override
   String get diveLog_combine_profilePreview => 'Profilo combinato';
 
   @override
@@ -5977,6 +5983,20 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => 'Primario';
 
   @override
+  String get diveLog_consolidate_alignBestFit => 'Miglior corrispondenza';
+
+  @override
+  String get diveLog_consolidate_alignStarts => 'Allinea gli inizi';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel =>
+      'Allinea le registrazioni per';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      'Queste registrazioni non si sovrappongono nel tempo, quindi l\'orologio di un computer è probabilmente sbagliato. L\'immersione mantiene l\'ora del computer principale.';
+
+  @override
   String get diveLog_consolidate_confirm =>
       'Mantieni come un\'unica immersione con entrambi i computer';
 
@@ -5991,6 +6011,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'Queste immersioni provengono dallo stesso computer subacqueo e non possono essere unite in questo modo.';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      'Una registrazione non ha un profilo di profondità da confrontare, quindi il suo inizio viene allineato a quello del principale.';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint =>
+      'Questi profili sembrano la stessa immersione registrata da due computer.';
 
   @override
   String get diveLog_consolidate_selectPrimary =>

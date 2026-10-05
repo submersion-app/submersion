@@ -6022,6 +6022,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'الغوصات المحددة تخص غواصين مختلفين ولا يمكن دمجها.';
 
   @override
+  String get diveLog_combine_modeJoin => 'ربط في غوصة واحدة';
+
+  @override
+  String get diveLog_combine_modeMerge => 'دمج ككمبيوتر إضافي';
+
+  @override
   String get diveLog_combine_profilePreview => 'الملف المدمج';
 
   @override
@@ -6065,6 +6071,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => 'أساسي';
 
   @override
+  String get diveLog_consolidate_alignBestFit => 'أفضل تطابق';
+
+  @override
+  String get diveLog_consolidate_alignStarts => 'محاذاة البدايات';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel => 'محاذاة السجلات حسب';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      'هذه السجلات لا تتداخل زمنيًا، لذا ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة. تحتفظ الغوصة بوقت الكمبيوتر الأساسي.';
+
+  @override
   String get diveLog_consolidate_confirm =>
       'الاحتفاظ بها كغوصة واحدة بجهازي كمبيوتر';
 
@@ -6079,6 +6098,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'هاتان الغوصتان من نفس كمبيوتر الغوص ولا يمكن دمجهما بهذه الطريقة.';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      'أحد السجلات لا يحتوي على ملف عمق للمطابقة، لذا تتم محاذاة بدايته مع بداية الأساسي.';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint =>
+      'تبدو هذه الملفات كأنها الغوصة نفسها سجّلها جهازا كمبيوتر.';
 
   @override
   String get diveLog_consolidate_selectPrimary => 'كمبيوتر الغوص الأساسي';

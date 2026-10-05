@@ -5842,6 +5842,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'The selected dives belong to different divers and can\'t be combined.';
 
   @override
+  String get diveLog_combine_modeJoin => 'Join into one dive';
+
+  @override
+  String get diveLog_combine_modeMerge => 'Merge as another computer';
+
+  @override
   String get diveLog_combine_profilePreview => 'Combined profile';
 
   @override
@@ -5882,6 +5888,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => 'Primary';
 
   @override
+  String get diveLog_consolidate_alignBestFit => 'Best fit';
+
+  @override
+  String get diveLog_consolidate_alignStarts => 'Align starts';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel => 'Line up the records by';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      'These records don\'t overlap in time, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.';
+
+  @override
   String get diveLog_consolidate_confirm =>
       'Keep as one dive with both computers';
 
@@ -5896,6 +5915,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'These dives are from the same dive computer and can\'t be merged this way.';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      'A record has no depth profile to match, so its start is lined up with the primary\'s.';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint =>
+      'These profiles look like the same dive recorded by two computers.';
 
   @override
   String get diveLog_consolidate_selectPrimary => 'Primary dive computer';

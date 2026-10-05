@@ -5938,6 +5938,12 @@ class AppLocalizationsPt extends AppLocalizations {
       'Os mergulhos selecionados pertencem a mergulhadores diferentes e não podem ser combinados.';
 
   @override
+  String get diveLog_combine_modeJoin => 'Juntar em um mergulho';
+
+  @override
+  String get diveLog_combine_modeMerge => 'Mesclar como outro computador';
+
+  @override
   String get diveLog_combine_profilePreview => 'Perfil combinado';
 
   @override
@@ -5979,6 +5985,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => 'Principal';
 
   @override
+  String get diveLog_consolidate_alignBestFit => 'Melhor ajuste';
+
+  @override
+  String get diveLog_consolidate_alignStarts => 'Alinhar inícios';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel => 'Alinhar os registros por';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      'Estes registros não se sobrepõem no tempo, então o relógio de um computador provavelmente está errado. O mergulho mantém a hora do computador principal.';
+
+  @override
   String get diveLog_consolidate_confirm =>
       'Manter como um único mergulho com os dois computadores';
 
@@ -5993,6 +6012,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'Esses mergulhos são do mesmo computador de mergulho e não podem ser mesclados dessa forma.';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      'Um registro não tem perfil de profundidade para comparar, então o início dele é alinhado com o do principal.';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint =>
+      'Estes perfis parecem o mesmo mergulho registrado por dois computadores.';
 
   @override
   String get diveLog_consolidate_selectPrimary =>

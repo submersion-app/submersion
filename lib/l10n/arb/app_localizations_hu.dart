@@ -5926,6 +5926,12 @@ class AppLocalizationsHu extends AppLocalizations {
       'A kiválasztott merülések különböző búvárokhoz tartoznak, ezért nem vonhatók össze.';
 
   @override
+  String get diveLog_combine_modeJoin => 'Összefűzés egy merüléssé';
+
+  @override
+  String get diveLog_combine_modeMerge => 'Összevonás másik számítógépként';
+
+  @override
   String get diveLog_combine_profilePreview => 'Összevont profil';
 
   @override
@@ -5967,6 +5973,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => 'Elsődleges';
 
   @override
+  String get diveLog_consolidate_alignBestFit => 'Legjobb illeszkedés';
+
+  @override
+  String get diveLog_consolidate_alignStarts => 'Kezdetek igazítása';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel => 'Felvételek igazítása';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      'Ezek a felvételek időben nem fedik egymást, így valószínűleg az egyik számítógép órája rosszul jár. A merülés az elsődleges számítógép idejét tartja meg.';
+
+  @override
   String get diveLog_consolidate_confirm =>
       'Megtartás egyetlen merülésként mindkét számítógéppel';
 
@@ -5981,6 +6000,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'Ezek a merülések ugyanattól a búvárszámítógéptől származnak, ezért így nem vonhatók össze.';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      'Az egyik felvételnek nincs összevethető mélységprofilja, ezért a kezdete az elsődleges számítógépéhez igazodik.';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint =>
+      'Ezek a profilok ugyanannak a merülésnek tűnnek, amelyet két számítógép rögzített.';
 
   @override
   String get diveLog_consolidate_selectPrimary => 'Elsődleges búvárszámítógép';

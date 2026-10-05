@@ -5895,6 +5895,12 @@ class AppLocalizationsNl extends AppLocalizations {
       'De geselecteerde duiken behoren tot verschillende duikers en kunnen niet worden samengevoegd.';
 
   @override
+  String get diveLog_combine_modeJoin => 'Aan elkaar koppelen tot één duik';
+
+  @override
+  String get diveLog_combine_modeMerge => 'Samenvoegen als extra computer';
+
+  @override
   String get diveLog_combine_profilePreview => 'Samengevoegd profiel';
 
   @override
@@ -5936,6 +5942,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => 'Primair';
 
   @override
+  String get diveLog_consolidate_alignBestFit => 'Beste overeenkomst';
+
+  @override
+  String get diveLog_consolidate_alignStarts => 'Begin uitlijnen';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel => 'Registraties uitlijnen op';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      'Deze registraties overlappen niet in tijd, dus de klok van een computer staat waarschijnlijk verkeerd. De duik behoudt de tijd van de primaire computer.';
+
+  @override
   String get diveLog_consolidate_confirm =>
       'Bewaren als één duik met beide computers';
 
@@ -5950,6 +5969,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'Deze duiken zijn afkomstig van dezelfde duikcomputer en kunnen op deze manier niet worden samengevoegd.';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      'Een registratie heeft geen diepteprofiel om te vergelijken, dus het begin wordt uitgelijnd met dat van de primaire computer.';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint =>
+      'Deze profielen lijken op dezelfde duik, vastgelegd door twee computers.';
 
   @override
   String get diveLog_consolidate_selectPrimary => 'Primaire duikcomputer';

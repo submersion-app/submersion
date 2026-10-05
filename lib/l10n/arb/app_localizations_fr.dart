@@ -5952,6 +5952,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les plongées sélectionnées appartiennent à des plongeurs différents et ne peuvent pas être combinées.';
 
   @override
+  String get diveLog_combine_modeJoin => 'Joindre en une seule plongée';
+
+  @override
+  String get diveLog_combine_modeMerge => 'Fusionner comme un autre ordinateur';
+
+  @override
   String get diveLog_combine_profilePreview => 'Profil combiné';
 
   @override
@@ -5993,6 +5999,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => 'Principal';
 
   @override
+  String get diveLog_consolidate_alignBestFit => 'Meilleure correspondance';
+
+  @override
+  String get diveLog_consolidate_alignStarts => 'Aligner les débuts';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel =>
+      'Aligner les enregistrements par';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      'Ces enregistrements ne se chevauchent pas dans le temps : l\'horloge d\'un ordinateur est probablement décalée. La plongée garde l\'heure de l\'ordinateur principal.';
+
+  @override
   String get diveLog_consolidate_confirm =>
       'Conserver comme une seule plongée avec les deux ordinateurs';
 
@@ -6007,6 +6027,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'Ces plongées proviennent du même ordinateur de plongée et ne peuvent pas être fusionnées de cette façon.';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      'Un enregistrement n\'a pas de profil de profondeur à comparer, son début est donc aligné sur celui du principal.';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint =>
+      'Ces profils ressemblent à la même plongée enregistrée par deux ordinateurs.';
 
   @override
   String get diveLog_consolidate_selectPrimary =>

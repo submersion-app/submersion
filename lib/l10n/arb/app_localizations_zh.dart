@@ -5652,6 +5652,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_combine_mixedDivers => '所选潜水属于不同的潜水员，无法合并。';
 
   @override
+  String get diveLog_combine_modeJoin => '连接为一次潜水';
+
+  @override
+  String get diveLog_combine_modeMerge => '作为另一台电脑合并';
+
+  @override
   String get diveLog_combine_profilePreview => '合并后的剖面';
 
   @override
@@ -5692,6 +5698,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_computerSource_badge_primary => '主要';
 
   @override
+  String get diveLog_consolidate_alignBestFit => '最佳匹配';
+
+  @override
+  String get diveLog_consolidate_alignStarts => '对齐开始时间';
+
+  @override
+  String get diveLog_consolidate_alignmentLabel => '记录对齐方式';
+
+  @override
+  String get diveLog_consolidate_clockNote =>
+      '这些记录在时间上没有重叠，可能是某台电脑的时钟不准。潜水保留主电脑的时间。';
+
+  @override
   String get diveLog_consolidate_confirm => '保留为一次潜水，包含两台电脑';
 
   @override
@@ -5704,6 +5723,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       '这些潜水来自同一台潜水电脑，无法以这种方式合并。';
+
+  @override
+  String get diveLog_consolidate_noProfileFallback =>
+      '有一条记录没有可供匹配的深度剖面，因此将其开始时间与主电脑对齐。';
+
+  @override
+  String get diveLog_consolidate_sameDiveHint => '这些剖面看起来是两台电脑记录的同一次潜水。';
 
   @override
   String get diveLog_consolidate_selectPrimary => '主潜水电脑';
