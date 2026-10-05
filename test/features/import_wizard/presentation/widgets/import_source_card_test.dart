@@ -100,6 +100,21 @@ void main() {
       expect(lines.details, ['USB']);
     });
 
+    test('names every connection type', () {
+      String connection(DeviceConnectionType type) => _lines(
+        ImportSourceInfo(
+          type: ImportSourceType.diveComputer,
+          displayName: 'Dive Computer',
+          details: ImportSourceDetails(connection: type),
+        ),
+      ).details.single;
+
+      expect(connection(DeviceConnectionType.ble), 'Bluetooth LE');
+      expect(connection(DeviceConnectionType.bluetoothClassic), 'Bluetooth');
+      expect(connection(DeviceConnectionType.usb), 'USB');
+      expect(connection(DeviceConnectionType.infrared), 'Infrared');
+    });
+
     test('falls back to the display name with no details', () {
       final lines = _lines(
         const ImportSourceInfo(
@@ -258,6 +273,16 @@ void main() {
         ImportSourceType.suuntoCloud: Icons.cloud_download_outlined,
         ImportSourceType.diveComputer: Icons.watch_outlined,
       };
+      await tester.pumpWidget(
+        _host(
+          const ImportSourceInfo(
+            type: ImportSourceType.diveComputer,
+            displayName: 'x',
+            details: ImportSourceDetails(connection: DeviceConnectionType.usb),
+          ),
+        ),
+      );
+      expect(find.byIcon(Icons.usb), findsOneWidget);
       for (final MapEntry(key: type, value: icon) in cases.entries) {
         await tester.pumpWidget(
           _host(ImportSourceInfo(type: type, displayName: 'x')),

@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/import_wizard/data/adapters/suunto_cloud_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/suunto_cloud_adapter_steps.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 
 @GenerateNiceMocks([
@@ -151,6 +153,31 @@ void main() {
 
       expect(details.account, 'diver@example.com');
       expect(details.deviceModels, ['Suunto Ocean', 'Suunto EON Steel']);
+    });
+
+    testWidgets('the Sign In step hands its account to the adapter', (
+      tester,
+    ) async {
+      late BuildContext context;
+      await tester.pumpWidget(
+        Builder(
+          builder: (c) {
+            context = c;
+            return const SizedBox.shrink();
+          },
+        ),
+      );
+      final step =
+          adapter.acquisitionSteps.first.builder(context)
+              as SuuntoCloudSignInStep;
+
+      step.onAccountSignedIn!('diver@example.com');
+      adapter.setParsedDives([makeParsedDive()]);
+      final details = (await tester.runAsync(
+        adapter.buildBundle,
+      ))!.source.details;
+
+      expect(details.account, 'diver@example.com');
     });
 
     test('resetState forgets the account', () async {
