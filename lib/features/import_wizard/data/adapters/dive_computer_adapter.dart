@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
+import 'package:submersion/features/import_wizard/data/adapters/dive_computer_source_details.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_number_conflict_notice.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
@@ -85,15 +86,6 @@ enum _ConsolidateOutcome {
 /// What a `_consolidateDive` call did, plus the id of the standalone dive it
 /// left behind (only [_ConsolidateOutcome.keptStandalone] leaves one).
 typedef _ConsolidateResult = ({_ConsolidateOutcome outcome, String? diveId});
-
-/// What a download reported to [DiveComputerAdapter.ensureComputer].
-typedef _PendingComputerSave = ({
-  DiscoveredDevice device,
-  String? serialNumber,
-  String? firmwareVersion,
-  String? reportedProduct,
-  int? reportedModel,
-});
 
 /// Import source adapter for dive computer downloads.
 ///
@@ -177,7 +169,14 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
   /// What the last [ensureComputer] call was given, kept so [buildBundle]
   /// can retry the save when the download step's attempt failed.
-  _PendingComputerSave? _pendingComputerSave;
+  ({
+    DiscoveredDevice device,
+    String? serialNumber,
+    String? firmwareVersion,
+    String? reportedProduct,
+    int? reportedModel,
+  })?
+  _pendingComputerSave;
 
   /// Why the last retry of [_pendingComputerSave] failed, reported by
   /// [performImport] in place of importing without a computer.
@@ -571,7 +570,14 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         type: ImportSourceType.diveComputer,
         displayName: _displayName,
         currentComputerId: computer?.id,
-        details: _sourceDetails(),
+        details: diveComputerSourceDetails(
+          customName: _customDeviceName,
+          stored: computer,
+          device: _pendingComputerSave?.device,
+          serialNumber: _pendingComputerSave?.serialNumber,
+          firmwareVersion: _pendingComputerSave?.firmwareVersion,
+          reportedProduct: _pendingComputerSave?.reportedProduct,
+        ),
       ),
       groups: {
         ImportEntityType.dives: EntityGroup(
@@ -581,62 +587,6 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       },
     );
   }
-
-  /// What the Review step shows about this download (issue #161). What this
-  /// session's download reported wins over the stored record, which a quick
-  /// download from a known computer starts from.
-  ImportSourceDetails _sourceDetails() {
-    final pending = _pendingComputerSave;
-    final stored = _asDownloadSavedIt(computer, pending);
-    return ImportSourceDetails(
-      title:
-          _customDeviceName ??
-          stored?.displayName ??
-          pending?.device.displayName,
-      // fullName falls back to the computer's name when the record has no
-      // manufacturer or model, which would hide the recognized device.
-      model: stored != null && (stored.manufacturer ?? stored.model) != null
-          ? stored.fullName
-          : pending?.device.recognizedModel?.fullName,
-      serialNumber: pending?.serialNumber ?? stored?.serialNumber,
-      firmwareVersion: pending?.firmwareVersion ?? stored?.firmwareVersion,
-      connection:
-          pending?.device.connectionType ??
-          _storedConnection(stored?.connectionType),
-    );
-  }
-
-  /// [stored] as the download step saves it once the download completes: a
-  /// known computer whose device named a different model is relabeled to it
-  /// (issue #422), unless the serials say the device is another computer.
-  /// The adapter's own copy of a known computer is never refreshed, so the
-  /// Review step would otherwise show the model it was scanned as.
-  static DiveComputer? _asDownloadSavedIt(
-    DiveComputer? stored,
-    _PendingComputerSave? pending,
-  ) {
-    if (stored == null || pending == null) return stored;
-    final storedSerial = stored.serialNumber;
-    final serial = pending.serialNumber;
-    if (storedSerial != null && serial != null && storedSerial != serial) {
-      return stored;
-    }
-    return relabelToReportedProduct(stored, pending.reportedProduct);
-  }
-
-  /// The connection a stored computer was last saved with, read the way the
-  /// device detail page reads it. This app saves 'bluetooth' for both Bluetooth
-  /// LE and Classic, so that reads as plain Bluetooth; older rows may say
-  /// 'ble' or 'bluetoothClassic', in any case.
-  static DeviceConnectionType? _storedConnection(String? stored) =>
-      switch (stored?.toLowerCase()) {
-        'ble' => DeviceConnectionType.ble,
-        'bluetooth' ||
-        'bluetoothclassic' => DeviceConnectionType.bluetoothClassic,
-        'usb' => DeviceConnectionType.usb,
-        'infrared' => DeviceConnectionType.infrared,
-        _ => null,
-      };
 
   @override
   Future<ImportBundle> checkDuplicates(ImportBundle bundle) async {

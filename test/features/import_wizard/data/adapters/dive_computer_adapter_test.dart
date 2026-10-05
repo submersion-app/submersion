@@ -347,6 +347,38 @@ void main() {
         });
       });
 
+      test('a blank stored manufacturer does not hide the recognized '
+          'device', () async {
+        final blankAdapter = DiveComputerAdapter(
+          importService: mockImportService,
+          computerRepository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          consolidationService: mockConsolidationService,
+          diverId: diverId,
+          knownComputer: makeComputer(manufacturer: '', model: null),
+        );
+        await blankAdapter.ensureComputer(
+          device: DiscoveredDevice(
+            id: 'device-1',
+            name: 'Perdix',
+            connectionType: DeviceConnectionType.ble,
+            address: 'AA:BB:CC:DD:EE:FF',
+            recognizedModel: const DeviceModel(
+              id: 'shearwater_perdix',
+              manufacturer: 'Shearwater',
+              model: 'Perdix',
+              connectionTypes: [DeviceConnectionType.ble],
+            ),
+            discoveredAt: DateTime(2026, 3, 20),
+          ),
+        );
+        blankAdapter.setDownloadedDives([]);
+
+        final details = (await blankAdapter.buildBundle()).source.details;
+
+        expect(details.model, 'Shearwater Perdix');
+      });
+
       test('the name typed on the confirm step is the title', () async {
         adapter
           ..setCustomDeviceName('Backup computer')

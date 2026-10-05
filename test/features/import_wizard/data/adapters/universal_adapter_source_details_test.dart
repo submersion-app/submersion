@@ -56,12 +56,13 @@ PickedImportFile _file(
   ui.SourceApp? app,
   int bytes = 0,
   String? path,
+  ImportFileStatus status = ImportFileStatus.parsed,
 }) => PickedImportFile(
   name: name,
   path: path,
   bytes: path == null ? Uint8List(bytes) : null,
   detection: DetectionResult(format: format, sourceApp: app, confidence: 1),
-  status: ImportFileStatus.parsed,
+  status: status,
 );
 
 Future<ImportSourceDetails> _details(
@@ -153,6 +154,53 @@ void main() {
       expect(details.formats, ['UDDF', 'Garmin FIT']);
       expect(details.sourceApp, isNull);
       expect(details.sizeBytes, 1750);
+    });
+
+    testWidgets('batch: files the batch did not import are left out', (
+      tester,
+    ) async {
+      final details = await _details(tester, [
+        _file('a.uddf', ui.ImportFormat.uddf, bytes: 1000),
+        _file('b.uddf', ui.ImportFormat.uddf, bytes: 500),
+        _file(
+          'c.csv',
+          ui.ImportFormat.csv,
+          bytes: 70,
+          status: ImportFileStatus.excludedCsv,
+        ),
+        _file(
+          'd.fit',
+          ui.ImportFormat.fit,
+          bytes: 80,
+          status: ImportFileStatus.failed,
+        ),
+        _file(
+          'e.bin',
+          ui.ImportFormat.unknown,
+          bytes: 90,
+          status: ImportFileStatus.unsupported,
+        ),
+      ]);
+
+      expect(details.fileCount, 2);
+      expect(details.formats, ['UDDF']);
+      expect(details.sizeBytes, 1500);
+    });
+
+    testWidgets('batch: one imported file reads as a single file', (
+      tester,
+    ) async {
+      final details = await _details(tester, [
+        _file('a.uddf', ui.ImportFormat.uddf, bytes: 10),
+        _file(
+          'b.bin',
+          ui.ImportFormat.unknown,
+          status: ImportFileStatus.unsupported,
+        ),
+      ]);
+
+      expect(details.title, 'a.uddf');
+      expect(details.fileCount, 1);
     });
 
     testWidgets('reads the size of a path-backed file from disk', (
