@@ -332,7 +332,8 @@ class AppSettingsRepository {
     }
   }
 
-  /// Writes [value] under [key] and stages the row for sync.
+  /// Writes [value] under [key] and, unless the key is device-local
+  /// ([deviceLocalSettingsKeys]), stages the row for sync.
   ///
   /// Writes rethrow (unlike reads) so a caller can tell the user their change
   /// did not take.

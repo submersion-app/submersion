@@ -151,8 +151,9 @@ language, the Color Theme and colored icons, map style, decompression and
 safety settings, and the defaults for new dives.
 
 Changing a per-device setting on one device never changes it on another, and
-a sync never overwrites it. A device that joins your library starts with the
-default values for these settings.
+a sync never overwrites it. A device that joins your library keeps its own
+values; only the reminders and theme of a diver that is new to the device start
+at their defaults.
 
 ## Switching or Removing a Backend
 

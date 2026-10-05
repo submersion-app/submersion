@@ -424,7 +424,12 @@ class SyncService {
     for (final record in conflictRecords) {
       if (record.conflictData != null) {
         try {
-          final remoteData = _parseConflictData(record.conflictData!);
+          // A conflict stored before a column became device-local may still
+          // carry it; fetchRecord strips the local side the same way.
+          final remoteData = withoutDeviceLocalColumns(
+            record.entityType,
+            _parseConflictData(record.conflictData!),
+          );
           final localData = await _serializer.fetchRecord(
             record.entityType,
             record.recordId,
@@ -3089,6 +3094,14 @@ class SyncService {
           // conflict -- count it as a failure so performSync surfaces an error.
           _log.error('Skipping $entityType record with no resolvable id');
           failed += 1;
+          continue;
+        }
+
+        // A device-local settings key never syncs (issue #2947). A peer on
+        // an older build may still send one; it neither applies nor raises
+        // a conflict for a value that stays on each device.
+        if (entityType == 'settings' &&
+            deviceLocalSettingsKeys.contains(recordId)) {
           continue;
         }
 
