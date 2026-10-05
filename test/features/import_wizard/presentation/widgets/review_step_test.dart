@@ -226,6 +226,24 @@ void main() {
       );
     });
 
+    testWidgets('leaves the source card out when the step is too short', (
+      tester,
+    ) async {
+      // A landscape phone leaves the step about this much height; the card
+      // would push the column past it (#161 review).
+      await tester.binding.setSurfaceSize(const Size(800, 250));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final bundle = _buildBundle(diveItems: [_item('Dive 1')]);
+
+      await tester.pumpWidget(_buildReviewStep(bundle: bundle));
+      await tester.pump();
+
+      expect(find.byType(ImportSourceCard), findsNothing);
+      expect(find.byType(TabBar), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('EntityReviewList is rendered for single type', (tester) async {
       await tester.binding.setSurfaceSize(const Size(800, 600));
       addTearDown(() => tester.binding.setSurfaceSize(null));
