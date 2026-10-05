@@ -11,6 +11,13 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
+/// A purchase whose write fails, as a locked or full database would.
+class _FailingPurchaseRepository extends EquipmentRepository {
+  @override
+  Future<void> markEquipmentPurchased(String id, {DateTime? today}) =>
+      Future.error(StateError('database locked'));
+}
+
 EquipmentItem _item(EquipmentStatus status, {bool isActive = true}) =>
     EquipmentItem(
       id: 'x',
@@ -64,13 +71,17 @@ void main() {
 
     tearDown(tearDownTestDatabase);
 
-    Future<void> pump(WidgetTester tester, EquipmentItem item) async {
+    Future<void> pump(
+      WidgetTester tester,
+      EquipmentItem item, {
+      EquipmentRepository? repo,
+    }) async {
       final overrides = await getBaseOverrides();
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             ...overrides,
-            equipmentRepositoryProvider.overrideWithValue(repository),
+            equipmentRepositoryProvider.overrideWithValue(repo ?? repository),
           ].cast(),
           child: MaterialApp(
             locale: const Locale('en'),
@@ -114,6 +125,23 @@ void main() {
       expect(stored.isActive, isTrue);
       expect(stored.purchaseDate, isNotNull);
       expect(find.text('Moved to your active gear'), findsOneWidget);
+    });
+
+    testWidgets('a failed purchase says so instead of failing silently', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        _item(EquipmentStatus.wanted, isActive: false),
+        repo: _FailingPurchaseRepository(),
+      );
+
+      await tester.tap(find.text('Mark as purchased'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.textContaining('database locked'), findsOneWidget);
+      expect(find.text('Moved to your active gear'), findsNothing);
     });
 
     testWidgets('active gear renders nothing', (tester) async {
