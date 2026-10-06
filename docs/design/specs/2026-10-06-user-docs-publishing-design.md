@@ -303,7 +303,10 @@ the existing broken-link check fails them.
    - Insights and Planning (statistics, planning, weight-planner, safety)
    - Setup and Data (settings, update-channels, backup-and-restore,
      multi-device-sync, media-sync, encrypted-sync, debug-mode)
-   - Reference (glossary, and `_sidebar.md` entries for new pages)
+   - Reference (glossary)
+
+   A PR that creates a page adds its `_sidebar.md` entry itself (guard rule 2
+   fails it otherwise), so Diver and Gear adds Cylinder Passports.
 
    Each PR folds in its pages' rows of the fold-in map, fixes the known stale
    claims on its pages, audits every remaining claim, and lists the claims it
