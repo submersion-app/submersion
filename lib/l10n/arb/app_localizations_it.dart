@@ -3372,6 +3372,120 @@ class AppLocalizationsIt extends AppLocalizations {
   String get certifications_edit_label_agency => 'Ente *';
 
   @override
+  String get certificationAgencies_unknownAgency => 'Ente sconosciuto';
+
+  @override
+  String get certificationAgencies_unknownCertification =>
+      'Certificazione sconosciuta';
+
+  @override
+  String get certificationAgencies_addCustomAgency =>
+      'Aggiungi ente personalizzato...';
+
+  @override
+  String get certificationAgencies_addCustomCertification =>
+      'Aggiungi certificazione personalizzata...';
+
+  @override
+  String get certificationAgencies_dialog_newAgencyTitle => 'Nuovo ente';
+
+  @override
+  String get certificationAgencies_dialog_editAgencyTitle => 'Modifica ente';
+
+  @override
+  String get certificationAgencies_dialog_newCertificationTitle =>
+      'Nuova certificazione';
+
+  @override
+  String get certificationAgencies_dialog_editCertificationTitle =>
+      'Modifica certificazione';
+
+  @override
+  String get certificationAgencies_dialog_nameLabel => 'Nome';
+
+  @override
+  String get certificationAgencies_dialog_colorLabel => 'Colore della tessera';
+
+  @override
+  String get certificationAgencies_dialog_specialty => 'Specialità';
+
+  @override
+  String get certificationAgencies_error_nameRequired => 'Inserisci un nome';
+
+  @override
+  String get certificationAgencies_error_nameTaken =>
+      'Questo nome è già in uso';
+
+  @override
+  String get settings_manage_certificationAgencies => 'Enti di certificazione';
+
+  @override
+  String get settings_manage_certificationAgencies_subtitle =>
+      'Gestisci enti e certificazioni personalizzati';
+
+  @override
+  String get certificationAgencies_section_yours => 'I tuoi enti';
+
+  @override
+  String get certificationAgencies_section_builtIn => 'Enti predefiniti';
+
+  @override
+  String get certificationAgencies_addAgency => 'Aggiungi ente';
+
+  @override
+  String certificationAgencies_sharedBy(String name) {
+    return 'Condiviso da $name';
+  }
+
+  @override
+  String get certificationAgencies_editor_addCertification =>
+      'Aggiungi certificazione';
+
+  @override
+  String get certificationAgencies_editor_builtInHint =>
+      'Le certificazioni predefinite non si possono modificare. Puoi aggiungerne di tue.';
+
+  @override
+  String certificationAgencies_delete_confirmTitle(String name) {
+    return 'Eliminare $name?';
+  }
+
+  @override
+  String get certificationAgencies_delete_refusedTitle => 'Ancora in uso';
+
+  @override
+  String certificationAgencies_delete_refusedBody(String usage) {
+    return 'Usato da $usage. Modificali prima.';
+  }
+
+  @override
+  String certificationAgencies_usage_certifications(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count certificazioni',
+      one: '1 certificazione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_courses(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count corsi',
+      one: '1 corso',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_and(String first, String second) {
+    return '$first e $second';
+  }
+
+  @override
   String get certifications_edit_addRecognition =>
       'Aggiungi un altro riconoscimento';
 
@@ -11633,6 +11747,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_certificationAgency_ffessm => 'FFESSM';
+
+  @override
+  String get enum_certificationAgency_acuc => 'ACUC';
+
+  @override
+  String get enum_certificationAgency_dan => 'DAN';
 
   @override
   String get enum_certificationAgency_gue => 'GUE';

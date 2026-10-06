@@ -19,12 +19,4 @@ extension EquipmentLocationMigrations on AppDatabase {
     await Migrator(this).createTable(equipmentLocations);
     await Migrator(this).createTable(equipmentLocationMoves);
   }
-
-  /// The beforeOpen backstop for the equipment child schemas: v234's
-  /// sharing tables and v268's location tables. Grouped so the backstop
-  /// list in before_open.dart does not grow past its size cap.
-  Future<void> _assertEquipmentSchemaBackstops() async {
-    await _assertEquipmentSharingSchema();
-    await _assertEquipmentLocationSchema();
-  }
 }

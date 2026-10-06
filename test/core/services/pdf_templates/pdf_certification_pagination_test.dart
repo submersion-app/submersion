@@ -39,7 +39,7 @@ void main() {
     (i) => Certification(
       id: 'c$i',
       name: 'Specialty$i',
-      agency: CertificationAgency.padi,
+      agency: CertificationAgency.padi.name,
       cardNumber: 'CARD-$i',
       issueDate: DateTime(2019, 1, 1),
       expiryDate: DateTime(2030, 6, 30),

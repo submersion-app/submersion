@@ -9,7 +9,6 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/core/constants/certification_levels.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/presentation/widgets/instructor_picker_field.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -19,9 +18,13 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/certifications/presentation/widgets/certification_option.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
-import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/certification_agencies/presentation/widgets/certification_agency_dropdown.dart';
+import 'package:submersion/features/certification_agencies/presentation/widgets/certification_level_dialog.dart';
 
 class CertificationEditPage extends ConsumerStatefulWidget {
   final String? certificationId;
@@ -77,8 +80,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
   final _instructorNumberController = TextEditingController();
   final _notesController = TextEditingController();
 
-  CertificationAgency _agency = CertificationAgency.padi;
-  CertificationLevel? _level;
+  /// Agency and level ids: built-in enum names or custom ids (issue #690).
+  String _agency = CertificationAgency.padi.name;
+  String? _level;
 
   /// Recognitions this card grants beyond ([_agency], [_level]). Rendered as
   /// equal rows in the credential list -- ([_agency], [_level]) is just row 0,
@@ -133,7 +137,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     _originalCertification = cert;
     // A name that merely repeats agency + level is shown as blank, so the
     // field's hint offers the derivation instead of duplicating it.
-    _nameController.text = hasDerivedName(cert) ? '' : cert.name;
+    _nameController.text = hasDerivedName(cert, catalog: _catalog)
+        ? ''
+        : cert.name;
     _cardNumberController.text = cert.cardNumber ?? '';
     _instructorNameController.text = cert.instructorName ?? '';
     _instructorNumberController.text = cert.instructorNumber ?? '';
@@ -160,7 +166,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
       if (cert != null && mounted) {
         _originalCertification = cert;
         // See _prefillFrom: a derived name renders as a blank field.
-        _nameController.text = hasDerivedName(cert) ? '' : cert.name;
+        _nameController.text = hasDerivedName(cert, catalog: _catalog)
+            ? ''
+            : cert.name;
         _cardNumberController.text = cert.cardNumber ?? '';
         _instructorNameController.text = cert.instructorName ?? '';
         _instructorNumberController.text = cert.instructorNumber ?? '';
@@ -405,19 +413,30 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     super.dispose();
   }
 
-  CertificationAgency _agencyAt(int i) =>
-      i == 0 ? _agency : _extraCredentials[i - 1].agency;
-  CertificationLevel? _levelAt(int i) =>
-      i == 0 ? _level : _extraCredentials[i - 1].level;
+  /// Built-in and custom agencies and levels (issue #690).
+  CertificationCatalog get _catalog => context.certificationCatalog;
 
-  void _setAgencyAt(int i, CertificationAgency agency) {
+  /// Bumped to remount a level field after the add action, so the action
+  /// row is never left showing as the selection when the dialog is
+  /// cancelled.
+  int _levelRevision = 0;
+
+  String _agencyAt(int i) => i == 0 ? _agency : _extraCredentials[i - 1].agency;
+  String? _levelAt(int i) => i == 0 ? _level : _extraCredentials[i - 1].level;
+
+  void _setAgencyAt(int i, String agency) {
     setState(() {
       // A level from another agency's catalog is reset -- a visible
       // consequence of the user's own switch.
       final level = _levelAt(i);
+      // A custom agency has no built-in rungs. Checked by id as well as by
+      // catalog, because one just created from the dropdown is not in the
+      // catalog until it reloads (issue #690).
+      final customAgency = CertificationAgency.fromId(agency) == null;
       final resetLevel =
           level != null &&
-          !CertificationLevelCatalog.levelsFor(agency).contains(level);
+          ((customAgency && CertificationLevel.fromId(level) != null) ||
+              !_catalog.levelsFor(agency).any((e) => e.id == level));
       if (i == 0) {
         _agency = agency;
         if (resetLevel) _level = null;
@@ -429,7 +448,27 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     });
   }
 
-  void _setLevelAt(int i, CertificationLevel? level) {
+  /// The add action opens the certification dialog for [agency] and selects
+  /// what it creates; any other option is an ordinary selection.
+  Future<void> _onLevelChanged(
+    int i,
+    String agency,
+    CertificationOption? option,
+  ) async {
+    if (option == null || !option.isAddCustom) {
+      _setLevelAt(i, option?.level);
+      return;
+    }
+    final created = await showCertificationLevelDialog(
+      context,
+      agencyId: agency,
+    );
+    if (!mounted) return;
+    setState(() => _levelRevision++);
+    if (created != null) _setLevelAt(i, created.id);
+  }
+
+  void _setLevelAt(int i, String? level) {
     setState(() {
       if (i == 0) {
         _level = level;
@@ -467,32 +506,18 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DropdownButtonFormField<CertificationAgency>(
+              CertificationAgencyDropdown(
                 key: ValueKey('cred-agency-$i'),
-                initialValue: agency,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  labelText: context.l10n.certifications_edit_label_agency,
-                  prefixIcon: const Icon(Icons.business),
-                  isDense: true,
-                ),
-                items: CertificationAgency.values
-                    .map(
-                      (a) => DropdownMenuItem(
-                        value: a,
-                        child: Text(a.localizedName(context.l10n)),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) _setAgencyAt(i, value);
-                },
+                value: agency,
+                labelText: context.l10n.certifications_edit_label_agency,
+                isDense: true,
+                onChanged: (value) => _setAgencyAt(i, value),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<CertificationOption>(
                 // The key forces a remount when the agency changes or the
                 // level is reset externally, so initialValue is re-read.
-                key: ValueKey('cred-level-$i-${agency.name}-${level?.name}'),
+                key: ValueKey('cred-level-$i-$agency-$level-$_levelRevision'),
                 initialValue: CertificationOption.value(level),
                 isExpanded: true,
                 decoration: InputDecoration(
@@ -502,7 +527,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   isDense: true,
                 ),
                 items: _certificationItems(context, agency, level),
-                onChanged: (option) => _setLevelAt(i, option?.level),
+                onChanged: (option) => _onLevelChanged(i, agency, option),
               ),
             ],
           ),
@@ -526,20 +551,20 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
   /// the clear-selection choice, not for any correctness reason.
   List<DropdownMenuItem<CertificationOption>> _certificationItems(
     BuildContext context,
-    CertificationAgency agency,
-    CertificationLevel? level,
+    String agency,
+    String? level,
   ) {
     final theme = Theme.of(context);
-    final ladder = CertificationLevelCatalog.ladderFor(agency);
-    final specialties = CertificationLevelCatalog.specialtiesFor(agency);
+    final ladder = _catalog.ladderFor(agency);
+    final specialties = _catalog.specialtiesFor(agency);
 
     // A stored value from another agency's catalog still has to render.
     final extra =
         (level != null &&
-            level != CertificationLevel.other &&
-            !ladder.contains(level) &&
-            !specialties.contains(level))
-        ? level
+            level != CertificationLevel.other.name &&
+            !ladder.any((e) => e.id == level) &&
+            !specialties.any((e) => e.id == level))
+        ? _catalog.level(level)
         : null;
 
     DropdownMenuItem<CertificationOption> header(String key, String text) =>
@@ -555,9 +580,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
           ),
         );
 
-    DropdownMenuItem<CertificationOption> item(CertificationLevel value) =>
+    DropdownMenuItem<CertificationOption> item(LevelEntry value) =>
         DropdownMenuItem<CertificationOption>(
-          value: CertificationOption.value(value),
+          value: CertificationOption.value(value.id),
           child: Text(value.localizedName(context.l10n)),
         );
 
@@ -573,12 +598,24 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
       header('specialties', context.l10n.certifications_edit_group_specialties),
       ...specialties.map(item),
       if (extra != null) item(extra),
-      item(CertificationLevel.other),
+      // Another diver's custom agency takes certifications from its owner
+      // only (issue #690).
+      if (_catalog.customAgency(agency) == null ||
+          _catalog.canEditAgency(agency))
+        DropdownMenuItem<CertificationOption>(
+          value: const CertificationOption.addCustom(),
+          child: Text(
+            context.l10n.certificationAgencies_addCustomCertification,
+            style: TextStyle(color: theme.colorScheme.primary),
+          ),
+        ),
+      item(_catalog.level(CertificationLevel.other.name)),
     ];
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(certificationCatalogSyncProvider);
     final body = _isLoading
         ? const Center(child: CircularProgressIndicator())
         : SingleChildScrollView(
@@ -622,6 +659,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                         _agency,
                         _level,
                         context.l10n,
+                        catalog: context.certificationCatalog,
                       ),
                       helperText:
                           context.l10n.certifications_edit_helper_nameOnCard,
@@ -1148,8 +1186,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
 
 /// A mutable (agency, level) pair while the credential list is being edited.
 class _Cred {
-  CertificationAgency agency;
-  CertificationLevel? level;
+  String agency;
+  String? level;
   _Cred(this.agency, this.level);
 }
 
@@ -1170,6 +1208,7 @@ class _DatePickerField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final units = UnitFormatter(ref.watch(settingsProvider));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

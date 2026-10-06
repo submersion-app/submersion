@@ -15,7 +15,7 @@ Certification _cert(DateTime? issueDate, {String name = 'Open Water'}) =>
     Certification(
       id: name,
       name: name,
-      agency: CertificationAgency.padi,
+      agency: CertificationAgency.padi.name,
       issueDate: issueDate,
       createdAt: DateTime(2026, 1, 1),
       updatedAt: DateTime(2026, 1, 1),

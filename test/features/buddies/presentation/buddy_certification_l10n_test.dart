@@ -7,11 +7,7 @@ import 'package:submersion/features/buddies/presentation/buddy_certification_l10
 import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-Buddy _buddy({
-  CertificationLevel? level,
-  CertificationAgency? agency,
-  String? title,
-}) {
+Buddy _buddy({String? level, String? agency, String? title}) {
   final now = DateTime(2026, 1, 1);
   return Buddy(
     id: 'b1',
@@ -32,20 +28,23 @@ void main() {
     test('in English it matches the English certificationLine getter', () {
       final cases = [
         _buddy(),
-        _buddy(agency: CertificationAgency.padi),
-        _buddy(agency: CertificationAgency.other),
+        _buddy(agency: CertificationAgency.padi.name),
+        _buddy(agency: CertificationAgency.other.name),
         _buddy(
-          level: CertificationLevel.advancedOpenWater,
-          agency: CertificationAgency.padi,
+          level: CertificationLevel.advancedOpenWater.name,
+          agency: CertificationAgency.padi.name,
           title: 'Advanced Open Water',
         ),
         _buddy(
-          level: CertificationLevel.diveMaster,
-          agency: CertificationAgency.padi,
+          level: CertificationLevel.diveMaster.name,
+          agency: CertificationAgency.padi.name,
           title: 'Bill Ansell',
         ),
-        _buddy(agency: CertificationAgency.padi, title: 'PADI Rescue Diver'),
-        _buddy(level: CertificationLevel.openWater, title: 'Open Water'),
+        _buddy(
+          agency: CertificationAgency.padi.name,
+          title: 'PADI Rescue Diver',
+        ),
+        _buddy(level: CertificationLevel.openWater.name, title: 'Open Water'),
       ];
       for (final b in cases) {
         expect(buddyCertificationLineL10n(b, en), b.certificationLine);
@@ -54,8 +53,8 @@ void main() {
 
     test('a derived (level) line is rendered through the active locale', () {
       final b = _buddy(
-        level: CertificationLevel.advancedNitrox,
-        agency: CertificationAgency.tdi,
+        level: CertificationLevel.advancedNitrox.name,
+        agency: CertificationAgency.tdi.name,
       );
       // The level name comes from the locale; the agency acronym does not.
       expect(
@@ -71,14 +70,17 @@ void main() {
     });
 
     test('a custom "Name on the card" is never translated', () {
-      final b = _buddy(agency: CertificationAgency.padi, title: 'Bill Ansell');
+      final b = _buddy(
+        agency: CertificationAgency.padi.name,
+        title: 'Bill Ansell',
+      );
       expect(buddyCertificationLineL10n(b, fr), 'Bill Ansell · PADI');
       expect(buddyCertificationLineL10n(b, en), 'Bill Ansell · PADI');
     });
 
     test('an agency spelled inside the custom title is not repeated', () {
       final b = _buddy(
-        agency: CertificationAgency.padi,
+        agency: CertificationAgency.padi.name,
         title: 'PADI - Rescue Diver',
       );
       expect(buddyCertificationLineL10n(b, fr), 'PADI - Rescue Diver');
@@ -89,7 +91,7 @@ void main() {
       expect(buddyCertificationLineL10n(_buddy(), fr), isNull);
       expect(
         buddyCertificationLineL10n(
-          _buddy(agency: CertificationAgency.other),
+          _buddy(agency: CertificationAgency.other.name),
           fr,
         ),
         isNull,

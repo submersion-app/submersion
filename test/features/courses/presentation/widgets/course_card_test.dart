@@ -11,7 +11,7 @@ final _course = Course(
   id: 'c1',
   diverId: 'd1',
   name: 'Advanced Open Water Diver',
-  agency: CertificationAgency.padi,
+  agency: CertificationAgency.padi.name,
   startDate: DateTime(2025, 12, 28),
   instructorName: 'Maximiliane Schwarzenberger-Hoffmann',
   createdAt: DateTime(2026),

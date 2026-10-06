@@ -51,6 +51,9 @@ import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/certification_agencies/data/repositories/custom_certification_repository.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_agency.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_level.dart';
 
 @GenerateMocks([
   DiveRoleRepository,
@@ -117,7 +120,9 @@ void main() {
     serveFakeHost('nominatim.openstreetmap.org');
   });
 
-  final importer = UddfEntityImporter();
+  final importer = UddfEntityImporter(
+    customCertifications: _NoCustomCertifications(),
+  );
   const diverId = 'diver-123';
   final now = DateTime(2024, 1, 15);
 
@@ -984,8 +989,14 @@ void main() {
       final captured = verify(
         mockCertificationRepo.createCertification(captureAny),
       ).captured;
-      expect((captured[0] as Certification).agency, CertificationAgency.padi);
-      expect((captured[1] as Certification).agency, CertificationAgency.ssi);
+      expect(
+        (captured[0] as Certification).agency,
+        CertificationAgency.padi.name,
+      );
+      expect(
+        (captured[1] as Certification).agency,
+        CertificationAgency.ssi.name,
+      );
     });
   });
 
@@ -3619,7 +3630,7 @@ void main() {
         mockCertificationRepo.createCertification(captureAny),
       ).captured;
       final cert = captured[0] as Certification;
-      expect(cert.level, CertificationLevel.advancedOpenWater);
+      expect(cert.level, CertificationLevel.advancedOpenWater.name);
       expect(cert.buddyId, isNotNull);
     });
 
@@ -3653,7 +3664,7 @@ void main() {
         mockCertificationRepo.createCertification(captureAny),
       ).captured;
       final cert = captured[0] as Certification;
-      expect(cert.agency, CertificationAgency.ssi);
+      expect(cert.agency, CertificationAgency.ssi.name);
     });
 
     test('returns null for unrecognized certificationLevel', () async {
@@ -4613,4 +4624,31 @@ void main() {
       verify(mockServiceRecordRepo.createRecord(any)).called(2);
     });
   });
+}
+
+/// These tests run on mocked repositories with no database: no custom
+/// agencies or levels exist, and one an import creates lives in memory
+/// (issue #690).
+class _NoCustomCertifications extends CustomCertificationRepository {
+  @override
+  Future<List<CustomCertificationAgency>> getAllAgencies() async => const [];
+
+  @override
+  Future<List<CustomCertificationLevel>> getAllLevels() async => const [];
+
+  @override
+  Future<CustomCertificationAgency> createAgency({
+    required String diverId,
+    required String name,
+    int? colorArgb,
+    required bool isShared,
+  }) async => CustomCertificationAgency(
+    id: 'custom-${name.toLowerCase()}',
+    diverId: diverId,
+    name: name,
+    colorArgb: colorArgb ?? 0xFF3B82F6,
+    isShared: isShared,
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  );
 }

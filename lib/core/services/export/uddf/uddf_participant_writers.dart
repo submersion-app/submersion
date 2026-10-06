@@ -3,6 +3,7 @@ import 'package:xml/xml.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Participant elements shared by the full backup and the dives-only
 /// export, so the two paths write people the same way.
@@ -36,7 +37,10 @@ abstract final class UddfParticipantWriters {
     XmlBuilder builder,
     Iterable<Buddy> people, {
     bool trimmed = false,
+    CertificationCatalog? certificationCatalog,
   }) {
+    // Custom agencies and levels export by name (issue #690).
+    final catalog = certificationCatalog ?? CertificationCatalog.builtInOnly;
     for (final buddy in people) {
       builder.element(
         'buddy',
@@ -62,13 +66,13 @@ abstract final class UddfParticipantWriters {
                 if (buddy.certificationLevel != null) {
                   builder.element(
                     'level',
-                    nest: buddy.certificationLevel!.name,
+                    nest: catalog.levelExportText(buddy.certificationLevel!),
                   );
                 }
                 if (buddy.certificationAgency != null) {
                   builder.element(
                     'agency',
-                    nest: buddy.certificationAgency!.name,
+                    nest: catalog.agencyExportText(buddy.certificationAgency!),
                   );
                 }
               },

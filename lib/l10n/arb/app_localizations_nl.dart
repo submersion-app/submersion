@@ -3350,6 +3350,123 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_edit_label_agency => 'Organisatie *';
 
   @override
+  String get certificationAgencies_unknownAgency => 'Onbekende organisatie';
+
+  @override
+  String get certificationAgencies_unknownCertification =>
+      'Onbekende certificering';
+
+  @override
+  String get certificationAgencies_addCustomAgency =>
+      'Eigen organisatie toevoegen...';
+
+  @override
+  String get certificationAgencies_addCustomCertification =>
+      'Eigen certificering toevoegen...';
+
+  @override
+  String get certificationAgencies_dialog_newAgencyTitle =>
+      'Nieuwe organisatie';
+
+  @override
+  String get certificationAgencies_dialog_editAgencyTitle =>
+      'Organisatie bewerken';
+
+  @override
+  String get certificationAgencies_dialog_newCertificationTitle =>
+      'Nieuwe certificering';
+
+  @override
+  String get certificationAgencies_dialog_editCertificationTitle =>
+      'Certificering bewerken';
+
+  @override
+  String get certificationAgencies_dialog_nameLabel => 'Naam';
+
+  @override
+  String get certificationAgencies_dialog_colorLabel => 'Kaartkleur';
+
+  @override
+  String get certificationAgencies_dialog_specialty => 'Specialisatie';
+
+  @override
+  String get certificationAgencies_error_nameRequired => 'Voer een naam in';
+
+  @override
+  String get certificationAgencies_error_nameTaken =>
+      'Deze naam is al in gebruik';
+
+  @override
+  String get settings_manage_certificationAgencies =>
+      'Certificeringsorganisaties';
+
+  @override
+  String get settings_manage_certificationAgencies_subtitle =>
+      'Eigen organisaties en certificeringen beheren';
+
+  @override
+  String get certificationAgencies_section_yours => 'Jouw organisaties';
+
+  @override
+  String get certificationAgencies_section_builtIn => 'Ingebouwde organisaties';
+
+  @override
+  String get certificationAgencies_addAgency => 'Organisatie toevoegen';
+
+  @override
+  String certificationAgencies_sharedBy(String name) {
+    return 'Gedeeld door $name';
+  }
+
+  @override
+  String get certificationAgencies_editor_addCertification =>
+      'Certificering toevoegen';
+
+  @override
+  String get certificationAgencies_editor_builtInHint =>
+      'Ingebouwde certificeringen kun je niet wijzigen. Je kunt er zelf toevoegen.';
+
+  @override
+  String certificationAgencies_delete_confirmTitle(String name) {
+    return '$name verwijderen?';
+  }
+
+  @override
+  String get certificationAgencies_delete_refusedTitle => 'Nog in gebruik';
+
+  @override
+  String certificationAgencies_delete_refusedBody(String usage) {
+    return 'Gebruikt door $usage. Pas die eerst aan.';
+  }
+
+  @override
+  String certificationAgencies_usage_certifications(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count certificeringen',
+      one: '1 certificering',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_courses(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cursussen',
+      one: '1 cursus',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_and(String first, String second) {
+    return '$first en $second';
+  }
+
+  @override
   String get certifications_edit_addRecognition =>
       'Nog een erkenning toevoegen';
 
@@ -11546,6 +11663,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_certificationAgency_ffessm => 'FFESSM';
+
+  @override
+  String get enum_certificationAgency_acuc => 'ACUC';
+
+  @override
+  String get enum_certificationAgency_dan => 'DAN';
 
   @override
   String get enum_certificationAgency_gue => 'GUE';

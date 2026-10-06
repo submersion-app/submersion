@@ -8,7 +8,7 @@ void main() {
   Certification make() => Certification(
     id: 'cert-1',
     name: 'Rescue Diver',
-    agency: CertificationAgency.padi,
+    agency: CertificationAgency.padi.name,
     instructorName: 'Jane Instructor',
     instructorNumber: '12345',
     instructorId: 'buddy-1',

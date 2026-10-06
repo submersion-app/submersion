@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Entity handed to [BuddyFieldAdapter]. An alias of the repository's class so
 /// the table view and the list cards share one type with no conversion.
@@ -139,7 +139,15 @@ enum BuddyField implements EntityField {
 /// generic table infrastructure.
 class BuddyFieldAdapter extends EntityFieldAdapter<BuddyWithCount, BuddyField> {
   static final BuddyFieldAdapter instance = BuddyFieldAdapter._();
-  BuddyFieldAdapter._();
+  BuddyFieldAdapter._({CertificationCatalog? catalog})
+    : _catalog = catalog ?? CertificationCatalog.builtInOnly;
+
+  /// An adapter that names custom agencies and levels from [catalog]
+  /// (issue #690). The shared [instance] knows built-ins only.
+  factory BuddyFieldAdapter.withCatalog(CertificationCatalog catalog) =>
+      BuddyFieldAdapter._(catalog: catalog);
+
+  final CertificationCatalog _catalog;
 
   static const List<BuddyField> _allFields = BuddyField.values;
 
@@ -176,9 +184,9 @@ class BuddyFieldAdapter extends EntityFieldAdapter<BuddyWithCount, BuddyField> {
     if (value == null) return kFieldValuePlaceholder;
     return switch (field) {
       BuddyField.certificationLevel =>
-        (value as CertificationLevel).displayName,
+        _catalog.level(value as String).interchangeName,
       BuddyField.certificationAgency =>
-        (value as CertificationAgency).displayName,
+        _catalog.agency(value as String).interchangeName,
       BuddyField.diveCount => (value as int).toString(),
       BuddyField.lastDive => units.formatDate(value as DateTime),
       _ =>

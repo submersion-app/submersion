@@ -63,8 +63,8 @@ void main() {
         id: '',
         buddyId: instructor.id,
         name: 'Rescue Diver',
-        agency: CertificationAgency.padi,
-        level: CertificationLevel.rescue,
+        agency: CertificationAgency.padi.name,
+        level: CertificationLevel.rescue.name,
         createdAt: now,
         updatedAt: now,
       ),
@@ -163,8 +163,8 @@ void main() {
     final tom = (await BuddyRepository().getBuddiesForDive(
       restored.id,
     )).singleWhere((b) => b.buddy.name == 'Tom Lee').buddy;
-    expect(tom.certificationLevel, CertificationLevel.rescue);
-    expect(tom.certificationAgency, CertificationAgency.padi);
+    expect(tom.certificationLevel, CertificationLevel.rescue.name);
+    expect(tom.certificationAgency, CertificationAgency.padi.name);
     expect(roles, {
       'Nicol Sorin': DiveRole.diveGuideId,
       'Ana Reyes': DiveRole.diveMasterId,

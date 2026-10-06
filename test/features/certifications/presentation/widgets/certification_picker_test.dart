@@ -24,9 +24,9 @@ final _now = DateTime(2026, 8, 24);
 
 Certification _makeCert({
   required String name,
-  CertificationLevel? level,
+  String? level,
   DateTime? issueDate,
-  CertificationAgency agency = CertificationAgency.padi,
+  String agency = 'padi',
   List<CertificationCredential> additionalCredentials = const [],
 }) {
   return Certification(
@@ -114,7 +114,10 @@ void main() {
       // place left for the level.
       await _pumpField(
         tester,
-        _makeCert(name: 'Bill Ansell', level: CertificationLevel.diveMaster),
+        _makeCert(
+          name: 'Bill Ansell',
+          level: CertificationLevel.diveMaster.name,
+        ),
       );
 
       expect(find.text('Bill Ansell'), findsOneWidget);
@@ -124,7 +127,7 @@ void main() {
     testWidgets('a derived title does not repeat the level', (tester) async {
       await _pumpField(
         tester,
-        _makeCert(name: '', level: CertificationLevel.diveMaster),
+        _makeCert(name: '', level: CertificationLevel.diveMaster.name),
       );
 
       expect(find.text('Divemaster'), findsOneWidget);
@@ -138,13 +141,10 @@ void main() {
         tester,
         _makeCert(
           name: '',
-          agency: CertificationAgency.ffessm,
-          level: CertificationLevel.ffessmN1,
+          agency: CertificationAgency.ffessm.name,
+          level: CertificationLevel.ffessmN1.name,
           additionalCredentials: const [
-            CertificationCredential(
-              agency: CertificationAgency.cmas,
-              level: CertificationLevel.cmas1StarDiver,
-            ),
+            CertificationCredential(agency: 'cmas', level: 'cmas1StarDiver'),
           ],
         ),
       );
@@ -162,7 +162,7 @@ void main() {
       await _pumpSheet(tester, [
         _makeCert(
           name: 'Bill Ansell',
-          level: CertificationLevel.diveMaster,
+          level: CertificationLevel.diveMaster.name,
           issueDate: DateTime(2026, 8, 24),
         ),
       ]);
@@ -177,7 +177,10 @@ void main() {
       tester,
     ) async {
       await _pumpSheet(tester, [
-        _makeCert(name: 'Bill Ansell', level: CertificationLevel.diveMaster),
+        _makeCert(
+          name: 'Bill Ansell',
+          level: CertificationLevel.diveMaster.name,
+        ),
       ]);
 
       expect(_subtitleOf(tester, find.byType(ListTile)), 'PADI - Divemaster');
@@ -191,13 +194,10 @@ void main() {
       await _pumpSheet(tester, [
         _makeCert(
           name: '',
-          agency: CertificationAgency.ffessm,
-          level: CertificationLevel.ffessmN1,
+          agency: CertificationAgency.ffessm.name,
+          level: CertificationLevel.ffessmN1.name,
           additionalCredentials: const [
-            CertificationCredential(
-              agency: CertificationAgency.cmas,
-              level: CertificationLevel.cmas1StarDiver,
-            ),
+            CertificationCredential(agency: 'cmas', level: 'cmas1StarDiver'),
           ],
         ),
       ]);
@@ -217,7 +217,10 @@ void main() {
       final handle = tester.ensureSemantics();
 
       await _pumpSheet(tester, [
-        _makeCert(name: 'Bill Ansell', level: CertificationLevel.diveMaster),
+        _makeCert(
+          name: 'Bill Ansell',
+          level: CertificationLevel.diveMaster.name,
+        ),
       ]);
 
       // A screen reader must hear the level even when a custom name owns the
@@ -252,7 +255,7 @@ void main() {
               (ref) => _MockCertListNotifier([
                 _makeCert(
                   name: 'Bill Ansell',
-                  level: CertificationLevel.diveMaster,
+                  level: CertificationLevel.diveMaster.name,
                 ),
               ]),
             ),
@@ -284,7 +287,7 @@ void main() {
       final handle = tester.ensureSemantics();
 
       await _pumpSheet(tester, [
-        _makeCert(name: '', level: CertificationLevel.diveMaster),
+        _makeCert(name: '', level: CertificationLevel.diveMaster.name),
       ]);
 
       expect(_subtitleOf(tester, find.byType(ListTile)), 'PADI');

@@ -35,7 +35,7 @@ void main() {
     id: '',
     buddyId: buddyId,
     name: name,
-    agency: CertificationAgency.padi,
+    agency: CertificationAgency.padi.name,
     createdAt: DateTime.now(),
     updatedAt: DateTime.now(),
   );

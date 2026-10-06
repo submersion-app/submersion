@@ -79,8 +79,8 @@ final _now = DateTime.now();
 Certification _makeCert({
   required String id,
   required String name,
-  CertificationAgency agency = CertificationAgency.padi,
-  CertificationLevel? level,
+  String agency = 'padi',
+  String? level,
   DateTime? issueDate,
   DateTime? expiryDate,
 }) {
@@ -344,15 +344,15 @@ void main() {
         _makeCert(
           id: 'c1',
           name: 'Open Water Diver',
-          agency: CertificationAgency.padi,
-          level: CertificationLevel.openWater,
+          agency: CertificationAgency.padi.name,
+          level: CertificationLevel.openWater.name,
           issueDate: DateTime(2023, 1, 15),
         ),
         _makeCert(
           id: 'c2',
           name: 'Advanced Open Water',
-          agency: CertificationAgency.ssi,
-          level: CertificationLevel.advancedOpenWater,
+          agency: CertificationAgency.ssi.name,
+          level: CertificationLevel.advancedOpenWater.name,
           issueDate: DateTime(2023, 6, 20),
         ),
       ];
@@ -473,8 +473,8 @@ void main() {
         _makeCert(
           id: 'c1',
           name: 'Open Water Diver',
-          agency: CertificationAgency.padi,
-          level: CertificationLevel.openWater,
+          agency: CertificationAgency.padi.name,
+          level: CertificationLevel.openWater.name,
           issueDate: DateTime(2023, 1, 15),
         ),
       ];
@@ -498,7 +498,7 @@ void main() {
         _makeCert(
           id: 'exp1',
           name: 'First Aid',
-          agency: CertificationAgency.padi,
+          agency: CertificationAgency.padi.name,
           issueDate: DateTime(2021, 1, 1),
           expiryDate: DateTime(2023, 1, 1),
         ),
@@ -522,18 +522,22 @@ void main() {
         _makeCert(
           id: 'ml1',
           name: 'Open Water',
-          level: CertificationLevel.openWater,
+          level: CertificationLevel.openWater.name,
         ),
         _makeCert(
           id: 'ml2',
           name: 'Advanced',
-          level: CertificationLevel.advancedOpenWater,
+          level: CertificationLevel.advancedOpenWater.name,
         ),
-        _makeCert(id: 'ml3', name: 'Rescue', level: CertificationLevel.rescue),
+        _makeCert(
+          id: 'ml3',
+          name: 'Rescue',
+          level: CertificationLevel.rescue.name,
+        ),
         _makeCert(
           id: 'ml4',
           name: 'Divemaster',
-          level: CertificationLevel.diveMaster,
+          level: CertificationLevel.diveMaster.name,
         ),
       ];
 
@@ -561,13 +565,17 @@ void main() {
         _makeCert(
           id: 'a1',
           name: 'PADI Cert',
-          agency: CertificationAgency.padi,
+          agency: CertificationAgency.padi.name,
         ),
-        _makeCert(id: 'a2', name: 'SSI Cert', agency: CertificationAgency.ssi),
+        _makeCert(
+          id: 'a2',
+          name: 'SSI Cert',
+          agency: CertificationAgency.ssi.name,
+        ),
         _makeCert(
           id: 'a3',
           name: 'NAUI Cert',
-          agency: CertificationAgency.naui,
+          agency: CertificationAgency.naui.name,
         ),
       ];
 
@@ -782,7 +790,11 @@ void main() {
     ) async {
       final overrides = await _buildOverrides(
         certs: [
-          _makeCert(id: 'n1', name: '', level: CertificationLevel.openWater),
+          _makeCert(
+            id: 'n1',
+            name: '',
+            level: CertificationLevel.openWater.name,
+          ),
         ],
       );
 
@@ -807,7 +819,7 @@ void main() {
           _makeCert(
             id: 'n3',
             name: 'PADI : Open Water',
-            level: CertificationLevel.openWater,
+            level: CertificationLevel.openWater.name,
           ),
         ],
       );
@@ -836,7 +848,7 @@ void main() {
           _makeCert(
             id: 'n2',
             name: 'PADI : Open Water',
-            level: CertificationLevel.openWater,
+            level: CertificationLevel.openWater.name,
           ),
         ],
       );
@@ -866,7 +878,7 @@ void main() {
           _makeCert(
             id: 'c1',
             name: 'Bill Ansell',
-            level: CertificationLevel.diveMaster,
+            level: CertificationLevel.diveMaster.name,
             issueDate: DateTime(2026, 8, 24),
           ),
         ],
@@ -893,7 +905,7 @@ void main() {
           _makeCert(
             id: 'c2',
             name: '',
-            level: CertificationLevel.diveMaster,
+            level: CertificationLevel.diveMaster.name,
             issueDate: DateTime(2026, 8, 24),
           ),
         ],
@@ -924,7 +936,7 @@ void main() {
           _makeCert(
             id: 'c3',
             name: 'Bill Ansell',
-            level: CertificationLevel.diveMaster,
+            level: CertificationLevel.diveMaster.name,
           ),
         ],
       );

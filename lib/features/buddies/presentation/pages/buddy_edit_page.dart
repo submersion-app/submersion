@@ -23,6 +23,8 @@ import 'package:submersion/features/buddies/data/repositories/buddy_profile_link
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_merge_form_controller.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 class BuddyEditPage extends ConsumerStatefulWidget {
   final String? buddyId;
@@ -259,6 +261,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(certificationCatalogSyncProvider);
     final body = _isLoading
         ? const Center(child: CircularProgressIndicator())
         : _buildFormBody(context);
@@ -473,9 +476,19 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.card_membership),
-                  title: Text(certificationTitleL10n(cert, context.l10n)),
+                  title: Text(
+                    certificationTitleL10n(
+                      cert,
+                      context.l10n,
+                      catalog: context.certificationCatalog,
+                    ),
+                  ),
                   subtitle: Text(
-                    certificationAgencyAndLevelL10n(cert, context.l10n),
+                    certificationAgencyAndLevelL10n(
+                      cert,
+                      context.l10n,
+                      catalog: context.certificationCatalog,
+                    ),
                   ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,

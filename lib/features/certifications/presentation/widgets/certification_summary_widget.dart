@@ -6,7 +6,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Summary widget shown when no certification is selected.
 class CertificationSummaryWidget extends ConsumerWidget {
@@ -14,6 +16,7 @@ class CertificationSummaryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final certificationsAsync = ref.watch(certificationListNotifierProvider);
 
     return Scaffold(
@@ -218,7 +221,9 @@ class CertificationSummaryWidget extends ConsumerWidget {
                   child: Center(
                     child: Text(
                       _abbreviateAgency(
-                        cert.agency.localizedName(context.l10n),
+                        context.certificationCatalog
+                            .agency(cert.agency)
+                            .localizedName(context.l10n),
                       ),
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -228,9 +233,19 @@ class CertificationSummaryWidget extends ConsumerWidget {
                     ),
                   ),
                 ),
-                title: Text(certificationTitleL10n(cert, context.l10n)),
+                title: Text(
+                  certificationTitleL10n(
+                    cert,
+                    context.l10n,
+                    catalog: context.certificationCatalog,
+                  ),
+                ),
                 subtitle: Text(
-                  certificationAgencyAndLevelL10n(cert, context.l10n),
+                  certificationAgencyAndLevelL10n(
+                    cert,
+                    context.l10n,
+                    catalog: context.certificationCatalog,
+                  ),
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {

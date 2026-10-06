@@ -1842,6 +1842,9 @@ void main() {
 
       expect(find.text('Trimix Mixer'), findsOneWidget);
 
+      // The Certification Agencies tile (issue #690) pushed this one down.
+      await tester.ensureVisible(find.text('Trimix Mixer'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Trimix Mixer'));
       await tester.pumpAndSettle();
 

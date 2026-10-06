@@ -39,6 +39,7 @@ import 'package:submersion/features/site_types/domain/entities/site_type_entity.
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Static XML builder methods for comprehensive UDDF export.
 ///
@@ -755,6 +756,8 @@ class UddfExportBuilders {
     // Each item's tag ids (issue #1942); an item absent from it writes none.
     Map<String, List<String>> equipmentTagIdsByItem = const {},
     List<Certification>? certifications,
+    // Names custom agencies and levels on export (issue #690).
+    CertificationCatalog? certificationCatalog,
     List<DiveCenter>? diveCenters,
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
@@ -787,6 +790,7 @@ class UddfExportBuilders {
     // currency on its items; a backup keeps them.
     bool omitPurchaseDetails = false,
   }) {
+    final catalog = certificationCatalog ?? CertificationCatalog.builtInOnly;
     // Gear provenance per dive (issue #1487): only rows attached through
     // an assembly or applied from a set are worth a link; the standard
     // <equipmentused> list already names every item.
@@ -960,9 +964,15 @@ class UddfExportBuilders {
                       attributes: {'id': 'cert_${cert.id}'},
                       nest: () {
                         builder.element('name', nest: cert.name);
-                        builder.element('agency', nest: cert.agency.name);
+                        builder.element(
+                          'agency',
+                          nest: catalog.agencyExportText(cert.agency),
+                        );
                         if (cert.level != null) {
-                          builder.element('level', nest: cert.level!.name);
+                          builder.element(
+                            'level',
+                            nest: catalog.levelExportText(cert.level!),
+                          );
                         }
                         if (cert.cardNumber != null) {
                           builder.element('cardnumber', nest: cert.cardNumber);
@@ -1453,7 +1463,10 @@ class UddfExportBuilders {
                       attributes: {'id': 'course_${course.id}'},
                       nest: () {
                         builder.element('name', nest: course.name);
-                        builder.element('agency', nest: course.agency.name);
+                        builder.element(
+                          'agency',
+                          nest: catalog.agencyExportText(course.agency),
+                        );
                         builder.element(
                           'startdate',
                           nest: course.startDate.toIso8601String(),

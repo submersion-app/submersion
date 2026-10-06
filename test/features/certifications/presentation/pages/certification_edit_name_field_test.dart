@@ -115,9 +115,7 @@ void main() {
       // Tap the dropdown itself rather than its label text: entering text
       // above scrolls the form, and the label's centre can end up under
       // another field.
-      final agencyDropdown = find.byType(
-        DropdownButtonFormField<CertificationAgency>,
-      );
+      final agencyDropdown = find.byType(DropdownButtonFormField<String>);
       await tester.ensureVisible(agencyDropdown);
       await tester.pumpAndSettle();
       await tester.tap(agencyDropdown);
@@ -139,8 +137,8 @@ void main() {
         Certification(
           id: 'derived-1',
           name: 'PADI : Open Water',
-          agency: CertificationAgency.padi,
-          level: CertificationLevel.openWater,
+          agency: CertificationAgency.padi.name,
+          level: CertificationLevel.openWater.name,
           createdAt: now,
           updatedAt: now,
         ),
@@ -206,8 +204,8 @@ void main() {
       final cert = Certification(
         id: 'cert-123',
         name: 'Rescue Diver',
-        agency: CertificationAgency.padi,
-        level: CertificationLevel.rescue,
+        agency: CertificationAgency.padi.name,
+        level: CertificationLevel.rescue.name,
         cardNumber: '12345',
         notes: 'Some notes',
         createdAt: DateTime.now(),
@@ -230,8 +228,8 @@ void main() {
       final initialCert = Certification(
         id: 'staged-1',
         name: 'Staged Cert',
-        agency: CertificationAgency.ssi,
-        level: CertificationLevel.openWater,
+        agency: CertificationAgency.ssi.name,
+        level: CertificationLevel.openWater.name,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -337,8 +335,8 @@ void main() {
         id: 'cert-1',
         buddyId: 'buddy-1',
         name: 'Instructor',
-        agency: CertificationAgency.padi,
-        level: CertificationLevel.instructor,
+        agency: CertificationAgency.padi.name,
+        level: CertificationLevel.instructor.name,
         cardNumber: '999-PADI',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
@@ -403,7 +401,7 @@ void main() {
       final cert = Certification(
         id: 'cert-to-update',
         name: 'Old Name',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );

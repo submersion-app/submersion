@@ -34,7 +34,7 @@ void main() {
     id: '',
     buddyId: buddyId,
     name: 'Nitrox',
-    agency: CertificationAgency.padi,
+    agency: CertificationAgency.padi.name,
     createdAt: DateTime.now(),
     updatedAt: DateTime.now(),
   );
