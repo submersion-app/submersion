@@ -95,6 +95,13 @@ class Media extends Table {
   // taken_at. Lives on the media row, not on media_enrichment, so it syncs
   // with the row and survives every enrichment recompute.
   IntColumn get manualElapsedSeconds => integer().nullable()();
+
+  /// Site attachment category key (issue #1039), one of
+  /// SiteAttachmentCategory's storage keys; null is uncategorized.
+  TextColumn get siteCategory => text().nullable()();
+
+  /// 'large' or 'tile' (issue #1039); null follows the category default.
+  TextColumn get displaySize => text().nullable()();
   // v189: equipment attachment (issue #1517). Invoices, receipts and warranty
   // paperwork linked to a piece of gear, so an insurance claim after lost
   // luggage, theft or fire has the proof attached to the item it covers.

@@ -30,7 +30,7 @@ void main() {
   }
 
   test('version bookkeeping', () {
-    // Relaxed once v266 (diver_settings.hidden_built_in_ids, #401) landed on
+    // Relaxed once v266 (media site attachment columns, #1039) landed on
     // top; the newest rung owns the exact assertions.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(265));
     expect(AppDatabase.migrationVersions, contains(265));

@@ -16639,6 +16639,93 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_siteMediaSection_addPhotos => 'Add photos or videos';
 
   @override
+  String get media_siteAttachment_categoryAccess => 'Access and entry';
+
+  @override
+  String get media_siteAttachment_categoryAnchorage => 'Anchorage and mooring';
+
+  @override
+  String get media_siteAttachment_categoryGeneral => 'General';
+
+  @override
+  String get media_siteAttachment_categoryLabel => 'Category';
+
+  @override
+  String get media_siteAttachment_categoryNone => 'Uncategorized';
+
+  @override
+  String get media_siteAttachment_categoryParking => 'Parking';
+
+  @override
+  String get media_siteAttachment_categorySiteMap => 'Site map';
+
+  @override
+  String get media_siteAttachment_categoryUnderwater => 'Underwater';
+
+  @override
+  String get media_siteAttachment_detailsTitle => 'Attachment details';
+
+  @override
+  String get media_siteAttachment_editDetails => 'Edit details';
+
+  @override
+  String media_siteAttachment_groupHeading(String category, int count) {
+    return '$category ($count)';
+  }
+
+  @override
+  String get media_siteAttachment_moreOptions => 'More options';
+
+  @override
+  String media_siteAttachment_pageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pages',
+      one: '$count page',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_saveError(Object error) {
+    return 'Couldn\'t save: $error';
+  }
+
+  @override
+  String get media_siteAttachment_setCategory => 'Set category';
+
+  @override
+  String media_siteAttachment_setCategoryError(Object error) {
+    return 'Failed to set category: $error';
+  }
+
+  @override
+  String media_siteAttachment_setCategorySuccess(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Updated $count items',
+      one: 'Updated $count item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_sizeDefault(String size) {
+    return 'Default ($size)';
+  }
+
+  @override
+  String get media_siteAttachment_sizeLabel => 'Display size';
+
+  @override
+  String get media_siteAttachment_sizeLarge => 'Large';
+
+  @override
+  String get media_siteAttachment_sizeTile => 'Tile';
+
+  @override
   String get media_siteMediaSection_addDocument => 'Add document';
 
   @override

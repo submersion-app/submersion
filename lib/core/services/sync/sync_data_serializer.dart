@@ -4181,9 +4181,9 @@ class SyncDataSerializer {
     String entityType,
     Map<String, dynamic> data,
   ) async {
-    data = _withRenamedKeys(
+    data = _withoutUnsetNulls(
       entityType,
-      withoutDeviceLocalColumns(entityType, data),
+      _withRenamedKeys(entityType, withoutDeviceLocalColumns(entityType, data)),
     );
     data = (await _withDeviceLocalFromHere(entityType, [data])).single;
     data = _withSchemaDefaults(
@@ -5042,9 +5042,12 @@ class SyncDataSerializer {
       entityType,
       await _withDeviceLocalFromHere(entityType, [
         for (final record in records)
-          _withRenamedKeys(
+          _withoutUnsetNulls(
             entityType,
-            withoutDeviceLocalColumns(entityType, record),
+            _withRenamedKeys(
+              entityType,
+              withoutDeviceLocalColumns(entityType, record),
+            ),
           ),
       ]),
     );
@@ -8485,6 +8488,30 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
+  /// Nullable columns where null means "never held a value" rather than a
+  /// choice (v262, issue #2948): a device adopts its own old pref into such a
+  /// column. A peer that has none carries no choice, so its null must not
+  /// clear the value this device holds.
+  static const Map<String, Set<String>> _nullMeansUnsetKeys = {
+    'diverSettings': {'pscrRatio', 'profileMetricsFollowViewport'},
+  };
+
+  /// [data] without the [_nullMeansUnsetKeys] it carries as null, so
+  /// [_withLocalForOmitted] keeps this device's value for them.
+  static Map<String, dynamic> _withoutUnsetNulls(
+    String entityType,
+    Map<String, dynamic> data,
+  ) {
+    final keys = _nullMeansUnsetKeys[entityType];
+    if (keys == null) return data;
+    bool unsetNull(String key) => keys.contains(key) && data[key] == null;
+    if (!data.keys.any(unsetNull)) return data;
+    return {
+      for (final entry in data.entries)
+        if (!unsetNull(entry.key)) entry.key: entry.value,
+    };
+  }
+
   Future<List<Map<String, dynamic>>> _exportInsightObservationDismissals(
     String? hlcSince,
   ) async {
@@ -9373,6 +9400,9 @@ class SyncDataSerializer {
       'equipmentListViewMode': 'detailed',
       'buddyListViewMode': 'detailed',
       'diveCenterListViewMode': 'detailed',
+      // v262: seed them so payloads predating the columns hydrate.
+      'certificationListViewMode': 'detailed',
+      'courseListViewMode': 'detailed',
       // Map style
       'mapStyle': 'openStreetMap',
       // Auto site matching sensitivity

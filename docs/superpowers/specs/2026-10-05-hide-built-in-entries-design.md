@@ -43,7 +43,7 @@ Out of scope:
 ### Storage
 
 One new nullable column, `diver_settings.hidden_built_in_ids` (TEXT, JSON),
-added by a column-only rung v266 (while this was open #767 took v261, #2939 took v264, #2381 took v265, and #2991 holds v262) in
+added by a column-only rung v269 (renumbered as other rungs landed while this was open; 267 and 268 are held by #3010 and #3043) in
 `lib/core/database/migrations/ladder/rungs_v231_onward.dart`. No backfill:
 null reads back as "nothing hidden". The column syncs with the rest of the
 settings row, as `hidden_tank_preset_ids` does. `hidden_tank_preset_ids` is
@@ -181,7 +181,7 @@ in pickers" tooltip. Tank Presets keeps its existing tooltip string.
 - Unit: `visibleBuiltIns` (hide, custom never hidden, keep selected, order
   preserved, identity when nothing hidden); encode and decode, including
   unknown keys, sorted output, and malformed input.
-- Data: v266 migration test (column present, null reads as empty); diver
+- Data: v269 migration test (column present, null reads as empty); diver
   settings repository round trip; `setBuiltInHidden` on the real notifier.
 - Providers: `hiddenBuiltInIdsProvider` yields only its own catalog's set.
 - Widgets: each Manage page shows the "Show" header and switches on built-in

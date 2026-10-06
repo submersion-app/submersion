@@ -16903,6 +16903,94 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_siteMediaSection_addPhotos => 'Adicionar fotos ou vídeos';
 
   @override
+  String get media_siteAttachment_categoryAccess => 'Acesso e entrada';
+
+  @override
+  String get media_siteAttachment_categoryAnchorage => 'Ancoragem e amarração';
+
+  @override
+  String get media_siteAttachment_categoryGeneral => 'Geral';
+
+  @override
+  String get media_siteAttachment_categoryLabel => 'Categoria';
+
+  @override
+  String get media_siteAttachment_categoryNone => 'Sem categoria';
+
+  @override
+  String get media_siteAttachment_categoryParking => 'Estacionamento';
+
+  @override
+  String get media_siteAttachment_categorySiteMap =>
+      'Mapa do ponto de mergulho';
+
+  @override
+  String get media_siteAttachment_categoryUnderwater => 'Subaquático';
+
+  @override
+  String get media_siteAttachment_detailsTitle => 'Detalhes do anexo';
+
+  @override
+  String get media_siteAttachment_editDetails => 'Editar detalhes';
+
+  @override
+  String media_siteAttachment_groupHeading(String category, int count) {
+    return '$category ($count)';
+  }
+
+  @override
+  String get media_siteAttachment_moreOptions => 'Mais opções';
+
+  @override
+  String media_siteAttachment_pageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count páginas',
+      one: '$count página',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_saveError(Object error) {
+    return 'Não foi possível salvar: $error';
+  }
+
+  @override
+  String get media_siteAttachment_setCategory => 'Definir categoria';
+
+  @override
+  String media_siteAttachment_setCategoryError(Object error) {
+    return 'Falha ao definir a categoria: $error';
+  }
+
+  @override
+  String media_siteAttachment_setCategorySuccess(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens atualizados',
+      one: '$count item atualizado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_sizeDefault(String size) {
+    return 'Padrão ($size)';
+  }
+
+  @override
+  String get media_siteAttachment_sizeLabel => 'Tamanho de exibição';
+
+  @override
+  String get media_siteAttachment_sizeLarge => 'Grande';
+
+  @override
+  String get media_siteAttachment_sizeTile => 'Miniatura';
+
+  @override
   String get media_siteMediaSection_addDocument => 'Adicionar documento';
 
   @override

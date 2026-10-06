@@ -16844,6 +16844,93 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_siteMediaSection_addPhotos => 'Fotók vagy videók hozzáadása';
 
   @override
+  String get media_siteAttachment_categoryAccess => 'Megközelítés és beszállás';
+
+  @override
+  String get media_siteAttachment_categoryAnchorage => 'Horgonyzás és kikötés';
+
+  @override
+  String get media_siteAttachment_categoryGeneral => 'Általános';
+
+  @override
+  String get media_siteAttachment_categoryLabel => 'Kategória';
+
+  @override
+  String get media_siteAttachment_categoryNone => 'Kategória nélkül';
+
+  @override
+  String get media_siteAttachment_categoryParking => 'Parkoló';
+
+  @override
+  String get media_siteAttachment_categorySiteMap => 'Merülőhely térképe';
+
+  @override
+  String get media_siteAttachment_categoryUnderwater => 'Víz alatt';
+
+  @override
+  String get media_siteAttachment_detailsTitle => 'Melléklet adatai';
+
+  @override
+  String get media_siteAttachment_editDetails => 'Adatok szerkesztése';
+
+  @override
+  String media_siteAttachment_groupHeading(String category, int count) {
+    return '$category ($count)';
+  }
+
+  @override
+  String get media_siteAttachment_moreOptions => 'További lehetőségek';
+
+  @override
+  String media_siteAttachment_pageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count oldal',
+      one: '$count oldal',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_saveError(Object error) {
+    return 'Nem sikerült menteni: $error';
+  }
+
+  @override
+  String get media_siteAttachment_setCategory => 'Kategória beállítása';
+
+  @override
+  String media_siteAttachment_setCategoryError(Object error) {
+    return 'Nem sikerült beállítani a kategóriát: $error';
+  }
+
+  @override
+  String media_siteAttachment_setCategorySuccess(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem frissítve',
+      one: '$count elem frissítve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_sizeDefault(String size) {
+    return 'Alapértelmezett ($size)';
+  }
+
+  @override
+  String get media_siteAttachment_sizeLabel => 'Megjelenítési méret';
+
+  @override
+  String get media_siteAttachment_sizeLarge => 'Nagy';
+
+  @override
+  String get media_siteAttachment_sizeTile => 'Csempe';
+
+  @override
   String get media_siteMediaSection_addDocument => 'Dokumentum hozzáadása';
 
   @override

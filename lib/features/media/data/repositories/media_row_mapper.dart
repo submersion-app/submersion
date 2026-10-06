@@ -5,6 +5,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart'
     as domain;
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
 
 const _log = LoggerService('MediaRowMapper');
 
@@ -78,6 +79,8 @@ domain.MediaItem mediaItemFromRow(
         : null,
     retainInLibrary: row.retainInLibrary,
     manualElapsedSeconds: row.manualElapsedSeconds,
+    siteCategory: SiteAttachmentCategory.fromStorageKey(row.siteCategory),
+    displaySizeOverride: AttachmentDisplaySize.fromStorageKey(row.displaySize),
     createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     enrichment: enrichmentRow != null

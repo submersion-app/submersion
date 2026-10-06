@@ -105,6 +105,31 @@ extension MediaMigrations on AppDatabase {
     }
   }
 
+  /// The beforeOpen backstop for the media columns the row mapper reads on
+  /// every hydration: v164 manual_elapsed_seconds and v266's site
+  /// attachment columns. One call keeps before_open.dart under its size cap.
+  Future<void> _assertMediaRowColumns() async {
+    await _assertMediaManualElapsedColumn();
+    await _assertMediaSiteAttachmentColumns();
+  }
+
+  /// v266: media.site_category and media.display_size (issue #1039).
+  /// Idempotent; called from the rung and the beforeOpen backstop. Both are
+  /// nullable with no default, so every existing row reads back as an
+  /// uncategorized attachment at its default size, a tile, which is how it
+  /// already renders.
+  Future<void> _assertMediaSiteAttachmentColumns() async {
+    final cols = await customSelect("PRAGMA table_info('media')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('site_category')) {
+      await customStatement('ALTER TABLE media ADD COLUMN site_category TEXT');
+    }
+    if (!names.contains('display_size')) {
+      await customStatement('ALTER TABLE media ADD COLUMN display_size TEXT');
+    }
+  }
+
   /// v130: media_enrichment.hlc column. Self-guarding when the table is absent
   /// (partial-schema migration fixtures) and PRAGMA-guarded so it is safe to
   /// call from both onUpgrade and the beforeOpen backstop (parallel-branch

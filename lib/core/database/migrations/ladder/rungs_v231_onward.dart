@@ -204,9 +204,16 @@ extension RungsFromV231 on AppDatabase {
       await _dropDefaultCeilingSourceColumn();
     }
     if (from < 261) await reportProgress();
+    // v262: diver_settings columns for settings that now sync (issue
+    // #2948): certification and course list view modes, and the profile
+    // "metrics follow viewport" and pSCR ratio prefs. Column only; each
+    // device adopts its old pref on load. Re-asserted in beforeOpen.
+    if (from < 262) {
+      await _assertSyncedDeviceSettingsColumns();
+    }
+    if (from < 262) await reportProgress();
     // v263: diver_settings.distance_unit (issue #2030), backfilled from each
     // diver's depth unit as the column is added. Re-asserted in beforeOpen.
-    // 262 is held by an open branch (#2991).
     if (from < 263) {
       await _assertDistanceUnitColumn();
     }
@@ -221,11 +228,20 @@ extension RungsFromV231 on AppDatabase {
     // column on diver_settings (#2381). Additive; re-asserted in beforeOpen.
     if (from < 265) await _assertInsightObservationsSchema();
     if (from < 265) await reportProgress();
-    // v266: diver_settings.hidden_built_in_ids (issue #401). Column-only
-    // rung, no backfill: null reads back as "nothing hidden".
+    // v266: media.site_category and media.display_size (issue #1039).
+    // Columns only, no backfill: null is an uncategorized tile, which is how
+    // every existing attachment already renders. Re-asserted in beforeOpen.
+    // Renumbered from 263 (main shipped #2030 there).
     if (from < 266) {
-      await _assertHiddenBuiltInIdsColumn();
+      await _assertMediaSiteAttachmentColumns();
     }
     if (from < 266) await reportProgress();
+    // v269: diver_settings.hidden_built_in_ids (issue #401). Column-only
+    // rung, no backfill: null reads back as "nothing hidden". 267 and 268
+    // are held by open branches (#3010, #3043).
+    if (from < 269) {
+      await _assertHiddenBuiltInIdsColumn();
+    }
+    if (from < 269) await reportProgress();
   }
 }

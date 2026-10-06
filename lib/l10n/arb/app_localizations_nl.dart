@@ -16786,6 +16786,93 @@ class AppLocalizationsNl extends AppLocalizations {
       'Foto\'s of video\'s toevoegen';
 
   @override
+  String get media_siteAttachment_categoryAccess => 'Toegang en instap';
+
+  @override
+  String get media_siteAttachment_categoryAnchorage => 'Ankerplaats en afmeren';
+
+  @override
+  String get media_siteAttachment_categoryGeneral => 'Algemeen';
+
+  @override
+  String get media_siteAttachment_categoryLabel => 'Categorie';
+
+  @override
+  String get media_siteAttachment_categoryNone => 'Zonder categorie';
+
+  @override
+  String get media_siteAttachment_categoryParking => 'Parkeren';
+
+  @override
+  String get media_siteAttachment_categorySiteMap => 'Kaart van de duikstek';
+
+  @override
+  String get media_siteAttachment_categoryUnderwater => 'Onder water';
+
+  @override
+  String get media_siteAttachment_detailsTitle => 'Bijlagedetails';
+
+  @override
+  String get media_siteAttachment_editDetails => 'Details bewerken';
+
+  @override
+  String media_siteAttachment_groupHeading(String category, int count) {
+    return '$category ($count)';
+  }
+
+  @override
+  String get media_siteAttachment_moreOptions => 'Meer opties';
+
+  @override
+  String media_siteAttachment_pageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pagina\'s',
+      one: '$count pagina',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_saveError(Object error) {
+    return 'Opslaan mislukt: $error';
+  }
+
+  @override
+  String get media_siteAttachment_setCategory => 'Categorie instellen';
+
+  @override
+  String media_siteAttachment_setCategoryError(Object error) {
+    return 'Categorie instellen mislukt: $error';
+  }
+
+  @override
+  String media_siteAttachment_setCategorySuccess(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items bijgewerkt',
+      one: '$count item bijgewerkt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_sizeDefault(String size) {
+    return 'Standaard ($size)';
+  }
+
+  @override
+  String get media_siteAttachment_sizeLabel => 'Weergavegrootte';
+
+  @override
+  String get media_siteAttachment_sizeLarge => 'Groot';
+
+  @override
+  String get media_siteAttachment_sizeTile => 'Tegel';
+
+  @override
   String get media_siteMediaSection_addDocument => 'Document toevoegen';
 
   @override

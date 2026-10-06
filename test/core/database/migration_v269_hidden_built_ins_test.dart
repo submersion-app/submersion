@@ -3,13 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v266: diver_settings.hidden_built_in_ids, the built-in catalog
+/// Schema v269: diver_settings.hidden_built_in_ids, the built-in catalog
 /// entries each diver hid from the pickers (issue #401).
 void main() {
-  /// A v265 database whose diver_settings lacks the column.
+  /// A v266 database whose diver_settings lacks the column.
   NativeDatabase setupDb() => NativeDatabase.memory(
     setup: (rawDb) {
-      rawDb.execute('PRAGMA user_version = 265');
+      rawDb.execute('PRAGMA user_version = 266');
       rawDb.execute(
         'CREATE TABLE diver_settings (id TEXT NOT NULL PRIMARY KEY, '
         'diver_id TEXT NOT NULL)',
@@ -20,12 +20,12 @@ void main() {
     },
   );
 
-  test('v266 is the current schema version and is in the ladder', () {
+  test('v269 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 266);
-    expect(AppDatabase.migrationVersions, contains(266));
-    expect(AppDatabase.migrationStepCount(265), 1);
+    expect(AppDatabase.currentSchemaVersion, 269);
+    expect(AppDatabase.migrationVersions, contains(269));
+    expect(AppDatabase.migrationStepCount(266), 1);
   });
 
   test('this rung is additive and did not move the sync floor', () {
@@ -33,7 +33,7 @@ void main() {
   });
 
   test(
-    'upgrading from v265 adds a null hidden_built_in_ids and keeps the row',
+    'upgrading from v266 adds a null hidden_built_in_ids and keeps the row',
     () async {
       final db = AppDatabase(setupDb());
       addTearDown(db.close);

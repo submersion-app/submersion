@@ -236,7 +236,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 266;
+  static const int currentSchemaVersion = 269;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1093,6 +1093,10 @@ class AppDatabase extends _$AppDatabase {
     // column default, so nothing it applies is lost or misread and the floor
     // stays. Inbound, the generated fromJson ignores the legacy key.
     261,
+    // v262: diver_settings certification/course list view modes and the
+    // formerly device-local profile "metrics follow viewport" and pSCR
+    // ratio (issue #2948). Additive columns, so the floor stays.
+    262,
     263,
     // v264: diver_settings.default_show_late_gas_switches (issue #2939).
     // Additive column with a default, so the floor stays.
@@ -1102,12 +1106,17 @@ class AppDatabase extends _$AppDatabase {
     // the floor stays. Renumbered several times while this was open (262 is
     // held by #2991; 261, 263 and 264 landed first).
     265,
-    // v266: diver_settings.hidden_built_in_ids, the built-in dive types,
+    // v266: media.site_category and media.display_size, a site attachment's
+    // category and size override (issue #1039). Additive nullable columns,
+    // so the floor stays. Renumbered from 263, which main shipped first
+    // (#2030); 262 is claimed by an open branch.
+    266,
+    // v269: diver_settings.hidden_built_in_ids, the built-in dive types,
     // roles, site types, service types and pre-dive templates each diver hid
     // from the pickers (issue #401). Additive nullable column, no backfill,
-    // so the floor stays. Renumbered while this was open: #767 took 261,
-    // #2939 took 264, #2381 took 265, and 262 is held by #2991.
-    266,
+    // so the floor stays. Renumbered several times while this was open; 267
+    // and 268 are held by open branches (#3010, #3043).
+    269,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -679,8 +679,8 @@ class SectionAppearancePage extends ConsumerWidget {
       'equipment' => ref.watch(settingsProvider).equipmentListViewMode,
       'buddies' => ref.watch(settingsProvider).buddyListViewMode,
       'diveCenters' => ref.watch(settingsProvider).diveCenterListViewMode,
-      'certifications' => ref.watch(certificationListViewModeProvider),
-      'courses' => ref.watch(courseListViewModeProvider),
+      'certifications' => ref.watch(settingsProvider).certificationListViewMode,
+      'courses' => ref.watch(settingsProvider).courseListViewMode,
       _ => ListViewMode.detailed,
     };
   }
@@ -706,10 +706,10 @@ class SectionAppearancePage extends ConsumerWidget {
         ref.read(settingsProvider.notifier).setDiveCenterListViewMode(mode);
         ref.read(diveCenterListViewModeProvider.notifier).state = mode;
       case 'certifications':
-        // Runtime-only, not persisted
+        ref.read(settingsProvider.notifier).setCertificationListViewMode(mode);
         ref.read(certificationListViewModeProvider.notifier).state = mode;
       case 'courses':
-        // Runtime-only, not persisted
+        ref.read(settingsProvider.notifier).setCourseListViewMode(mode);
         ref.read(courseListViewModeProvider.notifier).state = mode;
     }
   }
