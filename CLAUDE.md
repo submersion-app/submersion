@@ -103,6 +103,11 @@ change when it touches `lib/**/presentation/`, `lib/shared/widgets/`,
 
 - Use agents proactively
 - Anything displaying units should respect the active diver's unit settings
+- Design records live under `docs/design/`: specs in `docs/design/specs/`,
+  implementation plans in `docs/design/plans/`, investigation write-ups in
+  `docs/design/findings/`. This overrides the superpowers skills' default
+  location. `scripts/check_docs_links.py` fails CI if a record lands
+  anywhere else.
 
 ### Attribution
 
