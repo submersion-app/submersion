@@ -16,11 +16,11 @@ void main() {
 
   test('v268 is the current schema version and in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands. 266 and 267 are held by
-    // open branches, so from 265 this is one step.
+    // greaterThanOrEqualTo when the next one lands. 267 is held by an open
+    // branch, so from 266 this is one step.
     expect(AppDatabase.currentSchemaVersion, 268);
     expect(AppDatabase.migrationVersions.last, 268);
-    expect(AppDatabase.migrationStepCount(265), 1);
+    expect(AppDatabase.migrationStepCount(266), 1);
   });
 
   test('a fresh database has both tables and their indexes', () async {

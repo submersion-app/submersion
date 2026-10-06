@@ -74,6 +74,89 @@ class DiverSettingsRepository {
     return row?.seascapeAppearance != null;
   }
 
+  /// Which of the diver's settings columns that adopt a device-local pref
+  /// (v262, issue #2948) have never held a value. A missing row counts as
+  /// unset for both: the load creates it with both columns null.
+  Future<({bool pscrRatio, bool profileMetricsFollowViewport})>
+  unsetAdoptableColumns(String diverId) async {
+    final row = await (_db.select(
+      _db.diverSettings,
+    )..where((t) => t.diverId.equals(diverId))).getSingleOrNull();
+    return (
+      pscrRatio: row?.pscrRatio == null,
+      profileMetricsFollowViewport: row?.profileMetricsFollowViewport == null,
+    );
+  }
+
+  /// Stores this device's pref values into the diver's row (v262, issue
+  /// #2948), each non-null one, whether or not it equals the default, and
+  /// only into a column that is still null: a value a sync applied since the
+  /// caller probed always wins. The diff in [updateSettingsForDiver] cannot
+  /// do this: a null column reads as the default, so a default-valued pref
+  /// would look like no change. Returns whether any column was written;
+  /// only then is the row queued for sync.
+  Future<bool> adoptDeviceLocalValues(
+    String diverId, {
+    double? pscrRatio,
+    bool? profileMetricsFollowViewport,
+  }) async {
+    if (pscrRatio == null && profileMetricsFollowViewport == null) {
+      return false;
+    }
+    try {
+      // One transaction: both columns and the sync mark land together, and
+      // the table-updates stream fires once.
+      final adopted = await _db.transaction(() async {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        var written = 0;
+        if (pscrRatio != null) {
+          written +=
+              await (_db.update(_db.diverSettings)..where(
+                    (t) => t.diverId.equals(diverId) & t.pscrRatio.isNull(),
+                  ))
+                  .write(
+                    DiverSettingsCompanion(
+                      pscrRatio: Value(pscrRatio),
+                      updatedAt: Value(now),
+                    ),
+                  );
+        }
+        if (profileMetricsFollowViewport != null) {
+          written +=
+              await (_db.update(_db.diverSettings)..where(
+                    (t) =>
+                        t.diverId.equals(diverId) &
+                        t.profileMetricsFollowViewport.isNull(),
+                  ))
+                  .write(
+                    DiverSettingsCompanion(
+                      profileMetricsFollowViewport: Value(
+                        profileMetricsFollowViewport,
+                      ),
+                      updatedAt: Value(now),
+                    ),
+                  );
+        }
+        if (written == 0) return false;
+        await _markSettingsPending(diverId, now, notify: false);
+        return true;
+      });
+      if (adopted) {
+        // After the commit, so a sync it starts sees the adopted values.
+        SyncEventBus.notifyLocalChange();
+        _log.info('Adopted device-local settings for diver: $diverId');
+      }
+      return adopted;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to adopt device-local settings for diver: $diverId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Create default settings for a diver
   Future<AppSettings> createSettingsForDiver(
     String diverId, {
@@ -182,6 +265,10 @@ class DiverSettingsRepository {
               equipmentListViewMode: Value(s.equipmentListViewMode.name),
               buddyListViewMode: Value(s.buddyListViewMode.name),
               diveCenterListViewMode: Value(s.diveCenterListViewMode.name),
+              certificationListViewMode: Value(
+                s.certificationListViewMode.name,
+              ),
+              courseListViewMode: Value(s.courseListViewMode.name),
               mapStyle: Value(s.mapStyle.name),
               siteMatchSensitivity: Value(s.siteMatchSensitivity.name),
               trimTankPressureAtSurfacing: Value(s.trimTankPressureAtSurfacing),
@@ -321,17 +408,7 @@ class DiverSettingsRepository {
           ...DiverSettingsCompanion(updatedAt: Value(now)).toColumns(false),
         }),
       );
-      final row = await (_db.select(
-        _db.diverSettings,
-      )..where((t) => t.diverId.equals(diverId))).getSingleOrNull();
-      if (row != null) {
-        await _syncRepository.markRecordPending(
-          entityType: 'diverSettings',
-          recordId: row.id,
-          localUpdatedAt: now,
-        );
-        SyncEventBus.notifyLocalChange();
-      }
+      await _markSettingsPending(diverId, now);
       _log.info('Updated settings for diver: $diverId');
     } catch (e, stackTrace) {
       _log.error(
@@ -341,6 +418,26 @@ class DiverSettingsRepository {
       );
       rethrow;
     }
+  }
+
+  /// Queues the diver's settings row for sync after a write at [now], and
+  /// unless [notify] is false (a caller inside a transaction notifies after
+  /// its commit) tells the sync scheduler.
+  Future<void> _markSettingsPending(
+    String diverId,
+    int now, {
+    bool notify = true,
+  }) async {
+    final row = await (_db.select(
+      _db.diverSettings,
+    )..where((t) => t.diverId.equals(diverId))).getSingleOrNull();
+    if (row == null) return;
+    await _syncRepository.markRecordPending(
+      entityType: 'diverSettings',
+      recordId: row.id,
+      localUpdatedAt: now,
+    );
+    if (notify) SyncEventBus.notifyLocalChange();
   }
 
   /// Whether [a] and [b] store the same values in a diver's settings row.
@@ -457,6 +554,10 @@ class DiverSettingsRepository {
     equipmentListViewMode: Value(settings.equipmentListViewMode.name),
     buddyListViewMode: Value(settings.buddyListViewMode.name),
     diveCenterListViewMode: Value(settings.diveCenterListViewMode.name),
+    certificationListViewMode: Value(settings.certificationListViewMode.name),
+    courseListViewMode: Value(settings.courseListViewMode.name),
+    pscrRatio: Value(settings.pscrRatio),
+    profileMetricsFollowViewport: Value(settings.profileMetricsFollowViewport),
     mapStyle: Value(settings.mapStyle.name),
     siteMatchSensitivity: Value(settings.siteMatchSensitivity.name),
     trimTankPressureAtSurfacing: Value(settings.trimTankPressureAtSurfacing),
@@ -567,6 +668,8 @@ class DiverSettingsRepository {
   // Helpers
   // ============================================================================
 
+  static const _defaults = AppSettings();
+
   AppSettings _mapRowToAppSettings(DiverSetting row) {
     return AppSettings(
       depthUnit: _parseDepthUnit(row.depthUnit),
@@ -667,6 +770,15 @@ class DiverSettingsRepository {
       equipmentListViewMode: ListViewMode.fromName(row.equipmentListViewMode),
       buddyListViewMode: ListViewMode.fromName(row.buddyListViewMode),
       diveCenterListViewMode: ListViewMode.fromName(row.diveCenterListViewMode),
+      certificationListViewMode: ListViewMode.fromName(
+        row.certificationListViewMode,
+      ),
+      courseListViewMode: ListViewMode.fromName(row.courseListViewMode),
+      // Null: the row has never held a value (v262); read the default.
+      pscrRatio: row.pscrRatio ?? _defaults.pscrRatio,
+      profileMetricsFollowViewport:
+          row.profileMetricsFollowViewport ??
+          _defaults.profileMetricsFollowViewport,
       mapStyle: MapStyle.fromName(row.mapStyle),
       siteMatchSensitivity: SiteMatchSensitivity.fromName(
         row.siteMatchSensitivity,

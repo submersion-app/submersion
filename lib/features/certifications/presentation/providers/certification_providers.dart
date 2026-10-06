@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -295,10 +296,15 @@ final expiringCertificationCountProvider = FutureProvider<int>((ref) async {
 // Certification List View Mode
 // ============================================================================
 
-/// In-memory view mode for the certification list. Defaults to detailed.
-/// Not persisted in AppSettings — resets to detailed on app restart.
+/// Runtime-scoped certification list view mode. Initialized from the saved
+/// setting (v262), and overridden by the list's menu without changing the
+/// saved default.
+///
+/// Uses `ref.read()` (not `ref.watch()`) for the same reason as
+/// [diveListViewModeProvider]: a write to any other setting must not reset
+/// the session override.
 final certificationListViewModeProvider = StateProvider<ListViewMode>((ref) {
-  return ListViewMode.detailed;
+  return ref.read(settingsProvider).certificationListViewMode;
 });
 
 // ============================================================================

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:equatable/equatable.dart';
 import 'package:submersion/features/media/domain/entities/media_dive_window.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
 
 /// Type of media (photo, video, instructor signature)
 enum MediaType {
@@ -130,6 +131,15 @@ class MediaItem extends Equatable {
   /// the file's own timestamp and gallery re-resolution matches on it.
   final int? manualElapsedSeconds;
 
+  /// Where this attachment belongs on its site's page (issue #1039). Null is
+  /// uncategorized. Only site attachments are categorized today, but the
+  /// column is generic.
+  final SiteAttachmentCategory? siteCategory;
+
+  /// The diver's size choice for this attachment, or null to follow
+  /// [siteCategory]'s default (issue #1039).
+  final AttachmentDisplaySize? displaySizeOverride;
+
   final DateTime createdAt;
   final DateTime updatedAt;
   final MediaEnrichment? enrichment;
@@ -177,6 +187,8 @@ class MediaItem extends Equatable {
     this.remoteCompressedUploadedAt,
     this.retainInLibrary = false,
     this.manualElapsedSeconds,
+    this.siteCategory,
+    this.displaySizeOverride,
     required this.createdAt,
     required this.updatedAt,
     this.enrichment,
@@ -216,6 +228,13 @@ class MediaItem extends Equatable {
 
   /// True for documents that render in the in-app PDF viewer.
   bool get isPdf => isDocument && documentExtension == 'pdf';
+
+  /// How large this attachment renders on the site page: the override when
+  /// set, else the category default, else a tile.
+  AttachmentDisplaySize get effectiveDisplaySize =>
+      displaySizeOverride ??
+      siteCategory?.defaultDisplaySize ??
+      AttachmentDisplaySize.tile;
 
   /// Filename to use when writing this item's bytes to a temp file for
   /// sharing. Falls back to a media-type-appropriate default when
@@ -326,6 +345,8 @@ class MediaItem extends Equatable {
     Object? remoteCompressedUploadedAt = _undefined,
     bool? retainInLibrary,
     Object? manualElapsedSeconds = _undefined,
+    Object? siteCategory = _undefined,
+    Object? displaySizeOverride = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
     Object? enrichment = _undefined,
@@ -423,6 +444,12 @@ class MediaItem extends Equatable {
       manualElapsedSeconds: manualElapsedSeconds == _undefined
           ? this.manualElapsedSeconds
           : manualElapsedSeconds as int?,
+      siteCategory: siteCategory == _undefined
+          ? this.siteCategory
+          : siteCategory as SiteAttachmentCategory?,
+      displaySizeOverride: displaySizeOverride == _undefined
+          ? this.displaySizeOverride
+          : displaySizeOverride as AttachmentDisplaySize?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       enrichment: enrichment == _undefined
@@ -475,6 +502,8 @@ class MediaItem extends Equatable {
     remoteCompressedUploadedAt,
     retainInLibrary,
     manualElapsedSeconds,
+    siteCategory,
+    displaySizeOverride,
     createdAt,
     updatedAt,
     enrichment,
