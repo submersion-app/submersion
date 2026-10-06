@@ -4135,7 +4135,7 @@ class SyncDataSerializer {
         );
   }
 
-  /// Applies one incoming `dive_diver_roles` row (v270, issue #1221): the
+  /// Applies one incoming `dive_diver_roles` row (v271, issue #1221): the
   /// (dive, role) key is unique, so a peer's copy under another id is
   /// reconciled to the lower id and then skipped with DO NOTHING, for the
   /// reasons [_applyDiveDiveTypeRecord] gives.
@@ -4156,7 +4156,7 @@ class SyncDataSerializer {
         );
   }
 
-  /// Applies one incoming `dive_buddy_roles` row (v270). Its key is a
+  /// Applies one incoming `dive_buddy_roles` row (v271). Its key is a
   /// triple, so it reconciles through [_reconcileBuddyRoleIds].
   Future<void> _applyDiveBuddyRoleRecord(DiveBuddyRole record) async {
     await _reconcileBuddyRoleIds([record]);
@@ -8649,7 +8649,7 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  /// A role junction's rows (v270, issue #1221), gated on the parent dive's
+  /// A role junction's rows (v271, issue #1221), gated on the parent dive's
   /// clock like [_exportDiveDiveTypes]. [select] reads the junction rows of
   /// the given dives, or every row when passed null (a full export).
   Future<List<Map<String, dynamic>>> _exportDiveRoleRows<R extends DataClass>(

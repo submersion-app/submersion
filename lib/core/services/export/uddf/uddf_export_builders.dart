@@ -634,6 +634,9 @@ class UddfExportBuilders {
                         if (weight.notes.isNotEmpty) {
                           builder.element('notes', nest: weight.notes);
                         }
+                        if (weight.label.isNotEmpty) {
+                          builder.element('label', nest: weight.label);
+                        }
                       },
                     );
                   }

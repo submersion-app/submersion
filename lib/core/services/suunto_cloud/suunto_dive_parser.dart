@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_cloud_event_map.dart';
+import 'package:submersion/core/services/suunto_cloud/suunto_dive_route.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_tissue_parser.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
@@ -16,6 +17,7 @@ class SuuntoParsedDive {
     this.serialNumber,
     this.firmwareVersion,
     this.notes,
+    this.route,
   });
 
   final DownloadedDive dive;
@@ -35,18 +37,24 @@ class SuuntoParsedDive {
   /// rather than the dive export (issue #2410).
   final String? notes;
 
+  /// The recorded underwater route (`DiveRoute`), when the export carries
+  /// one (issue #1445). Linked to the dive as a nav track at import.
+  final SuuntoDiveRoute? route;
+
   SuuntoParsedDive copyWith({
     DownloadedDive? dive,
     String? deviceName,
     String? serialNumber,
     String? firmwareVersion,
     String? notes,
+    SuuntoDiveRoute? route,
   }) => SuuntoParsedDive(
     dive: dive ?? this.dive,
     deviceName: deviceName ?? this.deviceName,
     serialNumber: serialNumber ?? this.serialNumber,
     firmwareVersion: firmwareVersion ?? this.firmwareVersion,
     notes: notes ?? this.notes,
+    route: route ?? this.route,
   );
 }
 
@@ -78,14 +86,16 @@ class SuuntoDiveParser {
 
     final firstPass = _FirstPass.scan(samples);
     final diveStartMs = firstPass.diveStartMs;
+    final clockCorrection = _sampleClockCorrection(
+      headerStart,
+      headerOffset,
+      firstPass.firstSampleMs,
+    );
     final startTime = diveStartMs != null
-        ? DateTime.fromMillisecondsSinceEpoch(diveStartMs, isUtc: true).add(
-            _sampleClockCorrection(
-              headerStart,
-              headerOffset,
-              firstPass.firstSampleMs,
-            ),
-          )
+        ? DateTime.fromMillisecondsSinceEpoch(
+            diveStartMs,
+            isUtc: true,
+          ).add(clockCorrection)
         : (headerStart ?? DateTime.now().toUtc());
 
     final diving = header['Diving'] as Map<String, dynamic>?;
@@ -189,6 +199,15 @@ class SuuntoDiveParser {
       serialNumber: device?['SerialNumber'] as String?,
       firmwareVersion:
           (device?['Info'] as Map<String, dynamic>?)?['SW'] as String?,
+      // The route shares the dive's clock correction, so it lines up with
+      // the profile; its origin is the DiveRouteOrigin the first pass read.
+      route: SuuntoDiveRouteParser.parse(
+        samples,
+        timestampMs: _parseTimestampMs,
+        clockCorrection: clockCorrection,
+        originLatitude: firstPass.latitude,
+        originLongitude: firstPass.longitude,
+      ),
     );
   }
 

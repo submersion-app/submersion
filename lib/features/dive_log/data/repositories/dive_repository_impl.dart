@@ -31,6 +31,7 @@ import 'package:submersion/features/dive_log/domain/entities/computer_tissue_sna
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
+import 'package:submersion/features/dive_log/domain/entities/weight_label.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
@@ -1771,6 +1772,7 @@ class DiveRepository {
                 weightType: Value(weight.weightType.name),
                 amountKg: Value(weight.amountKg),
                 notes: Value(weight.notes),
+                label: Value(normalizeWeightLabel(weight.label)),
                 createdAt: Value(now),
               ),
             );
@@ -4755,6 +4757,7 @@ class DiveRepository {
               ),
               amountKg: row.amountKg,
               notes: row.notes,
+              label: row.label,
             ),
           )
           .toList();
@@ -6494,10 +6497,12 @@ class DiveRepository {
     }
     for (final weight in desired) {
       final current = weight.id.isNotEmpty ? existingById[weight.id] : null;
+      final label = normalizeWeightLabel(weight.label);
       if (current != null &&
           current.weightType == weight.weightType.name &&
           current.amountKg == weight.amountKg &&
-          current.notes == weight.notes) {
+          current.notes == weight.notes &&
+          current.label == label) {
         continue;
       }
       final rowId = weight.id.isNotEmpty ? weight.id : _uuid.v4();
@@ -6509,6 +6514,7 @@ class DiveRepository {
             weightType: Value(weight.weightType.name),
             amountKg: Value(weight.amountKg),
             notes: Value(weight.notes),
+            label: Value(label),
           ),
         );
       } else {
@@ -6521,6 +6527,7 @@ class DiveRepository {
                 weightType: Value(weight.weightType.name),
                 amountKg: Value(weight.amountKg),
                 notes: Value(weight.notes),
+                label: Value(label),
                 createdAt: Value(now),
               ),
             );
@@ -7140,6 +7147,7 @@ class DiveRepository {
     weightType: Value(w.weightType.name),
     amountKg: Value(w.amountKg),
     notes: Value(w.notes),
+    label: Value(normalizeWeightLabel(w.label)),
     createdAt: Value(now),
   );
 

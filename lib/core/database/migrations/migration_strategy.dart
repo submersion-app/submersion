@@ -54,7 +54,7 @@ extension AppDatabaseMigrationStrategy on AppDatabase {
     // same reason.
     await assertEquipmentShareUniqueness(this);
 
-    // Role junction unique indexes (v270, issue #1221), for the same
+    // Role junction unique indexes (v271, issue #1221), for the same
     // reason: createAll() never builds raw-SQL indexes.
     await assertDiveRoleLinkUniqueness(this);
   }

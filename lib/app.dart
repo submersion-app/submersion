@@ -32,6 +32,8 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/query/presentation/providers/service_status_keeper.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_origin_republish_provider.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
+import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
+import 'package:submersion/features/import_wizard/presentation/suunto_file_import_navigation.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -438,6 +440,12 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         // the share gate must not hold the next shared file until then.
         unawaited(
           navigateToNavTrackReview(navContext, bytes, fileName: fileName),
+        );
+      case IncomingFileOutcome.navigateToSuuntoFileImport:
+        // PUSH, like the wizard: back returns to wherever the share landed.
+        router.push(
+          suuntoFileImportPath,
+          extra: [SuuntoJsonFile(name: fileName, bytes: bytes)],
         );
       case IncomingFileOutcome.none:
         break;

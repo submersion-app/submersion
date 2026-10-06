@@ -20,6 +20,11 @@ class ImportFileOutcome {
   /// wizard has no equivalent single-file flow to hand it off to here.
   final bool isNavTrackRoute;
 
+  /// True when this file is a Suunto JSON export (issue #1445), which the
+  /// summary offers to open in the Suunto importer, reading it again from
+  /// [filePath].
+  final bool isSuuntoJson;
+
   /// The file's on-disk path, when the batch was picked by path (as
   /// opposed to raw bytes with no path, e.g. some share-sheet intents).
   /// Needed to re-read the file for [isNavTrackRoute]'s "Import as
@@ -34,6 +39,7 @@ class ImportFileOutcome {
     this.importedDives = 0,
     this.error,
     this.isNavTrackRoute = false,
+    this.isSuuntoJson = false,
     this.filePath,
   });
 }

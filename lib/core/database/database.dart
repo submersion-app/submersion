@@ -115,7 +115,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DiveDiveTypes,
     DiveTypes,
     DiveRoles,
-    // Several roles per person on a dive (v270, issue #1221)
+    // Several roles per person on a dive (v271, issue #1221)
     DiveDiverRoles,
     DiveBuddyRoles,
     // Custom certification agencies and levels (v261, issue #690)
@@ -242,7 +242,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 270;
+  static const int currentSchemaVersion = 271;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1127,13 +1127,18 @@ class AppDatabase extends _$AppDatabase {
     // so the floor stays. Renumbered several times while this was open; 268
     // is held by an open branch (#3043).
     269,
-    // v270: dive_diver_roles and dive_buddy_roles, several roles per person
+    // v270: dive_weights.label and weight_preset_entries.label, a diver's own
+    // name for a weight (issue #956). Additive defaulted columns, so the
+    // floor stays: an older peer's payload omits the key and the row keeps
+    // its local value or the '' default. Renumbered as other rungs shipped
+    // first (261 through 269); 268 is held by an open branch (#3043).
+    270,
+    // v271: dive_diver_roles and dive_buddy_roles, several roles per person
     // on a dive (issue #1221). New synced child tables, no backfill: an
     // older peer ignores them and its scalar role writes still resolve, so
-    // the floor stays. Renumbered from 262, 264 and 267 as main shipped
-    // those; 268 is held by open branches (#2999, #3043) and 269 shipped
-    // first (#3007).
-    270,
+    // the floor stays. Renumbered from 262, 264, 267 and 270 as main shipped
+    // those; 268 is held by an open branch (#3043).
+    271,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

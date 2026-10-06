@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/services/format_detector.dart';
 
@@ -471,6 +472,68 @@ void main() {
       const xml = '<?xml version="1.0"?><uddf><profiledata/></uddf>';
       final result = detector.detect(_toBytes(xml));
       expect(result.format, isNot(ImportFormat.ratioXml));
+    });
+  });
+
+  // #1445: a Suunto app JSON export is handed to the Suunto importer, so it
+  // must be recognised, and nothing else may be mistaken for it.
+  group('Suunto JSON export detection', () {
+    test('detects the app DeviceLog export', () {
+      final result = detector.detect(
+        _toBytes('{"DeviceLog":{"Header":{"ActivityType":51}}}'),
+      );
+      expect(result.format, ImportFormat.suuntoJson);
+      expect(result.sourceApp, SourceApp.suunto);
+    });
+
+    test('detects it behind a byte order mark and whitespace', () {
+      final bytes = Uint8List.fromList([
+        0xEF,
+        0xBB,
+        0xBF,
+        ...utf8.encode('\n  {"DeviceLog":{}}'),
+      ]);
+      expect(detector.detect(bytes).format, ImportFormat.suuntoJson);
+    });
+
+    test('detects a saved cloud sml export', () {
+      final result = detector.detect(
+        _toBytes(
+          '{"Summary":{"Samples":[{"Attributes":{"suunto/sml":{}}}]},'
+          '"Data":{}}',
+        ),
+      );
+      expect(result.format, ImportFormat.suuntoJson);
+    });
+
+    test('leaves JSON from another app unknown', () {
+      final result = detector.detect(_toBytes('{"type":"FeatureCollection"}'));
+      expect(result.format, ImportFormat.unknown);
+    });
+
+    // Every fixture, JSON ones included (iNaturalist, bathymetry, crypto
+    // vectors): those are exactly the files a loose JSON check would grab.
+    // The real Suunto exports under fixtures/suunto are the one place the
+    // detector must say yes.
+    test('detects only the Suunto fixtures among every pinned fixture', () {
+      var scanned = 0, suunto = 0;
+      final suuntoDir = p.join('test', 'fixtures', 'suunto');
+      final root = Directory(p.join('test', 'fixtures'));
+      for (final entity in root.listSync(recursive: true)) {
+        if (entity is! File) continue;
+        scanned++;
+        final isSuunto = p.isWithin(suuntoDir, entity.path);
+        if (isSuunto) suunto++;
+        expect(
+          detector.detect(entity.readAsBytesSync()).format,
+          isSuunto ? ImportFormat.suuntoJson : isNot(ImportFormat.suuntoJson),
+          reason: isSuunto
+              ? 'missed Suunto fixture: ${entity.path}'
+              : 'false positive on fixture: ${entity.path}',
+        );
+      }
+      expect(scanned, greaterThan(suunto));
+      expect(suunto, greaterThan(0));
     });
   });
 }

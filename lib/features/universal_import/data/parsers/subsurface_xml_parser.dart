@@ -1215,17 +1215,37 @@ class SubsurfaceXmlParser implements ImportParser {
   }
 
   /// Parses `<weightsystem>` elements into weight maps with [WeightType] values.
+  ///
+  /// The description is the weight's name in Subsurface (issue #956), except
+  /// its stock placement names, which only set the type: a stock 'belt' row
+  /// would otherwise read "belt · Weight Belt".
   List<Map<String, dynamic>> _parseWeights(XmlElement dive) {
     final weights = <Map<String, dynamic>>[];
     for (final ws in dive.findElements('weightsystem')) {
       final amount = _parseDouble(ws.getAttribute('weight'));
       if (amount == null) continue;
-      final description = ws.getAttribute('description') ?? '';
-      final weightType = _mapWeightType(description);
-      weights.add({'amount': amount, 'type': weightType, 'notes': description});
+      final description = (ws.getAttribute('description') ?? '').trim();
+      final isStock = _stockWeightDescriptions.contains(
+        description.toLowerCase(),
+      );
+      weights.add({
+        'amount': amount,
+        'type': _mapWeightType(description),
+        'label': isStock ? '' : description,
+      });
     }
     return weights;
   }
+
+  /// Subsurface's built-in weight system names, current and older spellings.
+  static const _stockWeightDescriptions = {
+    'integrated',
+    'belt',
+    'ankle',
+    'backplate',
+    'backplate weight',
+    'clip-on',
+  };
 
   static WeightType _mapWeightType(String description) {
     final lower = description.toLowerCase();

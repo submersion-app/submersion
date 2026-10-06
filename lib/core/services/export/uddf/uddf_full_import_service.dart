@@ -1613,6 +1613,8 @@ class UddfFullImportService {
           }
           weight['notes'] =
               UddfImportParsers.getElementText(weightElement, 'notes') ?? '';
+          weight['label'] =
+              UddfImportParsers.getElementText(weightElement, 'label') ?? '';
           weightsList.add(weight);
         }
         if (weightsList.isNotEmpty) {

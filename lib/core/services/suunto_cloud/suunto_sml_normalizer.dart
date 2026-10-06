@@ -57,7 +57,7 @@ class SuuntoSmlNormalizer {
 
     final activityType = (header['ActivityType'] as num?)?.toInt() ?? 0;
     if (activityType != _suuntoActivityScuba) {
-      throw SuuntoApiException(
+      throw SuuntoNotADiveException(
         'Suunto JSON: not a dive activity (ActivityType=$activityType)',
       );
     }

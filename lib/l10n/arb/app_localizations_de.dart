@@ -6965,6 +6965,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_edit_label_waterType => 'Wasserart';
 
   @override
+  String get diveLog_edit_label_weightName => 'Name (optional)';
+
+  @override
+  String get diveLog_edit_hint_weightName => 'z. B. obere Tasche';
+
+  @override
   String get diveLog_edit_marineLifeHint =>
       'Tippen Sie auf \"Hinzufügen\" um Sichtungen zu erfassen';
 
@@ -28700,6 +28706,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get universalImport_triage_excludedCsv => 'Einzeln importieren (CSV)';
 
   @override
+  String universalImport_triage_excludedHandoff(String format) {
+    return 'Einzeln importieren ($format)';
+  }
+
+  @override
   String get universalImport_triage_unsupported => 'Nicht unterstütztes Format';
 
   @override
@@ -47450,6 +47461,57 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navTrack_handoff_reviewTrackButton => 'Unterwasser-Track prüfen';
 
   @override
+  String get suuntoJson_handoff_recognized => 'Suunto-Tauchgangsexport erkannt';
+
+  @override
+  String get suuntoJson_handoff_description =>
+      'Diese Datei wurde aus der Suunto-App exportiert. Der Suunto-Import liest sie genauso wie der Suunto-Cloud-Import, einschließlich der aufgezeichneten Route des Tauchgangs.';
+
+  @override
+  String get suuntoJson_handoff_importButton => 'Suunto-Tauchgang importieren';
+
+  @override
+  String get suuntoFile_step_title => 'Suunto-App-Exporte';
+
+  @override
+  String get suuntoFile_step_description =>
+      'Wähle einen oder mehrere Tauchgänge, die aus der Suunto-App als JSON exportiert wurden. Tauchgänge mit aufgezeichneter Route bringen diese mit.';
+
+  @override
+  String get suuntoFile_step_chooseFiles => 'Dateien auswählen';
+
+  @override
+  String suuntoFile_step_readyCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge bereit zum Import',
+      one: '$count Tauchgang bereit zum Import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get suuntoFile_step_routeIncluded => 'Mit aufgezeichneter Route';
+
+  @override
+  String get suuntoFile_step_noRoute => 'Keine aufgezeichnete Route';
+
+  @override
+  String get suuntoFile_rejection_notJson => 'Keine JSON-Datei';
+
+  @override
+  String get suuntoFile_rejection_notSuuntoExport => 'Kein Suunto-App-Export';
+
+  @override
+  String get suuntoFile_rejection_notADive =>
+      'Kein Tauchgang (andere Aktivitätsart)';
+
+  @override
+  String get universalImport_summary_importWithSuunto =>
+      'Mit dem Suunto-Import importieren';
+
+  @override
   String get navTrack_section_trackTitle => 'Unterwasser-Track';
 
   @override
@@ -48380,6 +48442,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_weights_amount => 'Menge';
+
+  @override
+  String get query_weights_label => 'Name';
 
   @override
   String get query_weights_notes => 'Notizen';

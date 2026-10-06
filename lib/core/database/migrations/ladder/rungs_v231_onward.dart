@@ -251,13 +251,21 @@ extension RungsFromV231 on AppDatabase {
       await _assertHiddenBuiltInIdsColumn();
     }
     if (from < 269) await reportProgress();
-    // v270: the role junctions (issue #1221), several roles per person on a
-    // dive. Table-only rung, no backfill; re-asserted in beforeOpen.
-    // Renumbered from 262, 264 and 267 as main shipped those; 268 is held
-    // by open branches (#2999, #3043) and 269 shipped first (#3007).
+    // v270: dive_weights.label and weight_preset_entries.label, a diver's
+    // own name for a weight (issue #956). Defaulted columns, no backfill:
+    // existing rows read '' (unnamed). Re-asserted in beforeOpen. 268 is
+    // held by an open branch (#3043).
     if (from < 270) {
-      await _assertDiveRoleLinkSchema();
+      await _assertWeightLabelColumns();
     }
     if (from < 270) await reportProgress();
+    // v271: the role junctions (issue #1221), several roles per person on a
+    // dive. Table-only rung, no backfill; re-asserted in beforeOpen.
+    // Renumbered from 262, 264, 267 and 270 as main shipped those; 268 is
+    // held by an open branch (#3043).
+    if (from < 271) {
+      await _assertDiveRoleLinkSchema();
+    }
+    if (from < 271) await reportProgress();
   }
 }

@@ -6851,6 +6851,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_label_waterType => 'Water Type';
 
   @override
+  String get diveLog_edit_label_weightName => 'Name (optional)';
+
+  @override
+  String get diveLog_edit_hint_weightName => 'e.g. Top pocket';
+
+  @override
   String get diveLog_edit_marineLifeHint => 'Tap \"Add\" to record sightings';
 
   @override
@@ -28264,6 +28270,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get universalImport_triage_excludedCsv => 'Import individually (CSV)';
 
   @override
+  String universalImport_triage_excludedHandoff(String format) {
+    return 'Import individually ($format)';
+  }
+
+  @override
   String get universalImport_triage_unsupported => 'Unsupported format';
 
   @override
@@ -46796,6 +46807,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_handoff_reviewTrackButton => 'Review underwater track';
 
   @override
+  String get suuntoJson_handoff_recognized => 'Suunto dive export recognised';
+
+  @override
+  String get suuntoJson_handoff_description =>
+      'This file was exported from the Suunto app. The Suunto importer reads it the same way as the Suunto Cloud import, including the dive\'s recorded route.';
+
+  @override
+  String get suuntoJson_handoff_importButton => 'Import Suunto dive';
+
+  @override
+  String get suuntoFile_step_title => 'Suunto app exports';
+
+  @override
+  String get suuntoFile_step_description =>
+      'Choose one or more dives exported from the Suunto app as JSON. Dives recorded with a route bring it along.';
+
+  @override
+  String get suuntoFile_step_chooseFiles => 'Choose files';
+
+  @override
+  String suuntoFile_step_readyCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives ready to import',
+      one: '$count dive ready to import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get suuntoFile_step_routeIncluded => 'Includes recorded route';
+
+  @override
+  String get suuntoFile_step_noRoute => 'No recorded route';
+
+  @override
+  String get suuntoFile_rejection_notJson => 'Not a JSON file';
+
+  @override
+  String get suuntoFile_rejection_notSuuntoExport => 'Not a Suunto app export';
+
+  @override
+  String get suuntoFile_rejection_notADive =>
+      'Not a dive (another activity type)';
+
+  @override
+  String get universalImport_summary_importWithSuunto =>
+      'Import with Suunto importer';
+
+  @override
   String get navTrack_section_trackTitle => 'Underwater Track';
 
   @override
@@ -47724,6 +47786,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get query_weights_amount => 'Amount';
+
+  @override
+  String get query_weights_label => 'Name';
 
   @override
   String get query_weights_notes => 'Notes';

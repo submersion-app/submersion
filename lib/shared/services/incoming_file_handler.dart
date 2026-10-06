@@ -22,10 +22,22 @@ enum IncomingFileOutcome {
   /// already has, instead of the wizard.
   navigateToNavTrackReview,
 
+  /// A Suunto app JSON export was recognised (issue #1445). It is imported
+  /// by the Suunto importer, not the universal wizard; push the Suunto file
+  /// import with the same [bytes]/[fileName] the caller already has.
+  navigateToSuuntoFileImport,
+
   /// Nothing to do: the wizard was already busy, or the file is
   /// genuinely unsupported (both cases already surfaced a snackbar).
   none,
 }
+
+/// True while an import wizard owns the screen: the universal import
+/// wizard, or the Suunto file import (#1445). A file arriving then is
+/// turned away rather than stacking a second wizard over the first.
+bool isImportWizardRoute(String path) =>
+    path.startsWith('/transfer/import-wizard') ||
+    path.startsWith('/transfer/import-file/');
 
 /// Shared logic for handling an incoming file from drag-and-drop or
 /// share-sheet intents. Both [GlobalDropTarget] and [SubmersionApp]
@@ -39,7 +51,7 @@ Future<IncomingFileOutcome> handleIncomingFile({
   String? wizardActiveMessage,
   String? unsupportedFileMessage,
 }) async {
-  if (currentPath.startsWith('/transfer/import-wizard')) {
+  if (isImportWizardRoute(currentPath)) {
     messenger?.showSnackBar(
       SnackBar(
         content: Text(wizardActiveMessage ?? 'Finish current import first'),
@@ -58,6 +70,11 @@ Future<IncomingFileOutcome> handleIncomingFile({
   if (detection.format == ImportFormat.navTrack) {
     notifier.reset();
     return IncomingFileOutcome.navigateToNavTrackReview;
+  }
+
+  if (detection.format == ImportFormat.suuntoJson) {
+    notifier.reset();
+    return IncomingFileOutcome.navigateToSuuntoFileImport;
   }
 
   if (!detection.format.isSupported) {
@@ -85,7 +102,7 @@ Future<bool> handleIncomingFiles({
   required ScaffoldMessengerState? messenger,
   String? wizardActiveMessage,
 }) async {
-  if (currentPath.startsWith('/transfer/import-wizard')) {
+  if (isImportWizardRoute(currentPath)) {
     messenger?.showSnackBar(
       SnackBar(
         content: Text(wizardActiveMessage ?? 'Finish current import first'),

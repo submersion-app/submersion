@@ -416,6 +416,7 @@ class BulkDiveEditService {
         ),
         amountKg: r.amountKg,
         notes: r.notes,
+        label: r.label,
       ),
   ];
 

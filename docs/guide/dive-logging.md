@@ -210,6 +210,8 @@ Track your weighting for each dive:
 | **Ankle** | Ankle weights |
 | **Backplate** | Backplate weights |
 
+Each weight row can also have an optional **name**, such as "Top pocket" or "Light canister", typed on the line under its type and amount. Use it to tell apart weights of the same type, like the pockets on a sidemount wing. The name shows before the type on the dive's details, is saved with weight presets, and can be searched with `weights[label ~ "pocket"]`.
+
 ## Species
 
 Log species sightings:

@@ -3,12 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_role_link_uniqueness.dart';
 
-/// The role junctions (v270, issue #1221).
+/// The role junctions (v271, issue #1221).
 void main() {
-  /// A v269 database: the parents exist, the two junctions do not.
+  /// A v270 database: the parents exist, the two junctions do not.
   NativeDatabase setupDb() => NativeDatabase.memory(
     setup: (rawDb) {
-      rawDb.execute('PRAGMA user_version = 269');
+      rawDb.execute('PRAGMA user_version = 270');
       rawDb.execute('CREATE TABLE divers (id TEXT PRIMARY KEY)');
       rawDb.execute('CREATE TABLE dives (id TEXT PRIMARY KEY)');
       rawDb.execute('CREATE TABLE buddies (id TEXT PRIMARY KEY)');
@@ -22,12 +22,12 @@ void main() {
     return cols.map((c) => c.read<String>('name')).toSet();
   }
 
-  test('v270 is the current schema and in the ladder; floor unchanged', () {
+  test('v271 is the current schema and in the ladder; floor unchanged', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 270);
-    expect(AppDatabase.migrationVersions, contains(270));
-    expect(AppDatabase.migrationStepCount(269), 1);
+    expect(AppDatabase.currentSchemaVersion, 271);
+    expect(AppDatabase.migrationVersions, contains(271));
+    expect(AppDatabase.migrationStepCount(270), 1);
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 

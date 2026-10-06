@@ -22,6 +22,81 @@ PickedImportFile file(
 }
 
 void main() {
+  // Several Suunto exports picked together are all excluded from the batch;
+  // triage must offer the Suunto importer instead of a CSV-only dead end
+  // (#1445).
+  testWidgets('offers the Suunto importer for excluded Suunto exports', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    container
+        .read(universalImportNotifierProvider.notifier)
+        .debugSetFilesForTest([
+          file('a.json', ImportFormat.suuntoJson, ImportFileStatus.excludedCsv),
+          file('b.json', ImportFormat.suuntoJson, ImportFileStatus.excludedCsv),
+        ]);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: FileTriageStep()),
+        ),
+      ),
+    );
+
+    expect(
+      find.byKey(const ValueKey('triage-import-with-suunto')),
+      findsOneWidget,
+    );
+    expect(find.text('Import with Suunto importer'), findsOneWidget);
+    expect(find.textContaining('CSV files'), findsNothing);
+  });
+
+  // A hand-off file is excluded from the batch like a CSV, but it is not a
+  // CSV: its row names its own format (#1445).
+  testWidgets('labels an excluded hand-off file by its own format', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    container
+        .read(universalImportNotifierProvider.notifier)
+        .debugSetFilesForTest([
+          file('a.fit', ImportFormat.fit, ImportFileStatus.pending),
+          file(
+            'nautic.json',
+            ImportFormat.suuntoJson,
+            ImportFileStatus.excludedCsv,
+          ),
+          file(
+            '005.DAT.csv',
+            ImportFormat.navTrack,
+            ImportFileStatus.excludedCsv,
+          ),
+        ]);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: FileTriageStep()),
+        ),
+      ),
+    );
+
+    expect(find.text('Import individually (Suunto JSON)'), findsOneWidget);
+    expect(find.text('Import individually (Seacraft ENC log)'), findsOneWidget);
+    expect(find.text('Import individually (CSV)'), findsNothing);
+  });
+
   testWidgets('lists files with format names and greys excluded ones', (
     tester,
   ) async {

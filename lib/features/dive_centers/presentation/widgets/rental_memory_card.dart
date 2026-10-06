@@ -8,10 +8,11 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center_gea
 import 'package:submersion/features/dive_centers/domain/services/rental_memory_resolver.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_gear_note_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/rental_gear_note_sheet.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/weight_name_text.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -137,6 +138,32 @@ class _LastDiveRows extends StatelessWidget {
 
   const _LastDiveRows({required this.last, required this.units});
 
+  /// One remembered weight: a named one leads with its name in the body
+  /// colour, the placement and amount muted after it (issue #956); an unnamed
+  /// one is muted throughout, as before.
+  Widget _weightLine(
+    DiveWeight weight,
+    AppLocalizations l10n,
+    ThemeData theme,
+    TextStyle? muted,
+  ) {
+    final (:name, :type) = weightNameParts(weight, l10n);
+    final amount = units.formatWeight(weight.amountKg);
+    if (name.isEmpty) return Text('$type $amount', style: muted);
+    return Text.rich(
+      TextSpan(
+        style: muted,
+        children: [
+          TextSpan(
+            text: name,
+            style: TextStyle(color: theme.colorScheme.onSurface),
+          ),
+          TextSpan(text: ' · $type $amount'),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -165,12 +192,7 @@ class _LastDiveRows extends StatelessWidget {
                 ),
                 style: theme.textTheme.bodyMedium,
               ),
-              for (final w in last.weights)
-                Text(
-                  '${w.weightType.localizedName(l10n)} '
-                  '${units.formatWeight(w.amountKg)}',
-                  style: muted,
-                ),
+              for (final w in last.weights) _weightLine(w, l10n, theme, muted),
               if (feedback != null)
                 Chip(
                   label: Text(feedback),
