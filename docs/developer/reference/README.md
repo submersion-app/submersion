@@ -49,10 +49,10 @@ Riverpod providers:
 
 ## Quick Links
 
-- [Entities](entities.md) - Domain entity reference
-- [Enums](enums.md) - Enum values reference
-- [Cylinder Passport Tag](formats/cylinder-passport-tag.md) - QR and NFC tag format for cylinder passports
-- [MacDive Sample Blobs](formats/macdive-zsamples.md) - The ZSAMPLES and ZRAWDATA binary formats
+- [Entities](entities.md): Domain entity reference
+- [Enums](enums.md): Enum values reference
+- [Cylinder Passport Tag](formats/cylinder-passport-tag.md): QR and NFC tag format for cylinder passports
+- [MacDive Sample Blobs](formats/macdive-zsamples.md): The ZSAMPLES and ZRAWDATA binary formats
 
 ## Import Patterns
 
