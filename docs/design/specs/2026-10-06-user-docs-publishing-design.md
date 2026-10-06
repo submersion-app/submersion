@@ -90,14 +90,24 @@ Removed: `docs/user/guide/`, `docs/user/features/`, `docs/user/index.html`,
 | `](Dive-Sites)` | `](dive-sites.md)` |
 | `](Dive-Sites#section)` | `](dive-sites.md#section)` |
 | `[[Dive Sites\|Dive-Sites]]` | `[Dive Sites](dive-sites.md)` |
-| `<a href="Media-Sync">` | `<a href="media-sync.md">` |
+| `<a href="Media-Sync">text</a>` | `[text](media-sync.md)` |
 | `](Home)` | `](README.md)` |
-| `<img src="https://github.com/user-attachments/...">` | `<img src="images/debug-mode-<n>.png">`, file downloaded into `images/` |
+| `<img alt="A" src="https://github.com/user-attachments/...">` | `![A](images/debug-mode-<n>.png)`, file downloaded into `images/` |
+| `<div class="tip">` ... `</div>` | `> [!TIP]` callout, each inner line prefixed `> ` |
+| `<div class="warning">` ... `</div>` | `> [!WARNING]` callout, likewise |
+
+Why the HTML forms change (found in the 2026-10-06 dry run): docsify rebases
+Markdown links and images onto its base path but leaves raw HTML untouched,
+so a relative `<img src>` or `<a href>` works on GitHub and 404s on the
+published guide. And GitHub strips the `class` from `<div class="tip">`
+while docsify's theme does not style it, so those 33 blocks rendered as plain
+text in both places; as callouts they render styled in both. After the move
+the guide has 130 callouts and no raw `<div>`, `<a href>` or `<img>`.
 
 Kept exactly as written: alert callouts (rendered by GitHub natively and by
-docsify through the alerts plugin), `<div class="tip|warning">` blocks,
-inline HTML, same-page anchors, screenshot placeholder comments, tables, and
-HTML entities. docsify 5's heading slugs match GitHub's except that docsify
+docsify through the alerts plugin), inline formatting HTML (`<strong>`,
+`<em>`, `<code>`, `<sub>`), same-page anchors, screenshot placeholder
+comments, tables, and HTML entities. docsify 5's heading slugs match GitHub's except that docsify
 prefixes a slug that starts with a digit with `_`; 8 wiki headings start with
 a digit (numbered steps in Multi-Device-Sync and Weight-Planner) and no link
 targets them, so every existing anchor works in both. Guard rule 3 keeps it
@@ -215,12 +225,21 @@ content.
 - **Edit this page:** a docsify plugin hook appends a link to
   `https://github.com/submersion-app/submersion/edit/main/docs/user/<file>`
   on every page.
-- **Look:** docsify's base theme restyled with the site's CSS variables and
-  the site header, so the page reads as part of submersion.app.
+- **Look:** docsify's `core` theme with its dark add-on, recoloured by a
+  `guide/guide.css` to the site's palette and font. The brand (favicon and
+  "Submersion Guide") heads the sidebar, and a small fixed link row (Home,
+  Download, GitHub) sits top right. The site's full header is not copied in:
+  docsify owns the page layout, and a second fixed header would fight its
+  sidebar.
 - **No JavaScript:** a `<noscript>` link to
   `https://github.com/submersion-app/submersion/tree/main/docs/user`.
-- **Navigation:** a "Guide" link (`/guide/`) in the header nav and footer of
-  every existing page that has them.
+- **Navigation:** a "Guide" link in the header nav (`index.html`,
+  `computers/`, `privacy/`, `terms/`) and a "User Guide" link in the footer
+  link row (the same four pages; `lightroom/` has no link row). The existing
+  `tests/support-matrix-page.test.mjs` compares each inner page's menu with
+  the homepage's after rebasing the homepage's `#section` links with `../`;
+  it is widened to rebase every site-relative link, so `guide/` matches
+  `../guide/`.
 - **Failure:** if `raw.githubusercontent.com` is unreachable, docsify shows its
   not-found page. Accepted as the cost of client-side rendering.
 
@@ -238,7 +257,7 @@ New `tests/guide-page.test.mjs` (Node test runner, as the existing tests):
 ## Guard extensions in this repository
 
 `scripts/check_docs_links.py` gains `docs/user/` as a checked tree, plus
-three rules that apply to it only. Tests first, in
+four rules that apply to it only. Tests first, in
 `scripts/check_docs_links_test.py`.
 
 1. **Flat:** no subdirectory in `docs/user/` other than `images/`, and no
@@ -252,6 +271,11 @@ three rules that apply to it only. Tests first, in
    A link whose target heading's slug starts with a digit fails, because
    docsify prefixes that slug with `_` and the two renderers would disagree.
    Unlinked digit-leading headings (the numbered steps) are allowed.
+
+4. **No raw relative HTML links or images:** an `<a href>` or `<img src>`
+   whose URL is relative fails with a message to use Markdown
+   (`[text](page.md)`, `![alt](images/x.png)`), for the reason given under the
+   conversion rules.
 
 Wiki-style links (`](Dive-Sites)`) need no rule: no file has that name, so
 the existing broken-link check fails them.
@@ -298,6 +322,18 @@ the existing broken-link check fails them.
   conventions above (flat folder, lowercase-kebab names, file-relative `.md`
   links, new pages added to `_sidebar.md`, GitHub alert syntax, screenshots in
   `images/`, no em-dashes or emoji).
+- Three references to `docs/user/guide/` pages that the guard reports once
+  the folder is gone:
+  - `docs/developer/database.md` links "What Syncs Between Devices" in
+    `../user/guide/multi-device-sync.md`; PR 1 points it at
+    `../user/multi-device-sync.md` without an anchor, and the Setup and Data
+    content PR, which adds that section, restores the
+    `#what-syncs-between-devices` anchor.
+  - `lib/core/services/sync/device_local_fields.dart` (a comment) names
+    `docs/user/guide/multi-device-sync.md`; it becomes
+    `docs/user/multi-device-sync.md`.
+  - `.github/workflows/build-all.yml` (a comment) names
+    `docs/user/guide/installation.md`; it becomes `docs/user/installation.md`.
 - `docs/releases/v1.5.0.97.md` keeps its wiki link: it is a historical release
   note, and the GitHub release published from it does not change.
 
