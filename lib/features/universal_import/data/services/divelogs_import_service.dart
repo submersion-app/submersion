@@ -213,7 +213,7 @@ class DivelogsImportService {
         <String, dynamic>{
           'uddfId': 'divelogs-cert-${cert.id ?? cert.name}',
           'name': cert.name,
-          'agency': DivelogsReferenceMappers.agencyForOrg(cert.org),
+          'agency': DivelogsReferenceMappers.agencyValueForOrg(cert.org),
           if (cert.date != null) 'issueDate': cert.date,
           if (DivelogsReferenceMappers.levelForName(cert.name) != null)
             'level': DivelogsReferenceMappers.levelForName(cert.name),

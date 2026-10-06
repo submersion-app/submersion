@@ -8,12 +8,13 @@ import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 
 /// Handles PDF export for training course logs.
 class PdfCourseExportService {
@@ -32,7 +33,9 @@ class PdfCourseExportService {
     required PdfDateFormatter dates,
     required UnitFormatter units,
     PdfLocalization? localization,
+    CertificationCatalog? catalog,
   }) async {
+    final cat = catalog ?? CertificationCatalog.builtInOnly;
     final loc = localization ?? PdfLocalization.english();
     final l10n = loc.l10n;
     // Month names and AM/PM in the log's language (#2252).
@@ -85,7 +88,7 @@ class PdfCourseExportService {
               ),
               pw.SizedBox(height: 15),
               pw.Text(
-                course.agency.localizedName(l10n),
+                cat.agency(course.agency).localizedName(l10n),
                 style: const pw.TextStyle(
                   fontSize: 18,
                   color: PdfColors.grey700,
@@ -180,7 +183,7 @@ class PdfCourseExportService {
               ),
               pw.SizedBox(height: 5),
               pw.Text(
-                '${course.name} - ${course.agency.localizedName(l10n)}',
+                '${course.name} - ${cat.agency(course.agency).localizedName(l10n)}',
                 style: const pw.TextStyle(
                   fontSize: 12,
                   color: PdfColors.grey600,

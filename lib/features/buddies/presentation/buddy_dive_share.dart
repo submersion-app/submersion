@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Exports every dive shared with [buddyId] as UDDF, via the share sheet or
 /// a save panel depending on the user's choice.
@@ -102,6 +103,9 @@ Future<void> shareDivesWithBuddy(
           dataSources: dataSources,
           extras: extras,
           options: options,
+          certificationCatalog: await ref.read(
+            allCustomCertificationsCatalogProvider.future,
+          ),
         );
       case ExportDestination.saveToFile:
         await exportService.saveDivesToUddfFile(
@@ -110,6 +114,9 @@ Future<void> shareDivesWithBuddy(
           dataSources: dataSources,
           extras: extras,
           options: options,
+          certificationCatalog: await ref.read(
+            allCustomCertificationsCatalogProvider.future,
+          ),
         );
     }
   } catch (e) {

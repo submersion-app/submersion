@@ -25,6 +25,7 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Handles PDF export for dive logbooks and trip reports.
 class PdfExportService {
@@ -222,6 +223,7 @@ class PdfExportService {
     String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     Diver? diver,
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
@@ -274,6 +276,7 @@ class PdfExportService {
       // Only honored when the diver asked for the cards, matching the
       // settings export path.
       certifications: options.includeCertificationCards ? certifications : null,
+      certificationCatalog: certificationCatalog,
       diver: diver,
       diverPhoto: diverPhoto,
       includeVerificationAreas: options.includeVerificationAreas,
@@ -297,6 +300,7 @@ class PdfExportService {
     String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     Diver? diver,
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
@@ -310,6 +314,7 @@ class PdfExportService {
       title: title,
       profiles: profiles,
       certifications: certifications,
+      certificationCatalog: certificationCatalog,
       diver: diver,
       diverPhoto: diverPhoto,
       diveTypesById: diveTypesById,
@@ -331,6 +336,7 @@ class PdfExportService {
     String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     Diver? diver,
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
@@ -344,6 +350,7 @@ class PdfExportService {
       title: title,
       profiles: profiles,
       certifications: certifications,
+      certificationCatalog: certificationCatalog,
       diver: diver,
       diverPhoto: diverPhoto,
       diveTypesById: diveTypesById,

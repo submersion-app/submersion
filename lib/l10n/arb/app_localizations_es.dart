@@ -3372,6 +3372,121 @@ class AppLocalizationsEs extends AppLocalizations {
   String get certifications_edit_label_agency => 'Agencia *';
 
   @override
+  String get certificationAgencies_unknownAgency => 'Agencia desconocida';
+
+  @override
+  String get certificationAgencies_unknownCertification =>
+      'Certificación desconocida';
+
+  @override
+  String get certificationAgencies_addCustomAgency =>
+      'Añadir agencia personalizada...';
+
+  @override
+  String get certificationAgencies_addCustomCertification =>
+      'Añadir certificación personalizada...';
+
+  @override
+  String get certificationAgencies_dialog_newAgencyTitle => 'Nueva agencia';
+
+  @override
+  String get certificationAgencies_dialog_editAgencyTitle => 'Editar agencia';
+
+  @override
+  String get certificationAgencies_dialog_newCertificationTitle =>
+      'Nueva certificación';
+
+  @override
+  String get certificationAgencies_dialog_editCertificationTitle =>
+      'Editar certificación';
+
+  @override
+  String get certificationAgencies_dialog_nameLabel => 'Nombre';
+
+  @override
+  String get certificationAgencies_dialog_colorLabel => 'Color de la tarjeta';
+
+  @override
+  String get certificationAgencies_dialog_specialty => 'Especialidad';
+
+  @override
+  String get certificationAgencies_error_nameRequired => 'Introduce un nombre';
+
+  @override
+  String get certificationAgencies_error_nameTaken =>
+      'Ese nombre ya está en uso';
+
+  @override
+  String get settings_manage_certificationAgencies =>
+      'Agencias de certificación';
+
+  @override
+  String get settings_manage_certificationAgencies_subtitle =>
+      'Gestionar agencias y certificaciones personalizadas';
+
+  @override
+  String get certificationAgencies_section_yours => 'Tus agencias';
+
+  @override
+  String get certificationAgencies_section_builtIn => 'Agencias integradas';
+
+  @override
+  String get certificationAgencies_addAgency => 'Añadir agencia';
+
+  @override
+  String certificationAgencies_sharedBy(String name) {
+    return 'Compartida por $name';
+  }
+
+  @override
+  String get certificationAgencies_editor_addCertification =>
+      'Añadir certificación';
+
+  @override
+  String get certificationAgencies_editor_builtInHint =>
+      'Las certificaciones integradas no se pueden cambiar. Puedes añadir las tuyas.';
+
+  @override
+  String certificationAgencies_delete_confirmTitle(String name) {
+    return '¿Eliminar $name?';
+  }
+
+  @override
+  String get certificationAgencies_delete_refusedTitle => 'Todavía en uso';
+
+  @override
+  String certificationAgencies_delete_refusedBody(String usage) {
+    return 'Lo usan $usage. Cámbialos primero.';
+  }
+
+  @override
+  String certificationAgencies_usage_certifications(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count certificaciones',
+      one: '1 certificación',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_courses(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cursos',
+      one: '1 curso',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_and(String first, String second) {
+    return '$first y $second';
+  }
+
+  @override
   String get certifications_edit_addRecognition => 'Añadir otro reconocimiento';
 
   @override
@@ -11629,6 +11744,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get enum_certificationAgency_ffessm => 'FFESSM';
+
+  @override
+  String get enum_certificationAgency_acuc => 'ACUC';
+
+  @override
+  String get enum_certificationAgency_dan => 'DAN';
 
   @override
   String get enum_certificationAgency_gue => 'GUE';

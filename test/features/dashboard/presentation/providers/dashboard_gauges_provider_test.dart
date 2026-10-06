@@ -69,7 +69,7 @@ ActiveCourseProgress _course(String name, int total) => (
     id: 'c1',
     diverId: 'd1',
     name: name,
-    agency: CertificationAgency.padi,
+    agency: CertificationAgency.padi.name,
     startDate: _t0,
     createdAt: _t0,
     updatedAt: _t0,

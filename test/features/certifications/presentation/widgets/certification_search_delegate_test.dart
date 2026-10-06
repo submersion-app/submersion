@@ -13,7 +13,7 @@ import '../../../../helpers/test_app.dart';
 final _cert = Certification(
   id: 'c1',
   name: 'Advanced Open Water',
-  agency: CertificationAgency.padi,
+  agency: CertificationAgency.padi.name,
   createdAt: DateTime(2026, 1, 1),
   updatedAt: DateTime(2026, 1, 1),
 );

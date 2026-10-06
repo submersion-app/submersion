@@ -8,7 +8,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// A widget for selecting a certification to link to a course.
 class CertificationPicker extends ConsumerWidget {
@@ -23,6 +25,7 @@ class CertificationPicker extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
     return ListTile(
@@ -44,6 +47,7 @@ class CertificationPicker extends ConsumerWidget {
                 : certificationTitleL10n(
                     selectedCertification!,
                     context.l10n,
+                    catalog: context.certificationCatalog,
                   )) ??
             context.l10n.certifications_picker_noSelection,
       ),
@@ -55,6 +59,7 @@ class CertificationPicker extends ConsumerWidget {
               certificationCredentialsLineL10n(
                 selectedCertification!,
                 context.l10n,
+                catalog: context.certificationCatalog,
               ),
             )
           : Text(context.l10n.certifications_picker_hint),
@@ -111,6 +116,7 @@ class CertificationPickerSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final certificationsAsync = ref.watch(certificationListNotifierProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -203,7 +209,11 @@ class CertificationPickerSheet extends ConsumerWidget {
 
                   // Only non-null when a custom name owns the title, so the
                   // level is spoken exactly once either way.
-                  final level = certificationSubtitleL10n(cert, context.l10n);
+                  final level = certificationSubtitleL10n(
+                    cert,
+                    context.l10n,
+                    catalog: context.certificationCatalog,
+                  );
                   final levelLabel = level != null ? ', $level' : '';
                   // Keep the agency: this label replaces the tile's own
                   // semantics, including the subtitle that shows the agency
@@ -213,13 +223,14 @@ class CertificationPickerSheet extends ConsumerWidget {
                   final alsoRecognized = additionalCredentialsLineL10n(
                     cert,
                     context.l10n,
+                    catalog: context.certificationCatalog,
                   );
                   final alsoLabel = alsoRecognized != null
                       ? ', $alsoRecognized'
                       : '';
                   final certName =
-                      '${cert.agency.localizedName(context.l10n)} '
-                      '${certificationTitleL10n(cert, context.l10n)}$levelLabel'
+                      '${context.certificationCatalog.agency(cert.agency).localizedName(context.l10n)} '
+                      '${certificationTitleL10n(cert, context.l10n, catalog: context.certificationCatalog)}$levelLabel'
                       '$alsoLabel';
                   final certLabel = cert.issueDate != null
                       ? '$certName, issued ${units.formatDate(cert.issueDate)}${isSelected ? ', selected' : ''}${cert.isExpired ? ', expired' : ''}'
@@ -248,13 +259,20 @@ class CertificationPickerSheet extends ConsumerWidget {
                               : Colors.green,
                         ),
                       ),
-                      title: Text(certificationTitleL10n(cert, context.l10n)),
+                      title: Text(
+                        certificationTitleL10n(
+                          cert,
+                          context.l10n,
+                          catalog: context.certificationCatalog,
+                        ),
+                      ),
                       subtitle: Text(
                         cert.issueDate != null
-                            ? '${certificationCredentialsLineL10n(cert, context.l10n)} - ${units.formatDate(cert.issueDate)}'
+                            ? '${certificationCredentialsLineL10n(cert, context.l10n, catalog: context.certificationCatalog)} - ${units.formatDate(cert.issueDate)}'
                             : certificationCredentialsLineL10n(
                                 cert,
                                 context.l10n,
+                                catalog: context.certificationCatalog,
                               ),
                       ),
                       trailing: isSelected

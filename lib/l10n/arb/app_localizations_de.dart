@@ -3374,6 +3374,121 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_edit_label_agency => 'Verband *';
 
   @override
+  String get certificationAgencies_unknownAgency => 'Unbekannter Verband';
+
+  @override
+  String get certificationAgencies_unknownCertification =>
+      'Unbekannte Zertifizierung';
+
+  @override
+  String get certificationAgencies_addCustomAgency =>
+      'Eigenen Verband hinzufügen...';
+
+  @override
+  String get certificationAgencies_addCustomCertification =>
+      'Eigene Zertifizierung hinzufügen...';
+
+  @override
+  String get certificationAgencies_dialog_newAgencyTitle => 'Neuer Verband';
+
+  @override
+  String get certificationAgencies_dialog_editAgencyTitle =>
+      'Verband bearbeiten';
+
+  @override
+  String get certificationAgencies_dialog_newCertificationTitle =>
+      'Neue Zertifizierung';
+
+  @override
+  String get certificationAgencies_dialog_editCertificationTitle =>
+      'Zertifizierung bearbeiten';
+
+  @override
+  String get certificationAgencies_dialog_nameLabel => 'Name';
+
+  @override
+  String get certificationAgencies_dialog_colorLabel => 'Kartenfarbe';
+
+  @override
+  String get certificationAgencies_dialog_specialty => 'Spezialkurs';
+
+  @override
+  String get certificationAgencies_error_nameRequired => 'Namen eingeben';
+
+  @override
+  String get certificationAgencies_error_nameTaken =>
+      'Dieser Name wird bereits verwendet';
+
+  @override
+  String get settings_manage_certificationAgencies => 'Zertifizierungsverbände';
+
+  @override
+  String get settings_manage_certificationAgencies_subtitle =>
+      'Eigene Verbände und Zertifizierungen verwalten';
+
+  @override
+  String get certificationAgencies_section_yours => 'Deine Verbände';
+
+  @override
+  String get certificationAgencies_section_builtIn => 'Integrierte Verbände';
+
+  @override
+  String get certificationAgencies_addAgency => 'Verband hinzufügen';
+
+  @override
+  String certificationAgencies_sharedBy(String name) {
+    return 'Geteilt von $name';
+  }
+
+  @override
+  String get certificationAgencies_editor_addCertification =>
+      'Zertifizierung hinzufügen';
+
+  @override
+  String get certificationAgencies_editor_builtInHint =>
+      'Integrierte Zertifizierungen lassen sich nicht ändern. Du kannst eigene hinzufügen.';
+
+  @override
+  String certificationAgencies_delete_confirmTitle(String name) {
+    return '$name löschen?';
+  }
+
+  @override
+  String get certificationAgencies_delete_refusedTitle => 'Noch in Verwendung';
+
+  @override
+  String certificationAgencies_delete_refusedBody(String usage) {
+    return 'Verwendet von $usage. Ändere diese zuerst.';
+  }
+
+  @override
+  String certificationAgencies_usage_certifications(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zertifizierungen',
+      one: '1 Zertifizierung',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_courses(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Kurse',
+      one: '1 Kurs',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_and(String first, String second) {
+    return '$first und $second';
+  }
+
+  @override
   String get certifications_edit_addRecognition =>
       'Weitere Anerkennung hinzufügen';
 
@@ -11638,6 +11753,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_certificationAgency_ffessm => 'FFESSM';
+
+  @override
+  String get enum_certificationAgency_acuc => 'ACUC';
+
+  @override
+  String get enum_certificationAgency_dan => 'DAN';
 
   @override
   String get enum_certificationAgency_gue => 'GÜ';

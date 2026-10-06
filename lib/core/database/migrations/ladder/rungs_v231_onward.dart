@@ -236,12 +236,21 @@ extension RungsFromV231 on AppDatabase {
       await _assertMediaSiteAttachmentColumns();
     }
     if (from < 266) await reportProgress();
-    // v267: the role junctions (issue #1221), several roles per person on a
-    // dive. Table-only rung, no backfill; re-asserted in beforeOpen.
-    // Renumbered from 262 and then 264 as main shipped those.
+    // v267: custom certification agencies and levels (issue #690). Table
+    // and index only, no backfill: stored agency/level text are built-in
+    // enum names, which stay valid ids. Re-asserted in beforeOpen.
+    // Renumbered from 265 and 266, which main shipped first.
     if (from < 267) {
-      await _assertDiveRoleLinkSchema();
+      await _assertCustomCertificationSchema();
     }
     if (from < 267) await reportProgress();
+    // v270: the role junctions (issue #1221), several roles per person on a
+    // dive. Table-only rung, no backfill; re-asserted in beforeOpen.
+    // Renumbered from 262, 264 and 267 as main shipped those; 268 and 269
+    // are held by open branches (#2999, #3043, #3007).
+    if (from < 270) {
+      await _assertDiveRoleLinkSchema();
+    }
+    if (from < 270) await reportProgress();
   }
 }

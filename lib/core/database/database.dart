@@ -115,9 +115,12 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DiveDiveTypes,
     DiveTypes,
     DiveRoles,
-    // Several roles per person on a dive (v267, issue #1221)
+    // Several roles per person on a dive (v270, issue #1221)
     DiveDiverRoles,
     DiveBuddyRoles,
+    // Custom certification agencies and levels (v261, issue #690)
+    CustomCertificationAgencies,
+    CustomCertificationLevels,
     TankPresets,
     WeightPresets,
     WeightPresetEntries,
@@ -239,7 +242,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 267;
+  static const int currentSchemaVersion = 270;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1114,11 +1117,16 @@ class AppDatabase extends _$AppDatabase {
     // so the floor stays. Renumbered from 263, which main shipped first
     // (#2030); 262 is claimed by an open branch.
     266,
-    // v267: dive_diver_roles and dive_buddy_roles, several roles per person
+    // v267: custom certification agencies and levels (issue #690). Two new
+    // synced tables and an index, no data migration, so the floor stays.
+    // Renumbered from 265 and 266, which main shipped first.
+    267,
+    // v270: dive_diver_roles and dive_buddy_roles, several roles per person
     // on a dive (issue #1221). New synced child tables, no backfill: an
     // older peer ignores them and its scalar role writes still resolve, so
-    // the floor stays. Renumbered from 262 and then 264 as main shipped those.
-    267,
+    // the floor stays. Renumbered from 262, 264 and 267 as main shipped
+    // those; 268 and 269 are held by open branches (#2999, #3043, #3007).
+    270,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

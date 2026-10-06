@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Handles simple UDDF export of dives with optional site data.
 class UddfExportService {
@@ -34,6 +35,7 @@ class UddfExportService {
     List<DiveSite>? sites,
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
@@ -170,6 +172,7 @@ class UddfExportService {
                 builder,
                 people,
                 trimmed: true,
+                certificationCatalog: certificationCatalog,
               );
             },
           );
@@ -692,6 +695,7 @@ class UddfExportService {
     List<DiveSite>? sites,
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
@@ -700,6 +704,7 @@ class UddfExportService {
       sites: sites,
       diveTankPressures: diveTankPressures,
       dataSources: dataSources,
+      certificationCatalog: certificationCatalog,
       extras: extras,
       options: options,
     );
@@ -714,6 +719,7 @@ class UddfExportService {
     List<DiveSite>? sites,
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
@@ -722,6 +728,7 @@ class UddfExportService {
       sites: sites,
       diveTankPressures: diveTankPressures,
       dataSources: dataSources,
+      certificationCatalog: certificationCatalog,
       extras: extras,
       options: options,
     );

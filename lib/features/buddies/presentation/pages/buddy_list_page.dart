@@ -27,6 +27,8 @@ import 'package:submersion/features/buddies/presentation/widgets/buddy_search_de
 import 'package:submersion/features/buddies/query/buddy_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_list_count_provider.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 class BuddyListPage extends ConsumerStatefulWidget {
   const BuddyListPage({super.key});
@@ -39,6 +41,7 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
     with TableSelectionOwner {
   @override
   Widget build(BuildContext context) {
+    ref.watch(certificationCatalogSyncProvider);
     final fab = FloatingActionButton.extended(
       onPressed: () {
         final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
@@ -101,7 +104,9 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
             onPressed: () => showEntityTableColumnPicker<BuddyField>(
               context,
               configProvider: buddyTableConfigProvider,
-              adapter: BuddyFieldAdapter.instance,
+              adapter: BuddyFieldAdapter.withCatalog(
+                context.certificationCatalog,
+              ),
             ),
           ),
           appBarActions: [

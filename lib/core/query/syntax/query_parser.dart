@@ -664,9 +664,18 @@ class QueryParser {
             .where((v) => v.toLowerCase() == tok.text.toLowerCase())
             .firstOrNull;
         if (match == null) {
+          // A custom agency or level is typed by its name (issue #690).
+          final custom = field.customValueSubject;
+          if (custom != null) {
+            final ref = context.names.resolve(custom, tok.text);
+            if (ref != null) return EnumValue(ref.id, label: ref.label);
+          }
           // A short closed list: when nothing is close, every value is a
           // better hint than none.
-          final near = suggestNames(tok.text, values);
+          final near = [
+            ...suggestNames(tok.text, values),
+            if (custom != null) ...context.names.candidates(custom, tok.text),
+          ];
           throw _Abort(
             _err(
               QueryErrorCode.notEnumValue,

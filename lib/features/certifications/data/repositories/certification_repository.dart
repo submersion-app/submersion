@@ -8,7 +8,6 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart'
     as domain;
 
@@ -200,8 +199,8 @@ class CertificationRepository {
               diverId: Value(cert.diverId),
               buddyId: Value(cert.buddyId),
               name: Value(cert.name),
-              agency: Value(cert.agency.name),
-              level: Value(cert.level?.name),
+              agency: Value(cert.agency),
+              level: Value(cert.level),
               additionalCredentials: Value(
                 _encodeCredentials(cert.additionalCredentials),
               ),
@@ -252,8 +251,8 @@ class CertificationRepository {
       )..where((t) => t.id.equals(cert.id))).write(
         CertificationsCompanion(
           name: Value(cert.name),
-          agency: Value(cert.agency.name),
-          level: Value(cert.level?.name),
+          agency: Value(cert.agency),
+          level: Value(cert.level),
           additionalCredentials: Value(
             _encodeCredentials(cert.additionalCredentials),
           ),
@@ -363,10 +362,10 @@ class CertificationRepository {
 
   /// Get certifications by agency
   Future<List<domain.Certification>> getCertificationsByAgency(
-    CertificationAgency agency,
+    String agencyId,
   ) async {
     final query = _db.select(_db.certifications)
-      ..where((t) => t.agency.equals(agency.name))
+      ..where((t) => t.agency.equals(agencyId))
       ..orderBy([(t) => OrderingTerm.desc(t.issueDate)]);
 
     final rows = await query.get();
@@ -382,8 +381,8 @@ class CertificationRepository {
       diverId: row.data['diver_id'] as String?,
       buddyId: row.data['buddy_id'] as String?,
       name: row.data['name'] as String,
-      agency: _parseCertificationAgency(row.data['agency'] as String),
-      level: _parseCertificationLevel(row.data['level'] as String?),
+      agency: row.data['agency'] as String,
+      level: row.data['level'] as String?,
       additionalCredentials: _decodeCredentials(
         row.data['additional_credentials'] as String?,
       ),
@@ -411,8 +410,8 @@ class CertificationRepository {
       diverId: row.diverId,
       buddyId: row.buddyId,
       name: row.name,
-      agency: _parseCertificationAgency(row.agency),
-      level: _parseCertificationLevel(row.level),
+      agency: row.agency,
+      level: row.level,
       additionalCredentials: _decodeCredentials(row.additionalCredentials),
       cardNumber: row.cardNumber,
       issueDate: _parseDateTime(row.issueDate),
@@ -432,21 +431,6 @@ class CertificationRepository {
     return timestamp != null
         ? DateTime.fromMillisecondsSinceEpoch(timestamp)
         : null;
-  }
-
-  CertificationAgency _parseCertificationAgency(String value) {
-    return CertificationAgency.values.firstWhere(
-      (a) => a.name == value,
-      orElse: () => CertificationAgency.other,
-    );
-  }
-
-  CertificationLevel? _parseCertificationLevel(String? value) {
-    if (value == null) return null;
-    return CertificationLevel.values.firstWhere(
-      (l) => l.name == value,
-      orElse: () => CertificationLevel.other,
-    );
   }
 
   /// Decode the `additional_credentials` JSON column. Tolerant of null, an

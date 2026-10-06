@@ -11,6 +11,8 @@ import 'package:submersion/features/buddies/presentation/buddy_certification_l10
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Summary widget shown in the detail pane when no buddy is selected.
 ///
@@ -20,6 +22,7 @@ class BuddySummaryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final buddiesAsync = ref.watch(allBuddiesWithDiveCountProvider);
 
     return Scaffold(
@@ -229,8 +232,19 @@ class BuddySummaryWidget extends ConsumerWidget {
                 ),
                 title: Text(buddy.name),
                 subtitle:
-                    buddyCertificationLineL10n(buddy, context.l10n) != null
-                    ? Text(buddyCertificationLineL10n(buddy, context.l10n)!)
+                    buddyCertificationLineL10n(
+                          buddy,
+                          context.l10n,
+                          catalog: context.certificationCatalog,
+                        ) !=
+                        null
+                    ? Text(
+                        buddyCertificationLineL10n(
+                          buddy,
+                          context.l10n,
+                          catalog: context.certificationCatalog,
+                        )!,
+                      )
                     : null,
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,

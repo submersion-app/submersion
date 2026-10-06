@@ -247,7 +247,7 @@ extension BuddyMigrations on AppDatabase {
   /// v103 backstop: the dive_roles table, its built-in seed and the
   /// dives.diver_role column (all DDL idempotent). The seed is guarded on
   /// the divers FK parent existing, which only matters for minimal
-  /// test-fixture databases. Moved here from beforeOpen beside the v267
+  /// test-fixture databases. Moved here from beforeOpen beside the v270
   /// role junctions.
   Future<void> _assertDiveRoleVocabularySchema() async {
     await Migrator(this).createTable(diveRoles);
@@ -263,9 +263,9 @@ extension BuddyMigrations on AppDatabase {
     }
   }
 
-  /// v267: the role junctions (issue #1221). Table-only, no backfill: an
+  /// v270: the role junctions (issue #1221). Table-only, no backfill: an
   /// existing dive resolves to its scalar role (DiveRoleSet.resolve), so no
-  /// row is minted per device. Idempotent; called from the v267 rung and the
+  /// row is minted per device. Idempotent; called from the v270 rung and the
   /// beforeOpen backstop. Skipped on a partial fixture without parents.
   Future<void> _assertDiveRoleLinkSchema() async {
     for (final parent in const ['dives', 'buddies']) {
@@ -274,5 +274,23 @@ extension BuddyMigrations on AppDatabase {
     await Migrator(this).createTable(diveDiverRoles);
     await Migrator(this).createTable(diveBuddyRoles);
     await assertDiveRoleLinkUniqueness(this);
+  }
+
+  /// Idempotent creation of the v267 custom certification tables (issue
+  /// #690) and the level-by-agency index. Called from the v267 rung and the
+  /// beforeOpen backstop. Skipped on a partial migration fixture without
+  /// `divers`, so an older fixture does not gain tables whose foreign keys
+  /// point nowhere.
+  Future<void> _assertCustomCertificationSchema() async {
+    final divers = await customSelect(
+      "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'divers'",
+    ).get();
+    if (divers.isEmpty) return;
+    await Migrator(this).createTable(customCertificationAgencies);
+    await Migrator(this).createTable(customCertificationLevels);
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_custom_certification_levels_agency '
+      'ON custom_certification_levels(agency_id)',
+    );
   }
 }

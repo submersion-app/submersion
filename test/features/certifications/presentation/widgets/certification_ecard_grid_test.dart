@@ -21,8 +21,8 @@ final _now = DateTime(2026, 8, 9);
 Certification _makeCert({
   String id = 'cert-1',
   String name = 'Open Water Diver',
-  CertificationAgency agency = CertificationAgency.padi,
-  CertificationLevel? level,
+  String agency = 'padi',
+  String? level,
   Uint8List? photoFront,
   Uint8List? photoBack,
 }) {
@@ -86,7 +86,7 @@ void main() {
         tester,
         certifications: [
           _makeCert(id: 'cert-1'),
-          _makeCert(id: 'cert-2', agency: CertificationAgency.ssi),
+          _makeCert(id: 'cert-2', agency: CertificationAgency.ssi.name),
         ],
       );
 
@@ -102,8 +102,8 @@ void main() {
         tester,
         certifications: [
           _makeCert(id: 'cert-1'),
-          _makeCert(id: 'cert-2', agency: CertificationAgency.ssi),
-          _makeCert(id: 'cert-3', agency: CertificationAgency.naui),
+          _makeCert(id: 'cert-2', agency: CertificationAgency.ssi.name),
+          _makeCert(id: 'cert-3', agency: CertificationAgency.naui.name),
         ],
       );
 
@@ -324,8 +324,8 @@ void main() {
           _makeCert(
             id: 'cert-1',
             name: 'Open Water',
-            agency: CertificationAgency.ssi,
-            level: CertificationLevel.openWater,
+            agency: CertificationAgency.ssi.name,
+            level: CertificationLevel.openWater.name,
           ),
         ],
       );
@@ -344,8 +344,8 @@ void main() {
           _makeCert(
             id: 'cert-1',
             name: 'Bali OW w/ Made',
-            agency: CertificationAgency.padi,
-            level: CertificationLevel.openWater,
+            agency: CertificationAgency.padi.name,
+            level: CertificationLevel.openWater.name,
           ),
         ],
       );
@@ -396,7 +396,7 @@ void main() {
         tester,
         certifications: [
           _makeCert(id: 'cert-1'),
-          _makeCert(id: 'cert-2', agency: CertificationAgency.ssi),
+          _makeCert(id: 'cert-2', agency: CertificationAgency.ssi.name),
         ],
         width: 360,
         height: 800,

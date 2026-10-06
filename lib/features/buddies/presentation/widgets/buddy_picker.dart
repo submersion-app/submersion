@@ -23,6 +23,8 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/widgets/dive_role_selector_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Widget for selecting buddies for a dive
 class BuddyPicker extends ConsumerWidget {
@@ -47,6 +49,7 @@ class BuddyPicker extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final roles = ref.watch(allDiveRolesProvider).value ?? const <DiveRole>[];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -271,6 +274,7 @@ class _MeChip extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final diver = ref.watch(currentDiverProvider).value;
     final rolesById =
         ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
@@ -374,6 +378,7 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(certificationCatalogSyncProvider);
     final buddiesAsync = _debouncedQuery.isEmpty
         ? ref.watch(allBuddiesWithDiveCountProvider)
         : ref.watch(buddySearchWithDiveCountProvider(_debouncedQuery));
@@ -628,7 +633,11 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
             .where((b) => b.buddy.id == buddy.id)
             .map((b) => b.roles)
             .firstOrNull;
-        final certLine = buddyCertificationLineL10n(buddy, context.l10n);
+        final certLine = buddyCertificationLineL10n(
+          buddy,
+          context.l10n,
+          catalog: context.certificationCatalog,
+        );
 
         return ListTile(
           // Selection wins over the photo: a checked row must read as checked
@@ -770,7 +779,7 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
   Set<String> _professionalRoleIds(List<Certification> certs) {
     final ids = <String>{};
     for (final cert in certs) {
-      final level = cert.level;
+      final level = CertificationLevel.fromId(cert.level);
       if (level == null) continue;
       if (level.isInstructorLevel) ids.add(DiveRole.instructorId);
       if (level == CertificationLevel.diveMaster) {

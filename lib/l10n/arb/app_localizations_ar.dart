@@ -3441,6 +3441,125 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_edit_label_agency => 'الجهة المانحة *';
 
   @override
+  String get certificationAgencies_unknownAgency => 'جهة مانحة غير معروفة';
+
+  @override
+  String get certificationAgencies_unknownCertification => 'شهادة غير معروفة';
+
+  @override
+  String get certificationAgencies_addCustomAgency =>
+      'إضافة جهة مانحة مخصصة...';
+
+  @override
+  String get certificationAgencies_addCustomCertification =>
+      'إضافة شهادة مخصصة...';
+
+  @override
+  String get certificationAgencies_dialog_newAgencyTitle => 'جهة مانحة جديدة';
+
+  @override
+  String get certificationAgencies_dialog_editAgencyTitle =>
+      'تعديل الجهة المانحة';
+
+  @override
+  String get certificationAgencies_dialog_newCertificationTitle =>
+      'شهادة جديدة';
+
+  @override
+  String get certificationAgencies_dialog_editCertificationTitle =>
+      'تعديل الشهادة';
+
+  @override
+  String get certificationAgencies_dialog_nameLabel => 'الاسم';
+
+  @override
+  String get certificationAgencies_dialog_colorLabel => 'لون البطاقة';
+
+  @override
+  String get certificationAgencies_dialog_specialty => 'تخصص';
+
+  @override
+  String get certificationAgencies_error_nameRequired => 'أدخل اسمًا';
+
+  @override
+  String get certificationAgencies_error_nameTaken => 'هذا الاسم مستخدم بالفعل';
+
+  @override
+  String get settings_manage_certificationAgencies => 'جهات منح الشهادات';
+
+  @override
+  String get settings_manage_certificationAgencies_subtitle =>
+      'إدارة الجهات المانحة والشهادات المخصصة';
+
+  @override
+  String get certificationAgencies_section_yours => 'جهاتك المانحة';
+
+  @override
+  String get certificationAgencies_section_builtIn => 'الجهات المانحة المضمّنة';
+
+  @override
+  String get certificationAgencies_addAgency => 'إضافة جهة مانحة';
+
+  @override
+  String certificationAgencies_sharedBy(String name) {
+    return 'مشاركة من $name';
+  }
+
+  @override
+  String get certificationAgencies_editor_addCertification => 'إضافة شهادة';
+
+  @override
+  String get certificationAgencies_editor_builtInHint =>
+      'لا يمكن تغيير الشهادات المضمّنة. يمكنك إضافة شهاداتك الخاصة.';
+
+  @override
+  String certificationAgencies_delete_confirmTitle(String name) {
+    return 'حذف $name؟';
+  }
+
+  @override
+  String get certificationAgencies_delete_refusedTitle =>
+      'ما زال قيد الاستخدام';
+
+  @override
+  String certificationAgencies_delete_refusedBody(String usage) {
+    return 'مستخدم في $usage. غيّرها أولًا.';
+  }
+
+  @override
+  String certificationAgencies_usage_certifications(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count شهادة',
+      many: '$count شهادة',
+      few: '$count شهادات',
+      two: 'شهادتان',
+      one: 'شهادة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_courses(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count دورة',
+      many: '$count دورة',
+      few: '$count دورات',
+      two: 'دورتان',
+      one: 'دورة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_and(String first, String second) {
+    return '$first و$second';
+  }
+
+  @override
   String get certifications_edit_addRecognition => 'إضافة اعتراف آخر';
 
   @override
@@ -11788,6 +11907,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_certificationAgency_ffessm => 'FFESSM';
+
+  @override
+  String get enum_certificationAgency_acuc => 'ACUC';
+
+  @override
+  String get enum_certificationAgency_dan => 'DAN';
 
   @override
   String get enum_certificationAgency_gue => 'GUE';

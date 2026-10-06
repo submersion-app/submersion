@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Simple PDF template with high-density table format.
 ///
@@ -37,6 +38,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
     String? title,
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     Diver? diver,
     // Accepted for the shared builder contract; this template does not chart
     // profiles, show a portrait, or offer verification areas.
@@ -82,6 +84,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
           textDirection: loc.textDirection,
           build: (context) => PdfSharedComponents.buildCertificationCardsBody(
             certifications: certifications,
+            certificationCatalog: certificationCatalog,
             dates: dates,
             l10n: l10n,
             diver: diver,

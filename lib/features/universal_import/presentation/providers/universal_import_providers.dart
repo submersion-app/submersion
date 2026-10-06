@@ -56,6 +56,7 @@ import 'package:submersion/features/universal_import/presentation/providers/univ
 import 'package:submersion/core/services/files/picked_file_materializer.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 export 'package:submersion/features/universal_import/presentation/providers/universal_import_state.dart';
 
@@ -1130,6 +1131,9 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       existingSourceUuidByDiveId: existingSourceUuidByDiveId,
       checkIntraBatch: (payload.metadata['batchFileCount'] as int? ?? 1) > 1,
       units: UnitFormatter(_ref.read(settingsProvider)),
+      certificationCatalog: await _ref.read(
+        allCustomCertificationsCatalogProvider.future,
+      ),
     );
   }
 

@@ -25,6 +25,8 @@ import 'package:submersion/features/courses/presentation/providers/course_query_
 import 'package:submersion/features/courses/query/course_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/courses/presentation/providers/course_list_count_provider.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 class CourseListPage extends ConsumerStatefulWidget {
   const CourseListPage({super.key});
@@ -37,6 +39,7 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
     with TableSelectionOwner {
   @override
   Widget build(BuildContext context) {
+    ref.watch(certificationCatalogSyncProvider);
     final fab = FloatingActionButton.extended(
       onPressed: () {
         final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
@@ -99,7 +102,9 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
             onPressed: () => showEntityTableColumnPicker<CourseField>(
               context,
               configProvider: courseTableConfigProvider,
-              adapter: CourseFieldAdapter.instance,
+              adapter: CourseFieldAdapter.withCatalog(
+                context.certificationCatalog,
+              ),
             ),
           ),
           appBarActions: [

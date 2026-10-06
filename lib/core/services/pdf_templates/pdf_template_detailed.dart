@@ -32,6 +32,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/environment_en
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Detailed PDF template: one dive per page with the full field set.
 ///
@@ -51,6 +52,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     String? title,
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     Diver? diver,
     Map<String, PdfProfileSeries>? profiles,
     Uint8List? diverPhoto,
@@ -99,6 +101,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
             l10n: l10n,
             diveCount: dives.length,
             certifications: certifications ?? const [],
+            certificationCatalog: certificationCatalog,
             photoBytes: diverPhoto,
           ),
         ),
@@ -128,6 +131,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
           textDirection: loc.textDirection,
           build: (context) => PdfSharedComponents.buildCertificationCardsBody(
             certifications: certifications,
+            certificationCatalog: certificationCatalog,
             dates: dates,
             l10n: l10n,
             diver: diver,

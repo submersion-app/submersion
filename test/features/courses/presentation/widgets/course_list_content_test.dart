@@ -79,7 +79,7 @@ final _now = DateTime.now();
 Course _makeCourse({
   required String id,
   required String name,
-  CertificationAgency agency = CertificationAgency.padi,
+  String agency = 'padi',
   DateTime? startDate,
   DateTime? completionDate,
   String? location,
@@ -356,7 +356,7 @@ void main() {
         _makeCourse(
           id: 'co1',
           name: 'Advanced Open Water',
-          agency: CertificationAgency.padi,
+          agency: CertificationAgency.padi.name,
           startDate: DateTime(2024, 1, 10),
           completionDate: DateTime(2024, 1, 15),
           location: 'Koh Tao',
@@ -364,7 +364,7 @@ void main() {
         _makeCourse(
           id: 'co2',
           name: 'Rescue Diver',
-          agency: CertificationAgency.ssi,
+          agency: CertificationAgency.ssi.name,
           startDate: DateTime(2024, 3, 5),
         ),
       ];
@@ -445,7 +445,7 @@ void main() {
         _makeCourse(
           id: 'co1',
           name: 'Advanced Open Water',
-          agency: CertificationAgency.padi,
+          agency: CertificationAgency.padi.name,
           startDate: DateTime(2024, 1, 10),
           completionDate: DateTime(2024, 1, 15),
           location: 'Koh Tao',

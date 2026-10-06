@@ -131,4 +131,66 @@ void main() {
       });
     }
   });
+
+  group('ACUC and DAN (issue #690)', () {
+    test('ACUC ladder is its own progression in rank order', () {
+      expect(CertificationLevelCatalog.ladderFor(CertificationAgency.acuc), [
+        CertificationLevel.acucScubaDiver,
+        CertificationLevel.openWater,
+        CertificationLevel.acucAdvancedDiver,
+        CertificationLevel.acucRescueLeader,
+        CertificationLevel.masterDiver,
+        CertificationLevel.acucUnderwaterGuide,
+        CertificationLevel.acucTeachingAssistant,
+        CertificationLevel.acucOpenWaterInstructor,
+        CertificationLevel.acucAdvancedInstructor,
+        CertificationLevel.acucInstructorTrainer,
+        CertificationLevel.acucInstructorTrainerEvaluator,
+      ]);
+    });
+
+    test('ACUC offers the shared diving specialties', () {
+      expect(
+        CertificationLevelCatalog.specialtiesFor(CertificationAgency.acuc),
+        CertificationLevelCatalog.specialties,
+      );
+    });
+
+    test('DAN ladder holds first-aid credentials, never diver grades', () {
+      expect(CertificationLevelCatalog.ladderFor(CertificationAgency.dan), [
+        CertificationLevel.danBls,
+        CertificationLevel.danEmergencyOxygen,
+        CertificationLevel.danDfaPro,
+        CertificationLevel.danDemp,
+        CertificationLevel.danInstructor,
+        CertificationLevel.danInstructorTrainer,
+      ]);
+      final offered = CertificationLevelCatalog.levelsFor(
+        CertificationAgency.dan,
+      );
+      expect(offered, isNot(contains(CertificationLevel.openWater)));
+      expect(offered, isNot(contains(CertificationLevel.trimix)));
+    });
+
+    test('DAN specialties replace the diving specialties', () {
+      expect(
+        CertificationLevelCatalog.specialtiesFor(CertificationAgency.dan),
+        [
+          CertificationLevel.danAdvancedOxygen,
+          CertificationLevel.danNeurologicalAssessment,
+          CertificationLevel.danMarineLifeInjuries,
+        ],
+      );
+    });
+  });
+
+  group('fromId', () {
+    test('returns the built-in for its enum name and null otherwise', () {
+      expect(CertificationAgency.fromId('acuc'), CertificationAgency.acuc);
+      expect(CertificationAgency.fromId('3f1c-uuid'), isNull);
+      expect(CertificationAgency.fromId(null), isNull);
+      expect(CertificationLevel.fromId('danDemp'), CertificationLevel.danDemp);
+      expect(CertificationLevel.fromId('Open Water'), isNull);
+    });
+  });
 }

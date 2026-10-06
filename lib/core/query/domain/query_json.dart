@@ -38,7 +38,11 @@ Map<String, Object?> _value(QueryValue v) => switch (v) {
   },
   StringValue(:final value) => {'k': 'str', 'v': value},
   BoolValue(:final value) => {'k': 'bool', 'v': value},
-  EnumValue(:final name) => {'k': 'enum', 'v': name},
+  EnumValue(:final name, :final label) => {
+    'k': 'enum',
+    'v': name,
+    'label': ?label,
+  },
   DateValue(:final day) => {'k': 'date', 'v': _day(day)},
   DateRangeValue(:final start, :final end) => {
     'k': 'range',
@@ -130,7 +134,8 @@ QueryValue _readValue(Map<String, Object?> m) {
       if (v is! bool) throw const QueryJsonException('bad bool');
       return BoolValue(v);
     case 'enum':
-      return EnumValue(_str(m['v']));
+      final label = m['label'];
+      return EnumValue(_str(m['v']), label: label is String ? label : null);
     case 'date':
       return DateValue(_readDay(m['v']));
     case 'range':

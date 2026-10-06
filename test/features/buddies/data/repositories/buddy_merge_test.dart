@@ -374,7 +374,7 @@ void main() {
           cert_domain.Certification(
             id: '',
             name: 'Open Water Diver',
-            agency: CertificationAgency.padi,
+            agency: CertificationAgency.padi.name,
             instructorId: buddyB.id,
             notes: '',
             createdAt: now,
@@ -515,7 +515,7 @@ void main() {
         cert_domain.Certification(
           id: '',
           name: 'Open Water Diver',
-          agency: CertificationAgency.padi,
+          agency: CertificationAgency.padi.name,
           instructorId: buddyB.id,
           notes: '',
           createdAt: now,

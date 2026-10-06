@@ -5216,6 +5216,168 @@ abstract class AppLocalizations {
   /// **'Agency *'**
   String get certifications_edit_label_agency;
 
+  /// Shown for a certification agency id that matches no built-in or custom agency (not yet synced, or deleted).
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown agency'**
+  String get certificationAgencies_unknownAgency;
+
+  /// Shown for a certification level id that matches nothing known.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown certification'**
+  String get certificationAgencies_unknownCertification;
+
+  /// No description provided for @certificationAgencies_addCustomAgency.
+  ///
+  /// In en, this message translates to:
+  /// **'Add custom agency...'**
+  String get certificationAgencies_addCustomAgency;
+
+  /// No description provided for @certificationAgencies_addCustomCertification.
+  ///
+  /// In en, this message translates to:
+  /// **'Add custom certification...'**
+  String get certificationAgencies_addCustomCertification;
+
+  /// No description provided for @certificationAgencies_dialog_newAgencyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New agency'**
+  String get certificationAgencies_dialog_newAgencyTitle;
+
+  /// No description provided for @certificationAgencies_dialog_editAgencyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit agency'**
+  String get certificationAgencies_dialog_editAgencyTitle;
+
+  /// No description provided for @certificationAgencies_dialog_newCertificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New certification'**
+  String get certificationAgencies_dialog_newCertificationTitle;
+
+  /// No description provided for @certificationAgencies_dialog_editCertificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit certification'**
+  String get certificationAgencies_dialog_editCertificationTitle;
+
+  /// No description provided for @certificationAgencies_dialog_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get certificationAgencies_dialog_nameLabel;
+
+  /// No description provided for @certificationAgencies_dialog_colorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Card color'**
+  String get certificationAgencies_dialog_colorLabel;
+
+  /// No description provided for @certificationAgencies_dialog_specialty.
+  ///
+  /// In en, this message translates to:
+  /// **'Specialty'**
+  String get certificationAgencies_dialog_specialty;
+
+  /// No description provided for @certificationAgencies_error_nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get certificationAgencies_error_nameRequired;
+
+  /// No description provided for @certificationAgencies_error_nameTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'That name is already in use'**
+  String get certificationAgencies_error_nameTaken;
+
+  /// No description provided for @settings_manage_certificationAgencies.
+  ///
+  /// In en, this message translates to:
+  /// **'Certification Agencies'**
+  String get settings_manage_certificationAgencies;
+
+  /// No description provided for @settings_manage_certificationAgencies_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage custom agencies and certifications'**
+  String get settings_manage_certificationAgencies_subtitle;
+
+  /// No description provided for @certificationAgencies_section_yours.
+  ///
+  /// In en, this message translates to:
+  /// **'Your agencies'**
+  String get certificationAgencies_section_yours;
+
+  /// No description provided for @certificationAgencies_section_builtIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in agencies'**
+  String get certificationAgencies_section_builtIn;
+
+  /// No description provided for @certificationAgencies_addAgency.
+  ///
+  /// In en, this message translates to:
+  /// **'Add agency'**
+  String get certificationAgencies_addAgency;
+
+  /// No description provided for @certificationAgencies_sharedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared by {name}'**
+  String certificationAgencies_sharedBy(String name);
+
+  /// No description provided for @certificationAgencies_editor_addCertification.
+  ///
+  /// In en, this message translates to:
+  /// **'Add certification'**
+  String get certificationAgencies_editor_addCertification;
+
+  /// No description provided for @certificationAgencies_editor_builtInHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in certifications cannot be changed. You can add your own.'**
+  String get certificationAgencies_editor_builtInHint;
+
+  /// No description provided for @certificationAgencies_delete_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String certificationAgencies_delete_confirmTitle(String name);
+
+  /// No description provided for @certificationAgencies_delete_refusedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Still in use'**
+  String get certificationAgencies_delete_refusedTitle;
+
+  /// No description provided for @certificationAgencies_delete_refusedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Used by {usage}. Change those first.'**
+  String certificationAgencies_delete_refusedBody(String usage);
+
+  /// No description provided for @certificationAgencies_usage_certifications.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 certification} other{{count} certifications}}'**
+  String certificationAgencies_usage_certifications(int count);
+
+  /// No description provided for @certificationAgencies_usage_courses.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 course} other{{count} courses}}'**
+  String certificationAgencies_usage_courses(int count);
+
+  /// No description provided for @certificationAgencies_usage_and.
+  ///
+  /// In en, this message translates to:
+  /// **'{first} and {second}'**
+  String certificationAgencies_usage_and(String first, String second);
+
   /// No description provided for @certifications_edit_addRecognition.
   ///
   /// In en, this message translates to:
@@ -18672,6 +18834,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'FFESSM'**
   String get enum_certificationAgency_ffessm;
+
+  /// No description provided for @enum_certificationAgency_acuc.
+  ///
+  /// In en, this message translates to:
+  /// **'ACUC'**
+  String get enum_certificationAgency_acuc;
+
+  /// No description provided for @enum_certificationAgency_dan.
+  ///
+  /// In en, this message translates to:
+  /// **'DAN'**
+  String get enum_certificationAgency_dan;
 
   /// No description provided for @enum_certificationAgency_gue.
   ///

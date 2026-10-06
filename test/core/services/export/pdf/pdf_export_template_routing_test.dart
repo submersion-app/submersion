@@ -171,7 +171,7 @@ void main() {
       Certification(
         id: 'c1',
         name: 'Rescue Diver',
-        agency: CertificationAgency.padi,
+        agency: CertificationAgency.padi.name,
         cardNumber: 'CARD-9',
         issueDate: DateTime(2021, 4, 2),
         createdAt: DateTime(2021, 4, 2),

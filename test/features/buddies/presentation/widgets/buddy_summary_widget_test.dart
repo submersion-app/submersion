@@ -110,8 +110,8 @@ void main() {
     final certified = Buddy(
       id: 'b1',
       name: 'Jane Doe',
-      certificationLevel: CertificationLevel.rescue,
-      certificationAgency: CertificationAgency.padi,
+      certificationLevel: CertificationLevel.rescue.name,
+      certificationAgency: CertificationAgency.padi.name,
       certificationTitle: 'Rescue Diver',
       createdAt: _now,
       updatedAt: _now,

@@ -1,6 +1,7 @@
 import 'package:meta/meta.dart';
 
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
 
 enum FieldType { number, text, bool, enumName, date, id }
 
@@ -85,6 +86,12 @@ class QueryField {
   /// Stored names, for [FieldType.enumName]. The builder localizes them.
   final List<String>? enumValues;
 
+  /// For an enumName field whose values may also be custom ids (issue #690):
+  /// typed text that names no built-in resolves through this name-only
+  /// subject, and the validator accepts any value, since a stored custom id
+  /// is legitimate even when this build cannot name it.
+  final QuerySubject? customValueSubject;
+
   /// What each enum name binds as, when the column does not store the name
   /// itself (weekday stores 0..6). Defaults to the name.
   final Map<String, Object>? enumSqlValues;
@@ -113,6 +120,7 @@ class QueryField {
     required this.labelKey,
     Set<QueryOp>? ops,
     this.enumValues,
+    this.customValueSubject,
     this.enumSqlValues,
     this.boolSql,
     this.sanity,
