@@ -6,26 +6,12 @@ Reference documentation for all enums used in Submersion.
 
 ## Dive Enums
 
-### DiveType
+### Dive Types
 
-Types of dives.
-
-| Value | Display Name |
-|-------|--------------|
-| `recreational` | Recreational |
-| `technical` | Technical |
-| `freedive` | Freedive |
-| `training` | Training |
-| `wreck` | Wreck |
-| `cave` | Cave |
-| `ice` | Ice |
-| `night` | Night |
-| `drift` | Drift |
-| `deep` | Deep |
-| `altitude` | Altitude |
-| `shore` | Shore |
-| `boat` | Boat |
-| `liveaboard` | Liveaboard |
+Dive types are rows, not an enum: the `dive_types` table
+(`lib/core/database/tables/tag_tables.dart`) holds the built-in types
+plus each diver's custom ones, mapped to `DiveTypeEntity`
+(`lib/features/dive_types/`).
 
 ### DiveMode
 
@@ -235,9 +221,11 @@ Current equipment status.
 | `loaned` | Loaned Out |
 | `lost` | Lost |
 
-### ServiceType
+### ServiceCategory
 
-Type of equipment service.
+The kind of work a maintenance record represents. Renamed from
+`ServiceType` in schema v160; "service type" now names the user-extensible
+`ServiceKind` catalog. Defined in `lib/core/constants/enums.dart`.
 
 | Value | Display Name |
 |-------|--------------|
@@ -269,18 +257,13 @@ Type of weight system.
 
 ## People Enums
 
-### BuddyRole
+### Dive Roles
 
-Role on a dive.
-
-| Value | Display Name |
-|-------|--------------|
-| `buddy` | Buddy |
-| `diveGuide` | Dive Guide |
-| `instructor` | Instructor |
-| `student` | Student |
-| `diveMaster` | Divemaster |
-| `solo` | Solo |
+Per-dive buddy roles are rows, not an enum: the `dive_roles` table
+(`lib/core/database/tables/buddy_tables.dart`, schema v103) holds the
+built-in roles, whose ids are the historical names (`buddy`, `diveGuide`,
+`instructor`, `student`, `diveMaster`, `solo`), plus custom roles with
+UUID ids. `dive_buddies.role` stores the role id.
 
 ### CertificationAgency
 

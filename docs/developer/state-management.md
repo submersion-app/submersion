@@ -311,6 +311,19 @@ testWidgets('shows dives', (tester) async {
 });
 ```
 
+## Provider Dependencies
+
+A provider that derives from others watches them, so it recomputes when
+either changes:
+
+```dart
+final filteredDivesProvider = Provider<AsyncValue<List<Dive>>>((ref) {
+  final divesAsync = ref.watch(diveListNotifierProvider);
+  final filter = ref.watch(diveFilterProvider);
+  return divesAsync.whenData((dives) => filter.apply(dives));
+});
+```
+
 ## Best Practices
 
 1. **Use family for IDs** - `diveProvider(id)` not `diveProvider`
