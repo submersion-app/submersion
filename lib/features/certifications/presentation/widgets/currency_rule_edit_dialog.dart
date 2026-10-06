@@ -281,6 +281,9 @@ class _CurrencyRuleEditDialogState extends State<_CurrencyRuleEditDialog> {
                   DiveTypeMultiSelectField(
                     selectedTypeIds: _types,
                     allowEmpty: true,
+                    // A type hidden from the pickers (issue #401) that the
+                    // rule counted on opening stays offered once unticked.
+                    keepTypeIds: [...?widget.editing?.countedDiveTypeIds],
                     labelText: l10n.certifications_currency_mappingDialog_types,
                     onChanged: (ids) => setState(() => _types = ids),
                   ),
