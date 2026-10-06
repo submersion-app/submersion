@@ -153,7 +153,7 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/core/utils/log_failure.dart';
-import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_weight_entry_row.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 import 'package:submersion/features/tides/data/services/dive_tide_recorder.dart';
 import 'package:submersion/features/dive_log/presentation/providers/shared_gear_overlap_providers.dart';
@@ -996,20 +996,20 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _weatherDescriptionController.text = dive.weatherDescription ?? '';
 
           // Load weight entries (weights already stored in kg, conversion happens in display)
-          _weights = List.from(dive.weights);
           // Migrate legacy single weight to weights list if needed
-          if (_weights.isEmpty &&
-              dive.weightAmount != null &&
-              dive.weightAmount! > 0) {
-            _weights.add(
-              DiveWeight(
-                id: _uuid.v4(),
-                diveId: dive.id,
-                weightType: dive.weightType ?? WeightType.belt,
-                amountKg: dive.weightAmount!,
-              ),
-            );
-          }
+          _weights =
+              dive.weights.isEmpty &&
+                  dive.weightAmount != null &&
+                  dive.weightAmount! > 0
+              ? [
+                  DiveWeight(
+                    id: _uuid.v4(),
+                    diveId: dive.id,
+                    weightType: dive.weightType ?? WeightType.belt,
+                    amountKg: dive.weightAmount!,
+                  ),
+                ]
+              : List.of(dive.weights);
 
           // Load weighting feedback
           _weightingFeedback = dive.weightingFeedback;
@@ -5126,11 +5126,20 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                ..._weights.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final weight = entry.value;
-                  return _buildWeightEntryRow(index, weight, units);
-                }),
+                for (final weight in _weights)
+                  DiveWeightEntryRow(
+                    key: ValueKey(weight.id),
+                    weight: weight,
+                    units: units,
+                    onChanged: _replaceWeight,
+                    onRemove: () => setState(() {
+                      _markDirty();
+                      _weights = [
+                        for (final w in _weights)
+                          if (w.id != weight.id) w,
+                      ];
+                    }),
+                  ),
               ],
             ),
           ),
@@ -5139,14 +5148,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           onTap: () {
             setState(() {
               _markDirty();
-              _weights.add(
+              _weights = [
+                ..._weights,
                 DiveWeight(
                   id: _uuid.v4(),
                   diveId: widget.diveId ?? '',
                   weightType: WeightType.integrated,
                   amountKg: 0,
                 ),
-              );
+              ];
             });
           },
         ),
@@ -5340,83 +5350,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     }
   }
 
-  Widget _buildWeightEntryRow(
-    int index,
-    DiveWeight weight,
-    UnitFormatter units,
-  ) {
-    // Display in user's preferred unit
-    final displayAmount = units.convertWeight(weight.amountKg);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: DropdownButtonFormField<WeightType>(
-              initialValue: weight.weightType,
-              decoration: InputDecoration(
-                labelText: context.l10n.diveLog_edit_label_type,
-                isDense: true,
-              ),
-              isExpanded: true,
-              items: WeightType.values.map((type) {
-                return DropdownMenuItem(
-                  value: type,
-                  child: Text(type.localizedName(context.l10n)),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _weights[index] = weight.copyWith(weightType: value);
-                  });
-                }
-              },
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 1,
-            child: TextFormField(
-              initialValue: displayAmount > 0 ? _seedWeight(displayAmount) : '',
-              decoration: InputDecoration(
-                labelText: units.weightSymbol,
-                isDense: true,
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              inputFormatters: numberInputFormatters(),
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              validator: numberValidator(context),
-              onChanged: (value) {
-                final displayValue = switch (readNumber(value)) {
-                  NumberValue(:final value) => value,
-                  NumberBlank() => 0.0, // an empty amount is 0 kg, as before
-                  // Keep the last readable amount; the error blocks save.
-                  NumberInvalid() => null,
-                };
-                if (displayValue == null) return;
-                // Convert back to kg for storage
-                final amountKg = units.weightToKg(displayValue);
-                _weights[index] = weight.copyWith(amountKg: amountKg);
-              },
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            onPressed: () {
-              setState(() {
-                _markDirty();
-                _weights.removeAt(index);
-              });
-            },
-            tooltip: context.l10n.diveLog_edit_tooltip_removeWeight,
-          ),
-        ],
-      ),
-    );
+  /// Stores an edited weight row. The row keeps its own fields current, and
+  /// the Form's onChanged marks the page dirty; the page rebuilds only when
+  /// the amount or placement changed, which the Total and "Save as preset"
+  /// above the rows read. A name alone shows nowhere outside its row.
+  void _replaceWeight(DiveWeight updated) {
+    final previous = _weights.firstWhere((w) => w.id == updated.id);
+    final next = [for (final w in _weights) w.id == updated.id ? updated : w];
+    if (previous.amountKg == updated.amountKg &&
+        previous.weightType == updated.weightType) {
+      _weights = next;
+    } else {
+      setState(() => _weights = next);
+    }
   }
 
   Widget _buildBuddiesSection() {

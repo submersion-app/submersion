@@ -16,6 +16,8 @@ import 'package:submersion/features/import_wizard/presentation/widgets/import_su
 import 'package:submersion/features/import_wizard/presentation/widgets/missing_dives_card.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/undo_fills_button.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
+import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
+import 'package:submersion/features/import_wizard/presentation/suunto_file_import_navigation.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
@@ -714,6 +716,8 @@ class _FileOutcomeRow extends StatelessWidget {
 
     final canImportAsRoute =
         outcome.isNavTrackRoute && outcome.filePath != null;
+    final canImportWithSuunto =
+        outcome.isSuuntoJson && outcome.filePath != null;
     // Why a file failed, verbatim from its parser. Only failures carry one.
     final reason = outcome.status == ImportFileOutcomeStatus.parseFailed
         ? outcome.error
@@ -753,6 +757,12 @@ class _FileOutcomeRow extends StatelessWidget {
                     l10n.universalImport_summary_importAsUnderwaterTrack,
                   ),
                 ),
+              if (canImportWithSuunto)
+                TextButton(
+                  key: const ValueKey('import-summary-import-with-suunto'),
+                  onPressed: () => _importWithSuunto(context),
+                  child: Text(l10n.universalImport_summary_importWithSuunto),
+                ),
             ],
           ),
           if (reason != null && reason.isNotEmpty)
@@ -772,6 +782,27 @@ class _FileOutcomeRow extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Re-reads an excluded Suunto JSON export from its stored path and opens
+  /// the Suunto importer with it (issue #1445), for the same reason as
+  /// [_importAsRoute]: the batch pipeline keeps no bytes to hand over.
+  Future<void> _importWithSuunto(BuildContext context) async {
+    final path = outcome.filePath;
+    if (path == null) return;
+    final l10n = context.l10n;
+    try {
+      final bytes = await File(path).readAsBytes();
+      if (!context.mounted) return;
+      await openSuuntoFileImport(context, [
+        SuuntoJsonFile(name: outcome.fileName, bytes: bytes),
+      ]);
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.dropTarget_error_readFailed)));
+    }
   }
 
   /// Re-reads the excluded file from its stored path and hands it to the

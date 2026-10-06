@@ -61,6 +61,10 @@ class FormatDetector {
     final xmlResult = _detectXml(textContent);
     if (xmlResult != null) return xmlResult;
 
+    // 2a. Suunto app JSON export (a hand-off to the Suunto importer)
+    final suuntoJsonResult = _detectSuuntoJson(textContent);
+    if (suuntoJsonResult != null) return suuntoJsonResult;
+
     // 2b. DAN DL7 pipe-segment detection (plain text, not XML)
     final dl7Result = _detectDl7(textContent);
     if (dl7Result != null) return dl7Result;
@@ -74,6 +78,25 @@ class FormatDetector {
       format: ImportFormat.unknown,
       confidence: 0.0,
       warnings: ['Could not identify file format'],
+    );
+  }
+
+  // ======================== Suunto JSON Detection ========================
+
+  /// The Suunto app's JSON export (`DeviceLog`) or a saved cloud export
+  /// (`suunto/sml`), issue #1445. Matched on the opening brace plus a
+  /// Suunto-only key in the peeked text, since a full export runs to
+  /// megabytes and is never decoded here.
+  DetectionResult? _detectSuuntoJson(String text) {
+    final body = (text.startsWith(_bom) ? text.substring(1) : text).trimLeft();
+    if (!body.startsWith('{')) return null;
+    if (!body.contains('"DeviceLog"') && !body.contains('"suunto/sml"')) {
+      return null;
+    }
+    return const DetectionResult(
+      format: ImportFormat.suuntoJson,
+      sourceApp: SourceApp.suunto,
+      confidence: 0.95,
     );
   }
 

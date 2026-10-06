@@ -7057,6 +7057,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_label_waterType => 'نوع المياه';
 
   @override
+  String get diveLog_edit_label_weightName => 'الاسم (اختياري)';
+
+  @override
+  String get diveLog_edit_hint_weightName => 'مثال: الجيب العلوي';
+
+  @override
   String get diveLog_edit_marineLifeHint => 'انقر \"إضافة\" لتسجيل المشاهدات';
 
   @override
@@ -29396,6 +29402,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_triage_excludedCsv => 'استيراد فردي (CSV)';
 
   @override
+  String universalImport_triage_excludedHandoff(String format) {
+    return 'استيراد فردي ($format)';
+  }
+
+  @override
   String get universalImport_triage_unsupported => 'تنسيق غير مدعوم';
 
   @override
@@ -48429,6 +48440,62 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_handoff_reviewTrackButton => 'مراجعة المسار تحت الماء';
 
   @override
+  String get suuntoJson_handoff_recognized =>
+      'تم التعرف على تصدير غطسة من Suunto';
+
+  @override
+  String get suuntoJson_handoff_description =>
+      'تم تصدير هذا الملف من تطبيق Suunto. يقرأه مستورد Suunto بالطريقة نفسها التي يعمل بها الاستيراد من Suunto Cloud، بما في ذلك المسار المسجّل للغطسة.';
+
+  @override
+  String get suuntoJson_handoff_importButton => 'استيراد غطسة Suunto';
+
+  @override
+  String get suuntoFile_step_title => 'تصديرات تطبيق Suunto';
+
+  @override
+  String get suuntoFile_step_description =>
+      'اختر غطسة واحدة أو أكثر مُصدَّرة من تطبيق Suunto بصيغة JSON. الغطسات المسجّلة مع مسار تجلبه معها.';
+
+  @override
+  String get suuntoFile_step_chooseFiles => 'اختيار الملفات';
+
+  @override
+  String suuntoFile_step_readyCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة جاهزة للاستيراد',
+      many: '$count غطسة جاهزة للاستيراد',
+      few: '$count غطسات جاهزة للاستيراد',
+      two: 'غطستان جاهزتان للاستيراد',
+      one: 'غطسة واحدة جاهزة للاستيراد',
+      zero: 'لا توجد غطسات جاهزة للاستيراد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get suuntoFile_step_routeIncluded => 'يتضمن مسارًا مسجّلًا';
+
+  @override
+  String get suuntoFile_step_noRoute => 'لا يوجد مسار مسجّل';
+
+  @override
+  String get suuntoFile_rejection_notJson => 'ليس ملف JSON';
+
+  @override
+  String get suuntoFile_rejection_notSuuntoExport =>
+      'ليس تصديرًا من تطبيق Suunto';
+
+  @override
+  String get suuntoFile_rejection_notADive => 'ليست غطسة (نوع نشاط آخر)';
+
+  @override
+  String get universalImport_summary_importWithSuunto =>
+      'استيراد باستخدام مستورد Suunto';
+
+  @override
   String get navTrack_section_trackTitle => 'مسار تحت الماء';
 
   @override
@@ -49365,6 +49432,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_weights_amount => 'الكمية';
+
+  @override
+  String get query_weights_label => 'الاسم';
 
   @override
   String get query_weights_notes => 'ملاحظات';

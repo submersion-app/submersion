@@ -270,4 +270,49 @@ void main() {
       });
     });
   });
+
+  test('throws SuuntoNotADiveException for a non-dive activity', () {
+    expect(
+      () => SuuntoSmlNormalizer.parse({
+        'DeviceLog': {
+          'Header': {'ActivityType': 3},
+          'Samples': const [],
+        },
+      }),
+      throwsA(isA<SuuntoNotADiveException>()),
+    );
+  });
+
+  // #1445: the route rides inside each cloud Sample, so the flattening
+  // must carry it through untouched.
+  test('passes DiveRoute through from the cloud Sample attribute', () {
+    final export = SuuntoSmlNormalizer.parse({
+      'Summary': {
+        'Samples': [
+          {
+            'Attributes': {
+              'suunto/sml': {
+                'Header': {'ActivityType': 51},
+              },
+            },
+          },
+        ],
+      },
+      'Data': {
+        'Samples': [
+          {
+            'TimeISO8601': '2026-04-19T10:00:00.000Z',
+            'Attributes': {
+              'suunto/sml': {
+                'Sample': {
+                  'DiveRoute': {'X': 1.0, 'Y': 2.0, 'Z': 3.0},
+                },
+              },
+            },
+          },
+        ],
+      },
+    });
+    expect(export.samples.single['DiveRoute'], {'X': 1.0, 'Y': 2.0, 'Z': 3.0});
+  });
 }

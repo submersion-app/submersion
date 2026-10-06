@@ -1195,7 +1195,36 @@ $cylinders
       expect(weights.length, 1);
       expect(weights[0]['amount'], closeTo(6.35, 0.01));
       expect(weights[0]['type'], WeightType.belt);
-      expect(weights[0]['notes'], 'belt');
+      // 'belt' is a stock Subsurface name: it sets the type, not a name.
+      expect(weights[0]['label'], '');
+      expect(weights[0].containsKey('notes'), isFalse);
+    });
+
+    test('a custom description becomes the weight\'s name', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <weightsystem weight='2.0 kg' description='Top pocket' />
+  <weightsystem weight='1.0 kg' description=' Clip-On ' />
+  <weightsystem weight='3.0 kg' description='trim pocket left' />
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final weights = dive['weights'] as List<Map<String, dynamic>>;
+      expect(weights.map((w) => w['label']).toList(), [
+        'Top pocket',
+        '',
+        'trim pocket left',
+      ]);
+      expect(weights[2]['type'], WeightType.trimWeights);
     });
   });
 

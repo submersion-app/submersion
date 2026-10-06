@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/contour_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/dead_reckoning_service.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/route_window_grid.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_geometry_service.dart';
@@ -190,6 +191,23 @@ final spatialGeometryProvider =
           ? enuOffsetMeters(center, entry)
           : (east: 0.0, north: 0.0);
 
+      // A measured route spans metres inside a tile kilometres wide; built
+      // on the whole tile, every ribbon, pin and axis was sized for
+      // kilometres and the route was a dot. Resample the terrain onto the
+      // route's own window instead, so the whole scene is at route scale
+      // (#1445). The satellite drape is framed on the full tile, so it is
+      // left off here.
+      var routeScale = false;
+      if (path.provenance == PathProvenance.measured &&
+          grid != null &&
+          center != null) {
+        final window = routeWindowGrid(grid, center, path, anchor: anchor);
+        if (window != null) {
+          grid = window;
+          routeScale = true;
+        }
+      }
+
       // Terrain appearance and the depth unit shape the geometry (contour
       // levels, ramp colors, wall threshold).
       final appearance = ref.watch(
@@ -200,7 +218,8 @@ final spatialGeometryProvider =
       // Imagery drape: non-blocking; depth colors render while the mosaic
       // loads and the scene rebuilds when it lands.
       TerrainImagery? imagery;
-      if (appearance.surfaceMode != SeascapeSurfaceMode.depth &&
+      if (!routeScale &&
+          appearance.surfaceMode != SeascapeSurfaceMode.depth &&
           grid != null &&
           center != null) {
         final mapStyle = ref.watch(settingsProvider.select((s) => s.mapStyle));

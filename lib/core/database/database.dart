@@ -244,7 +244,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 269;
+  static const int currentSchemaVersion = 270;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1131,6 +1131,12 @@ class AppDatabase extends _$AppDatabase {
     // from the pickers (issue #401). Additive nullable column, no backfill,
     // so the floor stays. Renumbered several times while this was open.
     269,
+    // v270: dive_weights.label and weight_preset_entries.label, a diver's own
+    // name for a weight (issue #956). Additive defaulted columns, so the
+    // floor stays: an older peer's payload omits the key and the row keeps
+    // its local value or the '' default. Renumbered as other rungs shipped
+    // first (261 through 269).
+    270,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

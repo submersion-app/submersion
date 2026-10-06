@@ -173,6 +173,61 @@ void main() {
       expect(route!.anchor, const GeoPoint(47.1, 8.3));
     });
 
+    test('an explicit anchor wins over the dive\'s entry fix (a Suunto '
+        'route is relative to its own DiveRouteOrigin)', () async {
+      await _insertDiveWithEntryLocation(
+        db,
+        'd1',
+        latitude: 47.2,
+        longitude: 8.4,
+      );
+
+      final id = await repo.insertImportedRoute(
+        points: _samplePoints(),
+        source: NavTrackSource.suuntoRoute,
+        sourceRef: 'suunto:NS-1:2026-04-19T13:44:40.000Z',
+        diveId: 'd1',
+        anchorLatitude: 47.25,
+        anchorLongitude: 8.45,
+      );
+
+      expect((await repo.getById(id))!.anchor, const GeoPoint(47.25, 8.45));
+    });
+
+    test('an explicit anchor wins over a chosen site', () async {
+      await _insertSite(db, 's1', latitude: 10, longitude: 20);
+
+      final id = await repo.insertImportedRoute(
+        points: _samplePoints(),
+        source: NavTrackSource.suuntoRoute,
+        sourceRef: 'r',
+        siteId: 's1',
+        anchorLatitude: 11,
+        anchorLongitude: 21,
+      );
+
+      expect((await repo.getById(id))!.anchor, const GeoPoint(11, 21));
+    });
+
+    test('a half-given anchor is ignored and the fallback applies', () async {
+      await _insertDiveWithEntryLocation(
+        db,
+        'd1',
+        latitude: 47.2,
+        longitude: 8.4,
+      );
+
+      final id = await repo.insertImportedRoute(
+        points: _samplePoints(),
+        source: NavTrackSource.suuntoRoute,
+        sourceRef: 'r',
+        diveId: 'd1',
+        anchorLatitude: 1,
+      );
+
+      expect((await repo.getById(id))!.anchor, const GeoPoint(47.2, 8.4));
+    });
+
     test('leaves the anchor null when no site is chosen', () async {
       final id = await repo.insertImportedRoute(
         points: _samplePoints(),

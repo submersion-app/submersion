@@ -379,6 +379,23 @@ void main() {
       expect(mergedHose.viaSetId, 'winter');
     });
 
+    test('merged weights keep their names', () {
+      final a = dive('a', entry: DateTime.utc(2026, 7, 1, 9)).copyWith(
+        weights: [
+          const DiveWeight(
+            id: 'w1',
+            diveId: 'a',
+            weightType: WeightType.trimWeights,
+            amountKg: 2,
+            label: 'Top pocket',
+          ),
+        ],
+      );
+      final b = dive('b', entry: DateTime.utc(2026, 7, 1, 10));
+      final result = builder.build([a, b]);
+      expect(result.mergedDive.weights.single.label, 'Top pocket');
+    });
+
     test('weights come from the first dive that has any', () {
       final a = dive('a', entry: DateTime.utc(2026, 7, 1, 9));
       final b = dive('b', entry: DateTime.utc(2026, 7, 1, 10)).copyWith(

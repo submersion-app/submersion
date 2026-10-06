@@ -256,5 +256,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertHiddenBuiltInIdsColumn();
     }
     if (from < 269) await reportProgress();
+    // v270: dive_weights.label and weight_preset_entries.label, a diver's
+    // own name for a weight (issue #956). Defaulted columns, no backfill:
+    // existing rows read '' (unnamed). Re-asserted in beforeOpen.
+    if (from < 270) {
+      await _assertWeightLabelColumns();
+    }
+    if (from < 270) await reportProgress();
   }
 }

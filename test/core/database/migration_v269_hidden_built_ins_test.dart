@@ -20,12 +20,15 @@ void main() {
     },
   );
 
-  test('v269 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 269);
+  test('v269 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v270 (weight names, #956) landed on top; the newest rung
+    // owns the exact assertions.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(269));
     expect(AppDatabase.migrationVersions, contains(269));
-    expect(AppDatabase.migrationStepCount(268), 1);
+    expect(
+      AppDatabase.migrationStepCount(268),
+      AppDatabase.migrationStepCount(269) + 1,
+    );
   });
 
   test('this rung is additive and did not move the sync floor', () {

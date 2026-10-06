@@ -151,6 +151,7 @@ import 'package:submersion/features/reef/presentation/widgets/water_conditions_c
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/weight_name_text.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
@@ -4081,10 +4082,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // Add new weights
     for (final weight in dive.weights) {
       displayWeights.add(
-        _WeightDisplay(
-          type: weight.weightType.localizedName(context.l10n),
-          amount: weight.amountKg,
-        ),
+        _WeightDisplay(title: WeightNameText(weight), amount: weight.amountKg),
       );
     }
 
@@ -4092,9 +4090,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     if (!hasWeights && hasLegacyWeight) {
       displayWeights.add(
         _WeightDisplay(
-          type:
-              dive.weightType?.localizedName(context.l10n) ??
-              context.l10n.diveLog_detail_section_weight,
+          title: Text(
+            dive.weightType?.localizedName(context.l10n) ??
+                context.l10n.diveLog_detail_section_weight,
+          ),
           amount: dive.weightAmount!,
         ),
       );
@@ -4127,10 +4126,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ...displayWeights.map(
               (weight) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
+                // A long name wraps; the amount stays on its first line.
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(weight.type),
+                    Expanded(child: weight.title),
+                    const SizedBox(width: 12),
                     Text(units.formatWeight(weight.amount)),
                   ],
                 ),
@@ -5728,10 +5729,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
 /// Helper class for unified weight display
 class _WeightDisplay {
-  final String type;
+  final Widget title;
   final double amount;
 
-  const _WeightDisplay({required this.type, required this.amount});
+  const _WeightDisplay({required this.title, required this.amount});
 }
 
 /// Actions available for profile chart export

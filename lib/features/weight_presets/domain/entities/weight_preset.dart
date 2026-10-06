@@ -41,6 +41,7 @@ class WeightPreset extends Equatable {
           weightType: e.weightType,
           amountKg: e.amountKg,
           notes: e.notes,
+          label: e.label,
         ),
       )
       .toList();
@@ -81,6 +82,7 @@ typedef WeightEntryDraft = ({
   WeightType weightType,
   double amountKg,
   String notes,
+  String label,
 });
 
 /// One weight entry inside a [WeightPreset]. Same shape as a per-dive
@@ -91,6 +93,9 @@ class WeightPresetEntry extends Equatable {
   final WeightType weightType;
   final double amountKg;
   final String notes;
+
+  /// The diver's own name for this entry (issue #956); '' when unnamed.
+  final String label;
   final int sortOrder;
 
   const WeightPresetEntry({
@@ -99,6 +104,7 @@ class WeightPresetEntry extends Equatable {
     required this.weightType,
     required this.amountKg,
     this.notes = '',
+    this.label = '',
     this.sortOrder = 0,
   });
 
@@ -109,6 +115,7 @@ class WeightPresetEntry extends Equatable {
     weightType,
     amountKg,
     notes,
+    label,
     sortOrder,
   ];
 }
