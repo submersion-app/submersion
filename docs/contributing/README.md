@@ -197,7 +197,7 @@ When adding features:
 
 1. Update relevant docs in `docs/`
 2. Add code comments for complex logic
-3. Update FEATURE_ROADMAP.md if applicable
+3. Update the [roadmap](roadmap.md) if applicable
 
 ## Code Review
 
