@@ -6,6 +6,8 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -60,6 +62,51 @@ void main() {
       schedules.map((s) => s.serviceKindId),
       isNot(contains('regulator-service')),
     );
+  });
+
+  Future<void> diverHiding(String diverId, Set<String> kinds) async {
+    await db.customStatement(
+      'INSERT INTO divers (id, name, created_at, updated_at) '
+      "VALUES ('$diverId', '$diverId', 1000, 1000)",
+    );
+    await DiverSettingsRepository().createSettingsForDiver(
+      diverId,
+      settings: AppSettings(hiddenBuiltInIds: {'serviceKinds': kinds}),
+    );
+  }
+
+  test('auto-attach skips kinds the owning diver hid (issue #401)', () async {
+    await diverHiding('d1', {'vip'});
+    final tank = await equipmentRepo.createEquipment(
+      const EquipmentItem(
+        id: '',
+        name: 'AL80',
+        type: EquipmentType.tank,
+        diverId: 'd1',
+      ),
+    );
+    final kindIds = (await repo.getSchedulesForEquipment(
+      tank.id,
+    )).map((s) => s.serviceKindId).toSet();
+    expect(kindIds, contains('hydro'));
+    expect(kindIds, isNot(contains('vip')));
+  });
+
+  test("another diver's hidden kinds do not apply", () async {
+    await diverHiding('d1', {'vip'});
+    await diverHiding('d2', const {});
+    final tank = await equipmentRepo.createEquipment(
+      const EquipmentItem(
+        id: '',
+        name: 'AL80',
+        type: EquipmentType.tank,
+        diverId: 'd2',
+      ),
+    );
+    final kindIds = (await repo.getSchedulesForEquipment(
+      tank.id,
+    )).map((s) => s.serviceKindId).toSet();
+    expect(kindIds, containsAll(['hydro', 'vip']));
   });
 
   test('auto-attach is idempotent', () async {
@@ -250,4 +297,39 @@ void main() {
     expect(stored.anchorDate, isNull);
     expect(stored.anchorSetAt, isNull);
   });
+
+  test(
+    'hiding a kind leaves the clocks already attached (issue #401)',
+    () async {
+      await diverHiding('d1', const {});
+      final tank = await equipmentRepo.createEquipment(
+        const EquipmentItem(
+          id: '',
+          name: 'AL80',
+          type: EquipmentType.tank,
+          diverId: 'd1',
+        ),
+      );
+      final settingsRepo = DiverSettingsRepository();
+      final before = (await settingsRepo.getSettingsForDiver('d1'))!;
+      await settingsRepo.updateSettingsForDiver(
+        'd1',
+        before.copyWith(
+          hiddenBuiltInIds: {
+            'serviceKinds': {'vip'},
+          },
+        ),
+        previous: before,
+      );
+      await repo.autoAttachForEquipment(
+        equipmentId: tank.id,
+        type: EquipmentType.tank,
+        diverId: 'd1',
+      );
+      final kindIds = (await repo.getSchedulesForEquipment(
+        tank.id,
+      )).map((s) => s.serviceKindId).toSet();
+      expect(kindIds, containsAll(['hydro', 'vip']));
+    },
+  );
 }

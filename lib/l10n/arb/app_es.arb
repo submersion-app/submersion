@@ -119,6 +119,8 @@
   "gasCalculators_blender_scanTag": "Escanear etiqueta",
   "gasCalculators_blender_notYourCylinder": "Ese cilindro no figura en tu equipo",
   "gasCalculators_blender_cylinderFailed": "No se pudo abrir ese cilindro. Inténtalo de nuevo.",
+  "gasCalculators_blender_cylinderNoVolume": "No hay volumen de agua registrado para {name}",
+  "gasCalculators_blender_noCylinders": "Aún no hay cilindros en tu equipo. Escribe el volumen de agua en su lugar.",
   "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_error_targetPressure": "La presión objetivo debe ser mayor que la inicial.",
   "gasCalculators_blender_error_invalidMix": "El O₂ + He de una mezcla no puede superar el 100 %.",
@@ -161,9 +163,7 @@
   "gasCalculators_blender_templateAdjust": "Ajustar valores",
   "gasCalculators_blender_billing": "Coste",
   "gasCalculators_blender_cylinderVolume": "Volumen de agua del cilindro",
-  "gasCalculators_blender_cylinderPresets": "Preajustes",
   "gasCalculators_blender_unitPrice": "Precio por 100 {unit}",
-  "gasCalculators_blender_manageCylinderSizes": "Gestionar tamaños de cilindro",
   "gasCalculators_blender_costTotal": "Total",
   "gasCalculators_blender_costBasis": "Se factura la presión suministrada (volumen de agua del cilindro × bar añadidos), tal como lo mide una estación de carga.",
   "gasCalculators_blender_costMissingPrice": "Introduce un precio para cada gas para ver el total.",
@@ -14587,5 +14587,9 @@
   "settings_manage_savedQueries": "Consultas guardadas",
   "settings_manage_savedQueries_subtitle": "Renombrar, reordenar y eliminar consultas guardadas",
   "query_editor_needsText": "Escribe al menos una palabra",
-  "query_saveNeedsDiver": "Crea un perfil de buceador para guardar consultas"
+  "query_saveNeedsDiver": "Crea un perfil de buceador para guardar consultas",
+  "builtIns_showColumnLabel": "Mostrar",
+  "builtIns_showInPickers": "Mostrar en los selectores",
+  "preDive_start_allTemplatesHidden": "Todas las listas de verificación están ocultas. Vuelve a mostrar una en {path}.",
+  "settings_conflict_field_hiddenBuiltInIds": "Entradas integradas ocultas"
 }

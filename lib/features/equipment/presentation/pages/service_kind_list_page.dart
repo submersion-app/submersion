@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
@@ -11,6 +12,8 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/utils/exposure_interval_input.dart';
 import 'package:submersion/features/equipment/presentation/utils/exposure_unit_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_category_label.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
@@ -19,6 +22,7 @@ import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/shared/widgets/built_in_show_column.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Catalog management for service kinds: built-ins are read-only reference
@@ -64,6 +68,9 @@ class _ServiceKindListPageState extends ConsumerState<ServiceKindListPage> {
   @override
   Widget build(BuildContext context) {
     final kindsAsync = ref.watch(serviceKindsProvider);
+    final hidden = ref.watch(
+      hiddenBuiltInIdsProvider(BuiltInCatalog.serviceKinds),
+    );
     final l10n = context.l10n;
 
     // Built-in kinds are reference data the repository refuses to delete
@@ -118,7 +125,19 @@ class _ServiceKindListPageState extends ConsumerState<ServiceKindListPage> {
               final custom = kinds.where((k) => !k.isBuiltIn).toList();
               return ListView(
                 children: [
-                  _SectionHeader(title: l10n.equipment_serviceKinds_builtIn),
+                  // The switches give way in selection mode, so the column's
+                  // label does too.
+                  if (_isSelectionMode)
+                    _SectionHeader(title: l10n.equipment_serviceKinds_builtIn)
+                  else
+                    BuiltInShowColumnHeader(
+                      title: l10n.equipment_serviceKinds_builtIn,
+                      titleStyle: Theme.of(context).textTheme.titleSmall
+                          ?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                      bottom: 4,
+                    ),
                   for (final kind in builtIn)
                     ListTile(
                       // Not selectable: the repository refuses to delete these,
@@ -131,6 +150,31 @@ class _ServiceKindListPageState extends ConsumerState<ServiceKindListPage> {
                       ),
                       title: Text(kind.name),
                       subtitle: Text(_intervalSummary(context, kind)),
+                      // A hidden built-in stays listed so it can be shown
+                      // again (issue #401).
+                      textColor: hidden.contains(kind.id)
+                          ? Theme.of(context).disabledColor
+                          : null,
+                      iconColor: hidden.contains(kind.id)
+                          ? Theme.of(context).disabledColor
+                          : null,
+                      // Yields to selection mode like the custom rows' trash.
+                      trailing: _isSelectionMode
+                          ? null
+                          : BuiltInShowSwitch(
+                              switchKey: builtInShowSwitchKey(
+                                BuiltInCatalog.serviceKinds,
+                                kind.id,
+                              ),
+                              shown: !hidden.contains(kind.id),
+                              onChanged: (shown) => ref
+                                  .read(settingsProvider.notifier)
+                                  .setBuiltInHidden(
+                                    BuiltInCatalog.serviceKinds,
+                                    kind.id,
+                                    !shown,
+                                  ),
+                            ),
                     ),
                   _SectionHeader(title: l10n.equipment_serviceKinds_custom),
                   if (custom.isEmpty)

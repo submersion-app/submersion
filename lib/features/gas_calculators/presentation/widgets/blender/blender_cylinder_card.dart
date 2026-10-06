@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_cylinder_picker.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_mix_row.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_responsive_header_row.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_section_title.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/mix_template_menu.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -55,27 +56,17 @@ class BlenderCylinderCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: BlenderSectionTitle(
-                    context.l10n.gasCalculators_blender_startCylinder,
-                  ),
-                ),
-                // Flexible, so a long label or a narrow phone shortens the button
-                // instead of overflowing the row.
-                Flexible(
-                  child: TextButton.icon(
-                    key: const Key('blender-choose-cylinder'),
-                    icon: const Icon(Icons.propane_tank_outlined, size: 18),
-                    label: Text(
-                      context.l10n.gasCalculators_blender_chooseCylinder,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    onPressed: () => _chooseCylinder(context, ref),
-                  ),
-                ),
-              ],
+            BlenderResponsiveHeaderRow(
+              leading: BlenderSectionTitle(
+                context.l10n.gasCalculators_blender_startCylinder,
+                bottomPadding: 0,
+              ),
+              trailing: TextButton.icon(
+                key: const Key('blender-choose-cylinder'),
+                icon: const Icon(Icons.propane_tank_outlined, size: 18),
+                label: Text(context.l10n.gasCalculators_blender_chooseCylinder),
+                onPressed: () => _chooseCylinder(context, ref),
+              ),
             ),
             BlenderMixRow(
               pressureSymbol: units.pressureSymbol,
@@ -100,23 +91,20 @@ class BlenderCylinderCard extends ConsumerWidget {
               pressureMaxIntDigits: pressureMaxIntDigits,
             ),
             const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: BlenderSectionTitle(
-                    context.l10n.gasCalculators_blender_targetFill,
-                  ),
-                ),
-                MixTemplateMenu(
-                  onSelected: (t) {
-                    // The fields hold their own text, so a template chosen from
-                    // the menu has to be written back into them or the diver
-                    // sees their old mix over the new procedure.
-                    targetO2.text = formatDecimalForInput(t.o2);
-                    targetHe.text = formatDecimalForInput(t.he);
-                  },
-                ),
-              ],
+            BlenderResponsiveHeaderRow(
+              leading: BlenderSectionTitle(
+                context.l10n.gasCalculators_blender_targetFill,
+                bottomPadding: 0,
+              ),
+              trailing: MixTemplateMenu(
+                onSelected: (t) {
+                  // The fields hold their own text, so a template chosen from
+                  // the menu has to be written back into them or the diver
+                  // sees their old mix over the new procedure.
+                  targetO2.text = formatDecimalForInput(t.o2);
+                  targetHe.text = formatDecimalForInput(t.he);
+                },
+              ),
             ),
             BlenderMixRow(
               pressureSymbol: units.pressureSymbol,

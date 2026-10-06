@@ -16034,6 +16034,15 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر فتح هذه الأسطوانة. حاول مرة أخرى.';
 
   @override
+  String gasCalculators_blender_cylinderNoVolume(String name) {
+    return 'لا يوجد حجم ماء مسجَّل لـ $name';
+  }
+
+  @override
+  String get gasCalculators_blender_noCylinders =>
+      'لا توجد أسطوانات في معداتك بعد. أدخل السعة المائية بدلًا من ذلك.';
+
+  @override
   String gasCalculators_blender_filledFrom(String name, String mix) {
     return '$name: $mix';
   }
@@ -16204,16 +16213,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_blender_cylinderVolume => 'السعة المائية للأسطوانة';
 
   @override
-  String get gasCalculators_blender_cylinderPresets => 'الإعدادات المسبقة';
-
-  @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'السعر لكل 100 $unit';
   }
-
-  @override
-  String get gasCalculators_blender_manageCylinderSizes =>
-      'إدارة أحجام الأسطوانات';
 
   @override
   String get gasCalculators_blender_costTotal => 'الإجمالي';
@@ -49528,4 +49530,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_saveNeedsDiver => 'أنشئ ملف غواص لحفظ الاستعلامات';
+
+  @override
+  String get builtIns_showColumnLabel => 'إظهار';
+
+  @override
+  String get builtIns_showInPickers => 'إظهار في قوائم الاختيار';
+
+  @override
+  String preDive_start_allTemplatesHidden(String path) {
+    return 'جميع قوائم التحقق مخفية. أظهر واحدة مجددًا من $path.';
+  }
+
+  @override
+  String get settings_conflict_field_hiddenBuiltInIds =>
+      'العناصر المضمنة المخفية';
 }

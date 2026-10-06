@@ -9,11 +9,11 @@ import 'package:submersion/features/gas_calculators/domain/blending/billed_fill.
 import 'package:submersion/features/gas_calculators/domain/blending/blend_billing.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_gas_role.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_cylinder_picker.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_formatting.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_responsive_header_row.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_volume_conversion.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
-import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -80,10 +80,15 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
   late BlenderLineKind _kind;
   late BlenderGasRole _role;
 
-  /// The exact water volume of the cylinder preset last picked, until the
-  /// field is typed into. The field shows it rounded, which in cubic feet
-  /// loses enough to misprice the fill if it were read back from the text.
-  double? _presetLiters;
+  /// The exact water volume of the cylinder last picked, until the field is
+  /// typed into. The field shows it rounded, which in cubic feet loses
+  /// enough to misprice the fill if it were read back from the text.
+  double? _pickedLiters;
+
+  /// The name of the tank last picked, which the description took on. A
+  /// description that still reads exactly this is the sheet's own, so a later
+  /// pick may replace it; anything else the diver typed is left alone.
+  String? _pickedName;
 
   /// The gas fill fields as the sheet opened them, to tell an edit of the
   /// description alone from a changed fill.
@@ -152,7 +157,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
   /// to fix its description.
   BilledGasLine? get _unchangedGasLine {
     final line = widget.fill?.manualGasLine;
-    if (line == null || line.role != _role || _presetLiters != null) {
+    if (line == null || line.role != _role || _pickedLiters != null) {
       return null;
     }
     if (_cylinder.text != _seedCylinder ||
@@ -263,7 +268,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
       role.index < prices.length ? prices[role.index] : null;
 
   double? _cylinderLiters(AppSettings settings) {
-    if (_presetLiters != null) return _presetLiters;
+    if (_pickedLiters != null) return _pickedLiters;
     // An untouched field still holds the saved fill's exact volume, which
     // its rounded text would lose in cubic feet.
     final saved = widget.fill?.manualGasLine?.cylinderLiters;
@@ -595,81 +600,72 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
     AppSettings settings,
     UnitFormatter units,
   ) {
-    // Sourced from the diver's global tank presets (issue #1335 follow-up),
-    // same as BlenderBillingCard._cylinderRow: the blender keeps no cylinder
-    // vault of its own, so this sheet's picker reads the same list.
-    final presetsAsync = ref.watch(tankPresetsProvider);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: _numberField(
-            const Key('blender-line-cylinder'),
-            _cylinder,
-            '${context.l10n.gasCalculators_blender_cylinderVolume} '
-            '(${units.volumeSymbol})',
-            // Typing a size replaces the preset's exact one.
-            onChanged: () => _presetLiters = null,
-          ),
-        ),
-        const SizedBox(width: 8),
-        presetsAsync.when(
-          loading: () => const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            child: SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ),
-          error: (error, stackTrace) => IconButton(
-            icon: const Icon(Icons.error_outline),
-            tooltip: context.l10n.gasCalculators_blender_cylinderPresets,
-            onPressed: null,
-          ),
-          data: (presets) => PopupMenuButton<TankPresetEntity>(
-            key: const Key('blender-line-cylinder-presets'),
-            tooltip: context.l10n.gasCalculators_blender_cylinderPresets,
-            position: PopupMenuPosition.under,
-            itemBuilder: (context) => [
-              for (final preset in presets)
-                PopupMenuItem<TankPresetEntity>(
-                  value: preset,
-                  child: Text(
-                    '${preset.displayName} '
-                    '(${units.formatTankVolume(preset.volumeLiters, null)})',
-                  ),
-                ),
-            ],
-            // A preset sets the end pressure too: its working pressure is
-            // what the cylinder is filled to (issue #2302). Still editable
-            // afterwards, since only the last gas of a blend reaches it.
-            onSelected: (preset) => setState(() {
-              _presetLiters = preset.volumeLiters;
-              _cylinder.text = formatRoundedForInput(
-                litersToDisplayVolume(preset.volumeLiters, settings),
-                2,
-              );
-              _endPressure.text = formatRoundedForInput(
-                units.convertPressure(preset.workingPressureBar),
-                2,
-              );
-              _error = null;
-            }),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(context.l10n.gasCalculators_blender_cylinderPresets),
-                  const Icon(Icons.arrow_drop_down),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
+    return BlenderResponsiveHeaderRow(
+      rowCrossAxisAlignment: CrossAxisAlignment.start,
+      leading: _numberField(
+        const Key('blender-line-cylinder'),
+        _cylinder,
+        '${context.l10n.gasCalculators_blender_cylinderVolume} '
+        '(${units.volumeSymbol})',
+        // Typing a size replaces the chosen tank's exact one.
+        onChanged: () => _pickedLiters = null,
+      ),
+      trailing: TextButton.icon(
+        key: const Key('blender-line-choose-cylinder'),
+        icon: const Icon(Icons.propane_tank_outlined, size: 18),
+        label: Text(context.l10n.gasCalculators_blender_chooseCylinder),
+        onPressed: () => _chooseCylinder(context, settings, units),
+      ),
     );
+  }
+
+  /// Picks one of the diver's own tanks for its water volume and working
+  /// pressure (issue #2926). A customer's cylinder, which has no equipment
+  /// entry, still goes through the free-text field above.
+  Future<void> _chooseCylinder(
+    BuildContext context,
+    AppSettings settings,
+    UnitFormatter units,
+  ) async {
+    final picked = await pickBlenderCylinderSpecs(
+      context,
+      ref,
+      // Inline, not a snackbar: this sheet would cover one.
+      onMessage: (message) {
+        if (mounted) setState(() => _error = message);
+      },
+    );
+    if (picked == null || !mounted) return;
+    final litres = picked.volumeL;
+    setState(() {
+      _pickedLiters = litres;
+      _cylinder.text = formatRoundedForInput(
+        litersToDisplayVolume(litres, settings),
+        2,
+      );
+      // The tank's own name, not a generated "gas / volume / pressure"
+      // summary: a real starting point for the diver, still freely editable
+      // afterwards (issue #2926 follow-up). Only over a blank description or
+      // the previous pick's name, never over one the diver wrote.
+      final label = _label.text.trim();
+      if (label.isEmpty || label == _pickedName) {
+        _label.text = picked.tank.name;
+      }
+      _pickedName = picked.tank.name;
+      // The working pressure is what the cylinder is filled to (issue
+      // #2302). Still editable afterwards, since only the last gas of a
+      // blend reaches it. Cleared rather than left as-is when the tank has
+      // none recorded, so a stale reading from a previous pick is never
+      // mistaken for this one's.
+      _endPressure.text = switch (picked.tank.workingPressureBar) {
+        final pressure? => formatRoundedForInput(
+          units.convertPressure(pressure),
+          2,
+        ),
+        null => '',
+      };
+      _error = null;
+    });
   }
 
   Widget _numberField(

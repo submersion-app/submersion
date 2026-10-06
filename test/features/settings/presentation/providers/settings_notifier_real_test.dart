@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/presentation/startup_brightness.dart';
@@ -155,6 +156,25 @@ void main() {
           .read(settingsProvider.notifier)
           .setTankPresetHidden('hp80', false);
       expect(container.read(settingsProvider).hiddenTankPresetIds, isEmpty);
+    });
+
+    test('setBuiltInHidden toggles one catalog at a time', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      final notifier = container.read(settingsProvider.notifier);
+      await notifier.setBuiltInHidden(BuiltInCatalog.diveRoles, 'solo', true);
+      await notifier.setBuiltInHidden(BuiltInCatalog.siteTypes, 'lake', true);
+      var settings = container.read(settingsProvider);
+      expect(settings.hiddenBuiltIns(BuiltInCatalog.diveRoles), {'solo'});
+      expect(settings.hiddenBuiltIns(BuiltInCatalog.siteTypes), {'lake'});
+
+      await notifier.setBuiltInHidden(BuiltInCatalog.diveRoles, 'solo', false);
+      settings = container.read(settingsProvider);
+      expect(settings.hiddenBuiltIns(BuiltInCatalog.diveRoles), isEmpty);
+      expect(settings.hiddenBuiltInIds, {
+        'siteTypes': {'lake'},
+      });
     });
 
     test('setTankPresetHidden never hides the default preset', () async {

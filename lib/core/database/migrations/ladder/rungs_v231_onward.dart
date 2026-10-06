@@ -244,12 +244,20 @@ extension RungsFromV231 on AppDatabase {
       await _assertCustomCertificationSchema();
     }
     if (from < 267) await reportProgress();
-    // v268: dive_weights.label and weight_preset_entries.label, a diver's
+    // v269: diver_settings.hidden_built_in_ids (issue #401). Column-only
+    // rung, no backfill: null reads back as "nothing hidden". 268 is held
+    // by an open branch (#3043).
+    if (from < 269) {
+      await _assertHiddenBuiltInIdsColumn();
+    }
+    if (from < 269) await reportProgress();
+    // v270: dive_weights.label and weight_preset_entries.label, a diver's
     // own name for a weight (issue #956). Defaulted columns, no backfill:
-    // existing rows read '' (unnamed). Re-asserted in beforeOpen.
-    if (from < 268) {
+    // existing rows read '' (unnamed). Re-asserted in beforeOpen. 268 is
+    // held by an open branch (#3043).
+    if (from < 270) {
       await _assertWeightLabelColumns();
     }
-    if (from < 268) await reportProgress();
+    if (from < 270) await reportProgress();
   }
 }

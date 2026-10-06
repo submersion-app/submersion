@@ -37,8 +37,8 @@ extension BeforeOpenBackstops on AppDatabase {
     // v229 backstop: the per-set diver figure switch.
     await _assertEquipmentSetShowFigureColumn();
 
-    // v227 backstop: the hidden built-in tank presets.
-    await _assertHiddenTankPresetIdsColumn();
+    // v227 and v269 backstops: hidden tank presets and built-in entries.
+    await _assertHiddenPickerEntryColumns();
 
     // v222 backstop: the per-site vertical exaggeration overrides.
     await _assertSeascapeVerticalExaggerationOverridesColumn();
@@ -555,7 +555,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // only, so it cannot touch diver data.
     await _assertCcrPpO2LimitColumns();
 
-    // v194, v254, v259 and v268 backstops: dive_tanks and weight columns
+    // v194, v254, v259 and v270 backstops: dive_tanks and weight columns
     // every row read selects (before_open_child_columns.dart).
     await _assertChildRowColumns();
 

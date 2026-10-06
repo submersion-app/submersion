@@ -15809,6 +15809,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült megnyitni a palackot. Próbáld újra.';
 
   @override
+  String gasCalculators_blender_cylinderNoVolume(String name) {
+    return 'Nincs rögzített vízűrtartalom ehhez: $name';
+  }
+
+  @override
+  String get gasCalculators_blender_noCylinders =>
+      'Még nincs palack a felszerelésedben. Add meg helyette a víztérfogatot.';
+
+  @override
   String gasCalculators_blender_filledFrom(String name, String mix) {
     return '$name: $mix';
   }
@@ -15979,16 +15988,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_blender_cylinderVolume => 'A palack víztérfogata';
 
   @override
-  String get gasCalculators_blender_cylinderPresets => 'Előbeállítások';
-
-  @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'Ár 100 $unit egységenként';
   }
-
-  @override
-  String get gasCalculators_blender_manageCylinderSizes =>
-      'Palackméretek kezelése';
 
   @override
   String get gasCalculators_blender_costTotal => 'Összesen';
@@ -48685,4 +48687,19 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get query_saveNeedsDiver =>
       'Hozzon létre merülő profilt a lekérdezések mentéséhez';
+
+  @override
+  String get builtIns_showColumnLabel => 'Megjelenítés';
+
+  @override
+  String get builtIns_showInPickers => 'Megjelenítés a választókban';
+
+  @override
+  String preDive_start_allTemplatesHidden(String path) {
+    return 'Minden ellenőrzőlista el van rejtve. Jelenítsen meg újra egyet itt: $path.';
+  }
+
+  @override
+  String get settings_conflict_field_hiddenBuiltInIds =>
+      'Elrejtett beépített elemek';
 }

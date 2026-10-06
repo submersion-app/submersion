@@ -15862,6 +15862,15 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile aprire quella bombola. Riprova.';
 
   @override
+  String gasCalculators_blender_cylinderNoVolume(String name) {
+    return 'Nessun volume d\'acqua registrato per $name';
+  }
+
+  @override
+  String get gasCalculators_blender_noCylinders =>
+      'Ancora nessuna bombola nella tua attrezzatura. Inserisci invece il volume d\'acqua.';
+
+  @override
   String gasCalculators_blender_filledFrom(String name, String mix) {
     return '$name: $mix';
   }
@@ -16034,16 +16043,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Volume d\'acqua della bombola';
 
   @override
-  String get gasCalculators_blender_cylinderPresets => 'Preimpostazioni';
-
-  @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'Prezzo per 100 $unit';
   }
-
-  @override
-  String get gasCalculators_blender_manageCylinderSizes =>
-      'Gestisci le dimensioni delle bombole';
 
   @override
   String get gasCalculators_blender_costTotal => 'Totale';
@@ -48922,4 +48924,19 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get query_saveNeedsDiver =>
       'Crea un profilo subacqueo per salvare le query';
+
+  @override
+  String get builtIns_showColumnLabel => 'Mostra';
+
+  @override
+  String get builtIns_showInPickers => 'Mostra nei selettori';
+
+  @override
+  String preDive_start_allTemplatesHidden(String path) {
+    return 'Tutte le checklist sono nascoste. Mostrane di nuovo una in $path.';
+  }
+
+  @override
+  String get settings_conflict_field_hiddenBuiltInIds =>
+      'Voci integrate nascoste';
 }

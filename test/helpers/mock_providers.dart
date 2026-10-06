@@ -4,6 +4,7 @@ import 'package:http/testing.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
@@ -186,6 +187,22 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
       ids.remove(presetName);
     }
     state = state.copyWith(hiddenTankPresetIds: ids);
+  }
+
+  @override
+  Future<void> setBuiltInHidden(
+    BuiltInCatalog catalog,
+    String id,
+    bool hidden,
+  ) async {
+    state = state.copyWith(
+      hiddenBuiltInIds: withBuiltInHidden(
+        state.hiddenBuiltInIds,
+        catalog,
+        id,
+        hidden,
+      ),
+    );
   }
 
   @override

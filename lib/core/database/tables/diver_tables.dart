@@ -264,6 +264,11 @@ class DiverSettings extends Table {
   /// v265: muted Insights observation rules (#2381), JSON list of
   /// ObservationRuleId.dbValue. Null or absent = none muted.
   TextColumn get insightsMutedObservationRules => text().nullable()();
+
+  /// v269: built-in catalog entries the diver hid from the pickers (issue
+  /// #401), a JSON object of catalog key to id list. Null or absent = none
+  /// hidden.
+  TextColumn get hiddenBuiltInIds => text().nullable()();
   // Appearance settings
   BoolColumn get showDepthColoredDiveCards =>
       boolean().withDefault(const Constant(false))();

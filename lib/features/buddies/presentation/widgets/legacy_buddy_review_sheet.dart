@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/domain/entities/legacy_buddy_conversion.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_name_matcher.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/features/buddies/presentation/widgets/legacy_buddy_re
 import 'package:submersion/features/buddies/presentation/widgets/legacy_name_dialog.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Reviews [plan] before anything is written (#1831). Returns the edited
@@ -96,6 +98,9 @@ class _LegacyBuddyReviewSheetState
       color: theme.colorScheme.onSurfaceVariant,
     );
     final roles = ref.watch(allDiveRolesProvider).value ?? const <DiveRole>[];
+    final hiddenRoleIds = ref.watch(
+      hiddenBuiltInIdsProvider(BuiltInCatalog.diveRoles),
+    );
     final buddyText = widget.plan.buddyText?.trim() ?? '';
     final diveMasterText = widget.plan.diveMasterText?.trim() ?? '';
     return ConstrainedBox(
@@ -133,6 +138,10 @@ class _LegacyBuddyReviewSheetState
                   key: ValueKey(_links[i].identity),
                   link: _links[i],
                   roles: roles,
+                  hiddenRoleIds: hiddenRoleIds,
+                  keepRoleIds: {
+                    for (final planned in widget.plan.links) planned.roleId,
+                  },
                   onRoleChanged: (roleId) =>
                       _update(_replaced(i, _links[i].copyWith(roleId: roleId))),
                   onUseSuggestion: () => _useSuggestion(i),

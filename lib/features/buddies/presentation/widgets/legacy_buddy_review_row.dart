@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/built_ins/visible_built_ins.dart';
 import 'package:submersion/features/buddies/domain/entities/legacy_buddy_conversion.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
@@ -22,6 +23,8 @@ class LegacyBuddyReviewRow extends StatelessWidget {
     required this.onEditName,
     required this.onChooseExisting,
     required this.onRemove,
+    this.hiddenRoleIds = const {},
+    this.keepRoleIds = const {},
   });
 
   final PlannedLink link;
@@ -32,6 +35,14 @@ class LegacyBuddyReviewRow extends StatelessWidget {
   final VoidCallback onChooseExisting;
   final VoidCallback onRemove;
 
+  /// Built-in roles hidden from the pickers (issue #401); the row's own role
+  /// stays.
+  final Set<String> hiddenRoleIds;
+
+  /// Roles offered even when hidden: the ones the planner chose, so a
+  /// changed row can be set back.
+  final Set<String> keepRoleIds;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -41,9 +52,16 @@ class LegacyBuddyReviewRow extends StatelessWidget {
     );
     final isExisting = link.target is ExistingBuddyTarget;
     final suggestion = link.suggestion;
+    final shown = visibleBuiltIns(
+      roles,
+      hiddenRoleIds,
+      isBuiltIn: (r) => r.isBuiltIn,
+      idOf: (r) => r.id,
+      keep: [link.roleId, ...keepRoleIds],
+    );
     final options = [
-      ...roles,
-      if (!roles.any((r) => r.id == link.roleId))
+      ...shown,
+      if (!shown.any((r) => r.id == link.roleId))
         DiveRole.synthetic(link.roleId),
     ];
     return Padding(

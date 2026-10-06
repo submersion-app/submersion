@@ -4,7 +4,7 @@
 
 **Goal:** Let each weight row on a dive and in a weight preset carry an optional free-text name ("Top pocket", "Light canister") beside its placement type (issue #956).
 
-**Architecture:** A new `label TEXT NOT NULL DEFAULT ''` column on `dive_weights` and `weight_preset_entries` (schema v268), carried by the domain entities, every writer and copier, the Subsurface and UDDF importers, and the UDDF exporter. Sync is table-driven and needs no per-field code. The dive editor's weight row moves out of the 6,000-line page into its own widget that gains a second-line Name field; read-only views show `Name · Type` with the type muted.
+**Architecture:** A new `label TEXT NOT NULL DEFAULT ''` column on `dive_weights` and `weight_preset_entries` (schema v270), carried by the domain entities, every writer and copier, the Subsurface and UDDF importers, and the UDDF exporter. Sync is table-driven and needs no per-field code. The dive editor's weight row moves out of the 6,000-line page into its own widget that gains a second-line Name field; read-only views show `Name · Type` with the type muted.
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, flutter_test, ARB localization.
 
@@ -16,7 +16,7 @@
 - Maximum length: 256 characters (grapheme clusters, the unit `TextField.maxLength` counts). Writers store `label.trim()` capped at 256.
 - The placement type (`WeightType`) is unchanged and still required; a name never replaces it.
 - No data rewrite: existing rows get `''`; existing `notes` values are left alone.
-- Schema rung: v268 as shipped (after the notes below, #2939 took 264, #2381 265, #1039 266 and #690 267). Written as v261 while main was at 260, renumbered to 262 when #767 shipped v261 (drop diver_settings.default_ceiling_source), then to 264 when #2030 shipped v263 (diver_settings.distance_unit) with 262 held by #2991. The Task 1 steps below show the v262 numbering (predecessor v261, relaxing the v261 test); at v268 the predecessor is v267 and the relaxed test is migration_v267_custom_certifications_test.dart. Renumber again at merge if another rung lands first. The rung is idempotent (column-existence check) and re-asserted in `beforeOpen`. `minimumCompatibleSchemaVersion` stays 240.
+- Schema rung: v270 as shipped (after the notes below, #2939 took 264, #2381 265, #1039 266, #690 267 and #401 269; 268 is held by #3043). Written as v261 while main was at 260, renumbered to 262 when #767 shipped v261 (drop diver_settings.default_ceiling_source), then to 264 when #2030 shipped v263 (diver_settings.distance_unit) with 262 held by #2991. The Task 1 steps below show the v262 numbering (predecessor v261, relaxing the v261 test); at v270 the predecessor is v269 and the relaxed test is migration_v269_hidden_built_ins_test.dart. Renumber again at merge if another rung lands first. The rung is idempotent (column-existence check) and re-asserted in `beforeOpen`. `minimumCompatibleSchemaVersion` stays 240.
 - Subsurface: `<weightsystem description>` goes to `label`, never `notes`, except Subsurface's stock placement names (`integrated`, `belt`, `ankle`, `backplate`, `backplate weight`, `clip-on`; trimmed, case-insensitive), which set the type alone.
 - Read-only display: `Top pocket · Trim Weights`, the `· Trim Weights` part in `colorScheme.onSurfaceVariant`; an unnamed row renders exactly as before.
 - Editor: an optional Name field on a second line under each `Type | amount | delete` row, hint "e.g. Top pocket", counter visible only in the last 20 characters before the limit.

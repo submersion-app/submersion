@@ -9332,6 +9332,19 @@
   "gasCalculators_blender_scanTag": "Scan tag",
   "gasCalculators_blender_notYourCylinder": "That cylinder is not in your gear",
   "gasCalculators_blender_cylinderFailed": "Could not open that cylinder. Try again.",
+  "gasCalculators_blender_cylinderNoVolume": "{name} has no recorded water volume",
+  "@gasCalculators_blender_cylinderNoVolume": {
+    "description": "Choosing a cylinder whose equipment entry has no volume attribute, in a spot that only reads the volume (the cost card, a billed line).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_blender_noCylinders": "No cylinders in your gear yet. Type the water capacity instead.",
+  "@gasCalculators_blender_noCylinders": {
+    "description": "Choose cylinder tapped on the cost card or a billed gas line while the diver has no tanks in their gear; the cylinder picker is not opened. Points at the water-capacity field next to the button."
+  },
   "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "@gasCalculators_blender_filledFrom": {
     "description": "After Choose cylinder: the cylinder chosen and the mix of its last fill, now what is in it.",
@@ -9396,9 +9409,7 @@
   "gasCalculators_blender_templateAdjust": "Adjust values",
   "gasCalculators_blender_billing": "Cost",
   "gasCalculators_blender_cylinderVolume": "Cylinder water capacity",
-  "gasCalculators_blender_cylinderPresets": "Presets",
   "gasCalculators_blender_unitPrice": "Price per 100 {unit}",
-  "gasCalculators_blender_manageCylinderSizes": "Manage cylinder sizes",
   "gasCalculators_blender_costTotal": "Total",
   "gasCalculators_blender_costBasis": "Billed on the pressure delivered (cylinder water capacity × bar added), the way a fill station meters it.",
   "gasCalculators_blender_costMissingPrice": "Enter a price for every gas to see the total.",
@@ -29064,5 +29075,13 @@
   "query_editor_needsText": "Enter at least one word",
   "@query_editor_needsText": {"description": "Builder text row left empty: it needs at least one word"},
   "query_saveNeedsDiver": "Create a diver profile to save queries",
-  "@query_saveNeedsDiver": {"description": "Snackbar when Save is tapped with no diver profile"}
+  "@query_saveNeedsDiver": {"description": "Snackbar when Save is tapped with no diver profile"},
+  "builtIns_showColumnLabel": "Show",
+  "@builtIns_showColumnLabel": {"description": "Column header above the switches that hide built-in entries from the pickers on the Manage pages"},
+  "builtIns_showInPickers": "Show in pickers",
+  "@builtIns_showInPickers": {"description": "Tooltip on a built-in entry's show/hide switch on a Manage page"},
+  "preDive_start_allTemplatesHidden": "Every checklist is hidden. Show one again in {path}.",
+  "@preDive_start_allTemplatesHidden": {"description": "Helper under the start sheet's checklist field when the diver hid every checklist template; path is the localized Settings > Manage > Pre-Dive Checklists trail", "placeholders": {"path": {"type": "String"}}},
+  "settings_conflict_field_hiddenBuiltInIds": "Hidden built-in entries",
+  "@settings_conflict_field_hiddenBuiltInIds": {"description": "Sync conflict dialog label for the built-in dive types, roles, site types, service types and checklists a diver hid from the pickers"}
 }
