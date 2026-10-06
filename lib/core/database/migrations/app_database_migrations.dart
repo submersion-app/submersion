@@ -31,6 +31,7 @@ part 'before_open.dart';
 part 'before_open_child_columns.dart';
 part 'before_open_table_backstops.dart';
 part 'helpers/buddy_migrations.dart';
+part 'helpers/certification_currency_migrations.dart';
 part 'helpers/connection_migrations.dart';
 part 'helpers/cylinder_migrations.dart';
 part 'helpers/data_source_migrations.dart';

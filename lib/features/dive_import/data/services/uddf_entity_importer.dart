@@ -11,6 +11,7 @@ import 'package:submersion/features/cylinder_passports/data/repositories/cylinde
 import 'package:submersion/features/cylinder_passports/data/services/csv_fill_importer.dart';
 import 'package:submersion/features/dive_import/data/repositories/imported_file_repository.dart';
 import 'package:submersion/features/dive_import/data/services/additional_computer_writer.dart';
+import 'package:submersion/features/dive_import/data/services/currency_restorer.dart';
 import 'package:submersion/features/dive_import/data/services/import_map_readers.dart';
 import 'package:submersion/features/dive_import/data/services/import_weight_mapper.dart';
 import 'package:submersion/features/dive_import/data/services/imported_profile_readers.dart';
@@ -32,6 +33,7 @@ import 'package:submersion/core/utils/number_utils.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/certifications/data/repositories/certification_currency_repository.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
@@ -161,6 +163,10 @@ class ImportRepositories {
   final CylinderFillRepository? cylinderFillRepository;
   final CylinderPassportRepository? cylinderPassportRepository;
 
+  /// Optional for the same reason; when null, the certification currency
+  /// rows in a full backup (issue #2267) are skipped.
+  final CertificationCurrencyRepository? certificationCurrencyRepository;
+
   const ImportRepositories({
     required this.tripRepository,
     required this.equipmentRepository,
@@ -188,6 +194,7 @@ class ImportRepositories {
     this.speciesRepository,
     this.cylinderFillRepository,
     this.cylinderPassportRepository,
+    this.certificationCurrencyRepository,
   });
 }
 
@@ -558,15 +565,31 @@ class UddfEntityImporter {
       onProgress,
     );
 
+    final certIdMapping = <String, String>{};
     final certificationsCount = await _importCertifications(
       data.certifications,
       selections.certifications,
       repositories.certificationRepository,
       diverId,
+      certIdMapping,
       now,
       onProgress,
       certResolver,
     );
+
+    // Certification currency (issue #2267): custom rules restore with no
+    // selection step, and prefs and events ride along with the
+    // certifications just created, as service records do with equipment.
+    final currencyRepository = repositories.certificationCurrencyRepository;
+    if (currencyRepository != null) {
+      await CurrencyRestorer(currencyRepository).restore(
+        rules: data.currencyRules,
+        prefs: data.currencyPrefs,
+        events: data.currencyEvents,
+        diverId: diverId,
+        certIdMapping: certIdMapping,
+      );
+    }
 
     final tagsCount = await _importTags(
       data.tags,
@@ -1165,6 +1188,7 @@ class UddfEntityImporter {
     Set<int> selected,
     CertificationRepository repository,
     String diverId,
+    Map<String, String> idMapping,
     DateTime now,
     ImportProgressCallback? onProgress,
     CertificationImportResolver certResolver,
@@ -1205,6 +1229,8 @@ class UddfEntityImporter {
       );
 
       await repository.createCertification(certification);
+      final uddfId = certData['uddfId'];
+      if (uddfId is String && uddfId.isNotEmpty) idMapping[uddfId] = newId;
       count++;
       onProgress?.call(ImportPhase.certifications, count, selected.length);
     }

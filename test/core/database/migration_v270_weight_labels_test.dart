@@ -36,12 +36,15 @@ void main() {
     },
   );
 
-  test('v270 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 270);
+  test('v270 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v271 (certification currency, #2267) landed on top; the
+    // newest rung owns the exact assertions.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(270));
     expect(AppDatabase.migrationVersions, contains(270));
-    expect(AppDatabase.migrationStepCount(269), 1);
+    expect(
+      AppDatabase.migrationStepCount(269),
+      AppDatabase.migrationStepCount(270) + 1,
+    );
   });
 
   test('the columns are defaulted, so the sync floor does not move', () {

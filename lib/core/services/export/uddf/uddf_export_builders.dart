@@ -4,7 +4,9 @@ import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' hide Visibility;
 import 'package:submersion/core/constants/enums.dart' as enums;
+import 'package:submersion/core/services/export/models/currency_backup_data.dart';
 import 'package:submersion/core/services/export/models/export_service_record.dart';
+import 'package:submersion/core/services/export/uddf/uddf_certification_currency.dart';
 import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
@@ -759,6 +761,8 @@ class UddfExportBuilders {
     // Each item's tag ids (issue #1942); an item absent from it writes none.
     Map<String, List<String>> equipmentTagIdsByItem = const {},
     List<Certification>? certifications,
+    // Certification currency rows (issue #2267); built-ins are dropped.
+    CurrencyBackupData currency = const CurrencyBackupData(),
     // Names custom agencies and levels on export (issue #690).
     CertificationCatalog? certificationCatalog,
     List<DiveCenter>? diveCenters,
@@ -818,6 +822,7 @@ class UddfExportBuilders {
         roleRows.isNotEmpty ||
         (computerTissueDives?.any(UddfComputerTissue.hasData) ?? false) ||
         (certifications?.isNotEmpty ?? false) ||
+        !currency.isEmpty ||
         (diveCenters?.isNotEmpty ?? false) ||
         (species?.isNotEmpty ?? false) ||
         (serviceRecords?.isNotEmpty ?? false) ||
@@ -1013,6 +1018,8 @@ class UddfExportBuilders {
                 },
               );
             }
+
+            UddfCertificationCurrency.write(builder, currency);
 
             // Dive Centers
             if (diveCenters != null && diveCenters.isNotEmpty) {

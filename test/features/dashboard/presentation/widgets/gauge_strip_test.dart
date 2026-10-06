@@ -9,6 +9,8 @@ import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/domain/entities/course_progress.dart';
 import 'package:submersion/features/courses/domain/entities/course_requirement.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_currency_providers.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_query_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/gauge_strip.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -826,20 +828,48 @@ void main() {
   });
 
   group('attention chips', () {
-    testWidgets('certifications chip navigates', (tester) async {
-      final spy = await pumpStrip(
+    testWidgets(
+      'the certifications chip counts collapsed groups and opens the scope',
+      (tester) async {
+        final spy = await pumpStrip(
+          tester,
+          const DashboardGauges(
+            hasGear: true,
+            insurance: null,
+            noFlyStatus: null,
+            daysSinceLastDive: null,
+            certCurrency: CurrencyAttention(
+              count: 2,
+              certificationIds: {'a', 'b'},
+            ),
+          ),
+        );
+        expect(find.text('2 certifications need attention'), findsOneWidget);
+        expect(chipTone(tester, '2 certifications need attention'), 'warn');
+        await tapChip(tester, '2 certifications need attention');
+        expect(spy.location, '/certifications');
+        expect(
+          spy.container.read(certificationAttentionFilterProvider),
+          isTrue,
+          reason: 'the list opens scoped to what the chip counted',
+        );
+      },
+    );
+
+    testWidgets('a lapse makes the certifications chip alert-toned', (
+      tester,
+    ) async {
+      await pumpStrip(
         tester,
         const DashboardGauges(
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
           daysSinceLastDive: null,
-          expiringCertCount: 2,
+          certCurrency: CurrencyAttention(count: 1, anyLapsed: true),
         ),
       );
-      expect(find.text('2 certifications expiring'), findsOneWidget);
-      await tapChip(tester, '2 certifications expiring');
-      expect(spy.location, '/certifications');
+      expect(chipTone(tester, '1 certification needs attention'), 'alert');
     });
 
     testWidgets('trip chip navigates', (tester) async {
@@ -966,7 +996,8 @@ void main() {
       tester,
     ) async {
       await pumpStrip(tester, _emptyGauges);
-      expect(find.textContaining('certifications expiring'), findsNothing);
+      expect(find.textContaining('need attention'), findsNothing);
+      expect(find.textContaining('needs attention'), findsNothing);
       expect(find.text('Checklist in progress'), findsNothing);
       expect(find.textContaining('uploads pending'), findsNothing);
       expect(find.textContaining('data issues'), findsNothing);
@@ -1164,7 +1195,7 @@ void main() {
           insurance: const DiverInsurance(provider: 'DAN'),
           noFlyStatus: null,
           daysSinceLastDive: 12,
-          expiringCertCount: 2,
+          certCurrency: const CurrencyAttention(count: 2),
           nextTrip: _trip('Bonaire', 12),
           activeChecklistId: 'session-7',
           firstCourse: _course('AN/DP', 7, 12),
@@ -1524,6 +1555,48 @@ void main() {
       expect(find.byType(Wrap), findsNothing);
     });
 
+    testWidgets('a lapse on an entered date renders through the hide', (
+      tester,
+    ) async {
+      await pumpStrip(
+        tester,
+        const DashboardGauges(
+          hasGear: true,
+          insurance: null,
+          noFlyStatus: null,
+          daysSinceLastDive: null,
+          certCurrency: CurrencyAttention(
+            count: 5,
+            anyLapsed: true,
+            anyHardened: true,
+            hardenedCount: 1,
+          ),
+        ),
+        settingsNotifier: await allHidden(),
+      );
+      // Through the hide the chip names only what the hide cannot silence,
+      // as the gear chip shows only overdue items.
+      expect(find.text('1 certification needs attention'), findsOneWidget);
+      expect(find.textContaining('5 certifications'), findsNothing);
+    });
+
+    testWidgets('an inferred certification lapse stays hideable', (
+      tester,
+    ) async {
+      await pumpStrip(
+        tester,
+        const DashboardGauges(
+          hasGear: true,
+          insurance: null,
+          noFlyStatus: null,
+          daysSinceLastDive: null,
+          certCurrency: CurrencyAttention(count: 1, anyLapsed: true),
+        ),
+        settingsNotifier: await allHidden(),
+      );
+      expect(find.byType(Wrap), findsNothing);
+    });
+
     testWidgets('red currency and backup chips stay hideable', (tester) async {
       // Both go alert-tone at these thresholds, and both are habit nags
       // rather than dive-safety gates, so hiding them must still work.
@@ -1602,4 +1675,23 @@ void main() {
       expect(find.text('No dives yet'), findsOneWidget);
     });
   });
+}
+
+/// The light-palette tone of the chip whose label contains [text]: 'alert',
+/// 'warn', 'ok', or 'neutral'.
+String chipTone(WidgetTester tester, String text) {
+  final container = tester.widget<Container>(
+    find
+        .ancestor(
+          of: find.textContaining(text),
+          matching: find.byType(Container),
+        )
+        .first,
+  );
+  final fill = (container.decoration! as BoxDecoration).color;
+  const colors = StatusColors.light;
+  if (fill == colors.alert.container) return 'alert';
+  if (fill == colors.warn.container) return 'warn';
+  if (fill == colors.ok.container) return 'ok';
+  return 'neutral';
 }

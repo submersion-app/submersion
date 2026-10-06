@@ -19,6 +19,8 @@ abstract final class CertificationLevelCatalog {
     CertificationLevel.sidemount,
     CertificationLevel.rebreather,
     CertificationLevel.techDiver,
+    CertificationLevel.firstAid,
+    CertificationLevel.oxygenProvider,
   ];
 
   static const List<CertificationLevel> _genericLadder = [

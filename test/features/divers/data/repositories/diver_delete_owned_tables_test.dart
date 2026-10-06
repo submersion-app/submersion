@@ -537,6 +537,70 @@ void main() {
         ('trip_day_weather', 'tripDayWeather', 'tdw-a'),
       ];
     },
+    // A custom currency rule references the diver with no ON DELETE action.
+    // The pref and event cascade with the certification, so the delete has
+    // to tombstone them itself (issue #2267).
+    'a custom currency rule and a certification with currency rows': () async {
+      await db
+          .into(db.certificationCurrencyRules)
+          .insert(
+            CertificationCurrencyRulesCompanion.insert(
+              id: 'ccr-a',
+              diverId: const Value('diver-a'),
+              name: 'Club refresher',
+              clockKind: 'activity',
+              lapseDays: 365,
+              leadDays: 90,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.certifications)
+          .insert(
+            CertificationsCompanion.insert(
+              id: 'cert-a',
+              name: 'Open Water',
+              agency: 'padi',
+              diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.certificationCurrencyPrefs)
+          .insert(
+            CertificationCurrencyPrefsCompanion.insert(
+              id: 'ccp-a',
+              certificationId: 'cert-a',
+              ruleId: 'ccr-a',
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.certificationCurrencyEvents)
+          .insert(
+            CertificationCurrencyEventsCompanion.insert(
+              id: 'cce-a',
+              certificationId: 'cert-a',
+              eventType: 'refresher',
+              eventDate: stale,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [
+        ('certification_currency_rules', 'certificationCurrencyRules', 'ccr-a'),
+        ('certifications', 'certifications', 'cert-a'),
+        ('certification_currency_prefs', 'certificationCurrencyPrefs', 'ccp-a'),
+        (
+          'certification_currency_events',
+          'certificationCurrencyEvents',
+          'cce-a',
+        ),
+      ];
+    },
   };
 
   for (final MapEntry(key: label, value: seed) in seeders.entries) {
@@ -826,6 +890,7 @@ void main() {
 /// that deleteDiverWithReassignment clears itself.
 const _clearedByDelete = {
   'buddies',
+  'certification_currency_rules',
   'certifications',
   'checklist_templates',
   'custom_certification_agencies',

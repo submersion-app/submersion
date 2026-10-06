@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/certifications/data/repositories/certification_currency_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart'
     as domain;
 
@@ -289,6 +290,9 @@ class CertificationRepository {
   Future<void> deleteCertification(String id, {bool notify = true}) async {
     try {
       _log.info('Deleting certification: $id');
+      // Currency prefs and events cascade with the row, and a cascade
+      // writes no tombstones, so log them before they go.
+      await CertificationCurrencyRepository().tombstoneChildrenOf(id);
       await (_db.delete(
         _db.certifications,
       )..where((t) => t.id.equals(id))).go();

@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:xml/xml.dart';
 
+import 'package:submersion/core/services/export/models/currency_backup_data.dart';
 import 'package:submersion/core/services/export/models/export_service_record.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
@@ -55,6 +56,7 @@ class UddfFullExportService {
     List<EquipmentItem>? equipment,
     List<Buddy>? buddies,
     List<Certification>? certifications,
+    CurrencyBackupData currency = const CurrencyBackupData(),
     CertificationCatalog? certificationCatalog,
     List<DiveCenter>? diveCenters,
     List<Species>? species,
@@ -381,6 +383,7 @@ class UddfFullExportService {
           equipment: equipment,
           equipmentTagIdsByItem: equipmentTagIdsByItem,
           certifications: certifications,
+          currency: currency,
           certificationCatalog: certificationCatalog,
           diveCenters: diveCenters,
           species: species,
@@ -494,6 +497,7 @@ class UddfFullExportService {
     List<EquipmentItem>? equipment,
     List<Buddy>? buddies,
     List<Certification>? certifications,
+    CurrencyBackupData currency = const CurrencyBackupData(),
     CertificationCatalog? certificationCatalog,
     List<DiveCenter>? diveCenters,
     List<Species>? species,
@@ -533,6 +537,7 @@ class UddfFullExportService {
       equipment: equipment,
       buddies: buddies,
       certifications: certifications,
+      currency: currency,
       certificationCatalog: certificationCatalog,
       diveCenters: diveCenters,
       species: species,
@@ -575,6 +580,7 @@ class UddfFullExportService {
     List<EquipmentItem>? equipment,
     List<Buddy>? buddies,
     List<Certification>? certifications,
+    CurrencyBackupData currency = const CurrencyBackupData(),
     CertificationCatalog? certificationCatalog,
     List<DiveCenter>? diveCenters,
     List<Species>? species,
@@ -614,6 +620,7 @@ class UddfFullExportService {
       equipment: equipment,
       buddies: buddies,
       certifications: certifications,
+      currency: currency,
       certificationCatalog: certificationCatalog,
       diveCenters: diveCenters,
       species: species,

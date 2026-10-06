@@ -132,6 +132,21 @@ class SyncRepository {
     // clockless child riding the parent's hlc would never replicate; the
     // schedule needs its own clock.
     'serviceSchedules': (table: 'service_schedules', pk: 'id'),
+    // Certification currency (issue #2267). Each carries its own clock for
+    // the serviceSchedules reason: editing a pref or logging an event never
+    // touches the certification row.
+    'certificationCurrencyRules': (
+      table: 'certification_currency_rules',
+      pk: 'id',
+    ),
+    'certificationCurrencyPrefs': (
+      table: 'certification_currency_prefs',
+      pk: 'id',
+    ),
+    'certificationCurrencyEvents': (
+      table: 'certification_currency_events',
+      pk: 'id',
+    ),
     'settings': (table: 'settings', pk: 'key'),
     'csvPresets': (table: 'csv_presets', pk: 'id'),
     'viewConfigs': (table: 'view_configs', pk: 'id'),

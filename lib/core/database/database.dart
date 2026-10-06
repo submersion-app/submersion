@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/raw_dive_data_codec.dart';
 import 'package:submersion/core/database/tables/app_tables.dart';
 import 'package:submersion/core/database/tables/buddy_tables.dart';
+import 'package:submersion/core/database/tables/certification_currency_tables.dart';
 import 'package:submersion/core/database/tables/cylinder_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_tables.dart';
 import 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
@@ -32,6 +33,7 @@ import 'package:submersion/core/database/migrations/app_database_migrations.dart
 
 export 'package:submersion/core/database/tables/app_tables.dart';
 export 'package:submersion/core/database/tables/buddy_tables.dart';
+export 'package:submersion/core/database/tables/certification_currency_tables.dart';
 export 'package:submersion/core/database/tables/cylinder_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_tables.dart';
 export 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
@@ -235,6 +237,10 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SiteHides,
     // Insight observation dismissals (v265)
     InsightObservationDismissals,
+    // Certification currency (v271, issue #2267)
+    CertificationCurrencyRules,
+    CertificationCurrencyPrefs,
+    CertificationCurrencyEvents,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -244,7 +250,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 270;
+  static const int currentSchemaVersion = 271;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1137,6 +1143,13 @@ class AppDatabase extends _$AppDatabase {
     // its local value or the '' default. Renumbered as other rungs shipped
     // first (261 through 269).
     270,
+    // v271: certification currency (issue #2267): the rule catalog with its
+    // built-in seed, per certification overrides and the event ledger. New
+    // synced tables only, so the floor stays. Built-in rules are reference
+    // data, re-seeded by INSERT OR IGNORE from onCreate, the rung and
+    // beforeOpen. Renumbered from 261, 262, 266, 267 and 269 as main shipped
+    // those first (and then 270); 268 is held by an open branch.
+    271,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

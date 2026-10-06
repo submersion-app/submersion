@@ -160,6 +160,8 @@ extension BeforeOpenBackstops on AppDatabase {
     // backfill is onUpgrade only: re-running it resurrects deleted schedules.
     await _assertServiceLedgerSchema();
 
+    // v271 backstop: currency tables and built-in rules, re-seeded (#2267).
+    await _assertCertificationCurrencySchema();
     // v123 backstop: re-assert safety review tables + settings columns
     // (parallel-branch collision self-heal).
     await _assertSafetyReviewSchema();

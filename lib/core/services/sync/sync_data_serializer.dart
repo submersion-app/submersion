@@ -286,6 +286,9 @@ class SyncData {
   final List<Map<String, dynamic>> serviceRecords;
   final List<Map<String, dynamic>> serviceKinds;
   final List<Map<String, dynamic>> serviceSchedules;
+  final List<Map<String, dynamic>> certificationCurrencyRules;
+  final List<Map<String, dynamic>> certificationCurrencyPrefs;
+  final List<Map<String, dynamic>> certificationCurrencyEvents;
   final List<Map<String, dynamic>> diveCenters;
   final List<Map<String, dynamic>> diveCenterGearNotes;
   final List<Map<String, dynamic>> trips;
@@ -401,6 +404,9 @@ class SyncData {
     this.serviceRecords = const [],
     this.serviceKinds = const [],
     this.serviceSchedules = const [],
+    this.certificationCurrencyRules = const [],
+    this.certificationCurrencyPrefs = const [],
+    this.certificationCurrencyEvents = const [],
     this.diveCenters = const [],
     this.diveCenterGearNotes = const [],
     this.trips = const [],
@@ -511,6 +517,9 @@ class SyncData {
     'serviceRecords': serviceRecords,
     'serviceKinds': serviceKinds,
     'serviceSchedules': serviceSchedules,
+    'certificationCurrencyRules': certificationCurrencyRules,
+    'certificationCurrencyPrefs': certificationCurrencyPrefs,
+    'certificationCurrencyEvents': certificationCurrencyEvents,
     'diveCenters': diveCenters,
     'diveCenterGearNotes': diveCenterGearNotes,
     'trips': trips,
@@ -622,6 +631,15 @@ class SyncData {
       serviceRecords: _parseList(json['serviceRecords']),
       serviceKinds: _parseList(json['serviceKinds']),
       serviceSchedules: _parseList(json['serviceSchedules']),
+      certificationCurrencyRules: _parseList(
+        json['certificationCurrencyRules'],
+      ),
+      certificationCurrencyPrefs: _parseList(
+        json['certificationCurrencyPrefs'],
+      ),
+      certificationCurrencyEvents: _parseList(
+        json['certificationCurrencyEvents'],
+      ),
       diveCenters: _parseList(json['diveCenters']),
       diveCenterGearNotes: _parseList(json['diveCenterGearNotes']),
       trips: _parseList(json['trips']),
@@ -986,6 +1004,25 @@ class SyncDataSerializer {
     (
       key: 'serviceSchedules',
       table: _db.serviceSchedules,
+      blob: false,
+      full: null,
+    ),
+    // Built-in currency rules are reference data (mirrors serviceKinds).
+    (
+      key: 'certificationCurrencyRules',
+      table: null,
+      blob: false,
+      full: () => _exportCertificationCurrencyRules(null),
+    ),
+    (
+      key: 'certificationCurrencyPrefs',
+      table: _db.certificationCurrencyPrefs,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'certificationCurrencyEvents',
+      table: _db.certificationCurrencyEvents,
       blob: false,
       full: null,
     ),
@@ -2156,6 +2193,18 @@ class SyncDataSerializer {
         'serviceSchedules',
         () => _exportServiceSchedules(hlcSince),
       ),
+      certificationCurrencyRules: await _safeExport(
+        'certificationCurrencyRules',
+        () => _exportCertificationCurrencyRules(hlcSince),
+      ),
+      certificationCurrencyPrefs: await _safeExport(
+        'certificationCurrencyPrefs',
+        () => _exportCertificationCurrencyPrefs(hlcSince),
+      ),
+      certificationCurrencyEvents: await _safeExport(
+        'certificationCurrencyEvents',
+        () => _exportCertificationCurrencyEvents(hlcSince),
+      ),
       diveCenters: await _safeExport(
         'diveCenters',
         () => _exportDiveCenters(hlcSince),
@@ -2872,6 +2921,21 @@ class SyncDataSerializer {
       case 'serviceSchedules':
         final row = await (_db.select(
           _db.serviceSchedules,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'certificationCurrencyRules':
+        final row = await (_db.select(
+          _db.certificationCurrencyRules,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'certificationCurrencyPrefs':
+        final row = await (_db.select(
+          _db.certificationCurrencyPrefs,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'certificationCurrencyEvents':
+        final row = await (_db.select(
+          _db.certificationCurrencyEvents,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'diveCenters':
@@ -3630,6 +3694,21 @@ class SyncDataSerializer {
       case 'serviceSchedules':
         final rows = await (_db.select(
           _db.serviceSchedules,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'certificationCurrencyRules':
+        final rows = await (_db.select(
+          _db.certificationCurrencyRules,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'certificationCurrencyPrefs':
+        final rows = await (_db.select(
+          _db.certificationCurrencyPrefs,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'certificationCurrencyEvents':
+        final rows = await (_db.select(
+          _db.certificationCurrencyEvents,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'csvPresets':
@@ -4499,6 +4578,27 @@ class SyncDataSerializer {
             .into(_db.serviceSchedules)
             .insertOnConflictUpdate(
               ServiceScheduleRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'certificationCurrencyRules':
+        await _db
+            .into(_db.certificationCurrencyRules)
+            .insertOnConflictUpdate(
+              CurrencyRuleRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'certificationCurrencyPrefs':
+        await _db
+            .into(_db.certificationCurrencyPrefs)
+            .insertOnConflictUpdate(
+              CurrencyPrefRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'certificationCurrencyEvents':
+        await _db
+            .into(_db.certificationCurrencyEvents)
+            .insertOnConflictUpdate(
+              CurrencyEventRow.fromJson(data).toCompanion(false),
             );
         return;
       case 'diveCenters':
@@ -5487,6 +5587,36 @@ class SyncDataSerializer {
             _db.serviceSchedules,
             records
                 .map((r) => ServiceScheduleRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'certificationCurrencyRules':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.certificationCurrencyRules,
+            records
+                .map((r) => CurrencyRuleRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'certificationCurrencyPrefs':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.certificationCurrencyPrefs,
+            records
+                .map((r) => CurrencyPrefRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'certificationCurrencyEvents':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.certificationCurrencyEvents,
+            records
+                .map((r) => CurrencyEventRow.fromJson(r).toCompanion(false))
                 .toList(),
           ),
         );
@@ -6709,6 +6839,21 @@ class SyncDataSerializer {
         return plain(_db.serviceKinds, _db.serviceKinds.id);
       case 'serviceSchedules':
         return plain(_db.serviceSchedules, _db.serviceSchedules.id);
+      case 'certificationCurrencyRules':
+        return plain(
+          _db.certificationCurrencyRules,
+          _db.certificationCurrencyRules.id,
+        );
+      case 'certificationCurrencyPrefs':
+        return plain(
+          _db.certificationCurrencyPrefs,
+          _db.certificationCurrencyPrefs.id,
+        );
+      case 'certificationCurrencyEvents':
+        return plain(
+          _db.certificationCurrencyEvents,
+          _db.certificationCurrencyEvents.id,
+        );
       case 'media':
         return plain(_db.media, _db.media.id);
       case 'mediaSmartAlbums':
@@ -6802,6 +6947,13 @@ class SyncDataSerializer {
       case 'serviceKinds':
         await (_db.delete(
           _db.serviceKinds,
+        )..where((t) => t.isBuiltIn.equals(false))).go();
+        return;
+      // Built-in currency rules are seeded, never exported: an unguarded
+      // clear here would delete ten rules that no refill restores.
+      case 'certificationCurrencyRules':
+        await (_db.delete(
+          _db.certificationCurrencyRules,
         )..where((t) => t.isBuiltIn.equals(false))).go();
         return;
     }
@@ -7132,6 +7284,12 @@ class SyncDataSerializer {
         return _db.serviceKinds;
       case 'serviceSchedules':
         return _db.serviceSchedules;
+      case 'certificationCurrencyRules':
+        return _db.certificationCurrencyRules;
+      case 'certificationCurrencyPrefs':
+        return _db.certificationCurrencyPrefs;
+      case 'certificationCurrencyEvents':
+        return _db.certificationCurrencyEvents;
       case 'media':
         return _db.media;
       case 'mediaSmartAlbums':
@@ -7335,6 +7493,21 @@ class SyncDataSerializer {
       case 'serviceSchedules':
         await (_db.delete(
           _db.serviceSchedules,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'certificationCurrencyRules':
+        await (_db.delete(
+          _db.certificationCurrencyRules,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'certificationCurrencyPrefs':
+        await (_db.delete(
+          _db.certificationCurrencyPrefs,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'certificationCurrencyEvents':
+        await (_db.delete(
+          _db.certificationCurrencyEvents,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'diveCenters':
@@ -8187,6 +8360,43 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.serviceSchedules);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Built-in currency rules are re-seeded identically on every device, so
+  /// exporting one publishes nothing. Custom rules, including the
+  /// copy-on-write rules that supersede a built-in, are ordinary synced rows.
+  Future<List<Map<String, dynamic>>> _exportCertificationCurrencyRules(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.certificationCurrencyRules)
+      ..where((t) => t.isBuiltIn.equals(false));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportCertificationCurrencyPrefs(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.certificationCurrencyPrefs);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportCertificationCurrencyEvents(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.certificationCurrencyEvents);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }

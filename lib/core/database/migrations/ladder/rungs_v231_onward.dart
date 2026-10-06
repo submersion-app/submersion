@@ -263,5 +263,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertWeightLabelColumns();
     }
     if (from < 270) await reportProgress();
+    // v271: certification currency (issue #2267). Three synced tables and
+    // the seeded built-in rule catalog, no backfill. Re-asserted in
+    // beforeOpen. 268 is held by an open branch.
+    if (from < 271) {
+      await _assertCertificationCurrencySchema();
+    }
+    if (from < 271) await reportProgress();
   }
 }

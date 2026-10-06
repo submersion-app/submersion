@@ -26,6 +26,7 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_attention_filter_bar.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_search_delegate.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
@@ -164,13 +165,26 @@ class _CertificationListContentState
   void _setQuery(QueryNode? query) =>
       ref.read(certificationQueryProvider.notifier).state = query;
 
-  /// The list body with the query's chips above it (#2365).
-  Widget _withQueryChips(Widget child) => QueryChipsFrame(
-    root: certificationQueryEntity,
-    query: ref.watch(certificationQueryProvider),
-    onChanged: _setQuery,
-    child: child,
-  );
+  /// The list body with the query's chips above it (#2365) and, while the
+  /// home chip's needs-attention scope is on, its indicator (issue #2267).
+  Widget _withQueryChips(Widget child) {
+    final framed = QueryChipsFrame(
+      root: certificationQueryEntity,
+      query: ref.watch(certificationQueryProvider),
+      onChanged: _setQuery,
+      child: child,
+    );
+    if (!ref.watch(certificationAttentionFilterProvider)) return framed;
+    return Column(
+      children: [
+        const CertificationAttentionFilterBar(),
+        Expanded(child: framed),
+      ],
+    );
+  }
+
+  void _clearAttentionScope() =>
+      ref.read(certificationAttentionFilterProvider.notifier).state = false;
 
   @override
   Widget build(BuildContext context) {
@@ -713,6 +727,46 @@ class _CertificationListContentState
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    // The needs-attention scope with nothing left in it says so, and offers
+    // the way out, rather than reading as an empty logbook.
+    if (ref.watch(certificationAttentionFilterProvider)) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.verified_outlined,
+                size: 64,
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.5),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                context.l10n.certifications_list_needsAttention_empty,
+                style: Theme.of(context).textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                context.l10n.certifications_list_needsAttention_emptySubtitle,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: _clearAttentionScope,
+                child: Text(context.l10n.certifications_list_filter_clear),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     // A query that hid every row is not "nothing here yet".
     if (ref.watch(certificationQueryProvider) != null) {
       return QueryNoMatchState(onClear: () => _setQuery(null));

@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -8,7 +9,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_times.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
+import 'package:submersion/features/safety/domain/entities/cns_otu_snapshot.dart';
 import 'package:submersion/features/safety/presentation/providers/cns_otu_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -127,10 +128,18 @@ void main() {
     );
   });
 
-  // The totals are anchored to the real clock, so fixtures are placed
-  // relative to the start of today rather than on fixed dates.
-  final now = NoFlyService.wallClockNowUtc();
-  final today = DateTime.utc(now.year, now.month, now.day);
+  // The totals are anchored to now, so every read below runs under a fixed
+  // clock. Reading the real clock here raced the provider's own read: in a
+  // bundled CI run this file registers before midnight and runs after it,
+  // and the fixtures land on the wrong day. Pinned five minutes past
+  // midnight, the edge where that happened.
+  final fixedNow = DateTime(2026, 6, 15, 0, 5);
+  final today = DateTime.utc(fixedNow.year, fixedNow.month, fixedNow.day);
+
+  Future<CnsOtuSnapshot?> snapshotOf(ProviderContainer container) => withClock(
+    Clock.fixed(fixedNow),
+    () => container.read(cnsOtuSnapshotProvider.future),
+  );
 
   ProviderContainer containerFor(
     _StubDiveRepository repo,
@@ -180,7 +189,7 @@ void main() {
       'dive-0': const O2Exposure(otu: 80.0),
     });
 
-    final snapshot = await container.read(cnsOtuSnapshotProvider.future);
+    final snapshot = await snapshotOf(container);
     expect(snapshot, isNotNull);
     expect(snapshot!.lastDiveId, 'dive-1');
     expect(snapshot.lastDiveEnd, lastDiveEnd);
@@ -214,7 +223,7 @@ void main() {
         'dive-2': const O2Exposure(cnsEnd: 10.0),
       });
 
-      final snapshot = await container.read(cnsOtuSnapshotProvider.future);
+      final snapshot = await snapshotOf(container);
       expect(snapshot!.lastDiveEnd, entryTime.add(const Duration(minutes: 40)));
     },
   );
@@ -239,7 +248,7 @@ void main() {
       'dive-later': const O2Exposure(otu: 200.0),
     });
 
-    final snapshot = await container.read(cnsOtuSnapshotProvider.future);
+    final snapshot = await snapshotOf(container);
     expect(snapshot!.weeklyOtu, 15.0);
   });
 
@@ -260,7 +269,7 @@ void main() {
         'dive-night': const O2Exposure(otu: 100.0),
       });
 
-      final snapshot = await container.read(cnsOtuSnapshotProvider.future);
+      final snapshot = await snapshotOf(container);
       expect(snapshot!.dailyOtu, closeTo(40.0, 1e-9));
       expect(snapshot.weeklyOtu, closeTo(100.0, 1e-9));
     },
@@ -281,7 +290,7 @@ void main() {
       'dive-0': const O2Exposure(otu: 80.0),
     });
 
-    final snapshot = await container.read(cnsOtuSnapshotProvider.future);
+    final snapshot = await snapshotOf(container);
     expect(snapshot, isNotNull);
     expect(snapshot!.lastDiveId, 'dive-3');
     expect(snapshot.hasProfile, isFalse);

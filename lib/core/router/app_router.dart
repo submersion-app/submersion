@@ -98,6 +98,7 @@ import 'package:submersion/features/insights/presentation/pages/insights_observa
 import 'package:submersion/features/insights/presentation/pages/insights_focus_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_profile_page.dart';
 import 'package:submersion/features/backup/presentation/pages/backup_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/manage_currency_rules_page.dart';
 import 'package:submersion/features/settings/presentation/pages/hidden_items_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
 import 'package:submersion/features/media_store/presentation/pages/media_storage_page.dart';
@@ -1532,6 +1533,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/dive-types',
             name: 'diveTypes',
             builder: (context, state) => const DiveTypesPage(),
+          ),
+          // Certification currency rules (issue #2267)
+          GoRoute(
+            path: '/currency-rules',
+            name: 'currencyRules',
+            builder: (context, state) => const ManageCurrencyRulesPage(),
           ),
           // Site Types Management (issue #1765)
           GoRoute(

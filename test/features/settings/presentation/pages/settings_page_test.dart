@@ -1751,6 +1751,10 @@ void main() {
             builder: (context, state) => const Text('Site Types Stub'),
           ),
           GoRoute(
+            path: '/currency-rules',
+            builder: (context, state) => const Text('Currency Rules Stub'),
+          ),
+          GoRoute(
             path: '/settings/trimix-mixer',
             builder: (context, state) => const Text('Trimix Mixer Stub'),
           ),
@@ -1830,6 +1834,24 @@ void main() {
       expect(find.text('Locations Stub'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets(
+      'renders the certification currency tile and navigates on tap',
+      (tester) async {
+        await tester.pumpWidget(buildManageWidget(getOverrides()));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Certification currency'), findsOneWidget);
+        expect(find.text('Refresher and renewal rules'), findsOneWidget);
+
+        await tester.ensureVisible(find.text('Certification currency'));
+        await tester.tap(find.text('Certification currency'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Currency Rules Stub'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
 
     testWidgets('renders the site types tile and navigates on tap', (
       tester,
