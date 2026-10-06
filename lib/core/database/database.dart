@@ -1096,6 +1096,10 @@ class AppDatabase extends _$AppDatabase {
     // column default, so nothing it applies is lost or misread and the floor
     // stays. Inbound, the generated fromJson ignores the legacy key.
     261,
+    // v262: diver_settings certification/course list view modes and the
+    // formerly device-local profile "metrics follow viewport" and pSCR
+    // ratio (issue #2948). Additive columns, so the floor stays.
+    262,
     263,
     // v264: diver_settings.default_show_late_gas_switches (issue #2939).
     // Additive column with a default, so the floor stays.
@@ -1105,10 +1109,15 @@ class AppDatabase extends _$AppDatabase {
     // the floor stays. Renumbered several times while this was open (262 is
     // held by #2991; 261, 263 and 264 landed first).
     265,
+    // v266: media.site_category and media.display_size, a site attachment's
+    // category and size override (issue #1039). Additive nullable columns,
+    // so the floor stays. Renumbered from 263, which main shipped first
+    // (#2030); 262 is claimed by an open branch.
+    266,
     // v267: dive_diver_roles and dive_buddy_roles, several roles per person
     // on a dive (issue #1221). New synced child tables, no backfill: an
     // older peer ignores them and its scalar role writes still resolve, so
-    // the floor stays. 262 and 266 are held by open branches (#2991, #3001).
+    // the floor stays. Renumbered from 262 and then 264 as main shipped those.
     267,
   ];
 

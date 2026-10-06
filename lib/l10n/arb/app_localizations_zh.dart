@@ -16103,6 +16103,91 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_siteMediaSection_addPhotos => '添加照片或视频';
 
   @override
+  String get media_siteAttachment_categoryAccess => '通道与入水点';
+
+  @override
+  String get media_siteAttachment_categoryAnchorage => '锚地与系泊';
+
+  @override
+  String get media_siteAttachment_categoryGeneral => '常规';
+
+  @override
+  String get media_siteAttachment_categoryLabel => '类别';
+
+  @override
+  String get media_siteAttachment_categoryNone => '未分类';
+
+  @override
+  String get media_siteAttachment_categoryParking => '停车场';
+
+  @override
+  String get media_siteAttachment_categorySiteMap => '潜水点地图';
+
+  @override
+  String get media_siteAttachment_categoryUnderwater => '水下';
+
+  @override
+  String get media_siteAttachment_detailsTitle => '附件详情';
+
+  @override
+  String get media_siteAttachment_editDetails => '编辑详情';
+
+  @override
+  String media_siteAttachment_groupHeading(String category, int count) {
+    return '$category（$count）';
+  }
+
+  @override
+  String get media_siteAttachment_moreOptions => '更多选项';
+
+  @override
+  String media_siteAttachment_pageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 页',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_saveError(Object error) {
+    return '无法保存：$error';
+  }
+
+  @override
+  String get media_siteAttachment_setCategory => '设置类别';
+
+  @override
+  String media_siteAttachment_setCategoryError(Object error) {
+    return '设置类别失败：$error';
+  }
+
+  @override
+  String media_siteAttachment_setCategorySuccess(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已更新 $count 个项目',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_sizeDefault(String size) {
+    return '默认（$size）';
+  }
+
+  @override
+  String get media_siteAttachment_sizeLabel => '显示尺寸';
+
+  @override
+  String get media_siteAttachment_sizeLarge => '大图';
+
+  @override
+  String get media_siteAttachment_sizeTile => '缩略图';
+
+  @override
   String get media_siteMediaSection_addDocument => '添加文档';
 
   @override

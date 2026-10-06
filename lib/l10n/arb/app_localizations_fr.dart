@@ -16954,6 +16954,93 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_siteMediaSection_addPhotos => 'Ajouter des photos ou vidéos';
 
   @override
+  String get media_siteAttachment_categoryAccess => 'Accès et mise à l\'eau';
+
+  @override
+  String get media_siteAttachment_categoryAnchorage => 'Mouillage et amarrage';
+
+  @override
+  String get media_siteAttachment_categoryGeneral => 'Général';
+
+  @override
+  String get media_siteAttachment_categoryLabel => 'Catégorie';
+
+  @override
+  String get media_siteAttachment_categoryNone => 'Sans catégorie';
+
+  @override
+  String get media_siteAttachment_categoryParking => 'Parking';
+
+  @override
+  String get media_siteAttachment_categorySiteMap => 'Carte du site';
+
+  @override
+  String get media_siteAttachment_categoryUnderwater => 'Sous l\'eau';
+
+  @override
+  String get media_siteAttachment_detailsTitle => 'Détails de la pièce jointe';
+
+  @override
+  String get media_siteAttachment_editDetails => 'Modifier les détails';
+
+  @override
+  String media_siteAttachment_groupHeading(String category, int count) {
+    return '$category ($count)';
+  }
+
+  @override
+  String get media_siteAttachment_moreOptions => 'Plus d\'options';
+
+  @override
+  String media_siteAttachment_pageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pages',
+      one: '$count page',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_saveError(Object error) {
+    return 'Échec de l\'enregistrement : $error';
+  }
+
+  @override
+  String get media_siteAttachment_setCategory => 'Définir la catégorie';
+
+  @override
+  String media_siteAttachment_setCategoryError(Object error) {
+    return 'Échec de la définition de la catégorie : $error';
+  }
+
+  @override
+  String media_siteAttachment_setCategorySuccess(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments mis à jour',
+      one: '$count élément mis à jour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_sizeDefault(String size) {
+    return 'Par défaut ($size)';
+  }
+
+  @override
+  String get media_siteAttachment_sizeLabel => 'Taille d\'affichage';
+
+  @override
+  String get media_siteAttachment_sizeLarge => 'Grand';
+
+  @override
+  String get media_siteAttachment_sizeTile => 'Vignette';
+
+  @override
   String get media_siteMediaSection_addDocument => 'Ajouter un document';
 
   @override

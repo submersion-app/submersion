@@ -16517,6 +16517,93 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_siteMediaSection_addPhotos => 'הוספת תמונות או סרטונים';
 
   @override
+  String get media_siteAttachment_categoryAccess => 'גישה וכניסה';
+
+  @override
+  String get media_siteAttachment_categoryAnchorage => 'עגינה וקשירה';
+
+  @override
+  String get media_siteAttachment_categoryGeneral => 'כללי';
+
+  @override
+  String get media_siteAttachment_categoryLabel => 'קטגוריה';
+
+  @override
+  String get media_siteAttachment_categoryNone => 'ללא קטגוריה';
+
+  @override
+  String get media_siteAttachment_categoryParking => 'חניה';
+
+  @override
+  String get media_siteAttachment_categorySiteMap => 'מפת האתר';
+
+  @override
+  String get media_siteAttachment_categoryUnderwater => 'מתחת למים';
+
+  @override
+  String get media_siteAttachment_detailsTitle => 'פרטי הקובץ המצורף';
+
+  @override
+  String get media_siteAttachment_editDetails => 'עריכת פרטים';
+
+  @override
+  String media_siteAttachment_groupHeading(String category, int count) {
+    return '$category ($count)';
+  }
+
+  @override
+  String get media_siteAttachment_moreOptions => 'אפשרויות נוספות';
+
+  @override
+  String media_siteAttachment_pageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count עמודים',
+      one: '$count עמוד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_saveError(Object error) {
+    return 'השמירה נכשלה: $error';
+  }
+
+  @override
+  String get media_siteAttachment_setCategory => 'הגדרת קטגוריה';
+
+  @override
+  String media_siteAttachment_setCategoryError(Object error) {
+    return 'הגדרת הקטגוריה נכשלה: $error';
+  }
+
+  @override
+  String media_siteAttachment_setCategorySuccess(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'עודכנו $count פריטים',
+      one: 'עודכן $count פריט',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_sizeDefault(String size) {
+    return 'ברירת מחדל ($size)';
+  }
+
+  @override
+  String get media_siteAttachment_sizeLabel => 'גודל תצוגה';
+
+  @override
+  String get media_siteAttachment_sizeLarge => 'גדול';
+
+  @override
+  String get media_siteAttachment_sizeTile => 'אריח';
+
+  @override
   String get media_siteMediaSection_addDocument => 'הוספת מסמך';
 
   @override

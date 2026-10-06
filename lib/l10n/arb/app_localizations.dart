@@ -27250,6 +27250,132 @@ abstract class AppLocalizations {
   /// **'Add photos or videos'**
   String get media_siteMediaSection_addPhotos;
 
+  /// No description provided for @media_siteAttachment_categoryAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Access and entry'**
+  String get media_siteAttachment_categoryAccess;
+
+  /// No description provided for @media_siteAttachment_categoryAnchorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Anchorage and mooring'**
+  String get media_siteAttachment_categoryAnchorage;
+
+  /// No description provided for @media_siteAttachment_categoryGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get media_siteAttachment_categoryGeneral;
+
+  /// No description provided for @media_siteAttachment_categoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get media_siteAttachment_categoryLabel;
+
+  /// No description provided for @media_siteAttachment_categoryNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncategorized'**
+  String get media_siteAttachment_categoryNone;
+
+  /// No description provided for @media_siteAttachment_categoryParking.
+  ///
+  /// In en, this message translates to:
+  /// **'Parking'**
+  String get media_siteAttachment_categoryParking;
+
+  /// No description provided for @media_siteAttachment_categorySiteMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Site map'**
+  String get media_siteAttachment_categorySiteMap;
+
+  /// No description provided for @media_siteAttachment_categoryUnderwater.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater'**
+  String get media_siteAttachment_categoryUnderwater;
+
+  /// No description provided for @media_siteAttachment_detailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment details'**
+  String get media_siteAttachment_detailsTitle;
+
+  /// No description provided for @media_siteAttachment_editDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit details'**
+  String get media_siteAttachment_editDetails;
+
+  /// Site media group heading
+  ///
+  /// In en, this message translates to:
+  /// **'{category} ({count})'**
+  String media_siteAttachment_groupHeading(String category, int count);
+
+  /// No description provided for @media_siteAttachment_moreOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get media_siteAttachment_moreOptions;
+
+  /// Page count badge on a large PDF card
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} page} other{{count} pages}}'**
+  String media_siteAttachment_pageCount(int count);
+
+  /// Edit details save failure
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save: {error}'**
+  String media_siteAttachment_saveError(Object error);
+
+  /// No description provided for @media_siteAttachment_setCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Set category'**
+  String get media_siteAttachment_setCategory;
+
+  /// Bulk set category failure
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to set category: {error}'**
+  String media_siteAttachment_setCategoryError(Object error);
+
+  /// Bulk set category success
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Updated {count} item} other{Updated {count} items}}'**
+  String media_siteAttachment_setCategorySuccess(int count);
+
+  /// Size segment that follows the category default
+  ///
+  /// In en, this message translates to:
+  /// **'Default ({size})'**
+  String media_siteAttachment_sizeDefault(String size);
+
+  /// No description provided for @media_siteAttachment_sizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Display size'**
+  String get media_siteAttachment_sizeLabel;
+
+  /// No description provided for @media_siteAttachment_sizeLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get media_siteAttachment_sizeLarge;
+
+  /// No description provided for @media_siteAttachment_sizeTile.
+  ///
+  /// In en, this message translates to:
+  /// **'Tile'**
+  String get media_siteAttachment_sizeTile;
+
   /// No description provided for @media_siteMediaSection_addDocument.
   ///
   /// In en, this message translates to:

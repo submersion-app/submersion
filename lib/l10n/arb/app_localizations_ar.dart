@@ -17082,6 +17082,101 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_siteMediaSection_addPhotos => 'إضافة صور أو مقاطع فيديو';
 
   @override
+  String get media_siteAttachment_categoryAccess => 'الوصول والدخول';
+
+  @override
+  String get media_siteAttachment_categoryAnchorage => 'المرسى والربط';
+
+  @override
+  String get media_siteAttachment_categoryGeneral => 'عام';
+
+  @override
+  String get media_siteAttachment_categoryLabel => 'الفئة';
+
+  @override
+  String get media_siteAttachment_categoryNone => 'بدون فئة';
+
+  @override
+  String get media_siteAttachment_categoryParking => 'موقف السيارات';
+
+  @override
+  String get media_siteAttachment_categorySiteMap => 'خريطة الموقع';
+
+  @override
+  String get media_siteAttachment_categoryUnderwater => 'تحت الماء';
+
+  @override
+  String get media_siteAttachment_detailsTitle => 'تفاصيل المرفق';
+
+  @override
+  String get media_siteAttachment_editDetails => 'تعديل التفاصيل';
+
+  @override
+  String media_siteAttachment_groupHeading(String category, int count) {
+    return '$category ($count)';
+  }
+
+  @override
+  String get media_siteAttachment_moreOptions => 'خيارات إضافية';
+
+  @override
+  String media_siteAttachment_pageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صفحة',
+      many: '$count صفحة',
+      few: '$count صفحات',
+      two: '$count صفحتان',
+      one: '$count صفحة',
+      zero: '$count صفحة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_saveError(Object error) {
+    return 'تعذر الحفظ: $error';
+  }
+
+  @override
+  String get media_siteAttachment_setCategory => 'تعيين الفئة';
+
+  @override
+  String media_siteAttachment_setCategoryError(Object error) {
+    return 'فشل في تعيين الفئة: $error';
+  }
+
+  @override
+  String media_siteAttachment_setCategorySuccess(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديث $count عنصر',
+      many: 'تم تحديث $count عنصرًا',
+      few: 'تم تحديث $count عناصر',
+      two: 'تم تحديث $count عنصرين',
+      one: 'تم تحديث $count عنصر',
+      zero: 'تم تحديث $count عنصر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_sizeDefault(String size) {
+    return 'افتراضي ($size)';
+  }
+
+  @override
+  String get media_siteAttachment_sizeLabel => 'حجم العرض';
+
+  @override
+  String get media_siteAttachment_sizeLarge => 'كبير';
+
+  @override
+  String get media_siteAttachment_sizeTile => 'مصغّر';
+
+  @override
   String get media_siteMediaSection_addDocument => 'إضافة مستند';
 
   @override

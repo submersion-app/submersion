@@ -40,6 +40,12 @@ void main() {
         throwsA(anything),
       );
 
+      // adoptDeviceLocalValues - rethrows
+      await expectLater(
+        repository.adoptDeviceLocalValues('d1', pscrRatio: 40.0),
+        throwsA(anything),
+      );
+
       // deleteSettingsForDiver - rethrows
       await expectLater(
         repository.deleteSettingsForDiver('d1'),

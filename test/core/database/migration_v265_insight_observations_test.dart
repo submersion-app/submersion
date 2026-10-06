@@ -30,8 +30,8 @@ void main() {
   }
 
   test('version bookkeeping', () {
-    // Relaxed once v267 (the role junctions, #1221) landed on top; the
-    // newest rung owns the exact assertions.
+    // Relaxed once v266 (media site attachment columns, #1039) landed on
+    // top; the newest rung owns the exact assertions.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(265));
     expect(AppDatabase.migrationVersions, contains(265));
     expect(

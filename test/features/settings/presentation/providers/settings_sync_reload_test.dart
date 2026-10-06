@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/o2_cell_unit.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart' hide Diver;
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -124,13 +125,30 @@ void main() {
   });
 
   test('a synced change keeps device-local preferences', () async {
-    await container.read(settingsProvider.notifier).setPscrRatio(40);
+    await container
+        .read(settingsProvider.notifier)
+        .setO2CellUnit(O2CellUnit.millivolts);
 
     await applyPeerRow(diverA, (row) => row.copyWith(gfHigh: 70));
     await pumpEventQueue();
 
     expect(container.read(settingsProvider).gfHigh, 70);
-    expect(container.read(settingsProvider).pscrRatio, 40);
+    expect(container.read(settingsProvider).o2CellUnit, O2CellUnit.millivolts);
+  });
+
+  test('a synced pSCR ratio and viewport choice show on this device '
+      '(issue #2948)', () async {
+    await applyPeerRow(
+      diverA,
+      (row) => row.copyWith(
+        pscrRatio: const Value(40.0),
+        profileMetricsFollowViewport: const Value(true),
+      ),
+    );
+    await pumpEventQueue();
+
+    expect(container.read(settingsProvider).pscrRatio, 40.0);
+    expect(container.read(settingsProvider).profileMetricsFollowViewport, true);
   });
 
   test('a synced change to another diver leaves the settings alone', () async {
