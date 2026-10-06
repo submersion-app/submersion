@@ -45,6 +45,8 @@ Widget _harness(
   Set<String> credentialRoleIds = const {},
   List<String> selectedRoleIds = const [],
   Future<DiveRole?> Function(String name)? onCreateCustomRole,
+  Set<String> hiddenRoleIds = const {},
+  List<String> keepRoleIds = const [],
 }) {
   return MaterialApp(
     localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -62,6 +64,8 @@ Widget _harness(
                 credentialRoleIds: credentialRoleIds,
                 selectedRoleIds: selectedRoleIds,
                 onCreateCustomRole: onCreateCustomRole,
+                hiddenRoleIds: hiddenRoleIds,
+                keepRoleIds: keepRoleIds,
               );
               result.opened = true;
             },
@@ -232,5 +236,61 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('leaves out hidden built-in roles', (tester) async {
+    await tester.pumpWidget(
+      _harness(_Result(), hiddenRoleIds: {DiveRole.rearGuardId}),
+    );
+    await _open(tester);
+    expect(find.text('Rear Guard'), findsNothing);
+    expect(find.text('Instructor'), findsOneWidget);
+    expect(find.text('Hekkensluiter'), findsOneWidget);
+  });
+
+  testWidgets('keeps a hidden role that is currently selected', (tester) async {
+    await tester.pumpWidget(
+      _harness(
+        _Result(),
+        hiddenRoleIds: {DiveRole.buddyId, DiveRole.rearGuardId},
+        selectedRoleIds: const [DiveRole.buddyId],
+      ),
+    );
+    await _open(tester);
+    expect(find.text('Buddy'), findsOneWidget);
+    expect(find.text('Rear Guard'), findsNothing);
+  });
+
+  testWidgets('keeps a hidden role the record had, even once changed', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _harness(
+        _Result(),
+        hiddenRoleIds: {DiveRole.rearGuardId},
+        selectedRoleIds: const [DiveRole.buddyId],
+        keepRoleIds: [DiveRole.rearGuardId],
+      ),
+    );
+    await _open(tester);
+    expect(find.text('Rear Guard'), findsOneWidget);
+  });
+
+  testWidgets('keeps every ticked role that is hidden (#1221)', (tester) async {
+    await tester.pumpWidget(
+      _harness(
+        _Result(),
+        hiddenRoleIds: {
+          DiveRole.diveGuideId,
+          DiveRole.diveMasterId,
+          DiveRole.rearGuardId,
+        },
+        selectedRoleIds: const [DiveRole.diveGuideId, DiveRole.diveMasterId],
+      ),
+    );
+    await _open(tester);
+    expect(_ticked(tester, 'Dive Guide'), isTrue);
+    expect(_ticked(tester, 'Divemaster'), isTrue);
+    expect(find.text('Rear Guard'), findsNothing);
   });
 }

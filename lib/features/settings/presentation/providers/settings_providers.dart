@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
@@ -218,6 +219,12 @@ class AppSettings {
   /// Built-in tank preset slugs hidden from the pickers (issue #2305). The
   /// Tank Presets page still lists them, import matching still uses them.
   final Set<String> hiddenTankPresetIds;
+
+  /// Built-in catalog entries hidden from the pickers (issue #401), as
+  /// catalog key to ids. Keyed by string rather than [BuiltInCatalog] so a
+  /// key a newer version synced in survives a save. Read one catalog through
+  /// [hiddenBuiltIns].
+  final Map<String, Set<String>> hiddenBuiltInIds;
 
   // Decompression & Safety settings
   /// Gradient Factor Low (0-100, typically 30)
@@ -611,6 +618,7 @@ class AppSettings {
     this.defaultTankPreset = 'al80',
     this.applyDefaultTankToImports = false,
     this.hiddenTankPresetIds = const {},
+    this.hiddenBuiltInIds = const {},
     // Decompression defaults
     this.gfLow = 50,
     this.gfHigh = 85,
@@ -801,6 +809,7 @@ class AppSettings {
     bool clearDefaultTankPreset = false,
     bool? applyDefaultTankToImports,
     Set<String>? hiddenTankPresetIds,
+    Map<String, Set<String>>? hiddenBuiltInIds,
     int? gfLow,
     int? gfHigh,
     double? ppO2MaxWorking,
@@ -961,6 +970,7 @@ class AppSettings {
       applyDefaultTankToImports:
           applyDefaultTankToImports ?? this.applyDefaultTankToImports,
       hiddenTankPresetIds: hiddenTankPresetIds ?? this.hiddenTankPresetIds,
+      hiddenBuiltInIds: hiddenBuiltInIds ?? this.hiddenBuiltInIds,
       gfLow: gfLow ?? this.gfLow,
       gfHigh: gfHigh ?? this.gfHigh,
       ppO2MaxWorking: ppO2MaxWorking ?? this.ppO2MaxWorking,
@@ -1121,6 +1131,10 @@ class AppSettings {
           this.seascapeVerticalExaggerationOverrides,
     );
   }
+
+  /// The ids hidden from the pickers in [catalog] (issue #401).
+  Set<String> hiddenBuiltIns(BuiltInCatalog catalog) =>
+      hiddenBuiltInIds[catalog.key] ?? const {};
 }
 
 /// App package info (version, build number, etc.) from the platform.
@@ -1886,6 +1900,19 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       ids.remove(presetName);
     }
     state = state.copyWith(hiddenTankPresetIds: ids);
+    await _saveSettings();
+  }
+
+  /// Hides or shows a built-in entry of [catalog] in the pickers (issue
+  /// #401). The Manage pages still list it, and records that use it keep it.
+  Future<void> setBuiltInHidden(
+    BuiltInCatalog catalog,
+    String id,
+    bool hidden,
+  ) async {
+    final next = withBuiltInHidden(state.hiddenBuiltInIds, catalog, id, hidden);
+    if (identical(next, state.hiddenBuiltInIds)) return;
+    state = state.copyWith(hiddenBuiltInIds: next);
     await _saveSettings();
   }
 

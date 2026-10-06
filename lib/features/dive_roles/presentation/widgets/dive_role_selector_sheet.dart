@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/built_ins/visible_built_ins.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
@@ -21,13 +22,28 @@ Future<List<DiveRole>?> showDiveRoleSelector(
   bool allowEmpty = false,
   List<String> selectedRoleIds = const [],
   Future<DiveRole?> Function(String name)? onCreateCustomRole,
+
+  /// Built-in roles the diver hid from the pickers (issue #401). A ticked
+  /// role stays even when hidden.
+  Set<String> hiddenRoleIds = const {},
+
+  /// Roles to offer even when hidden: the ones the record had when its
+  /// editor opened, so a change can be undone in place.
+  Iterable<String?> keepRoleIds = const [],
 }) {
+  final shownRoles = visibleBuiltIns(
+    roles,
+    hiddenRoleIds,
+    isBuiltIn: (r) => r.isBuiltIn,
+    idOf: (r) => r.id,
+    keep: [...selectedRoleIds, ...keepRoleIds],
+  );
   return showModalBottomSheet<List<DiveRole>>(
     context: context,
     isScrollControlled: true,
     builder: (ctx) => _DiveRoleSelectorSheet(
       title: title,
-      roles: roles,
+      roles: shownRoles,
       credentialRoleIds: credentialRoleIds,
       allowEmpty: allowEmpty,
       selectedRoleIds: selectedRoleIds,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/core/built_ins/visible_built_ins.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -12,6 +14,7 @@ import 'package:submersion/features/equipment/presentation/widgets/service_statu
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/domain/services/session_item_composer.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -207,7 +210,17 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final templatesAsync = ref.watch(preDiveTemplatesProvider);
-    final templates = templatesAsync.value ?? const [];
+    // Hidden built-ins are not offered (issue #401), except the one already
+    // chosen: the dropdown asserts its value is among its items.
+    final allTemplates =
+        templatesAsync.value ?? const <PreDiveChecklistTemplate>[];
+    final templates = visibleBuiltIns(
+      allTemplates,
+      ref.watch(hiddenBuiltInIdsProvider(BuiltInCatalog.preDiveTemplates)),
+      isBuiltIn: (t) => t.isBuiltIn,
+      idOf: (t) => t.id,
+      keep: [_template?.id],
+    );
     final setsAsync = ref.watch(equipmentSetsProvider);
     final sets = setsAsync.value ?? const [];
     final equipmentAsync = ref.watch(allEquipmentProvider);
@@ -252,6 +265,16 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
               initialValue: _template,
               decoration: InputDecoration(
                 labelText: l10n.preDive_start_template,
+                // Says where to bring one back when the diver hid them all,
+                // naming Settings as the navigation labels it.
+                helperText: templates.isEmpty && allTemplates.isNotEmpty
+                    ? l10n.preDive_start_allTemplatesHidden(
+                        '${l10n.nav_settings} > '
+                        '${l10n.settings_section_manage_title} > '
+                        '${l10n.settings_manage_preDiveChecklists}',
+                      )
+                    : null,
+                helperMaxLines: 3,
               ),
               items: [
                 for (final template in templates)

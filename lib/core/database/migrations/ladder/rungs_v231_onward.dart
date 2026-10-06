@@ -244,10 +244,17 @@ extension RungsFromV231 on AppDatabase {
       await _assertCustomCertificationSchema();
     }
     if (from < 267) await reportProgress();
+    // v269: diver_settings.hidden_built_in_ids (issue #401). Column-only
+    // rung, no backfill: null reads back as "nothing hidden". 268 is held
+    // by an open branch (#3043).
+    if (from < 269) {
+      await _assertHiddenBuiltInIdsColumn();
+    }
+    if (from < 269) await reportProgress();
     // v270: the role junctions (issue #1221), several roles per person on a
     // dive. Table-only rung, no backfill; re-asserted in beforeOpen.
-    // Renumbered from 262, 264 and 267 as main shipped those; 268 and 269
-    // are held by open branches (#2999, #3043, #3007).
+    // Renumbered from 262, 264 and 267 as main shipped those; 268 is held
+    // by open branches (#2999, #3043) and 269 shipped first (#3007).
     if (from < 270) {
       await _assertDiveRoleLinkSchema();
     }

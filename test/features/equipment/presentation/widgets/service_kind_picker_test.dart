@@ -7,9 +7,12 @@ import 'package:submersion/features/equipment/domain/entities/service_kind.dart'
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_schedule_dialogs.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+
+import '../../../../helpers/mock_providers.dart';
 
 class _FakeScheduleRepo extends ServiceScheduleRepository {
   final created = <ServiceSchedule>[];
@@ -52,10 +55,17 @@ void main() {
     updatedAt: t0,
   );
 
-  Future<void> pumpPicker(WidgetTester tester, _FakeScheduleRepo repo) async {
+  Future<void> pumpPicker(
+    WidgetTester tester,
+    _FakeScheduleRepo repo, {
+    MockSettingsNotifier? settings,
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          settingsProvider.overrideWith(
+            (ref) => settings ?? MockSettingsNotifier(),
+          ),
           serviceKindsProvider.overrideWith(
             (ref) async => [noDefault, withDefault],
           ),
@@ -113,5 +123,23 @@ void main() {
     expect(repo.created, hasLength(1));
     // No override dialog: no TextField on screen.
     expect(find.byType(TextField), findsNothing);
+  });
+
+  testWidgets('hidden built-in kinds are not offered (issue #401)', (
+    tester,
+  ) async {
+    await pumpPicker(
+      tester,
+      _FakeScheduleRepo(),
+      settings: MockSettingsNotifier(
+        const AppSettings(
+          hiddenBuiltInIds: {
+            'serviceKinds': {'general-service'},
+          },
+        ),
+      ),
+    );
+    expect(find.text('General service'), findsNothing);
+    expect(find.text('Regulator service'), findsOneWidget);
   });
 }

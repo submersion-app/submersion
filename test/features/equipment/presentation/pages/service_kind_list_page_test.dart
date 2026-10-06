@@ -306,7 +306,14 @@ void main() {
       await tester.ensureVisible(find.text('Other'));
       await tester.tap(find.text('Other'));
       await tester.ensureVisible(find.text('Attach automatically to new gear'));
-      await tester.tap(find.byType(Switch));
+      // The dialog's own switch: the page behind it has a show switch on
+      // every built-in row (issue #401).
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(Switch),
+        ),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();

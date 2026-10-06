@@ -119,6 +119,8 @@
   "gasCalculators_blender_scanTag": "Scanner le tag",
   "gasCalculators_blender_notYourCylinder": "Ce bloc ne fait pas partie de votre matériel",
   "gasCalculators_blender_cylinderFailed": "Impossible d'ouvrir ce bloc. Réessayez.",
+  "gasCalculators_blender_cylinderNoVolume": "Aucun volume d'eau enregistré pour {name}",
+  "gasCalculators_blender_noCylinders": "Aucun bloc dans votre matériel pour l'instant. Saisissez plutôt le volume d'eau.",
   "gasCalculators_blender_filledFrom": "{name} : {mix}",
   "gasCalculators_blender_error_targetPressure": "La pression cible doit être supérieure à la pression de départ.",
   "gasCalculators_blender_error_invalidMix": "L'O₂ + He d'un mélange ne peut pas dépasser 100 %.",
@@ -161,9 +163,7 @@
   "gasCalculators_blender_templateAdjust": "Ajuster les valeurs",
   "gasCalculators_blender_billing": "Coût",
   "gasCalculators_blender_cylinderVolume": "Volume d'eau du bloc",
-  "gasCalculators_blender_cylinderPresets": "Préréglages",
   "gasCalculators_blender_unitPrice": "Prix pour 100 {unit}",
-  "gasCalculators_blender_manageCylinderSizes": "Gérer les tailles de blocs",
   "gasCalculators_blender_costTotal": "Total",
   "gasCalculators_blender_costBasis": "Facturé sur la pression délivrée (volume d'eau du bloc × bars ajoutés), comme le mesure une station de gonflage.",
   "gasCalculators_blender_costMissingPrice": "Saisissez un prix pour chaque gaz afin de voir le total.",
@@ -14584,5 +14584,9 @@
   "settings_manage_savedQueries": "Requêtes enregistrées",
   "settings_manage_savedQueries_subtitle": "Renommer, réorganiser et supprimer les requêtes enregistrées",
   "query_editor_needsText": "Saisissez au moins un mot",
-  "query_saveNeedsDiver": "Créez un profil de plongeur pour enregistrer des requêtes"
+  "query_saveNeedsDiver": "Créez un profil de plongeur pour enregistrer des requêtes",
+  "builtIns_showColumnLabel": "Afficher",
+  "builtIns_showInPickers": "Afficher dans les sélecteurs",
+  "preDive_start_allTemplatesHidden": "Toutes les checklists sont masquées. Réaffichez-en une dans {path}.",
+  "settings_conflict_field_hiddenBuiltInIds": "Entrées intégrées masquées"
 }

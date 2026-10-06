@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/core/built_ins/visible_built_ins.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Multi-select dive-type field: shows the selected types as a row of chips and
@@ -24,6 +27,7 @@ class DiveTypeMultiSelectField extends ConsumerWidget {
     required this.onChanged,
     this.labelText,
     this.allowEmpty = false,
+    this.keepTypeIds = const [],
   });
 
   /// The currently selected dive-type slugs (>= 1 by invariant).
@@ -39,9 +43,17 @@ class DiveTypeMultiSelectField extends ConsumerWidget {
   /// "which types to add/remove/replace" selection in bulk mode.
   final bool allowEmpty;
 
+  /// Types to offer even when hidden from the pickers (issue #401): the ones
+  /// the dive had when the editor opened, so unticking one and reopening the
+  /// checklist can undo it.
+  final List<String> keepTypeIds;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final typesAsync = ref.watch(diveTypesProvider);
+    final hidden = ref.watch(
+      hiddenBuiltInIdsProvider(BuiltInCatalog.diveTypes),
+    );
     final label = labelText ?? context.l10n.diveLog_edit_label_diveTypes;
 
     // diveTypesProvider self-invalidates on every dive_types write (e.g. an
@@ -71,7 +83,20 @@ class DiveTypeMultiSelectField extends ConsumerWidget {
         Dive.diveTypeDisplayName(id);
 
     return InkWell(
-      onTap: () => _openPicker(context, types, label),
+      // Hidden built-ins leave the checklist (issue #401), except the ones
+      // this dive already has. The list is fixed while the sheet is open, so
+      // unticking a hidden type there does not make it vanish.
+      onTap: () => _openPicker(
+        context,
+        visibleBuiltIns(
+          types,
+          hidden,
+          isBuiltIn: (t) => t.isBuiltIn,
+          idOf: (t) => t.id,
+          keep: [...selectedTypeIds, ...keepTypeIds],
+        ),
+        label,
+      ),
       child: InputDecorator(
         decoration: InputDecoration(
           labelText: label,

@@ -119,6 +119,8 @@
   "gasCalculators_blender_scanTag": "مسح الوسم",
   "gasCalculators_blender_notYourCylinder": "هذه الأسطوانة ليست ضمن معداتك",
   "gasCalculators_blender_cylinderFailed": "تعذر فتح هذه الأسطوانة. حاول مرة أخرى.",
+  "gasCalculators_blender_cylinderNoVolume": "لا يوجد حجم ماء مسجَّل لـ {name}",
+  "gasCalculators_blender_noCylinders": "لا توجد أسطوانات في معداتك بعد. أدخل السعة المائية بدلًا من ذلك.",
   "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_error_targetPressure": "يجب أن يكون الضغط المستهدف أعلى من الضغط الابتدائي.",
   "gasCalculators_blender_error_invalidMix": "لا يمكن أن يتجاوز O₂ + He لأي خليط 100%.",
@@ -161,9 +163,7 @@
   "gasCalculators_blender_templateAdjust": "ضبط القيم",
   "gasCalculators_blender_billing": "التكلفة",
   "gasCalculators_blender_cylinderVolume": "السعة المائية للأسطوانة",
-  "gasCalculators_blender_cylinderPresets": "الإعدادات المسبقة",
   "gasCalculators_blender_unitPrice": "السعر لكل 100 {unit}",
-  "gasCalculators_blender_manageCylinderSizes": "إدارة أحجام الأسطوانات",
   "gasCalculators_blender_costTotal": "الإجمالي",
   "gasCalculators_blender_costBasis": "تُحتسب التكلفة على الضغط المُعبأ (السعة المائية للأسطوانة × البار المضافة)، بالطريقة نفسها التي تقيس بها محطة التعبئة.",
   "gasCalculators_blender_costMissingPrice": "أدخل سعرًا لكل غاز لعرض الإجمالي.",
@@ -14584,5 +14584,9 @@
   "settings_manage_savedQueries": "الاستعلامات المحفوظة",
   "settings_manage_savedQueries_subtitle": "إعادة تسمية الاستعلامات المحفوظة وإعادة ترتيبها وحذفها",
   "query_editor_needsText": "أدخل كلمة واحدة على الأقل",
-  "query_saveNeedsDiver": "أنشئ ملف غواص لحفظ الاستعلامات"
+  "query_saveNeedsDiver": "أنشئ ملف غواص لحفظ الاستعلامات",
+  "builtIns_showColumnLabel": "إظهار",
+  "builtIns_showInPickers": "إظهار في قوائم الاختيار",
+  "preDive_start_allTemplatesHidden": "جميع قوائم التحقق مخفية. أظهر واحدة مجددًا من {path}.",
+  "settings_conflict_field_hiddenBuiltInIds": "العناصر المضمنة المخفية"
 }

@@ -119,6 +119,8 @@
   "gasCalculators_blender_scanTag": "Scansiona il tag",
   "gasCalculators_blender_notYourCylinder": "Quella bombola non è nella tua attrezzatura",
   "gasCalculators_blender_cylinderFailed": "Impossibile aprire quella bombola. Riprova.",
+  "gasCalculators_blender_cylinderNoVolume": "Nessun volume d'acqua registrato per {name}",
+  "gasCalculators_blender_noCylinders": "Ancora nessuna bombola nella tua attrezzatura. Inserisci invece il volume d'acqua.",
   "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_error_targetPressure": "La pressione target deve essere maggiore di quella iniziale.",
   "gasCalculators_blender_error_invalidMix": "O₂ + He di una miscela non può superare il 100%.",
@@ -161,9 +163,7 @@
   "gasCalculators_blender_templateAdjust": "Modifica valori",
   "gasCalculators_blender_billing": "Costo",
   "gasCalculators_blender_cylinderVolume": "Volume d'acqua della bombola",
-  "gasCalculators_blender_cylinderPresets": "Preimpostazioni",
   "gasCalculators_blender_unitPrice": "Prezzo per 100 {unit}",
-  "gasCalculators_blender_manageCylinderSizes": "Gestisci le dimensioni delle bombole",
   "gasCalculators_blender_costTotal": "Totale",
   "gasCalculators_blender_costBasis": "Fatturato sulla pressione erogata (volume d'acqua della bombola × bar aggiunti), come la misura una stazione di ricarica.",
   "gasCalculators_blender_costMissingPrice": "Inserisci un prezzo per ogni gas per vedere il totale.",
@@ -14584,5 +14584,9 @@
   "settings_manage_savedQueries": "Query salvate",
   "settings_manage_savedQueries_subtitle": "Rinomina, riordina ed elimina le query salvate",
   "query_editor_needsText": "Inserisci almeno una parola",
-  "query_saveNeedsDiver": "Crea un profilo subacqueo per salvare le query"
+  "query_saveNeedsDiver": "Crea un profilo subacqueo per salvare le query",
+  "builtIns_showColumnLabel": "Mostra",
+  "builtIns_showInPickers": "Mostra nei selettori",
+  "preDive_start_allTemplatesHidden": "Tutte le checklist sono nascoste. Mostrane di nuovo una in {path}.",
+  "settings_conflict_field_hiddenBuiltInIds": "Voci integrate nascoste"
 }

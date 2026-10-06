@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/equipment/domain/services/service_due_engine
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/exposure_interval_input.dart';
 import 'package:submersion/features/equipment/presentation/utils/exposure_unit_display.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
@@ -46,8 +48,17 @@ Future<void> showServiceKindPicker(
     serviceSchedulesForEquipmentProvider(equipmentId).future,
   );
   final attached = existing.map((s) => s.serviceKindId).toSet();
+  // Built-in kinds the diver hid are not offered (issue #401).
+  final hidden = ref.read(
+    hiddenBuiltInIdsProvider(BuiltInCatalog.serviceKinds),
+  );
   final candidates = kinds
-      .where((k) => k.appliesTo(equipmentType) && !attached.contains(k.id))
+      .where(
+        (k) =>
+            k.appliesTo(equipmentType) &&
+            !attached.contains(k.id) &&
+            !(k.isBuiltIn && hidden.contains(k.id)),
+      )
       .toList();
   if (!context.mounted) return;
 

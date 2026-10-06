@@ -20,9 +20,9 @@ Dive types already allow several per dive; roles should too.
 
 ### New tables (schema v270)
 
-Main shipped v261 through v267 while this was open (#2985, #2991, #3004,
-#3005, #3009, #3001, #3011), and open branches hold 268 and 269, so the
-rung is v270.
+Main shipped v261 through v267 and v269 while this was open (#2985, #2991,
+#3004, #3005, #3009, #3001, #3011, #3007), and open branches hold 268, so
+the rung is v270.
 
 Both live in `lib/core/database/tables/buddy_tables.dart` and are created by a
 new rung in `lib/core/database/migrations/ladder/rungs_v231_onward.dart`, with

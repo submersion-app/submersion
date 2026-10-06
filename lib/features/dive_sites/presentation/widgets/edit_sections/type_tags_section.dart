@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/built_ins/visible_built_ins.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -19,6 +20,8 @@ class TypeTagsSection extends StatelessWidget {
     required this.selectedTags,
     required this.onTagsChanged,
     this.onManageTypes,
+    this.hiddenTypeIds = const {},
+    this.keepTypeIds = const {},
   });
 
   /// Every type the diver can choose: built-ins first, then custom types.
@@ -31,10 +34,24 @@ class TypeTagsSection extends StatelessWidget {
   /// Opens Settings > Site Types; the link is hidden when null.
   final VoidCallback? onManageTypes;
 
+  /// Built-in types the diver hid from the pickers (issue #401).
+  final Set<String> hiddenTypeIds;
+
+  /// Types to offer even when hidden: the ones the site had when the editor
+  /// opened, so unticking one does not make its chip vanish.
+  final Set<String> keepTypeIds;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final labelStyle = Theme.of(context).textTheme.titleSmall;
+    final shownTypes = visibleBuiltIns(
+      allTypes,
+      hiddenTypeIds,
+      isBuiltIn: (t) => t.isBuiltIn,
+      idOf: (t) => t.id,
+      keep: {...keepTypeIds, ...selectedTypeIds},
+    );
     return FormSection(
       label: l10n.diveSites_edit_group_typeTags,
       icon: Icons.category_outlined,
@@ -48,7 +65,7 @@ class TypeTagsSection extends StatelessWidget {
           runSpacing: 8,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            for (final type in allTypes)
+            for (final type in shownTypes)
               FilterChip(
                 label: Text(type.localizedName(l10n)),
                 selected: selectedTypeIds.contains(type.id),

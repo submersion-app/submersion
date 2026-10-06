@@ -1121,11 +1121,18 @@ class AppDatabase extends _$AppDatabase {
     // synced tables and an index, no data migration, so the floor stays.
     // Renumbered from 265 and 266, which main shipped first.
     267,
+    // v269: diver_settings.hidden_built_in_ids, the built-in dive types,
+    // roles, site types, service types and pre-dive templates each diver hid
+    // from the pickers (issue #401). Additive nullable column, no backfill,
+    // so the floor stays. Renumbered several times while this was open; 268
+    // is held by an open branch (#3043).
+    269,
     // v270: dive_diver_roles and dive_buddy_roles, several roles per person
     // on a dive (issue #1221). New synced child tables, no backfill: an
     // older peer ignores them and its scalar role writes still resolve, so
     // the floor stays. Renumbered from 262, 264 and 267 as main shipped
-    // those; 268 and 269 are held by open branches (#2999, #3043, #3007).
+    // those; 268 is held by open branches (#2999, #3043) and 269 shipped
+    // first (#3007).
     270,
   ];
 

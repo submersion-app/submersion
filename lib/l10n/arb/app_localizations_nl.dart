@@ -15748,6 +15748,15 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan die fles niet openen. Probeer het opnieuw.';
 
   @override
+  String gasCalculators_blender_cylinderNoVolume(String name) {
+    return 'Geen waterinhoud geregistreerd voor $name';
+  }
+
+  @override
+  String get gasCalculators_blender_noCylinders =>
+      'Nog geen flessen in je uitrusting. Vul in plaats daarvan de waterinhoud in.';
+
+  @override
   String gasCalculators_blender_filledFrom(String name, String mix) {
     return '$name: $mix';
   }
@@ -15919,15 +15928,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_blender_cylinderVolume => 'Waterinhoud van de fles';
 
   @override
-  String get gasCalculators_blender_cylinderPresets => 'Voorinstellingen';
-
-  @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'Prijs per 100 $unit';
   }
-
-  @override
-  String get gasCalculators_blender_manageCylinderSizes => 'Flesmaten beheren';
 
   @override
   String get gasCalculators_blender_costTotal => 'Totaal';
@@ -48601,4 +48604,19 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get query_saveNeedsDiver =>
       'Maak een duikersprofiel aan om query\'s op te slaan';
+
+  @override
+  String get builtIns_showColumnLabel => 'Tonen';
+
+  @override
+  String get builtIns_showInPickers => 'Tonen in kiezers';
+
+  @override
+  String preDive_start_allTemplatesHidden(String path) {
+    return 'Alle checklists zijn verborgen. Toon er weer een via $path.';
+  }
+
+  @override
+  String get settings_conflict_field_hiddenBuiltInIds =>
+      'Verborgen ingebouwde items';
 }
