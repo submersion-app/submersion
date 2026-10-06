@@ -16,6 +16,7 @@ import 'package:submersion/shared/widgets/global_drop_target.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 import 'package:submersion/shared/widgets/nav/nav_order_provider.dart';
 import 'package:submersion/shared/widgets/nav/nav_slot_count.dart';
+import 'package:submersion/shared/widgets/shell_chrome_scope.dart';
 
 /// Fraction of the screen height the phone overflow ("More") sheet may fill.
 ///
@@ -38,6 +39,36 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   /// user overrode it for this session (#1424), same as before this setting
   /// existed -- it is not persisted, so it resets on restart.
   bool? _isCollapsedOverride;
+
+  /// Hide requests from pages inside the shell, such as the media viewer's
+  /// fullscreen mode (#1087).
+  final ShellChromeController _chromeController = ShellChromeController();
+
+  void _onChromeChanged() => setState(() {});
+
+  @override
+  void initState() {
+    super.initState();
+    _chromeController.addListener(_onChromeChanged);
+  }
+
+  @override
+  void dispose() {
+    _chromeController
+      ..removeListener(_onChromeChanged)
+      ..dispose();
+    super.dispose();
+  }
+
+  /// The layout while a page holds a hide request: the page alone, edge to
+  /// edge, with no rail, bottom bar, banner, strip or SafeArea inset.
+  ///
+  /// Moving [MainScaffold.child] between this and the chromed layout keeps
+  /// every page on the shell navigator alive: go_router builds that
+  /// navigator with a GlobalKey (ShellRoute.navigatorKey), so the element is
+  /// reparented rather than rebuilt.
+  Widget _buildChromelessScaffold() =>
+      Scaffold(body: GlobalDropTarget(child: widget.child));
 
   /// Builds a per-destination accent color lookup for the navigation surfaces.
   ///
@@ -225,7 +256,12 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
         if (didPop || upLocation == null) return;
         context.go(upLocation);
       },
-      child: _buildScaffold(context),
+      child: ShellChromeScope(
+        controller: _chromeController,
+        child: _chromeController.isHidden
+            ? _buildChromelessScaffold()
+            : _buildScaffold(context),
+      ),
     );
   }
 

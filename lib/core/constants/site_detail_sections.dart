@@ -20,6 +20,10 @@ enum SiteDetailSectionId {
   diveStatistics,
   description,
   location,
+
+  /// The site's underwater terrain in 3D, inline. Declared right after
+  /// [location] so an order saved before this card existed gains it there.
+  seascape,
   depth,
   altitude,
   features,
@@ -41,6 +45,7 @@ enum SiteDetailSectionId {
       diveStatistics => Icons.scuba_diving,
       description => Icons.description_outlined,
       location => Icons.public,
+      seascape => Icons.view_in_ar,
       depth => Icons.vertical_align_bottom,
       altitude => Icons.terrain,
       features => Icons.place_outlined,
@@ -63,6 +68,7 @@ enum SiteDetailSectionId {
       diveStatistics => l10n.diveSites_detail_section_divesAtSite,
       description => l10n.diveSites_detail_section_description,
       location => l10n.diveSites_detail_section_location,
+      seascape => l10n.dive3d_seascape_siteTitle,
       depth => l10n.diveSites_detail_section_depthRange,
       altitude => l10n.diveSites_detail_section_altitude,
       features => l10n.siteFeature_sectionTitle,
@@ -85,6 +91,7 @@ enum SiteDetailSectionId {
       diveStatistics => l10n.siteDetailSection_diveStatistics_description,
       description => l10n.siteDetailSection_description_description,
       location => l10n.siteDetailSection_location_description,
+      seascape => l10n.siteDetailSection_seascape_description,
       depth => l10n.siteDetailSection_depth_description,
       altitude => l10n.siteDetailSection_altitude_description,
       features => l10n.siteDetailSection_features_description,
@@ -162,6 +169,7 @@ class SiteDetailSectionConfig {
     ),
     SiteDetailSectionConfig(id: SiteDetailSectionId.description, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.location, visible: true),
+    SiteDetailSectionConfig(id: SiteDetailSectionId.seascape, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.depth, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.altitude, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.features, visible: true),

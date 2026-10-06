@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_options_dialog_rows.dart';
+import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/legend_candidates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readout.dart';
@@ -231,6 +232,14 @@ class ChartOptionsDialog extends StatelessWidget {
           color: GasColors.nitrox,
           isEnabled: legendState.showGasSwitchMarkers,
           onTap: legendNotifier.toggleGasSwitchMarkers,
+        ),
+      if (config.hasLateGasSwitches)
+        buildToggleItem(
+          context,
+          label: context.l10n.diveLog_legend_label_lateGasSwitches,
+          color: lateSwitchLegendColor,
+          isEnabled: legendState.showLateGasSwitches,
+          onTap: legendNotifier.toggleLateGasSwitches,
         ),
       if (config.hasPhotoMarkers)
         buildToggleItem(

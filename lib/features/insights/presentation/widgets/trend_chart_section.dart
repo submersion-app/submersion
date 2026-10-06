@@ -3,10 +3,12 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
+import 'package:submersion/features/insights/domain/trend_range.dart';
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_control_strip.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 /// One per-dive trend chart, its card and its controls.
 ///
@@ -78,6 +80,9 @@ class TrendChartSection extends ConsumerWidget {
                 points: points,
                 dateFormat: ref.watch(dateFormatProvider),
                 onDiveSelected: onDiveSelected,
+                range: settings.range,
+                onRangeChanged: (range) =>
+                    _update(ref, settings.copyWith(range: range)),
                 aggregation: settings.aggregation,
                 showRollingMean: settings.showRollingMean,
                 showLinearFit: settings.showLinearFit,
@@ -107,6 +112,14 @@ class TrendChartSection extends ConsumerWidget {
                 rollingColor: rollingColor,
                 rateColor: rateColor,
                 rateLabel: rate,
+                range: settings.range,
+                onRangePresetSelected: (preset) =>
+                    preset == TrendRangePreset.custom
+                    ? _pickCustomRange(context, ref, points)
+                    : _update(
+                        ref,
+                        settings.copyWith(range: TrendRange.preset(preset)),
+                      ),
               ),
             ],
           );
@@ -117,6 +130,68 @@ class TrendChartSection extends ConsumerWidget {
         ),
         error: (_, _) =>
             StatEmptyState(icon: Icons.error_outline, message: errorMessage),
+      ),
+    );
+  }
+
+  /// Opens a date-range picker over the data's days and stores the pick as
+  /// a custom range, from the start of the first day to the end of the last.
+  Future<void> _pickCustomRange(
+    BuildContext context,
+    WidgetRef ref,
+    List<TrendDataPoint> points,
+  ) async {
+    if (points.isEmpty) return;
+    var first = points.first.date;
+    var last = first;
+    for (final p in points) {
+      if (p.date.isBefore(first)) first = p.date;
+      if (p.date.isAfter(last)) last = p.date;
+    }
+    final firstDay = DateTime(first.year, first.month, first.day);
+    final lastDay = DateTime(last.year, last.month, last.day);
+    final current = ref.read(trendChartSettingsProvider(chartId)).range;
+    DateTime clampDay(DateTime d) {
+      final day = DateTime(d.year, d.month, d.day);
+      return day.isBefore(firstDay)
+          ? firstDay
+          : day.isAfter(lastDay)
+          ? lastDay
+          : day;
+    }
+
+    final initial = current.preset == TrendRangePreset.custom
+        ? DateTimeRange(
+            start: clampDay(current.start!),
+            end: clampDay(current.end!),
+          )
+        : DateTimeRange(start: firstDay, end: lastDay);
+    // The shared wrapper, so typed dates follow the diver's date format.
+    final picked = await showAppDateRangePicker(
+      context: context,
+      firstDate: firstDay,
+      lastDate: lastDay,
+      initialDateRange: initial,
+      dateFormat: ref.read(dateFormatProvider),
+    );
+    // The section can be disposed while the dialog is open (the Insights
+    // detail pane switched category); its ref is unusable then.
+    if (picked == null || !context.mounted) return;
+    final latest = ref.read(trendChartSettingsProvider(chartId));
+    _update(
+      ref,
+      latest.copyWith(
+        range: TrendRange.custom(
+          DateTime.utc(picked.start.year, picked.start.month, picked.start.day),
+          DateTime.utc(
+            picked.end.year,
+            picked.end.month,
+            picked.end.day,
+            23,
+            59,
+            59,
+          ),
+        ),
       ),
     );
   }

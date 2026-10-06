@@ -11,6 +11,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/insights/domain/observations/observation_rule_id.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -715,6 +716,19 @@ void main() {
       );
     });
 
+    test('the late gas switch overlay default saves and is exposed', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(defaultShowLateGasSwitchesProvider), isTrue);
+      await notifier.setDefaultShowLateGasSwitches(false);
+      expect(
+        container.read(settingsProvider).defaultShowLateGasSwitches,
+        isFalse,
+      );
+      expect(container.read(defaultShowLateGasSwitchesProvider), isFalse);
+    });
+
     test('condition engine toggles persist through the notifier', () async {
       final notifier = container.read(settingsProvider.notifier);
       await waitForInit();
@@ -738,6 +752,31 @@ void main() {
       );
       expect(container.read(settingsProvider).conditionDisabledRules, isEmpty);
     });
+
+    test(
+      'setObservationRuleMuted toggles one rule and keeps unknown ids',
+      () async {
+        final notifier = container.read(settingsProvider.notifier);
+        await waitForInit();
+
+        expect(
+          container.read(settingsProvider).insightsMutedObservationRules,
+          isEmpty,
+        );
+        await notifier.setObservationRuleMuted(ObservationRuleId.diveGap, true);
+        expect(container.read(settingsProvider).insightsMutedObservationRules, {
+          'diveGap',
+        });
+        await notifier.setObservationRuleMuted(
+          ObservationRuleId.diveGap,
+          false,
+        );
+        expect(
+          container.read(settingsProvider).insightsMutedObservationRules,
+          isEmpty,
+        );
+      },
+    );
   });
 
   group('Real SettingsNotifier perdix overlay settings', () {

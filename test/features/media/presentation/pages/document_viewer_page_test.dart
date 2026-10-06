@@ -3,11 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/value_objects/attachment_details_edit.dart';
 import 'package:submersion/features/media/presentation/pages/document_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 MediaItem _doc({String? originDeviceId, String? originalFilename}) => MediaItem(
@@ -54,7 +57,80 @@ Widget _host(
   ),
 );
 
+class _StubMediaRepository extends MediaRepository {
+  @override
+  Future<List<MediaItem>> getMediaForSite(String siteId) async => const [];
+}
+
+class _SavingNotifier extends SiteMediaListNotifier {
+  _SavingNotifier(Ref ref) : super(_StubMediaRepository(), ref, 'site-1');
+
+  @override
+  Future<void> setAttachmentDetails(
+    String id,
+    AttachmentDetailsEdit edit,
+  ) async {}
+}
+
+Widget _editableHost(MediaItem item, {String? editableSiteId}) => ProviderScope(
+  overrides: [
+    mediaBytesProvider(item).overrideWith(
+      (ref) async =>
+          const ResolvedAssetResult(status: ResolutionStatus.unavailable),
+    ),
+    siteMediaListNotifierProvider(
+      'site-1',
+    ).overrideWith((ref) => _SavingNotifier(ref)),
+  ],
+  child: MaterialApp(
+    locale: const Locale('en'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: DocumentViewerPage(item: item, editableSiteId: editableSiteId),
+  ),
+);
+
 void main() {
+  // Issue #1039: a site's PDF can be categorized from its viewer; a dive's
+  // or a piece of gear's cannot, so the action needs a site id to appear.
+  testWidgets('Edit details shows only with an editable site id', (
+    tester,
+  ) async {
+    final doc = _doc(originalFilename: 'reef-map.pdf');
+    await tester.pumpWidget(_editableHost(doc));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Edit details'), findsNothing);
+
+    await tester.pumpWidget(_editableHost(doc, editableSiteId: 'site-1'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Edit details'), findsOneWidget);
+  });
+
+  testWidgets('a second Edit details opens on the saved category', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _editableHost(
+        _doc(originalFilename: 'reef-map.pdf'),
+        editableSiteId: 'site-1',
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Edit details'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Uncategorized'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Parking').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Edit details'));
+    await tester.pumpAndSettle();
+    expect(find.text('Parking'), findsOneWidget);
+    expect(find.text('Uncategorized'), findsNothing);
+  });
+
   testWidgets('unavailable document shows the unavailable state', (
     tester,
   ) async {

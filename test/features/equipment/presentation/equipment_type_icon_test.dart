@@ -106,6 +106,12 @@ void main() {
       EquipmentType.tankBand: SubmersionIcons.tankBand,
       EquipmentType.weightPocket: SubmersionIcons.weightPocket,
       EquipmentType.gearPocket: SubmersionIcons.gearPocket,
+      EquipmentType.lens: SubmersionIcons.lens,
+      EquipmentType.port: SubmersionIcons.port,
+      EquipmentType.trayHandle: SubmersionIcons.trayHandle,
+      EquipmentType.armClamp: SubmersionIcons.armClamp,
+      EquipmentType.videoLight: SubmersionIcons.videoLight,
+      EquipmentType.floatArm: SubmersionIcons.floatArm,
     };
 
     test('are wired to the equipment font', () {

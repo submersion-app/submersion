@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_alignment.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -25,6 +26,7 @@ Future<void> runDiveConsolidation({
   required String targetDiveId,
   required List<String> secondaryDiveIds,
   required VoidCallback onConsolidated,
+  ConsolidationAlignment? alignment,
 }) async {
   final l10n = context.l10n;
   final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -34,6 +36,7 @@ Future<void> runDiveConsolidation({
     outcome = await service.apply(
       targetDiveId: targetDiveId,
       secondaryDiveIds: secondaryDiveIds,
+      alignment: alignment,
     );
   } catch (e) {
     // ArgumentError carries a mappable invalid-consolidation reason;

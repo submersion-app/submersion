@@ -8,6 +8,7 @@ import 'package:submersion/features/connections/domain/entities/connection_node.
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
+import 'package:submersion/features/connections/domain/views/highlight_mode.dart';
 import 'package:submersion/features/connections/presentation/canvas/connections_canvas.dart';
 import 'package:submersion/features/connections/presentation/canvas/connections_painter.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_layout_controller.dart';
@@ -35,8 +36,12 @@ class _Host extends StatefulWidget {
     required this.onSelect,
     required this.onFocus,
     this.width = 400,
+    this.highlight = HighlightMode.byKind,
+    this.groupOf = const {},
   });
   final double width;
+  final HighlightMode highlight;
+  final Map<NodeRef, int> groupOf;
   final ValueChanged<GraphSelection?> onSelect;
   final ValueChanged<NodeRef> onFocus;
   @override
@@ -67,6 +72,8 @@ class _HostState extends State<_Host> with SingleTickerProviderStateMixin {
           onSelect: widget.onSelect,
           onFocus: widget.onFocus,
           semanticsLabel: '2 nodes',
+          highlight: widget.highlight,
+          groupOf: widget.groupOf,
         ),
       ),
     ),
@@ -81,6 +88,23 @@ ConnectionsPainter _painter(WidgetTester tester) {
 }
 
 void main() {
+  testWidgets('the highlight mode and groups reach the painter', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _Host(
+        onSelect: (_) {},
+        onFocus: (_) {},
+        highlight: HighlightMode.groups,
+        groupOf: {_b('me'): 0, _b('jane'): 0},
+      ),
+    );
+    await tester.pump();
+    final painter = _painter(tester);
+    expect(painter.highlight, HighlightMode.groups);
+    expect(painter.groupOf, {_b('me'): 0, _b('jane'): 0});
+  });
+
   testWidgets('tap on the focus node selects it, tap on empty clears', (
     tester,
   ) async {

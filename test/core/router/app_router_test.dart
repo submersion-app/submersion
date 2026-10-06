@@ -22,6 +22,7 @@ import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.
 import 'package:submersion/features/marine_life/presentation/pages/species_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incident_edit_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
+import 'package:submersion/features/safety/presentation/pages/cns_otu_page.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
@@ -418,6 +419,15 @@ void main() {
         Uri.parse('/insights/connections?mode=around&focus=buddy:abc'),
       );
       expect(match.fullPath, '/insights/connections');
+    });
+
+    test('observations live under Insights (#2381)', () {
+      final routes = router.configuration.routes;
+      expect(_findRouteByName(routes, 'insightsObservations'), isNotNull);
+      final match = router.configuration.findMatch(
+        Uri.parse('/insights/observations'),
+      );
+      expect(match.fullPath, '/insights/observations');
     });
 
     test('the cylinder passport nests under equipment detail', () {
@@ -980,6 +990,23 @@ void main() {
         pageKey: const ValueKey('/planning/no-fly'),
       );
       expect(noFly!.builder!(context, state), isA<NoFlyPage>());
+    });
+
+    testWidgets('cnsOtu route builds the CnsOtuPage', (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+      final context = tester.element(find.byType(SizedBox));
+
+      final cnsOtu = _findRouteByName(router.configuration.routes, 'cnsOtu');
+      expect(cnsOtu, isNotNull);
+      final state = GoRouterState(
+        router.configuration,
+        uri: Uri.parse('/planning/cns-otu'),
+        matchedLocation: '/planning/cns-otu',
+        fullPath: '/planning/cns-otu',
+        pathParameters: const {},
+        pageKey: const ValueKey('/planning/cns-otu'),
+      );
+      expect(cnsOtu!.builder!(context, state), isA<CnsOtuPage>());
     });
 
     testWidgets(

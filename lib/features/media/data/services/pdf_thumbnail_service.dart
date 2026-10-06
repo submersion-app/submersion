@@ -26,13 +26,17 @@ class PdfThumbnailService {
   PdfThumbnailService({
     required Future<Directory> Function() cacheDir,
     PdfThumbRenderer? renderer,
+    PdfPreviewRenderer? previewRenderer,
     Duration renderBudget = const Duration(seconds: 15),
   }) : _cacheDir = cacheDir,
        _renderer = renderer ?? PdfPageRenderer.renderFirstPageJpeg,
+       _previewRenderer =
+           previewRenderer ?? PdfPageRenderer.renderFirstPagePreview,
        _renderBudget = renderBudget;
 
   final Future<Directory> Function() _cacheDir;
   final PdfThumbRenderer _renderer;
+  final PdfPreviewRenderer _previewRenderer;
 
   /// Ceiling on one page render.
   ///
@@ -116,6 +120,71 @@ class PdfThumbnailService {
     return jpeg;
   }
 
+  /// Page 1 of [item] rendered with its longest side at [maxDimension], plus
+  /// the page count, for the full-width site card (issue #1039); null when
+  /// one cannot be produced.
+  ///
+  /// Same cache-first contract as [thumbFor], keyed per size, with the page
+  /// count in a sidecar file. [bytes] is read only on a cache miss.
+  Future<PdfPagePreview?> previewFor(
+    MediaItem item, {
+    required int maxDimension,
+    required Future<Uint8List?> Function() bytes,
+  }) async {
+    if (!item.isPdf) return null;
+
+    final dir = await _resolveCacheDir();
+    final key = previewCacheKeyFor(item, maxDimension);
+    final jpegFile = dir == null ? null : File(p.join(dir.path, '$key.jpg'));
+    final pagesFile = dir == null ? null : File(p.join(dir.path, '$key.pages'));
+    if (jpegFile != null && await jpegFile.exists()) {
+      try {
+        final jpeg = await jpegFile.readAsBytes();
+        final pages = pagesFile != null && await pagesFile.exists()
+            ? int.tryParse((await pagesFile.readAsString()).trim())
+            : null;
+        return PdfPagePreview(jpeg: jpeg, pageCount: pages);
+      }
+      // coverage:ignore-start
+      // As in thumbFor: only a permission or I/O error, which flutter_test's
+      // tmpdir fixtures cannot produce. Falls through to a fresh render.
+      on FileSystemException {
+        // Regenerate below.
+      }
+      // coverage:ignore-end
+    }
+
+    final PdfPagePreview? preview;
+    try {
+      final source = await bytes();
+      if (source == null) return null;
+      preview = await _previewRenderer(
+        bytes: source,
+        maxDimension: maxDimension,
+        quality: _jpegQuality,
+      ).timeout(_renderBudget);
+    } on Object {
+      // A resolver that throws, or a render that ran out of time, is the
+      // card's fallback row, not an error escaping into the site page.
+      return null;
+    }
+    if (preview == null) return null;
+
+    if (dir != null && jpegFile != null && pagesFile != null) {
+      try {
+        await dir.create(recursive: true);
+        await jpegFile.writeAsBytes(preview.jpeg, flush: true);
+        final pages = preview.pageCount;
+        if (pages != null) {
+          await pagesFile.writeAsString('$pages', flush: true);
+        }
+      } on FileSystemException {
+        // Caching is best-effort; the fresh render still returns.
+      }
+    }
+    return preview;
+  }
+
   static const int _jpegQuality = 80;
 
   Future<Uint8List?> _render({File? file, Uint8List? bytes}) => _renderer(
@@ -141,6 +210,18 @@ class PdfThumbnailService {
         item.contentHash ??
         '${item.id}|${item.updatedAt.millisecondsSinceEpoch}';
     return sha1.convert(utf8.encode('$signature|$maxDimension')).toString();
+  }
+
+  /// Cache key for [item]'s large render at [maxDimension]; distinct from
+  /// [cacheKeyFor] so a tile and a large render never collide.
+  @visibleForTesting
+  static String previewCacheKeyFor(MediaItem item, int maxDimension) {
+    final signature =
+        item.contentHash ??
+        '${item.id}|${item.updatedAt.millisecondsSinceEpoch}';
+    return sha1
+        .convert(utf8.encode('$signature|preview|$maxDimension'))
+        .toString();
   }
 
   /// Resolves (and memoises) the cache directory, or null when it cannot be

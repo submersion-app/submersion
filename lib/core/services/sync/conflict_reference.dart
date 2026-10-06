@@ -112,13 +112,28 @@ class ConflictReferenceResolver {
     'mediaId': 'media',
     'subscriptionId': 'mediaSubscriptions',
     'connectorAccountId': 'connectedAccounts',
+    // Soft links with no Drift constraint (#694): the dialog would otherwise
+    // compare and print raw ids for them.
+    'diverRole': 'diveRoles',
+    'regulatorEquipmentId': 'equipment',
+    'viaEquipmentId': 'equipment',
+    'viaSetId': 'equipmentSets',
+    'parentEquipmentId': 'equipment',
+    'componentEquipmentId': 'equipment',
+    'transmitterEquipmentId': 'equipment',
+    'diveComputerId': 'diveComputers',
+    'linkedDiverId': 'divers',
     'sessionId': 'preDiveSessions',
     'templateId': 'checklistTemplates',
   };
 
-  /// Owning entity type -> column -> target, for the two column names the
-  /// schema reuses across unrelated tables.
+  /// Owning entity type -> column -> target, for column names the schema
+  /// reuses across unrelated tables or that are generic words elsewhere.
   static const _targetOverrides = <String, Map<String, String>>{
+    // Generic names that hold a row id only on these tables (#694).
+    'dives': {'diveType': 'diveTypes'},
+    'diveBuddies': {'role': 'diveRoles'},
+    'weightPresetEntries': {'presetId': 'weightPresets'},
     'divePlanSegments': {'tankId': 'divePlanTanks'},
     'preDiveSessions': {'templateId': 'preDiveChecklistTemplates'},
     'preDiveChecklistTemplateItems': {

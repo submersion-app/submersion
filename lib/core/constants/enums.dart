@@ -55,8 +55,20 @@ enum EquipmentType {
   light('Light'),
   camera('Camera'),
   // Photo rig parts (issue #1487): the same strobes ride different housings.
+  // #1997 completed the family, so a camera is assembled from its parts the
+  // way a regulator and a BCD are. They run lens to float, roughly from the
+  // camera body outwards. A port is its own type because it, not the lens,
+  // is what floods and scratches, and it is swapped with the lens behind it.
+  lens('Lens'),
+  port('Port'),
   housing('Housing'),
+  trayHandle('Tray / Handle'),
+  armClamp('Arm / Clamp'),
   strobe('Strobe'),
+  // A light on the rig rather than in the hand: rated and charged like a
+  // dive light, but carried by the camera's arms.
+  videoLight('Video Light'),
+  floatArm('Float Arm / Float'),
   smb('SMB'),
   reel('Reel'),
   knife('Knife'),
@@ -438,7 +450,13 @@ enum EquipmentStatus {
   retired('Retired'),
   sold('Sold'),
   loaned('Loaned Out'),
-  lost('Lost');
+  lost('Lost'),
+
+  /// Gear the diver wants to buy (#2025). Not owned yet, so it is stored
+  /// with isActive=false like Sold and kept out of every owned-gear surface:
+  /// the active list, pickers, sets, service clocks, statistics and totals.
+  /// "Mark as purchased" turns it into active gear.
+  wanted('Wanted');
 
   final String displayName;
   const EquipmentStatus(this.displayName);

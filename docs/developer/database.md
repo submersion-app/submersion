@@ -972,8 +972,11 @@ CREATE TABLE settings (
 ```
 
 **Sync:** every key syncs, and each key merges on its own clock, except the
-keys in `_deviceLocalSettingsKeys` in `sync_data_serializer.dart` (today only
-`active_diver_id`). A new key syncs unless you add it there.
+keys in `deviceLocalSettingsKeys` in
+`lib/core/services/sync/device_local_fields.dart` (today `active_diver_id`,
+`nav_primary_ids`, `nav_rail_ids` and `nav_always_hide_labels`). Those are
+filtered on export, skipped on import, kept through a replace-adopt, and never
+queued for sync when written. A new key syncs unless you add it there.
 
 ### DiverSettings
 
@@ -1062,10 +1065,16 @@ CREATE TABLE diver_settings (
 );
 ```
 
-**Sync:** the table syncs as a whole row. Every column is sent, nothing is
-excluded, and the row with the later clock wins, so a new column syncs unless
-it is explicitly excluded. Settings that should stay on one device belong in
-SharedPreferences instead (see `settings_providers.dart`).
+**Sync:** the table syncs as a whole row, and the row with the later clock
+wins, so a new column syncs unless it is listed in `deviceLocalSyncColumns` in
+`lib/core/services/sync/device_local_fields.dart`. Today that lists
+`notifications_enabled`, `service_reminder_days`, `reminder_time`,
+`trip_service_lead_days` and `theme_mode` (issue #2947). A listed column is
+left out of every export, refilled from this device on import (or from the
+snapshot a replace-adopt takes before clearing the table), and a save that
+changes only listed columns stamps no clock and queues nothing. A per-device
+setting with no reason to be per diver can live in SharedPreferences instead
+(see `settings_providers.dart`).
 
 When a change moves a setting between synced and device-local, in this table,
 the `settings` table, or SharedPreferences, update the

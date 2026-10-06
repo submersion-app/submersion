@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/providers/retain_for.dart';
 
 import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
@@ -99,157 +100,167 @@ GeoPoint? _divePathAnchor(
 }) =>
     path.provenance == PathProvenance.measured ? (routeAnchor ?? entry) : entry;
 
-final siteSeascapeProvider = FutureProvider.family<SiteSeascapeState, String>((
-  ref,
-  siteId,
-) async {
-  final site = await ref.watch(siteProvider(siteId).future);
-  final center = site?.location;
-  if (site == null || center == null) {
-    return const SiteSeascapeNoCoordinates();
-  }
+/// How long a site's scene is kept once built, whether or not anything
+/// still watches it. See [siteSeascapeProvider].
+const Duration siteSeascapeRetention = Duration(minutes: 2);
 
-  final grid = await ref.watch(
-    bathymetryGridProvider(BathymetryRepository.quantize(center)).future,
-  );
-  if (grid == null) return const SiteSeascapeNoData();
+/// A site's 3D scene: terrain, strata, contours and its recent dive paths.
+///
+/// Auto-disposed, but kept for [siteSeascapeRetention] after it builds. The
+/// Site Details card builds the scene of every site a diver views, so a
+/// keep-forever family would hold one scene per site viewed for the rest of
+/// the session; the window still makes flipping the sites map back to 3D,
+/// or reopening fullscreen, instant shortly after a site is opened.
+final siteSeascapeProvider = FutureProvider.autoDispose
+    .family<SiteSeascapeState, String>((ref, siteId) async {
+      retainFor(ref, siteSeascapeRetention);
+      final site = await ref.watch(siteProvider(siteId).future);
+      final center = site?.location;
+      if (site == null || center == null) {
+        return const SiteSeascapeNoCoordinates();
+      }
 
-  final allDives = await ref.watch(divesProvider.future);
-  final atSite = allDives.where((d) => d.site?.id == siteId).toList()
-    ..sort(
-      (a, b) =>
-          (b.entryTime ?? b.dateTime).compareTo(a.entryTime ?? a.dateTime),
-    );
-  // Reconstruct all paths concurrently: each resolution touches the DB and
-  // does dead-reckoning work, so N sequential awaits would stack latency.
-  final kept = atSite.take(_maxDivePaths).toList();
-  final paths = await Future.wait(
-    kept.map((d) => ref.watch(spatialReckonedPathProvider(d.id).future)),
-  );
-  // Each dive's linked primary route, for its anchor (see _divePathAnchor).
-  final routes = await Future.wait(
-    kept.map((d) => ref.watch(primaryNavTrackForDiveProvider(d.id).future)),
-  );
-  final divePaths = <SiteDivePathInput>[];
-  for (var i = 0; i < kept.length; i++) {
-    final path = paths[i];
-    if (path == null || path.points.length < 2) continue;
-    final anchorPoint = _divePathAnchor(
-      path,
-      routeAnchor: routes[i]?.anchor,
-      entry: kept[i].entryLocation,
-    );
-    divePaths.add(
-      SiteDivePathInput(
-        diveId: kept[i].id,
-        path: path,
-        anchor: anchorPoint == null
-            ? (east: 0.0, north: 0.0)
-            : enuOffsetMeters(center, anchorPoint),
-      ),
-    );
-  }
+      final grid = await ref.watch(
+        bathymetryGridProvider(BathymetryRepository.quantize(center)).future,
+      );
+      if (grid == null) return const SiteSeascapeNoData();
 
-  final box = BathymetryTerrainBuilder.enuBounds(grid, center);
-  final sites = await ref.watch(sitesProvider.future);
-  final nearby = <NearbySiteInput>[];
-  for (final s in sites) {
-    final sLoc = s.location;
-    if (s.id == siteId || sLoc == null) continue;
-    final off = enuOffsetMeters(center, sLoc);
-    final inside =
-        off.east >= box.minEast &&
-        off.east <= box.maxEast &&
-        off.north >= box.minNorth &&
-        off.north <= box.maxNorth;
-    if (inside) {
-      nearby.add(NearbySiteInput(siteId: s.id, name: s.name, offset: off));
-    }
-  }
+      final allDives = await ref.watch(divesProvider.future);
+      final atSite = allDives.where((d) => d.site?.id == siteId).toList()
+        ..sort(
+          (a, b) =>
+              (b.entryTime ?? b.dateTime).compareTo(a.entryTime ?? a.dateTime),
+        );
+      // Reconstruct all paths concurrently: each resolution touches the DB and
+      // does dead-reckoning work, so N sequential awaits would stack latency.
+      final kept = atSite.take(_maxDivePaths).toList();
+      final paths = await Future.wait(
+        kept.map((d) => ref.watch(spatialReckonedPathProvider(d.id).future)),
+      );
+      // Each dive's linked primary route, for its anchor (see _divePathAnchor).
+      final routes = await Future.wait(
+        kept.map((d) => ref.watch(primaryNavTrackForDiveProvider(d.id).future)),
+      );
+      final divePaths = <SiteDivePathInput>[];
+      for (var i = 0; i < kept.length; i++) {
+        final path = paths[i];
+        if (path == null || path.points.length < 2) continue;
+        final anchorPoint = _divePathAnchor(
+          path,
+          routeAnchor: routes[i]?.anchor,
+          entry: kept[i].entryLocation,
+        );
+        divePaths.add(
+          SiteDivePathInput(
+            diveId: kept[i].id,
+            path: path,
+            anchor: anchorPoint == null
+                ? (east: 0.0, north: 0.0)
+                : enuOffsetMeters(center, anchorPoint),
+          ),
+        );
+      }
 
-  // Diver-placed annotations, flattened to the site's local frame so the
-  // whole input still crosses compute().
-  final features =
-      ref.watch(siteFeaturesProvider(siteId)).valueOrNull ?? const [];
-  final featureInputs = [
-    for (final f in features)
-      SiteFeatureMarkerInput(
-        id: f.id,
-        typeName: f.typeName,
-        label: f.name,
-        offset: enuOffsetMeters(center, GeoPoint(f.latitude, f.longitude)),
-        depthMeters: f.depthMeters,
-      ),
-  ];
+      final box = BathymetryTerrainBuilder.enuBounds(grid, center);
+      final sites = await ref.watch(sitesProvider.future);
+      final nearby = <NearbySiteInput>[];
+      for (final s in sites) {
+        final sLoc = s.location;
+        if (s.id == siteId || sLoc == null) continue;
+        final off = enuOffsetMeters(center, sLoc);
+        final inside =
+            off.east >= box.minEast &&
+            off.east <= box.maxEast &&
+            off.north >= box.minNorth &&
+            off.north <= box.maxNorth;
+        if (inside) {
+          nearby.add(NearbySiteInput(siteId: s.id, name: s.name, offset: off));
+        }
+      }
 
-  // Terrain appearance and the depth unit shape the geometry (contour
-  // levels, ramp colors, wall threshold), so the scene rebuilds when the
-  // diver changes either.
-  final appearance = ref.watch(
-    settingsProvider.select((s) => s.seascapeAppearance),
-  );
-  final depthUnit = ref.watch(settingsProvider.select((s) => s.depthUnit));
+      // Diver-placed annotations, flattened to the site's local frame so the
+      // whole input still crosses compute().
+      final features =
+          ref.watch(siteFeaturesProvider(siteId)).valueOrNull ?? const [];
+      final featureInputs = [
+        for (final f in features)
+          SiteFeatureMarkerInput(
+            id: f.id,
+            typeName: f.typeName,
+            label: f.name,
+            offset: enuOffsetMeters(center, GeoPoint(f.latitude, f.longitude)),
+            depthMeters: f.depthMeters,
+          ),
+      ];
 
-  // Imagery drape: non-blocking. While the mosaic loads (or offline) the
-  // scene renders with depth colors and rebuilds when it lands.
-  TerrainImagery? imagery;
-  if (appearance.surfaceMode != SeascapeSurfaceMode.depth) {
-    final mapStyle = ref.watch(settingsProvider.select((s) => s.mapStyle));
-    final cell = BathymetryRepository.quantize(center);
-    imagery = ref
-        .watch(
-          terrainImageryProvider((
-            lat: cell.lat,
-            lon: cell.lon,
-            style: mapStyle,
-          )),
-        )
-        .valueOrNull;
-  }
+      // Terrain appearance and the depth unit shape the geometry (contour
+      // levels, ramp colors, wall threshold), so the scene rebuilds when the
+      // diver changes either.
+      final appearance = ref.watch(
+        settingsProvider.select((s) => s.seascapeAppearance),
+      );
+      final depthUnit = ref.watch(settingsProvider.select((s) => s.depthUnit));
 
-  final exaggerationOverride = ref.watch(
-    settingsProvider.select(
-      (s) => s.seascapeVerticalExaggerationOverrides[siteId],
-    ),
-  );
-  final input = SiteSeascapeInput(
-    grid: grid,
-    center: center,
-    siteName: site.name,
-    siteMaxDepth: site.maxDepth,
-    divePaths: divePaths,
-    nearbySites: nearby,
-    features: featureInputs,
-    appearance: appearance,
-    displayUnitInMeters: depthUnit == DepthUnit.feet ? 0.3048 : 1.0,
-    depthSymbol: depthUnit.symbol,
-    imageryFrame: imagery?.frame,
-    verticalExaggerationOverride: exaggerationOverride,
-  );
-  final built = grid.rows * grid.cols > _isolateCellThreshold
-      ? await compute(_buildScene, input)
-      : const SiteSeascapeGeometryService().buildWithLabels(input);
-  // Mirrors SiteSeascapeGeometryService's depth budget so the axes and the
-  // terrain agree on the scene frame: scaled from the measured grid alone,
-  // not the site's recorded max depth (which may sit outside this box).
-  final maxDepth = math.max(grid.maxDepthMeters, 1.0);
-  return SiteSeascapeReady(
-    scene: built.scene,
-    sourceId: grid.sourceId,
-    resolutionMeters: grid.resolutionMeters,
-    grid: grid,
-    contourLabels: built.contourLabels,
-    imagery: imagery,
-    axisInputs: (
-      minEast: box.minEast,
-      maxEast: box.maxEast,
-      minNorth: box.minNorth,
-      maxNorth: box.maxNorth,
-      maxDepth: maxDepth,
-      verticalExaggeration: built.verticalExaggeration,
-    ),
-  );
-});
+      // Imagery drape: non-blocking. While the mosaic loads (or offline) the
+      // scene renders with depth colors and rebuilds when it lands.
+      TerrainImagery? imagery;
+      if (appearance.surfaceMode != SeascapeSurfaceMode.depth) {
+        final mapStyle = ref.watch(settingsProvider.select((s) => s.mapStyle));
+        final cell = BathymetryRepository.quantize(center);
+        imagery = ref
+            .watch(
+              terrainImageryProvider((
+                lat: cell.lat,
+                lon: cell.lon,
+                style: mapStyle,
+              )),
+            )
+            .valueOrNull;
+      }
+
+      final exaggerationOverride = ref.watch(
+        settingsProvider.select(
+          (s) => s.seascapeVerticalExaggerationOverrides[siteId],
+        ),
+      );
+      final input = SiteSeascapeInput(
+        grid: grid,
+        center: center,
+        siteName: site.name,
+        siteMaxDepth: site.maxDepth,
+        divePaths: divePaths,
+        nearbySites: nearby,
+        features: featureInputs,
+        appearance: appearance,
+        displayUnitInMeters: depthUnit == DepthUnit.feet ? 0.3048 : 1.0,
+        depthSymbol: depthUnit.symbol,
+        imageryFrame: imagery?.frame,
+        verticalExaggerationOverride: exaggerationOverride,
+      );
+      final built = grid.rows * grid.cols > _isolateCellThreshold
+          ? await compute(_buildScene, input)
+          : const SiteSeascapeGeometryService().buildWithLabels(input);
+      // Mirrors SiteSeascapeGeometryService's depth budget so the axes and the
+      // terrain agree on the scene frame: scaled from the measured grid alone,
+      // not the site's recorded max depth (which may sit outside this box).
+      final maxDepth = math.max(grid.maxDepthMeters, 1.0);
+      return SiteSeascapeReady(
+        scene: built.scene,
+        sourceId: grid.sourceId,
+        resolutionMeters: grid.resolutionMeters,
+        grid: grid,
+        contourLabels: built.contourLabels,
+        imagery: imagery,
+        axisInputs: (
+          minEast: box.minEast,
+          maxEast: box.maxEast,
+          minNorth: box.minNorth,
+          maxNorth: box.maxNorth,
+          maxDepth: maxDepth,
+          verticalExaggeration: built.verticalExaggeration,
+        ),
+      );
+    });
 
 ({
   Scene3d scene,

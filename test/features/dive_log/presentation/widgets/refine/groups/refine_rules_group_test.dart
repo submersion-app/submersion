@@ -4,6 +4,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/refine_rules_group.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 
@@ -17,7 +18,7 @@ void main() {
     DiveFilterState initial = const DiveFilterState(),
   }) => pumpGroup(
     tester,
-    (d, on) => RefineRulesGroup(draft: d, onChanged: on),
+    (d, on) => RefineRulesGroup(draft: d, onChanged: on, saveNode: d.toQuery()),
     initial: initial,
     overrides: [
       queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),

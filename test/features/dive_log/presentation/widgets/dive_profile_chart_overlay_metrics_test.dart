@@ -320,4 +320,43 @@ void main() {
       expect(find.text('TTS · Overlay'), findsOneWidget);
     });
   });
+
+  testWidgets('overlay partial-pressure lines are straight between samples, '
+      'so a gas switch cannot overshoot (#577)', (tester) async {
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DiveProfileChart)),
+    );
+    container.read(profileLegendProvider.notifier)
+      ..togglePpO2()
+      ..togglePpN2()
+      ..togglePpHe()
+      ..toggleDensity();
+    await tester.pumpAndSettle();
+
+    final bars = tester
+        .widget<LineChart>(find.byType(LineChart).first)
+        .data
+        .lineBarsData;
+    bool dashed(LineChartBarData bar, List<int> dash) =>
+        bar.dashArray != null &&
+        bar.dashArray!.length == dash.length &&
+        bar.dashArray![0] == dash[0] &&
+        bar.dashArray![1] == dash[1];
+
+    for (final dash in const [
+      [5, 3], // ppO2
+      [4, 2], // ppN2
+      [3, 3], // ppHe
+    ]) {
+      final overlayBars = bars.where((b) => dashed(b, dash)).toList();
+      expect(overlayBars, hasLength(1), reason: 'dash $dash');
+      expect(overlayBars.single.isCurved, isFalse, reason: 'dash $dash');
+    }
+    // Other overlay band metrics keep their smoothing.
+    final density = bars.where((b) => dashed(b, const [5, 2])).toList();
+    expect(density, hasLength(1));
+    expect(density.single.isCurved, isTrue);
+  });
 }

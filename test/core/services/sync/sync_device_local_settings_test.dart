@@ -118,7 +118,7 @@ void main() {
     });
 
     // The upload-quality keys are library-wide, not device-local: if a future
-    // change adds them to _deviceLocalSettingsKeys, every device silently goes
+    // change adds them to deviceLocalSettingsKeys, every device silently goes
     // back to deciding archival fidelity on its own and the library becomes
     // inconsistent again. This is the tripwire for that.
     test(
@@ -153,5 +153,55 @@ void main() {
         );
       },
     );
+
+    test('the nav layout keys are not in the synced payload', () async {
+      final repo = AppSettingsRepository();
+      await repo.setNavPrimaryIds(['dives', 'sites']);
+      await repo.setNavRailIds(['dives', 'equipment']);
+      await repo.setNavAlwaysHideLabels(true);
+      await repo.setRawSetting(
+        MediaUploadQualityPolicy.photoQualityKey,
+        'balanced',
+      );
+
+      final deviceId = await SyncRepository().getDeviceId();
+      await buildService().performSync();
+
+      final payload = await cloudBasePayload(cloud, deviceId);
+      final exportedKeys = payload!.data.settings.map((s) => s['key']).toSet();
+      expect(exportedKeys, contains(MediaUploadQualityPolicy.photoQualityKey));
+      expect(
+        exportedKeys.intersection({
+          'nav_primary_ids',
+          'nav_rail_ids',
+          'nav_always_hide_labels',
+        }),
+        isEmpty,
+      );
+    });
+
+    test(
+      'importing a nav layout key does not overwrite the local value',
+      () async {
+        final serializer = SyncDataSerializer();
+        final repo = AppSettingsRepository();
+        await repo.setNavAlwaysHideLabels(true);
+        final peerRow = {
+          'key': 'nav_always_hide_labels',
+          'value': 'false',
+          'updatedAt': 9999999999999,
+        };
+        await serializer.upsertRecord('settings', peerRow);
+        await serializer.upsertRecords('settings', [peerRow]);
+        expect(await repo.getNavAlwaysHideLabels(), isTrue);
+      },
+    );
+
+    test('a replace-adopt clear keeps the nav layout keys', () async {
+      final repo = AppSettingsRepository();
+      await repo.setNavPrimaryIds(['dives', 'sites']);
+      await SyncDataSerializer().deleteAllRecords('settings');
+      expect(await repo.getNavPrimaryIdsRaw(), ['dives', 'sites']);
+    });
   });
 }

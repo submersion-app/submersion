@@ -92,6 +92,8 @@ import 'package:submersion/features/insights/presentation/pages/insights_geograp
 import 'package:submersion/features/insights/presentation/pages/insights_marine_life_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_time_patterns_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_equipment_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_observations_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_focus_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_profile_page.dart';
 import 'package:submersion/features/backup/presentation/pages/backup_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/hidden_items_page.dart';
@@ -116,6 +118,7 @@ import 'package:submersion/features/settings/presentation/pages/site_detail_sect
 import 'package:submersion/features/safety/presentation/pages/add_chamber_page.dart';
 import 'package:submersion/features/safety/presentation/pages/chambers_directory_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incident_edit_page.dart';
+import 'package:submersion/features/safety/presentation/pages/cns_otu_page.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
 import 'package:submersion/features/safety/presentation/pages/emergency_card_page.dart';
@@ -362,6 +365,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'no-fly',
                 name: 'noFly',
                 builder: (context, state) => const NoFlyPage(),
+              ),
+              GoRoute(
+                path: 'cns-otu',
+                name: 'cnsOtu',
+                builder: (context, state) => const CnsOtuPage(),
               ),
               // The GPS logger moved into the Tracks area; keep old deep
               // links working.
@@ -949,6 +957,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'profile',
                 name: 'insightsProfile',
                 builder: (context, state) => const InsightsProfilePage(),
+              ),
+              GoRoute(
+                path: 'observations',
+                name: 'insightsObservations',
+                builder: (context, state) => const InsightsObservationsPage(),
+              ),
+              GoRoute(
+                path: 'focus',
+                name: 'insightsFocus',
+                builder: (context, state) => const InsightsFocusPage(),
               ),
               // Connections opens from Insights as its own full page.
               GoRoute(

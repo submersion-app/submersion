@@ -11,7 +11,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/services/dive_consolidation_builder.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_merge_builder.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_alignment.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/consolidation_alignment_controls.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/run_dive_consolidation.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -21,7 +23,9 @@ import 'package:submersion/features/equipment/data/services/sensor_summary_sched
 /// Dialog that classifies the current dive selection and either previews a
 /// sequential combine, previews a multi-computer consolidation (same dive
 /// recorded by more than one computer), or reports an error (mixed divers,
-/// same computer, non-overlapping).
+/// same computer, non-overlapping). A non-overlapping selection from
+/// different computers can instead be merged as additional computers,
+/// aligned by profile (#552).
 ///
 /// See dive_merge_builder.dart / dive_merge_service.dart for the sequential
 /// classification and persistence logic (#449), and
@@ -61,6 +65,21 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
   /// entry time.
   String? _selectedPrimaryId;
 
+  /// Whether a non-overlapping selection may instead be merged as additional
+  /// computers (#552): consolidation accepts it once an alignment mode
+  /// replaces the overlap test.
+  bool _mergeAvailable = false;
+
+  CombineMode _mode = CombineMode.join;
+
+  /// How a secondary that does not overlap the primary is lined up.
+  ConsolidationAlignment _alignment = ConsolidationAlignment.bestFit;
+
+  /// The last consolidation plan and its inputs: best fit scans every
+  /// candidate shift, so it is not rebuilt on every frame.
+  ({String? primaryId, ConsolidationAlignment alignment})? _planKey;
+  DiveConsolidationPlan? _plan;
+
   @override
   void initState() {
     super.initState();
@@ -73,9 +92,11 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
           .read(diveRepositoryProvider)
           .getDivesByIds(widget.diveIds);
       if (!mounted) return;
+      final classification = const DiveMergeBuilder().classify(dives);
       setState(() {
         _dives = dives;
-        _classification = const DiveMergeBuilder().classify(dives);
+        _classification = classification;
+        if (classification is MergeSequential) _initMergeChoice(dives);
       });
     } catch (_) {
       // A DB/query failure would otherwise leave the dialog stuck on the
@@ -83,6 +104,52 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
       if (mounted) setState(() => _loadFailed = true);
     }
   }
+
+  /// Whether this non-overlapping selection can be merged as additional
+  /// computers, and whether Merge should be the preselected choice.
+  void _initMergeChoice(List<domain.Dive> dives) {
+    final consolidation = const DiveConsolidationBuilder().classify(
+      dives,
+      alignment: ConsolidationAlignment.bestFit,
+    );
+    if (consolidation is! ConsolidationReady) return;
+    _mergeAvailable = true;
+    if (_looksLikeSameDive()) _mode = CombineMode.merge;
+  }
+
+  /// Whether the records look like one dive from different computers, judged
+  /// against the primary currently chosen (the hint must not outlive a
+  /// primary it was not checked against).
+  ///
+  /// classify() rejects a repeated serial, so a serial on every dive is what
+  /// proves each record came from a different computer.
+  bool _looksLikeSameDive() {
+    if (!_dives!.every((d) => (d.diveComputerSerial ?? '').isNotEmpty)) {
+      return false;
+    }
+    final alignments = _planFor().alignments;
+    return alignments.isNotEmpty &&
+        alignments.values.every((a) => a.isStrongMatch);
+  }
+
+  DiveConsolidationPlan _planFor() {
+    final key = (primaryId: _selectedPrimaryId, alignment: _alignment);
+    if (_plan == null || _planKey != key) {
+      _plan = const DiveConsolidationBuilder().build(
+        _dives!,
+        primaryDiveId: _selectedPrimaryId,
+        alignment: _alignment,
+      );
+      _planKey = key;
+    }
+    return _plan!;
+  }
+
+  Widget _modeSelector() => CombineModeSelector(
+    mode: _mode,
+    showSameDiveHint: _looksLikeSameDive(),
+    onChanged: (mode) => setState(() => _mode = mode),
+  );
 
   Future<void> _confirm() async {
     setState(() => _working = true);
@@ -133,10 +200,11 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
             context.l10n.diveLog_combine_error,
           ),
           null => const Center(child: CircularProgressIndicator()),
-          MergeSequential() when widget.consolidateOnly => _buildErrorPanel(
-            context,
-            context.l10n.diveLog_consolidate_error_notOverlapping,
-          ),
+          MergeSequential() when widget.consolidateOnly =>
+            _buildConsolidationPanel(context),
+          MergeSequential()
+              when _mergeAvailable && _mode == CombineMode.merge =>
+            _buildConsolidationPanel(context),
           final MergeSequential seq => _buildPreview(context, seq),
           MergeOverlapping() => _buildConsolidationPanel(context),
           final MergeInvalid invalid => _buildErrorPanel(
@@ -210,6 +278,10 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
                       ),
                     ],
                   ),
+                  if (_mergeAvailable) ...[
+                    const SizedBox(height: 16),
+                    _modeSelector(),
+                  ],
                   const SizedBox(height: 8),
                   Text(
                     context.l10n.diveLog_combine_previewIntro(
@@ -284,8 +356,11 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
             ),
           ),
           const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+          // OverflowBar stacks the buttons on a phone-width dialog, where
+          // Cancel and the confirm label do not fit side by side.
+          OverflowBar(
+            spacing: 8,
+            alignment: MainAxisAlignment.end,
             children: [
               TextButton(
                 onPressed: _working
@@ -293,7 +368,6 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
                     : () => Navigator.of(context).pop(null),
                 child: Text(context.l10n.common_action_cancel),
               ),
-              const SizedBox(width: 8),
               FilledButton(
                 onPressed: _working ? null : _confirm,
                 child: Text(context.l10n.diveLog_combine_confirm),
@@ -417,9 +491,12 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
   /// time) and renders either the mapped error text or the consolidation
   /// preview/selector/confirm panel.
   Widget _buildConsolidationPanel(BuildContext context) {
+    // Always with a mode, so a selection that does not overlap (or only
+    // partly does) is offered for alignment instead of rejected (#552).
     final classification = const DiveConsolidationBuilder().classify(
       _dives!,
       primaryDiveId: _selectedPrimaryId,
+      alignment: _alignment,
     );
 
     return switch (classification) {
@@ -428,6 +505,7 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
         switch (invalid.reason) {
           ConsolidationInvalidReason.sameComputer =>
             context.l10n.diveLog_consolidate_error_sameComputer,
+          // Unreachable here: classify() is always given a mode above.
           ConsolidationInvalidReason.notOverlapping =>
             context.l10n.diveLog_consolidate_error_notOverlapping,
           // Unreachable in practice -- the outer DiveMergeBuilder
@@ -454,11 +532,8 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
     final timePattern = ref.watch(timeFormatProvider).pattern;
 
     // Pure preview computation -- never persisted, same reasoning as the
-    // sequential branch's build() call above.
-    final plan = const DiveConsolidationBuilder().build(
-      _dives!,
-      primaryDiveId: _selectedPrimaryId,
-    );
+    // sequential branch's build() call above. Memoized: best fit is costly.
+    final plan = _planFor();
 
     // A stable (selection-independent) order for the radio tiles and chart
     // series/colors, so picking a different primary re-labels rather than
@@ -497,6 +572,20 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
                       ),
                     ],
                   ),
+                  if (_mergeAvailable && !widget.consolidateOnly) ...[
+                    const SizedBox(height: 16),
+                    _modeSelector(),
+                  ],
+                  if (ready.realignedIds.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    ConsolidationAlignmentControls(
+                      alignment: _alignment,
+                      onChanged: (a) => setState(() => _alignment = a),
+                      showFallbackNote:
+                          _alignment == ConsolidationAlignment.bestFit &&
+                          plan.alignments.values.any((a) => a.usedFallback),
+                    ),
+                  ],
                   if (hasProfileData) ...[
                     const SizedBox(height: 16),
                     Text(
@@ -567,10 +656,10 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
             ),
           ),
           const SizedBox(height: 16),
-          // OverflowBar (rather than Row, used elsewhere in this dialog)
-          // because the confirm label is long enough to overflow a 520px
-          // dialog alongside Cancel; OverflowBar stacks the buttons
-          // vertically instead of clipping when they don't fit.
+          // OverflowBar (like the sequential preview's) because the confirm
+          // label is long enough to overflow a 520px dialog alongside Cancel;
+          // OverflowBar stacks the buttons vertically instead of clipping
+          // when they don't fit.
           OverflowBar(
             spacing: 8,
             alignment: MainAxisAlignment.end,
@@ -602,6 +691,9 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
     final service = ref.read(diveConsolidationServiceProvider);
     final targetId = ready.primary.id;
     final secondaryIds = [for (final s in ready.secondaries) s.id];
+    // A fully overlapping selection keeps the strict check at apply time, so
+    // a dive moved by a sync after this preview is still rejected.
+    final alignment = ready.realignedIds.isEmpty ? null : _alignment;
 
     Navigator.of(context).pop(null);
 
@@ -610,6 +702,7 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
       service: service,
       targetDiveId: targetId,
       secondaryDiveIds: secondaryIds,
+      alignment: alignment,
       onConsolidated: () {
         // Captured via the container (rather than `ref`) so this still works
         // once this dialog's own State has been disposed.

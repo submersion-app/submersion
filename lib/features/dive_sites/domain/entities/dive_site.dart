@@ -92,6 +92,13 @@ class DiveSite extends Equatable {
     this.isShared = false,
   });
 
+  /// The town a site belongs to: its [city], falling back to its [island],
+  /// trimmed; empty when neither is set.
+  String get locality {
+    final cityTrimmed = city?.trim() ?? '';
+    return cityTrimmed.isNotEmpty ? cityTrimmed : (island?.trim() ?? '');
+  }
+
   /// Compact one-line location formatted as `locality · region, country`.
   /// Locality prefers [city], falling back to [island]. [bodyOfWater] is
   /// intentionally excluded to keep list tiles and map popups tight.
@@ -105,10 +112,6 @@ class DiveSite extends Equatable {
     if (regionTrimmed.isNotEmpty) base.add(regionTrimmed);
     if (countryTrimmed.isNotEmpty) base.add(countryTrimmed);
     final baseStr = base.join(', ');
-
-    final cityTrimmed = city?.trim() ?? '';
-    final islandTrimmed = island?.trim() ?? '';
-    final locality = cityTrimmed.isNotEmpty ? cityTrimmed : islandTrimmed;
 
     if (locality.isNotEmpty && baseStr.isNotEmpty) {
       return '$locality · $baseStr';

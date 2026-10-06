@@ -41,8 +41,14 @@ extension EquipmentTypeDisplay on EquipmentType {
     EquipmentType.weights => l10n.enum_equipmentType_weights,
     EquipmentType.light => l10n.enum_equipmentType_light,
     EquipmentType.camera => l10n.enum_equipmentType_camera,
+    EquipmentType.lens => l10n.enum_equipmentType_lens,
+    EquipmentType.port => l10n.enum_equipmentType_port,
     EquipmentType.housing => l10n.enum_equipmentType_housing,
+    EquipmentType.trayHandle => l10n.enum_equipmentType_trayHandle,
+    EquipmentType.armClamp => l10n.enum_equipmentType_armClamp,
     EquipmentType.strobe => l10n.enum_equipmentType_strobe,
+    EquipmentType.videoLight => l10n.enum_equipmentType_videoLight,
+    EquipmentType.floatArm => l10n.enum_equipmentType_floatArm,
     EquipmentType.smb => l10n.enum_equipmentType_smb,
     EquipmentType.reel => l10n.enum_equipmentType_reel,
     EquipmentType.knife => l10n.enum_equipmentType_knife,
@@ -75,5 +81,6 @@ extension EquipmentStatusDisplay on EquipmentStatus {
     EquipmentStatus.sold => l10n.enum_equipmentStatus_sold,
     EquipmentStatus.loaned => l10n.enum_equipmentStatus_loaned,
     EquipmentStatus.lost => l10n.enum_equipmentStatus_lost,
+    EquipmentStatus.wanted => l10n.enum_equipmentStatus_wanted,
   };
 }

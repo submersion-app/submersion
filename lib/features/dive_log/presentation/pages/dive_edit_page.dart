@@ -115,7 +115,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipm
 import 'package:submersion/features/dive_log/presentation/utils/entry_exit_autofill.dart';
 import 'package:submersion/features/dive_log/presentation/utils/water_type_autofill.dart';
 import 'package:submersion/features/dive_log/presentation/utils/dive_type_autofill.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/species_picker_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ccr_settings_panel.dart';

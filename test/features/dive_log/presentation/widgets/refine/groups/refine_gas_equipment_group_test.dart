@@ -248,6 +248,32 @@ void main() {
   }
 
   // #1064: every computer is offered, serial or not.
+  const wishItem = EquipmentItem(
+    id: 'w',
+    name: 'Dream wing',
+    type: EquipmentType.bcd,
+    status: EquipmentStatus.wanted,
+    isActive: false,
+  );
+
+  testWidgets('wishlist gear gets no equipment chip (#2025)', (tester) async {
+    await pump(tester, gear: [hoseItem, wishItem]);
+    expect(find.widgetWithText(FilterChip, 'Gauge hose'), findsOneWidget);
+    expect(find.widgetWithText(FilterChip, 'Dream wing'), findsNothing);
+  });
+
+  testWidgets('wishlist gear already in the filter keeps its chip (#2025)', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      initial: const DiveFilterState(equipmentIds: ['w']),
+      gear: [hoseItem, wishItem],
+    );
+    // Shown so the diver can see, and clear, what the filter holds.
+    expect(find.widgetWithText(FilterChip, 'Dream wing'), findsOneWidget);
+  });
+
   testWidgets('a computer with no serial is offered and picks', (tester) async {
     final h = await pump(tester);
     await pick(tester, 'All computers', 'Perdix');

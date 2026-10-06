@@ -35,9 +35,7 @@ Widget _buildTestWidget(MockSettingsNotifier notifier) {
 }
 
 void main() {
-  testWidgets('renders master toggle on and five rule switches', (
-    tester,
-  ) async {
+  testWidgets('renders master toggle on and six rule switches', (tester) async {
     await tester.binding.setSurfaceSize(const Size(400, 1600));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -46,7 +44,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Post-dive safety review'), findsOneWidget);
-    expect(find.byType(SwitchListTile), findsNWidgets(6));
+    expect(find.byType(SwitchListTile), findsNWidgets(7));
 
     final master = tester.widget<SwitchListTile>(
       find.byType(SwitchListTile).first,

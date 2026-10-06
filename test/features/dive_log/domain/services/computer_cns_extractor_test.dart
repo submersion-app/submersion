@@ -38,16 +38,16 @@ void main() {
       expect(result.cnsEnd, 9.0);
     });
 
-    test('handles single CNS sample', () {
+    // A single reading is not a series: the OSTC reports one CNS value from
+    // its header on the first sample even when it logs no CNS during the dive,
+    // and that value says nothing about where the dive ended (#2545).
+    test('returns null for a single CNS sample', () {
       final profile = [
         const DiveProfilePoint(timestamp: 0, depth: 10.0),
         const DiveProfilePoint(timestamp: 60, depth: 20.0, cns: 7.0),
         const DiveProfilePoint(timestamp: 120, depth: 10.0),
       ];
-      final result = extractComputerCns(profile);
-      expect(result, isNotNull);
-      expect(result!.cnsStart, 7.0);
-      expect(result.cnsEnd, 7.0);
+      expect(extractComputerCns(profile), isNull);
     });
 
     test('returns null for empty profile', () {
@@ -59,8 +59,18 @@ void main() {
     test('returns true when profile has CNS samples', () {
       final profile = [
         const DiveProfilePoint(timestamp: 0, depth: 10.0, cns: 5.0),
+        const DiveProfilePoint(timestamp: 60, depth: 20.0),
+        const DiveProfilePoint(timestamp: 120, depth: 10.0, cns: 6.0),
       ];
       expect(hasComputerCns(profile), isTrue);
+    });
+
+    test('returns false for a single header CNS reading', () {
+      final profile = [
+        const DiveProfilePoint(timestamp: 0, depth: 10.0, cns: 5.0),
+        const DiveProfilePoint(timestamp: 60, depth: 20.0),
+      ];
+      expect(hasComputerCns(profile), isFalse);
     });
 
     test('returns false when profile has no CNS samples', () {

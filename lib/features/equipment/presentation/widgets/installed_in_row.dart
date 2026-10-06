@@ -125,9 +125,11 @@ class InstalledInRow extends StatelessWidget {
     if (host.isFitted) return host.name;
     // A legacy row can be inactive under a non-terminal status; it is out
     // of service all the same, and reads as retired like the header chip.
+    // A host moved to the wishlist (#2025) says so rather than "Retired".
     final status =
         host.status == EquipmentStatus.retired ||
-            host.status == EquipmentStatus.sold
+            host.status == EquipmentStatus.sold ||
+            host.status == EquipmentStatus.wanted
         ? host.status.localizedName(l10n)
         : l10n.equipment_detail_retiredChip;
     return l10n.equipment_detail_parentWithStatus(host.name, status);

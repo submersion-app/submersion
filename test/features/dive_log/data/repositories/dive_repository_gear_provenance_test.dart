@@ -246,6 +246,32 @@ void main() {
     },
   );
 
+  test('bulkAddEquipment skips a part on the wishlist (#2025)', () async {
+    // A wishlist part whose is_active was left set (an import).
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'wish-hose',
+            name: 'wish-hose',
+            type: 'hose',
+            createdAt: 1,
+            updatedAt: 1,
+            diverId: const Value('d1'),
+            isActive: const Value(true),
+            status: const Value('wanted'),
+          ),
+        );
+    await components.addComponent(parentId: 'reg', componentId: 'wish-hose');
+    await repo.createDive(
+      domain.Dive(id: 'dw', dateTime: DateTime(2026, 1, 2)),
+    );
+
+    await repo.bulkAddEquipment(['dw'], ['reg']);
+
+    expect((await rowsOf('dw')).keys, isNot(contains('wish-hose')));
+  });
+
   test('bulkRemoveEquipment drops the whole subtree', () async {
     await repo.createDive(
       domain.Dive(id: 'dv', dateTime: DateTime(2026, 1, 1)),
