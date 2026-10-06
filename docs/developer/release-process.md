@@ -263,6 +263,8 @@ a build number above the current commit count. Expected to be rare.
 
 - Secrets (App Store, Play, Sparkle, `BETA_BUILDS_TOKEN`,
   `RELEASE_BOT_TOKEN`): `docs/developer/release-secrets-setup.md`
+- Google Play production access and the Data safety declaration to
+  reaffirm on each update: `docs/developer/play-production-access.md`
 - Workflows: `.github/workflows/{build-all,beta,promote,release}.yml`
 - Scripts: `scripts/release/` (`promote.sh`, `bump_version.sh`,
   `contributors.sh`; the old `release.sh` orchestrator belongs to the legacy

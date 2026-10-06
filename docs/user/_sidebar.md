@@ -29,29 +29,6 @@
   * [Trips](features/trips.md)
   * [Tags](features/tags.md)
 
-* **Developer Guide**
-  * [Overview](https://github.com/submersion-app/submersion/tree/main/docs/developer)
-  * [Architecture](https://github.com/submersion-app/submersion/blob/main/docs/developer/architecture.md)
-  * [Database Schema](https://github.com/submersion-app/submersion/blob/main/docs/developer/database.md)
-  * [State Management](https://github.com/submersion-app/submersion/blob/main/docs/developer/state-management.md)
-  * [Navigation](https://github.com/submersion-app/submersion/blob/main/docs/developer/navigation.md)
-  * [Testing](https://github.com/submersion-app/submersion/blob/main/docs/developer/testing.md)
-  * [Local Test Performance](https://github.com/submersion-app/submersion/blob/main/docs/developer/local-test-performance.md)
-  * [Building](https://github.com/submersion-app/submersion/blob/main/docs/developer/building.md)
-  * [Release Process](https://github.com/submersion-app/submersion/blob/main/docs/developer/release-process.md)
-
-* **Contributing**
-  * [How to Contribute](https://github.com/submersion-app/submersion/tree/main/docs/contributing)
-  * [Code Style](https://github.com/submersion-app/submersion/blob/main/docs/contributing/code-style.md)
-  * [Pull Requests](https://github.com/submersion-app/submersion/blob/main/docs/contributing/pull-requests.md)
-  * [Roadmap](https://github.com/submersion-app/submersion/blob/main/docs/contributing/roadmap.md)
-
-* **API Reference**
-  * [Data Models](https://github.com/submersion-app/submersion/tree/main/docs/developer/reference)
-  * [Entities](https://github.com/submersion-app/submersion/blob/main/docs/developer/reference/entities.md)
-  * [Enums](https://github.com/submersion-app/submersion/blob/main/docs/developer/reference/enums.md)
-  * [Providers](https://github.com/submersion-app/submersion/blob/main/docs/developer/reference/providers.md)
-
 * **Links**
   * [GitHub](https://github.com/submersion-app/submersion)
   * [Report Issues](https://github.com/submersion-app/submersion/issues)

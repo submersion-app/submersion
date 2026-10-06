@@ -11,6 +11,10 @@ Welcome to the Submersion developer documentation. This section covers architect
 - [Testing](testing.md) - Test organization and running
 - [Local Test Performance](local-test-performance.md) - Making local test runs fast
 - [Building](building.md) - Build and run instructions
+- [Release Process](release-process.md) - Beta and production releases
+- [Release Secrets](release-secrets-setup.md) - Store and signing credentials
+- [Play Production Access](play-production-access.md) - Google Play access record and Data safety declaration
+- [Reference](reference/README.md) - Entities, enums and file formats
 
 ## Technology Stack
 
