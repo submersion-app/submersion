@@ -333,6 +333,61 @@ Large profile data:
 - Disposed after navigation
 - Streamed for charts
 
+## Decompression and Gas Calculations
+
+The decompression and gas code lives in `lib/core/deco/`.
+
+- **Decompression models.** `BuhlmannAlgorithm` (`buhlmann_algorithm.dart`)
+  implements Buhlmann ZH-L16C with gradient factors, using the 16
+  compartment coefficients in `constants/buhlmann_coefficients.dart`
+  (`GradientFactorPresets` holds the presets). `VpmBAlgorithm`
+  (`vpm_b_algorithm.dart`) implements VPM-B. Callers that should not care
+  which model runs use the `DecoModel` interface in `deco_model.dart`
+  (which also defines `DecoSchedule` and `DecoSegment`), implemented by
+  `BuhlmannGf` in the same file and `VpmB` in `vpm_b.dart`.
+- **Oxygen exposure.** `O2ToxicityCalculator` (`o2_toxicity_calculator.dart`)
+  tracks CNS% from the NOAA exposure limits and pulmonary exposure as OTU.
+  How a ppO2 between or beyond the table entries is charged is a diver
+  setting, `CnsCalculationMethod` (`entities/cns_calculation_method.dart`).
+- **Ascent rate.** `AscentRateCalculator` (`ascent_rate_calculator.dart`)
+  flags ascents faster than 9 m/min as a warning and faster than 12 m/min
+  as critical by default, over a 15-second smoothing window.
+- **Related calculators.** Altitude (`altitude_calculator.dart`), gas
+  density (`gas_density.dart`), maximum operating depth
+  (`max_operating_depth.dart`), semi-closed rebreather loop gas
+  (`scr_calculator.dart`), and ascent gas planning (`ascent/`,
+  `gas_switch/`).
+
+## Sync Conflict Resolution
+
+A record changed on two devices since they last synced is stored as a
+conflict instead of being overwritten: its row in the sync records table
+(`lib/core/database/tables/sync_tables.dart`) gets the status `conflict`
+and keeps the remote version in `conflictData`, and the sync reports
+`hasConflicts`. `SyncService.getConflicts()`
+(`lib/core/services/sync/sync_service.dart`) turns those records into
+`SyncConflict` objects carrying the local and remote data and their
+modification times. Junction rows hold nothing but ids, so
+`ConflictReferenceResolver` (`conflict_reference.dart`) resolves each foreign
+key to a name or date the Resolve Conflicts dialog can show. The diver then
+chooses a `ConflictResolution`: keep local, keep remote, or keep both.
+
+## Platform Support
+
+| Platform | Minimum |
+|----------|---------|
+| iOS | 15.0 |
+| Android | 8.0 (API 26) |
+| macOS | 12.0 |
+| Windows | 10 |
+| Linux | x86-64 with glibc 2.38+ and GTK 3 (Ubuntu 24.04+, Debian 13+, Fedora 39+) |
+
+The minimums come from `IPHONEOS_DEPLOYMENT_TARGET` in
+`ios/Runner.xcodeproj/project.pbxproj`, `minSdk` in
+`android/app/build.gradle.kts` and `MACOSX_DEPLOYMENT_TARGET` in
+`macos/Runner.xcodeproj/project.pbxproj`; the Linux requirement is the
+"Linux: installing" section of the repository `README.md`.
+
 ## Testing Strategy
 
 See [Testing Guide](testing.md) for details.
