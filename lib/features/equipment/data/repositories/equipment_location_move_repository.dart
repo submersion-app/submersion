@@ -19,14 +19,11 @@ class EquipmentLocationMoveRepository {
 
   static const String entity = 'equipmentLocationMoves';
 
-  /// Moves and places: a renamed or deleted place changes what a current
-  /// location reads as, so readers of either refresh on both.
-  Stream<void> watchChanges() => _db.tableUpdates(
-    TableUpdateQuery.onAllTables([
-      _db.equipmentLocationMoves,
-      _db.equipmentLocations,
-    ]),
-  );
+  /// Emits when a move is written or removed, here or by a sync. Readers
+  /// that show a place's name also watch the places, so a rename or delete
+  /// refreshes them once, not twice.
+  Stream<void> watchChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.equipmentLocationMoves));
 
   /// [equipmentId]'s moves, newest first.
   Future<List<EquipmentLocationMove>> getMovesFor(String equipmentId) async {
@@ -106,22 +103,25 @@ class EquipmentLocationMoveRepository {
   /// Rewrites one move's place, date and note, restamping its clock.
   Future<void> updateMove(EquipmentLocationMove move) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(
-      _db.equipmentLocationMoves,
-    )..where((t) => t.id.equals(move.id))).write(
-      EquipmentLocationMovesCompanion(
-        locationId: Value(move.locationId),
-        movedAt: Value(move.movedAt.millisecondsSinceEpoch),
-        note: Value(move.note.trim()),
-      ),
-    );
-    // A literal entity type: child_write_restamps_test reads it to know
-    // this mark restamps the row just updated.
-    await _syncRepository.markRecordPending(
-      entityType: 'equipmentLocationMoves',
-      recordId: move.id,
-      localUpdatedAt: now,
-    );
+    // One transaction, so an edit is never kept without its sync mark.
+    await _db.transaction(() async {
+      await (_db.update(
+        _db.equipmentLocationMoves,
+      )..where((t) => t.id.equals(move.id))).write(
+        EquipmentLocationMovesCompanion(
+          locationId: Value(move.locationId),
+          movedAt: Value(move.movedAt.millisecondsSinceEpoch),
+          note: Value(move.note.trim()),
+        ),
+      );
+      // A literal entity type: child_write_restamps_test reads it to know
+      // this mark restamps the row just updated.
+      await _syncRepository.markRecordPending(
+        entityType: 'equipmentLocationMoves',
+        recordId: move.id,
+        localUpdatedAt: now,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 

@@ -49,20 +49,24 @@ class EquipmentLocationRepository {
     final trimmed = _requireName(name);
     final id = _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
-    await _db
-        .into(_db.equipmentLocations)
-        .insert(
-          EquipmentLocationsCompanion.insert(
-            id: id,
-            diverId: Value(diverId),
-            name: trimmed,
-            kind: Value(kind.name),
-            notes: Value(notes.trim()),
-            createdAt: now,
-            updatedAt: now,
-          ),
-        );
-    await _markPending(id, now);
+    // Each write and its sync mark in one transaction, so a place is never
+    // kept without being queued for sync.
+    await _db.transaction(() async {
+      await _db
+          .into(_db.equipmentLocations)
+          .insert(
+            EquipmentLocationsCompanion.insert(
+              id: id,
+              diverId: Value(diverId),
+              name: trimmed,
+              kind: Value(kind.name),
+              notes: Value(notes.trim()),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      await _markPending(id, now);
+    });
     SyncEventBus.notifyLocalChange();
     return (await getLocation(id))!;
   }
@@ -71,32 +75,36 @@ class EquipmentLocationRepository {
   Future<void> updateLocation(EquipmentLocation location) async {
     final trimmed = _requireName(location.name);
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(
-      _db.equipmentLocations,
-    )..where((t) => t.id.equals(location.id))).write(
-      EquipmentLocationsCompanion(
-        name: Value(trimmed),
-        kind: Value(location.kind.name),
-        notes: Value(location.notes.trim()),
-        isArchived: Value(location.isArchived),
-        updatedAt: Value(now),
-      ),
-    );
-    await _markPending(location.id, now);
+    await _db.transaction(() async {
+      await (_db.update(
+        _db.equipmentLocations,
+      )..where((t) => t.id.equals(location.id))).write(
+        EquipmentLocationsCompanion(
+          name: Value(trimmed),
+          kind: Value(location.kind.name),
+          notes: Value(location.notes.trim()),
+          isArchived: Value(location.isArchived),
+          updatedAt: Value(now),
+        ),
+      );
+      await _markPending(location.id, now);
+    });
     SyncEventBus.notifyLocalChange();
   }
 
   Future<void> setArchived(String id, {required bool archived}) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(
-      _db.equipmentLocations,
-    )..where((t) => t.id.equals(id))).write(
-      EquipmentLocationsCompanion(
-        isArchived: Value(archived),
-        updatedAt: Value(now),
-      ),
-    );
-    await _markPending(id, now);
+    await _db.transaction(() async {
+      await (_db.update(
+        _db.equipmentLocations,
+      )..where((t) => t.id.equals(id))).write(
+        EquipmentLocationsCompanion(
+          isArchived: Value(archived),
+          updatedAt: Value(now),
+        ),
+      );
+      await _markPending(id, now);
+    });
     SyncEventBus.notifyLocalChange();
   }
 

@@ -34,4 +34,21 @@ void main() {
       DateTime(2026, 9, 10, 8),
     );
   });
+
+  test('a chosen time later today is held at now, never in the future', () {
+    expect(
+      resolveMovedAt(
+        day: DateTime(2026, 9, 10),
+        time: (hour: 18, minute: 0),
+        now: now,
+      ),
+      now,
+    );
+  });
+
+  test('notAfterNow keeps a past time and holds a future one at now', () {
+    final past = DateTime(2026, 9, 10, 9);
+    expect(notAfterNow(past, now), past);
+    expect(notAfterNow(DateTime(2026, 9, 10, 18), now), now);
+  });
 }

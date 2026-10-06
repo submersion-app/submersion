@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
@@ -47,7 +48,7 @@ List<EquipmentLocationSection> arrangeEquipmentByLocation(
     ..sort((a, b) {
       final byKind = a.kind.index.compareTo(b.kind.index);
       if (byKind != 0) return byKind;
-      final byName = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      final byName = compareTextForSort(a.name, b.name);
       return byName != 0 ? byName : a.id.compareTo(b.id);
     });
   EquipmentLocationSection section(EquipmentLocation? place) =>

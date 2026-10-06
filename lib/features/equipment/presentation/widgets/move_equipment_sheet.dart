@@ -40,25 +40,28 @@ Future<int?> showMoveEquipmentFlow(
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
   final notifier = ref.read(equipmentListNotifierProvider.notifier);
+  // A prompt the page can no longer show is a no: after the moves are
+  // written, a throw here would report a saved move as failed.
   Future<bool> ask(String title, String body, String yes, String no) async =>
-      await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: Text(title),
-          content: Text(body),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(no),
+      context.mounted &&
+      (await showDialog<bool>(
+            context: context,
+            builder: (dialogContext) => AlertDialog(
+              title: Text(title),
+              content: Text(body),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: Text(no),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: Text(yes),
+                ),
+              ],
             ),
-            FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: Text(yes),
-            ),
-          ],
-        ),
-      ) ??
-      false;
+          ) ??
+          false);
   final flow = EquipmentMoveFlow(
     moves: ref.read(equipmentLocationMoveRepositoryProvider),
     askMoveParts: (n) => ask(

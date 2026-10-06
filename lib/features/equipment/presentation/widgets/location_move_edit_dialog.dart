@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location_move.dart';
+import 'package:submersion/features/equipment/domain/services/move_time.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/location_confirm_dialogs.dart';
@@ -68,16 +69,19 @@ class _LocationMoveEditDialogState
     );
     if (picked == null) return;
     // Keep the time of day, so editing the date never reorders two moves
-    // made on the same day.
+    // made on the same day; held at now if that lands it in the future.
     setState(
-      () => _movedAt = DateTime(
-        picked.year,
-        picked.month,
-        picked.day,
-        _movedAt.hour,
-        _movedAt.minute,
-        _movedAt.second,
-        _movedAt.millisecond,
+      () => _movedAt = notAfterNow(
+        DateTime(
+          picked.year,
+          picked.month,
+          picked.day,
+          _movedAt.hour,
+          _movedAt.minute,
+          _movedAt.second,
+          _movedAt.millisecond,
+        ),
+        DateTime.now(),
       ),
     );
   }
@@ -89,12 +93,15 @@ class _LocationMoveEditDialogState
     );
     if (picked == null || !mounted) return;
     setState(
-      () => _movedAt = DateTime(
-        _movedAt.year,
-        _movedAt.month,
-        _movedAt.day,
-        picked.hour,
-        picked.minute,
+      () => _movedAt = notAfterNow(
+        DateTime(
+          _movedAt.year,
+          _movedAt.month,
+          _movedAt.day,
+          picked.hour,
+          picked.minute,
+        ),
+        DateTime.now(),
       ),
     );
   }

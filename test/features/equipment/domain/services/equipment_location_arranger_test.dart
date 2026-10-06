@@ -84,6 +84,17 @@ void main() {
     expect(flat.single.itemCount, 2);
   });
 
+  test('place names sort as the picker sorts them, accents folded', () {
+    // Plain code-unit order puts the accented name after 'Zeta'.
+    final ecurie = place('e', '\u00c9curie', EquipmentLocationKind.storage);
+    final zeta = place('z', 'Zeta', EquipmentLocationKind.storage);
+    final sections = arrange(
+      [item('a', EquipmentType.fins), item('b', EquipmentType.mask)],
+      {'a': zeta, 'b': ecurie},
+    );
+    expect([for (final s in sections) s.location?.id], ['e', 'z']);
+  });
+
   test('no items gives no sections', () {
     expect(arrange(const [], locationOf), isEmpty);
   });

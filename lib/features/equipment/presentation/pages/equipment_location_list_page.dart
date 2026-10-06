@@ -113,8 +113,8 @@ class EquipmentLocationListPage extends ConsumerWidget {
   }
 }
 
-/// The gear at each place now, retired and sold gear left out: it is no
-/// longer with the diver, wherever it was last recorded.
+/// The gear at each place now, retired, sold and wishlist gear left out:
+/// it is not with the diver, wherever it was last recorded.
 Map<String, int> locationItemCounts(WidgetRef ref) {
   final current =
       ref.watch(currentEquipmentLocationsProvider).value ??
@@ -128,7 +128,8 @@ Map<String, int> locationItemCounts(WidgetRef ref) {
 }
 
 /// The diver's gear that is with them (not retired, sold, or still on the
-/// wishlist) and has a current place. Watches both providers, so callers rebuild on a move.
+/// wishlist) and has a current place. Watches both providers, so callers
+/// rebuild on a move.
 List<EquipmentItem> itemsAtPlaces(WidgetRef ref) {
   final items = ref.watch(allEquipmentProvider).value ?? const [];
   final current =
