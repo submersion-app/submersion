@@ -22,6 +22,7 @@ Future<CurrencyMapping?> showCurrencyMappingDialog(
   builder: (_) => _CurrencyMappingDialog(
     initialTypes: types ?? rule.countedDiveTypeIds,
     initialModes: modes ?? rule.countedDiveModes,
+    ruleTypes: rule.countedDiveTypeIds,
   ),
 );
 
@@ -29,9 +30,13 @@ class _CurrencyMappingDialog extends StatefulWidget {
   final List<String> initialTypes;
   final List<DiveMode> initialModes;
 
+  /// The rule's own mapping, offered even when hidden from the pickers.
+  final List<String> ruleTypes;
+
   const _CurrencyMappingDialog({
     required this.initialTypes,
     required this.initialModes,
+    required this.ruleTypes,
   });
 
   @override
@@ -56,6 +61,10 @@ class _CurrencyMappingDialogState extends State<_CurrencyMappingDialog> {
             DiveTypeMultiSelectField(
               selectedTypeIds: _types,
               allowEmpty: true,
+              // A type hidden from the pickers (issue #401) stays offered
+              // when the rule counts it or the card did on opening, so the
+              // diver can always tick it back.
+              keepTypeIds: [...widget.ruleTypes, ...widget.initialTypes],
               labelText: l10n.certifications_currency_mappingDialog_types,
               onChanged: (ids) => setState(() => _types = ids),
             ),
