@@ -158,8 +158,8 @@ libraries enforces this, and keeps every file under `tables/` and
 
 ### Testing Migrations
 
-Each rung that changes the schema or rewrites data has a test under
-`test/core/database/`, named `migration_v<N>_test.dart` or
+A rung that changes the schema or rewrites data should have a test under
+`test/core/database/` (older rungs are not all covered), named `migration_v<N>_test.dart` or
 `migration_v<N>_<topic>_test.dart`. The test opens an in-memory
 `NativeDatabase` whose `setup` sets `PRAGMA user_version` to the version
 before the rung and creates the affected tables in their old shape with

@@ -362,9 +362,10 @@ The decompression and gas code lives in `lib/core/deco/`.
 
 ## Sync Conflict Resolution
 
-Most concurrent edits never become conflicts. Every synced row carries a
-Hybrid Logical Clock (`hlc`); when both the local and the remote version
-have one, the clock decides: a strictly newer remote HLC wins, and a tie or
+Most concurrent edits never become conflicts. Synced rows carry a Hybrid
+Logical Clock (`hlc`; nullable, since rows written before the HLC rollout
+have none). When both the local and the remote version have one, the clock
+decides: a strictly newer remote HLC wins, and a tie or
 a newer local HLC keeps the local row
 (`lib/core/services/sync/sync_service.dart`).
 

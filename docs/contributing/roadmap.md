@@ -1,7 +1,6 @@
 # Feature Roadmap
 
 > **Last Updated:** 2026-10-06
-> **Current Version:** 1.8.2
 
 What is built, in progress and planned, by feature category.
 
@@ -16,19 +15,19 @@ request.
 
 | Phase | Timeline | Focus | Status |
 |-------|----------|-------|--------|
-| **MVP** | Complete | Core dive logging workflow | ✅ Done |
-| **v1.0** | Complete | Production-ready with essential features | ✅ Done |
-| **v1.1** | Complete | UX improvements, GPS, maps, testing | ✅ Done |
-| **v1.5** | 4-6 months | Technical diving & dive computer integration | ✅ Done |
-| **v2.0** | 8-12 months | Advanced features & social | 🚧 In Progress |
-| **v3.0** | 12-18 months | Community platform & AI features | 🔮 Future |
+| **MVP** | Complete | Core dive logging workflow | Done |
+| **v1.0** | Complete | Production-ready with essential features | Done |
+| **v1.1** | Complete | UX improvements, GPS, maps, testing | Done |
+| **v1.5** | 4-6 months | Technical diving & dive computer integration | Done |
+| **v2.0** | 8-12 months | Advanced features & social | In Progress |
+| **v3.0** | 12-18 months | Community platform & AI features | Future |
 
 ### Status Legend
 
-- ✅ **Implemented** - Feature is complete and working
-- 📋 **Planned** - Scheduled for upcoming phase
-- 🔮 **Future** - Long-term roadmap item
-- 🎯 **Priority** - Critical for next release
+- **Implemented** - Feature is complete and working
+- **Planned** - Scheduled for upcoming phase
+- **Future** - Long-term roadmap item
+- **Priority** - Critical for next release
 
 ---
 
@@ -38,16 +37,16 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Dive number (auto-increment) | ✅ Implemented | MVP | With gap detection and renumbering |
-| Separate entry/exit time fields | ✅ Implemented | v1.1 | Auto-calculated duration |
-| Surface interval calculation | ✅ Implemented | v1.1 | Between successive dives |
-| Total bottom time | ✅ Implemented | MVP | Auto-calculated from profile |
-| Max depth, average depth | ✅ Implemented | MVP | |
-| Min/max temperature | ✅ Implemented | MVP | From profile data |
-| Dive type (20+ types) | ✅ Implemented | MVP | Recreational, tech, wreck, cave, night, etc. |
-| Runtime tracking | ✅ Implemented | v1.5 | Separate field for total runtime (entry→exit) |
-| Custom dive types (user-defined) | ✅ Implemented | v1.5 | Database-backed with management UI |
-| Auto bottom time calculation | ✅ Implemented | v1.5 | Calculate from dive profile (descent end → ascent start) |
+| Dive number (auto-increment) | Implemented | MVP | With gap detection and renumbering |
+| Separate entry/exit time fields | Implemented | v1.1 | Auto-calculated duration |
+| Surface interval calculation | Implemented | v1.1 | Between successive dives |
+| Total bottom time | Implemented | MVP | Auto-calculated from profile |
+| Max depth, average depth | Implemented | MVP | |
+| Min/max temperature | Implemented | MVP | From profile data |
+| Dive type (20+ types) | Implemented | MVP | Recreational, tech, wreck, cave, night, etc. |
+| Runtime tracking | Implemented | v1.5 | Separate field for total runtime (entry→exit) |
+| Custom dive types (user-defined) | Implemented | v1.5 | Database-backed with management UI |
+| Auto bottom time calculation | Implemented | v1.5 | Calculate from dive profile (descent end → ascent start) |
 
 ---
 
@@ -55,11 +54,11 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Site name, region, country | ✅ Implemented | MVP | Full site database |
-| GPS coordinates | ✅ Implemented | MVP | Lat/long with map view |
-| Boat / operator name | ✅ Implemented | v1.0 | Fields added to dive entity |
-| Trip grouping | ✅ Implemented | v1.0 | Entity, repository, full UI complete |
-| Liveaboard tracking | ✅ Implemented | v2.0 | Specialized trip type with liveaboard details |
+| Site name, region, country | Implemented | MVP | Full site database |
+| GPS coordinates | Implemented | MVP | Lat/long with map view |
+| Boat / operator name | Implemented | v1.0 | Fields added to dive entity |
+| Trip grouping | Implemented | v1.0 | Entity, repository, full UI complete |
+| Liveaboard tracking | Implemented | v2.0 | Specialized trip type with liveaboard details |
 
 **v1.5 Tasks:**
 
@@ -72,16 +71,16 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Visibility (numeric + qualitative) | ✅ Implemented | MVP | Enum: Poor/Fair/Good/Excellent |
-| Current (direction + strength) | ✅ Implemented | v1.0 | Enums for direction and strength |
-| Waves / swell height | ✅ Implemented | v1.0 | |
-| Air temperature | ✅ Implemented | MVP | Separate from water temp |
-| Entry/exit method | ✅ Implemented | v1.0 | Enums for methods |
-| Water type | ✅ Implemented | v1.0 | Fresh, Salt, Brackish |
-| Weather API | ✅ Implemented | v1.5 | OpenWeatherMap integration |
-| Tide API | ✅ Implemented | v1.5 | World Tides integration |
-| Auto-populate conditions | ✅ Implemented | v1.5 | From GPS + date/time |
-| Altitude | ✅ Implemented | v1.5 | For altitude dive calculations |
+| Visibility (numeric + qualitative) | Implemented | MVP | Enum: Poor/Fair/Good/Excellent |
+| Current (direction + strength) | Implemented | v1.0 | Enums for direction and strength |
+| Waves / swell height | Implemented | v1.0 | |
+| Air temperature | Implemented | MVP | Separate from water temp |
+| Entry/exit method | Implemented | v1.0 | Enums for methods |
+| Water type | Implemented | v1.0 | Fresh, Salt, Brackish |
+| Weather API | Implemented | v1.5 | OpenWeatherMap integration |
+| Tide API | Implemented | v1.5 | World Tides integration |
+| Auto-populate conditions | Implemented | v1.5 | From GPS + date/time |
+| Altitude | Implemented | v1.5 | For altitude dive calculations |
 
 **v1.5 Tasks:**
 
@@ -95,15 +94,15 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Free-text notes | ✅ Implemented | MVP | Rich text field |
-| Star rating (1-5) | ✅ Implemented | MVP | |
-| Favorite flag | ✅ Implemented | v1.1 | Boolean flag with toggle in list/detail |
-| Tags (many-to-many with colors) | ✅ Implemented | v1.1 | Chip selector with autocomplete |
-| Tag-based filtering | ✅ Implemented | v1.1 | With tag statistics |
-| Custom key:value fields | ✅ Implemented | v1.5 | Freeform metadata with autocomplete key suggestions |
-| Custom field search/filter | ✅ Implemented | v1.5 | Full-text + advanced search by key/value |
-| Custom fields in export/import | ✅ Implemented | v1.5 | CSV (`custom:` prefix), UDDF (`applicationdata`), PDF |
-| Smart collections based on tags | 📋 Planned | v2.0 | Saved filters |
+| Free-text notes | Implemented | MVP | Rich text field |
+| Star rating (1-5) | Implemented | MVP | |
+| Favorite flag | Implemented | v1.1 | Boolean flag with toggle in list/detail |
+| Tags (many-to-many with colors) | Implemented | v1.1 | Chip selector with autocomplete |
+| Tag-based filtering | Implemented | v1.1 | With tag statistics |
+| Custom key:value fields | Implemented | v1.5 | Freeform metadata with autocomplete key suggestions |
+| Custom field search/filter | Implemented | v1.5 | Full-text + advanced search by key/value |
+| Custom fields in export/import | Implemented | v1.5 | CSV (`custom:` prefix), UDDF (`applicationdata`), PDF |
+| Smart collections based on tags | Planned | v2.0 | Saved filters |
 
 **v1.5 Tasks (Complete):**
 
@@ -128,24 +127,24 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Time-depth profile chart | ✅ Implemented | MVP | Using fl_chart |
-| Temperature overlay | ✅ Implemented | MVP | Toggle on/off |
-| Zoom and pan controls | ✅ Implemented | v1.1 | Pinch/scroll zoom, pan when zoomed |
-| Touch markers/tooltips | ✅ Implemented | v1.1 | Shows depth, time, temp at touch point |
-| Profile markers/events | ✅ Implemented | v1.5 | Descent, safety stop, gas switch, alerts |
-| Ascent rate indicators | ✅ Implemented | v1.5 | Color-coded (green <9m/min, yellow 9-12, red >12) |
-| Ceiling / NDL curve | ✅ Implemented | v1.5 | Bühlmann ZH-L16C with GF support |
-| ppO₂ curve, CNS/OTU | ✅ Implemented | v1.5 | O2ToxicityCard with NOAA tables |
-| SAC/RMV overlay | ✅ Implemented | v1.5 | Instantaneous gas consumption |
-| Profile export as PNG | ✅ Implemented | v1.5 | Export chart image to Photos or file |
-| Range analysis | ✅ Implemented | v1.5 | Drag handles for min/max/avg stats |
-| Step-through playback | ✅ Implemented | v1.5 | Animated playback with real-time stats |
-| Heart rate overlay | ✅ Implemented | v1.5 | Toggle red HR line on chart |
-| Tissue saturation display | ✅ Implemented | v1.5 | 16-compartment bar chart with N2/He |
-| CNS/OTU on profile graph | ✅ Implemented | v1.5 | Toggle CNS% curve on dive profile chart |
-| Metric data source switching | ✅ Implemented | v1.5 | Per-metric computer vs calculated selection (NDL, ceiling, TTS, CNS) |
-| Data source badges | ✅ Implemented | v1.5 | Legend shows DC/Calc* indicators per metric |
-| Recursive CNS calculation | ✅ Implemented | v1.5 | CNS incorporates residual from previous dives |
+| Time-depth profile chart | Implemented | MVP | Using fl_chart |
+| Temperature overlay | Implemented | MVP | Toggle on/off |
+| Zoom and pan controls | Implemented | v1.1 | Pinch/scroll zoom, pan when zoomed |
+| Touch markers/tooltips | Implemented | v1.1 | Shows depth, time, temp at touch point |
+| Profile markers/events | Implemented | v1.5 | Descent, safety stop, gas switch, alerts |
+| Ascent rate indicators | Implemented | v1.5 | Color-coded (green <9m/min, yellow 9-12, red >12) |
+| Ceiling / NDL curve | Implemented | v1.5 | Bühlmann ZH-L16C with GF support |
+| ppO₂ curve, CNS/OTU | Implemented | v1.5 | O2ToxicityCard with NOAA tables |
+| SAC/RMV overlay | Implemented | v1.5 | Instantaneous gas consumption |
+| Profile export as PNG | Implemented | v1.5 | Export chart image to Photos or file |
+| Range analysis | Implemented | v1.5 | Drag handles for min/max/avg stats |
+| Step-through playback | Implemented | v1.5 | Animated playback with real-time stats |
+| Heart rate overlay | Implemented | v1.5 | Toggle red HR line on chart |
+| Tissue saturation display | Implemented | v1.5 | 16-compartment bar chart with N2/He |
+| CNS/OTU on profile graph | Implemented | v1.5 | Toggle CNS% curve on dive profile chart |
+| Metric data source switching | Implemented | v1.5 | Per-metric computer vs calculated selection (NDL, ceiling, TTS, CNS) |
+| Data source badges | Implemented | v1.5 | Legend shows DC/Calc* indicators per metric |
+| Recursive CNS calculation | Implemented | v1.5 | CNS incorporates residual from previous dives |
 
 **v1.5 Tasks:**
 
@@ -183,11 +182,11 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Multiple computers per dive | ✅ Implemented | v1.5 | DiveComputer entity with profiles |
-| Per-computer overlay UI | ✅ Implemented | v1.6 | ComputerToggleBar drives depth/temperature/event/pressure overlays |
-| Profile comparison (buddies) | 📋 Planned | v2.0 | Side-by-side view |
-| Profile merging (consolidation) | ✅ Implemented | v1.6 | Full-fidelity multi-computer consolidation; see docs/design/specs/2026-07-02-multi-computer-consolidation-completion-design.md |
-| Multi-transmitter support | 🚧 Partial | v1.6 | Pressure samples stored per computer (v94); chart still draws one series per tank -- per-(tank, computer) series split is a follow-up |
+| Multiple computers per dive | Implemented | v1.5 | DiveComputer entity with profiles |
+| Per-computer overlay UI | Implemented | v1.6 | ComputerToggleBar drives depth/temperature/event/pressure overlays |
+| Profile comparison (buddies) | Planned | v2.0 | Side-by-side view |
+| Profile merging (consolidation) | Implemented | v1.6 | Full-fidelity multi-computer consolidation; see docs/design/specs/2026-07-02-multi-computer-consolidation-completion-design.md |
+| Multi-transmitter support | Partial | v1.6 | Pressure samples stored per computer (v94); chart still draws one series per tank -- per-(tank, computer) series split is a follow-up |
 
 **v1.5 Tasks:**
 
@@ -212,10 +211,10 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Smoothing / cleaning bad samples | ✅ Implemented | v1.5 | Weighted moving average with triangular kernel |
-| Manual profile drawing | ✅ Implemented | v1.5 | Waypoint-based with linear interpolation |
-| Segment editing | ✅ Implemented | v1.5 | Range selection, depth/time shift, delete |
-| Outlier detection | ✅ Implemented | v1.5 | Z-score on depth deltas + physical impossibility check |
+| Smoothing / cleaning bad samples | Implemented | v1.5 | Weighted moving average with triangular kernel |
+| Manual profile drawing | Implemented | v1.5 | Waypoint-based with linear interpolation |
+| Segment editing | Implemented | v1.5 | Range selection, depth/time shift, delete |
+| Outlier detection | Implemented | v1.5 | Z-score on depth deltas + physical impossibility check |
 
 **v1.5 Tasks (Complete):**
 
@@ -237,15 +236,15 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| USB cable transfers | ✅ Implemented | v1.5 | Via libdivecomputer FFI |
-| Bluetooth Classic | ✅ Implemented | v1.5 | flutter_blue_plus |
-| Bluetooth LE (BLE) | ✅ Implemented | v1.5 | flutter_blue_plus with manufacturer protocols |
-| Pigeon platform channels | ✅ Implemented | v1.5 | Native libdivecomputer bridge (macOS full, iOS/Windows/Linux scaffolded) |
-| Full sample capture | ✅ Implemented | v1.5 | All deco/rebreather/event fields from dive computers |
-| Gradient factor import | ✅ Implemented | v1.5 | GF Low/High from dive computer deco model |
-| Dive event markers | ✅ Implemented | v1.5 | 25 event types mapped from libdivecomputer |
-| Infrared (legacy) | 🔮 Future | v3.0 | Limited hardware support |
-| Wi-Fi / cloud devices | 📋 Planned | v2.0 | Garmin, Shearwater cloud API |
+| USB cable transfers | Implemented | v1.5 | Via libdivecomputer FFI |
+| Bluetooth Classic | Implemented | v1.5 | flutter_blue_plus |
+| Bluetooth LE (BLE) | Implemented | v1.5 | flutter_blue_plus with manufacturer protocols |
+| Pigeon platform channels | Implemented | v1.5 | Native libdivecomputer bridge (macOS full, iOS/Windows/Linux scaffolded) |
+| Full sample capture | Implemented | v1.5 | All deco/rebreather/event fields from dive computers |
+| Gradient factor import | Implemented | v1.5 | GF Low/High from dive computer deco model |
+| Dive event markers | Implemented | v1.5 | 25 event types mapped from libdivecomputer |
+| Infrared (legacy) | Future | v3.0 | Limited hardware support |
+| Wi-Fi / cloud devices | Planned | v2.0 | Garmin, Shearwater cloud API |
 
 **v1.5 Tasks (Critical Path):**
 
@@ -274,9 +273,9 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| 300+ dive computer models | ✅ Implemented | v1.5 | Via libdivecomputer + device library |
-| Per-device presets | ✅ Implemented | v1.5 | Save connection settings |
-| Favorite devices | ✅ Implemented | v1.5 | Device list page with quick access |
+| 300+ dive computer models | Implemented | v1.5 | Via libdivecomputer + device library |
+| Per-device presets | Implemented | v1.5 | Save connection settings |
+| Favorite devices | Implemented | v1.5 | Device list page with quick access |
 
 **v1.5 Tasks:**
 
@@ -292,10 +291,10 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Download new dives only | ✅ Implemented | v1.5 | Uses lastDownload timestamp |
-| Force download all | ✅ Implemented | v1.5 | Toggle in download settings |
-| Auto-download when connected | 📋 Planned | v2.0 | Background sync |
-| Duplicate detection | ✅ Implemented | v1.5 | Fuzzy match on time+depth+duration |
+| Download new dives only | Implemented | v1.5 | Uses lastDownload timestamp |
+| Force download all | Implemented | v1.5 | Toggle in download settings |
+| Auto-download when connected | Planned | v2.0 | Background sync |
+| Duplicate detection | Implemented | v1.5 | Fuzzy match on time+depth+duration |
 
 **v1.5 Tasks:**
 
@@ -315,10 +314,10 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Rename dive computers | ✅ Implemented | v1.5 | Edit dialog in device detail |
-| Associate dives with computer | ✅ Implemented | v1.5 | computerId in dive_profiles table |
-| Firmware update via app | 📋 Planned | v2.0 | Shearwater-specific |
-| Remote configuration | 📋 Planned | v2.0 | Set gases, alarms, units |
+| Rename dive computers | Implemented | v1.5 | Edit dialog in device detail |
+| Associate dives with computer | Implemented | v1.5 | computerId in dive_profiles table |
+| Firmware update via app | Planned | v2.0 | Shearwater-specific |
+| Remote configuration | Planned | v2.0 | Set gases, alarms, units |
 
 **v1.5 Tasks:**
 
@@ -339,12 +338,12 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Multi-tank support | ✅ Implemented | MVP | Unlimited tanks with add/remove buttons |
-| Tank volume, pressures | ✅ Implemented | MVP | Start/end/working pressure |
-| Tank material | ✅ Implemented | v1.1 | Steel, Aluminum, Carbon Fiber |
-| Tank role | ✅ Implemented | v1.1 | Back gas, stage, deco, bailout, sidemount, pony |
-| Tank presets | ✅ Implemented | v1.1 | AL40/63/80, HP80/100/120, LP85, Steel 10/12/15L |
-| Save custom tank presets | ✅ Implemented | v1.5 | User-defined configurations |
+| Multi-tank support | Implemented | MVP | Unlimited tanks with add/remove buttons |
+| Tank volume, pressures | Implemented | MVP | Start/end/working pressure |
+| Tank material | Implemented | v1.1 | Steel, Aluminum, Carbon Fiber |
+| Tank role | Implemented | v1.1 | Back gas, stage, deco, bailout, sidemount, pony |
+| Tank presets | Implemented | v1.1 | AL40/63/80, HP80/100/120, LP85, Steel 10/12/15L |
+| Save custom tank presets | Implemented | v1.5 | User-defined configurations |
 
 ---
 
@@ -352,10 +351,10 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| O₂ %, He %, N₂ balance | ✅ Implemented | MVP | Air, Nitrox, Trimix |
-| Gas naming | ✅ Implemented | v1.1 | "EAN32", "TMX 18/45" auto-generated |
-| Gas mix templates | ✅ Implemented | v1.1 | Air, EAN32/36/40/50, O₂, Trimix blends |
-| Gas changes on profile | ✅ Implemented | v1.5 | Mark switch points |
+| O₂ %, He %, N₂ balance | Implemented | MVP | Air, Nitrox, Trimix |
+| Gas naming | Implemented | v1.1 | "EAN32", "TMX 18/45" auto-generated |
+| Gas mix templates | Implemented | v1.1 | Air, EAN32/36/40/50, O₂, Trimix blends |
+| Gas changes on profile | Implemented | v1.5 | Mark switch points |
 
 **v1.5 Tasks:**
 
@@ -369,14 +368,14 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| SAC / RMV (per dive) | ✅ Implemented | MVP | Surface Air Consumption Rate |
-| MOD calculation | ✅ Implemented | MVP | Maximum Operating Depth in entity |
-| END calculation | ✅ Implemented | MVP | Equivalent Narcotic Depth in entity |
-| CNS% tracking | ✅ Implemented | v1.5 | NOAA exposure tables with warnings |
-| OTU tracking | ✅ Implemented | v1.5 | Daily limit tracking with % display |
-| ppO₂ monitoring | ✅ Implemented | v1.5 | Warning/critical thresholds (1.4/1.6 bar) |
-| SAC per segment | 📋 Planned | v1.5 | Time-based or depth-based segments |
-| SAC per cylinder | 📋 Planned | v1.5 | For multi-tank dives |
+| SAC / RMV (per dive) | Implemented | MVP | Surface Air Consumption Rate |
+| MOD calculation | Implemented | MVP | Maximum Operating Depth in entity |
+| END calculation | Implemented | MVP | Equivalent Narcotic Depth in entity |
+| CNS% tracking | Implemented | v1.5 | NOAA exposure tables with warnings |
+| OTU tracking | Implemented | v1.5 | Daily limit tracking with % display |
+| ppO₂ monitoring | Implemented | v1.5 | Warning/critical thresholds (1.4/1.6 bar) |
+| SAC per segment | Planned | v1.5 | Time-based or depth-based segments |
+| SAC per cylinder | Planned | v1.5 | For multi-tank dives |
 
 **v1.5 Tasks:**
 
@@ -394,17 +393,17 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Bühlmann ZH-L16C with GF | ✅ Implemented | v1.5 | Full algorithm with 16 compartments |
-| Gradient Factors | ✅ Implemented | v1.5 | GF Low/High configurable in settings |
-| NDL display | ✅ Implemented | v1.5 | Real-time NDL on profile chart |
-| Ceiling calculation | ✅ Implemented | v1.5 | M-values with gradient factors |
-| Tissue loading display | ✅ Implemented | v1.5 | 16-compartment bar chart (DecoInfoPanel) |
-| TTS calculation | ✅ Implemented | v1.5 | Time To Surface with deco stops |
-| Deco stop schedule | ✅ Implemented | v1.5 | Stop depth/time with deep stop support |
-| Calculated vs DC ceiling | ✅ Implemented | v1.5 | Per-metric source switching (computer vs calculated) |
-| OC/CCR support | ✅ Implemented | v1.5 | Open Circuit / Closed Circuit Rebreather |
-| SCR support | ✅ Implemented | v1.5 | Semi-Closed Rebreather (moved from v2.0) |
-| Setpoints, diluent, bailout | ✅ Implemented | v1.5 | CCR-specific fields |
+| Bühlmann ZH-L16C with GF | Implemented | v1.5 | Full algorithm with 16 compartments |
+| Gradient Factors | Implemented | v1.5 | GF Low/High configurable in settings |
+| NDL display | Implemented | v1.5 | Real-time NDL on profile chart |
+| Ceiling calculation | Implemented | v1.5 | M-values with gradient factors |
+| Tissue loading display | Implemented | v1.5 | 16-compartment bar chart (DecoInfoPanel) |
+| TTS calculation | Implemented | v1.5 | Time To Surface with deco stops |
+| Deco stop schedule | Implemented | v1.5 | Stop depth/time with deep stop support |
+| Calculated vs DC ceiling | Implemented | v1.5 | Per-metric source switching (computer vs calculated) |
+| OC/CCR support | Implemented | v1.5 | Open Circuit / Closed Circuit Rebreather |
+| SCR support | Implemented | v1.5 | Semi-Closed Rebreather (moved from v2.0) |
+| Setpoints, diluent, bailout | Implemented | v1.5 | CCR-specific fields |
 
 **v1.5 Tasks (Deco Algorithm Implementation):**
 
@@ -439,14 +438,14 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Dive planner (multi-level) | ✅ Implemented | v1.5 | Plan dives before doing them |
-| Multi-gas planning | ✅ Implemented | v1.5 | Gas switches, deco gases |
-| Repetitive dive planning | ✅ Implemented | v1.5 | Surface interval, tissue loading |
-| Gas consumption projections | ✅ Implemented | v1.5 | Based on SAC history |
-| What-if scenarios | 📋 Planned | v2.0 | Deeper/longer/different gas |
-| Lost gas scenarios | 📋 Planned | v2.0 | Plan for lost decompression gas |
-| Turn pressure planning | 📋 Planned | v2.0 | Calculate gas turn pressures for penetration dives |
-| Range plans | 📋 Planned | v2.0 | Multiple profiles with different depths/times |
+| Dive planner (multi-level) | Implemented | v1.5 | Plan dives before doing them |
+| Multi-gas planning | Implemented | v1.5 | Gas switches, deco gases |
+| Repetitive dive planning | Implemented | v1.5 | Surface interval, tissue loading |
+| Gas consumption projections | Implemented | v1.5 | Based on SAC history |
+| What-if scenarios | Planned | v2.0 | Deeper/longer/different gas |
+| Lost gas scenarios | Planned | v2.0 | Plan for lost decompression gas |
+| Turn pressure planning | Planned | v2.0 | Calculate gas turn pressures for penetration dives |
+| Range plans | Planned | v2.0 | Multiple profiles with different depths/times |
 
 **v1.5 Tasks:**
 
@@ -474,12 +473,12 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Manage sites, regions, countries | ✅ Implemented | MVP | Full CRUD |
-| Depth range (min/max) | ✅ Implemented | v1.1 | |
-| Difficulty levels | ✅ Implemented | v1.1 | Beginner/Intermediate/Advanced/Technical |
-| Hazards, access notes | ✅ Implemented | v1.1 | Free-text fields |
-| Mooring numbers, parking | ✅ Implemented | v1.1 | For boat/shore diving |
-| Common marine life | ✅ Implemented | v1.5 | Link species to sites |
+| Manage sites, regions, countries | Implemented | MVP | Full CRUD |
+| Depth range (min/max) | Implemented | v1.1 | |
+| Difficulty levels | Implemented | v1.1 | Beginner/Intermediate/Advanced/Technical |
+| Hazards, access notes | Implemented | v1.1 | Free-text fields |
+| Mooring numbers, parking | Implemented | v1.1 | For boat/shore diving |
+| Common marine life | Implemented | v1.5 | Link species to sites |
 
 **v1.5 Tasks:**
 
@@ -492,12 +491,12 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Manual GPS entry | ✅ Implemented | MVP | Lat/long fields |
-| Capture GPS from phone | ✅ Implemented | v1.1 | "Use My Location" button |
-| Nearby site suggestions | ✅ Implemented | v1.1 | On dive create |
-| Reverse geocoding | ✅ Implemented | v1.1 | Auto-populate country/region from GPS |
-| Map-based location picker | ✅ Implemented | v1.1 | Pick location from interactive map |
-| GPS from photo EXIF | 📋 Planned | v1.5 | Extract and suggest site (extraction exists in `exif_extractor.dart`; site suggestion not built) |
+| Manual GPS entry | Implemented | MVP | Lat/long fields |
+| Capture GPS from phone | Implemented | v1.1 | "Use My Location" button |
+| Nearby site suggestions | Implemented | v1.1 | On dive create |
+| Reverse geocoding | Implemented | v1.1 | Auto-populate country/region from GPS |
+| Map-based location picker | Implemented | v1.1 | Pick location from interactive map |
+| GPS from photo EXIF | Planned | v1.5 | Extract and suggest site (extraction exists in `exif_extractor.dart`; site suggestion not built) |
 
 **v1.5 Tasks:**
 
@@ -511,12 +510,12 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Map of all dive sites | ✅ Implemented | MVP | Using flutter_map + OpenStreetMap |
-| Marker clustering | ✅ Implemented | v1.1 | Smooth animated zoom on cluster tap |
-| Color-coded markers | ✅ Implemented | v1.1 | Based on dive count or rating |
-| Dive Activity Map | ✅ Implemented | v1.5 | Heat map of all dives with clustered site markers |
-| Offline maps | ✅ Implemented | v1.5 | Tile caching via FMTC with region downloads |
-| Site filtering | ✅ Implemented | v1.5 | Filter sites by country, region, difficulty, depth, rating |
+| Map of all dive sites | Implemented | MVP | Using flutter_map + OpenStreetMap |
+| Marker clustering | Implemented | v1.1 | Smooth animated zoom on cluster tap |
+| Color-coded markers | Implemented | v1.1 | Based on dive count or rating |
+| Dive Activity Map | Implemented | v1.5 | Heat map of all dives with clustered site markers |
+| Offline maps | Implemented | v1.5 | Tile caching via FMTC with region downloads |
+| Site filtering | Implemented | v1.5 | Filter sites by country, region, difficulty, depth, rating |
 
 **v1.5 Tasks (Complete):**
 
@@ -533,8 +532,8 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Online dive site database lookup | 📋 Planned | v2.0 | Import from community sources |
-| Dive site reviews | 📋 Planned | v2.0 | User-generated content |
+| Online dive site database lookup | Planned | v2.0 | Import from community sources |
+| Dive site reviews | Planned | v2.0 | User-generated content |
 
 **v2.0 Tasks:**
 
@@ -550,11 +549,11 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Track 20+ equipment types | ✅ Implemented | MVP | BCD, reg, fins, suit, computer, etc. |
-| Serial, purchase date, cost | ✅ Implemented | MVP | All tracked |
-| Size, notes, status | ✅ Implemented | v1.0 | S/M/L/XL or numeric |
-| Filter equipment by status | ✅ Implemented | v1.1 | Dropdown for all statuses |
-| Photos of gear | 📋 Planned | v2.0 | Deferred with photos |
+| Track 20+ equipment types | Implemented | MVP | BCD, reg, fins, suit, computer, etc. |
+| Serial, purchase date, cost | Implemented | MVP | All tracked |
+| Size, notes, status | Implemented | v1.0 | S/M/L/XL or numeric |
+| Filter equipment by status | Implemented | v1.1 | Dropdown for all statuses |
+| Photos of gear | Planned | v2.0 | Deferred with photos |
 
 ---
 
@@ -562,9 +561,9 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Equipment sets | ✅ Implemented | MVP | Named collections |
-| Quick-select sets per dive | ✅ Implemented | v1.1 | Apply set from dive edit |
-| Save equipment as set | ✅ Implemented | v1.1 | Create set from current dive's equipment |
+| Equipment sets | Implemented | MVP | Named collections |
+| Quick-select sets per dive | Implemented | v1.1 | Apply set from dive edit |
+| Save equipment as set | Implemented | v1.1 | Create set from current dive's equipment |
 
 ---
 
@@ -572,10 +571,10 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Service history | ✅ Implemented | MVP | Last service date, interval |
-| Service reminders | ✅ Implemented | MVP | Visual warnings |
-| Service records detail | ✅ Implemented | v1.0 | Full CRUD with UI |
-| Push notifications | ✅ Implemented | v1.5 | For overdue service |
+| Service history | Implemented | MVP | Last service date, interval |
+| Service reminders | Implemented | MVP | Visual warnings |
+| Service records detail | Implemented | v1.0 | Full CRUD with UI |
+| Push notifications | Implemented | v1.5 | For overdue service |
 
 **v1.5 Tasks (Complete):**
 
@@ -598,11 +597,11 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Gear selected per dive | ✅ Implemented | MVP | Many-to-many relationship |
-| Weight system & amount | ✅ Implemented | v1.0 | Belt, integrated, trim, ankle, backplate |
-| Multiple weight entries | ✅ Implemented | v1.0 | e.g., integrated + trim weights |
-| Weight calculator | ✅ Implemented | v1.0 | Based on exposure suit, tank, water type |
-| Gas / cylinder config | ✅ Implemented | MVP | Per-tank gas mixes |
+| Gear selected per dive | Implemented | MVP | Many-to-many relationship |
+| Weight system & amount | Implemented | v1.0 | Belt, integrated, trim, ankle, backplate |
+| Multiple weight entries | Implemented | v1.0 | e.g., integrated + trim weights |
+| Weight calculator | Implemented | v1.0 | Based on exposure suit, tank, water type |
+| Gas / cylinder config | Implemented | MVP | Per-tank gas mixes |
 
 ---
 
@@ -612,13 +611,13 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Buddy contact list | ✅ Implemented | v1.0 | Full entity with CRUD |
-| Cert levels, agencies | ✅ Implemented | v1.0 | Stored on buddy entity |
-| Mark buddies per dive | ✅ Implemented | v1.0 | Many-to-many with roles |
-| Roles | ✅ Implemented | v1.0 | Buddy, Guide, Instructor, Student, Solo |
-| Buddy detail page | ✅ Implemented | v1.0 | Shared dive history and stats |
-| Import from contacts | ✅ Implemented | v1.5 | Mobile contact picker |
-| Share dives with buddy | ✅ Implemented | v1.5 | UDDF export via share sheet |
+| Buddy contact list | Implemented | v1.0 | Full entity with CRUD |
+| Cert levels, agencies | Implemented | v1.0 | Stored on buddy entity |
+| Mark buddies per dive | Implemented | v1.0 | Many-to-many with roles |
+| Roles | Implemented | v1.0 | Buddy, Guide, Instructor, Student, Solo |
+| Buddy detail page | Implemented | v1.0 | Shared dive history and stats |
+| Import from contacts | Implemented | v1.5 | Mobile contact picker |
+| Share dives with buddy | Implemented | v1.5 | UDDF export via share sheet |
 
 **v1.5 Tasks (Complete):**
 
@@ -631,10 +630,10 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Buddy signatures | ✅ Implemented | v1.5 | Student/observer sign-off |
-| Instructor signatures | ✅ Implemented | v1.5 | Per-dive signatures for training logs |
-| Signature capture | ✅ Implemented | v1.5 | Touch/stylus canvas drawing |
-| Signatures in PDF export | ✅ Implemented | v1.5 | Display in exported dive logs |
+| Buddy signatures | Implemented | v1.5 | Student/observer sign-off |
+| Instructor signatures | Implemented | v1.5 | Per-dive signatures for training logs |
+| Signature capture | Implemented | v1.5 | Touch/stylus canvas drawing |
+| Signatures in PDF export | Implemented | v1.5 | Display in exported dive logs |
 
 **v1.5 Tasks (Complete):**
 
@@ -652,10 +651,10 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Track shops/centers | ✅ Implemented | v1.0 | Full entity with CRUD |
-| Link dives to centers | ✅ Implemented | v1.0 | FK on dives table |
-| Boat names | ✅ Implemented | v1.0 | Field on dive entity |
-| Dive center detail page | ✅ Implemented | v1.0 | All dives at center, stats |
+| Track shops/centers | Implemented | v1.0 | Full entity with CRUD |
+| Link dives to centers | Implemented | v1.0 | FK on dives table |
+| Boat names | Implemented | v1.0 | Field on dive entity |
+| Dive center detail page | Implemented | v1.0 | All dives at center, stats |
 
 ---
 
@@ -665,13 +664,13 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Store cert levels, agencies | ✅ Implemented | v1.0 | Full entity with CRUD |
-| Cert numbers, issue dates | ✅ Implemented | v1.0 | |
-| Instructor names | ✅ Implemented | v1.0 | |
-| Expiry warnings | ✅ Implemented | v1.0 | Red/yellow badges |
-| Common agencies enum | ✅ Implemented | v1.0 | PADI, SSI, NAUI, SDI, TDI, GUE, RAID |
-| Common levels enum | ✅ Implemented | v1.0 | Open Water through Instructor |
-| Scanned card images | ✅ Implemented | v1.5 | Front/back photos stored as BLOB in database |
+| Store cert levels, agencies | Implemented | v1.0 | Full entity with CRUD |
+| Cert numbers, issue dates | Implemented | v1.0 | |
+| Instructor names | Implemented | v1.0 | |
+| Expiry warnings | Implemented | v1.0 | Red/yellow badges |
+| Common agencies enum | Implemented | v1.0 | PADI, SSI, NAUI, SDI, TDI, GUE, RAID |
+| Common levels enum | Implemented | v1.0 | Open Water through Instructor |
+| Scanned card images | Implemented | v1.5 | Front/back photos stored as BLOB in database |
 
 **v1.5 Tasks (Complete):**
 
@@ -686,8 +685,8 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| eCard wallet | 📋 Planned | v1.5 | Display certs in wallet format |
-| QR codes | 📋 Planned | v2.0 | Scannable verification |
+| eCard wallet | Planned | v1.5 | Display certs in wallet format |
+| QR codes | Planned | v2.0 | Scannable verification |
 
 **v1.5 Tasks:**
 
@@ -705,13 +704,13 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Mark dives as training | ✅ Implemented | MVP | "Training" dive type exists |
-| Course entity | ✅ Implemented | v1.5 | Full CRUD with instructor, certification link |
-| Associate with courses | ✅ Implemented | v1.5 | Dive-course many-to-one, course picker |
-| Instructor comments | ✅ Implemented | v1.5 | Using existing notes field |
-| E-signatures | ✅ Implemented | v1.5 | Per-dive instructor signatures |
-| Course-Certification linking | ✅ Implemented | v1.5 | Bidirectional link with picker UI |
-| Training log export | ✅ Implemented | v1.5 | PDF with instructor signatures |
+| Mark dives as training | Implemented | MVP | "Training" dive type exists |
+| Course entity | Implemented | v1.5 | Full CRUD with instructor, certification link |
+| Associate with courses | Implemented | v1.5 | Dive-course many-to-one, course picker |
+| Instructor comments | Implemented | v1.5 | Using existing notes field |
+| E-signatures | Implemented | v1.5 | Per-dive instructor signatures |
+| Course-Certification linking | Implemented | v1.5 | Bidirectional link with picker UI |
+| Training log export | Implemented | v1.5 | PDF with instructor signatures |
 
 **v1.5 Tasks (Complete):**
 
@@ -730,10 +729,10 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Medical clearance dates | ✅ Implemented | v1.5 | Expiry tracking with 30-day warning |
-| Emergency contacts | ✅ Implemented | v1.5 | Primary and secondary contacts |
-| Medications tracking | ✅ Implemented | v1.5 | Text field in diver profile |
-| Medical documents | 📋 Planned | v2.0 | PDF storage |
+| Medical clearance dates | Implemented | v1.5 | Expiry tracking with 30-day warning |
+| Emergency contacts | Implemented | v1.5 | Primary and secondary contacts |
+| Medications tracking | Implemented | v1.5 | Text field in diver profile |
+| Medical documents | Planned | v2.0 | PDF storage |
 
 **v1.5 Tasks (Complete):**
 
@@ -756,10 +755,10 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Water type | ✅ Implemented | v1.0 | Fresh, salt, brackish |
-| Hazards | ✅ Implemented | v1.1 | Site-level hazards field |
-| Entry altitude | ✅ Implemented | v1.5 | For altitude dive tables |
-| Tides | ✅ Implemented | v1.5 | World Tides API integration |
+| Water type | Implemented | v1.0 | Fresh, salt, brackish |
+| Hazards | Implemented | v1.1 | Site-level hazards field |
+| Entry altitude | Implemented | v1.5 | For altitude dive tables |
+| Tides | Implemented | v1.5 | World Tides API integration |
 
 **v1.5 Tasks:**
 
@@ -773,17 +772,17 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Species database | ✅ Implemented | MVP | 511 pre-seeded species with scientific names |
-| Tag species per dive | ✅ Implemented | MVP | Sightings with counts |
-| Taxonomy class | ✅ Implemented | v1.5 | taxonomy_class column, is_built_in flag |
-| Species management UI | ✅ Implemented | v1.5 | Settings > Manage > Species (list, search, filter, add, edit, delete) |
-| Species detail page | ✅ Implemented | v1.5 | Description, per-species statistics, navigation from stats/dive detail |
-| Stats per species | ✅ Implemented | v1.5 | Total sightings, dive count, depth range, top sites, first/last seen |
-| Reset to defaults | ✅ Implemented | v1.5 | Restore built-in species to original values |
-| Species photos | 📋 Planned | v2.0 | Local or remote images |
-| Distribution map | 📋 Planned | v2.0 | Map of sightings |
-| AI species identification | 📋 Planned | v2.0 | Upload photo, AI identifies species |
-| Offline species ID | 📋 Planned | v2.0 | Works without internet connection |
+| Species database | Implemented | MVP | 511 pre-seeded species with scientific names |
+| Tag species per dive | Implemented | MVP | Sightings with counts |
+| Taxonomy class | Implemented | v1.5 | taxonomy_class column, is_built_in flag |
+| Species management UI | Implemented | v1.5 | Settings > Manage > Species (list, search, filter, add, edit, delete) |
+| Species detail page | Implemented | v1.5 | Description, per-species statistics, navigation from stats/dive detail |
+| Stats per species | Implemented | v1.5 | Total sightings, dive count, depth range, top sites, first/last seen |
+| Reset to defaults | Implemented | v1.5 | Restore built-in species to original values |
+| Species photos | Planned | v2.0 | Local or remote images |
+| Distribution map | Planned | v2.0 | Map of sightings |
+| AI species identification | Planned | v2.0 | Upload photo, AI identifies species |
+| Offline species ID | Planned | v2.0 | Works without internet connection |
 
 **v1.5 Tasks (Complete):**
 
@@ -814,18 +813,18 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Attach photos/videos to dives | ✅ Implemented | v1.5 | Photo picker with time range filtering |
-| Auto-match by timestamp | ✅ Implemented | v1.5 | EXIF datetime matching with tolerance |
-| Display photo gallery | ✅ Implemented | v1.5 | DiveMediaSection widget on dive detail |
-| Full-screen photo viewer | ✅ Implemented | v1.5 | PhotoViewerPage with pinch-zoom, swipe |
-| Metadata overlay | ✅ Implemented | v1.5 | Depth, temp, elapsed time on photos |
-| Write dive data to EXIF | ✅ Implemented | v1.5 | In-place modification via native_exif |
-| Photo thumbnails | ✅ Implemented | v1.5 | Dynamic loading from device library |
-| Video support in logs | 📋 Planned | v2.0 | Attach and play videos |
-| Tag species in photos | 📋 Planned | v2.0 | Image annotation |
-| Color correction | 📋 Planned | v2.0 | Blue filter removal |
-| Shareable dive cards | 📋 Planned | v2.0 | Generate visual summary for social media |
-| Depth/time overlay | ✅ Implemented | v1.5 | MiniDiveProfileOverlay on photo viewer |
+| Attach photos/videos to dives | Implemented | v1.5 | Photo picker with time range filtering |
+| Auto-match by timestamp | Implemented | v1.5 | EXIF datetime matching with tolerance |
+| Display photo gallery | Implemented | v1.5 | DiveMediaSection widget on dive detail |
+| Full-screen photo viewer | Implemented | v1.5 | PhotoViewerPage with pinch-zoom, swipe |
+| Metadata overlay | Implemented | v1.5 | Depth, temp, elapsed time on photos |
+| Write dive data to EXIF | Implemented | v1.5 | In-place modification via native_exif |
+| Photo thumbnails | Implemented | v1.5 | Dynamic loading from device library |
+| Video support in logs | Planned | v2.0 | Attach and play videos |
+| Tag species in photos | Planned | v2.0 | Image annotation |
+| Color correction | Planned | v2.0 | Blue filter removal |
+| Shareable dive cards | Planned | v2.0 | Generate visual summary for social media |
+| Depth/time overlay | Implemented | v1.5 | MiniDiveProfileOverlay on photo viewer |
 
 **v1.5 Tasks (Complete):**
 
@@ -864,15 +863,15 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Full-text search | ✅ Implemented | MVP | Notes, sites, buddies |
-| Filter by date range | ✅ Implemented | MVP | |
-| Filter by location, depth | ✅ Implemented | MVP | |
-| Bulk delete with undo | ✅ Implemented | v1.0 | Multi-select mode |
-| Filter by tags, gas, gear | ✅ Implemented | v1.5 | Multi-select equipment, gas mix O2%, rating, duration |
-| Advanced Search page | ✅ Implemented | v1.5 | Full-page search form at `/dives/search` |
-| Bulk export | ✅ Implemented | v1.5 | Export selected dives to CSV/UDDF/PDF |
-| Bulk edit | ✅ Implemented | v1.5 | Change trip, add/remove tags on multiple dives |
-| Saved filters ("Smart Logs") | 📋 Planned | v2.0 | Persistent filter sets |
+| Full-text search | Implemented | MVP | Notes, sites, buddies |
+| Filter by date range | Implemented | MVP | |
+| Filter by location, depth | Implemented | MVP | |
+| Bulk delete with undo | Implemented | v1.0 | Multi-select mode |
+| Filter by tags, gas, gear | Implemented | v1.5 | Multi-select equipment, gas mix O2%, rating, duration |
+| Advanced Search page | Implemented | v1.5 | Full-page search form at `/dives/search` |
+| Bulk export | Implemented | v1.5 | Export selected dives to CSV/UDDF/PDF |
+| Bulk edit | Implemented | v1.5 | Change trip, add/remove tags on multiple dives |
+| Saved filters ("Smart Logs") | Planned | v2.0 | Persistent filter sets |
 
 **v1.5 Tasks (Complete):**
 
@@ -894,13 +893,13 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Total dives, bottom time | ✅ Implemented | MVP | |
-| Breakdown by year/country/site | ✅ Implemented | MVP | Top sites chart |
-| Depth/time histograms | ✅ Implemented | MVP | Depth distribution |
-| Records page | ✅ Implemented | v1.0 | Deepest, longest, coldest, warmest, first, last |
-| SAC trends | ✅ Implemented | v1.5 | Monthly average over 5 years |
-| Temperature graphs | ✅ Implemented | v1.5 | Water temp by month (min/avg/max) |
-| Dive type breakdown | ✅ Implemented | v1.5 | Pie chart by dive type |
+| Total dives, bottom time | Implemented | MVP | |
+| Breakdown by year/country/site | Implemented | MVP | Top sites chart |
+| Depth/time histograms | Implemented | MVP | Depth distribution |
+| Records page | Implemented | v1.0 | Deepest, longest, coldest, warmest, first, last |
+| SAC trends | Implemented | v1.5 | Monthly average over 5 years |
+| Temperature graphs | Implemented | v1.5 | Water temp by month (min/avg/max) |
+| Dive type breakdown | Implemented | v1.5 | Pie chart by dive type |
 
 **v1.5 Tasks:**
 
@@ -926,12 +925,12 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| PDF logbook export | ✅ Implemented | MVP | Basic layout |
-| Signatures in PDF | ✅ Implemented | v1.5 | Instructor + buddy signatures |
-| Multiple PDF templates | ✅ Implemented | v1.5 | Simple, Detailed, Professional, PADI-style, NAUI-style |
-| Page size options | ✅ Implemented | v1.5 | A4 and Letter sizes |
-| Certification cards in PDF | ✅ Implemented | v1.5 | Optional inclusion with front/back images |
-| Custom report designer | 📋 Planned | v2.0 | Drag-drop fields |
+| PDF logbook export | Implemented | MVP | Basic layout |
+| Signatures in PDF | Implemented | v1.5 | Instructor + buddy signatures |
+| Multiple PDF templates | Implemented | v1.5 | Simple, Detailed, Professional, PADI-style, NAUI-style |
+| Page size options | Implemented | v1.5 | A4 and Letter sizes |
+| Certification cards in PDF | Implemented | v1.5 | Optional inclusion with front/back images |
+| Custom report designer | Planned | v2.0 | Drag-drop fields |
 
 **v1.5 Tasks (Complete):**
 
@@ -955,8 +954,8 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Tools hub page | ✅ Implemented | v1.5 | Unified entry point at `/tools` |
-| Calculator navigation | ✅ Implemented | v1.5 | Cards for Deco, Gas, Weight calculators |
+| Tools hub page | Implemented | v1.5 | Unified entry point at `/tools` |
+| Calculator navigation | Implemented | v1.5 | Cards for Deco, Gas, Weight calculators |
 
 **v1.5 Tasks:**
 
@@ -970,10 +969,10 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Open-circuit planner | ✅ Implemented | v1.5 | Multi-level plans |
-| Multi-gas plans | ✅ Implemented | v1.5 | With deco stops |
-| Repetitive dive planning | ✅ Implemented | v1.5 | Surface interval, tissue loading |
-| Save planned dives | ✅ Implemented | v1.5 | Mark as "isPlanned" in DB |
+| Open-circuit planner | Implemented | v1.5 | Multi-level plans |
+| Multi-gas plans | Implemented | v1.5 | With deco stops |
+| Repetitive dive planning | Implemented | v1.5 | Surface interval, tissue loading |
+| Save planned dives | Implemented | v1.5 | Mark as "isPlanned" in DB |
 
 *See "4.5 Planning Utilities" for detailed task list*
 
@@ -983,8 +982,8 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Real-time simulation | ✅ Implemented | v1.5 | Interactive depth/time sliders |
-| NDL, ceiling, tissue loading | ✅ Implemented | v1.5 | Visual display with 16-compartment chart |
+| Real-time simulation | Implemented | v1.5 | Interactive depth/time sliders |
+| NDL, ceiling, tissue loading | Implemented | v1.5 | Visual display with 16-compartment chart |
 
 **v1.5 Tasks:**
 
@@ -1000,11 +999,11 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| MOD calculator | ✅ Implemented | MVP | In GasMix entity + dedicated calculator |
-| EAD / END calculator | ✅ Implemented | MVP | In GasMix entity |
-| Best-mix calculator | ✅ Implemented | v1.5 | Target depth → O₂% |
-| Gas consumption calculator | ✅ Implemented | v1.5 | Based on SAC, depth, time |
-| Rock-bottom calculator | ✅ Implemented | v1.5 | Emergency gas reserve |
+| MOD calculator | Implemented | MVP | In GasMix entity + dedicated calculator |
+| EAD / END calculator | Implemented | MVP | In GasMix entity |
+| Best-mix calculator | Implemented | v1.5 | Target depth → O₂% |
+| Gas consumption calculator | Implemented | v1.5 | Based on SAC, depth, time |
+| Rock-bottom calculator | Implemented | v1.5 | Emergency gas reserve |
 
 **v1.5 Tasks:**
 
@@ -1020,8 +1019,8 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Surface interval planner | 📋 Planned | v1.5 | How long to wait |
-| Altitude conversion | ✅ Implemented | v1.5 | Altitude dive tables with pressure calculator |
+| Surface interval planner | Planned | v1.5 | How long to wait |
+| Altitude conversion | Implemented | v1.5 | Altitude dive tables with pressure calculator |
 
 **v1.5 Tasks:**
 
@@ -1043,10 +1042,10 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Anonymous usage | ✅ Implemented | MVP | Local-first, no account required |
-| iCloud integration | ✅ Implemented | v1.5 | iOS/macOS cloud sync |
-| Google Drive integration | ✅ Implemented | v1.5 | Cross-platform cloud sync |
-| Cloud sync UI | ✅ Implemented | v1.5 | Provider selection, sync status, conflicts |
+| Anonymous usage | Implemented | MVP | Local-first, no account required |
+| iCloud integration | Implemented | v1.5 | iOS/macOS cloud sync |
+| Google Drive integration | Implemented | v1.5 | Cross-platform cloud sync |
+| Cloud sync UI | Implemented | v1.5 | Provider selection, sync status, conflicts |
 
 **v2.0 Tasks:**
 
@@ -1060,12 +1059,12 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Desktop ↔ mobile sync | ✅ Implemented | v1.5 | Via iCloud/Google Drive |
-| Conflict detection | ✅ Implemented | v1.5 | Tracks conflicts in SyncRecords |
-| Conflict resolution UI | ✅ Implemented | v1.5 | Dialog for resolving conflicts |
-| Sync status indicator | ✅ Implemented | v1.5 | Last sync time, pending changes |
-| Multi-device support | ✅ Implemented | v1.5 | Via cloud storage providers |
-| Web sync | 📋 Planned | v2.0 | Requires backend service |
+| Desktop ↔ mobile sync | Implemented | v1.5 | Via iCloud/Google Drive |
+| Conflict detection | Implemented | v1.5 | Tracks conflicts in SyncRecords |
+| Conflict resolution UI | Implemented | v1.5 | Dialog for resolving conflicts |
+| Sync status indicator | Implemented | v1.5 | Last sync time, pending changes |
+| Multi-device support | Implemented | v1.5 | Via cloud storage providers |
+| Web sync | Planned | v2.0 | Requires backend service |
 
 **v1.5 Tasks (Complete):**
 
@@ -1086,10 +1085,10 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Local backup export | ✅ Implemented | MVP | Full SQLite export |
-| Cloud backup via iCloud | ✅ Implemented | v1.5 | Apple platforms |
-| Cloud backup via Google Drive | ✅ Implemented | v1.5 | Cross-platform |
-| Custom folder sync | ✅ Implemented | v1.5 | Dropbox/OneDrive via folder selection |
+| Local backup export | Implemented | MVP | Full SQLite export |
+| Cloud backup via iCloud | Implemented | v1.5 | Apple platforms |
+| Cloud backup via Google Drive | Implemented | v1.5 | Cross-platform |
+| Custom folder sync | Implemented | v1.5 | Dropbox/OneDrive via folder selection |
 
 **v1.5 Tasks (Complete):**
 
@@ -1109,8 +1108,8 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Full offline logging | ✅ Implemented | MVP | Local-first design |
-| Deferred sync | 📋 Planned | v2.0 | Queue changes when offline |
+| Full offline logging | Implemented | MVP | Local-first design |
+| Deferred sync | Planned | v2.0 | Queue changes when offline |
 
 **v2.0 Tasks:**
 
@@ -1126,15 +1125,15 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| CSV import/export | ✅ Implemented | MVP | Dives, sites, equipment |
-| UDDF import/export | ✅ Implemented | MVP | v3.2.0 compliant |
-| UDDF buddy/guide export | ✅ Implemented | v1.1 | Export to both legacy and app-specific fields |
-| PDF export | ✅ Implemented | MVP | Printable logbook |
-| Excel export | ✅ Implemented | v1.5 | Multi-sheet .xlsx with stats |
-| Google Earth KML export | ✅ Implemented | v1.5 | Site placemarks with dive history |
-| DAN DL7 export | ⏸️ Deferred | v2.0 | No public spec available |
-| ePub export | 📋 Planned | v2.0 | Electronic book format for travel |
-| HTML export | 📋 Planned | v2.0 | Web-viewable logbook |
+| CSV import/export | Implemented | MVP | Dives, sites, equipment |
+| UDDF import/export | Implemented | MVP | v3.2.0 compliant |
+| UDDF buddy/guide export | Implemented | v1.1 | Export to both legacy and app-specific fields |
+| PDF export | Implemented | MVP | Printable logbook |
+| Excel export | Implemented | v1.5 | Multi-sheet .xlsx with stats |
+| Google Earth KML export | Implemented | v1.5 | Site placemarks with dive history |
+| DAN DL7 export | Deferred | v2.0 | No public spec available |
+| ePub export | Planned | v2.0 | Electronic book format for travel |
+| HTML export | Planned | v2.0 | Web-viewable logbook |
 
 **v1.5 Tasks:**
 
@@ -1153,15 +1152,15 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Import from Subsurface | ✅ Implemented | v1.5 | UDDF or XML via universal import wizard |
-| Import from MacDive | ✅ Implemented | v1.5 | CSV via universal import wizard |
-| Import from other apps | ✅ Implemented | v1.5 | Diving Log, DiveMate, etc. via universal import |
-| Upload to divelogs.de | 📋 Planned | v2.0 | API integration |
-| Garmin Connect integration | 📋 Planned | v2.0 | Import Garmin watch dives |
-| Shearwater Cloud import | 📋 Planned | v2.0 | Import from Shearwater cloud |
-| Suunto app import | 📋 Planned | v2.0 | Import via Suunto cloud/Movescount |
-| Diviac import | 📋 Planned | v2.0 | Import from Diviac online logbook |
-| Deepblu import | 📋 Planned | v2.0 | Import from Deepblu platform |
+| Import from Subsurface | Implemented | v1.5 | UDDF or XML via universal import wizard |
+| Import from MacDive | Implemented | v1.5 | CSV via universal import wizard |
+| Import from other apps | Implemented | v1.5 | Diving Log, DiveMate, etc. via universal import |
+| Upload to divelogs.de | Planned | v2.0 | API integration |
+| Garmin Connect integration | Planned | v2.0 | Import Garmin watch dives |
+| Shearwater Cloud import | Planned | v2.0 | Import from Shearwater cloud |
+| Suunto app import | Planned | v2.0 | Import via Suunto cloud/Movescount |
+| Diviac import | Planned | v2.0 | Import from Diviac online logbook |
+| Deepblu import | Planned | v2.0 | Import from Deepblu platform |
 
 **v1.5 Tasks (Complete):**
 
@@ -1188,10 +1187,10 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Universal CSV import | ✅ Implemented | MVP | Configurable column mapping |
-| Format auto-detection | ✅ Implemented | v1.5 | Smart header analysis with source app detection |
-| Import templates | ✅ Implemented | v1.5 | Built-in mappings for 12+ apps |
-| Import validation | ✅ Implemented | v1.5 | Required fields, data types, dry-run preview |
+| Universal CSV import | Implemented | MVP | Configurable column mapping |
+| Format auto-detection | Implemented | v1.5 | Smart header analysis with source app detection |
+| Import templates | Implemented | v1.5 | Built-in mappings for 12+ apps |
+| Import validation | Implemented | v1.5 | Required fields, data types, dry-run preview |
 
 **v1.5 Tasks (Complete):**
 
@@ -1209,10 +1208,10 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Share dives to social media | 📋 Planned | v2.0 | FB, Instagram, Twitter |
-| Generate composite images | 📋 Planned | v2.0 | Profile + photo + stats |
-| Share links | 📋 Planned | v2.0 | Web view of dive (requires backend) |
-| Shareable dive cards | 📋 Planned | v2.0 | Visual summary image for social |
+| Share dives to social media | Planned | v2.0 | FB, Instagram, Twitter |
+| Generate composite images | Planned | v2.0 | Profile + photo + stats |
+| Share links | Planned | v2.0 | Web view of dive (requires backend) |
+| Shareable dive cards | Planned | v2.0 | Visual summary image for social |
 
 **v2.0 Tasks:**
 
@@ -1227,10 +1226,10 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| View community dive sites | 📋 Planned | v2.0 | Requires backend |
-| Explore nearby sites | 📋 Planned | v2.0 | GPS-based search |
-| User-submitted site photos | ✅ Implemented | v1.5 | Site media section: photos, videos, and PDF/document attachments per site (issues #211/#627) |
-| Dive site reviews & ratings | 📋 Planned | v2.0 | Rate and review sites |
+| View community dive sites | Planned | v2.0 | Requires backend |
+| Explore nearby sites | Planned | v2.0 | GPS-based search |
+| User-submitted site photos | Implemented | v1.5 | Site media section: photos, videos, and PDF/document attachments per site (issues #211/#627) |
+| Dive site reviews & ratings | Planned | v2.0 | Rate and review sites |
 
 **v2.0 Tasks:**
 
@@ -1245,13 +1244,13 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Diver profiles | 📋 Planned | v2.0 | Public profile with stats, certs, dive count |
-| Follow buddies | 📋 Planned | v2.0 | Activity feed from followed divers |
-| Buddy activity feed | 📋 Planned | v2.0 | New dives, photos, certs from buddies |
-| Community groups | 📋 Planned | v2.0 | Dive clubs, schools, interest groups |
-| In-app messaging | 📋 Planned | v2.0 | Chat between buddies |
-| Public dive feed | 📋 Planned | v2.0 | Discover dive logs from community |
-| Digital instructor signatures | 📋 Planned | v2.0 | Instructors verify/sign training logs |
+| Diver profiles | Planned | v2.0 | Public profile with stats, certs, dive count |
+| Follow buddies | Planned | v2.0 | Activity feed from followed divers |
+| Buddy activity feed | Planned | v2.0 | New dives, photos, certs from buddies |
+| Community groups | Planned | v2.0 | Dive clubs, schools, interest groups |
+| In-app messaging | Planned | v2.0 | Chat between buddies |
+| Public dive feed | Planned | v2.0 | Discover dive logs from community |
+| Digital instructor signatures | Planned | v2.0 | Instructors verify/sign training logs |
 
 **v2.0 Tasks:**
 
@@ -1269,9 +1268,9 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Browse/book fun dives | 🔮 Future | v3.0 | PADI Adventures-style |
-| Book courses | 🔮 Future | v3.0 | Integration with dive shops |
-| Pass cert details to bookings | 🔮 Future | v3.0 | Auto-fill diver info |
+| Browse/book fun dives | Future | v3.0 | PADI Adventures-style |
+| Book courses | Future | v3.0 | Integration with dive shops |
+| Pass cert details to bookings | Future | v3.0 | Auto-fill diver info |
 
 ---
 
@@ -1281,11 +1280,11 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Dark mode | ✅ Implemented | MVP | Light/Dark/System |
-| Card color customization | ✅ Implemented | v1.5 | Color dive cards by any attribute (depth, temp, rating, etc.) with gradient presets |
-| Customizable logbook columns | 📋 Planned | v2.0 | Show/hide fields |
-| Themes | 📋 Planned | v2.0 | Custom color schemes |
-| Quick actions | 📋 Planned | v1.5 | iOS shortcuts, Android widgets |
+| Dark mode | Implemented | MVP | Light/Dark/System |
+| Card color customization | Implemented | v1.5 | Color dive cards by any attribute (depth, temp, rating, etc.) with gradient presets |
+| Customizable logbook columns | Planned | v2.0 | Show/hide fields |
+| Themes | Planned | v2.0 | Custom color schemes |
+| Quick actions | Planned | v1.5 | iOS shortcuts, Android widgets |
 
 **v1.5 Tasks:**
 
@@ -1316,8 +1315,8 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Multiple divers per database | ✅ Done | v1.5 | DiveMate-style |
-| Account switching | ✅ Done | v1.5 | Shared devices |
+| Multiple divers per database | Done | v1.5 | DiveMate-style |
+| Account switching | Done | v1.5 | Shared devices |
 
 **v1.5 Tasks (Complete):**
 
@@ -1332,16 +1331,16 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Screen reader support | ✅ Implemented | v1.5 | Semantics on all interactive elements |
-| Keyboard navigation | ✅ Implemented | v1.5 | Global shortcuts, focus traversal, help dialog |
-| Semantic helpers | ✅ Implemented | v1.5 | Extension methods and label builders |
-| Focus management | ✅ Implemented | v1.5 | FocusableCard, AccessiblePage, OrderedTraversalPolicy |
-| Shortcuts help dialog | ✅ Implemented | v1.5 | ? key opens categorized shortcut overlay |
-| Multi-language support | ✅ Implemented | v1.5 | 10 languages, 3,931 ARB keys, gen-l10n codegen |
-| RTL layout support | ✅ Implemented | v1.5 | Arabic & Hebrew with directional EdgeInsets/Alignment |
-| Locale-aware formatting | ✅ Implemented | v1.5 | Localized dates, numbers, durations, connector words |
-| Language picker | ✅ Implemented | v1.5 | Per-diver locale persistence via Drift |
-| High contrast themes | 📋 Planned | v2.0 | Accessibility feature |
+| Screen reader support | Implemented | v1.5 | Semantics on all interactive elements |
+| Keyboard navigation | Implemented | v1.5 | Global shortcuts, focus traversal, help dialog |
+| Semantic helpers | Implemented | v1.5 | Extension methods and label builders |
+| Focus management | Implemented | v1.5 | FocusableCard, AccessiblePage, OrderedTraversalPolicy |
+| Shortcuts help dialog | Implemented | v1.5 | ? key opens categorized shortcut overlay |
+| Multi-language support | Implemented | v1.5 | 10 languages, 3,931 ARB keys, gen-l10n codegen |
+| RTL layout support | Implemented | v1.5 | Arabic & Hebrew with directional EdgeInsets/Alignment |
+| Locale-aware formatting | Implemented | v1.5 | Localized dates, numbers, durations, connector words |
+| Language picker | Implemented | v1.5 | Per-diver locale persistence via Drift |
+| High contrast themes | Planned | v2.0 | Accessibility feature |
 
 **v1.5 Tasks (Complete):**
 
@@ -1379,12 +1378,12 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Achievement badges | 📋 Planned | v2.0 | Earn badges for milestones |
-| Dive milestones | 📋 Planned | v2.0 | 100 dives, 1000m depth, etc. |
-| Species life list | 📋 Planned | v2.0 | Track total unique species seen |
-| Depth achievements | 📋 Planned | v2.0 | First 20m, 30m, 40m dives |
-| Streak tracking | 📋 Planned | v2.0 | Monthly/yearly dive streaks |
-| Progress visualization | 📋 Planned | v2.0 | Journey timeline with milestones |
+| Achievement badges | Planned | v2.0 | Earn badges for milestones |
+| Dive milestones | Planned | v2.0 | 100 dives, 1000m depth, etc. |
+| Species life list | Planned | v2.0 | Track total unique species seen |
+| Depth achievements | Planned | v2.0 | First 20m, 30m, 40m dives |
+| Streak tracking | Planned | v2.0 | Monthly/yearly dive streaks |
+| Progress visualization | Planned | v2.0 | Journey timeline with milestones |
 
 **v2.0 Tasks:**
 
@@ -1401,13 +1400,13 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Apple Watch Ultra import | ✅ Implemented | v1.5 | Import dives via HealthKit with 3-step wizard |
-| Apple HealthKit integration | ✅ Implemented | v1.5 | Read depth/temperature/heart rate data |
-| Duplicate detection | ✅ Implemented | v1.5 | Exact wearableId + fuzzy DiveMatcher scoring |
-| Garmin FIT file import | ✅ Implemented | v1.5 | FitParserService + 3-step import wizard |
-| Suunto BLE direct download | ✅ Implemented | v1.5 | suunto_ble_protocol, device library support |
-| UDDF import | ✅ Implemented | v1.5 | Covers Suunto app/Movescount exports |
-| Garmin Connect cloud API | 📋 Planned | v2.0 | Cloud sync (not file-based) |
+| Apple Watch Ultra import | Implemented | v1.5 | Import dives via HealthKit with 3-step wizard |
+| Apple HealthKit integration | Implemented | v1.5 | Read depth/temperature/heart rate data |
+| Duplicate detection | Implemented | v1.5 | Exact wearableId + fuzzy DiveMatcher scoring |
+| Garmin FIT file import | Implemented | v1.5 | FitParserService + 3-step import wizard |
+| Suunto BLE direct download | Implemented | v1.5 | suunto_ble_protocol, device library support |
+| UDDF import | Implemented | v1.5 | Covers Suunto app/Movescount exports |
+| Garmin Connect cloud API | Planned | v2.0 | Cloud sync (not file-based) |
 
 **v1.5 Tasks (Complete):**
 
@@ -1436,11 +1435,11 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Pre-dive feeling monitor | 📋 Planned | v2.0 | Track readiness before dive |
-| Post-dive feeling monitor | 📋 Planned | v2.0 | Track condition after dive |
-| Breathing technique analysis | 📋 Planned | v2.0 | SAC improvement suggestions |
-| Hydration reminders | 📋 Planned | v2.0 | DCS prevention |
-| No-fly countdown | ✅ Implemented | v1.5 | Based on deco status |
+| Pre-dive feeling monitor | Planned | v2.0 | Track readiness before dive |
+| Post-dive feeling monitor | Planned | v2.0 | Track condition after dive |
+| Breathing technique analysis | Planned | v2.0 | SAC improvement suggestions |
+| Hydration reminders | Planned | v2.0 | DCS prevention |
+| No-fly countdown | Implemented | v1.5 | Based on deco status |
 
 **v2.0 Tasks:**
 
@@ -1457,9 +1456,9 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Assistant dive computer | 🔮 Future | v3.0 | Smartphone in housing |
-| Remote DC configuration | 📋 Planned | v2.0 | Bluetooth settings sync |
-| Firmware updates via app | 📋 Planned | v2.0 | Shearwater-specific |
+| Assistant dive computer | Future | v3.0 | Smartphone in housing |
+| Remote DC configuration | Planned | v2.0 | Bluetooth settings sync |
+| Firmware updates via app | Planned | v2.0 | Shearwater-specific |
 
 ---
 
@@ -1467,9 +1466,9 @@ request.
 
 | Feature | Status | Phase | Notes |
 |---------|--------|-------|-------|
-| Shearwater Cloud sync | 📋 Planned | v2.0 | API integration |
-| Garmin Dive sync | 📋 Planned | v2.0 | Import from Garmin |
-| PADI eCard integration | 📋 Planned | v2.0 | Display PADI certs |
+| Shearwater Cloud sync | Planned | v2.0 | API integration |
+| Garmin Dive sync | Planned | v2.0 | Import from Garmin |
+| PADI eCard integration | Planned | v2.0 | Display PADI certs |
 
 **v2.0 Tasks:**
 
@@ -1601,7 +1600,7 @@ request.
 
 # Release Criteria
 
-## v1.0 ✅ Complete
+## v1.0 Complete
 
 - [x] All critical features implemented
 - [x] 80%+ unit test coverage (165+ tests)
@@ -1610,7 +1609,7 @@ request.
 - [ ] App store submissions (iOS, Android)
 - [ ] Documentation (user guide, FAQ)
 
-## v1.1 ✅ Complete
+## v1.1 Complete
 
 - [x] Entry/exit times, surface interval, dive numbering
 - [x] GPS integration, reverse geocoding
@@ -1696,11 +1695,11 @@ request.
 
 | Platform | Status | Requirements |
 |----------|--------|--------------|
-| iOS | ✅ | iOS 15+ |
-| Android | ✅ | Android 8+ (API 26) |
-| macOS | ✅ | macOS 12+ |
-| Windows | ✅ | Windows 10+ |
-| Linux | ✅ | x86-64, glibc 2.38+ |
+| iOS | Supported | iOS 15+ |
+| Android | Supported | Android 8+ (API 26) |
+| macOS | Supported | macOS 12+ |
+| Windows | Supported | Windows 10+ |
+| Linux | Supported | x86-64, glibc 2.38+ |
 | Web | v2.0 | Requires cloud sync |
 
 ---
