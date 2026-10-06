@@ -348,10 +348,13 @@ Equipment service history entry.
 |----------|------|-------------|
 | `id` | String | Unique identifier |
 | `equipmentId` | String | Equipment reference |
+| `serviceCategory` | ServiceCategory | Kind of work done (repair, inspection, ...) |
+| `serviceKindId` | String? | Service kind (clock) this record fulfills; null when untagged |
 | `serviceDate` | DateTime | Service date |
-| `serviceType` | ServiceType | Type of service |
 | `provider` | String? | Service provider |
 | `cost` | double? | Service cost |
+| `currency` | String | Currency of `cost` (default `USD`) |
+| `nextServiceDue` | DateTime? | When the next service is due |
 | `notes` | String | Service notes |
 
 ---
