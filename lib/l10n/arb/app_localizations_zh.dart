@@ -3204,6 +3204,109 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_edit_label_agency => '机构 *';
 
   @override
+  String get certificationAgencies_unknownAgency => '未知机构';
+
+  @override
+  String get certificationAgencies_unknownCertification => '未知证书';
+
+  @override
+  String get certificationAgencies_addCustomAgency => '添加自定义机构...';
+
+  @override
+  String get certificationAgencies_addCustomCertification => '添加自定义证书...';
+
+  @override
+  String get certificationAgencies_dialog_newAgencyTitle => '新建机构';
+
+  @override
+  String get certificationAgencies_dialog_editAgencyTitle => '编辑机构';
+
+  @override
+  String get certificationAgencies_dialog_newCertificationTitle => '新建证书';
+
+  @override
+  String get certificationAgencies_dialog_editCertificationTitle => '编辑证书';
+
+  @override
+  String get certificationAgencies_dialog_nameLabel => '名称';
+
+  @override
+  String get certificationAgencies_dialog_colorLabel => '卡片颜色';
+
+  @override
+  String get certificationAgencies_dialog_specialty => '专长';
+
+  @override
+  String get certificationAgencies_error_nameRequired => '请输入名称';
+
+  @override
+  String get certificationAgencies_error_nameTaken => '该名称已被使用';
+
+  @override
+  String get settings_manage_certificationAgencies => '认证机构';
+
+  @override
+  String get settings_manage_certificationAgencies_subtitle => '管理自定义机构和证书';
+
+  @override
+  String get certificationAgencies_section_yours => '你的机构';
+
+  @override
+  String get certificationAgencies_section_builtIn => '内置机构';
+
+  @override
+  String get certificationAgencies_addAgency => '添加机构';
+
+  @override
+  String certificationAgencies_sharedBy(String name) {
+    return '由 $name 共享';
+  }
+
+  @override
+  String get certificationAgencies_editor_addCertification => '添加证书';
+
+  @override
+  String get certificationAgencies_editor_builtInHint => '内置证书无法更改，你可以添加自己的证书。';
+
+  @override
+  String certificationAgencies_delete_confirmTitle(String name) {
+    return '删除 $name？';
+  }
+
+  @override
+  String get certificationAgencies_delete_refusedTitle => '仍在使用中';
+
+  @override
+  String certificationAgencies_delete_refusedBody(String usage) {
+    return '正被 $usage 使用。请先修改它们。';
+  }
+
+  @override
+  String certificationAgencies_usage_certifications(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个证书',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_courses(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 门课程',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_and(String first, String second) {
+    return '$first和$second';
+  }
+
+  @override
   String get certifications_edit_addRecognition => '添加其他认可';
 
   @override
@@ -11089,6 +11192,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_certificationAgency_ffessm => 'FFESSM';
+
+  @override
+  String get enum_certificationAgency_acuc => 'ACUC';
+
+  @override
+  String get enum_certificationAgency_dan => 'DAN';
 
   @override
   String get enum_certificationAgency_gue => 'GUE';

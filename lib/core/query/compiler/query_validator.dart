@@ -285,7 +285,8 @@ void _checkValue(
             args: {'field': field.key},
           ),
         );
-      } else if (!(field.enumValues ?? const []).contains(value.name)) {
+      } else if (field.customValueSubject == null &&
+          !(field.enumValues ?? const []).contains(value.name)) {
         out.add(
           QueryError(
             QueryErrorCode.notEnumValue,

@@ -22,6 +22,66 @@ void main() {
   Future<NameIndex> load({String? diverId = 'me'}) =>
       NameIndexLoader(db).load(diverId: diverId, l10n: _en);
 
+  group('custom certification agencies and levels (issue #690)', () {
+    Future<void> agency(String id, String owner, String name, bool shared) =>
+        db.customStatement(
+          'INSERT INTO custom_certification_agencies (id, diver_id, name, '
+          'color_argb, is_shared, created_at, updated_at) '
+          'VALUES (?, ?, ?, 0, ?, 0, 0)',
+          [id, owner, name, shared ? 1 : 0],
+        );
+    Future<void> level(
+      String id,
+      String owner,
+      String agencyId,
+      String name,
+      bool shared,
+    ) => db.customStatement(
+      'INSERT INTO custom_certification_levels (id, diver_id, agency_id, '
+      'name, is_progression, sort_order, is_shared, created_at, updated_at) '
+      'VALUES (?, ?, ?, ?, 1, 0, ?, 0, 0)',
+      [id, owner, agencyId, name, shared ? 1 : 0],
+    );
+
+    test(
+      'own and shared entries load; another diver\'s private ones do not',
+      () async {
+        await agency('a-own', 'me', 'Club Mine', false);
+        await agency('a-shared', 'other', 'Club Shared', true);
+        await agency('a-private', 'other', 'Club Private', false);
+        await level('l-own', 'me', 'padi', 'Ice Diver', false);
+        await level(
+          'l-shared-agency',
+          'other',
+          'a-shared',
+          'Shared Rung',
+          false,
+        );
+        await level('l-private', 'other', 'padi', 'Private Rung', false);
+        final index = await load();
+        const agencies = QuerySubject.certificationAgencies;
+        const levels = QuerySubject.certificationLevels;
+        expect(index.resolve(agencies, 'club mine')?.id, 'a-own');
+        expect(index.resolve(agencies, 'Club Shared')?.id, 'a-shared');
+        expect(index.resolve(agencies, 'Club Private'), isNull);
+        expect(index.resolve(levels, 'ice diver')?.id, 'l-own');
+        // A level under a shared custom agency follows the agency.
+        expect(index.resolve(levels, 'Shared Rung')?.id, 'l-shared-agency');
+        expect(index.resolve(levels, 'Private Rung'), isNull);
+      },
+    );
+
+    test('the tables tick the index', () {
+      expect(
+        NameIndexLoader.tables,
+        containsAll([
+          'custom_certification_agencies',
+          'custom_certification_levels',
+        ]),
+      );
+    });
+  });
+
   test('places merge sites by label and remember their columns', () async {
     final index = await load();
     final bonaire = index
@@ -204,6 +264,9 @@ void main() {
       'dive_types',
       'equipment',
       'species',
+      // Custom certification agency and level names (issue #690).
+      'custom_certification_agencies',
+      'custom_certification_levels',
     });
   });
 

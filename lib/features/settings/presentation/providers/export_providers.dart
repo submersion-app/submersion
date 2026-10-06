@@ -55,6 +55,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Export service provider
 final exportServiceProvider = Provider<ExportService>((ref) {
@@ -654,6 +655,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
       title: localization.l10n.settings_export_pdfDocumentTitle,
       diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
       certifications: certifications,
+      certificationCatalog: await _ref.read(
+        allCustomCertificationsCatalogProvider.future,
+      ),
       diver: diver,
       profiles: profiles,
       diverPhoto: diverPhoto,
@@ -753,6 +757,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
         equipment: equipment,
         buddies: buddies,
         certifications: certifications,
+        certificationCatalog: await _ref.read(
+          allCustomCertificationsCatalogProvider.future,
+        ),
         diveCenters: diveCenters,
         species: species,
         diveBuddies: relations.diveBuddies,
@@ -1495,6 +1502,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
         equipment: equipment,
         buddies: buddies,
         certifications: certifications,
+        certificationCatalog: await _ref.read(
+          allCustomCertificationsCatalogProvider.future,
+        ),
         diveCenters: diveCenters,
         species: species,
         diveBuddies: relations.diveBuddies,

@@ -44,7 +44,7 @@ void main() {
                 id: 'staged-1',
                 buddyId: 'b1',
                 name: 'Nitrox',
-                agency: CertificationAgency.padi,
+                agency: CertificationAgency.padi.name,
                 createdAt: DateTime(2024),
                 updatedAt: DateTime(2024),
               ),
@@ -88,7 +88,7 @@ void main() {
         initialCertification: Certification(
           id: 'c1',
           name: 'Nitrox',
-          agency: CertificationAgency.padi,
+          agency: CertificationAgency.padi.name,
           createdAt: DateTime(2024),
           updatedAt: DateTime(2024),
         ),

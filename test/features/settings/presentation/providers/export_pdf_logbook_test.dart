@@ -228,7 +228,7 @@ void main() {
       id: 'cert-1',
       diverId: 'diver-1',
       name: 'Rescue Diver',
-      agency: CertificationAgency.padi,
+      agency: CertificationAgency.padi.name,
       createdAt: DateTime(2026, 1, 1),
       updatedAt: DateTime(2026, 1, 1),
     ),

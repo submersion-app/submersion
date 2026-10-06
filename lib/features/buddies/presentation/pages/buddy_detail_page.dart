@@ -25,6 +25,8 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 class BuddyDetailPage extends ConsumerStatefulWidget {
   final String buddyId;
@@ -51,6 +53,7 @@ class _BuddyDetailPageState extends ConsumerState<BuddyDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(certificationCatalogSyncProvider);
     // Desktop redirect: if not embedded and on desktop, redirect to master-detail view.
     // Skip in table mode -- table view has no master-detail split to redirect into.
     if (!widget.embedded &&
@@ -125,6 +128,7 @@ class _BuddyDetailContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final statsAsync = ref.watch(buddyStatsProvider(buddy.id));
     final units = UnitFormatter(ref.watch(settingsProvider));
 
@@ -267,9 +271,18 @@ class _BuddyDetailContent extends ConsumerWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (buddyCertificationLineL10n(buddy, context.l10n) != null)
+                if (buddyCertificationLineL10n(
+                      buddy,
+                      context.l10n,
+                      catalog: context.certificationCatalog,
+                    ) !=
+                    null)
                   Text(
-                    buddyCertificationLineL10n(buddy, context.l10n)!,
+                    buddyCertificationLineL10n(
+                      buddy,
+                      context.l10n,
+                      catalog: context.certificationCatalog,
+                    )!,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -464,12 +477,17 @@ class _BuddyDetailContent extends ConsumerWidget {
                             contentPadding: EdgeInsets.zero,
                             leading: const Icon(Icons.card_membership),
                             title: Text(
-                              certificationTitleL10n(cert, context.l10n),
+                              certificationTitleL10n(
+                                cert,
+                                context.l10n,
+                                catalog: context.certificationCatalog,
+                              ),
                             ),
                             subtitle: Text(
                               certificationAgencyAndLevelL10n(
                                 cert,
                                 context.l10n,
+                                catalog: context.certificationCatalog,
                               ),
                             ),
                           ),

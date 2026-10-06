@@ -3360,6 +3360,121 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_edit_label_agency => 'Szervezet *';
 
   @override
+  String get certificationAgencies_unknownAgency => 'Ismeretlen szervezet';
+
+  @override
+  String get certificationAgencies_unknownCertification =>
+      'Ismeretlen képesítés';
+
+  @override
+  String get certificationAgencies_addCustomAgency =>
+      'Egyéni szervezet hozzáadása...';
+
+  @override
+  String get certificationAgencies_addCustomCertification =>
+      'Egyéni képesítés hozzáadása...';
+
+  @override
+  String get certificationAgencies_dialog_newAgencyTitle => 'Új szervezet';
+
+  @override
+  String get certificationAgencies_dialog_editAgencyTitle =>
+      'Szervezet szerkesztése';
+
+  @override
+  String get certificationAgencies_dialog_newCertificationTitle =>
+      'Új képesítés';
+
+  @override
+  String get certificationAgencies_dialog_editCertificationTitle =>
+      'Képesítés szerkesztése';
+
+  @override
+  String get certificationAgencies_dialog_nameLabel => 'Név';
+
+  @override
+  String get certificationAgencies_dialog_colorLabel => 'Kártya színe';
+
+  @override
+  String get certificationAgencies_dialog_specialty => 'Szakterület';
+
+  @override
+  String get certificationAgencies_error_nameRequired => 'Adjon meg egy nevet';
+
+  @override
+  String get certificationAgencies_error_nameTaken => 'Ez a név már foglalt';
+
+  @override
+  String get settings_manage_certificationAgencies => 'Minősítő szervezetek';
+
+  @override
+  String get settings_manage_certificationAgencies_subtitle =>
+      'Egyéni szervezetek és képesítések kezelése';
+
+  @override
+  String get certificationAgencies_section_yours => 'Saját szervezetek';
+
+  @override
+  String get certificationAgencies_section_builtIn => 'Beépített szervezetek';
+
+  @override
+  String get certificationAgencies_addAgency => 'Szervezet hozzáadása';
+
+  @override
+  String certificationAgencies_sharedBy(String name) {
+    return 'Megosztotta: $name';
+  }
+
+  @override
+  String get certificationAgencies_editor_addCertification =>
+      'Képesítés hozzáadása';
+
+  @override
+  String get certificationAgencies_editor_builtInHint =>
+      'A beépített képesítések nem módosíthatók. Hozzáadhat sajátot.';
+
+  @override
+  String certificationAgencies_delete_confirmTitle(String name) {
+    return 'Törli: $name?';
+  }
+
+  @override
+  String get certificationAgencies_delete_refusedTitle =>
+      'Még használatban van';
+
+  @override
+  String certificationAgencies_delete_refusedBody(String usage) {
+    return 'Használja: $usage. Előbb ezeket módosítsa.';
+  }
+
+  @override
+  String certificationAgencies_usage_certifications(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count képesítés',
+      one: '1 képesítés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_courses(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tanfolyam',
+      one: '1 tanfolyam',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_and(String first, String second) {
+    return '$first és $second';
+  }
+
+  @override
   String get certifications_edit_addRecognition => 'Újabb elismerés hozzáadása';
 
   @override
@@ -11608,6 +11723,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_certificationAgency_ffessm => 'FFESSM';
+
+  @override
+  String get enum_certificationAgency_acuc => 'ACUC';
+
+  @override
+  String get enum_certificationAgency_dan => 'DAN';
 
   @override
   String get enum_certificationAgency_gue => 'GUE';

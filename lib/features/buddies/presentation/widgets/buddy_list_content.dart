@@ -44,6 +44,8 @@ import 'package:submersion/features/query/presentation/widgets/query_chips_frame
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_list_count_provider.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Content widget for the buddy list, used in master-detail layout.
 ///
@@ -489,6 +491,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(certificationCatalogSyncProvider);
     final viewMode = ref.watch(buddyListViewModeProvider);
     final buddiesAsync = ref.watch(filteredBuddiesWithDiveCountProvider);
 
@@ -708,7 +711,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
         return EntityTableView<BuddyWithCount, BuddyField>(
           entities: buddies,
           idExtractor: (b) => b.buddy.id,
-          adapter: BuddyFieldAdapter.instance,
+          adapter: BuddyFieldAdapter.withCatalog(context.certificationCatalog),
           config: config,
           units: units,
           // A photo is not a sortable text value, so it rides in the row's

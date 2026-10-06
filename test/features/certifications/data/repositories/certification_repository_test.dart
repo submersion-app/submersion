@@ -22,8 +22,8 @@ void main() {
   Certification createTestCert({
     String id = '',
     String name = 'Open Water Diver',
-    CertificationAgency agency = CertificationAgency.padi,
-    CertificationLevel? level,
+    String agency = 'padi',
+    String? level,
     String? cardNumber,
     DateTime? issueDate,
     DateTime? expiryDate,
@@ -73,8 +73,8 @@ void main() {
         final expiryDate = DateTime(2025, 6, 15);
         final cert = createTestCert(
           name: 'Nitrox Diver',
-          agency: CertificationAgency.ssi,
-          level: CertificationLevel.nitrox,
+          agency: CertificationAgency.ssi.name,
+          level: CertificationLevel.nitrox.name,
           cardNumber: 'SSI-12345',
           issueDate: issueDate,
           expiryDate: expiryDate,
@@ -89,8 +89,8 @@ void main() {
 
         expect(fetchedCert, isNotNull);
         expect(fetchedCert!.name, equals('Nitrox Diver'));
-        expect(fetchedCert.agency, equals(CertificationAgency.ssi));
-        expect(fetchedCert.level, equals(CertificationLevel.nitrox));
+        expect(fetchedCert.agency, equals(CertificationAgency.ssi.name));
+        expect(fetchedCert.level, equals(CertificationLevel.nitrox.name));
         expect(fetchedCert.cardNumber, equals('SSI-12345'));
         expect(fetchedCert.issueDate?.year, equals(2023));
         expect(fetchedCert.issueDate?.month, equals(6));
@@ -105,13 +105,13 @@ void main() {
           final cert =
               createTestCert(
                 name: 'Niveau 1',
-                agency: CertificationAgency.ffessm,
-                level: CertificationLevel.ffessmN1,
+                agency: CertificationAgency.ffessm.name,
+                level: CertificationLevel.ffessmN1.name,
               ).copyWith(
                 additionalCredentials: const [
                   CertificationCredential(
-                    agency: CertificationAgency.cmas,
-                    level: CertificationLevel.cmas1StarDiver,
+                    agency: 'cmas',
+                    level: 'cmas1StarDiver',
                   ),
                 ],
               );
@@ -122,11 +122,11 @@ void main() {
           expect(reloaded!.hasMultipleCredentials, isTrue);
           expect(
             reloaded.additionalCredentials.single.agency,
-            CertificationAgency.cmas,
+            CertificationAgency.cmas.name,
           );
           expect(
             reloaded.additionalCredentials.single.level,
-            CertificationLevel.cmas1StarDiver,
+            CertificationLevel.cmas1StarDiver.name,
           );
 
           await repository.updateCertification(
@@ -216,21 +216,21 @@ void main() {
         final cert = await repository.createCertification(
           createTestCert(
             name: 'Level Cert',
-            agency: CertificationAgency.padi,
-            level: CertificationLevel.openWater,
+            agency: CertificationAgency.padi.name,
+            level: CertificationLevel.openWater.name,
           ),
         );
 
         final updatedCert = cert.copyWith(
-          agency: CertificationAgency.ssi,
-          level: CertificationLevel.advancedOpenWater,
+          agency: CertificationAgency.ssi.name,
+          level: CertificationLevel.advancedOpenWater.name,
         );
 
         await repository.updateCertification(updatedCert);
         final result = await repository.getCertificationById(cert.id);
 
-        expect(result!.agency, equals(CertificationAgency.ssi));
-        expect(result.level, equals(CertificationLevel.advancedOpenWater));
+        expect(result!.agency, equals(CertificationAgency.ssi.name));
+        expect(result.level, equals(CertificationLevel.advancedOpenWater.name));
       });
     });
 
@@ -287,21 +287,21 @@ void main() {
         await repository.createCertification(
           createTestCert(
             name: 'Open Water Diver',
-            agency: CertificationAgency.padi,
+            agency: CertificationAgency.padi.name,
             cardNumber: 'PADI-001',
           ),
         );
         await repository.createCertification(
           createTestCert(
             name: 'Advanced Nitrox',
-            agency: CertificationAgency.ssi,
+            agency: CertificationAgency.ssi.name,
             cardNumber: 'SSI-002',
           ),
         );
         await repository.createCertification(
           createTestCert(
             name: 'Rescue Diver',
-            agency: CertificationAgency.naui,
+            agency: CertificationAgency.naui.name,
             cardNumber: 'NAUI-003',
           ),
         );
@@ -345,31 +345,40 @@ void main() {
     group('getCertificationsByAgency', () {
       setUp(() async {
         await repository.createCertification(
-          createTestCert(name: 'PADI Cert 1', agency: CertificationAgency.padi),
+          createTestCert(
+            name: 'PADI Cert 1',
+            agency: CertificationAgency.padi.name,
+          ),
         );
         await repository.createCertification(
-          createTestCert(name: 'PADI Cert 2', agency: CertificationAgency.padi),
+          createTestCert(
+            name: 'PADI Cert 2',
+            agency: CertificationAgency.padi.name,
+          ),
         );
         await repository.createCertification(
-          createTestCert(name: 'SSI Cert', agency: CertificationAgency.ssi),
+          createTestCert(
+            name: 'SSI Cert',
+            agency: CertificationAgency.ssi.name,
+          ),
         );
       });
 
       test('should return certs for specified agency', () async {
         final results = await repository.getCertificationsByAgency(
-          CertificationAgency.padi,
+          CertificationAgency.padi.name,
         );
 
         expect(results.length, equals(2));
         expect(
-          results.every((c) => c.agency == CertificationAgency.padi),
+          results.every((c) => c.agency == CertificationAgency.padi.name),
           isTrue,
         );
       });
 
       test('should return empty list when no certs for agency', () async {
         final results = await repository.getCertificationsByAgency(
-          CertificationAgency.gue,
+          CertificationAgency.gue.name,
         );
 
         expect(results, isEmpty);

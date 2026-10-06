@@ -253,9 +253,9 @@ class UddfScreenshotImporter {
         email: buddyData['email'] as String?,
         phone: buddyData['phone'] as String?,
         certificationLevel:
-            buddyData['certificationLevel'] as CertificationLevel?,
+            (buddyData['certificationLevel'] as CertificationLevel?)?.name,
         certificationAgency:
-            buddyData['certificationAgency'] as CertificationAgency?,
+            (buddyData['certificationAgency'] as CertificationAgency?)?.name,
         notes: buddyData['notes'] as String? ?? '',
         createdAt: now,
         updatedAt: now,
@@ -354,8 +354,8 @@ class UddfScreenshotImporter {
         id: newId,
         diverId: diverId,
         name: certName,
-        agency: agency,
-        level: level,
+        agency: agency.name,
+        level: level?.name,
         cardNumber: certData['cardNumber'] as String?,
         issueDate: certData['issueDate'] as DateTime?,
         expiryDate: certData['expiryDate'] as DateTime?,

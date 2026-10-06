@@ -20,6 +20,8 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// The records one import target's items are checked against for
 /// duplicates (issue #1893).
@@ -35,6 +37,7 @@ class ExistingImportRecords {
     this.tags = const [],
     this.diveTypes = const [],
     this.sourceUuidByDiveId = const {},
+    this.certificationCatalog,
   });
 
   final List<Dive> dives;
@@ -47,6 +50,10 @@ class ExistingImportRecords {
   final List<Tag> tags;
   final List<DiveTypeEntity> diveTypes;
   final Map<String, String> sourceUuidByDiveId;
+
+  /// Names custom agencies, so a re-imported card with a custom agency is
+  /// recognised as a duplicate (issue #690).
+  final CertificationCatalog? certificationCatalog;
 
   ImportDuplicateResult check(
     ImportPayload payload, {
@@ -67,6 +74,7 @@ class ExistingImportRecords {
       existingSourceUuidByDiveId: sourceUuidByDiveId,
       checkIntraBatch: checkIntraBatch,
       units: units,
+      certificationCatalog: certificationCatalog,
     );
   }
 }
@@ -98,6 +106,9 @@ Future<ExistingImportRecords> loadActiveDiverRecords(
     diveTypes: diveTypes,
     dives: await diveRepo.getAllDives(diverId: diverId),
     sourceUuidByDiveId: await diveRepo.getSourceUuidByDiveId(diverId: diverId),
+    certificationCatalog: await ref.read(
+      allCustomCertificationsCatalogProvider.future,
+    ),
   );
 }
 
@@ -130,6 +141,9 @@ Future<ExistingImportRecords> loadProfileRecords(
         .getAllDiveTypes(diverId: diverId),
     dives: await diveRepo.getAllDives(diverId: diverId),
     sourceUuidByDiveId: await diveRepo.getSourceUuidByDiveId(diverId: diverId),
+    certificationCatalog: await ref.read(
+      allCustomCertificationsCatalogProvider.future,
+    ),
   );
 }
 

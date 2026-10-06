@@ -142,6 +142,59 @@ class DiveRoles extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// A diver's own certification agency (v267, issue #690). Built-in agencies
+/// are code constants and never have a row; custom ids are UUIDs, stored in
+/// the same agency text columns as the built-in enum names.
+@DataClassName('CustomCertificationAgencyRow')
+class CustomCertificationAgencies extends Table {
+  TextColumn get id => text()();
+  // No ON DELETE action: the diver deletion clears and tombstones these
+  // rows itself (diver_owned_rows.dart), as it does dive_roles.
+  TextColumn get diverId => text().references(Divers, #id)();
+  TextColumn get name => text()();
+
+  /// Primary e-card colour (ARGB). The gradient's second colour is derived.
+  IntColumn get colorArgb => integer()();
+  BoolColumn get isShared => boolean().withDefault(const Constant(false))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// A diver's own certification (level) under any agency, built-in or custom
+/// (v267, issue #690). [agencyId] is a built-in enum name or a custom agency
+/// UUID, so it carries no foreign key.
+@DataClassName('CustomCertificationLevelRow')
+class CustomCertificationLevels extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId => text().references(Divers, #id)();
+  TextColumn get agencyId => text()();
+  TextColumn get name => text()();
+
+  /// A ranked rung (after the agency's built-in ladder) or a specialty.
+  BoolColumn get isProgression => boolean()();
+
+  /// Rank among this agency's custom progression rungs.
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+
+  /// Used only under a built-in agency; under a custom agency the level
+  /// follows its agency's visibility.
+  BoolColumn get isShared => boolean().withDefault(const Constant(false))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Seeds the nine built-in dive roles. Mirrors [kSeedBuiltInDiveTypesSql]:
 /// INSERT OR IGNORE keyed on stable slug ids keeps it idempotent, and the
 /// seed is re-asserted in beforeOpen so replace-adopt flows that clear the

@@ -41,6 +41,8 @@ import '../../../../helpers/dive_participants.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/test_app.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 Dive _dive(String id, {DiveSite? site}) {
   final dt = DateTime(2026, 1, 1, id.hashCode % 12);
@@ -104,6 +106,7 @@ class _RecordingExportService implements ExportService {
     String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     Diver? diver,
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
@@ -124,6 +127,7 @@ class _RecordingExportService implements ExportService {
     String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     Diver? diver,
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
@@ -173,6 +177,7 @@ class _RecordingExportService implements ExportService {
     List<DiveSite>? sites,
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
@@ -188,6 +193,7 @@ class _RecordingExportService implements ExportService {
     List<DiveSite>? sites,
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
@@ -290,6 +296,10 @@ void main() {
           exportServiceProvider.overrideWithValue(exportService),
           // These tests have no database. The real fetch would reach the
           // repository, so the export would never be issued.
+          // No database: the export's custom agency names (#690).
+          allCustomCertificationsCatalogProvider.overrideWith(
+            (ref) async => CertificationCatalog.builtInOnly,
+          ),
           uddfSourceFetchProvider.overrideWithValue(
             (diveIds, options) async => const [],
           ),
@@ -660,6 +670,10 @@ void main() {
           exportServiceProvider.overrideWithValue(exportService),
           // These tests have no database. The real fetch would reach the
           // repository, so the export would never be issued.
+          // No database: the export's custom agency names (#690).
+          allCustomCertificationsCatalogProvider.overrideWith(
+            (ref) async => CertificationCatalog.builtInOnly,
+          ),
           uddfSourceFetchProvider.overrideWithValue(
             (diveIds, options) async => const [],
           ),

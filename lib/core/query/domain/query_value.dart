@@ -87,7 +87,11 @@ class BoolValue extends QueryValue {
 /// The STORED enum name (`wetsuit`, `oc`), never a localized label.
 class EnumValue extends QueryValue {
   final String name;
-  const EnumValue(this.name);
+
+  /// Display text for a custom value (issue #690): the custom agency or
+  /// level name, printed instead of its id. Not part of equality.
+  final String? label;
+  const EnumValue(this.name, {this.label});
   @override
   bool operator ==(Object other) => other is EnumValue && other.name == name;
   @override

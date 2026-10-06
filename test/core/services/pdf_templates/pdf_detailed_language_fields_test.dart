@@ -80,7 +80,7 @@ void main() {
     Certification(
       id: 'k1',
       name: 'Advanced',
-      agency: CertificationAgency.padi,
+      agency: CertificationAgency.padi.name,
       photoFront: png,
       photoBack: png,
       createdAt: epoch,

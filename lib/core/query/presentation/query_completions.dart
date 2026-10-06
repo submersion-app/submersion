@@ -119,7 +119,21 @@ List<Completion> completionsAt(
     final anchor = _pathIndexBeforeValue(prior);
     if (anchor == null) return const [];
     final resolved = _resolveWord(context, prior[anchor].text);
-    if (resolved?.field?.enumValues case final values?) return emit(values);
+    if (resolved?.field case final field? when field.enumValues != null) {
+      // Custom agencies and levels (issue #690) lead: the list is capped,
+      // and the diver's own entries are the likelier pick.
+      final custom = field.customValueSubject;
+      final customLabels = switch (context.names) {
+        final NameEntries names when custom != null => {
+          for (final r in names.refEntries(custom)) r.label,
+        },
+        _ => const <String>{},
+      };
+      return [
+        ...emit(customLabels, quote: true),
+        ...emit(field.enumValues!),
+      ].take(_maxCompletions).toList();
+    }
     if (resolved?.terminalRelation case final rel?) {
       if (context.names case final NameEntries names) {
         return emit({

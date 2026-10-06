@@ -17,8 +17,8 @@ Buddy _makeBuddy(String id, String name) {
 Certification _makeCertification({
   required String id,
   required String buddyId,
-  CertificationAgency agency = CertificationAgency.padi,
-  CertificationLevel? level = CertificationLevel.instructor,
+  String agency = 'padi',
+  String? level = 'instructor',
   String? cardNumber,
 }) {
   final now = DateTime(2024, 1, 1);
@@ -41,8 +41,8 @@ void main() {
     final instructorCert = _makeCertification(
       id: 'cert-1',
       buddyId: 'buddy-1',
-      agency: CertificationAgency.padi,
-      level: CertificationLevel.instructor,
+      agency: CertificationAgency.padi.name,
+      level: CertificationLevel.instructor.name,
       cardNumber: '12345',
     );
 
@@ -99,8 +99,8 @@ void main() {
       final masterInstructorCert = _makeCertification(
         id: 'cert-2',
         buddyId: 'buddy-3',
-        agency: CertificationAgency.ssi,
-        level: CertificationLevel.masterInstructor,
+        agency: CertificationAgency.ssi.name,
+        level: CertificationLevel.masterInstructor.name,
         cardNumber: '99999',
       );
 
@@ -259,8 +259,8 @@ void main() {
         final divemasterCert = _makeCertification(
           id: 'cert-3',
           buddyId: 'buddy-4',
-          agency: CertificationAgency.padi,
-          level: CertificationLevel.diveMaster,
+          agency: CertificationAgency.padi.name,
+          level: CertificationLevel.diveMaster.name,
           cardNumber: '55555',
         );
 

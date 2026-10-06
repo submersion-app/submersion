@@ -87,8 +87,8 @@ void main() {
         id: '',
         buddyId: buddy.id,
         name: 'Nitrox',
-        agency: CertificationAgency.padi,
-        level: CertificationLevel.nitrox,
+        agency: CertificationAgency.padi.name,
+        level: CertificationLevel.nitrox.name,
         createdAt: now,
         updatedAt: now,
       ),
@@ -101,10 +101,7 @@ void main() {
     expect(find.text('Nitrox'), findsOneWidget); // cert row title
     expect(find.text('Add certification'), findsOneWidget);
     // The old inline dropdowns are gone.
-    expect(
-      find.byType(DropdownButtonFormField<CertificationAgency>),
-      findsNothing,
-    );
+    expect(find.byType(DropdownButtonFormField<String>), findsNothing);
   });
 
   testWidgets('saving unrelated edits does not clobber certs added after the '
@@ -118,8 +115,8 @@ void main() {
         id: '',
         buddyId: buddy.id,
         name: 'Nitrox',
-        agency: CertificationAgency.padi,
-        level: CertificationLevel.nitrox,
+        agency: CertificationAgency.padi.name,
+        level: CertificationLevel.nitrox.name,
         createdAt: now,
         updatedAt: now,
       ),
@@ -138,8 +135,8 @@ void main() {
         id: '',
         buddyId: buddy.id,
         name: 'Deep',
-        agency: CertificationAgency.padi,
-        level: CertificationLevel.advancedOpenWater,
+        agency: CertificationAgency.padi.name,
+        level: CertificationLevel.advancedOpenWater.name,
         createdAt: now,
         updatedAt: now,
       ),

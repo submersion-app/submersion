@@ -33,7 +33,7 @@ void main() {
         id: '',
         buddyId: buddyId,
         name: name,
-        agency: CertificationAgency.padi,
+        agency: CertificationAgency.padi.name,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -66,7 +66,7 @@ void main() {
         Certification(
           id: '',
           name: 'Open Water',
-          agency: CertificationAgency.padi,
+          agency: CertificationAgency.padi.name,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
@@ -113,7 +113,7 @@ void main() {
         id: '',
         buddyId: 'b1',
         name: 'Nitrox',
-        agency: CertificationAgency.padi,
+        agency: CertificationAgency.padi.name,
         expiryDate: DateTime.now().add(const Duration(days: 10)),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),

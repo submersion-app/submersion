@@ -22,8 +22,8 @@ final _now = DateTime(2026, 8, 24);
 
 Certification _makeCert({
   required String name,
-  CertificationLevel? level,
-  CertificationAgency agency = CertificationAgency.padi,
+  String? level,
+  String agency = 'padi',
 }) {
   return Certification(
     id: 'c1',
@@ -70,7 +70,10 @@ void main() {
       // place left for the level.
       await _pump(
         tester,
-        _makeCert(name: 'Bill Ansell', level: CertificationLevel.diveMaster),
+        _makeCert(
+          name: 'Bill Ansell',
+          level: CertificationLevel.diveMaster.name,
+        ),
       );
 
       expect(_tileLines(tester), (
@@ -84,7 +87,7 @@ void main() {
     ) async {
       await _pump(
         tester,
-        _makeCert(name: '', level: CertificationLevel.diveMaster),
+        _makeCert(name: '', level: CertificationLevel.diveMaster.name),
       );
 
       // The title already says "Divemaster"; the subtitle must not say it

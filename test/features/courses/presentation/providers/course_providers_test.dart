@@ -25,7 +25,7 @@ Course _makeCourse({
     id: id,
     diverId: diverId,
     name: name,
-    agency: CertificationAgency.padi,
+    agency: CertificationAgency.padi.name,
     startDate: now,
     createdAt: now,
     updatedAt: now,

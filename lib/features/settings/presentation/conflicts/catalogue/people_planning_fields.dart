@@ -17,6 +17,13 @@ final Map<String, ConflictField> peoplePlanningFields = {
     FieldKind.enumValue,
     enumLabel: certificationAgencyLabeler,
   ),
+  // A custom certification level's agency (issue #690): a built-in enum
+  // name, labelled like a certification's agency, or a custom agency id.
+  'agencyId': ConflictField(
+    (l) => CourseField.agency.localizedDisplayName(l),
+    FieldKind.enumValue,
+    enumLabel: certificationAgencyLabeler,
+  ),
   'airBreakBreakSeconds': ConflictField(
     (l) => l.settings_conflict_field_airBreakBreakSeconds,
     FieldKind.durationSeconds,
@@ -52,6 +59,12 @@ final Map<String, ConflictField> peoplePlanningFields = {
   'cardNumber': ConflictField(
     (l) => CertificationField.cardNumber.localizedDisplayName(l),
     FieldKind.shortText,
+  ),
+  // A custom agency's card colour (issue #690); an ARGB integer means
+  // nothing to a diver, so the dialog only says it changed.
+  'colorArgb': ConflictField(
+    (l) => l.certificationAgencies_dialog_colorLabel,
+    FieldKind.opaque,
   ),
   'completionDate': ConflictField(
     (l) => CourseField.completionDate.localizedDisplayName(l),
@@ -210,6 +223,12 @@ final Map<String, ConflictField> peoplePlanningFields = {
   'intermediateAscentRate': ConflictField(
     (l) => l.settings_conflict_field_intermediateAscentRate,
     FieldKind.ascentRate,
+  ),
+  // A custom certification level's group (issue #690): a ranked
+  // progression rung rather than a specialty.
+  'isProgression': ConflictField(
+    (l) => l.certifications_edit_group_progression,
+    FieldKind.boolean,
   ),
   'isRequired': ConflictField(
     (l) => l.settings_conflict_field_isRequired,

@@ -2,11 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 
-Buddy _buddy({
-  CertificationLevel? level,
-  CertificationAgency? agency,
-  String? title,
-}) {
+Buddy _buddy({String? level, String? agency, String? title}) {
   final now = DateTime(2026, 1, 1);
   return Buddy(
     id: 'b1',
@@ -27,22 +23,22 @@ void main() {
 
     test('agency but no level or title -> the agency name alone', () {
       expect(
-        _buddy(agency: CertificationAgency.padi).certificationLine,
+        _buddy(agency: CertificationAgency.padi.name).certificationLine,
         'PADI',
       );
     });
 
     test('agency Other but no level or title -> null', () {
       expect(
-        _buddy(agency: CertificationAgency.other).certificationLine,
+        _buddy(agency: CertificationAgency.other.name).certificationLine,
         isNull,
       );
     });
 
     test('agency + level -> "level · agency"', () {
       final b = _buddy(
-        level: CertificationLevel.advancedOpenWater,
-        agency: CertificationAgency.padi,
+        level: CertificationLevel.advancedOpenWater.name,
+        agency: CertificationAgency.padi.name,
         title: 'Advanced Open Water',
       );
       expect(b.certificationLine, 'Advanced Open Water · PADI');
@@ -50,8 +46,8 @@ void main() {
 
     test('custom name with a real agency keeps the agency', () {
       final b = _buddy(
-        level: CertificationLevel.diveMaster,
-        agency: CertificationAgency.padi,
+        level: CertificationLevel.diveMaster.name,
+        agency: CertificationAgency.padi.name,
         title: 'Bill Ansell',
       );
       expect(b.certificationLine, 'Bill Ansell · PADI');
@@ -59,8 +55,8 @@ void main() {
 
     test('agency Other with a custom title shows only the title', () {
       final b = _buddy(
-        level: CertificationLevel.other,
-        agency: CertificationAgency.other,
+        level: CertificationLevel.other.name,
+        agency: CertificationAgency.other.name,
         title: 'FFESSM Niveau 2',
       );
       expect(b.certificationLine, 'FFESSM Niveau 2');
@@ -70,8 +66,8 @@ void main() {
       'agency Other, no custom name -> just the derived title, no "· Other"',
       () {
         final b = _buddy(
-          level: CertificationLevel.other,
-          agency: CertificationAgency.other,
+          level: CertificationLevel.other.name,
+          agency: CertificationAgency.other.name,
           title: 'Other',
         );
         expect(b.certificationLine, 'Other');
@@ -80,7 +76,7 @@ void main() {
 
     test('agency already inside the title is not repeated', () {
       final b = _buddy(
-        agency: CertificationAgency.padi,
+        agency: CertificationAgency.padi.name,
         title: 'PADI Rescue Diver',
       );
       expect(b.certificationLine, 'PADI Rescue Diver');
@@ -89,14 +85,14 @@ void main() {
     test('agency in the title with other casing/spacing is not repeated', () {
       expect(
         _buddy(
-          agency: CertificationAgency.padi,
+          agency: CertificationAgency.padi.name,
           title: 'Padi Rescue Diver',
         ).certificationLine,
         'Padi Rescue Diver',
       );
       expect(
         _buddy(
-          agency: CertificationAgency.padi,
+          agency: CertificationAgency.padi.name,
           title: 'PADI - Rescue Diver',
         ).certificationLine,
         'PADI - Rescue Diver',
@@ -105,7 +101,7 @@ void main() {
 
     test('level only, no agency', () {
       final b = _buddy(
-        level: CertificationLevel.openWater,
+        level: CertificationLevel.openWater.name,
         title: 'Open Water',
       );
       expect(b.certificationLine, 'Open Water');
@@ -115,8 +111,8 @@ void main() {
   group('Buddy.displayName', () {
     test('prefers the certification title over the bare level', () {
       final b = _buddy(
-        level: CertificationLevel.other,
-        agency: CertificationAgency.other,
+        level: CertificationLevel.other.name,
+        agency: CertificationAgency.other.name,
         title: 'FFESSM Niveau 2',
       );
       expect(b.displayName, 'Alex (FFESSM Niveau 2)');
@@ -124,7 +120,7 @@ void main() {
 
     test('falls back to the level, then to the name alone', () {
       expect(
-        _buddy(level: CertificationLevel.rescue).displayName,
+        _buddy(level: CertificationLevel.rescue.name).displayName,
         'Alex (Rescue Diver)',
       );
       expect(_buddy().displayName, 'Alex');

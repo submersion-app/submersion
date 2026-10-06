@@ -316,6 +316,8 @@ class SyncData {
   final List<Map<String, dynamic>> diveDiveTypes;
   final List<Map<String, dynamic>> diveTypes;
   final List<Map<String, dynamic>> diveRoles;
+  final List<Map<String, dynamic>> customCertificationAgencies;
+  final List<Map<String, dynamic>> customCertificationLevels;
   final List<Map<String, dynamic>> tankPresets;
   final List<Map<String, dynamic>> weightPresets;
   final List<Map<String, dynamic>> weightPresetEntries;
@@ -427,6 +429,8 @@ class SyncData {
     this.diveDiveTypes = const [],
     this.diveTypes = const [],
     this.diveRoles = const [],
+    this.customCertificationAgencies = const [],
+    this.customCertificationLevels = const [],
     this.tankPresets = const [],
     this.weightPresets = const [],
     this.weightPresetEntries = const [],
@@ -533,6 +537,8 @@ class SyncData {
     'diveDiveTypes': diveDiveTypes,
     'diveTypes': diveTypes,
     'diveRoles': diveRoles,
+    'customCertificationAgencies': customCertificationAgencies,
+    'customCertificationLevels': customCertificationLevels,
     'tankPresets': tankPresets,
     'weightPresets': weightPresets,
     'weightPresetEntries': weightPresetEntries,
@@ -642,6 +648,10 @@ class SyncData {
       diveDiveTypes: _parseList(json['diveDiveTypes']),
       diveTypes: _parseList(json['diveTypes']),
       diveRoles: _parseList(json['diveRoles']),
+      customCertificationAgencies: _parseList(
+        json['customCertificationAgencies'],
+      ),
+      customCertificationLevels: _parseList(json['customCertificationLevels']),
       tankPresets: _parseList(json['tankPresets']),
       weightPresets: _parseList(json['weightPresets']),
       weightPresetEntries: _parseList(json['weightPresetEntries']),
@@ -1102,6 +1112,18 @@ class SyncDataSerializer {
       table: null,
       blob: false,
       full: () => _exportDiveRoles(null),
+    ),
+    (
+      key: 'customCertificationAgencies',
+      table: _db.customCertificationAgencies,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'customCertificationLevels',
+      table: _db.customCertificationLevels,
+      blob: false,
+      full: null,
     ),
     (key: 'tankPresets', table: _db.tankPresets, blob: false, full: null),
     (key: 'weightPresets', table: _db.weightPresets, blob: false, full: null),
@@ -2242,6 +2264,14 @@ class SyncDataSerializer {
         'diveRoles',
         () => _exportDiveRoles(hlcSince),
       ),
+      customCertificationAgencies: await _safeExport(
+        'customCertificationAgencies',
+        () => _exportCustomCertificationAgencies(hlcSince),
+      ),
+      customCertificationLevels: await _safeExport(
+        'customCertificationLevels',
+        () => _exportCustomCertificationLevels(hlcSince),
+      ),
       tankPresets: await _safeExport(
         'tankPresets',
         () => _exportTankPresets(hlcSince),
@@ -3011,6 +3041,16 @@ class SyncDataSerializer {
           _db.diveRoles,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'customCertificationAgencies':
+        final row = await (_db.select(
+          _db.customCertificationAgencies,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'customCertificationLevels':
+        final row = await (_db.select(
+          _db.customCertificationLevels,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'tankPresets':
         final row = await (_db.select(
           _db.tankPresets,
@@ -3453,6 +3493,16 @@ class SyncDataSerializer {
       case 'diveRoles':
         final rows = await (_db.select(
           _db.diveRoles,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'customCertificationAgencies':
+        final rows = await (_db.select(
+          _db.customCertificationAgencies,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'customCertificationLevels':
+        final rows = await (_db.select(
+          _db.customCertificationLevels,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'tankPresets':
@@ -4623,6 +4673,20 @@ class SyncDataSerializer {
             .into(_db.diveRoles)
             .insertOnConflictUpdate(
               DiveRoleRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'customCertificationAgencies':
+        await _db
+            .into(_db.customCertificationAgencies)
+            .insertOnConflictUpdate(
+              CustomCertificationAgencyRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'customCertificationLevels':
+        await _db
+            .into(_db.customCertificationLevels)
+            .insertOnConflictUpdate(
+              CustomCertificationLevelRow.fromJson(data).toCompanion(false),
             );
         return;
       case 'tankPresets':
@@ -5885,6 +5949,34 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'customCertificationAgencies':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.customCertificationAgencies,
+            records
+                .map(
+                  (r) => CustomCertificationAgencyRow.fromJson(
+                    r,
+                  ).toCompanion(false),
+                )
+                .toList(),
+          ),
+        );
+        return;
+      case 'customCertificationLevels':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.customCertificationLevels,
+            records
+                .map(
+                  (r) => CustomCertificationLevelRow.fromJson(
+                    r,
+                  ).toCompanion(false),
+                )
+                .toList(),
+          ),
+        );
+        return;
       case 'tankPresets':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -6427,6 +6519,16 @@ class SyncDataSerializer {
         );
       case 'diveRoles':
         return plain(_db.diveRoles, _db.diveRoles.id);
+      case 'customCertificationAgencies':
+        return plain(
+          _db.customCertificationAgencies,
+          _db.customCertificationAgencies.id,
+        );
+      case 'customCertificationLevels':
+        return plain(
+          _db.customCertificationLevels,
+          _db.customCertificationLevels.id,
+        );
       case 'tankPresets':
         return plain(_db.tankPresets, _db.tankPresets.id);
       case 'weightPresets':
@@ -6845,6 +6947,10 @@ class SyncDataSerializer {
         return _db.equipmentOwnershipEvents;
       case 'diveRoles':
         return _db.diveRoles;
+      case 'customCertificationAgencies':
+        return _db.customCertificationAgencies;
+      case 'customCertificationLevels':
+        return _db.customCertificationLevels;
       case 'tankPresets':
         return _db.tankPresets;
       case 'weightPresets':
@@ -7342,6 +7448,16 @@ class SyncDataSerializer {
       case 'diveRoles':
         await (_db.delete(
           _db.diveRoles,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'customCertificationAgencies':
+        await (_db.delete(
+          _db.customCertificationAgencies,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'customCertificationLevels':
+        await (_db.delete(
+          _db.customCertificationLevels,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'tankPresets':
@@ -8381,6 +8497,31 @@ class SyncDataSerializer {
     // syncing them only risks collisions and payload bloat. Custom only.
     final query = _db.select(_db.diveRoles)
       ..where((t) => t.isBuiltIn.equals(false));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Custom certification agencies (issue #690). Every row is user data;
+  /// these tables hold no built-ins.
+  Future<List<Map<String, dynamic>>> _exportCustomCertificationAgencies(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.customCertificationAgencies);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Custom certification levels (issue #690).
+  Future<List<Map<String, dynamic>>> _exportCustomCertificationLevels(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.customCertificationLevels);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }

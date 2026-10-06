@@ -6,10 +6,10 @@ import 'package:submersion/core/database/database.dart';
 /// Schema v269: diver_settings.hidden_built_in_ids, the built-in catalog
 /// entries each diver hid from the pickers (issue #401).
 void main() {
-  /// A v266 database whose diver_settings lacks the column.
+  /// A v267 database whose diver_settings lacks the column.
   NativeDatabase setupDb() => NativeDatabase.memory(
     setup: (rawDb) {
-      rawDb.execute('PRAGMA user_version = 266');
+      rawDb.execute('PRAGMA user_version = 267');
       rawDb.execute(
         'CREATE TABLE diver_settings (id TEXT NOT NULL PRIMARY KEY, '
         'diver_id TEXT NOT NULL)',
@@ -25,7 +25,7 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 269);
     expect(AppDatabase.migrationVersions, contains(269));
-    expect(AppDatabase.migrationStepCount(266), 1);
+    expect(AppDatabase.migrationStepCount(267), 1);
   });
 
   test('this rung is additive and did not move the sync floor', () {
@@ -33,7 +33,7 @@ void main() {
   });
 
   test(
-    'upgrading from v266 adds a null hidden_built_in_ids and keeps the row',
+    'upgrading from v267 adds a null hidden_built_in_ids and keeps the row',
     () async {
       final db = AppDatabase(setupDb());
       addTearDown(db.close);

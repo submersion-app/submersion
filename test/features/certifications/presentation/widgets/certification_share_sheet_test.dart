@@ -63,7 +63,7 @@ void main() {
   final cert = Certification(
     id: 'cert-1',
     name: 'Plongée Épave',
-    agency: CertificationAgency.cmas,
+    agency: CertificationAgency.cmas.name,
     issueDate: DateTime(2018, 3, 14),
     createdAt: now,
     updatedAt: now,

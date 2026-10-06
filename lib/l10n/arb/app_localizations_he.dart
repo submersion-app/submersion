@@ -3307,6 +3307,115 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_edit_label_agency => 'סוכנות *';
 
   @override
+  String get certificationAgencies_unknownAgency => 'סוכנות לא ידועה';
+
+  @override
+  String get certificationAgencies_unknownCertification => 'הסמכה לא ידועה';
+
+  @override
+  String get certificationAgencies_addCustomAgency => 'הוספת סוכנות מותאמת...';
+
+  @override
+  String get certificationAgencies_addCustomCertification =>
+      'הוספת הסמכה מותאמת...';
+
+  @override
+  String get certificationAgencies_dialog_newAgencyTitle => 'סוכנות חדשה';
+
+  @override
+  String get certificationAgencies_dialog_editAgencyTitle => 'עריכת סוכנות';
+
+  @override
+  String get certificationAgencies_dialog_newCertificationTitle => 'הסמכה חדשה';
+
+  @override
+  String get certificationAgencies_dialog_editCertificationTitle =>
+      'עריכת הסמכה';
+
+  @override
+  String get certificationAgencies_dialog_nameLabel => 'שם';
+
+  @override
+  String get certificationAgencies_dialog_colorLabel => 'צבע הכרטיס';
+
+  @override
+  String get certificationAgencies_dialog_specialty => 'התמחות';
+
+  @override
+  String get certificationAgencies_error_nameRequired => 'יש להזין שם';
+
+  @override
+  String get certificationAgencies_error_nameTaken => 'השם הזה כבר בשימוש';
+
+  @override
+  String get settings_manage_certificationAgencies => 'סוכנויות הסמכה';
+
+  @override
+  String get settings_manage_certificationAgencies_subtitle =>
+      'ניהול סוכנויות והסמכות מותאמות';
+
+  @override
+  String get certificationAgencies_section_yours => 'הסוכנויות שלך';
+
+  @override
+  String get certificationAgencies_section_builtIn => 'סוכנויות מובנות';
+
+  @override
+  String get certificationAgencies_addAgency => 'הוספת סוכנות';
+
+  @override
+  String certificationAgencies_sharedBy(String name) {
+    return 'שותף על ידי $name';
+  }
+
+  @override
+  String get certificationAgencies_editor_addCertification => 'הוספת הסמכה';
+
+  @override
+  String get certificationAgencies_editor_builtInHint =>
+      'לא ניתן לשנות הסמכות מובנות. אפשר להוסיף הסמכות משלך.';
+
+  @override
+  String certificationAgencies_delete_confirmTitle(String name) {
+    return 'למחוק את $name?';
+  }
+
+  @override
+  String get certificationAgencies_delete_refusedTitle => 'עדיין בשימוש';
+
+  @override
+  String certificationAgencies_delete_refusedBody(String usage) {
+    return 'בשימוש ב-$usage. יש לשנות אותם קודם.';
+  }
+
+  @override
+  String certificationAgencies_usage_certifications(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count הסמכות',
+      one: 'הסמכה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_courses(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count קורסים',
+      one: 'קורס אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certificationAgencies_usage_and(String first, String second) {
+    return '$first ו-$second';
+  }
+
+  @override
   String get certifications_edit_addRecognition => 'הוספת הכרה נוספת';
 
   @override
@@ -11378,6 +11487,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_certificationAgency_ffessm => 'FFESSM';
+
+  @override
+  String get enum_certificationAgency_acuc => 'ACUC';
+
+  @override
+  String get enum_certificationAgency_dan => 'DAN';
 
   @override
   String get enum_certificationAgency_gue => 'GUE';
