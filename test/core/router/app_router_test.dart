@@ -24,6 +24,7 @@ import 'package:submersion/features/safety/presentation/pages/incident_edit_page
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
 import 'package:submersion/features/safety/presentation/pages/cns_otu_page.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
+import 'package:submersion/features/settings/presentation/pages/manage_currency_rules_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/site_detail_sections_page.dart';
@@ -1567,6 +1568,34 @@ void main() {
         _locationOfRoute(router.configuration.routes, 'unrecognizedBackups'),
         UnrecognizedBackupsNotice.routeLocation,
       );
+    });
+  });
+
+  group('certification currency rules route', () {
+    test('resolves to the path the Manage tile pushes', () {
+      expect(
+        _locationOfRoute(router.configuration.routes, 'currencyRules'),
+        '/currency-rules',
+      );
+    });
+
+    testWidgets('builds the certification currency rules page', (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+      final context = tester.element(find.byType(SizedBox));
+      final config = router.configuration;
+      final route = _findRouteByName(config.routes, 'currencyRules');
+      expect(route, isNotNull);
+
+      const location = '/currency-rules';
+      final state = GoRouterState(
+        config,
+        uri: Uri.parse(location),
+        matchedLocation: location,
+        fullPath: location,
+        pathParameters: const {},
+        pageKey: const ValueKey(location),
+      );
+      expect(route!.builder!(context, state), isA<ManageCurrencyRulesPage>());
     });
   });
 

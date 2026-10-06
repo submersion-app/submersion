@@ -21,8 +21,8 @@ void main() {
   );
 
   test('v269 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v270 (weight names, #956) landed on top; the newest rung
-    // owns the exact assertions.
+    // Relaxed once v271 (certification currency, #2267) landed on top; the
+    // newest rung owns the exact assertions.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(269));
     expect(AppDatabase.migrationVersions, contains(269));
     expect(

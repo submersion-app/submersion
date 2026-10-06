@@ -29,6 +29,10 @@ const _entityForTable = {
   // items table has no is_built_in column of its own -- its built-ins are
   // gated through the parent template).
   'pre_dive_checklist_templates': 'preDiveChecklistTemplates',
+  // Built-in certification currency rules (issue #2267) are re-seeded from
+  // onCreate, the v266 rung and beforeOpen; the exporter and
+  // deleteAllRecords both keep them out of the refill.
+  'certification_currency_rules': 'certificationCurrencyRules',
 };
 
 const _diverId = 'diver-1';
@@ -59,6 +63,10 @@ String _insert(String table, {required String id, required bool builtIn}) {
     case 'pre_dive_checklist_templates':
       return "INSERT INTO pre_dive_checklist_templates (id, name, created_at, "
           "updated_at, is_built_in) VALUES ('$id', '$id', 0, 0, $b)";
+    case 'certification_currency_rules':
+      return "INSERT INTO certification_currency_rules (id, name, clock_kind, "
+          "lapse_days, lead_days, created_at, updated_at, is_built_in) "
+          "VALUES ('$id', '$id', 'activity', 365, 90, 0, 0, $b)";
     default:
       throw ArgumentError('no insert template for $table');
   }

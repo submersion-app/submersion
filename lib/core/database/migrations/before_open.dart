@@ -160,6 +160,8 @@ extension BeforeOpenBackstops on AppDatabase {
     // backfill is onUpgrade only: re-running it resurrects deleted schedules.
     await _assertServiceLedgerSchema();
 
+    // v271 backstop: currency tables and built-in rules, re-seeded (#2267).
+    await _assertCertificationCurrencySchema();
     // v123 backstop: re-assert safety review tables + settings columns
     // (parallel-branch collision self-heal).
     await _assertSafetyReviewSchema();
@@ -628,7 +630,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // arrives by restore or sync-adopt never runs onUpgrade.
     await _assertDivePlanMissionSchema();
 
-    // v103 and v271 backstops: the dive role vocabulary and
+    // v103 and v272 backstops: the dive role vocabulary and
     // dives.diver_role, then the role junctions (issue #1221).
     await _assertDiveRoleVocabularySchema();
     await _assertDiveRoleLinkSchema();

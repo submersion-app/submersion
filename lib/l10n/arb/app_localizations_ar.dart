@@ -3196,6 +3196,124 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get certifications_list_filter_needsAttention => 'يحتاج إلى انتباه';
+
+  @override
+  String get certifications_list_filter_clear => 'مسح';
+
+  @override
+  String get certifications_list_needsAttention_empty =>
+      'لا توجد شهادات تحتاج إلى انتباه';
+
+  @override
+  String get certifications_list_needsAttention_emptySubtitle =>
+      'جميع الشهادات سارية أو مكتومة.';
+
+  @override
+  String get currencyRule_padi_reactivate_name => 'تنشيط PADI (ReActivate)';
+
+  @override
+  String get currencyRule_ssi_skills_update_name => 'SSI Scuba Skills Update';
+
+  @override
+  String get currencyRule_generic_refresher_name => 'دورة تنشيطية';
+
+  @override
+  String get currencyRule_first_aid_24mo_name =>
+      'تجديد الإسعافات الأولية والإنعاش القلبي الرئوي';
+
+  @override
+  String get currencyRule_pro_membership_annual_name => 'تجديد العضوية المهنية';
+
+  @override
+  String get currencyRule_gue_revalidation_name => 'إعادة تصديق GUE';
+
+  @override
+  String get currencyRule_ffessm_licence_annual_name =>
+      'رخصة FFESSM والشهادة الطبية';
+
+  @override
+  String get currencyRule_cave_currency_name => 'الممارسة في الكهوف';
+
+  @override
+  String get currencyRule_rebreather_currency_name =>
+      'الممارسة بجهاز إعادة التنفس';
+
+  @override
+  String get currencyRule_deco_currency_name => 'ممارسة تخفيف الضغط';
+
+  @override
+  String get currencyRule_card_expiry_name => 'انتهاء صلاحية البطاقة';
+
+  @override
+  String get currencyRule_padi_reactivate_advisory =>
+      'تقترح PADI دورة ReActivate التنشيطية بعد ستة إلى اثني عشر شهرًا بعيدًا عن الماء.';
+
+  @override
+  String get currencyRule_ssi_skills_update_advisory =>
+      'تقترح SSI دورة Scuba Skills Update بعد ستة إلى اثني عشر شهرًا دون غوص.';
+
+  @override
+  String get currencyRule_generic_refresher_advisory =>
+      'تقترح معظم الوكالات دورة تنشيطية بعد ستة إلى اثني عشر شهرًا دون غوص.';
+
+  @override
+  String get currencyRule_first_aid_advisory =>
+      'تُجدَّد شهادات الإسعافات الأولية والإنعاش القلبي الرئوي ومزود الأكسجين عادةً كل عامين.';
+
+  @override
+  String get currencyRule_pro_membership_advisory =>
+      'تُجدَّد العضويات المهنية عادةً كل عام للحفاظ على صفة التدريس نشطة.';
+
+  @override
+  String get currencyRule_gue_revalidation_advisory =>
+      'يُعاد تصديق تصنيفات GUE عادةً كل ثلاث سنوات.';
+
+  @override
+  String get currencyRule_ffessm_licence_advisory =>
+      'تُجدَّد رخصة FFESSM وشهادتها الطبية كل عام.';
+
+  @override
+  String get currencyRule_cave_currency_advisory =>
+      'تتلاشى مهارات الكهوف دون ممارسة؛ ويُنصح عادةً بغطسة تقييم بعد عام من الانقطاع.';
+
+  @override
+  String get currencyRule_rebreather_currency_advisory =>
+      'تتلاشى مهارات جهاز إعادة التنفس بسرعة؛ وتنصح وكالات كثيرة بدورة تنشيطية بعد ستة أشهر من الانقطاع.';
+
+  @override
+  String get currencyRule_deco_currency_advisory =>
+      'يُوصى عادةً بتنشيط إجراءات تخفيف الضغط بعد عام دون غطسة تخفيف ضغط.';
+
+  @override
+  String get currencyRule_card_expiry_advisory =>
+      'تاريخ انتهاء الصلاحية المطبوع على هذه البطاقة.';
+
+  @override
+  String get certifications_currency_status_current => 'ساري';
+
+  @override
+  String get certifications_currency_status_dueSoon => 'مستحق قريبًا';
+
+  @override
+  String get certifications_currency_status_lapsed => 'منتهي';
+
+  @override
+  String get certifications_currency_eventType_refresher => 'دورة تنشيطية';
+
+  @override
+  String get certifications_currency_eventType_renewal => 'تجديد';
+
+  @override
+  String get certifications_currency_eventType_revalidation => 'إعادة تصديق';
+
+  @override
+  String get certifications_currency_eventType_skillsUpdate => 'تحديث المهارات';
+
+  @override
+  String get certifications_currency_eventType_other => 'أخرى';
+
+  @override
   String get certifications_detail_action_delete => 'حذف';
 
   @override
@@ -3280,6 +3398,138 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get certifications_detail_sectionTitle_dates => 'التواريخ';
+
+  @override
+  String get certifications_detail_sectionTitle_currency => 'الصلاحية';
+
+  @override
+  String certifications_currency_dueOn(String date) {
+    return 'مستحق في $date';
+  }
+
+  @override
+  String certifications_currency_lapsedSince(String date) {
+    return 'منتهي منذ $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastDive(String date) {
+    return 'آخر غطسة $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastQualifyingDive(String date) {
+    return 'آخر غطسة مؤهلة $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardExpiry(String date) {
+    return 'انتهاء البطاقة $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardIssue(String date) {
+    return 'صدرت في $date';
+  }
+
+  @override
+  String certifications_currency_anchor_ledgerEvent(String event, String date) {
+    return 'تم تسجيل $event في $date';
+  }
+
+  @override
+  String certifications_currency_alsoCovers(String names) {
+    return 'يشمل أيضًا $names';
+  }
+
+  @override
+  String get certifications_currency_muted => 'مكتوم';
+
+  @override
+  String get certifications_currency_noCountedDive =>
+      'لم تُسجَّل غطسة محتسبة بعد';
+
+  @override
+  String get certifications_currency_action_log => 'تسجيل دورة تنشيطية';
+
+  @override
+  String get certifications_currency_action_interval => 'تعديل الفترة';
+
+  @override
+  String get certifications_currency_action_mapping => 'الغطسات المحتسبة';
+
+  @override
+  String get certifications_currency_action_mute => 'كتم';
+
+  @override
+  String get certifications_currency_action_unmute => 'إلغاء الكتم';
+
+  @override
+  String get certifications_currency_history => 'سجل الصلاحية';
+
+  @override
+  String get certifications_currency_deleteEvent_title => 'حذف الإدخال؟';
+
+  @override
+  String certifications_currency_deleteEvent_content(
+    String event,
+    String date,
+  ) {
+    return 'سيؤدي هذا إلى إزالة $event المسجل في $date.';
+  }
+
+  @override
+  String get certifications_currency_eventDialog_title =>
+      'تسجيل تنشيط أو تجديد';
+
+  @override
+  String get certifications_currency_eventDialog_type => 'النوع';
+
+  @override
+  String get certifications_currency_eventDialog_date => 'التاريخ';
+
+  @override
+  String get certifications_currency_eventDialog_provider =>
+      'المركز أو النادي أو المدرب';
+
+  @override
+  String get certifications_currency_eventDialog_notes => 'ملاحظات';
+
+  @override
+  String get certifications_currency_intervalDialog_title => 'الفترة';
+
+  @override
+  String get certifications_currency_intervalDialog_lapse => 'تنتهي بعد (أيام)';
+
+  @override
+  String get certifications_currency_intervalDialog_lead =>
+      'التنبيه قبل هذا العدد من الأيام';
+
+  @override
+  String certifications_currency_intervalDialog_inheritHint(String days) {
+    return 'اتركه فارغًا لاستخدام قيمة القاعدة ($days)';
+  }
+
+  @override
+  String get certifications_currency_intervalDialog_leadTooLong =>
+      'لا يمكن أن يبدأ التنبيه قبل بدء الفترة';
+
+  @override
+  String get certifications_currency_mappingDialog_title => 'الغطسات المحتسبة';
+
+  @override
+  String get certifications_currency_mappingDialog_types => 'أنواع الغطس';
+
+  @override
+  String get certifications_currency_mappingDialog_modes => 'أنماط الغطس';
+
+  @override
+  String get certifications_currency_mappingDialog_anyHint =>
+      'عدم تحديد أي شيء يعني احتساب أي غطسة';
+
+  @override
+  String get certifications_currency_mappingDialog_reset =>
+      'استخدام الإعداد الافتراضي للقاعدة';
 
   @override
   String get certifications_detail_sectionTitle_details => 'تفاصيل الشهادة';
@@ -5268,7 +5518,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_homeChips_lastDive => 'حداثة الغطس';
 
   @override
-  String get settings_homeChips_certifications => 'انتهاء الشهادات';
+  String get settings_homeChips_certifications => 'صلاحية الشهادات';
 
   @override
   String get settings_homeChips_trip => 'الرحلة القادمة';
@@ -5292,8 +5542,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_homeChips_dataQuality => 'جودة البيانات';
 
   @override
-  String dashboard_gauges_certsExpiring(int count) {
-    return '$count شهادات على وشك الانتهاء';
+  String dashboard_gauges_certsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count شهادة تحتاج إلى انتباه',
+      many: '$count شهادة تحتاج إلى انتباه',
+      few: '$count شهادات تحتاج إلى انتباه',
+      two: 'شهادتان تحتاجان إلى انتباه',
+      one: 'شهادة واحدة تحتاج إلى انتباه',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12000,6 +12259,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_certificationLevel_techDiver => 'غواص تقني';
+
+  @override
+  String get enum_certificationLevel_firstAid =>
+      'الإسعافات الأولية / الإنعاش القلبي الرئوي';
+
+  @override
+  String get enum_certificationLevel_oxygenProvider =>
+      'مزود الأكسجين في حالات الطوارئ';
 
   @override
   String get enum_certificationLevel_trimix => 'ترايمكس';
@@ -20480,6 +20747,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_additionalCredentials => 'مؤهلات إضافية';
 
   @override
+  String get settings_conflict_field_advisoryKey => 'النصيحة المدمجة';
+
+  @override
   String get settings_conflict_field_airBreakBreakSeconds =>
       'مدة استراحة الهواء';
 
@@ -22088,6 +22358,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'الوقت المخطط حتى السطح';
 
   @override
+  String get settings_conflict_field_supersedesRuleId =>
+      'يحل محل القاعدة المدمجة';
+
+  @override
   String get settings_conflict_field_surfaceConditions => 'الأحوال على السطح';
 
   @override
@@ -23382,6 +23656,113 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_manage_serviceTypes_subtitle =>
       'الصيانة التي تحتاجها معداتك، وعدد مراتها';
+
+  @override
+  String get settings_manage_currencyRules => 'صلاحية الشهادات';
+
+  @override
+  String get settings_manage_currencyRules_subtitle => 'قواعد التنشيط والتجديد';
+
+  @override
+  String get currencyRules_title => 'صلاحية الشهادات';
+
+  @override
+  String get currencyRules_addTooltip => 'إضافة قاعدة';
+
+  @override
+  String get currencyRules_editTooltip => 'تعديل القاعدة';
+
+  @override
+  String get currencyRules_deleteTooltip => 'حذف القاعدة';
+
+  @override
+  String get currencyRules_builtIn => 'مدمجة';
+
+  @override
+  String get currencyRules_custom => 'قواعدك';
+
+  @override
+  String currencyRules_replaces(String name) {
+    return 'تحل محل $name';
+  }
+
+  @override
+  String currencyRules_replacedBy(String name) {
+    return 'استُبدلت بـ $name';
+  }
+
+  @override
+  String currencyRules_summary_activity(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'تنتهي بعد $lapse يوم من آخر غطسة مؤهلة',
+      many: 'تنتهي بعد $lapse يومًا من آخر غطسة مؤهلة',
+      few: 'تنتهي بعد $lapse أيام من آخر غطسة مؤهلة',
+      two: 'تنتهي بعد يومين من آخر غطسة مؤهلة',
+      one: 'تنتهي بعد يوم واحد من آخر غطسة مؤهلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String currencyRules_summary_date(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'تنتهي بعد $lapse يوم من التاريخ على البطاقة',
+      many: 'تنتهي بعد $lapse يومًا من التاريخ على البطاقة',
+      few: 'تنتهي بعد $lapse أيام من التاريخ على البطاقة',
+      two: 'تنتهي بعد يومين من التاريخ على البطاقة',
+      one: 'تنتهي بعد يوم واحد من التاريخ على البطاقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get currencyRules_deleteDialog_title => 'حذف القاعدة؟';
+
+  @override
+  String currencyRules_deleteDialog_content(String name) {
+    return 'ستتم إزالة $name. تبقى الدورات التنشيطية المسجلة في سجل كل بطاقة.';
+  }
+
+  @override
+  String get currencyRules_dialog_addTitle => 'قاعدة جديدة';
+
+  @override
+  String get currencyRules_dialog_editTitle => 'تعديل القاعدة';
+
+  @override
+  String get currencyRules_dialog_copyNote =>
+      'يؤدي الحفظ إلى إنشاء نسختك الخاصة التي تحل محل هذه القاعدة المدمجة.';
+
+  @override
+  String get currencyRules_dialog_name => 'الاسم';
+
+  @override
+  String get currencyRules_dialog_nameRequired => 'أدخل اسمًا';
+
+  @override
+  String get currencyRules_dialog_clock => 'يُحتسب من';
+
+  @override
+  String get currencyRules_dialog_clock_activity => 'آخر غطسة مؤهلة';
+
+  @override
+  String get currencyRules_dialog_clock_date => 'تاريخ على البطاقة';
+
+  @override
+  String get currencyRules_dialog_agencies => 'الوكالات';
+
+  @override
+  String get currencyRules_dialog_levels => 'المستويات';
+
+  @override
+  String get currencyRules_dialog_anyHint => 'عدم تحديد أي شيء يعني الكل';
+
+  @override
+  String get currencyRules_dialog_note => 'ملاحظة';
 
   @override
   String get settings_migrationProgress_doNotClose => 'يرجى عدم إغلاق التطبيق';

@@ -4781,6 +4781,210 @@ abstract class AppLocalizations {
   /// **'{shown} of {total, plural, =1{{total} certification} other{{total} certifications}}'**
   String certifications_list_countFiltered(int shown, int total);
 
+  /// Label of the certification list filter chip that limits the list to certifications needing a refresher or renewal
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get certifications_list_filter_needsAttention;
+
+  /// Button that removes the needs-attention filter from the certification list
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get certifications_list_filter_clear;
+
+  /// Empty state title when the needs-attention filter matches no certification
+  ///
+  /// In en, this message translates to:
+  /// **'No certifications need attention'**
+  String get certifications_list_needsAttention_empty;
+
+  /// Empty state subtitle when the needs-attention filter matches no certification
+  ///
+  /// In en, this message translates to:
+  /// **'Every certification is current or muted.'**
+  String get certifications_list_needsAttention_emptySubtitle;
+
+  /// Name of the built-in PADI refresher currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'PADI refresher (ReActivate)'**
+  String get currencyRule_padi_reactivate_name;
+
+  /// Name of the built-in SSI Scuba Skills Update currency rule; the program name is not translated
+  ///
+  /// In en, this message translates to:
+  /// **'SSI Scuba Skills Update'**
+  String get currencyRule_ssi_skills_update_name;
+
+  /// Name of the built-in generic refresher currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Refresher'**
+  String get currencyRule_generic_refresher_name;
+
+  /// Name of the built-in first aid and CPR renewal currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'First aid and CPR renewal'**
+  String get currencyRule_first_aid_24mo_name;
+
+  /// Name of the built-in professional membership renewal currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Professional membership renewal'**
+  String get currencyRule_pro_membership_annual_name;
+
+  /// Name of the built-in GUE revalidation currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'GUE revalidation'**
+  String get currencyRule_gue_revalidation_name;
+
+  /// Name of the built-in FFESSM licence currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'FFESSM licence and medical certificate'**
+  String get currencyRule_ffessm_licence_annual_name;
+
+  /// Name of the built-in cave currency rule: recent cave diving practice
+  ///
+  /// In en, this message translates to:
+  /// **'Cave currency'**
+  String get currencyRule_cave_currency_name;
+
+  /// Name of the built-in rebreather currency rule: recent rebreather practice
+  ///
+  /// In en, this message translates to:
+  /// **'Rebreather currency'**
+  String get currencyRule_rebreather_currency_name;
+
+  /// Name of the built-in decompression currency rule: recent decompression diving practice
+  ///
+  /// In en, this message translates to:
+  /// **'Decompression currency'**
+  String get currencyRule_deco_currency_name;
+
+  /// Name of the currency status that follows the expiry date printed on a card
+  ///
+  /// In en, this message translates to:
+  /// **'Card expiry'**
+  String get currencyRule_card_expiry_name;
+
+  /// Advisory sentence of the PADI refresher rule; guidance, never a requirement
+  ///
+  /// In en, this message translates to:
+  /// **'PADI suggests a ReActivate refresher after six to twelve months out of the water.'**
+  String get currencyRule_padi_reactivate_advisory;
+
+  /// Advisory sentence of the SSI Scuba Skills Update rule
+  ///
+  /// In en, this message translates to:
+  /// **'SSI suggests a Scuba Skills Update after six to twelve months without diving.'**
+  String get currencyRule_ssi_skills_update_advisory;
+
+  /// Advisory sentence of the generic refresher rule
+  ///
+  /// In en, this message translates to:
+  /// **'Most agencies suggest a refresher after six to twelve months without diving.'**
+  String get currencyRule_generic_refresher_advisory;
+
+  /// Advisory sentence of the first aid renewal rule
+  ///
+  /// In en, this message translates to:
+  /// **'First aid, CPR and oxygen provider credentials typically renew every two years.'**
+  String get currencyRule_first_aid_advisory;
+
+  /// Advisory sentence of the professional membership rule
+  ///
+  /// In en, this message translates to:
+  /// **'Professional memberships typically renew every year to keep teaching status active.'**
+  String get currencyRule_pro_membership_advisory;
+
+  /// Advisory sentence of the GUE revalidation rule
+  ///
+  /// In en, this message translates to:
+  /// **'GUE ratings are typically revalidated every three years.'**
+  String get currencyRule_gue_revalidation_advisory;
+
+  /// Advisory sentence of the FFESSM licence rule
+  ///
+  /// In en, this message translates to:
+  /// **'The FFESSM licence and its medical certificate are renewed every year.'**
+  String get currencyRule_ffessm_licence_advisory;
+
+  /// Advisory sentence of the cave currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Cave skills fade without practice; a check-out dive is commonly advised after a year away.'**
+  String get currencyRule_cave_currency_advisory;
+
+  /// Advisory sentence of the rebreather currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Rebreather skills fade quickly; many agencies advise a refresher after six months away.'**
+  String get currencyRule_rebreather_currency_advisory;
+
+  /// Advisory sentence of the decompression currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Decompression procedures are commonly refreshed after a year without a decompression dive.'**
+  String get currencyRule_deco_currency_advisory;
+
+  /// Advisory sentence of the card expiry status
+  ///
+  /// In en, this message translates to:
+  /// **'The expiry date printed on this card.'**
+  String get currencyRule_card_expiry_advisory;
+
+  /// Currency severity: the credential is current
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get certifications_currency_status_current;
+
+  /// Currency severity: a refresher or renewal is due soon
+  ///
+  /// In en, this message translates to:
+  /// **'Due soon'**
+  String get certifications_currency_status_dueSoon;
+
+  /// Currency severity: the refresher or renewal interval has passed
+  ///
+  /// In en, this message translates to:
+  /// **'Lapsed'**
+  String get certifications_currency_status_lapsed;
+
+  /// Currency ledger event type: a refresher course or dive
+  ///
+  /// In en, this message translates to:
+  /// **'Refresher'**
+  String get certifications_currency_eventType_refresher;
+
+  /// Currency ledger event type: a renewal
+  ///
+  /// In en, this message translates to:
+  /// **'Renewal'**
+  String get certifications_currency_eventType_renewal;
+
+  /// Currency ledger event type: an agency revalidation
+  ///
+  /// In en, this message translates to:
+  /// **'Revalidation'**
+  String get certifications_currency_eventType_revalidation;
+
+  /// Currency ledger event type: a skills update
+  ///
+  /// In en, this message translates to:
+  /// **'Skills update'**
+  String get certifications_currency_eventType_skillsUpdate;
+
+  /// Currency ledger event type: anything else
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get certifications_currency_eventType_other;
+
   /// No description provided for @certifications_detail_action_delete.
   ///
   /// In en, this message translates to:
@@ -4936,6 +5140,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dates'**
   String get certifications_detail_sectionTitle_dates;
+
+  /// Certification detail section title for refresher and renewal currency
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get certifications_detail_sectionTitle_currency;
+
+  /// When a refresher or renewal falls due; date is preformatted
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String certifications_currency_dueOn(String date);
+
+  /// When a refresher or renewal lapsed; date is preformatted
+  ///
+  /// In en, this message translates to:
+  /// **'Lapsed since {date}'**
+  String certifications_currency_lapsedSince(String date);
+
+  /// What a currency clock counts from: the last dive
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive {date}'**
+  String certifications_currency_anchor_lastDive(String date);
+
+  /// What a currency clock counts from: the last dive of a counted type or mode
+  ///
+  /// In en, this message translates to:
+  /// **'Last qualifying dive {date}'**
+  String certifications_currency_anchor_lastQualifyingDive(String date);
+
+  /// What a currency clock counts from: the card's expiry date
+  ///
+  /// In en, this message translates to:
+  /// **'Card expiry {date}'**
+  String certifications_currency_anchor_cardExpiry(String date);
+
+  /// What a currency clock counts from: the card's issue date
+  ///
+  /// In en, this message translates to:
+  /// **'Issued {date}'**
+  String certifications_currency_anchor_cardIssue(String date);
+
+  /// What a currency clock counts from: a logged refresher or renewal; event is its type
+  ///
+  /// In en, this message translates to:
+  /// **'{event} logged {date}'**
+  String certifications_currency_anchor_ledgerEvent(String event, String date);
+
+  /// The other cards a collapsed currency row stands for; names is a list
+  ///
+  /// In en, this message translates to:
+  /// **'Also covers {names}'**
+  String certifications_currency_alsoCovers(String names);
+
+  /// A currency rule the diver muted for this card
+  ///
+  /// In en, this message translates to:
+  /// **'Muted'**
+  String get certifications_currency_muted;
+
+  /// A currency rule applies to the card but no counted dive or refresher has been logged yet; it never warns
+  ///
+  /// In en, this message translates to:
+  /// **'No counted dive logged yet'**
+  String get certifications_currency_noCountedDive;
+
+  /// Action: log a refresher, renewal or revalidation
+  ///
+  /// In en, this message translates to:
+  /// **'Log refresher'**
+  String get certifications_currency_action_log;
+
+  /// Action: edit a currency rule's interval for this card
+  ///
+  /// In en, this message translates to:
+  /// **'Edit interval'**
+  String get certifications_currency_action_interval;
+
+  /// Action: choose which dive types and modes count toward a currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Which dives count'**
+  String get certifications_currency_action_mapping;
+
+  /// Action: mute a currency rule for this card
+  ///
+  /// In en, this message translates to:
+  /// **'Mute'**
+  String get certifications_currency_action_mute;
+
+  /// Action: unmute a currency rule for this card
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute'**
+  String get certifications_currency_action_unmute;
+
+  /// Heading of a certification's logged refreshers and renewals
+  ///
+  /// In en, this message translates to:
+  /// **'Currency history'**
+  String get certifications_currency_history;
+
+  /// Title of the dialog confirming a refresher entry deletion
+  ///
+  /// In en, this message translates to:
+  /// **'Delete entry?'**
+  String get certifications_currency_deleteEvent_title;
+
+  /// Body of the dialog confirming a refresher entry deletion
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the {event} logged {date}.'**
+  String certifications_currency_deleteEvent_content(String event, String date);
+
+  /// Title of the dialog that logs a refresher or renewal
+  ///
+  /// In en, this message translates to:
+  /// **'Log refresher or renewal'**
+  String get certifications_currency_eventDialog_title;
+
+  /// Field label: the kind of refresher or renewal
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get certifications_currency_eventDialog_type;
+
+  /// Field label: when the refresher or renewal took place
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get certifications_currency_eventDialog_date;
+
+  /// Field label: who ran the refresher
+  ///
+  /// In en, this message translates to:
+  /// **'Shop, club or instructor'**
+  String get certifications_currency_eventDialog_provider;
+
+  /// Field label: notes on the refresher
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get certifications_currency_eventDialog_notes;
+
+  /// Title of the dialog that tunes a currency rule's interval for one card
+  ///
+  /// In en, this message translates to:
+  /// **'Interval'**
+  String get certifications_currency_intervalDialog_title;
+
+  /// Field label: days until the rule lapses
+  ///
+  /// In en, this message translates to:
+  /// **'Lapses after (days)'**
+  String get certifications_currency_intervalDialog_lapse;
+
+  /// Field label: days of warning before the rule lapses
+  ///
+  /// In en, this message translates to:
+  /// **'Warn this many days before'**
+  String get certifications_currency_intervalDialog_lead;
+
+  /// Hint under an interval field: leaving it blank uses the rule's own value
+  ///
+  /// In en, this message translates to:
+  /// **'Blank uses the rule\'s value ({days})'**
+  String certifications_currency_intervalDialog_inheritHint(String days);
+
+  /// Validation: the warning window is longer than the interval
+  ///
+  /// In en, this message translates to:
+  /// **'The warning cannot start before the interval does'**
+  String get certifications_currency_intervalDialog_leadTooLong;
+
+  /// Title of the dialog choosing which dives count toward a currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Which dives count'**
+  String get certifications_currency_mappingDialog_title;
+
+  /// Field label: dive types that count
+  ///
+  /// In en, this message translates to:
+  /// **'Dive types'**
+  String get certifications_currency_mappingDialog_types;
+
+  /// Field label: dive modes that count
+  ///
+  /// In en, this message translates to:
+  /// **'Dive modes'**
+  String get certifications_currency_mappingDialog_modes;
+
+  /// Hint: selecting nothing means any dive counts
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing selected means any dive counts'**
+  String get certifications_currency_mappingDialog_anyHint;
+
+  /// Button: go back to the rule's own dive mapping
+  ///
+  /// In en, this message translates to:
+  /// **'Use the rule\'s default'**
+  String get certifications_currency_mappingDialog_reset;
 
   /// No description provided for @certifications_detail_sectionTitle_details.
   ///
@@ -8187,7 +8595,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_homeChips_certifications.
   ///
   /// In en, this message translates to:
-  /// **'Certification expiry'**
+  /// **'Certification currency'**
   String get settings_homeChips_certifications;
 
   /// No description provided for @settings_homeChips_trip.
@@ -8232,11 +8640,11 @@ abstract class AppLocalizations {
   /// **'Data quality'**
   String get settings_homeChips_dataQuality;
 
-  /// No description provided for @dashboard_gauges_certsExpiring.
+  /// Home strip chip: how many certifications need a refresher or renewal
   ///
   /// In en, this message translates to:
-  /// **'{count} certifications expiring'**
-  String dashboard_gauges_certsExpiring(int count);
+  /// **'{count, plural, =1{{count} certification needs attention} other{{count} certifications need attention}}'**
+  String dashboard_gauges_certsNeedAttention(int count);
 
   /// No description provided for @dashboard_gauges_tripCountdown.
   ///
@@ -19020,6 +19428,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tech Diver'**
   String get enum_certificationLevel_techDiver;
+
+  /// Certification level: a first aid and CPR credential
+  ///
+  /// In en, this message translates to:
+  /// **'First Aid / CPR'**
+  String get enum_certificationLevel_firstAid;
+
+  /// Certification level: an emergency oxygen provider credential
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency Oxygen Provider'**
+  String get enum_certificationLevel_oxygenProvider;
 
   /// No description provided for @enum_certificationLevel_trimix.
   ///
@@ -32288,6 +32708,12 @@ abstract class AppLocalizations {
   /// **'Additional credentials'**
   String get settings_conflict_field_additionalCredentials;
 
+  /// Sync conflict field label: which built-in advice text a certification currency rule shows.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in advice'**
+  String get settings_conflict_field_advisoryKey;
+
   /// No description provided for @settings_conflict_field_airBreakBreakSeconds.
   ///
   /// In en, this message translates to:
@@ -35258,6 +35684,12 @@ abstract class AppLocalizations {
   /// **'Planned time to surface'**
   String get settings_conflict_field_summaryTtsSeconds;
 
+  /// Sync conflict field label: the built-in certification currency rule that a custom rule replaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaces built-in rule'**
+  String get settings_conflict_field_supersedesRuleId;
+
   /// No description provided for @settings_conflict_field_surfaceConditions.
   ///
   /// In en, this message translates to:
@@ -37545,6 +37977,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Maintenance your gear needs, and how often'**
   String get settings_manage_serviceTypes_subtitle;
+
+  /// Settings > Manage tile: the certification currency rule catalog
+  ///
+  /// In en, this message translates to:
+  /// **'Certification currency'**
+  String get settings_manage_currencyRules;
+
+  /// Subtitle of the certification currency Manage tile
+  ///
+  /// In en, this message translates to:
+  /// **'Refresher and renewal rules'**
+  String get settings_manage_currencyRules_subtitle;
+
+  /// Title of the certification currency rules page
+  ///
+  /// In en, this message translates to:
+  /// **'Certification currency'**
+  String get currencyRules_title;
+
+  /// Button and tooltip: add a custom currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Add rule'**
+  String get currencyRules_addTooltip;
+
+  /// Tooltip: edit a custom currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Edit rule'**
+  String get currencyRules_editTooltip;
+
+  /// Tooltip: delete a custom currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Delete rule'**
+  String get currencyRules_deleteTooltip;
+
+  /// Section header: the built-in currency rules
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
+  String get currencyRules_builtIn;
+
+  /// Section header: the diver's own currency rules
+  ///
+  /// In en, this message translates to:
+  /// **'Your rules'**
+  String get currencyRules_custom;
+
+  /// On a custom rule: the built-in rule it replaces
+  ///
+  /// In en, this message translates to:
+  /// **'Replaces {name}'**
+  String currencyRules_replaces(String name);
+
+  /// On a built-in rule: the custom rule that replaces it
+  ///
+  /// In en, this message translates to:
+  /// **'Replaced by {name}'**
+  String currencyRules_replacedBy(String name);
+
+  /// Summary of an activity currency rule's interval
+  ///
+  /// In en, this message translates to:
+  /// **'{lapse, plural, =1{Lapses {lapse} day after the last qualifying dive} other{Lapses {lapse} days after the last qualifying dive}}'**
+  String currencyRules_summary_activity(int lapse);
+
+  /// Summary of a date currency rule's interval
+  ///
+  /// In en, this message translates to:
+  /// **'{lapse, plural, =1{Lapses {lapse} day after the date on the card} other{Lapses {lapse} days after the date on the card}}'**
+  String currencyRules_summary_date(int lapse);
+
+  /// Title of the dialog confirming a custom rule deletion
+  ///
+  /// In en, this message translates to:
+  /// **'Delete rule?'**
+  String get currencyRules_deleteDialog_title;
+
+  /// Body of the dialog confirming a custom rule deletion
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is removed. Logged refreshers stay in each card\'s history.'**
+  String currencyRules_deleteDialog_content(String name);
+
+  /// Title of the dialog creating a custom currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'New rule'**
+  String get currencyRules_dialog_addTitle;
+
+  /// Title of the dialog editing a currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'Edit rule'**
+  String get currencyRules_dialog_editTitle;
+
+  /// Shown when editing a built-in rule: saving makes a custom copy
+  ///
+  /// In en, this message translates to:
+  /// **'Saving creates your own copy that replaces this built-in rule.'**
+  String get currencyRules_dialog_copyNote;
+
+  /// Field label: rule name
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get currencyRules_dialog_name;
+
+  /// Validation: a rule needs a name
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get currencyRules_dialog_nameRequired;
+
+  /// Field label: what the rule's clock counts from
+  ///
+  /// In en, this message translates to:
+  /// **'Counts from'**
+  String get currencyRules_dialog_clock;
+
+  /// Clock option: the last qualifying dive
+  ///
+  /// In en, this message translates to:
+  /// **'Last qualifying dive'**
+  String get currencyRules_dialog_clock_activity;
+
+  /// Clock option: a date on the card
+  ///
+  /// In en, this message translates to:
+  /// **'A date on the card'**
+  String get currencyRules_dialog_clock_date;
+
+  /// Field label: agencies a rule applies to
+  ///
+  /// In en, this message translates to:
+  /// **'Agencies'**
+  String get currencyRules_dialog_agencies;
+
+  /// Field label: certification levels a rule applies to
+  ///
+  /// In en, this message translates to:
+  /// **'Levels'**
+  String get currencyRules_dialog_levels;
+
+  /// Hint: selecting nothing applies the rule to everything
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing selected means any'**
+  String get currencyRules_dialog_anyHint;
+
+  /// Field label: the diver's own note on a custom rule
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get currencyRules_dialog_note;
 
   /// No description provided for @settings_migrationProgress_doNotClose.
   ///

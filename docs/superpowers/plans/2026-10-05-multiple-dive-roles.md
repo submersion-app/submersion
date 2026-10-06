@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Schema version 262 (`AppDatabase.currentSchemaVersion = 262`); 261 is held by open PR #2985. Re-check the next free rung before pushing. (Shipped as v271: main shipped v261 through v270, apart from 268 which an open branch holds, so every v262 below became v271 as main was merged in.)
+- Schema version 262 (`AppDatabase.currentSchemaVersion = 262`); 261 is held by open PR #2985. Re-check the next free rung before pushing. (Shipped as v272: main shipped v261 through v271, apart from 268 which an open branch holds, so every v262 below became v272 as main was merged in.)
 - `AppDatabase.minimumCompatibleSchemaVersion` stays 240 (the sync floor is NOT raised).
 - New tables live in `lib/core/database/tables/buddy_tables.dart`; the rung goes in `lib/core/database/migrations/ladder/rungs_v231_onward.dart`; the helper in `lib/core/database/migrations/helpers/buddy_migrations.dart`. Never add a table or rung to `database.dart` beyond registering the table class and the version.
 - Junction primary keys are surrogate uuids, never composite (#347). `role_id` has no foreign key.

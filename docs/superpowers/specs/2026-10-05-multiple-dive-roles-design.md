@@ -18,11 +18,11 @@ Dive types already allow several per dive; roles should too.
 
 ## 1. Data model and sync
 
-### New tables (schema v271)
+### New tables (schema v272)
 
-Main shipped v261 through v267, v269 and v270 while this was open (#2985,
-#2991, #3004, #3005, #3009, #3001, #3011, #3007, #2999), and an open branch
-holds 268 (#3043), so the rung is v271.
+Main shipped v261 through v267 and v269 through v271 while this was open
+(#2985, #2991, #3004, #3005, #3009, #3001, #3011, #3007, #2999, #3020), and
+an open branch holds 268 (#3043), so the rung is v272.
 
 Both live in `lib/core/database/tables/buddy_tables.dart` and are created by a
 new rung in `lib/core/database/migrations/ladder/rungs_v231_onward.dart`, with

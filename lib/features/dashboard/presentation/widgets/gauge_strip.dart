@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 
+import 'package:submersion/features/certifications/presentation/certification_attention_navigation.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/equipment_service_navigation.dart';
@@ -287,15 +288,23 @@ class GaugeStrip extends ConsumerWidget {
       );
     }
 
-    if (_shown(hidden, HomeChipType.certifications) &&
-        g.expiringCertCount > 0) {
+    // Certification currency (issue #2267). Hardened like gear, insurance
+    // and the flight window: a lapse on a date the diver entered (a card
+    // expiry or a logged event) renders through the hide. An inferred lapse
+    // (no recent dive, an issue date plus a catalog interval) stays hideable.
+    // Through a hide the chip names only the hardened certifications, as
+    // the gear chip shows only overdue items.
+    final cert = g.certCurrency;
+    final certShown = _shown(hidden, HomeChipType.certifications);
+    final certCount = certShown ? cert.count : cert.hardenedCount;
+    if (certCount > 0) {
       chips.add(
         _chip(
           context,
           icon: Icons.card_membership_outlined,
-          label: l10n.dashboard_gauges_certsExpiring(g.expiringCertCount),
-          tone: _Tone.warn,
-          onTap: () => context.push('/certifications'),
+          label: l10n.dashboard_gauges_certsNeedAttention(certCount),
+          tone: cert.anyLapsed || !certShown ? _Tone.alert : _Tone.warn,
+          onTap: () => openCertificationsNeedingAttention(context, ref),
         ),
       );
     }

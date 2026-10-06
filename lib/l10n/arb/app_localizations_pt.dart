@@ -3114,6 +3114,126 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get certifications_list_filter_needsAttention => 'Requer atenção';
+
+  @override
+  String get certifications_list_filter_clear => 'Limpar';
+
+  @override
+  String get certifications_list_needsAttention_empty =>
+      'Nenhuma certificação requer atenção';
+
+  @override
+  String get certifications_list_needsAttention_emptySubtitle =>
+      'Todas as certificações estão em dia ou silenciadas.';
+
+  @override
+  String get currencyRule_padi_reactivate_name =>
+      'Reciclagem PADI (ReActivate)';
+
+  @override
+  String get currencyRule_ssi_skills_update_name => 'SSI Scuba Skills Update';
+
+  @override
+  String get currencyRule_generic_refresher_name => 'Reciclagem';
+
+  @override
+  String get currencyRule_first_aid_24mo_name =>
+      'Renovação de primeiros socorros e RCP';
+
+  @override
+  String get currencyRule_pro_membership_annual_name =>
+      'Renovação da filiação profissional';
+
+  @override
+  String get currencyRule_gue_revalidation_name => 'Revalidação GUE';
+
+  @override
+  String get currencyRule_ffessm_licence_annual_name =>
+      'Licença FFESSM e atestado médico';
+
+  @override
+  String get currencyRule_cave_currency_name => 'Prática em caverna';
+
+  @override
+  String get currencyRule_rebreather_currency_name => 'Prática com rebreather';
+
+  @override
+  String get currencyRule_deco_currency_name => 'Prática de descompressão';
+
+  @override
+  String get currencyRule_card_expiry_name => 'Validade do cartão';
+
+  @override
+  String get currencyRule_padi_reactivate_advisory =>
+      'A PADI sugere uma reciclagem ReActivate após seis a doze meses sem mergulhar.';
+
+  @override
+  String get currencyRule_ssi_skills_update_advisory =>
+      'A SSI sugere um Scuba Skills Update após seis a doze meses sem mergulhar.';
+
+  @override
+  String get currencyRule_generic_refresher_advisory =>
+      'A maioria das agências sugere uma reciclagem após seis a doze meses sem mergulhar.';
+
+  @override
+  String get currencyRule_first_aid_advisory =>
+      'As credenciais de primeiros socorros, RCP e fornecedor de oxigénio renovam-se normalmente a cada dois anos.';
+
+  @override
+  String get currencyRule_pro_membership_advisory =>
+      'As filiações profissionais renovam-se normalmente todos os anos para manter ativo o estatuto de instrutor.';
+
+  @override
+  String get currencyRule_gue_revalidation_advisory =>
+      'As certificações GUE são normalmente revalidadas a cada três anos.';
+
+  @override
+  String get currencyRule_ffessm_licence_advisory =>
+      'A licença FFESSM e o respetivo atestado médico são renovados todos os anos.';
+
+  @override
+  String get currencyRule_cave_currency_advisory =>
+      'As competências em caverna perdem-se sem prática; costuma aconselhar-se um mergulho de verificação após um ano de pausa.';
+
+  @override
+  String get currencyRule_rebreather_currency_advisory =>
+      'As competências com rebreather perdem-se depressa; muitas agências aconselham uma reciclagem após seis meses de pausa.';
+
+  @override
+  String get currencyRule_deco_currency_advisory =>
+      'Os procedimentos de descompressão costumam ser revistos após um ano sem mergulhos com descompressão.';
+
+  @override
+  String get currencyRule_card_expiry_advisory =>
+      'A data de validade impressa neste cartão.';
+
+  @override
+  String get certifications_currency_status_current => 'Em dia';
+
+  @override
+  String get certifications_currency_status_dueSoon => 'Vence em breve';
+
+  @override
+  String get certifications_currency_status_lapsed => 'Caducado';
+
+  @override
+  String get certifications_currency_eventType_refresher => 'Reciclagem';
+
+  @override
+  String get certifications_currency_eventType_renewal => 'Renovação';
+
+  @override
+  String get certifications_currency_eventType_revalidation => 'Revalidação';
+
+  @override
+  String get certifications_currency_eventType_skillsUpdate =>
+      'Atualização de competências';
+
+  @override
+  String get certifications_currency_eventType_other => 'Outro';
+
+  @override
   String get certifications_detail_action_delete => 'Excluir';
 
   @override
@@ -3200,6 +3320,140 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get certifications_detail_sectionTitle_dates => 'Datas';
+
+  @override
+  String get certifications_detail_sectionTitle_currency => 'Validade';
+
+  @override
+  String certifications_currency_dueOn(String date) {
+    return 'Vence a $date';
+  }
+
+  @override
+  String certifications_currency_lapsedSince(String date) {
+    return 'Caducado desde $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastDive(String date) {
+    return 'Último mergulho $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastQualifyingDive(String date) {
+    return 'Último mergulho válido $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardExpiry(String date) {
+    return 'Validade do cartão $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardIssue(String date) {
+    return 'Emitida a $date';
+  }
+
+  @override
+  String certifications_currency_anchor_ledgerEvent(String event, String date) {
+    return '$event registado a $date';
+  }
+
+  @override
+  String certifications_currency_alsoCovers(String names) {
+    return 'Também abrange $names';
+  }
+
+  @override
+  String get certifications_currency_muted => 'Silenciado';
+
+  @override
+  String get certifications_currency_noCountedDive =>
+      'Ainda não há nenhum mergulho válido registado';
+
+  @override
+  String get certifications_currency_action_log => 'Registar reciclagem';
+
+  @override
+  String get certifications_currency_action_interval => 'Editar intervalo';
+
+  @override
+  String get certifications_currency_action_mapping => 'Que mergulhos contam';
+
+  @override
+  String get certifications_currency_action_mute => 'Silenciar';
+
+  @override
+  String get certifications_currency_action_unmute => 'Reativar';
+
+  @override
+  String get certifications_currency_history => 'Histórico';
+
+  @override
+  String get certifications_currency_deleteEvent_title => 'Eliminar entrada?';
+
+  @override
+  String certifications_currency_deleteEvent_content(
+    String event,
+    String date,
+  ) {
+    return 'Isto remove $event registado a $date.';
+  }
+
+  @override
+  String get certifications_currency_eventDialog_title =>
+      'Registar reciclagem ou renovação';
+
+  @override
+  String get certifications_currency_eventDialog_type => 'Tipo';
+
+  @override
+  String get certifications_currency_eventDialog_date => 'Data';
+
+  @override
+  String get certifications_currency_eventDialog_provider =>
+      'Centro, clube ou instrutor';
+
+  @override
+  String get certifications_currency_eventDialog_notes => 'Notas';
+
+  @override
+  String get certifications_currency_intervalDialog_title => 'Intervalo';
+
+  @override
+  String get certifications_currency_intervalDialog_lapse =>
+      'Caduca após (dias)';
+
+  @override
+  String get certifications_currency_intervalDialog_lead =>
+      'Avisar com estes dias de antecedência';
+
+  @override
+  String certifications_currency_intervalDialog_inheritHint(String days) {
+    return 'Em branco usa o valor da regra ($days)';
+  }
+
+  @override
+  String get certifications_currency_intervalDialog_leadTooLong =>
+      'O aviso não pode começar antes do intervalo';
+
+  @override
+  String get certifications_currency_mappingDialog_title =>
+      'Que mergulhos contam';
+
+  @override
+  String get certifications_currency_mappingDialog_types => 'Tipos de mergulho';
+
+  @override
+  String get certifications_currency_mappingDialog_modes => 'Modos de mergulho';
+
+  @override
+  String get certifications_currency_mappingDialog_anyHint =>
+      'Sem seleção, conta qualquer mergulho';
+
+  @override
+  String get certifications_currency_mappingDialog_reset =>
+      'Usar a predefinição da regra';
 
   @override
   String get certifications_detail_sectionTitle_details =>
@@ -5190,7 +5444,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_homeChips_lastDive => 'Atualidade de mergulho';
 
   @override
-  String get settings_homeChips_certifications => 'Expiração de certificações';
+  String get settings_homeChips_certifications => 'Validade das certificações';
 
   @override
   String get settings_homeChips_trip => 'Próxima viagem';
@@ -5214,8 +5468,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_homeChips_dataQuality => 'Qualidade dos dados';
 
   @override
-  String dashboard_gauges_certsExpiring(int count) {
-    return '$count certificações a expirar';
+  String dashboard_gauges_certsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count certificações requerem atenção',
+      one: '$count certificação requer atenção',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -11841,6 +12101,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get enum_certificationLevel_techDiver => 'Mergulhador Técnico';
+
+  @override
+  String get enum_certificationLevel_firstAid => 'Primeiros socorros / RCP';
+
+  @override
+  String get enum_certificationLevel_oxygenProvider =>
+      'Fornecedor de oxigénio de emergência';
 
   @override
   String get enum_certificationLevel_trimix => 'Trimix';
@@ -20236,6 +20503,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Credenciais adicionais';
 
   @override
+  String get settings_conflict_field_advisoryKey => 'Conselho integrado';
+
+  @override
   String get settings_conflict_field_airBreakBreakSeconds =>
       'Duração da pausa de ar';
 
@@ -21923,6 +22193,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Tempo até a superfície previsto';
 
   @override
+  String get settings_conflict_field_supersedesRuleId =>
+      'Substitui a regra integrada';
+
+  @override
   String get settings_conflict_field_surfaceConditions =>
       'Condições na superfície';
 
@@ -23226,6 +23500,108 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_manage_serviceTypes_subtitle =>
       'A manutenção de que o seu equipamento precisa, e com que frequência';
+
+  @override
+  String get settings_manage_currencyRules => 'Validade das certificações';
+
+  @override
+  String get settings_manage_currencyRules_subtitle =>
+      'Regras de reciclagem e renovação';
+
+  @override
+  String get currencyRules_title => 'Validade das certificações';
+
+  @override
+  String get currencyRules_addTooltip => 'Adicionar regra';
+
+  @override
+  String get currencyRules_editTooltip => 'Editar regra';
+
+  @override
+  String get currencyRules_deleteTooltip => 'Eliminar regra';
+
+  @override
+  String get currencyRules_builtIn => 'Integradas';
+
+  @override
+  String get currencyRules_custom => 'As suas regras';
+
+  @override
+  String currencyRules_replaces(String name) {
+    return 'Substitui $name';
+  }
+
+  @override
+  String currencyRules_replacedBy(String name) {
+    return 'Substituída por $name';
+  }
+
+  @override
+  String currencyRules_summary_activity(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'Caduca $lapse dias após o último mergulho válido',
+      one: 'Caduca $lapse dia após o último mergulho válido',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String currencyRules_summary_date(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'Caduca $lapse dias após a data do cartão',
+      one: 'Caduca $lapse dia após a data do cartão',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get currencyRules_deleteDialog_title => 'Eliminar regra?';
+
+  @override
+  String currencyRules_deleteDialog_content(String name) {
+    return '$name será removida. As reciclagens registadas ficam no histórico de cada cartão.';
+  }
+
+  @override
+  String get currencyRules_dialog_addTitle => 'Nova regra';
+
+  @override
+  String get currencyRules_dialog_editTitle => 'Editar regra';
+
+  @override
+  String get currencyRules_dialog_copyNote =>
+      'Guardar cria a sua própria cópia, que substitui esta regra integrada.';
+
+  @override
+  String get currencyRules_dialog_name => 'Nome';
+
+  @override
+  String get currencyRules_dialog_nameRequired => 'Introduza um nome';
+
+  @override
+  String get currencyRules_dialog_clock => 'Conta a partir de';
+
+  @override
+  String get currencyRules_dialog_clock_activity => 'Último mergulho válido';
+
+  @override
+  String get currencyRules_dialog_clock_date => 'Uma data do cartão';
+
+  @override
+  String get currencyRules_dialog_agencies => 'Agências';
+
+  @override
+  String get currencyRules_dialog_levels => 'Níveis';
+
+  @override
+  String get currencyRules_dialog_anyHint => 'Sem seleção aplica-se a tudo';
+
+  @override
+  String get currencyRules_dialog_note => 'Nota';
 
   @override
   String get settings_migrationProgress_doNotClose =>

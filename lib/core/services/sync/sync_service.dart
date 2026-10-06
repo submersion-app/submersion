@@ -1751,6 +1751,21 @@ class SyncService {
             records: data.serviceSchedules,
             hasUpdatedAt: true,
           ),
+          (
+            type: 'certificationCurrencyRules',
+            records: data.certificationCurrencyRules,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'certificationCurrencyPrefs',
+            records: data.certificationCurrencyPrefs,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'certificationCurrencyEvents',
+            records: data.certificationCurrencyEvents,
+            hasUpdatedAt: true,
+          ),
           (type: 'settings', records: data.settings, hasUpdatedAt: true),
           // Smart albums reference sites/trips/dives only inside their
           // serialized filter, so they carry no FK and can apply
@@ -2655,6 +2670,9 @@ class SyncService {
     'serviceRecords': true,
     'serviceKinds': true,
     'serviceSchedules': true,
+    'certificationCurrencyRules': true,
+    'certificationCurrencyPrefs': true,
+    'certificationCurrencyEvents': true,
     'settings': true,
     'media': false,
     'mediaEnrichment': false,
@@ -3038,6 +3056,17 @@ class SyncService {
     'serviceSchedules': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),
       (field: 'serviceKindId', parent: 'serviceKinds', nullable: false),
+    ],
+    // Currency rule and event ids on a pref or event are plain text with no
+    // FK, so only the certification and the owning diver gate them.
+    'certificationCurrencyRules': [
+      (field: 'diverId', parent: 'divers', nullable: true),
+    ],
+    'certificationCurrencyPrefs': [
+      (field: 'certificationId', parent: 'certifications', nullable: false),
+    ],
+    'certificationCurrencyEvents': [
+      (field: 'certificationId', parent: 'certifications', nullable: false),
     ],
   };
 

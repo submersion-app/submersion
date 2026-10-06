@@ -16,6 +16,7 @@ import 'package:submersion/features/certifications/domain/certification_title.da
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_currency_section.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_ecard.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
@@ -149,6 +150,9 @@ class _CertificationDetailContent extends ConsumerWidget {
           // Dates
           _buildDatesSection(context, units),
           const SizedBox(height: 16),
+          // Refresher and renewal currency (issue #2267). Carries its own
+          // bottom gap, so an absent section leaves no extra space.
+          CertificationCurrencySection(certification: certification),
 
           // Instructor info
           if (certification.instructorName != null ||

@@ -12,6 +12,7 @@ import 'package:submersion/core/utils/number_utils.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_currency_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -2029,7 +2030,21 @@ class UniversalAdapter implements ImportSourceAdapter {
                 const [])
           if (type is Map<String, dynamic>) type,
       ],
+      // Certification currency (issue #2267), metadata for the same reason.
+      currencyRules: _metadataRows(payload, ImportPayload.currencyRulesKey),
+      currencyPrefs: _metadataRows(payload, ImportPayload.currencyPrefsKey),
+      currencyEvents: _metadataRows(payload, ImportPayload.currencyEventsKey),
     );
+  }
+
+  static List<Map<String, dynamic>> _metadataRows(
+    ImportPayload payload,
+    String key,
+  ) {
+    return [
+      for (final row in (payload.metadata[key] as List?) ?? const [])
+        if (row is Map<String, dynamic>) row,
+    ];
   }
 }
 
@@ -2075,5 +2090,10 @@ ImportRepositories universalImportRepositories(WidgetRef ref) {
     // fills CSV is skipped.
     cylinderFillRepository: ref.read(cylinderFillRepositoryProvider),
     cylinderPassportRepository: ref.read(cylinderPassportRepositoryProvider),
+    // Certification currency (issue #2267); without it a backup's custom
+    // rules, prefs and refresher history are skipped.
+    certificationCurrencyRepository: ref.read(
+      certificationCurrencyRepositoryProvider,
+    ),
   );
 }

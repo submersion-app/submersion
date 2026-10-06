@@ -3108,6 +3108,126 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get certifications_list_filter_needsAttention => 'Figyelmet igényel';
+
+  @override
+  String get certifications_list_filter_clear => 'Törlés';
+
+  @override
+  String get certifications_list_needsAttention_empty =>
+      'Egyik képesítés sem igényel figyelmet';
+
+  @override
+  String get certifications_list_needsAttention_emptySubtitle =>
+      'Minden képesítés érvényes vagy némítva van.';
+
+  @override
+  String get currencyRule_padi_reactivate_name =>
+      'PADI felfrissítés (ReActivate)';
+
+  @override
+  String get currencyRule_ssi_skills_update_name => 'SSI Scuba Skills Update';
+
+  @override
+  String get currencyRule_generic_refresher_name => 'Felfrissítés';
+
+  @override
+  String get currencyRule_first_aid_24mo_name =>
+      'Elsősegély és újraélesztés megújítása';
+
+  @override
+  String get currencyRule_pro_membership_annual_name =>
+      'Szakmai tagság megújítása';
+
+  @override
+  String get currencyRule_gue_revalidation_name => 'GUE újraminősítés';
+
+  @override
+  String get currencyRule_ffessm_licence_annual_name =>
+      'FFESSM licenc és orvosi igazolás';
+
+  @override
+  String get currencyRule_cave_currency_name => 'Barlangi merülési gyakorlat';
+
+  @override
+  String get currencyRule_rebreather_currency_name => 'Rebreather gyakorlat';
+
+  @override
+  String get currencyRule_deco_currency_name => 'Dekompressziós gyakorlat';
+
+  @override
+  String get currencyRule_card_expiry_name => 'Kártya lejárata';
+
+  @override
+  String get currencyRule_padi_reactivate_advisory =>
+      'A PADI hat-tizenkét hónap kihagyás után ReActivate felfrissítést javasol.';
+
+  @override
+  String get currencyRule_ssi_skills_update_advisory =>
+      'Az SSI hat-tizenkét hónap merülés nélkül Scuba Skills Update képzést javasol.';
+
+  @override
+  String get currencyRule_generic_refresher_advisory =>
+      'A legtöbb szervezet hat-tizenkét hónap merülés nélkül felfrissítést javasol.';
+
+  @override
+  String get currencyRule_first_aid_advisory =>
+      'Az elsősegély-, újraélesztési és oxigénadagolási képesítések jellemzően kétévente újulnak meg.';
+
+  @override
+  String get currencyRule_pro_membership_advisory =>
+      'A szakmai tagságok jellemzően évente újulnak meg, hogy az oktatói státusz aktív maradjon.';
+
+  @override
+  String get currencyRule_gue_revalidation_advisory =>
+      'A GUE minősítéseket jellemzően háromévente újraminősítik.';
+
+  @override
+  String get currencyRule_ffessm_licence_advisory =>
+      'Az FFESSM licenc és az orvosi igazolás évente megújul.';
+
+  @override
+  String get currencyRule_cave_currency_advisory =>
+      'A barlangi készségek gyakorlás nélkül elhalványulnak; egy év kihagyás után általában ellenőrző merülést javasolnak.';
+
+  @override
+  String get currencyRule_rebreather_currency_advisory =>
+      'A rebreather készségek gyorsan elhalványulnak; sok szervezet hat hónap kihagyás után felfrissítést javasol.';
+
+  @override
+  String get currencyRule_deco_currency_advisory =>
+      'A dekompressziós eljárásokat általában egy év dekompressziós merülés nélkül felfrissítik.';
+
+  @override
+  String get currencyRule_card_expiry_advisory =>
+      'A kártyán feltüntetett lejárati dátum.';
+
+  @override
+  String get certifications_currency_status_current => 'Érvényes';
+
+  @override
+  String get certifications_currency_status_dueSoon => 'Hamarosan esedékes';
+
+  @override
+  String get certifications_currency_status_lapsed => 'Lejárt';
+
+  @override
+  String get certifications_currency_eventType_refresher => 'Felfrissítés';
+
+  @override
+  String get certifications_currency_eventType_renewal => 'Megújítás';
+
+  @override
+  String get certifications_currency_eventType_revalidation => 'Újraminősítés';
+
+  @override
+  String get certifications_currency_eventType_skillsUpdate =>
+      'Készségfrissítés';
+
+  @override
+  String get certifications_currency_eventType_other => 'Egyéb';
+
+  @override
   String get certifications_detail_action_delete => 'Törlés';
 
   @override
@@ -3193,6 +3313,141 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get certifications_detail_sectionTitle_dates => 'Dátumok';
+
+  @override
+  String get certifications_detail_sectionTitle_currency => 'Érvényesség';
+
+  @override
+  String certifications_currency_dueOn(String date) {
+    return 'Esedékes: $date';
+  }
+
+  @override
+  String certifications_currency_lapsedSince(String date) {
+    return 'Lejárt: $date óta';
+  }
+
+  @override
+  String certifications_currency_anchor_lastDive(String date) {
+    return 'Utolsó merülés: $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastQualifyingDive(String date) {
+    return 'Utolsó beszámító merülés: $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardExpiry(String date) {
+    return 'Kártya lejárata: $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardIssue(String date) {
+    return 'Kiállítva: $date';
+  }
+
+  @override
+  String certifications_currency_anchor_ledgerEvent(String event, String date) {
+    return '$event rögzítve: $date';
+  }
+
+  @override
+  String certifications_currency_alsoCovers(String names) {
+    return 'Erre is vonatkozik: $names';
+  }
+
+  @override
+  String get certifications_currency_muted => 'Némítva';
+
+  @override
+  String get certifications_currency_noCountedDive =>
+      'Még nincs rögzített beszámító merülés';
+
+  @override
+  String get certifications_currency_action_log => 'Felfrissítés rögzítése';
+
+  @override
+  String get certifications_currency_action_interval => 'Időköz szerkesztése';
+
+  @override
+  String get certifications_currency_action_mapping =>
+      'Mely merülések számítanak';
+
+  @override
+  String get certifications_currency_action_mute => 'Némítás';
+
+  @override
+  String get certifications_currency_action_unmute => 'Némítás feloldása';
+
+  @override
+  String get certifications_currency_history => 'Előzmények';
+
+  @override
+  String get certifications_currency_deleteEvent_title => 'Törli a bejegyzést?';
+
+  @override
+  String certifications_currency_deleteEvent_content(
+    String event,
+    String date,
+  ) {
+    return 'Ez törli a(z) $date napon rögzített $event bejegyzést.';
+  }
+
+  @override
+  String get certifications_currency_eventDialog_title =>
+      'Felfrissítés vagy megújítás rögzítése';
+
+  @override
+  String get certifications_currency_eventDialog_type => 'Típus';
+
+  @override
+  String get certifications_currency_eventDialog_date => 'Dátum';
+
+  @override
+  String get certifications_currency_eventDialog_provider =>
+      'Merülőközpont, klub vagy oktató';
+
+  @override
+  String get certifications_currency_eventDialog_notes => 'Megjegyzések';
+
+  @override
+  String get certifications_currency_intervalDialog_title => 'Időköz';
+
+  @override
+  String get certifications_currency_intervalDialog_lapse =>
+      'Lejár ennyi nap után';
+
+  @override
+  String get certifications_currency_intervalDialog_lead =>
+      'Ennyi nappal előtte figyelmeztessen';
+
+  @override
+  String certifications_currency_intervalDialog_inheritHint(String days) {
+    return 'Üresen a szabály értéke érvényes ($days)';
+  }
+
+  @override
+  String get certifications_currency_intervalDialog_leadTooLong =>
+      'A figyelmeztetés nem kezdődhet az időköz előtt';
+
+  @override
+  String get certifications_currency_mappingDialog_title =>
+      'Mely merülések számítanak';
+
+  @override
+  String get certifications_currency_mappingDialog_types => 'Merüléstípusok';
+
+  @override
+  String get certifications_currency_mappingDialog_modes => 'Merülési módok';
+
+  @override
+  String get certifications_currency_mappingDialog_anyHint =>
+      'Ha semmi nincs kiválasztva, minden merülés számít';
+
+  @override
+  String get certifications_currency_mappingDialog_reset =>
+      'A szabály alapértékének használata';
 
   @override
   String get certifications_detail_sectionTitle_details =>
@@ -5178,7 +5433,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_homeChips_lastDive => 'Merülési naprakészség';
 
   @override
-  String get settings_homeChips_certifications => 'Minősítések lejárata';
+  String get settings_homeChips_certifications => 'Képesítések érvényessége';
 
   @override
   String get settings_homeChips_trip => 'Közelgő utazás';
@@ -5202,8 +5457,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_homeChips_dataQuality => 'Adatminőség';
 
   @override
-  String dashboard_gauges_certsExpiring(int count) {
-    return '$count minősítés hamarosan lejár';
+  String dashboard_gauges_certsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count képesítés figyelmet igényel',
+      one: '$count képesítés figyelmet igényel',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -11816,6 +12077,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_certificationLevel_techDiver => 'Technikai búvár';
+
+  @override
+  String get enum_certificationLevel_firstAid => 'Elsősegély / újraélesztés';
+
+  @override
+  String get enum_certificationLevel_oxygenProvider =>
+      'Vészhelyzeti oxigénadagolás';
 
   @override
   String get enum_certificationLevel_trimix => 'Trimix';
@@ -20168,6 +20436,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'További minősítések';
 
   @override
+  String get settings_conflict_field_advisoryKey => 'Beépített tanács';
+
+  @override
   String get settings_conflict_field_airBreakBreakSeconds =>
       'Levegőszünet hossza';
 
@@ -21826,6 +22097,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Tervezett idő a felszínig';
 
   @override
+  String get settings_conflict_field_supersedesRuleId =>
+      'Beépített szabályt helyettesít';
+
+  @override
   String get settings_conflict_field_surfaceConditions =>
       'Felszíni körülmények';
 
@@ -23125,6 +23400,109 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_manage_serviceTypes_subtitle =>
       'Milyen karbantartást igényel a felszerelésed, és milyen gyakran';
+
+  @override
+  String get settings_manage_currencyRules => 'Képesítések érvényessége';
+
+  @override
+  String get settings_manage_currencyRules_subtitle =>
+      'Felfrissítési és megújítási szabályok';
+
+  @override
+  String get currencyRules_title => 'Képesítések érvényessége';
+
+  @override
+  String get currencyRules_addTooltip => 'Szabály hozzáadása';
+
+  @override
+  String get currencyRules_editTooltip => 'Szabály szerkesztése';
+
+  @override
+  String get currencyRules_deleteTooltip => 'Szabály törlése';
+
+  @override
+  String get currencyRules_builtIn => 'Beépített';
+
+  @override
+  String get currencyRules_custom => 'Saját szabályok';
+
+  @override
+  String currencyRules_replaces(String name) {
+    return 'Helyettesíti: $name';
+  }
+
+  @override
+  String currencyRules_replacedBy(String name) {
+    return 'Helyettesítve: $name';
+  }
+
+  @override
+  String currencyRules_summary_activity(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'Az utolsó beszámító merülés után $lapse nappal jár le',
+      one: 'Az utolsó beszámító merülés után $lapse nappal jár le',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String currencyRules_summary_date(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'A kártyán szereplő dátum után $lapse nappal jár le',
+      one: 'A kártyán szereplő dátum után $lapse nappal jár le',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get currencyRules_deleteDialog_title => 'Törli a szabályt?';
+
+  @override
+  String currencyRules_deleteDialog_content(String name) {
+    return 'A(z) $name törlődik. A rögzített felfrissítések megmaradnak az egyes kártyák előzményeiben.';
+  }
+
+  @override
+  String get currencyRules_dialog_addTitle => 'Új szabály';
+
+  @override
+  String get currencyRules_dialog_editTitle => 'Szabály szerkesztése';
+
+  @override
+  String get currencyRules_dialog_copyNote =>
+      'A mentés saját másolatot hoz létre, amely felváltja ezt a beépített szabályt.';
+
+  @override
+  String get currencyRules_dialog_name => 'Név';
+
+  @override
+  String get currencyRules_dialog_nameRequired => 'Adjon meg egy nevet';
+
+  @override
+  String get currencyRules_dialog_clock => 'Kezdőpont';
+
+  @override
+  String get currencyRules_dialog_clock_activity => 'Utolsó beszámító merülés';
+
+  @override
+  String get currencyRules_dialog_clock_date => 'Egy dátum a kártyán';
+
+  @override
+  String get currencyRules_dialog_agencies => 'Szervezetek';
+
+  @override
+  String get currencyRules_dialog_levels => 'Szintek';
+
+  @override
+  String get currencyRules_dialog_anyHint =>
+      'Ha semmi nincs kiválasztva, mindenre vonatkozik';
+
+  @override
+  String get currencyRules_dialog_note => 'Megjegyzés';
 
   @override
   String get settings_migrationProgress_doNotClose =>

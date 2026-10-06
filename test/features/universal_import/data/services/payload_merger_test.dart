@@ -168,6 +168,60 @@ void main() {
       expect([for (final r in roles) (r as Map)['id']], ['r1', 'r2', 'r3']);
     });
 
+    test('namespaces currency certificationRefs like the certifications', () {
+      // Issue #2267: a pref names its certification by uddfId, which the
+      // merge prefixes per file, so the ref must take the same prefix or no
+      // restored certification would match it.
+      ImportPayload withCurrency(String ruleId) => ImportPayload(
+        entities: {
+          ImportEntityType.certifications: [
+            {'uddfId': 'cert_c1', 'name': 'Cave $ruleId'},
+          ],
+        },
+        metadata: {
+          ImportPayload.currencyRulesKey: [
+            {'id': ruleId, 'name': 'Rule $ruleId'},
+            {'id': 'shared', 'name': 'Shared'},
+          ],
+          ImportPayload.currencyPrefsKey: [
+            {'id': 'p', 'certificationRef': 'cert_c1', 'ruleId': ruleId},
+          ],
+          ImportPayload.currencyEventsKey: [
+            {'id': 'e', 'certificationRef': 'cert_c1'},
+          ],
+        },
+      );
+
+      final merged = merger.merge([
+        FilePayload(
+          fileId: 'f0',
+          fileName: 'a.uddf',
+          payload: withCurrency('r1'),
+        ),
+        FilePayload(
+          fileId: 'f1',
+          fileName: 'b.uddf',
+          payload: withCurrency('r2'),
+        ),
+      ]);
+
+      final certIds = {
+        for (final c in merged.entitiesOf(ImportEntityType.certifications))
+          c['uddfId'],
+      };
+      final prefs = merged.metadata[ImportPayload.currencyPrefsKey] as List;
+      final events = merged.metadata[ImportPayload.currencyEventsKey] as List;
+      final rules = merged.metadata[ImportPayload.currencyRulesKey] as List;
+      expect(
+        [for (final p in prefs) (p as Map)['certificationRef']],
+        ['f0:cert_c1', 'f1:cert_c1'],
+      );
+      expect([
+        for (final e in events) (e as Map)['certificationRef'],
+      ], everyElement(isIn(certIds)));
+      expect([for (final r in rules) (r as Map)['id']], ['r1', 'shared', 'r2']);
+    });
+
     test('rewrites the person in each exact buddy role (issue #1737)', () {
       final a = payloadWith(
         buddies: [

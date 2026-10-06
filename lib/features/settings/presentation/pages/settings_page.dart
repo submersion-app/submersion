@@ -2538,6 +2538,17 @@ class _ManageSectionContent extends StatelessWidget {
                   onTap: () => context.push('/equipment/service-types'),
                 ),
                 const Divider(height: 1),
+                // Refresher and renewal rules (issue #2267)
+                ListTile(
+                  leading: const Icon(Icons.event_repeat_outlined),
+                  title: Text(context.l10n.settings_manage_currencyRules),
+                  subtitle: Text(
+                    context.l10n.settings_manage_currencyRules_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/currency-rules'),
+                ),
+                const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.auto_fix_high),
                   title: Text(context.l10n.settings_manage_setupAssistant),

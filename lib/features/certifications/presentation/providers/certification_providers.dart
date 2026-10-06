@@ -287,13 +287,6 @@ final certificationListNotifierProvider =
       return CertificationListNotifier(repository, ref);
     });
 
-/// Count of expiring certifications (for badges/warnings)
-final expiringCertificationCountProvider = FutureProvider<int>((ref) async {
-  final expiring = await ref.watch(expiringCertificationsProvider(90).future);
-  final expired = await ref.watch(expiredCertificationsProvider.future);
-  return expiring.length + expired.length;
-});
-
 // ============================================================================
 // Certification List View Mode
 // ============================================================================

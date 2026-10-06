@@ -4,6 +4,7 @@ import 'package:xml/xml.dart';
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
+import 'package:submersion/core/services/export/uddf/uddf_certification_currency.dart';
 import 'package:submersion/core/services/export/uddf/uddf_buddy_roles.dart';
 import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
@@ -299,6 +300,7 @@ class UddfFullImportService {
     // Parse applicationdata section
     final equipment = <Map<String, dynamic>>[];
     final certifications = <Map<String, dynamic>>[];
+    UddfCurrencyRows currency = (rules: [], prefs: [], events: []);
     final diveCenters = <Map<String, dynamic>>[];
     final species = <Map<String, dynamic>>[];
     final serviceRecords = <Map<String, dynamic>>[];
@@ -359,6 +361,9 @@ class UddfFullImportService {
             }
           }
         }
+
+        // Certification currency (issue #2267)
+        currency = UddfCertificationCurrency.parse(submersionElement);
 
         // Parse dive centers
         final centersSection = submersionElement
@@ -686,6 +691,9 @@ class UddfFullImportService {
       diveComputers: diveComputers,
       equipmentSets: equipmentSets,
       courses: courses,
+      currencyRules: currency.rules,
+      currencyPrefs: currency.prefs,
+      currencyEvents: currency.events,
     );
   }
 

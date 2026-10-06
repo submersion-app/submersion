@@ -3115,6 +3115,125 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get certifications_list_filter_needsAttention => 'Richiede attenzione';
+
+  @override
+  String get certifications_list_filter_clear => 'Cancella';
+
+  @override
+  String get certifications_list_needsAttention_empty =>
+      'Nessuna certificazione richiede attenzione';
+
+  @override
+  String get certifications_list_needsAttention_emptySubtitle =>
+      'Tutte le certificazioni sono aggiornate o silenziate.';
+
+  @override
+  String get currencyRule_padi_reactivate_name =>
+      'Aggiornamento PADI (ReActivate)';
+
+  @override
+  String get currencyRule_ssi_skills_update_name => 'SSI Scuba Skills Update';
+
+  @override
+  String get currencyRule_generic_refresher_name => 'Aggiornamento';
+
+  @override
+  String get currencyRule_first_aid_24mo_name => 'Rinnovo primo soccorso e RCP';
+
+  @override
+  String get currencyRule_pro_membership_annual_name =>
+      'Rinnovo dell\'iscrizione professionale';
+
+  @override
+  String get currencyRule_gue_revalidation_name => 'Riconvalida GUE';
+
+  @override
+  String get currencyRule_ffessm_licence_annual_name =>
+      'Licenza FFESSM e certificato medico';
+
+  @override
+  String get currencyRule_cave_currency_name => 'Pratica in grotta';
+
+  @override
+  String get currencyRule_rebreather_currency_name => 'Pratica con rebreather';
+
+  @override
+  String get currencyRule_deco_currency_name => 'Pratica di decompressione';
+
+  @override
+  String get currencyRule_card_expiry_name => 'Scadenza della tessera';
+
+  @override
+  String get currencyRule_padi_reactivate_advisory =>
+      'PADI suggerisce un aggiornamento ReActivate dopo sei-dodici mesi fuori dall\'acqua.';
+
+  @override
+  String get currencyRule_ssi_skills_update_advisory =>
+      'SSI suggerisce uno Scuba Skills Update dopo sei-dodici mesi senza immersioni.';
+
+  @override
+  String get currencyRule_generic_refresher_advisory =>
+      'La maggior parte delle didattiche suggerisce un aggiornamento dopo sei-dodici mesi senza immersioni.';
+
+  @override
+  String get currencyRule_first_aid_advisory =>
+      'I brevetti di primo soccorso, RCP e somministrazione di ossigeno si rinnovano di solito ogni due anni.';
+
+  @override
+  String get currencyRule_pro_membership_advisory =>
+      'Le iscrizioni professionali si rinnovano di solito ogni anno per mantenere attivo lo status di istruttore.';
+
+  @override
+  String get currencyRule_gue_revalidation_advisory =>
+      'I brevetti GUE vengono di solito riconvalidati ogni tre anni.';
+
+  @override
+  String get currencyRule_ffessm_licence_advisory =>
+      'La licenza FFESSM e il relativo certificato medico si rinnovano ogni anno.';
+
+  @override
+  String get currencyRule_cave_currency_advisory =>
+      'Le abilità in grotta si perdono senza pratica; dopo un anno di pausa si consiglia di solito un\'immersione di verifica.';
+
+  @override
+  String get currencyRule_rebreather_currency_advisory =>
+      'Le abilità con il rebreather si perdono in fretta; molte didattiche consigliano un aggiornamento dopo sei mesi di pausa.';
+
+  @override
+  String get currencyRule_deco_currency_advisory =>
+      'Le procedure di decompressione vengono di solito ripassate dopo un anno senza immersioni con decompressione.';
+
+  @override
+  String get currencyRule_card_expiry_advisory =>
+      'La data di scadenza riportata su questa tessera.';
+
+  @override
+  String get certifications_currency_status_current => 'In regola';
+
+  @override
+  String get certifications_currency_status_dueSoon => 'In scadenza';
+
+  @override
+  String get certifications_currency_status_lapsed => 'Scaduto';
+
+  @override
+  String get certifications_currency_eventType_refresher => 'Aggiornamento';
+
+  @override
+  String get certifications_currency_eventType_renewal => 'Rinnovo';
+
+  @override
+  String get certifications_currency_eventType_revalidation => 'Riconvalida';
+
+  @override
+  String get certifications_currency_eventType_skillsUpdate =>
+      'Ripasso abilità';
+
+  @override
+  String get certifications_currency_eventType_other => 'Altro';
+
+  @override
   String get certifications_detail_action_delete => 'Elimina';
 
   @override
@@ -3201,6 +3320,143 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get certifications_detail_sectionTitle_dates => 'Date';
+
+  @override
+  String get certifications_detail_sectionTitle_currency => 'Validità';
+
+  @override
+  String certifications_currency_dueOn(String date) {
+    return 'Scade il $date';
+  }
+
+  @override
+  String certifications_currency_lapsedSince(String date) {
+    return 'Scaduto dal $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastDive(String date) {
+    return 'Ultima immersione $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastQualifyingDive(String date) {
+    return 'Ultima immersione valida $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardExpiry(String date) {
+    return 'Scadenza tessera $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardIssue(String date) {
+    return 'Rilasciata il $date';
+  }
+
+  @override
+  String certifications_currency_anchor_ledgerEvent(String event, String date) {
+    return '$event registrato il $date';
+  }
+
+  @override
+  String certifications_currency_alsoCovers(String names) {
+    return 'Vale anche per $names';
+  }
+
+  @override
+  String get certifications_currency_muted => 'Silenziato';
+
+  @override
+  String get certifications_currency_noCountedDive =>
+      'Nessuna immersione valida registrata finora';
+
+  @override
+  String get certifications_currency_action_log => 'Registra aggiornamento';
+
+  @override
+  String get certifications_currency_action_interval => 'Modifica intervallo';
+
+  @override
+  String get certifications_currency_action_mapping =>
+      'Quali immersioni contano';
+
+  @override
+  String get certifications_currency_action_mute => 'Silenzia';
+
+  @override
+  String get certifications_currency_action_unmute => 'Riattiva';
+
+  @override
+  String get certifications_currency_history => 'Cronologia';
+
+  @override
+  String get certifications_currency_deleteEvent_title => 'Eliminare la voce?';
+
+  @override
+  String certifications_currency_deleteEvent_content(
+    String event,
+    String date,
+  ) {
+    return 'Verrà rimosso $event registrato il $date.';
+  }
+
+  @override
+  String get certifications_currency_eventDialog_title =>
+      'Registra aggiornamento o rinnovo';
+
+  @override
+  String get certifications_currency_eventDialog_type => 'Tipo';
+
+  @override
+  String get certifications_currency_eventDialog_date => 'Data';
+
+  @override
+  String get certifications_currency_eventDialog_provider =>
+      'Centro, club o istruttore';
+
+  @override
+  String get certifications_currency_eventDialog_notes => 'Note';
+
+  @override
+  String get certifications_currency_intervalDialog_title => 'Intervallo';
+
+  @override
+  String get certifications_currency_intervalDialog_lapse =>
+      'Scade dopo (giorni)';
+
+  @override
+  String get certifications_currency_intervalDialog_lead =>
+      'Avvisa con questi giorni di anticipo';
+
+  @override
+  String certifications_currency_intervalDialog_inheritHint(String days) {
+    return 'Vuoto usa il valore della regola ($days)';
+  }
+
+  @override
+  String get certifications_currency_intervalDialog_leadTooLong =>
+      'L\'avviso non può iniziare prima dell\'intervallo';
+
+  @override
+  String get certifications_currency_mappingDialog_title =>
+      'Quali immersioni contano';
+
+  @override
+  String get certifications_currency_mappingDialog_types =>
+      'Tipi di immersione';
+
+  @override
+  String get certifications_currency_mappingDialog_modes =>
+      'Modalità di immersione';
+
+  @override
+  String get certifications_currency_mappingDialog_anyHint =>
+      'Senza selezione conta qualsiasi immersione';
+
+  @override
+  String get certifications_currency_mappingDialog_reset =>
+      'Usa il valore della regola';
 
   @override
   String get certifications_detail_sectionTitle_details =>
@@ -5189,7 +5445,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_homeChips_lastDive => 'Attualità delle immersioni';
 
   @override
-  String get settings_homeChips_certifications => 'Scadenza certificazioni';
+  String get settings_homeChips_certifications =>
+      'Validità delle certificazioni';
 
   @override
   String get settings_homeChips_trip => 'Prossimo viaggio';
@@ -5213,8 +5470,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_homeChips_dataQuality => 'Qualità dei dati';
 
   @override
-  String dashboard_gauges_certsExpiring(int count) {
-    return '$count certificazioni in scadenza';
+  String dashboard_gauges_certsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count certificazioni richiedono attenzione',
+      one: '$count certificazione richiede attenzione',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -11841,6 +12104,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_certificationLevel_techDiver => 'Subacqueo tecnico';
+
+  @override
+  String get enum_certificationLevel_firstAid => 'Primo soccorso / RCP';
+
+  @override
+  String get enum_certificationLevel_oxygenProvider =>
+      'Fornitore di ossigeno di emergenza';
 
   @override
   String get enum_certificationLevel_trimix => 'Trimix';
@@ -20232,6 +20502,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Brevetti aggiuntivi';
 
   @override
+  String get settings_conflict_field_advisoryKey => 'Consiglio integrato';
+
+  @override
   String get settings_conflict_field_airBreakBreakSeconds =>
       'Durata della pausa ad aria';
 
@@ -21935,6 +22208,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tempo di risalita previsto';
 
   @override
+  String get settings_conflict_field_supersedesRuleId =>
+      'Sostituisce la regola integrata';
+
+  @override
   String get settings_conflict_field_surfaceConditions =>
       'Condizioni in superficie';
 
@@ -23236,6 +23513,108 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_manage_serviceTypes_subtitle =>
       'La manutenzione che serve alla tua attrezzatura, e ogni quanto';
+
+  @override
+  String get settings_manage_currencyRules => 'Validità delle certificazioni';
+
+  @override
+  String get settings_manage_currencyRules_subtitle =>
+      'Regole di aggiornamento e rinnovo';
+
+  @override
+  String get currencyRules_title => 'Validità delle certificazioni';
+
+  @override
+  String get currencyRules_addTooltip => 'Aggiungi regola';
+
+  @override
+  String get currencyRules_editTooltip => 'Modifica regola';
+
+  @override
+  String get currencyRules_deleteTooltip => 'Elimina regola';
+
+  @override
+  String get currencyRules_builtIn => 'Predefinite';
+
+  @override
+  String get currencyRules_custom => 'Le tue regole';
+
+  @override
+  String currencyRules_replaces(String name) {
+    return 'Sostituisce $name';
+  }
+
+  @override
+  String currencyRules_replacedBy(String name) {
+    return 'Sostituita da $name';
+  }
+
+  @override
+  String currencyRules_summary_activity(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'Scade $lapse giorni dopo l\'ultima immersione valida',
+      one: 'Scade $lapse giorno dopo l\'ultima immersione valida',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String currencyRules_summary_date(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'Scade $lapse giorni dopo la data sulla tessera',
+      one: 'Scade $lapse giorno dopo la data sulla tessera',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get currencyRules_deleteDialog_title => 'Eliminare la regola?';
+
+  @override
+  String currencyRules_deleteDialog_content(String name) {
+    return '$name verrà rimossa. Gli aggiornamenti registrati restano nella cronologia di ogni tessera.';
+  }
+
+  @override
+  String get currencyRules_dialog_addTitle => 'Nuova regola';
+
+  @override
+  String get currencyRules_dialog_editTitle => 'Modifica regola';
+
+  @override
+  String get currencyRules_dialog_copyNote =>
+      'Il salvataggio crea una tua copia che sostituisce questa regola predefinita.';
+
+  @override
+  String get currencyRules_dialog_name => 'Nome';
+
+  @override
+  String get currencyRules_dialog_nameRequired => 'Inserisci un nome';
+
+  @override
+  String get currencyRules_dialog_clock => 'Conta da';
+
+  @override
+  String get currencyRules_dialog_clock_activity => 'Ultima immersione valida';
+
+  @override
+  String get currencyRules_dialog_clock_date => 'Una data sulla tessera';
+
+  @override
+  String get currencyRules_dialog_agencies => 'Didattiche';
+
+  @override
+  String get currencyRules_dialog_levels => 'Livelli';
+
+  @override
+  String get currencyRules_dialog_anyHint => 'Senza selezione vale per tutto';
+
+  @override
+  String get currencyRules_dialog_note => 'Nota';
 
   @override
   String get settings_migrationProgress_doNotClose => 'Non chiudere l\'app';

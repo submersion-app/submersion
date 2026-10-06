@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/raw_dive_data_codec.dart';
 import 'package:submersion/core/database/tables/app_tables.dart';
 import 'package:submersion/core/database/tables/buddy_tables.dart';
+import 'package:submersion/core/database/tables/certification_currency_tables.dart';
 import 'package:submersion/core/database/tables/cylinder_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_tables.dart';
 import 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
@@ -31,6 +32,7 @@ import 'package:submersion/core/database/migrations/app_database_migrations.dart
 
 export 'package:submersion/core/database/tables/app_tables.dart';
 export 'package:submersion/core/database/tables/buddy_tables.dart';
+export 'package:submersion/core/database/tables/certification_currency_tables.dart';
 export 'package:submersion/core/database/tables/cylinder_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_tables.dart';
 export 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
@@ -115,7 +117,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DiveDiveTypes,
     DiveTypes,
     DiveRoles,
-    // Several roles per person on a dive (v271, issue #1221)
+    // Several roles per person on a dive (v272, issue #1221)
     DiveDiverRoles,
     DiveBuddyRoles,
     // Custom certification agencies and levels (v261, issue #690)
@@ -233,6 +235,10 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SiteHides,
     // Insight observation dismissals (v265)
     InsightObservationDismissals,
+    // Certification currency (v271, issue #2267)
+    CertificationCurrencyRules,
+    CertificationCurrencyPrefs,
+    CertificationCurrencyEvents,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -242,7 +248,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 271;
+  static const int currentSchemaVersion = 272;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1133,12 +1139,19 @@ class AppDatabase extends _$AppDatabase {
     // its local value or the '' default. Renumbered as other rungs shipped
     // first (261 through 269); 268 is held by an open branch (#3043).
     270,
-    // v271: dive_diver_roles and dive_buddy_roles, several roles per person
+    // v271: certification currency (issue #2267): the rule catalog with its
+    // built-in seed, per certification overrides and the event ledger. New
+    // synced tables only, so the floor stays. Built-in rules are reference
+    // data, re-seeded by INSERT OR IGNORE from onCreate, the rung and
+    // beforeOpen. Renumbered from 261, 262, 266, 267 and 269 as main shipped
+    // those first (and then 270); 268 is held by an open branch.
+    271,
+    // v272: dive_diver_roles and dive_buddy_roles, several roles per person
     // on a dive (issue #1221). New synced child tables, no backfill: an
     // older peer ignores them and its scalar role writes still resolve, so
-    // the floor stays. Renumbered from 262, 264, 267 and 270 as main shipped
-    // those; 268 is held by an open branch (#3043).
-    271,
+    // the floor stays. Renumbered from 262, 264, 267, 270 and 271 as main
+    // shipped those; 268 is held by an open branch (#3043).
+    272,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

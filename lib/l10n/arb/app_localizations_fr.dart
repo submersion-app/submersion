@@ -3122,6 +3122,127 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get certifications_list_filter_needsAttention =>
+      'Nécessite une attention';
+
+  @override
+  String get certifications_list_filter_clear => 'Effacer';
+
+  @override
+  String get certifications_list_needsAttention_empty =>
+      'Aucune certification ne nécessite d\'attention';
+
+  @override
+  String get certifications_list_needsAttention_emptySubtitle =>
+      'Toutes les certifications sont à jour ou mises en sourdine.';
+
+  @override
+  String get currencyRule_padi_reactivate_name =>
+      'Remise à niveau PADI (ReActivate)';
+
+  @override
+  String get currencyRule_ssi_skills_update_name => 'SSI Scuba Skills Update';
+
+  @override
+  String get currencyRule_generic_refresher_name => 'Remise à niveau';
+
+  @override
+  String get currencyRule_first_aid_24mo_name =>
+      'Renouvellement premiers secours et RCP';
+
+  @override
+  String get currencyRule_pro_membership_annual_name =>
+      'Renouvellement de l\'adhésion professionnelle';
+
+  @override
+  String get currencyRule_gue_revalidation_name => 'Revalidation GUE';
+
+  @override
+  String get currencyRule_ffessm_licence_annual_name =>
+      'Licence FFESSM et certificat médical';
+
+  @override
+  String get currencyRule_cave_currency_name => 'Pratique en grotte';
+
+  @override
+  String get currencyRule_rebreather_currency_name => 'Pratique en recycleur';
+
+  @override
+  String get currencyRule_deco_currency_name => 'Pratique de la décompression';
+
+  @override
+  String get currencyRule_card_expiry_name => 'Expiration de la carte';
+
+  @override
+  String get currencyRule_padi_reactivate_advisory =>
+      'PADI suggère une remise à niveau ReActivate après six à douze mois hors de l\'eau.';
+
+  @override
+  String get currencyRule_ssi_skills_update_advisory =>
+      'SSI suggère un Scuba Skills Update après six à douze mois sans plonger.';
+
+  @override
+  String get currencyRule_generic_refresher_advisory =>
+      'La plupart des organismes suggèrent une remise à niveau après six à douze mois sans plonger.';
+
+  @override
+  String get currencyRule_first_aid_advisory =>
+      'Les qualifications de premiers secours, RCP et oxygénothérapie se renouvellent généralement tous les deux ans.';
+
+  @override
+  String get currencyRule_pro_membership_advisory =>
+      'Les adhésions professionnelles se renouvellent généralement chaque année pour garder le statut d\'enseignant actif.';
+
+  @override
+  String get currencyRule_gue_revalidation_advisory =>
+      'Les brevets GUE sont généralement revalidés tous les trois ans.';
+
+  @override
+  String get currencyRule_ffessm_licence_advisory =>
+      'La licence FFESSM et son certificat médical se renouvellent chaque année.';
+
+  @override
+  String get currencyRule_cave_currency_advisory =>
+      'Les compétences en grotte s\'émoussent sans pratique ; une plongée de contrôle est souvent conseillée après un an d\'arrêt.';
+
+  @override
+  String get currencyRule_rebreather_currency_advisory =>
+      'Les compétences en recycleur s\'émoussent vite ; beaucoup d\'organismes conseillent une remise à niveau après six mois d\'arrêt.';
+
+  @override
+  String get currencyRule_deco_currency_advisory =>
+      'Les procédures de décompression sont souvent révisées après un an sans plongée à paliers.';
+
+  @override
+  String get currencyRule_card_expiry_advisory =>
+      'La date d\'expiration indiquée sur cette carte.';
+
+  @override
+  String get certifications_currency_status_current => 'À jour';
+
+  @override
+  String get certifications_currency_status_dueSoon => 'Bientôt dû';
+
+  @override
+  String get certifications_currency_status_lapsed => 'Expiré';
+
+  @override
+  String get certifications_currency_eventType_refresher => 'Remise à niveau';
+
+  @override
+  String get certifications_currency_eventType_renewal => 'Renouvellement';
+
+  @override
+  String get certifications_currency_eventType_revalidation => 'Revalidation';
+
+  @override
+  String get certifications_currency_eventType_skillsUpdate =>
+      'Mise à jour des compétences';
+
+  @override
+  String get certifications_currency_eventType_other => 'Autre';
+
+  @override
   String get certifications_detail_action_delete => 'Supprimer';
 
   @override
@@ -3209,6 +3330,144 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get certifications_detail_sectionTitle_dates => 'Dates';
+
+  @override
+  String get certifications_detail_sectionTitle_currency => 'Validité';
+
+  @override
+  String certifications_currency_dueOn(String date) {
+    return 'Échéance le $date';
+  }
+
+  @override
+  String certifications_currency_lapsedSince(String date) {
+    return 'Expiré depuis le $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastDive(String date) {
+    return 'Dernière plongée $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastQualifyingDive(String date) {
+    return 'Dernière plongée prise en compte $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardExpiry(String date) {
+    return 'Expiration de la carte $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardIssue(String date) {
+    return 'Délivrée le $date';
+  }
+
+  @override
+  String certifications_currency_anchor_ledgerEvent(String event, String date) {
+    return '$event enregistré le $date';
+  }
+
+  @override
+  String certifications_currency_alsoCovers(String names) {
+    return 'Couvre aussi $names';
+  }
+
+  @override
+  String get certifications_currency_muted => 'En sourdine';
+
+  @override
+  String get certifications_currency_noCountedDive =>
+      'Aucune plongée prise en compte enregistrée pour l\'instant';
+
+  @override
+  String get certifications_currency_action_log =>
+      'Enregistrer une remise à niveau';
+
+  @override
+  String get certifications_currency_action_interval =>
+      'Modifier l\'intervalle';
+
+  @override
+  String get certifications_currency_action_mapping =>
+      'Plongées prises en compte';
+
+  @override
+  String get certifications_currency_action_mute => 'Mettre en sourdine';
+
+  @override
+  String get certifications_currency_action_unmute => 'Réactiver';
+
+  @override
+  String get certifications_currency_history => 'Historique';
+
+  @override
+  String get certifications_currency_deleteEvent_title =>
+      'Supprimer l\'entrée ?';
+
+  @override
+  String certifications_currency_deleteEvent_content(
+    String event,
+    String date,
+  ) {
+    return 'Cela supprime $event enregistré le $date.';
+  }
+
+  @override
+  String get certifications_currency_eventDialog_title =>
+      'Enregistrer une remise à niveau ou un renouvellement';
+
+  @override
+  String get certifications_currency_eventDialog_type => 'Type';
+
+  @override
+  String get certifications_currency_eventDialog_date => 'Date';
+
+  @override
+  String get certifications_currency_eventDialog_provider =>
+      'Centre, club ou moniteur';
+
+  @override
+  String get certifications_currency_eventDialog_notes => 'Notes';
+
+  @override
+  String get certifications_currency_intervalDialog_title => 'Intervalle';
+
+  @override
+  String get certifications_currency_intervalDialog_lapse =>
+      'Expire après (jours)';
+
+  @override
+  String get certifications_currency_intervalDialog_lead =>
+      'Prévenir ce nombre de jours avant';
+
+  @override
+  String certifications_currency_intervalDialog_inheritHint(String days) {
+    return 'Vide : utilise la valeur de la règle ($days)';
+  }
+
+  @override
+  String get certifications_currency_intervalDialog_leadTooLong =>
+      'L\'avertissement ne peut pas commencer avant l\'intervalle';
+
+  @override
+  String get certifications_currency_mappingDialog_title =>
+      'Plongées prises en compte';
+
+  @override
+  String get certifications_currency_mappingDialog_types => 'Types de plongée';
+
+  @override
+  String get certifications_currency_mappingDialog_modes => 'Modes de plongée';
+
+  @override
+  String get certifications_currency_mappingDialog_anyHint =>
+      'Sans sélection, toute plongée compte';
+
+  @override
+  String get certifications_currency_mappingDialog_reset =>
+      'Utiliser la valeur de la règle';
 
   @override
   String get certifications_detail_sectionTitle_details =>
@@ -5199,8 +5458,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_homeChips_lastDive => 'Récence de plongée';
 
   @override
-  String get settings_homeChips_certifications =>
-      'Expiration des certifications';
+  String get settings_homeChips_certifications => 'Validité des certifications';
 
   @override
   String get settings_homeChips_trip => 'Voyage à venir';
@@ -5224,8 +5482,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_homeChips_dataQuality => 'Qualité des données';
 
   @override
-  String dashboard_gauges_certsExpiring(int count) {
-    return '$count certifications expirent bientôt';
+  String dashboard_gauges_certsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count certifications nécessitent une attention',
+      one: '$count certification nécessite une attention',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -11877,6 +12141,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get enum_certificationLevel_techDiver => 'Plongeur technique';
+
+  @override
+  String get enum_certificationLevel_firstAid => 'Premiers secours / RCP';
+
+  @override
+  String get enum_certificationLevel_oxygenProvider =>
+      'Oxygénothérapie de secours';
 
   @override
   String get enum_certificationLevel_trimix => 'Trimix';
@@ -20290,6 +20561,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Qualifications supplémentaires';
 
   @override
+  String get settings_conflict_field_advisoryKey => 'Conseil intégré';
+
+  @override
   String get settings_conflict_field_airBreakBreakSeconds =>
       'Durée de la pause air';
 
@@ -21988,6 +22262,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Temps de remontée prévu';
 
   @override
+  String get settings_conflict_field_supersedesRuleId =>
+      'Remplace la règle intégrée';
+
+  @override
   String get settings_conflict_field_surfaceConditions =>
       'Conditions en surface';
 
@@ -23295,6 +23573,109 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_manage_serviceTypes_subtitle =>
       'L\'entretien dont votre matériel a besoin, et à quelle fréquence';
+
+  @override
+  String get settings_manage_currencyRules => 'Validité des certifications';
+
+  @override
+  String get settings_manage_currencyRules_subtitle =>
+      'Règles de remise à niveau et de renouvellement';
+
+  @override
+  String get currencyRules_title => 'Validité des certifications';
+
+  @override
+  String get currencyRules_addTooltip => 'Ajouter une règle';
+
+  @override
+  String get currencyRules_editTooltip => 'Modifier la règle';
+
+  @override
+  String get currencyRules_deleteTooltip => 'Supprimer la règle';
+
+  @override
+  String get currencyRules_builtIn => 'Intégrées';
+
+  @override
+  String get currencyRules_custom => 'Vos règles';
+
+  @override
+  String currencyRules_replaces(String name) {
+    return 'Remplace $name';
+  }
+
+  @override
+  String currencyRules_replacedBy(String name) {
+    return 'Remplacée par $name';
+  }
+
+  @override
+  String currencyRules_summary_activity(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'Expire $lapse jours après la dernière plongée prise en compte',
+      one: 'Expire $lapse jour après la dernière plongée prise en compte',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String currencyRules_summary_date(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: 'Expire $lapse jours après la date de la carte',
+      one: 'Expire $lapse jour après la date de la carte',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get currencyRules_deleteDialog_title => 'Supprimer la règle ?';
+
+  @override
+  String currencyRules_deleteDialog_content(String name) {
+    return '$name sera supprimée. Les remises à niveau enregistrées restent dans l\'historique de chaque carte.';
+  }
+
+  @override
+  String get currencyRules_dialog_addTitle => 'Nouvelle règle';
+
+  @override
+  String get currencyRules_dialog_editTitle => 'Modifier la règle';
+
+  @override
+  String get currencyRules_dialog_copyNote =>
+      'L\'enregistrement crée votre propre copie, qui remplace cette règle intégrée.';
+
+  @override
+  String get currencyRules_dialog_name => 'Nom';
+
+  @override
+  String get currencyRules_dialog_nameRequired => 'Saisissez un nom';
+
+  @override
+  String get currencyRules_dialog_clock => 'Compte à partir de';
+
+  @override
+  String get currencyRules_dialog_clock_activity =>
+      'Dernière plongée prise en compte';
+
+  @override
+  String get currencyRules_dialog_clock_date => 'Une date de la carte';
+
+  @override
+  String get currencyRules_dialog_agencies => 'Organismes';
+
+  @override
+  String get currencyRules_dialog_levels => 'Niveaux';
+
+  @override
+  String get currencyRules_dialog_anyHint => 'Sans sélection, tout est inclus';
+
+  @override
+  String get currencyRules_dialog_note => 'Note';
 
   @override
   String get settings_migrationProgress_doNotClose =>

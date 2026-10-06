@@ -2964,6 +2964,113 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get certifications_list_filter_needsAttention => '需要关注';
+
+  @override
+  String get certifications_list_filter_clear => '清除';
+
+  @override
+  String get certifications_list_needsAttention_empty => '没有需要关注的证书';
+
+  @override
+  String get certifications_list_needsAttention_emptySubtitle => '所有证书均有效或已静音。';
+
+  @override
+  String get currencyRule_padi_reactivate_name => 'PADI 复习课程（ReActivate）';
+
+  @override
+  String get currencyRule_ssi_skills_update_name => 'SSI Scuba Skills Update';
+
+  @override
+  String get currencyRule_generic_refresher_name => '复习课程';
+
+  @override
+  String get currencyRule_first_aid_24mo_name => '急救与心肺复苏续证';
+
+  @override
+  String get currencyRule_pro_membership_annual_name => '专业会员续期';
+
+  @override
+  String get currencyRule_gue_revalidation_name => 'GUE 重新认证';
+
+  @override
+  String get currencyRule_ffessm_licence_annual_name => 'FFESSM 执照与体检证明';
+
+  @override
+  String get currencyRule_cave_currency_name => '洞穴潜水近期经验';
+
+  @override
+  String get currencyRule_rebreather_currency_name => '循环呼吸器近期经验';
+
+  @override
+  String get currencyRule_deco_currency_name => '减压潜水近期经验';
+
+  @override
+  String get currencyRule_card_expiry_name => '证卡到期';
+
+  @override
+  String get currencyRule_padi_reactivate_advisory =>
+      'PADI 建议在离开水下六到十二个月后参加 ReActivate 复习课程。';
+
+  @override
+  String get currencyRule_ssi_skills_update_advisory =>
+      'SSI 建议在六到十二个月未潜水后参加 Scuba Skills Update。';
+
+  @override
+  String get currencyRule_generic_refresher_advisory =>
+      '大多数潜水机构建议在六到十二个月未潜水后参加复习课程。';
+
+  @override
+  String get currencyRule_first_aid_advisory => '急救、心肺复苏和供氧员资质通常每两年更新一次。';
+
+  @override
+  String get currencyRule_pro_membership_advisory => '专业会员资格通常每年续期，以保持教学身份有效。';
+
+  @override
+  String get currencyRule_gue_revalidation_advisory => 'GUE 资质通常每三年重新认证一次。';
+
+  @override
+  String get currencyRule_ffessm_licence_advisory => 'FFESSM 执照及其体检证明每年更新。';
+
+  @override
+  String get currencyRule_cave_currency_advisory =>
+      '洞穴技能缺乏练习会退化；通常建议中断一年后进行一次检核潜水。';
+
+  @override
+  String get currencyRule_rebreather_currency_advisory =>
+      '循环呼吸器技能退化很快；许多机构建议中断六个月后参加复习课程。';
+
+  @override
+  String get currencyRule_deco_currency_advisory => '通常在一年未进行减压潜水后复习减压程序。';
+
+  @override
+  String get currencyRule_card_expiry_advisory => '此证卡上印的到期日期。';
+
+  @override
+  String get certifications_currency_status_current => '有效';
+
+  @override
+  String get certifications_currency_status_dueSoon => '即将到期';
+
+  @override
+  String get certifications_currency_status_lapsed => '已失效';
+
+  @override
+  String get certifications_currency_eventType_refresher => '复习课程';
+
+  @override
+  String get certifications_currency_eventType_renewal => '续证';
+
+  @override
+  String get certifications_currency_eventType_revalidation => '重新认证';
+
+  @override
+  String get certifications_currency_eventType_skillsUpdate => '技能更新';
+
+  @override
+  String get certifications_currency_eventType_other => '其他';
+
+  @override
   String get certifications_detail_action_delete => '删除';
 
   @override
@@ -3047,6 +3154,131 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get certifications_detail_sectionTitle_dates => '日期';
+
+  @override
+  String get certifications_detail_sectionTitle_currency => '有效性';
+
+  @override
+  String certifications_currency_dueOn(String date) {
+    return '到期日 $date';
+  }
+
+  @override
+  String certifications_currency_lapsedSince(String date) {
+    return '自 $date 起已失效';
+  }
+
+  @override
+  String certifications_currency_anchor_lastDive(String date) {
+    return '上次潜水 $date';
+  }
+
+  @override
+  String certifications_currency_anchor_lastQualifyingDive(String date) {
+    return '上次符合条件的潜水 $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardExpiry(String date) {
+    return '证卡到期 $date';
+  }
+
+  @override
+  String certifications_currency_anchor_cardIssue(String date) {
+    return '签发于 $date';
+  }
+
+  @override
+  String certifications_currency_anchor_ledgerEvent(String event, String date) {
+    return '$date 记录了$event';
+  }
+
+  @override
+  String certifications_currency_alsoCovers(String names) {
+    return '同时适用于 $names';
+  }
+
+  @override
+  String get certifications_currency_muted => '已静音';
+
+  @override
+  String get certifications_currency_noCountedDive => '尚未记录符合条件的潜水';
+
+  @override
+  String get certifications_currency_action_log => '记录复习';
+
+  @override
+  String get certifications_currency_action_interval => '编辑间隔';
+
+  @override
+  String get certifications_currency_action_mapping => '哪些潜水计入';
+
+  @override
+  String get certifications_currency_action_mute => '静音';
+
+  @override
+  String get certifications_currency_action_unmute => '取消静音';
+
+  @override
+  String get certifications_currency_history => '记录';
+
+  @override
+  String get certifications_currency_deleteEvent_title => '删除此记录？';
+
+  @override
+  String certifications_currency_deleteEvent_content(
+    String event,
+    String date,
+  ) {
+    return '这将删除 $date 记录的$event。';
+  }
+
+  @override
+  String get certifications_currency_eventDialog_title => '记录复习或续证';
+
+  @override
+  String get certifications_currency_eventDialog_type => '类型';
+
+  @override
+  String get certifications_currency_eventDialog_date => '日期';
+
+  @override
+  String get certifications_currency_eventDialog_provider => '潜店、俱乐部或教练';
+
+  @override
+  String get certifications_currency_eventDialog_notes => '备注';
+
+  @override
+  String get certifications_currency_intervalDialog_title => '间隔';
+
+  @override
+  String get certifications_currency_intervalDialog_lapse => '到期天数';
+
+  @override
+  String get certifications_currency_intervalDialog_lead => '提前提醒天数';
+
+  @override
+  String certifications_currency_intervalDialog_inheritHint(String days) {
+    return '留空则使用规则的值（$days）';
+  }
+
+  @override
+  String get certifications_currency_intervalDialog_leadTooLong => '提醒不能早于间隔开始';
+
+  @override
+  String get certifications_currency_mappingDialog_title => '哪些潜水计入';
+
+  @override
+  String get certifications_currency_mappingDialog_types => '潜水类型';
+
+  @override
+  String get certifications_currency_mappingDialog_modes => '潜水模式';
+
+  @override
+  String get certifications_currency_mappingDialog_anyHint => '不选择则任何潜水都计入';
+
+  @override
+  String get certifications_currency_mappingDialog_reset => '使用规则默认值';
 
   @override
   String get certifications_detail_sectionTitle_details => '证书详情';
@@ -4936,7 +5168,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_homeChips_lastDive => '潜水近期度';
 
   @override
-  String get settings_homeChips_certifications => '证书到期';
+  String get settings_homeChips_certifications => '证书有效性';
 
   @override
   String get settings_homeChips_trip => '即将出行';
@@ -4960,8 +5192,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_homeChips_dataQuality => '数据质量';
 
   @override
-  String dashboard_gauges_certsExpiring(int count) {
-    return '$count 个证书即将到期';
+  String dashboard_gauges_certsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个证书需要关注',
+      one: '$count 个证书需要关注',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -11285,6 +11523,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_certificationLevel_techDiver => '技术潜水员';
+
+  @override
+  String get enum_certificationLevel_firstAid => '急救 / 心肺复苏';
+
+  @override
+  String get enum_certificationLevel_oxygenProvider => '紧急供氧员';
 
   @override
   String get enum_certificationLevel_trimix => '三混气';
@@ -19232,6 +19476,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_additionalCredentials => '其他资质';
 
   @override
+  String get settings_conflict_field_advisoryKey => '内置建议';
+
+  @override
   String get settings_conflict_field_airBreakBreakSeconds => '空气休息时长';
 
   @override
@@ -20723,6 +20970,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_summaryTtsSeconds => '计划上升至水面时间';
 
   @override
+  String get settings_conflict_field_supersedesRuleId => '替换内置规则';
+
+  @override
   String get settings_conflict_field_surfaceConditions => '水面状况';
 
   @override
@@ -21954,6 +22204,106 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_manage_serviceTypes_subtitle => '装备需要的保养项目及其频率';
+
+  @override
+  String get settings_manage_currencyRules => '证书有效性';
+
+  @override
+  String get settings_manage_currencyRules_subtitle => '复习与续证规则';
+
+  @override
+  String get currencyRules_title => '证书有效性';
+
+  @override
+  String get currencyRules_addTooltip => '添加规则';
+
+  @override
+  String get currencyRules_editTooltip => '编辑规则';
+
+  @override
+  String get currencyRules_deleteTooltip => '删除规则';
+
+  @override
+  String get currencyRules_builtIn => '内置';
+
+  @override
+  String get currencyRules_custom => '你的规则';
+
+  @override
+  String currencyRules_replaces(String name) {
+    return '替代 $name';
+  }
+
+  @override
+  String currencyRules_replacedBy(String name) {
+    return '已被 $name 替代';
+  }
+
+  @override
+  String currencyRules_summary_activity(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: '上次符合条件的潜水后 $lapse 天到期',
+      one: '上次符合条件的潜水后 $lapse 天到期',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String currencyRules_summary_date(int lapse) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lapse,
+      locale: localeName,
+      other: '证卡日期后 $lapse 天到期',
+      one: '证卡日期后 $lapse 天到期',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get currencyRules_deleteDialog_title => '删除规则？';
+
+  @override
+  String currencyRules_deleteDialog_content(String name) {
+    return '将删除 $name。已记录的复习仍保留在各证卡的记录中。';
+  }
+
+  @override
+  String get currencyRules_dialog_addTitle => '新规则';
+
+  @override
+  String get currencyRules_dialog_editTitle => '编辑规则';
+
+  @override
+  String get currencyRules_dialog_copyNote => '保存后会创建你自己的副本，替代此内置规则。';
+
+  @override
+  String get currencyRules_dialog_name => '名称';
+
+  @override
+  String get currencyRules_dialog_nameRequired => '请输入名称';
+
+  @override
+  String get currencyRules_dialog_clock => '计算起点';
+
+  @override
+  String get currencyRules_dialog_clock_activity => '上次符合条件的潜水';
+
+  @override
+  String get currencyRules_dialog_clock_date => '证卡上的日期';
+
+  @override
+  String get currencyRules_dialog_agencies => '机构';
+
+  @override
+  String get currencyRules_dialog_levels => '级别';
+
+  @override
+  String get currencyRules_dialog_anyHint => '不选择则适用于全部';
+
+  @override
+  String get currencyRules_dialog_note => '备注';
 
   @override
   String get settings_migrationProgress_doNotClose => '请不要关闭应用';

@@ -2011,6 +2011,142 @@
       }
     }
   },
+  "certifications_list_filter_needsAttention": "Needs attention",
+  "@certifications_list_filter_needsAttention": {
+    "description": "Label of the certification list filter chip that limits the list to certifications needing a refresher or renewal"
+  },
+  "certifications_list_filter_clear": "Clear",
+  "@certifications_list_filter_clear": {
+    "description": "Button that removes the needs-attention filter from the certification list"
+  },
+  "certifications_list_needsAttention_empty": "No certifications need attention",
+  "@certifications_list_needsAttention_empty": {
+    "description": "Empty state title when the needs-attention filter matches no certification"
+  },
+  "certifications_list_needsAttention_emptySubtitle": "Every certification is current or muted.",
+  "@certifications_list_needsAttention_emptySubtitle": {
+    "description": "Empty state subtitle when the needs-attention filter matches no certification"
+  },
+  "currencyRule_padi_reactivate_name": "PADI refresher (ReActivate)",
+  "@currencyRule_padi_reactivate_name": {
+    "description": "Name of the built-in PADI refresher currency rule"
+  },
+  "currencyRule_ssi_skills_update_name": "SSI Scuba Skills Update",
+  "@currencyRule_ssi_skills_update_name": {
+    "description": "Name of the built-in SSI Scuba Skills Update currency rule; the program name is not translated"
+  },
+  "currencyRule_generic_refresher_name": "Refresher",
+  "@currencyRule_generic_refresher_name": {
+    "description": "Name of the built-in generic refresher currency rule"
+  },
+  "currencyRule_first_aid_24mo_name": "First aid and CPR renewal",
+  "@currencyRule_first_aid_24mo_name": {
+    "description": "Name of the built-in first aid and CPR renewal currency rule"
+  },
+  "currencyRule_pro_membership_annual_name": "Professional membership renewal",
+  "@currencyRule_pro_membership_annual_name": {
+    "description": "Name of the built-in professional membership renewal currency rule"
+  },
+  "currencyRule_gue_revalidation_name": "GUE revalidation",
+  "@currencyRule_gue_revalidation_name": {
+    "description": "Name of the built-in GUE revalidation currency rule"
+  },
+  "currencyRule_ffessm_licence_annual_name": "FFESSM licence and medical certificate",
+  "@currencyRule_ffessm_licence_annual_name": {
+    "description": "Name of the built-in FFESSM licence currency rule"
+  },
+  "currencyRule_cave_currency_name": "Cave currency",
+  "@currencyRule_cave_currency_name": {
+    "description": "Name of the built-in cave currency rule: recent cave diving practice"
+  },
+  "currencyRule_rebreather_currency_name": "Rebreather currency",
+  "@currencyRule_rebreather_currency_name": {
+    "description": "Name of the built-in rebreather currency rule: recent rebreather practice"
+  },
+  "currencyRule_deco_currency_name": "Decompression currency",
+  "@currencyRule_deco_currency_name": {
+    "description": "Name of the built-in decompression currency rule: recent decompression diving practice"
+  },
+  "currencyRule_card_expiry_name": "Card expiry",
+  "@currencyRule_card_expiry_name": {
+    "description": "Name of the currency status that follows the expiry date printed on a card"
+  },
+  "currencyRule_padi_reactivate_advisory": "PADI suggests a ReActivate refresher after six to twelve months out of the water.",
+  "@currencyRule_padi_reactivate_advisory": {
+    "description": "Advisory sentence of the PADI refresher rule; guidance, never a requirement"
+  },
+  "currencyRule_ssi_skills_update_advisory": "SSI suggests a Scuba Skills Update after six to twelve months without diving.",
+  "@currencyRule_ssi_skills_update_advisory": {
+    "description": "Advisory sentence of the SSI Scuba Skills Update rule"
+  },
+  "currencyRule_generic_refresher_advisory": "Most agencies suggest a refresher after six to twelve months without diving.",
+  "@currencyRule_generic_refresher_advisory": {
+    "description": "Advisory sentence of the generic refresher rule"
+  },
+  "currencyRule_first_aid_advisory": "First aid, CPR and oxygen provider credentials typically renew every two years.",
+  "@currencyRule_first_aid_advisory": {
+    "description": "Advisory sentence of the first aid renewal rule"
+  },
+  "currencyRule_pro_membership_advisory": "Professional memberships typically renew every year to keep teaching status active.",
+  "@currencyRule_pro_membership_advisory": {
+    "description": "Advisory sentence of the professional membership rule"
+  },
+  "currencyRule_gue_revalidation_advisory": "GUE ratings are typically revalidated every three years.",
+  "@currencyRule_gue_revalidation_advisory": {
+    "description": "Advisory sentence of the GUE revalidation rule"
+  },
+  "currencyRule_ffessm_licence_advisory": "The FFESSM licence and its medical certificate are renewed every year.",
+  "@currencyRule_ffessm_licence_advisory": {
+    "description": "Advisory sentence of the FFESSM licence rule"
+  },
+  "currencyRule_cave_currency_advisory": "Cave skills fade without practice; a check-out dive is commonly advised after a year away.",
+  "@currencyRule_cave_currency_advisory": {
+    "description": "Advisory sentence of the cave currency rule"
+  },
+  "currencyRule_rebreather_currency_advisory": "Rebreather skills fade quickly; many agencies advise a refresher after six months away.",
+  "@currencyRule_rebreather_currency_advisory": {
+    "description": "Advisory sentence of the rebreather currency rule"
+  },
+  "currencyRule_deco_currency_advisory": "Decompression procedures are commonly refreshed after a year without a decompression dive.",
+  "@currencyRule_deco_currency_advisory": {
+    "description": "Advisory sentence of the decompression currency rule"
+  },
+  "currencyRule_card_expiry_advisory": "The expiry date printed on this card.",
+  "@currencyRule_card_expiry_advisory": {
+    "description": "Advisory sentence of the card expiry status"
+  },
+  "certifications_currency_status_current": "Current",
+  "@certifications_currency_status_current": {
+    "description": "Currency severity: the credential is current"
+  },
+  "certifications_currency_status_dueSoon": "Due soon",
+  "@certifications_currency_status_dueSoon": {
+    "description": "Currency severity: a refresher or renewal is due soon"
+  },
+  "certifications_currency_status_lapsed": "Lapsed",
+  "@certifications_currency_status_lapsed": {
+    "description": "Currency severity: the refresher or renewal interval has passed"
+  },
+  "certifications_currency_eventType_refresher": "Refresher",
+  "@certifications_currency_eventType_refresher": {
+    "description": "Currency ledger event type: a refresher course or dive"
+  },
+  "certifications_currency_eventType_renewal": "Renewal",
+  "@certifications_currency_eventType_renewal": {
+    "description": "Currency ledger event type: a renewal"
+  },
+  "certifications_currency_eventType_revalidation": "Revalidation",
+  "@certifications_currency_eventType_revalidation": {
+    "description": "Currency ledger event type: an agency revalidation"
+  },
+  "certifications_currency_eventType_skillsUpdate": "Skills update",
+  "@certifications_currency_eventType_skillsUpdate": {
+    "description": "Currency ledger event type: a skills update"
+  },
+  "certifications_currency_eventType_other": "Other",
+  "@certifications_currency_eventType_other": {
+    "description": "Currency ledger event type: anything else"
+  },
   "certifications_detail_action_delete": "Delete",
   "certifications_detail_appBar_title": "Certification",
   "certifications_detail_courseCompleted": "Completed",
@@ -2037,6 +2173,198 @@
   "certifications_detail_photo_unableToLoad": "Unable to load image",
   "certifications_detail_sectionTitle_cardPhotos": "Card Photos",
   "certifications_detail_sectionTitle_dates": "Dates",
+  "certifications_detail_sectionTitle_currency": "Currency",
+  "@certifications_detail_sectionTitle_currency": {
+    "description": "Certification detail section title for refresher and renewal currency"
+  },
+  "certifications_currency_dueOn": "Due {date}",
+  "@certifications_currency_dueOn": {
+    "description": "When a refresher or renewal falls due; date is preformatted",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_lapsedSince": "Lapsed since {date}",
+  "@certifications_currency_lapsedSince": {
+    "description": "When a refresher or renewal lapsed; date is preformatted",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_anchor_lastDive": "Last dive {date}",
+  "@certifications_currency_anchor_lastDive": {
+    "description": "What a currency clock counts from: the last dive",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_anchor_lastQualifyingDive": "Last qualifying dive {date}",
+  "@certifications_currency_anchor_lastQualifyingDive": {
+    "description": "What a currency clock counts from: the last dive of a counted type or mode",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_anchor_cardExpiry": "Card expiry {date}",
+  "@certifications_currency_anchor_cardExpiry": {
+    "description": "What a currency clock counts from: the card's expiry date",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_anchor_cardIssue": "Issued {date}",
+  "@certifications_currency_anchor_cardIssue": {
+    "description": "What a currency clock counts from: the card's issue date",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_anchor_ledgerEvent": "{event} logged {date}",
+  "@certifications_currency_anchor_ledgerEvent": {
+    "description": "What a currency clock counts from: a logged refresher or renewal; event is its type",
+    "placeholders": {
+      "event": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_alsoCovers": "Also covers {names}",
+  "@certifications_currency_alsoCovers": {
+    "description": "The other cards a collapsed currency row stands for; names is a list",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_muted": "Muted",
+  "@certifications_currency_muted": {
+    "description": "A currency rule the diver muted for this card"
+  },
+  "certifications_currency_noCountedDive": "No counted dive logged yet",
+  "@certifications_currency_noCountedDive": {
+    "description": "A currency rule applies to the card but no counted dive or refresher has been logged yet; it never warns"
+  },
+  "certifications_currency_action_log": "Log refresher",
+  "@certifications_currency_action_log": {
+    "description": "Action: log a refresher, renewal or revalidation"
+  },
+  "certifications_currency_action_interval": "Edit interval",
+  "@certifications_currency_action_interval": {
+    "description": "Action: edit a currency rule's interval for this card"
+  },
+  "certifications_currency_action_mapping": "Which dives count",
+  "@certifications_currency_action_mapping": {
+    "description": "Action: choose which dive types and modes count toward a currency rule"
+  },
+  "certifications_currency_action_mute": "Mute",
+  "@certifications_currency_action_mute": {
+    "description": "Action: mute a currency rule for this card"
+  },
+  "certifications_currency_action_unmute": "Unmute",
+  "@certifications_currency_action_unmute": {
+    "description": "Action: unmute a currency rule for this card"
+  },
+  "certifications_currency_history": "Currency history",
+  "@certifications_currency_history": {
+    "description": "Heading of a certification's logged refreshers and renewals"
+  },
+  "certifications_currency_deleteEvent_title": "Delete entry?",
+  "@certifications_currency_deleteEvent_title": {
+    "description": "Title of the dialog confirming a refresher entry deletion"
+  },
+  "certifications_currency_deleteEvent_content": "This removes the {event} logged {date}.",
+  "@certifications_currency_deleteEvent_content": {
+    "description": "Body of the dialog confirming a refresher entry deletion",
+    "placeholders": {
+      "event": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_eventDialog_title": "Log refresher or renewal",
+  "@certifications_currency_eventDialog_title": {
+    "description": "Title of the dialog that logs a refresher or renewal"
+  },
+  "certifications_currency_eventDialog_type": "Type",
+  "@certifications_currency_eventDialog_type": {
+    "description": "Field label: the kind of refresher or renewal"
+  },
+  "certifications_currency_eventDialog_date": "Date",
+  "@certifications_currency_eventDialog_date": {
+    "description": "Field label: when the refresher or renewal took place"
+  },
+  "certifications_currency_eventDialog_provider": "Shop, club or instructor",
+  "@certifications_currency_eventDialog_provider": {
+    "description": "Field label: who ran the refresher"
+  },
+  "certifications_currency_eventDialog_notes": "Notes",
+  "@certifications_currency_eventDialog_notes": {
+    "description": "Field label: notes on the refresher"
+  },
+  "certifications_currency_intervalDialog_title": "Interval",
+  "@certifications_currency_intervalDialog_title": {
+    "description": "Title of the dialog that tunes a currency rule's interval for one card"
+  },
+  "certifications_currency_intervalDialog_lapse": "Lapses after (days)",
+  "@certifications_currency_intervalDialog_lapse": {
+    "description": "Field label: days until the rule lapses"
+  },
+  "certifications_currency_intervalDialog_lead": "Warn this many days before",
+  "@certifications_currency_intervalDialog_lead": {
+    "description": "Field label: days of warning before the rule lapses"
+  },
+  "certifications_currency_intervalDialog_inheritHint": "Blank uses the rule's value ({days})",
+  "@certifications_currency_intervalDialog_inheritHint": {
+    "description": "Hint under an interval field: leaving it blank uses the rule's own value",
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "certifications_currency_intervalDialog_leadTooLong": "The warning cannot start before the interval does",
+  "@certifications_currency_intervalDialog_leadTooLong": {
+    "description": "Validation: the warning window is longer than the interval"
+  },
+  "certifications_currency_mappingDialog_title": "Which dives count",
+  "@certifications_currency_mappingDialog_title": {
+    "description": "Title of the dialog choosing which dives count toward a currency rule"
+  },
+  "certifications_currency_mappingDialog_types": "Dive types",
+  "@certifications_currency_mappingDialog_types": {
+    "description": "Field label: dive types that count"
+  },
+  "certifications_currency_mappingDialog_modes": "Dive modes",
+  "@certifications_currency_mappingDialog_modes": {
+    "description": "Field label: dive modes that count"
+  },
+  "certifications_currency_mappingDialog_anyHint": "Nothing selected means any dive counts",
+  "@certifications_currency_mappingDialog_anyHint": {
+    "description": "Hint: selecting nothing means any dive counts"
+  },
+  "certifications_currency_mappingDialog_reset": "Use the rule's default",
+  "@certifications_currency_mappingDialog_reset": {
+    "description": "Button: go back to the rule's own dive mapping"
+  },
   "certifications_detail_sectionTitle_details": "Certification Details",
   "certifications_detail_sectionTitle_instructor": "Instructor",
   "certifications_detail_sectionTitle_notes": "Notes",
@@ -3159,7 +3487,7 @@
   "settings_homeChips_insurance": "Insurance",
   "settings_homeChips_noFly": "No-fly timer",
   "settings_homeChips_lastDive": "Dive currency",
-  "settings_homeChips_certifications": "Certification expiry",
+  "settings_homeChips_certifications": "Certification currency",
   "settings_homeChips_trip": "Upcoming trip",
   "settings_homeChips_checklist": "Active checklist",
   "settings_homeChips_course": "Course progress",
@@ -3167,8 +3495,9 @@
   "settings_homeChips_backup": "Backup age",
   "settings_homeChips_sync": "Sync status",
   "settings_homeChips_dataQuality": "Data quality",
-  "dashboard_gauges_certsExpiring": "{count} certifications expiring",
-  "@dashboard_gauges_certsExpiring": {
+  "dashboard_gauges_certsNeedAttention": "{count, plural, =1{{count} certification needs attention} other{{count} certifications need attention}}",
+  "@dashboard_gauges_certsNeedAttention": {
+    "description": "Home strip chip: how many certifications need a refresher or renewal",
     "placeholders": {
       "count": {
         "type": "int"
@@ -6990,6 +7319,14 @@
   "enum_certificationLevel_rescue": "Rescue Diver",
   "enum_certificationLevel_sidemount": "Sidemount",
   "enum_certificationLevel_techDiver": "Tech Diver",
+  "enum_certificationLevel_firstAid": "First Aid / CPR",
+  "@enum_certificationLevel_firstAid": {
+    "description": "Certification level: a first aid and CPR credential"
+  },
+  "enum_certificationLevel_oxygenProvider": "Emergency Oxygen Provider",
+  "@enum_certificationLevel_oxygenProvider": {
+    "description": "Certification level: an emergency oxygen provider credential"
+  },
   "enum_certificationLevel_trimix": "Trimix",
   "enum_certificationLevel_wreck": "Wreck",
   "enum_certificationLevel_masterDiver": "Master Diver",
@@ -12289,6 +12626,10 @@
   "settings_conflict_field_accessNotes": "Access notes",
   "settings_conflict_field_accountIdentifier": "Account",
   "settings_conflict_field_additionalCredentials": "Additional credentials",
+  "settings_conflict_field_advisoryKey": "Built-in advice",
+  "@settings_conflict_field_advisoryKey": {
+    "description": "Sync conflict field label: which built-in advice text a certification currency rule shows."
+  },
   "settings_conflict_field_airBreakBreakSeconds": "Air break length",
   "settings_conflict_field_airBreakO2Seconds": "Oxygen time between air breaks",
   "settings_conflict_field_allergies": "Allergies",
@@ -12784,6 +13125,10 @@
   "settings_conflict_field_summaryMaxDepth": "Planned maximum depth",
   "settings_conflict_field_summaryRuntimeSeconds": "Planned runtime",
   "settings_conflict_field_summaryTtsSeconds": "Planned time to surface",
+  "settings_conflict_field_supersedesRuleId": "Replaces built-in rule",
+  "@settings_conflict_field_supersedesRuleId": {
+    "description": "Sync conflict field label: the built-in certification currency rule that a custom rule replaces."
+  },
   "settings_conflict_field_surfaceConditions": "Surface conditions",
   "settings_conflict_field_surfaceSwimLimitM": "Longest surface swim",
   "settings_conflict_field_swimSpeedMps": "Swim speed",
@@ -13255,6 +13600,135 @@
   },
   "settings_manage_serviceTypes": "Service types",
   "settings_manage_serviceTypes_subtitle": "Maintenance your gear needs, and how often",
+  "settings_manage_currencyRules": "Certification currency",
+  "@settings_manage_currencyRules": {
+    "description": "Settings > Manage tile: the certification currency rule catalog"
+  },
+  "settings_manage_currencyRules_subtitle": "Refresher and renewal rules",
+  "@settings_manage_currencyRules_subtitle": {
+    "description": "Subtitle of the certification currency Manage tile"
+  },
+  "currencyRules_title": "Certification currency",
+  "@currencyRules_title": {
+    "description": "Title of the certification currency rules page"
+  },
+  "currencyRules_addTooltip": "Add rule",
+  "@currencyRules_addTooltip": {
+    "description": "Button and tooltip: add a custom currency rule"
+  },
+  "currencyRules_editTooltip": "Edit rule",
+  "@currencyRules_editTooltip": {
+    "description": "Tooltip: edit a custom currency rule"
+  },
+  "currencyRules_deleteTooltip": "Delete rule",
+  "@currencyRules_deleteTooltip": {
+    "description": "Tooltip: delete a custom currency rule"
+  },
+  "currencyRules_builtIn": "Built-in",
+  "@currencyRules_builtIn": {
+    "description": "Section header: the built-in currency rules"
+  },
+  "currencyRules_custom": "Your rules",
+  "@currencyRules_custom": {
+    "description": "Section header: the diver's own currency rules"
+  },
+  "currencyRules_replaces": "Replaces {name}",
+  "@currencyRules_replaces": {
+    "description": "On a custom rule: the built-in rule it replaces",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyRules_replacedBy": "Replaced by {name}",
+  "@currencyRules_replacedBy": {
+    "description": "On a built-in rule: the custom rule that replaces it",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyRules_summary_activity": "{lapse, plural, =1{Lapses {lapse} day after the last qualifying dive} other{Lapses {lapse} days after the last qualifying dive}}",
+  "@currencyRules_summary_activity": {
+    "description": "Summary of an activity currency rule's interval",
+    "placeholders": {
+      "lapse": {
+        "type": "int"
+      }
+    }
+  },
+  "currencyRules_summary_date": "{lapse, plural, =1{Lapses {lapse} day after the date on the card} other{Lapses {lapse} days after the date on the card}}",
+  "@currencyRules_summary_date": {
+    "description": "Summary of a date currency rule's interval",
+    "placeholders": {
+      "lapse": {
+        "type": "int"
+      }
+    }
+  },
+  "currencyRules_deleteDialog_title": "Delete rule?",
+  "@currencyRules_deleteDialog_title": {
+    "description": "Title of the dialog confirming a custom rule deletion"
+  },
+  "currencyRules_deleteDialog_content": "{name} is removed. Logged refreshers stay in each card's history.",
+  "@currencyRules_deleteDialog_content": {
+    "description": "Body of the dialog confirming a custom rule deletion",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyRules_dialog_addTitle": "New rule",
+  "@currencyRules_dialog_addTitle": {
+    "description": "Title of the dialog creating a custom currency rule"
+  },
+  "currencyRules_dialog_editTitle": "Edit rule",
+  "@currencyRules_dialog_editTitle": {
+    "description": "Title of the dialog editing a currency rule"
+  },
+  "currencyRules_dialog_copyNote": "Saving creates your own copy that replaces this built-in rule.",
+  "@currencyRules_dialog_copyNote": {
+    "description": "Shown when editing a built-in rule: saving makes a custom copy"
+  },
+  "currencyRules_dialog_name": "Name",
+  "@currencyRules_dialog_name": {
+    "description": "Field label: rule name"
+  },
+  "currencyRules_dialog_nameRequired": "Enter a name",
+  "@currencyRules_dialog_nameRequired": {
+    "description": "Validation: a rule needs a name"
+  },
+  "currencyRules_dialog_clock": "Counts from",
+  "@currencyRules_dialog_clock": {
+    "description": "Field label: what the rule's clock counts from"
+  },
+  "currencyRules_dialog_clock_activity": "Last qualifying dive",
+  "@currencyRules_dialog_clock_activity": {
+    "description": "Clock option: the last qualifying dive"
+  },
+  "currencyRules_dialog_clock_date": "A date on the card",
+  "@currencyRules_dialog_clock_date": {
+    "description": "Clock option: a date on the card"
+  },
+  "currencyRules_dialog_agencies": "Agencies",
+  "@currencyRules_dialog_agencies": {
+    "description": "Field label: agencies a rule applies to"
+  },
+  "currencyRules_dialog_levels": "Levels",
+  "@currencyRules_dialog_levels": {
+    "description": "Field label: certification levels a rule applies to"
+  },
+  "currencyRules_dialog_anyHint": "Nothing selected means any",
+  "@currencyRules_dialog_anyHint": {
+    "description": "Hint: selecting nothing applies the rule to everything"
+  },
+  "currencyRules_dialog_note": "Note",
+  "@currencyRules_dialog_note": {
+    "description": "Field label: the diver's own note on a custom rule"
+  },
   "settings_migrationProgress_doNotClose": "Please do not close the app",
   "settings_migration_backupInfo": "A backup will be created before the move. Your data will not be lost.",
   "settings_migration_cancel": "Cancel",

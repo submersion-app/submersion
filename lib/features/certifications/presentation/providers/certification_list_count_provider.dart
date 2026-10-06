@@ -12,7 +12,9 @@ import 'package:submersion/shared/models/subtitle_text.dart';
 final certificationListCountProvider = Provider<ListEntryCount?>(
   (ref) => listEntryCount(
     shown: ref.watch(filteredCertificationsProvider),
-    isFiltered: ref.watch(certificationQueryProvider) != null,
+    isFiltered:
+        ref.watch(certificationQueryProvider) != null ||
+        ref.watch(certificationAttentionFilterProvider),
     total: () => ref.watch(certificationListNotifierProvider),
   ),
 );

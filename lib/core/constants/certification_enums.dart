@@ -103,6 +103,12 @@ enum CertificationLevel {
   sidemount('Sidemount'),
   rebreather('Rebreather'),
   techDiver('Tech Diver'),
+  // Agency-agnostic safety credentials. These genuinely expire on a date
+  // (typically 24 months) and are the prerequisite that lapses first for
+  // rescue and professional ratings, so certification currency needs them
+  // as first-class values rather than folding them into `other`.
+  firstAid('First Aid / CPR'),
+  oxygenProvider('Emergency Oxygen Provider'),
   // Generic ladder additions (issue #546)
   masterDiver('Master Diver'),
   assistantInstructor('Assistant Instructor'),
