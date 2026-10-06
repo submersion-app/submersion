@@ -361,8 +361,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               ref: ref,
               siteId: site.id,
             ),
-            onOpenDocument: (item) =>
-                DocumentOpenHelper.open(context, ref, item),
+            onOpenDocument: (item) => DocumentOpenHelper.open(
+              context,
+              ref,
+              item,
+              editableSiteId: site.id,
+            ),
           ),
       // Tags (issue #1765), after media as on a dive. Shown only when the
       // site has some, decided here so an empty card leaves no gap and, in

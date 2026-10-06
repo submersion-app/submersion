@@ -96,8 +96,9 @@ class _PscrSettingsSectionState extends ConsumerState<PscrSettingsSection> {
 
   @override
   Widget build(BuildContext context) {
-    // pscrRatio loads asynchronously (SharedPreferences) and can change
-    // elsewhere; keep the field in sync when the diver is not editing it.
+    // pscrRatio loads asynchronously with the diver's settings and can
+    // change elsewhere (another device, through sync); keep the field in
+    // sync when the diver is not editing it.
     ref.listen<double>(pscrRatioProvider, (_, next) => _syncFromProvider(next));
 
     return Padding(

@@ -35,8 +35,8 @@ extension WeightMigrations on AppDatabase {
     );
   }
 
-  /// Idempotent DDL for the v266 weight name columns (issue #956) on
-  /// dive_weights and weight_preset_entries. Called from the v266 rung and
+  /// Idempotent DDL for the v268 weight name columns (issue #956) on
+  /// dive_weights and weight_preset_entries. Called from the v268 rung and
   /// re-asserted in beforeOpen, so a database that arrives by restore or
   /// sync-adopt, or one a renumbered rung skipped, still gains them.
   Future<void> _assertWeightLabelColumns() async {

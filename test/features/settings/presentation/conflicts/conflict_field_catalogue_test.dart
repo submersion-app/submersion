@@ -71,6 +71,24 @@ void main() {
     );
   });
 
+  test('site attachment columns render their localized values', () {
+    String value(String field, String stored) => formatConflictValue(
+      l10n: l10n,
+      units: const UnitFormatter(AppSettings()),
+      field: conflictFieldFor('media', field),
+      value: stored,
+    );
+    // Issue #1039: a conflict names the category and size, not the stored
+    // keys, under the same labels the Edit details sheet uses.
+    expect(value('siteCategory', 'siteMap'), 'Site map');
+    expect(value('displaySize', 'tile'), 'Tile');
+    expect(conflictFieldFor('media', 'siteCategory').label(l10n), 'Category');
+    expect(
+      conflictFieldFor('media', 'displaySize').label(l10n),
+      'Display size',
+    );
+  });
+
   test('a severity reads with the enum of its own entity', () {
     String severity(String entity, String stored) => formatConflictValue(
       l10n: l10n,
