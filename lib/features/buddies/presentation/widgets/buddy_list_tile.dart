@@ -21,6 +21,8 @@ import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_extra_fields.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_stat.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Detailed list card for one buddy.
 ///
@@ -52,6 +54,7 @@ class BuddyListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -66,9 +69,12 @@ class BuddyListTile extends ConsumerWidget {
     );
     final secondaryTextColor = colorScheme.onSurfaceVariant;
     final statColor = accent ?? colorScheme.primary;
-    final agencyColor = buddy.certificationAgency?.primaryColor;
+    final agencyId = buddy.certificationAgency;
+    final agencyColor = agencyId == null
+        ? null
+        : context.certificationCatalog.agency(agencyId).primaryColor;
 
-    final adapter = BuddyFieldAdapter.instance;
+    final adapter = BuddyFieldAdapter.withCatalog(context.certificationCatalog);
     final slots = config.slots;
 
     String? slotText(BuddyField field) {
@@ -108,7 +114,11 @@ class BuddyListTile extends ConsumerWidget {
         ? null
         : (roleMap?[usualRoleId] ?? DiveRole.synthetic(usualRoleId));
 
-    final certLine = buddyCertificationLineL10n(buddy, context.l10n);
+    final certLine = buddyCertificationLineL10n(
+      buddy,
+      context.l10n,
+      catalog: context.certificationCatalog,
+    );
 
     final trailer = <Widget>[
       // A buddy that IS a local profile (issue #2002).
@@ -303,6 +313,7 @@ class _BuddyAvatar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final linkedId = buddy.linkedDiverId;
     final profilePhoto = buddy.photo == null && linkedId != null
         ? ref.watch(diverByIdProvider(linkedId)).value?.photo

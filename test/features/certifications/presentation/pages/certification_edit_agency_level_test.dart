@@ -56,8 +56,7 @@ void main() {
     );
   }
 
-  Finder agencyDropdown() =>
-      find.byType(DropdownButtonFormField<CertificationAgency>);
+  Finder agencyDropdown() => find.byType(DropdownButtonFormField<String>);
   // The certification dropdown is keyed by CertificationOption, not
   // CertificationLevel: group headers need their own distinct values so no
   // two rows share one (see CertificationOption's doc comment).
@@ -160,8 +159,8 @@ void main() {
         Certification(
           id: '',
           name: 'Legacy CMAS card',
-          agency: CertificationAgency.cmas,
-          level: CertificationLevel.advancedOpenWater,
+          agency: CertificationAgency.cmas.name,
+          level: CertificationLevel.advancedOpenWater.name,
           createdAt: now,
           updatedAt: now,
         ),
@@ -182,8 +181,8 @@ void main() {
       final saved = await tester.runAsync(
         () => repository.getCertificationById(cert.id),
       );
-      expect(saved!.level, CertificationLevel.advancedOpenWater);
-      expect(saved.agency, CertificationAgency.cmas);
+      expect(saved!.level, CertificationLevel.advancedOpenWater.name);
+      expect(saved.agency, CertificationAgency.cmas.name);
     },
   );
 

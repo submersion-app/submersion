@@ -21,6 +21,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_agency.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Records which UDDF delivery the buddy export chose.
 class _RecordingExportService implements ExportService {
@@ -28,6 +31,7 @@ class _RecordingExportService implements ExportService {
   List<DiveSite>? sites;
   UddfDivesExtras? uddfExtras;
   UddfExportOptions? uddfOptions;
+  CertificationCatalog? catalog;
 
   @override
   Future<String> exportDivesToUddf(
@@ -35,10 +39,12 @@ class _RecordingExportService implements ExportService {
     List<DiveSite>? sites,
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
     this.sites = sites;
+    catalog = certificationCatalog;
     uddfExtras = extras;
     uddfOptions = options;
     calls.add('share:uddf');
@@ -51,10 +57,12 @@ class _RecordingExportService implements ExportService {
     List<DiveSite>? sites,
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
+    CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
     this.sites = sites;
+    catalog = certificationCatalog;
     uddfExtras = extras;
     uddfOptions = options;
     calls.add('save:uddf');
@@ -141,6 +149,21 @@ void main() {
           divesForBuddyProvider(buddy.id).overrideWith((ref) async => dives),
           diveRepositoryProvider.overrideWithValue(_FakeDiveRepository(dives)),
           exportServiceProvider.overrideWithValue(exportService),
+          // Every custom agency, loaded on demand (issue #690).
+          allCustomCertificationsCatalogProvider.overrideWith(
+            (ref) async => CertificationCatalog(
+              agencies: [
+                CustomCertificationAgency(
+                  id: 'club-id',
+                  diverId: 'a',
+                  name: 'Lakeshore Dive Club',
+                  colorArgb: 0xFF0EA5E9,
+                  createdAt: DateTime(2026),
+                  updatedAt: DateTime(2026),
+                ),
+              ],
+            ),
+          ),
           // These tests have no database. The real fetch would reach the
           // repository, so the export would never be issued.
           uddfSourceFetchProvider.overrideWithValue(
@@ -182,6 +205,19 @@ void main() {
 
     expect(exportService.calls, ['save:uddf']);
     expect(exportService.sites?.map((s) => s.id), ['site-1']);
+  });
+
+  testWidgets('a share names custom agencies even before the catalog has '
+      'loaded anywhere (issue #690)', (tester) async {
+    await pumpAndOpenShareDives(tester);
+
+    await tester.tap(find.text('Share'));
+    await tester.pumpAndSettle();
+
+    expect(
+      exportService.catalog?.agencyExportText('club-id'),
+      'Lakeshore Dive Club',
+    );
   });
 
   testWidgets('share dives can still share', (tester) async {

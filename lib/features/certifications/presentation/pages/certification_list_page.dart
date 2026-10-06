@@ -26,6 +26,8 @@ import 'package:submersion/features/certifications/query/certification_query_ent
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_search_delegate.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_list_count_provider.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 class CertificationListPage extends ConsumerStatefulWidget {
   const CertificationListPage({super.key});
@@ -39,6 +41,7 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage>
     with TableSelectionOwner {
   @override
   Widget build(BuildContext context) {
+    ref.watch(certificationCatalogSyncProvider);
     final fab = FloatingActionButton.extended(
       onPressed: () {
         final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
@@ -102,7 +105,9 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage>
             onPressed: () => showEntityTableColumnPicker<CertificationField>(
               context,
               configProvider: certificationTableConfigProvider,
-              adapter: CertificationFieldAdapter.instance,
+              adapter: CertificationFieldAdapter.withCatalog(
+                context.certificationCatalog,
+              ),
             ),
           ),
           appBarActions: [

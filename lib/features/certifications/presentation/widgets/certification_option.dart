@@ -1,10 +1,9 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:submersion/core/constants/enums.dart';
-
 /// One row in the certification dropdown: either a selectable certification
 /// -- including the explicit "not specified" entry, which carries a null
-/// [level] -- or a non-selectable group header.
+/// [level] -- or a non-selectable group header. [level] is a built-in
+/// level's enum name or a custom level id (issue #690).
 ///
 /// Why a wrapper instead of `DropdownButtonFormField<CertificationLevel>`
 /// with null-valued disabled headers: `DropdownButton._updateSelectedIndex`
@@ -23,7 +22,15 @@ class CertificationOption {
   /// two headers are never equal to each other.
   const CertificationOption.header(String this.headerKey) : level = null;
 
-  final CertificationLevel? level;
+  /// The "Add custom certification..." action row (issue #690). Selectable,
+  /// with a key no header uses, so it stays unique too.
+  const CertificationOption.addCustom() : level = null, headerKey = _addKey;
+
+  static const _addKey = '__addCustom__';
+
+  bool get isAddCustom => headerKey == _addKey;
+
+  final String? level;
   final String? headerKey;
 
   @override

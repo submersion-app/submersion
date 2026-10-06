@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_level.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/domain/certification_primary.dart';
 
@@ -13,8 +15,8 @@ Certification cert(
   id: id,
   buddyId: 'b1',
   name: id,
-  agency: agency,
-  level: level,
+  agency: agency.name,
+  level: level?.name,
   issueDate: issue,
   createdAt: DateTime(2024, 1, 1),
   updatedAt: updated ?? DateTime(2024, 1, 1),
@@ -83,5 +85,33 @@ void main() {
       ),
     ]);
     expect(result!.id, 'new');
+  });
+
+  test('a custom progression rung beats every built-in rung (issue #690)', () {
+    final catalog = CertificationCatalog(
+      levels: [
+        CustomCertificationLevel(
+          id: 'ice',
+          diverId: 'a',
+          agencyId: 'padi',
+          name: 'Ice',
+          isProgression: true,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ],
+    );
+    final ice = cert(
+      'ice',
+      agency: CertificationAgency.padi,
+    ).copyWith(level: 'ice');
+    final cd = cert(
+      'cd',
+      agency: CertificationAgency.padi,
+      level: CertificationLevel.courseDirector,
+    );
+    expect(primaryCertification([cd, ice], catalog: catalog)!.id, 'ice');
+    // Without the catalog the custom id is unknown and ranks last.
+    expect(primaryCertification([cd, ice])!.id, 'cd');
   });
 }

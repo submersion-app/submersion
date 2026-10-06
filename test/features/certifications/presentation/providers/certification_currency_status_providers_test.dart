@@ -15,8 +15,8 @@ Certification _cert(String id, CertificationLevel level, {DateTime? expires}) =>
     Certification(
       id: id,
       name: id,
-      agency: CertificationAgency.padi,
-      level: level,
+      agency: CertificationAgency.padi.name,
+      level: level.name,
       expiryDate: expires,
       createdAt: _t0,
       updatedAt: _t0,

@@ -2477,6 +2477,18 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.workspace_premium_outlined),
+                  title: Text(
+                    context.l10n.settings_manage_certificationAgencies,
+                  ),
+                  subtitle: Text(
+                    context.l10n.settings_manage_certificationAgencies_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/certification-agencies'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(MdiIcons.divingScubaTank),
                   title: Text(context.l10n.settings_manage_tankPresets),
                   subtitle: Text(

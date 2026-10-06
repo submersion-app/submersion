@@ -4,7 +4,7 @@ import 'package:submersion/core/database/database.dart';
 
 /// v269 (issue #2267): the certification currency tables and the seeded
 /// built-in rule catalog.
-NativeDatabase setupDb({int userVersion = 266}) {
+NativeDatabase setupDb({int userVersion = 267}) {
   return NativeDatabase.memory(
     setup: (rawDb) {
       rawDb.execute('PRAGMA user_version = $userVersion');
@@ -52,11 +52,11 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 269);
     expect(AppDatabase.migrationVersions, contains(269));
-    expect(AppDatabase.migrationStepCount(266), 1);
+    expect(AppDatabase.migrationStepCount(267), 1);
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 
-  test('a v266 database upgrades and gains the three tables', () async {
+  test('a v267 database upgrades and gains the three tables', () async {
     final db = AppDatabase(setupDb());
     addTearDown(db.close);
 

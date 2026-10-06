@@ -96,7 +96,7 @@ void main() {
         id: id,
         diverId: diverId,
         name: 'Course $id',
-        agency: CertificationAgency.padi,
+        agency: CertificationAgency.padi.name,
         startDate: DateTime(2024, 1, 1),
         certificationId: certificationId,
         createdAt: DateTime.now(),

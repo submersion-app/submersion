@@ -1,4 +1,3 @@
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
@@ -16,6 +15,7 @@ import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Repository provider
 final courseRepositoryProvider = Provider<CourseRepository>((ref) {
@@ -67,8 +67,10 @@ final courseSortProvider = StateProvider<SortState<CourseSortField>>(
 /// Apply sorting to a list of courses
 List<Course> applyCourseSorting(
   List<Course> courses,
-  SortState<CourseSortField> sort,
-) {
+  SortState<CourseSortField> sort, {
+  CertificationCatalog? catalog,
+}) {
+  final cat = catalog ?? CertificationCatalog.builtInOnly;
   final sorted = List<Course>.from(courses);
 
   sorted.sort((a, b) {
@@ -84,7 +86,10 @@ List<Course> applyCourseSorting(
       case CourseSortField.startDate:
         comparison = a.startDate.compareTo(b.startDate);
       case CourseSortField.agency:
-        comparison = a.agency.displayName.compareTo(b.agency.displayName);
+        comparison = cat
+            .agency(a.agency)
+            .interchangeName
+            .compareTo(cat.agency(b.agency).interchangeName);
       case CourseSortField.status:
         // In progress first, then completed (by completion date)
         if (a.isInProgress && !b.isInProgress) {
@@ -182,19 +187,18 @@ final courseDiveCountProvider = FutureProvider.family<int, String>((
   return repository.getDiveCountForCourse(courseId);
 });
 
-/// Courses by agency
-final coursesByAgencyProvider =
-    FutureProvider.family<List<Course>, CertificationAgency>((
-      ref,
-      agency,
-    ) async {
-      final repository = ref.watch(courseRepositoryProvider);
-      final validatedDiverId = await ref.watch(
-        validatedCurrentDiverIdProvider.future,
-      );
-      ref.invalidateSelfWhen(repository.watchCoursesChanges());
-      return repository.getCoursesByAgency(agency, diverId: validatedDiverId);
-    });
+/// Courses by agency id (built-in enum name or custom id)
+final coursesByAgencyProvider = FutureProvider.family<List<Course>, String>((
+  ref,
+  agency,
+) async {
+  final repository = ref.watch(courseRepositoryProvider);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
+  ref.invalidateSelfWhen(repository.watchCoursesChanges());
+  return repository.getCoursesByAgency(agency, diverId: validatedDiverId);
+});
 
 /// Course search provider
 final courseSearchProvider = FutureProvider.family<List<Course>, String>((

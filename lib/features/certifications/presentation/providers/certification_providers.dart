@@ -3,7 +3,6 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -15,6 +14,7 @@ import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Repository provider
 final certificationRepositoryProvider = Provider<CertificationRepository>((
@@ -74,8 +74,10 @@ final certificationSortProvider =
 /// Apply sorting to a list of certifications
 List<Certification> applyCertificationSorting(
   List<Certification> certifications,
-  SortState<CertificationSortField> sort,
-) {
+  SortState<CertificationSortField> sort, {
+  CertificationCatalog? catalog,
+}) {
+  final cat = catalog ?? CertificationCatalog.builtInOnly;
   final sorted = List<Certification>.from(certifications);
 
   sorted.sort((a, b) {
@@ -93,7 +95,10 @@ List<Certification> applyCertificationSorting(
           b.issueDate ?? DateTime(1900),
         );
       case CertificationSortField.agency:
-        comparison = a.agency.displayName.compareTo(b.agency.displayName);
+        comparison = cat
+            .agency(a.agency)
+            .interchangeName
+            .compareTo(cat.agency(b.agency).interchangeName);
     }
 
     if (invertForText) {
@@ -156,12 +161,9 @@ final expiredCertificationsProvider = FutureProvider<List<Certification>>((
   return repository.getExpiredCertifications(diverId: validatedDiverId);
 });
 
-/// Certifications by agency provider
+/// Certifications by agency id (built-in enum name or custom id) provider
 final certificationsByAgencyProvider =
-    FutureProvider.family<List<Certification>, CertificationAgency>((
-      ref,
-      agency,
-    ) async {
+    FutureProvider.family<List<Certification>, String>((ref, agency) async {
       final repository = ref.watch(certificationRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchCertificationsChanges());
       return repository.getCertificationsByAgency(agency);

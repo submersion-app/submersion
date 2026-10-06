@@ -57,8 +57,8 @@ ImportRepositories _repositories({bool withCurrency = true}) =>
 final _sourceCert = Certification(
   id: 'src-cert',
   name: 'Full Cave',
-  agency: CertificationAgency.tdi,
-  level: CertificationLevel.cave,
+  agency: CertificationAgency.tdi.name,
+  level: CertificationLevel.cave.name,
   createdAt: _then,
   updatedAt: _then,
 );

@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/certification_enums.dart';
 import 'package:submersion/core/constants/certification_levels.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/domain/entities/credential_currency.dart';
@@ -105,11 +106,16 @@ List<CredentialCurrency> evaluateCurrency({
 bool _matches(CurrencyRule rule, CertificationCredential c) {
   // A scope this build cannot read must not decode to "any".
   if (rule.unreadableScope) return false;
-  if (rule.agencies.isNotEmpty && !rule.agencies.contains(c.agency)) {
+  // Credentials store ids (issue #690): a built-in's enum name or a custom
+  // id. Scopes name built-ins only, so a custom agency or level matches only
+  // a rule that leaves that dimension open.
+  if (rule.agencies.isNotEmpty &&
+      !rule.agencies.contains(CertificationAgency.fromId(c.agency))) {
     return false;
   }
   if (rule.levels.isEmpty) return true;
-  return c.level != null && rule.levels.contains(c.level);
+  final level = CertificationLevel.fromId(c.level);
+  return level != null && rule.levels.contains(level);
 }
 
 CredentialCurrency? _evaluate(
@@ -317,8 +323,12 @@ List<CurrencyGroup> collapseCurrency(List<CredentialCurrency> statuses) {
 }
 
 int _rank(Certification c) {
-  final ladder = CertificationLevelCatalog.ladderFor(c.agency);
-  return c.level == null ? -1 : ladder.indexOf(c.level!);
+  final level = CertificationLevel.fromId(c.level);
+  if (level == null) return -1;
+  final ladder = CertificationLevelCatalog.ladderFor(
+    CertificationAgency.fromId(c.agency),
+  );
+  return ladder.indexOf(level);
 }
 
 int _mostAdvancedFirst(CredentialCurrency a, CredentialCurrency b) {

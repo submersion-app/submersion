@@ -6,6 +6,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_ecard.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 
 /// Horizontal gap between cards and around the grid's edge.
 const double _kSpacing = 16.0;
@@ -156,7 +157,11 @@ class _CertificationEcardGridState extends State<CertificationEcardGrid> {
       children: [
         Expanded(
           child: Text(
-            certificationTitleL10n(certification, l10n),
+            certificationTitleL10n(
+              certification,
+              l10n,
+              catalog: context.certificationCatalog,
+            ),
             key: const ValueKey('actionRowTitle'),
             style: theme.textTheme.bodyMedium,
             maxLines: 1,

@@ -20,7 +20,7 @@ import '../../../../helpers/mock_providers.dart';
 Certification _cert(String id, String name) => Certification(
   id: id,
   name: name,
-  agency: CertificationAgency.padi,
+  agency: CertificationAgency.padi.name,
   createdAt: DateTime(2020),
   updatedAt: DateTime(2020),
 );

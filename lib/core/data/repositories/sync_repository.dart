@@ -95,6 +95,14 @@ class SyncRepository {
     'diveTypes': (table: 'dive_types', pk: 'id'),
     'siteTypes': (table: 'site_types', pk: 'id'),
     'diveRoles': (table: 'dive_roles', pk: 'id'),
+    'customCertificationAgencies': (
+      table: 'custom_certification_agencies',
+      pk: 'id',
+    ),
+    'customCertificationLevels': (
+      table: 'custom_certification_levels',
+      pk: 'id',
+    ),
     'diverWeightEntries': (table: 'diver_weight_entries', pk: 'id'),
     'tankPresets': (table: 'tank_presets', pk: 'id'),
     'weightPresets': (table: 'weight_presets', pk: 'id'),

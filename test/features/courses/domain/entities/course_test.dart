@@ -8,7 +8,7 @@ Course _course({required DateTime startDate, DateTime? completionDate}) =>
       id: 'c1',
       diverId: 'd1',
       name: 'Open Water',
-      agency: CertificationAgency.padi,
+      agency: CertificationAgency.padi.name,
       startDate: startDate,
       completionDate: completionDate,
       createdAt: DateTime(2026, 1, 1),

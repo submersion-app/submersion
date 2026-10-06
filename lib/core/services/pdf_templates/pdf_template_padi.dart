@@ -21,6 +21,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// PADI-style PDF template mimicking PADI logbook format.
 ///
@@ -44,6 +45,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
     String? title,
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     Diver? diver,
     // Accepted for the shared builder contract; this template does not chart
     // profiles, show a portrait, or offer verification areas.
@@ -90,6 +92,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
           textDirection: loc.textDirection,
           build: (context) => PdfSharedComponents.buildCertificationCardsBody(
             certifications: certifications,
+            certificationCatalog: certificationCatalog,
             dates: dates,
             l10n: l10n,
             diver: diver,

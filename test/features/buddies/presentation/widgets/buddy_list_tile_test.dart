@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
@@ -57,8 +56,8 @@ Buddy _buddy({
   String? email = 'jane@example.com',
   String? phone = '+1 555 0100',
   Uint8List? photo,
-  CertificationLevel? level = CertificationLevel.rescue,
-  CertificationAgency? agency = CertificationAgency.padi,
+  String? level = 'rescue',
+  String? agency = 'padi',
 }) {
   return Buddy(
     id: 'b1',

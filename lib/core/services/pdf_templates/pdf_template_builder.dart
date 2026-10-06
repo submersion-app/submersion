@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Abstract base class for PDF template builders.
 ///
@@ -74,6 +75,7 @@ abstract class PdfTemplateBuilder {
     String? title,
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     Diver? diver,
     Map<String, PdfProfileSeries>? profiles,
     Uint8List? diverPhoto,

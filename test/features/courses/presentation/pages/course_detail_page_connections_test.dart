@@ -17,7 +17,7 @@ void main() {
     id: 'course-1',
     diverId: 'diver-1',
     name: 'Advanced Open Water',
-    agency: CertificationAgency.padi,
+    agency: CertificationAgency.padi.name,
     startDate: DateTime(2026, 5, 27),
     createdAt: DateTime(2026, 5, 27),
     updatedAt: DateTime(2026, 5, 28),

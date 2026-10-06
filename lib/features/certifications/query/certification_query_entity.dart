@@ -33,8 +33,8 @@ QueryRelation _buddy(String key, String column) => QueryRelation(
 
 /// Every field and relation a certification query can name (#2365). The
 /// certification list's query roots here; `buddies.certifications` reaches
-/// it from dives. `agency` and `level` store enum names, so they compare as
-/// enums; a stored name outside the enum is set but equals no value.
+/// it from dives. `agency` and `level` store built-in enum names or custom
+/// ids (issue #690), which are valid values too.
 final certificationQueryEntity = QueryEntity(
   subject: QuerySubject.certifications,
   table: 'certifications',
@@ -54,6 +54,7 @@ final certificationQueryEntity = QueryEntity(
       emptySql: "({r}.agency IS NULL OR TRIM({r}.agency) = '')",
       labelKey: 'query_certifications_agency',
       enumValues: [for (final a in CertificationAgency.values) a.name],
+      customValueSubject: QuerySubject.certificationAgencies,
     ),
     QueryField(
       key: 'level',
@@ -62,6 +63,7 @@ final certificationQueryEntity = QueryEntity(
       emptySql: "({r}.level IS NULL OR TRIM({r}.level) = '')",
       labelKey: 'query_certifications_level',
       enumValues: [for (final l in CertificationLevel.values) l.name],
+      customValueSubject: QuerySubject.certificationLevels,
     ),
     _text('cardNumber', 'card_number'),
     _text('instructorName', 'instructor_name'),

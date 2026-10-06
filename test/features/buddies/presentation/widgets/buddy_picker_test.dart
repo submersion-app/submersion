@@ -32,7 +32,7 @@ final _testBuddies = [
   Buddy(
     id: '2',
     name: 'Bob Jones',
-    certificationLevel: CertificationLevel.advancedOpenWater,
+    certificationLevel: CertificationLevel.advancedOpenWater.name,
     createdAt: _now,
     updatedAt: _now,
   ),

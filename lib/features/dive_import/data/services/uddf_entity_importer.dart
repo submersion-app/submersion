@@ -86,6 +86,8 @@ import 'package:submersion/features/universal_import/data/models/source_diver.da
 import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 import 'package:submersion/features/universal_import/data/services/import_tank_defaults.dart';
 import 'package:uuid/uuid.dart';
+import 'package:submersion/features/certification_agencies/data/repositories/custom_certification_repository.dart';
+import 'package:submersion/features/certification_agencies/data/services/certification_import_resolver.dart';
 
 /// Bundles all repositories needed for UDDF import.
 class ImportRepositories {
@@ -344,13 +346,26 @@ class UddfEntityImporter {
 
   final ImportedFileRepository _importedFiles;
 
+  /// Custom certification agencies and levels: an imported agency that names
+  /// no built-in becomes one, owned by the importing diver (issue #690).
+  final CustomCertificationRepository _customCertifications;
+
+  /// Whether an agency created by an import starts shared, from the
+  /// "Share by default" setting.
+  final bool _shareCustomAgenciesByDefault;
+
   UddfEntityImporter({
     TankPresetEntity? defaultTankPreset,
     int defaultStartPressure = 200,
     bool applyDefaultTankToImports = false,
     String placeNameLanguage = LocationService.defaultLanguageCode,
     ImportedFileRepository? importedFiles,
+    CustomCertificationRepository? customCertifications,
+    bool shareCustomAgenciesByDefault = false,
   }) : _defaultTankPreset = defaultTankPreset,
+       _customCertifications =
+           customCertifications ?? CustomCertificationRepository(),
+       _shareCustomAgenciesByDefault = shareCustomAgenciesByDefault,
        _defaultStartPressure = defaultStartPressure,
        _applyDefaultTankToImports = applyDefaultTankToImports,
        _placeNameLanguage = placeNameLanguage,
@@ -436,6 +451,11 @@ class UddfEntityImporter {
     ImportCancellationToken? cancelToken,
   }) async {
     final now = DateTime.now();
+    final certResolver = CertificationImportResolver(
+      _customCertifications,
+      diverId: diverId,
+      shareByDefault: _shareCustomAgenciesByDefault,
+    );
 
     // ID mappings for cross-references
     final tripIdMapping = <String, String>{};
@@ -521,6 +541,7 @@ class UddfEntityImporter {
       buddyIdMapping,
       now,
       onProgress,
+      certResolver,
     );
 
     final diveCentersCount = await _importDiveCenters(
@@ -542,6 +563,7 @@ class UddfEntityImporter {
       certIdMapping,
       now,
       onProgress,
+      certResolver,
     );
 
     // Certification currency (issue #2267): custom rules restore with no
@@ -656,6 +678,7 @@ class UddfEntityImporter {
       buddyIdMapping,
       now,
       onProgress,
+      certResolver,
     );
 
     final divesResult = await _importDives(
@@ -1010,6 +1033,7 @@ class UddfEntityImporter {
     Map<String, String> idMapping,
     DateTime now,
     ImportProgressCallback? onProgress,
+    CertificationImportResolver certResolver,
   ) async {
     if (selected.isEmpty) return 0;
     onProgress?.call(ImportPhase.buddies, 0, selected.length);
@@ -1040,22 +1064,29 @@ class UddfEntityImporter {
       // issue #553: buddy certs live in the certifications table now (setting
       // them on the Buddy entity would be ignored). Create a buddy-owned cert
       // row from the parsed certification, if any.
-      final certLevel = _parseEnum(
-        buddyData['certificationLevel'],
-        CertificationLevel.values,
-      );
-      final certAgency = _parseEnum(
-        buddyData['certificationAgency'],
-        CertificationAgency.values,
-      );
-      if (certLevel != null || certAgency != null) {
+      final levelText = _certificationText(buddyData['certificationLevel']);
+      final agencyText = _certificationText(buddyData['certificationAgency']);
+      // An agency that names no built-in becomes a custom agency (issue
+      // #690); level text that matches nothing is dropped, as before, so it
+      // alone never creates a certification.
+      final givenAgencyId = agencyText == null
+          ? null
+          : await certResolver.agencyId(agencyText);
+      final agencyId = givenAgencyId ?? CertificationAgency.other.name;
+      final levelId = await certResolver.levelId(agencyId, levelText);
+      if (levelId != null || givenAgencyId != null) {
         await certRepository.createCertification(
           Certification(
             id: '',
             buddyId: newId,
-            name: certLevel?.displayName ?? certAgency?.displayName ?? name,
-            agency: certAgency ?? CertificationAgency.other,
-            level: certLevel,
+            name:
+                CertificationLevel.fromId(levelId)?.displayName ??
+                (levelId != null ? levelText : null) ??
+                CertificationAgency.fromId(agencyId)?.displayName ??
+                agencyText ??
+                name,
+            agency: agencyId,
+            level: levelId,
             createdAt: now,
             updatedAt: now,
           ),
@@ -1135,6 +1166,7 @@ class UddfEntityImporter {
     Map<String, String> idMapping,
     DateTime now,
     ImportProgressCallback? onProgress,
+    CertificationImportResolver certResolver,
   ) async {
     if (selected.isEmpty) return 0;
     onProgress?.call(ImportPhase.certifications, 0, selected.length);
@@ -1147,8 +1179,13 @@ class UddfEntityImporter {
       if (name == null || name.isEmpty) continue;
 
       final newId = _uuid.v4();
-      final agency = _parseCertificationAgency(certData['agency']);
-      final level = _parseCertificationLevel(certData['level']);
+      final agency = await certResolver.agencyId(
+        _certificationText(certData['agency']),
+      );
+      final level = await certResolver.levelId(
+        agency,
+        _certificationText(certData['level']),
+      );
 
       final certification = Certification(
         id: newId,
@@ -2036,6 +2073,7 @@ class UddfEntityImporter {
     Map<String, String> buddyIdMapping,
     DateTime now,
     ImportProgressCallback? onProgress,
+    CertificationImportResolver certResolver,
   ) async {
     if (selected.isEmpty) return 0;
     onProgress?.call(ImportPhase.courses, 0, selected.length);
@@ -2050,7 +2088,9 @@ class UddfEntityImporter {
       final uddfId = courseData['uddfId'] as String?;
       final newId = _uuid.v4();
 
-      final agency = _parseCertificationAgency(courseData['agency']);
+      final agency = await certResolver.agencyId(
+        _certificationText(courseData['agency']),
+      );
 
       // Map instructor buddy reference to new ID
       String? instructorId;
@@ -3608,26 +3648,14 @@ class UddfEntityImporter {
     return EquipmentStatus.active;
   }
 
-  CertificationAgency _parseCertificationAgency(dynamic value) {
-    if (value is CertificationAgency) return value;
-    if (value is String) {
-      // A named-but-unrecognised agency is "other", not PADI. Defaulting to
-      // PADI relabels real cards from agencies outside the enum (#912).
-      return _parseEnumValue(value, CertificationAgency.values) ??
-          (value.trim().isEmpty
-              ? CertificationAgency.padi
-              : CertificationAgency.other);
-    }
-    return CertificationAgency.padi;
-  }
-
-  CertificationLevel? _parseCertificationLevel(dynamic value) {
-    if (value is CertificationLevel) return value;
-    if (value is String) {
-      return _parseEnumValue(value, CertificationLevel.values);
-    }
-    return null;
-  }
+  /// Parsed agency or level text: parsers emit either an enum value or the
+  /// file's own text (issue #690).
+  static String? _certificationText(Object? value) => switch (value) {
+    final CertificationAgency a => a.name,
+    final CertificationLevel l => l.name,
+    final String s => s,
+    _ => null,
+  };
 
   T? _parseEnumValue<T extends Enum>(String value, List<T> values) {
     final lowerValue = value.toLowerCase();

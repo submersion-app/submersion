@@ -117,6 +117,9 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DiveDiveTypes,
     DiveTypes,
     DiveRoles,
+    // Custom certification agencies and levels (v261, issue #690)
+    CustomCertificationAgencies,
+    CustomCertificationLevels,
     TankPresets,
     WeightPresets,
     WeightPresetEntries,
@@ -1117,12 +1120,16 @@ class AppDatabase extends _$AppDatabase {
     // so the floor stays. Renumbered from 263, which main shipped first
     // (#2030); 262 is claimed by an open branch.
     266,
+    // v267: custom certification agencies and levels (issue #690). Two new
+    // synced tables and an index, no data migration, so the floor stays.
+    // Renumbered from 265 and 266, which main shipped first.
+    267,
     // v269: certification currency (issue #2267): the rule catalog with its
     // built-in seed, per certification overrides and the event ledger. New
     // synced tables only, so the floor stays. Built-in rules are reference
     // data, re-seeded by INSERT OR IGNORE from onCreate, the rung and
-    // beforeOpen. Renumbered from 261, 262 and 266 as main shipped those
-    // first; 267 and 268 are held by open branches.
+    // beforeOpen. Renumbered from 261, 262, 266 and 267 as main shipped
+    // those first; 268 is held by an open branch.
     269,
   ];
 

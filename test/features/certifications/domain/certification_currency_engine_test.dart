@@ -21,8 +21,8 @@ Certification cert(
 }) => Certification(
   id: id,
   name: id,
-  agency: agency,
-  level: level,
+  agency: agency.name,
+  level: level?.name,
   additionalCredentials: extra,
   issueDate: issued,
   expiryDate: expires,
@@ -138,10 +138,10 @@ void main() {
         'n1',
         agency: CertificationAgency.ffessm,
         level: CertificationLevel.ffessmN1,
-        extra: const [
+        extra: [
           CertificationCredential(
-            agency: CertificationAgency.cmas,
-            level: CertificationLevel.cmas1StarDiver,
+            agency: CertificationAgency.cmas.name,
+            level: CertificationLevel.cmas1StarDiver.name,
           ),
         ],
       );
@@ -164,10 +164,10 @@ void main() {
       () {
         final card = cert(
           'c',
-          extra: const [
+          extra: [
             CertificationCredential(
-              agency: CertificationAgency.padi,
-              level: CertificationLevel.advancedOpenWater,
+              agency: CertificationAgency.padi.name,
+              level: CertificationLevel.advancedOpenWater.name,
             ),
           ],
         );
