@@ -244,12 +244,19 @@ extension RungsFromV231 on AppDatabase {
       await _assertCustomCertificationSchema();
     }
     if (from < 267) await reportProgress();
-    // v269: certification currency (issue #2267). Three synced tables and
-    // the seeded built-in rule catalog, no backfill. Re-asserted in
-    // beforeOpen. 268 is held by an open branch.
+    // v269: diver_settings.hidden_built_in_ids (issue #401). Column-only
+    // rung, no backfill: null reads back as "nothing hidden". 268 is held
+    // by an open branch (#3043).
     if (from < 269) {
-      await _assertCertificationCurrencySchema();
+      await _assertHiddenBuiltInIdsColumn();
     }
     if (from < 269) await reportProgress();
+    // v271: certification currency (issue #2267). Three synced tables and
+    // the seeded built-in rule catalog, no backfill. Re-asserted in
+    // beforeOpen. 268 and 270 are held by open branches.
+    if (from < 271) {
+      await _assertCertificationCurrencySchema();
+    }
+    if (from < 271) await reportProgress();
   }
 }

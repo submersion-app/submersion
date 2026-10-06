@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:submersion/core/built_ins/hidden_built_ins_codec.dart';
 import 'package:submersion/core/constants/place_name_language.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:flutter/material.dart';
@@ -241,6 +242,7 @@ class DiverSettingsRepository {
               hiddenTankPresetIds: Value(
                 _encodeDisabledRules(s.hiddenTankPresetIds),
               ),
+              hiddenBuiltInIds: Value(encodeHiddenBuiltIns(s.hiddenBuiltInIds)),
               showAscentRateColors: Value(s.showAscentRateColors),
               showNdlOnProfile: Value(s.showNdlOnProfile),
               lastStopDepth: Value(s.lastStopDepth),
@@ -530,6 +532,7 @@ class DiverSettingsRepository {
     hiddenTankPresetIds: Value(
       _encodeDisabledRules(settings.hiddenTankPresetIds),
     ),
+    hiddenBuiltInIds: Value(encodeHiddenBuiltIns(settings.hiddenBuiltInIds)),
     showAscentRateColors: Value(settings.showAscentRateColors),
     showNdlOnProfile: Value(settings.showNdlOnProfile),
     lastStopDepth: Value(settings.lastStopDepth),
@@ -740,6 +743,7 @@ class DiverSettingsRepository {
       hiddenChamberIds: _decodeDisabledRules(row.hiddenChamberIds),
       emergencyRegion: row.emergencyRegion,
       hiddenTankPresetIds: _decodeDisabledRules(row.hiddenTankPresetIds),
+      hiddenBuiltInIds: decodeHiddenBuiltIns(row.hiddenBuiltInIds),
       showAscentRateColors: row.showAscentRateColors,
       showNdlOnProfile: row.showNdlOnProfile,
       lastStopDepth: row.lastStopDepth,

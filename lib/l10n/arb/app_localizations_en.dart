@@ -15876,6 +15876,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not open that cylinder. Try again.';
 
   @override
+  String gasCalculators_blender_cylinderNoVolume(String name) {
+    return '$name has no recorded water volume';
+  }
+
+  @override
+  String get gasCalculators_blender_noCylinders =>
+      'No cylinders in your gear yet. Type the water capacity instead.';
+
+  @override
   String gasCalculators_blender_filledFrom(String name, String mix) {
     return '$name: $mix';
   }
@@ -16046,16 +16055,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gasCalculators_blender_cylinderVolume => 'Cylinder water capacity';
 
   @override
-  String get gasCalculators_blender_cylinderPresets => 'Presets';
-
-  @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'Price per 100 $unit';
   }
-
-  @override
-  String get gasCalculators_blender_manageCylinderSizes =>
-      'Manage cylinder sizes';
 
   @override
   String get gasCalculators_blender_costTotal => 'Total';
@@ -48527,4 +48529,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get query_saveNeedsDiver => 'Create a diver profile to save queries';
+
+  @override
+  String get builtIns_showColumnLabel => 'Show';
+
+  @override
+  String get builtIns_showInPickers => 'Show in pickers';
+
+  @override
+  String preDive_start_allTemplatesHidden(String path) {
+    return 'Every checklist is hidden. Show one again in $path.';
+  }
+
+  @override
+  String get settings_conflict_field_hiddenBuiltInIds =>
+      'Hidden built-in entries';
 }

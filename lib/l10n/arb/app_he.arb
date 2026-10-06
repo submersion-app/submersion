@@ -119,6 +119,8 @@
   "gasCalculators_blender_scanTag": "סריקת תג",
   "gasCalculators_blender_notYourCylinder": "הבלון הזה אינו בציוד שלך",
   "gasCalculators_blender_cylinderFailed": "לא ניתן לפתוח את הבלון הזה. נסו שוב.",
+  "gasCalculators_blender_cylinderNoVolume": "לא נרשם נפח מים עבור {name}",
+  "gasCalculators_blender_noCylinders": "אין עדיין בלונים בציוד שלך. הזן במקום זאת את נפח המים.",
   "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_error_targetPressure": "לחץ היעד חייב להיות גבוה מלחץ ההתחלה.",
   "gasCalculators_blender_error_invalidMix": "O₂ + He של תערובת לא יכול לעלות על 100%.",
@@ -161,9 +163,7 @@
   "gasCalculators_blender_templateAdjust": "התאם ערכים",
   "gasCalculators_blender_billing": "עלות",
   "gasCalculators_blender_cylinderVolume": "נפח המים של הבלון",
-  "gasCalculators_blender_cylinderPresets": "הגדרות מוכנות",
   "gasCalculators_blender_unitPrice": "מחיר ל-100 {unit}",
-  "gasCalculators_blender_manageCylinderSizes": "ניהול גדלי בלונים",
   "gasCalculators_blender_costTotal": "סה\"כ",
   "gasCalculators_blender_costBasis": "החיוב הוא לפי הלחץ שסופק (נפח המים של הבלון × בר שהוסף), כפי שתחנת המילוי מודדת.",
   "gasCalculators_blender_costMissingPrice": "הזן מחיר לכל גז כדי לראות את הסכום הכולל.",
@@ -14682,5 +14682,9 @@
   "settings_manage_savedQueries": "שאילתות שמורות",
   "settings_manage_savedQueries_subtitle": "שינוי שם, סידור מחדש ומחיקה של שאילתות שמורות",
   "query_editor_needsText": "הזן לפחות מילה אחת",
-  "query_saveNeedsDiver": "צור פרופיל צולל כדי לשמור שאילתות"
+  "query_saveNeedsDiver": "צור פרופיל צולל כדי לשמור שאילתות",
+  "builtIns_showColumnLabel": "הצג",
+  "builtIns_showInPickers": "הצג בבוררים",
+  "preDive_start_allTemplatesHidden": "כל רשימות הבדיקה מוסתרות. אפשר להציג אחת מחדש ב-{path}.",
+  "settings_conflict_field_hiddenBuiltInIds": "פריטים מובנים מוסתרים"
 }

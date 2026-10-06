@@ -119,6 +119,8 @@
   "gasCalculators_blender_scanTag": "Címke beolvasása",
   "gasCalculators_blender_notYourCylinder": "Ez a palack nem szerepel a felszerelésedben",
   "gasCalculators_blender_cylinderFailed": "Nem sikerült megnyitni a palackot. Próbáld újra.",
+  "gasCalculators_blender_cylinderNoVolume": "Nincs rögzített vízűrtartalom ehhez: {name}",
+  "gasCalculators_blender_noCylinders": "Még nincs palack a felszerelésedben. Add meg helyette a víztérfogatot.",
   "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_error_targetPressure": "A célnyomásnak magasabbnak kell lennie a kiindulási nyomásnál.",
   "gasCalculators_blender_error_invalidMix": "Egy keverék O₂ + He aránya nem haladhatja meg a 100%-ot.",
@@ -161,9 +163,7 @@
   "gasCalculators_blender_templateAdjust": "Értékek módosítása",
   "gasCalculators_blender_billing": "Költség",
   "gasCalculators_blender_cylinderVolume": "A palack víztérfogata",
-  "gasCalculators_blender_cylinderPresets": "Előbeállítások",
   "gasCalculators_blender_unitPrice": "Ár 100 {unit} egységenként",
-  "gasCalculators_blender_manageCylinderSizes": "Palackméretek kezelése",
   "gasCalculators_blender_costTotal": "Összesen",
   "gasCalculators_blender_costBasis": "A számlázás a betöltött nyomás alapján történik (palack víztérfogata × hozzáadott bar), ahogy a töltőállomás is méri.",
   "gasCalculators_blender_costMissingPrice": "Adj meg árat minden gázhoz, hogy lásd az összeget.",
@@ -14682,5 +14682,9 @@
   "settings_manage_savedQueries": "Mentett lekérdezések",
   "settings_manage_savedQueries_subtitle": "Mentett lekérdezések átnevezése, átrendezése és törlése",
   "query_editor_needsText": "Adjon meg legalább egy szót",
-  "query_saveNeedsDiver": "Hozzon létre merülő profilt a lekérdezések mentéséhez"
+  "query_saveNeedsDiver": "Hozzon létre merülő profilt a lekérdezések mentéséhez",
+  "builtIns_showColumnLabel": "Megjelenítés",
+  "builtIns_showInPickers": "Megjelenítés a választókban",
+  "preDive_start_allTemplatesHidden": "Minden ellenőrzőlista el van rejtve. Jelenítsen meg újra egyet itt: {path}.",
+  "settings_conflict_field_hiddenBuiltInIds": "Elrejtett beépített elemek"
 }

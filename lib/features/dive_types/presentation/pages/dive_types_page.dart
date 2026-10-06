@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,7 +7,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badg
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/built_in_show_column.dart';
 import 'package:submersion/shared/widgets/fab_clearance.dart';
 
 class DiveTypesPage extends ConsumerWidget {
@@ -15,6 +19,9 @@ class DiveTypesPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final diveTypesAsync = ref.watch(diveTypeListNotifierProvider);
+    final hidden = ref.watch(
+      hiddenBuiltInIdsProvider(BuiltInCatalog.diveTypes),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -53,13 +60,20 @@ class DiveTypesPage extends ConsumerWidget {
                 ),
                 const Divider(),
               ],
-              _buildSectionHeader(
-                context,
-                context.l10n.diveTypes_builtInHeader,
+              BuiltInShowColumnHeader(
+                title: context.l10n.diveTypes_builtInHeader,
+                titleStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
               ...builtInTypes.map(
-                (type) =>
-                    _buildDiveTypeTile(context, ref, type, canDelete: false),
+                (type) => _buildDiveTypeTile(
+                  context,
+                  ref,
+                  type,
+                  canDelete: false,
+                  isHidden: hidden.contains(type.id),
+                ),
               ),
             ],
           );
@@ -85,6 +99,7 @@ class DiveTypesPage extends ConsumerWidget {
     WidgetRef ref,
     DiveTypeEntity diveType, {
     required bool canDelete,
+    bool isHidden = false,
   }) {
     // Previewed here so a diver knows what a header badge collapses their
     // selection to: the fixed translated abbreviation for a built-in type
@@ -102,9 +117,14 @@ class DiveTypesPage extends ConsumerWidget {
         : (builtInShort == fullName ? null : builtInShort);
 
     return ListTile(
+      // A hidden built-in stays listed so it can be shown again (issue #401).
+      // Only its text and icon dim; the switch stays usable.
+      textColor: isHidden ? Theme.of(context).disabledColor : null,
       leading: Icon(
         canDelete ? Icons.label_outline : Icons.label,
-        color: canDelete
+        color: isHidden
+            ? Theme.of(context).disabledColor
+            : canDelete
             ? Theme.of(context).colorScheme.secondary
             : Theme.of(context).colorScheme.primary,
       ),
@@ -122,6 +142,21 @@ class DiveTypesPage extends ConsumerWidget {
             DiveTypeBadge(label: shortName),
             if (canDelete) const SizedBox(width: 8),
           ],
+          if (!canDelete)
+            BuiltInShowSwitch(
+              switchKey: builtInShowSwitchKey(
+                BuiltInCatalog.diveTypes,
+                diveType.id,
+              ),
+              shown: !isHidden,
+              onChanged: (shown) => ref
+                  .read(settingsProvider.notifier)
+                  .setBuiltInHidden(
+                    BuiltInCatalog.diveTypes,
+                    diveType.id,
+                    !shown,
+                  ),
+            ),
           if (canDelete)
             IconButton(
               icon: const Icon(Icons.delete_outline),

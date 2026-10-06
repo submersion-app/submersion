@@ -327,6 +327,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_gtrReservePressure,
     FieldKind.pressure,
   ),
+  'hiddenBuiltInIds': ConflictField(
+    (l) => l.settings_conflict_field_hiddenBuiltInIds,
+    FieldKind.opaque,
+  ),
   'hiddenChamberIds': ConflictField(
     (l) => l.settings_conflict_field_hiddenChamberIds,
     FieldKind.opaque,

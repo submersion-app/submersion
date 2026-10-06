@@ -232,7 +232,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SiteHides,
     // Insight observation dismissals (v265)
     InsightObservationDismissals,
-    // Certification currency (v269, issue #2267)
+    // Certification currency (v271, issue #2267)
     CertificationCurrencyRules,
     CertificationCurrencyPrefs,
     CertificationCurrencyEvents,
@@ -245,7 +245,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 269;
+  static const int currentSchemaVersion = 271;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1124,13 +1124,19 @@ class AppDatabase extends _$AppDatabase {
     // synced tables and an index, no data migration, so the floor stays.
     // Renumbered from 265 and 266, which main shipped first.
     267,
-    // v269: certification currency (issue #2267): the rule catalog with its
+    // v269: diver_settings.hidden_built_in_ids, the built-in dive types,
+    // roles, site types, service types and pre-dive templates each diver hid
+    // from the pickers (issue #401). Additive nullable column, no backfill,
+    // so the floor stays. Renumbered several times while this was open; 268
+    // is held by an open branch (#3043).
+    269,
+    // v271: certification currency (issue #2267): the rule catalog with its
     // built-in seed, per certification overrides and the event ledger. New
     // synced tables only, so the floor stays. Built-in rules are reference
     // data, re-seeded by INSERT OR IGNORE from onCreate, the rung and
-    // beforeOpen. Renumbered from 261, 262, 266 and 267 as main shipped
-    // those first; 268 is held by an open branch.
-    269,
+    // beforeOpen. Renumbered from 261, 262, 266, 267 and 269 as main shipped
+    // those first; 268 and 270 are held by open branches.
+    271,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

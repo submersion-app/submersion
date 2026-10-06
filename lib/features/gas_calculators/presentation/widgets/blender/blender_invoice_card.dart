@@ -19,6 +19,7 @@ import 'package:submersion/features/gas_calculators/presentation/widgets/blender
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_formatting.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_invoice_export_sheet.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_line_edit_sheet.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_responsive_header_row.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_section_title.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_table_style.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_volume_conversion.dart';
@@ -292,30 +293,32 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
     final units = UnitFormatter(settings);
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: BlenderSectionTitle(
-              context.l10n.gasCalculators_blender_billedDate(
-                units.formatDate(date),
-              ),
+      child: BlenderResponsiveHeaderRow(
+        leading: BlenderSectionTitle(
+          context.l10n.gasCalculators_blender_billedDate(
+            units.formatDate(date),
+          ),
+          bottomPadding: 0,
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              key: const Key('blender-invoice-archive'),
+              icon: const Icon(Icons.history, size: 20),
+              visualDensity: VisualDensity.compact,
+              tooltip: context.l10n.gasCalculators_blender_invoiceArchive,
+              onPressed: () => context.push(kBlenderInvoiceArchiveRoute),
             ),
-          ),
-          IconButton(
-            key: const Key('blender-invoice-archive'),
-            icon: const Icon(Icons.history, size: 20),
-            visualDensity: VisualDensity.compact,
-            tooltip: context.l10n.gasCalculators_blender_invoiceArchive,
-            onPressed: () => context.push(kBlenderInvoiceArchiveRoute),
-          ),
-          IconButton(
-            key: const Key('blender-billed-date-edit'),
-            icon: const Icon(Icons.edit_calendar_outlined, size: 20),
-            visualDensity: VisualDensity.compact,
-            tooltip: context.l10n.gasCalculators_blender_billedDateEdit,
-            onPressed: () => _pickDate(context, date, settings),
-          ),
-        ],
+            IconButton(
+              key: const Key('blender-billed-date-edit'),
+              icon: const Icon(Icons.edit_calendar_outlined, size: 20),
+              visualDensity: VisualDensity.compact,
+              tooltip: context.l10n.gasCalculators_blender_billedDateEdit,
+              onPressed: () => _pickDate(context, date, settings),
+            ),
+          ],
+        ),
       ),
     );
   }

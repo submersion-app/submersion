@@ -15362,6 +15362,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_blender_cylinderFailed => '无法打开该气瓶，请重试。';
 
   @override
+  String gasCalculators_blender_cylinderNoVolume(String name) {
+    return '$name 未记录水容积';
+  }
+
+  @override
+  String get gasCalculators_blender_noCylinders => '你的装备中还没有气瓶。请直接输入水容积。';
+
+  @override
   String gasCalculators_blender_filledFrom(String name, String mix) {
     return '$name：$mix';
   }
@@ -15526,15 +15534,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_blender_cylinderVolume => '气瓶水容积';
 
   @override
-  String get gasCalculators_blender_cylinderPresets => '预设';
-
-  @override
   String gasCalculators_blender_unitPrice(String unit) {
     return '每 100 $unit 价格';
   }
-
-  @override
-  String get gasCalculators_blender_manageCylinderSizes => '管理气瓶尺寸';
 
   @override
   String get gasCalculators_blender_costTotal => '合计';
@@ -46332,4 +46334,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_saveNeedsDiver => '请先创建潜水员档案再保存查询';
+
+  @override
+  String get builtIns_showColumnLabel => '显示';
+
+  @override
+  String get builtIns_showInPickers => '在选择列表中显示';
+
+  @override
+  String preDive_start_allTemplatesHidden(String path) {
+    return '所有检查清单都已隐藏。可在 $path 中重新显示。';
+  }
+
+  @override
+  String get settings_conflict_field_hiddenBuiltInIds => '已隐藏的内置项目';
 }

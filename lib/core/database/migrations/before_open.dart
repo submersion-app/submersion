@@ -37,8 +37,8 @@ extension BeforeOpenBackstops on AppDatabase {
     // v229 backstop: the per-set diver figure switch.
     await _assertEquipmentSetShowFigureColumn();
 
-    // v227 backstop: the hidden built-in tank presets.
-    await _assertHiddenTankPresetIdsColumn();
+    // v227 and v269 backstops: hidden tank presets and built-in entries.
+    await _assertHiddenPickerEntryColumns();
 
     // v222 backstop: the per-site vertical exaggeration overrides.
     await _assertSeascapeVerticalExaggerationOverridesColumn();
@@ -160,7 +160,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // backfill is onUpgrade only: re-running it resurrects deleted schedules.
     await _assertServiceLedgerSchema();
 
-    // v269 backstop: currency tables and built-in rules, re-seeded (#2267).
+    // v271 backstop: currency tables and built-in rules, re-seeded (#2267).
     await _assertCertificationCurrencySchema();
     // v123 backstop: re-assert safety review tables + settings columns
     // (parallel-branch collision self-heal).
