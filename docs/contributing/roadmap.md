@@ -5,6 +5,11 @@
 
 What is built, in progress and planned, by feature category.
 
+The feature rows below were carried over from the FEATURE_ROADMAP.md
+snapshot of 2026-02-24 and have not been re-audited as a whole; a row may
+lag the code. When you find one that does, correct it in your pull
+request.
+
 ---
 
 ## Roadmap Phases
@@ -54,7 +59,7 @@ What is built, in progress and planned, by feature category.
 | GPS coordinates | ✅ Implemented | MVP | Lat/long with map view |
 | Boat / operator name | ✅ Implemented | v1.0 | Fields added to dive entity |
 | Trip grouping | ✅ Implemented | v1.0 | Entity, repository, full UI complete |
-| Liveaboard tracking | 📋 Planned | v2.0 | Specialized trip type |
+| Liveaboard tracking | ✅ Implemented | v2.0 | Specialized trip type with liveaboard details |
 
 **v1.5 Tasks:**
 
@@ -492,11 +497,11 @@ What is built, in progress and planned, by feature category.
 | Nearby site suggestions | ✅ Implemented | v1.1 | On dive create |
 | Reverse geocoding | ✅ Implemented | v1.1 | Auto-populate country/region from GPS |
 | Map-based location picker | ✅ Implemented | v1.1 | Pick location from interactive map |
-| GPS from photo EXIF | 📋 Planned | v1.5 | Extract and suggest site |
+| GPS from photo EXIF | 📋 Planned | v1.5 | Extract and suggest site (extraction exists in `exif_extractor.dart`; site suggestion not built) |
 
 **v1.5 Tasks:**
 
-- [ ] EXIF parsing from photo attachments
+- [x] EXIF parsing from photo attachments
 - [ ] If photo has GPS and dive doesn't, suggest using photo GPS
 - [ ] Bulk site creation from photo library
 

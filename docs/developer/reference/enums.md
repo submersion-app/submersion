@@ -394,7 +394,7 @@ Marine life categories.
 
 ```dart
 // Get display name
-DiveType.recreational.displayName // "Recreational"
+WaterType.salt.displayName // "Salt Water"
 
 // Check enum value
 if (dive.visibility == Visibility.excellent) { ... }

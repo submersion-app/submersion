@@ -314,13 +314,19 @@ testWidgets('shows dives', (tester) async {
 ## Provider Dependencies
 
 A provider that derives from others watches them, so it recomputes when
-either changes:
+any of them changes. `filteredDivesProvider`
+(`lib/features/dive_log/presentation/providers/dive_providers.dart`)
+narrows the loaded dive list to the ids the active filter keeps, which the
+repository computes in SQL:
 
 ```dart
-final filteredDivesProvider = Provider<AsyncValue<List<Dive>>>((ref) {
+final filteredDivesProvider = Provider<AsyncValue<List<domain.Dive>>>((ref) {
   final divesAsync = ref.watch(diveListNotifierProvider);
   final filter = ref.watch(diveFilterProvider);
-  return divesAsync.whenData((dives) => filter.apply(dives));
+  return narrowDivesByIds(
+    divesAsync,
+    ref.watch(queryFilteredDiveIdsProvider(filter)),
+  );
 });
 ```
 

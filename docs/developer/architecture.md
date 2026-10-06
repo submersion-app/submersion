@@ -355,22 +355,36 @@ The decompression and gas code lives in `lib/core/deco/`.
 - **Related calculators.** Altitude (`altitude_calculator.dart`), gas
   density (`gas_density.dart`), maximum operating depth
   (`max_operating_depth.dart`), semi-closed rebreather loop gas
-  (`scr_calculator.dart`), and ascent gas planning (`ascent/`,
-  `gas_switch/`).
+  (`scr_calculator.dart`), and ascent gas planning (`ascent/`).
+- **Gas-switch analysis.** `gas_switch/` finds late and missed deco gas
+  switches in a logged open-circuit dive and costs each one by replaying
+  its tissue loading (`GasSwitchEfficiencyAnalyzer`).
 
 ## Sync Conflict Resolution
 
-A record changed on two devices since they last synced is stored as a
-conflict instead of being overwritten: its row in the sync records table
-(`lib/core/database/tables/sync_tables.dart`) gets the status `conflict`
-and keeps the remote version in `conflictData`, and the sync reports
-`hasConflicts`. `SyncService.getConflicts()`
-(`lib/core/services/sync/sync_service.dart`) turns those records into
-`SyncConflict` objects carrying the local and remote data and their
+Most concurrent edits never become conflicts. Every synced row carries a
+Hybrid Logical Clock (`hlc`); when both the local and the remote version
+have one, the clock decides: a strictly newer remote HLC wins, and a tie or
+a newer local HLC keeps the local row
+(`lib/core/services/sync/sync_service.dart`).
+
+A record is stored as a conflict for the diver to resolve in two cases:
+
+- **Pre-HLC rows.** When either side lacks an HLC and both sides changed
+  since the last sync, the remote version is kept in `conflictData`.
+- **An edit racing a delete.** When a peer deleted a record that was
+  edited here, `conflictData` holds a deletion marker (`_deleted`,
+  `deletedAt`) instead of a row.
+
+Either way the record's row in the sync records table
+(`lib/core/database/tables/sync_tables.dart`) gets the status `conflict`,
+and the sync reports `hasConflicts`. `SyncService.getConflicts()` turns
+those records into `SyncConflict` objects carrying both versions and their
 modification times. Junction rows hold nothing but ids, so
-`ConflictReferenceResolver` (`conflict_reference.dart`) resolves each foreign
-key to a name or date the Resolve Conflicts dialog can show. The diver then
-chooses a `ConflictResolution`: keep local, keep remote, or keep both.
+`ConflictReferenceResolver` (`conflict_reference.dart`) resolves each
+foreign key to a name or date the Resolve Conflicts dialog can show. The
+diver then chooses a `ConflictResolution`: keep local, keep remote, or keep
+both.
 
 ## Platform Support
 
