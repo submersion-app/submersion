@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter gen-l10n (ARB), Dart tests, Python 3.14 helper scripts.
 
-**Spec:** `docs/superpowers/specs/2026-10-02-tracks-navigation-consolidation-design.md`, section "Vocabulary (PR 2)". Tracking issue #2833. Stacked on PR 1 (#2840).
+**Spec:** `docs/design/specs/2026-10-02-tracks-navigation-consolidation-design.md`, section "Vocabulary (PR 2)". Tracking issue #2833. Stacked on PR 1 (#2840).
 
 ## Decisions (from the user, 2026-10-03)
 
@@ -53,7 +53,7 @@ git branch --unset-upstream
 git submodule update --init --recursive && flutter pub get && dart run build_runner build --delete-conflicting-outputs
 ```
 
-Copy this plan into the new worktree's `docs/superpowers/plans/` and commit it there first (`docs(tracks): plan the vocabulary pass, PR 2`).
+Copy this plan into the new worktree's `docs/design/plans/` and commit it there first (`docs(tracks): plan the vocabulary pass, PR 2`).
 
 ---
 
@@ -528,7 +528,7 @@ Refs #2833"
 ### Task 3: Verify, spec note, screenshots, PR
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-10-02-tracks-navigation-consolidation-design.md`
+- Modify: `docs/design/specs/2026-10-02-tracks-navigation-consolidation-design.md`
 
 - [ ] **Step 1: Note the wording rule in the spec**
 
@@ -558,7 +558,7 @@ With a throwaway golden test (fonts and icon fonts loaded in `setUpAll`, real th
 - [ ] **Step 5: Commit the spec note and stop**
 
 ```bash
-git add docs/superpowers/specs/2026-10-02-tracks-navigation-consolidation-design.md && git commit -m "docs(tracks): record the track wording rule for PR 2
+git add docs/design/specs/2026-10-02-tracks-navigation-consolidation-design.md && git commit -m "docs(tracks): record the track wording rule for PR 2
 
 Refs #2833"
 ```

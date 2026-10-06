@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod 3, Drift (raw `customSelect`), fl_chart 1.2.0, `flutter_localizations` with 11 ARB locales.
 
-**Spec:** `docs/superpowers/specs/2026-08-27-statistics-trend-charts-design.md`
+**Spec:** `docs/design/specs/2026-08-27-statistics-trend-charts-design.md`
 
 ## Global Constraints
 

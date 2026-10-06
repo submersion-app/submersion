@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, go_router, Flutter l10n (ARB files)
 
-**Spec:** `docs/superpowers/specs/2026-03-24-single-import-entry-point-design.md`
+**Spec:** `docs/design/specs/2026-03-24-single-import-entry-point-design.md`
 
 ---
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift 2.34.3 (with `build_runner` for the regenerated `database.g.dart`), SQLite via `package:sqlite3`; `flutter test` (`performance` tag for the gates); `dart format`; `flutter analyze`.
 
-**Spec:** `docs/superpowers/specs/2026-08-28-profile-sample-storage-design.md` (sections 4 "Schema", 7 "Sync", 8 "Migration and one-time compaction", 10 "Testing and benchmark gates", 11 "Delivery", 12 "Risks"). The 2b/2c/2d hand-off notes (session scratchpad `2b-handoff-checklist.md`) are folded into the constraints and the task file lists.
+**Spec:** `docs/design/specs/2026-08-28-profile-sample-storage-design.md` (sections 4 "Schema", 7 "Sync", 8 "Migration and one-time compaction", 10 "Testing and benchmark gates", 11 "Delivery", 12 "Risks"). The 2b/2c/2d hand-off notes (session scratchpad `2b-handoff-checklist.md`) are folded into the constraints and the task file lists.
 
 ## Global Constraints
 

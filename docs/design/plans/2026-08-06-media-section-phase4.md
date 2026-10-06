@@ -4,7 +4,7 @@
 
 **Goal:** Add the console Import section: the existing three-tab picker opens with no dive context, imports land retained-in-library, and one batch confirmation screen links them to dives via the existing matcher.
 
-**Architecture:** A new dive-less `importPhotosToLibrary` path on `MediaImportService` (rows get `retainInLibrary = true`, library-wide dedupe, no enrichment), a `MediaImportLinkPage` that reuses the Phase 2 `inboxSuggestionProvider` per imported id with confident matches pre-checked and applies via `reassignMediaToDive`, and a `MediaConsoleSection.importMedia` launcher pane. Spec: `docs/superpowers/specs/2026-08-05-media-section-design.md` section 9.
+**Architecture:** A new dive-less `importPhotosToLibrary` path on `MediaImportService` (rows get `retainInLibrary = true`, library-wide dedupe, no enrichment), a `MediaImportLinkPage` that reuses the Phase 2 `inboxSuggestionProvider` per imported id with confident matches pre-checked and applies via `reassignMediaToDive`, and a `MediaConsoleSection.importMedia` launcher pane. Spec: `docs/design/specs/2026-08-05-media-section-design.md` section 9.
 
 **Tech Stack:** Flutter 3.x, Drift, Riverpod (barrel), the existing `showPhotoPicker` / `MediaImportService` / `computeInboxSuggestion` machinery.
 

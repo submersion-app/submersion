@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod, Drift (`existsQuery`), `flutter gen-l10n`, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-08-26-species-photos-design.md`, section 7 (phase B). Phase A is on this branch's base (`worktree-species-photos`, PR #1339).
+**Spec:** `docs/design/specs/2026-08-26-species-photos-design.md`, section 7 (phase B). Phase A is on this branch's base (`worktree-species-photos`, PR #1339).
 
 ## Global Constraints
 

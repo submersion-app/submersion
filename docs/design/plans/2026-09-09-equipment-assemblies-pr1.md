@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart 3 records and switch expressions, Drift (SQLite), Riverpod 3 (`FutureProvider`, `invalidateSelfWhen`), Equatable, `flutter gen-l10n` ARB localisation, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-09-09-equipment-assemblies-design.md` (sections 1, 2, 5 and 6 are this PR; sections 3 and 4 are PR 2; the history dialog and interchange are PR 3).
+**Spec:** `docs/design/specs/2026-09-09-equipment-assemblies-design.md` (sections 1, 2, 5 and 6 are this PR; sections 3 and 4 are PR 2; the history dialog and interchange are PR 3).
 
 ## Global Constraints
 

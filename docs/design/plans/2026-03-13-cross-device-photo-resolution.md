@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift ORM, Riverpod, photo_manager package
 
-**Spec:** `docs/superpowers/specs/2026-03-13-cross-device-photo-resolution-design.md`
+**Spec:** `docs/design/specs/2026-03-13-cross-device-photo-resolution-design.md`
 
 ---
 

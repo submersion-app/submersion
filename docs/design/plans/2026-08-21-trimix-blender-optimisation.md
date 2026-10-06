@@ -16,7 +16,7 @@ blender widget directory.
 **Tech Stack:** Flutter, Riverpod (`StateProvider` / `Provider`), Drift,
 `flutter gen-l10n`, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-08-20-trimix-blender-optimisation-design.md`
+**Spec:** `docs/design/specs/2026-08-20-trimix-blender-optimisation-design.md`
 
 ## Global Constraints
 
@@ -3935,7 +3935,7 @@ git push -u origin worktree-issue-1100-trimix-blender
 PR title: `feat(blender): trimix blender optimisation (#1100)`
 
 PR body: summarise the six changes, name the four decisions from the spec, link
-`docs/superpowers/specs/2026-08-20-trimix-blender-optimisation-design.md`, and
+`docs/design/specs/2026-08-20-trimix-blender-optimisation-design.md`, and
 close with `Closes #1100`. Do **not** include a Claude Code attribution line or
 a session URL.
 

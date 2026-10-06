@@ -5,7 +5,7 @@
 **Goal:** Reframe the coral-specific "Reef health" presentation as general
 "Water conditions" for all ocean sites, skip the NOAA fetch for freshwater
 sites (closing the coastal-pixel leak), and retitle the site section
-"Ecosystem" — per `docs/superpowers/specs/2026-08-08-water-conditions-design.md`.
+"Ecosystem" — per `docs/design/specs/2026-08-08-water-conditions-design.md`.
 
 **Architecture:** Presentation-layer only. Services, domain entities, cache
 schema, and cached rows are untouched. Changes: one new method and one new

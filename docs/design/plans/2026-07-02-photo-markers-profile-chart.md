@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, fl_chart, Riverpod, Drift (schema v95 → v96), flutter gen-l10n.
 
-**Spec:** `docs/superpowers/specs/2026-07-02-photo-markers-profile-chart-design.md`
+**Spec:** `docs/design/specs/2026-07-02-photo-markers-profile-chart-design.md`
 
 ## Global Constraints
 

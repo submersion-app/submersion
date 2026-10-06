@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift ORM (SQLite), Riverpod, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-08-18-deco-obligation-statistic.md`
+**Spec:** `docs/design/specs/2026-08-18-deco-obligation-statistic.md`
 
 ## Global Constraints
 

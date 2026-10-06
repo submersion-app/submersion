@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift ORM (SQLite), Riverpod, `excel_community`, `intl`, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-08-18-maintenance-history-design.md`
+**Spec:** `docs/design/specs/2026-08-18-maintenance-history-design.md`
 
 ## Global Constraints
 

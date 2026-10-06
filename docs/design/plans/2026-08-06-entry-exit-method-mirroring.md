@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter widget tests (`flutter_test`), Riverpod provider overrides, in-memory Drift test database via existing `test_database.dart` helpers.
 
-**Spec:** `docs/superpowers/specs/2026-08-06-entry-exit-method-mirroring-design.md`
+**Spec:** `docs/design/specs/2026-08-06-entry-exit-method-mirroring-design.md`
 
 ## Global Constraints
 

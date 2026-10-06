@@ -46,7 +46,7 @@ Close the SSRF `SP change` event gap that was intentionally left open when Slice
 - The import pipeline layer (wherever SSRF parser output gets converted to domain entities and persisted — to be identified in the plan phase) — wire the new `events` list through to `insertProfileEvents`.
 
 **Files touched (docs):**
-- `docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md` — flip `Sample setpoint` rows to closed with a derivation note.
+- `docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md` — flip `Sample setpoint` rows to closed with a derivation note.
 
 **Files touched (tests):**
 - `test/features/universal_import/data/parsers/subsurface_xml_parser_test.dart` — add test group for `events` emission.
@@ -333,7 +333,7 @@ This parallels PR #137's `ProfileGasSegment` pattern: load the event stream once
 
 ### 9. Tracker updates
 
-In `docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md`:
+In `docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md`:
 
 - **Combined table `Sample setpoint` row** — `Fixed [ ]` → `[x]`, SSRF Support `Partial` → `Yes`:
   ```markdown
@@ -358,7 +358,7 @@ In `docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md`:
 
 - **Notes section** — add a new bullet:
   ```markdown
-  - Slice C (2026-04-17) adds source tagging to `DiveProfileEvents` (new `source` column) and closes SSRF `SP change` event persistence via a `setpointChange` event type, consumed by a `SetpointSegment` derivation helper parallel to PR #137's `ProfileGasSegment`. Further SSRF event types (bookmarks, alarms) remain open. See `docs/superpowers/specs/2026-04-17-ssrf-slice-c-profile-events-design.md`.
+  - Slice C (2026-04-17) adds source tagging to `DiveProfileEvents` (new `source` column) and closes SSRF `SP change` event persistence via a `setpointChange` event type, consumed by a `SetpointSegment` derivation helper parallel to PR #137's `ProfileGasSegment`. Further SSRF event types (bookmarks, alarms) remain open. See `docs/design/specs/2026-04-17-ssrf-slice-c-profile-events-design.md`.
   ```
 
 ## Data Flow

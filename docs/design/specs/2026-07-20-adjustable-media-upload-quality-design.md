@@ -1,7 +1,7 @@
 # Adjustable Media Upload Quality (Full / Compressed)
 
 Status: design approved (brainstorm 2026-07-20). Extends the Media Store
-subsystem (`docs/superpowers/specs/2026-07-10-s3-media-storage-design.md`,
+subsystem (`docs/design/specs/2026-07-10-s3-media-storage-design.md`,
 shipped as PR #550 phases 1-4).
 
 ## 1. Problem

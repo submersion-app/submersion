@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Drift (SQLite), Riverpod, flutter_test.
 
-**Spec:** `docs/superpowers/specs/2026-10-05-multiple-dive-roles-design.md`
+**Spec:** `docs/design/specs/2026-10-05-multiple-dive-roles-design.md`
 
 ## Global Constraints
 

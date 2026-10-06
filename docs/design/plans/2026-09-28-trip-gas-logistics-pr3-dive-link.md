@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (via `core/providers/provider.dart`), Drift (in-memory in tests), go_router, `flutter gen-l10n` (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-09-25-trip-gas-logistics-design.md` (sections "Phase 1 UI", "Deriving a slot's state", "Delivery" item 3).
+**Spec:** `docs/design/specs/2026-09-25-trip-gas-logistics-design.md` (sections "Phase 1 UI", "Deriving a slot's state", "Delivery" item 3).
 
 ## Global Constraints
 

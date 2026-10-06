@@ -13,7 +13,7 @@
 - Phase 1 spike PR (#260) should merge before this work so `docs/import-formats/macdive-zsamples.md` is available on `main` for reference. (Not strictly required — this plan doesn't touch those files — but it makes the history coherent.)
 - The `libdivecomputer` git submodule must be initialized in the worktree.
 
-**Spec:** `docs/superpowers/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md` (as updated with the Phase 1 NO-GO on ZSAMPLES + pivot to ZRAWDATA).
+**Spec:** `docs/design/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md` (as updated with the Phase 1 NO-GO on ZSAMPLES + pivot to ZRAWDATA).
 
 **Investigation foundation:** `docs/import-formats/macdive-zsamples.md` explains why `ZSAMPLES` was ruled out (per-dive AES encryption). This plan targets `ZRAWDATA` instead — 100% of Shearwater dives (267/267 in the sample DB) have it, and `libdivecomputer` parses Shearwater's native format natively.
 

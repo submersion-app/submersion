@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift ORM, sqlite3, flutter_test, gen_l10n.
 
-**Spec:** `docs/superpowers/specs/2026-08-17-cross-version-sync-compatibility-design.md`
+**Spec:** `docs/design/specs/2026-08-17-cross-version-sync-compatibility-design.md`
 
 ## Global Constraints
 

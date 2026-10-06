@@ -49,9 +49,9 @@ Riverpod providers:
 
 ## Quick Links
 
-- [Entities](api/entities.md) - Domain entity reference
-- [Enums](api/enums.md) - Enum values reference
-- [Providers](api/providers.md) - Riverpod provider reference
+- [Entities](entities.md) - Domain entity reference
+- [Enums](enums.md) - Enum values reference
+- [Providers](providers.md) - Riverpod provider reference
 
 ## Import Patterns
 
@@ -155,11 +155,11 @@ final diveListNotifierProvider =
 
 For database details, see:
 
-- [Database Documentation](developer/database.md)
+- [Database Documentation](../database.md)
 - Source: `lib/core/database/database.dart`
 
 ## Further Reading
 
-- [Architecture](developer/architecture.md)
-- [State Management](developer/state-management.md)
-- [Code Style](contributing/code-style.md)
+- [Architecture](../architecture.md)
+- [State Management](../state-management.md)
+- [Code Style](../../contributing/code-style.md)

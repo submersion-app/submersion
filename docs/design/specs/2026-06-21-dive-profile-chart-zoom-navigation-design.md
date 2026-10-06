@@ -2,7 +2,7 @@
 
 - **Source:** Direct user report (no tracked GitHub issue yet): "Zooming in on the dive profile chart always keeps the focus anchored in the upper-left corner. Navigating a zoomed-in chart is also tedious and unintuitive."
 - **Date:** 2026-06-21
-- **Status:** Implemented in PR #372 — see the implementation plan at `docs/superpowers/plans/2026-06-21-dive-profile-chart-zoom-navigation.md`; macOS device-verified.
+- **Status:** Implemented in PR #372 — see the implementation plan at `docs/design/plans/2026-06-21-dive-profile-chart-zoom-navigation.md`; macOS device-verified.
 - **Chart widget:** `lib/features/dive_log/presentation/widgets/dive_profile_chart.dart` (~3,730 lines)
 - **Chart library:** `fl_chart ^1.1.1` (zoom/pan is hand-rolled on top of it, not fl_chart's transform)
 - **Sibling spec:** `2026-06-21-map-touchpad-interaction-design.md` — shares the "key off `PointerDeviceKind`, anchor zoom at the cursor" philosophy. Read both together.
@@ -256,6 +256,6 @@ Unchanged:
 
 ## References
 
-- Sibling spec: `docs/superpowers/specs/2026-06-21-map-touchpad-interaction-design.md` (same `PointerDeviceKind` / zoom-to-cursor philosophy)
+- Sibling spec: `docs/design/specs/2026-06-21-map-touchpad-interaction-design.md` (same `PointerDeviceKind` / zoom-to-cursor philosophy)
 - flutter/flutter#136029 — desktop trackpad pinch wrong focal point (why trackpad zoom keys off the raw cursor `localPosition`)
 - `dive_profile_chart.dart` current zoom/pan: state `:457-469`, reset `:507-513`, buttons `:893-912`, hint `:1052-1063`, gestures `:1081-1153`, window `:1238-1246`, chart/clip `:1311-1318`, scrub callback `:1584-1617`, tick intervals `:2811-2824`

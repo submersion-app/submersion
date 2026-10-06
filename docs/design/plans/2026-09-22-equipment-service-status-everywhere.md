@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod 3, Drift, `flutter_localizations` with ARB files in 11 locales.
 
-**Spec:** `docs/superpowers/specs/2026-09-22-equipment-service-status-everywhere-design.md`
+**Spec:** `docs/design/specs/2026-09-22-equipment-service-status-everywhere-design.md`
 
 ## As Shipped
 

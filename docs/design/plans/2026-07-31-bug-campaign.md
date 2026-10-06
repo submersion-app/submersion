@@ -4,7 +4,7 @@
 
 **Goal:** Give every one of the 43 open Bug-type GitHub issues an explicit disposition (closed-fixed, closed-duplicate/stale, needs-info comment, or an open PR that fixes it), with all fix PRs delivered as one large parallel batch.
 
-**Architecture:** Phase 0 acts directly on GitHub issues (verify-then-close, consolidate, request info) with no code changes. Phase 1 launches one worktree + one PR per fix, all in parallel, each following an identical failing-test-first protocol. Spec: `docs/superpowers/specs/2026-07-31-bug-campaign-design.md`.
+**Architecture:** Phase 0 acts directly on GitHub issues (verify-then-close, consolidate, request info) with no code changes. Phase 1 launches one worktree + one PR per fix, all in parallel, each following an identical failing-test-first protocol. Spec: `docs/design/specs/2026-07-31-bug-campaign-design.md`.
 
 **Tech Stack:** Flutter 3.x, Drift ORM, Riverpod, go_router, vendored libdivecomputer fork, `gh` CLI.
 
@@ -81,7 +81,7 @@ env -u GITHUB_TOKEN gh issue close 358 -R submersion-app/submersion -r completed
   -c "The crash class reported here (large-library iCloud adopt running out of memory ~20s after startup) was fixed by three changes on main: delete-all-then-insert bounded adopt memory (adf2fee), batched adopt upserts (98b54b6), and device-local settings preservation on Replace-adopt (5b7ed90). No response since the v1.6.0 confirm request. Closing — please reopen with debug logs if it still crashes on v1.7.x."
 ```
 
-- [ ] **Step 5: Record dispositions** — append one line per closed issue to `docs/superpowers/plans/2026-07-31-bug-campaign-log.md` (create it: `# Campaign disposition log`, then `- #<N>: closed-fixed, <PR/commit>`). Commit the log at the end of Phase 0, not per task.
+- [ ] **Step 5: Record dispositions** — append one line per closed issue to `docs/design/plans/2026-07-31-bug-campaign-log.md` (create it: `# Campaign disposition log`, then `- #<N>: closed-fixed, <PR/commit>`). Commit the log at the end of Phase 0, not per task.
 
 ### Task 1b: Verify-and-close #680 (fixed by the #554 sync temp dir fix)
 
@@ -277,7 +277,7 @@ env -u GITHUB_TOKEN gh issue comment 732 -R submersion-app/submersion -b "Traced
 
 ### Task 9: Commit the disposition log
 
-**Files:** Create: `docs/superpowers/plans/2026-07-31-bug-campaign-log.md`.
+**Files:** Create: `docs/design/plans/2026-07-31-bug-campaign-log.md`.
 
 **Interfaces:**
 - Consumes: log lines appended by Tasks 1-8.
@@ -288,7 +288,7 @@ env -u GITHUB_TOKEN gh issue comment 732 -R submersion-app/submersion -b "Traced
 - [ ] **Step 2: Commit**
 
 ```bash
-cd /Users/ericgriffin/repos/submersion-app/submersion && git add docs/superpowers/plans/2026-07-31-bug-campaign-log.md && git commit -m "docs: bug campaign phase 0 disposition log"
+cd /Users/ericgriffin/repos/submersion-app/submersion && git add docs/design/plans/2026-07-31-bug-campaign-log.md && git commit -m "docs: bug campaign phase 0 disposition log"
 ```
 
 ---

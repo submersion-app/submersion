@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Riverpod, Drift (untouched), flutter_test widget tests with the repo's real-in-memory-DB harness.
 
-**Spec:** `docs/superpowers/specs/2026-07-10-agency-certification-levels-design.md`
+**Spec:** `docs/design/specs/2026-07-10-agency-certification-levels-design.md`
 
 ## Global Constraints
 

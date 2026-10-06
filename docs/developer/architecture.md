@@ -335,7 +335,7 @@ Large profile data:
 
 ## Testing Strategy
 
-See [Testing Guide](developer/testing.md) for details.
+See [Testing Guide](testing.md) for details.
 
 | Layer | Test Type |
 |-------|-----------|

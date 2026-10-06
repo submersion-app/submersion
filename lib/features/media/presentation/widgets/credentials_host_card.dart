@@ -1,5 +1,5 @@
 // Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3c.md`
+// `docs/design/plans/2026-04-28-media-source-extension-phase3c.md`
 // Task 6. Deviations from the plan code:
 //
 // - The plan calls `NetworkCredentialsService.testCredentials(host)`,

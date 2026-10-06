@@ -10,9 +10,9 @@
 
 **Tech Stack:** Dart (pure domain code), Drift (main database, new tables and one migration rung), `compute()` for the worker isolate, Riverpod providers, `flutter_test` for unit, database and widget tests.
 
-**Spec:** `docs/superpowers/specs/2026-09-19-explore-natural-language-search-design.md` (section "Phase 2: profile-derived predicates").
+**Spec:** `docs/design/specs/2026-09-19-explore-natural-language-search-design.md` (section "Phase 2: profile-derived predicates").
 
-**Phase 1 plan, for the seams this builds on:** `docs/superpowers/plans/2026-09-19-explore-phase1-core-dives.md`.
+**Phase 1 plan, for the seams this builds on:** `docs/design/plans/2026-09-19-explore-phase1-core-dives.md`.
 
 ## Global Constraints
 
@@ -2919,7 +2919,7 @@ git commit -m "feat(explore): schema v2 with the derived predicate fields, label
 **Files:**
 - Create: `lib/features/dive_log/presentation/providers/derived_metrics_providers.dart`
 - Test: `test/features/dive_log/presentation/providers/derived_metrics_providers_test.dart`
-- Modify: `docs/superpowers/specs/2026-09-19-explore-natural-language-search-design.md` (deviations)
+- Modify: `docs/design/specs/2026-09-19-explore-natural-language-search-design.md` (deviations)
 
 **Interfaces:**
 - Produces: `derivedMetricsRepositoryProvider`, and `diveDerivedMetricsProvider`, a `FutureProvider.family<DiveDerivedMetrics?, String>` compute-through-cache mirroring `diveSensorSummaryProvider`.
@@ -3052,7 +3052,7 @@ Expected: format reports 0 changed, analyze reports `No issues found!`, and the 
 - [ ] **Step 7: Commit and push**
 
 ```bash
-git add lib/features/dive_log/presentation/providers/derived_metrics_providers.dart test/features/dive_log/presentation/providers/derived_metrics_providers_test.dart docs/superpowers/specs/2026-09-19-explore-natural-language-search-design.md
+git add lib/features/dive_log/presentation/providers/derived_metrics_providers.dart test/features/dive_log/presentation/providers/derived_metrics_providers_test.dart docs/design/specs/2026-09-19-explore-natural-language-search-design.md
 git commit -m "feat(dive-log): compute-through-cache provider for a dive's derived metrics"
 TMPDIR=/tmp git push
 ```

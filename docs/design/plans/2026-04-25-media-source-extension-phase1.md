@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x + Material 3, Drift ORM (SQLite), Riverpod 2.x, `package:flutter_secure_storage` (iOS Keychain / Android EncryptedSharedPreferences), Swift on iOS, Kotlin on Android.
 
-**Spec:** [docs/superpowers/specs/2026-04-25-media-source-extension-design.md](../specs/2026-04-25-media-source-extension-design.md)
+**Spec:** [docs/design/specs/2026-04-25-media-source-extension-design.md](../specs/2026-04-25-media-source-extension-design.md)
 
 **Note:** The spec lists schema version `26 → 27`. That was incorrect — the codebase is at version `71`. This plan uses `71 → 72`. The spec's version number will be patched in a follow-up commit after Phase 1 lands.
 
@@ -81,7 +81,7 @@ Find the last `if (from < 71) { ... } if (from < 71) await reportProgress();` bl
 ```dart
         if (from < 72) {
           // Phase 1 of Media Source Extension — see
-          // docs/superpowers/specs/2026-04-25-media-source-extension-design.md
+          // docs/design/specs/2026-04-25-media-source-extension-design.md
           // (Schema changes added in subsequent tasks.)
         }
         if (from < 72) await reportProgress();
@@ -3509,7 +3509,7 @@ Cross-cutting concerns:
 
 ---
 
-**Plan complete and saved to `docs/superpowers/plans/2026-04-25-media-source-extension-phase1.md`. Two execution options:**
+**Plan complete and saved to `docs/design/plans/2026-04-25-media-source-extension-phase1.md`. Two execution options:**
 
 **1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration
 

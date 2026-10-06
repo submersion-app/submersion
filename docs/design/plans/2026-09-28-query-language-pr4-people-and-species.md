@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod 3 (hand-written providers, legacy `StateProvider`), Drift (split database layout), the ARB pipeline (`flutter gen-l10n`, generated Dart committed), `scripts/gen_query_label_lookup.py`.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-entity-query-language-design.md`, Units 3, 5 ("Other entities") and 6 ("Placement": "Buddies, centers, certifications, courses, species: a new filter icon in the app bar"), plus "Amendments recorded while planning PR 1" and the three "Deviations recorded during implementation" sections (PR 1, PR 2, PR 3), which are authoritative where the body differs. Program issue #2365 (`Refs #2365`; PR 5 closes it).
+**Spec:** `docs/design/specs/2026-09-25-entity-query-language-design.md`, Units 3, 5 ("Other entities") and 6 ("Placement": "Buddies, centers, certifications, courses, species: a new filter icon in the app bar"), plus "Amendments recorded while planning PR 1" and the three "Deviations recorded during implementation" sections (PR 1, PR 2, PR 3), which are authoritative where the body differs. Program issue #2365 (`Refs #2365`; PR 5 closes it).
 
 ## Decisions settled for this plan
 
@@ -3527,7 +3527,7 @@ git commit -m "feat(marine-life): the sighted-species page and the catalog each 
 ### Task 13: Spec record, verification and the PR
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-09-25-entity-query-language-design.md`
+- Modify: `docs/design/specs/2026-09-25-entity-query-language-design.md`
 
 - [ ] **Step 1: Record the deviations**
 
@@ -3543,7 +3543,7 @@ Add "## Deviations recorded during implementation (PR 4)" after the PR 3 section
 - [ ] **Step 3: Commit, push, open the PR**
 
 ```bash
-git add docs/superpowers/specs/2026-09-25-entity-query-language-design.md
+git add docs/design/specs/2026-09-25-entity-query-language-design.md
 git commit -m "docs(query): record the PR 4 deviations"
 git push -u origin HEAD
 gh pr create --title "feat(query): entity query language, PR 4: buddies, centers, certifications, courses and species" --body-file <body file>

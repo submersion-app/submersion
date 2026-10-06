@@ -1,7 +1,7 @@
 # Cylinder passports 2: NFC device checklist
 
 **Issue:** #2336
-**Spec:** `docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md`
+**Spec:** `docs/design/specs/2026-09-25-smart-cylinder-passports-design.md`
 
 Everything here needs real hardware; CI runs none of it. Record the device,
 OS version, build and tag model for each line.

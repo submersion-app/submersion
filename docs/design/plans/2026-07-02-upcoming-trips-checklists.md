@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Implement issue #164 — checklist templates, per-trip to-do lists with due dates, and an Upcoming section on the trips list — per the approved spec at `docs/superpowers/specs/2026-07-02-upcoming-trips-checklists-design.md`.
+**Goal:** Implement issue #164 — checklist templates, per-trip to-do lists with due dates, and an Upcoming section on the trips list — per the approved spec at `docs/design/specs/2026-07-02-upcoming-trips-checklists-design.md`.
 
 **Architecture:** Three new HLC-synced Drift tables (`checklist_templates`, `checklist_template_items`, `trip_checklist_items`) with copy-on-apply template semantics. Trip upcoming/completed status is derived from dates, never stored. New feature module `lib/features/checklists/` follows the itinerary-day/tank-preset repository and provider patterns.
 

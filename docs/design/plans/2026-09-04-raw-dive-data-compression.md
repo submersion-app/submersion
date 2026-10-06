@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart, Flutter, Drift 2.34.3, `dart:io` `ZLibCodec`, `sqlite3` via `NativeDatabase`.
 
-**Spec:** `docs/superpowers/specs/2026-09-04-raw-dive-data-compression-design.md`
+**Spec:** `docs/design/specs/2026-09-04-raw-dive-data-compression-design.md`
 
 ## Global Constraints
 

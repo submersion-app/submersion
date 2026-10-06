@@ -1,4 +1,4 @@
-<!-- docs/_sidebar.md -->
+<!-- docs/user/_sidebar.md -->
 
 * **Getting Started**
   * [Home](/)
@@ -11,7 +11,7 @@
   * [Equipment Management](guide/equipment.md)
   * [Insights](guide/insights.md)
   * [Import & Export](guide/import-export.md)
-  * [Cylinder Passport Tags](import-formats/cylinder-passport-tag.md)
+  * [Cylinder Passport Tags](https://github.com/submersion-app/submersion/blob/main/docs/developer/reference/formats/cylinder-passport-tag.md)
   * [Dive Computers](guide/dive-computer.md)
   * [Settings](guide/settings.md)
   * [Multi-Device Sync](guide/multi-device-sync.md)
@@ -30,27 +30,27 @@
   * [Tags](features/tags.md)
 
 * **Developer Guide**
-  * [Overview](developer/)
-  * [Architecture](developer/architecture.md)
-  * [Database Schema](developer/database.md)
-  * [State Management](developer/state-management.md)
-  * [Navigation](developer/navigation.md)
-  * [Testing](developer/testing.md)
-  * [Local Test Performance](developer/local-test-performance.md)
-  * [Building](developer/building.md)
-  * [Release Process](developer/release-process.md)
+  * [Overview](https://github.com/submersion-app/submersion/tree/main/docs/developer)
+  * [Architecture](https://github.com/submersion-app/submersion/blob/main/docs/developer/architecture.md)
+  * [Database Schema](https://github.com/submersion-app/submersion/blob/main/docs/developer/database.md)
+  * [State Management](https://github.com/submersion-app/submersion/blob/main/docs/developer/state-management.md)
+  * [Navigation](https://github.com/submersion-app/submersion/blob/main/docs/developer/navigation.md)
+  * [Testing](https://github.com/submersion-app/submersion/blob/main/docs/developer/testing.md)
+  * [Local Test Performance](https://github.com/submersion-app/submersion/blob/main/docs/developer/local-test-performance.md)
+  * [Building](https://github.com/submersion-app/submersion/blob/main/docs/developer/building.md)
+  * [Release Process](https://github.com/submersion-app/submersion/blob/main/docs/developer/release-process.md)
 
 * **Contributing**
-  * [How to Contribute](contributing/)
-  * [Code Style](contributing/code-style.md)
-  * [Pull Requests](contributing/pull-requests.md)
-  * [Roadmap](contributing/roadmap.md)
+  * [How to Contribute](https://github.com/submersion-app/submersion/tree/main/docs/contributing)
+  * [Code Style](https://github.com/submersion-app/submersion/blob/main/docs/contributing/code-style.md)
+  * [Pull Requests](https://github.com/submersion-app/submersion/blob/main/docs/contributing/pull-requests.md)
+  * [Roadmap](https://github.com/submersion-app/submersion/blob/main/docs/contributing/roadmap.md)
 
 * **API Reference**
-  * [Data Models](api/)
-  * [Entities](api/entities.md)
-  * [Enums](api/enums.md)
-  * [Providers](api/providers.md)
+  * [Data Models](https://github.com/submersion-app/submersion/tree/main/docs/developer/reference)
+  * [Entities](https://github.com/submersion-app/submersion/blob/main/docs/developer/reference/entities.md)
+  * [Enums](https://github.com/submersion-app/submersion/blob/main/docs/developer/reference/enums.md)
+  * [Providers](https://github.com/submersion-app/submersion/blob/main/docs/developer/reference/providers.md)
 
 * **Links**
   * [GitHub](https://github.com/submersion-app/submersion)

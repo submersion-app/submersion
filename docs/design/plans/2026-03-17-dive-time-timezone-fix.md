@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift ORM, Pigeon (FFI bridge), Swift (Darwin), Kotlin/JNI (Android), C (libdivecomputer wrapper)
 
-**Spec:** `docs/superpowers/specs/2026-03-17-dive-time-timezone-fix-design.md`
+**Spec:** `docs/design/specs/2026-03-17-dive-time-timezone-fix-design.md`
 
 ---
 

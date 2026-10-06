@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod 3 (hand-written providers, `StateProvider` from the legacy export), Drift (schema rung 232), go_router, the ARB localisation pipeline (`flutter gen-l10n`, generated files committed).
 
-**Spec:** `docs/superpowers/specs/2026-09-25-entity-query-language-design.md`, Units 2 (printer, errors), 5 (chips), 6 (the surfaces) and 7 (saved queries), plus the sections "Amendments recorded while planning PR 1" and "Deviations recorded during implementation (PR 1)", which are authoritative where the body differs. Program issue: #2365 (`Refs #2365` in the PR body; PR 5 closes it).
+**Spec:** `docs/design/specs/2026-09-25-entity-query-language-design.md`, Units 2 (printer, errors), 5 (chips), 6 (the surfaces) and 7 (saved queries), plus the sections "Amendments recorded while planning PR 1" and "Deviations recorded during implementation (PR 1)", which are authoritative where the body differs. Program issue: #2365 (`Refs #2365` in the PR body; PR 5 closes it).
 
 ## Global Constraints
 
@@ -7957,7 +7957,7 @@ git commit -m "feat(query): error codes with args, and every parser, validator a
 ### Task 18: Every locale, the spec's deviations, the guards, the screenshots and the PR
 
 **Files:**
-- Modify: `lib/l10n/arb/app_ar.arb`, `app_de.arb`, `app_es.arb`, `app_fr.arb`, `app_he.arb`, `app_hu.arb`, `app_it.arb`, `app_nl.arb`, `app_pt.arb`, `app_zh.arb` and the generated `lib/l10n/arb/app_localizations*.dart`; `docs/superpowers/specs/2026-09-25-entity-query-language-design.md`
+- Modify: `lib/l10n/arb/app_ar.arb`, `app_de.arb`, `app_es.arb`, `app_fr.arb`, `app_he.arb`, `app_hu.arb`, `app_it.arb`, `app_nl.arb`, `app_pt.arb`, `app_zh.arb` and the generated `lib/l10n/arb/app_localizations*.dart`; `docs/design/specs/2026-09-25-entity-query-language-design.md`
 - Test: the existing `test/l10n/` suite, `test/architecture/`, then the full suite
 
 - [ ] **Step 1: Run the l10n guards to list what is missing**
@@ -7987,7 +7987,7 @@ Expected: PASS (parity, no duplicate keys, diacritics, German terminology, and t
 
 - [ ] **Step 3: Record the deviations in the spec**
 
-Append to `docs/superpowers/specs/2026-09-25-entity-query-language-design.md`, after the PR 1 deviations section and before "Open items for the implementation plans", a section `## Deviations recorded during implementation (PR 2)` with these entries (reword any that turned out differently while implementing):
+Append to `docs/design/specs/2026-09-25-entity-query-language-design.md`, after the PR 1 deviations section and before "Open items for the implementation plans", a section `## Deviations recorded during implementation (PR 2)` with these entries (reword any that turned out differently while implementing):
 
 ```markdown
 ## Deviations recorded during implementation (PR 2)
@@ -8067,7 +8067,7 @@ Save them under the scratchpad directory (not the repository), and hand the file
 - [ ] **Step 6: Commit, push, open the PR**
 
 ```bash
-git add lib/l10n/arb/ lib/features/query/presentation/query_label_lookup.dart docs/superpowers/specs/2026-09-25-entity-query-language-design.md
+git add lib/l10n/arb/ lib/features/query/presentation/query_label_lookup.dart docs/design/specs/2026-09-25-entity-query-language-design.md
 git commit -m "feat(query): editor and saved-query strings in every locale; record the PR 2 deviations"
 ```
 

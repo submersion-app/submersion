@@ -9,7 +9,7 @@ hydration: bound the match set and hydrate matches as `DiveSummary` rows with
 exactly four SQL statements total, regardless of match count.
 
 **Spec:** WS1 Phase A in
-`docs/superpowers/specs/2026-07-10-large-db-performance-design.md`. Evidence:
+`docs/design/specs/2026-07-10-large-db-performance-design.md`. Evidence:
 `2026-07-10-large-db-performance-findings.md` (search signature: per-query SQL
 string building + row-mapping Map churn on the UI isolate; 74-match term ran
 ~740 queries).

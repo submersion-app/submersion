@@ -28,7 +28,7 @@ get:
 | A working updater | `lib/features/auto_update/presentation/providers/update_providers.dart:43` points Linux at the `Linux.tar.gz` asset, and `update_banner.dart:49` opens it in a browser. There is no install step to hand it to. |
 
 This was a deliberate deferral, not an oversight:
-`docs/plans/2026-02-12-github-releases-design.md:173` records "Linux package
+`docs/design/specs/2026-02-12-github-releases-design.md:173` records "Linux package
 formats (Snap, Flatpak, AppImage) -- tar.gz only for now."
 
 ## Decisions

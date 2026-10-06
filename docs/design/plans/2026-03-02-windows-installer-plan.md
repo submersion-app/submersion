@@ -233,7 +233,7 @@ Expected: 4 commits for tasks 1-4.
 ```bash
 grep -r "Windows.zip" . --include="*.yml" --include="*.yaml" --include="*.sh" --include="*.md"
 ```text
-Expected: Only matches in the design doc (`docs/plans/2026-03-02-windows-installer-design.md`), not in any workflow or script files.
+Expected: Only matches in the design doc (`docs/design/specs/2026-03-02-windows-installer-design.md`), not in any workflow or script files.
 
 **Step 3: Verify the .iss file references valid paths**
 

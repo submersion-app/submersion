@@ -1,7 +1,7 @@
 # Cylinder passports 3: the fill on the tag, device checklist
 
 **Issue:** #2337
-**Spec:** `docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md`, section 11
+**Spec:** `docs/design/specs/2026-09-25-smart-cylinder-passports-design.md`, section 11
 
 Everything here needs real hardware; CI runs none of it. Record the device,
 OS version, build and tag model for each line.

@@ -1256,7 +1256,7 @@ class SyncService {
     // at a dive site appearing later in the apply order, or a dive whose
     // courseId points at a course in the same payload) fail immediately and
     // the affected rows never reach the receiving DB. See
-    // docs/superpowers/findings/2026-06-02-icloud-sync-diagnosis.md.
+    // docs/design/findings/2026-06-02-icloud-sync-diagnosis.md.
     return _serializer.applyInDeferredFkTransaction(
       () => _applyRemotePayloadInner(remotePayload, localLastSync),
     );

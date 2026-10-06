@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart 3, `package:xml` `XmlBuilder`, Riverpod `Provider`, Drift-backed repositories, `flutter_test`, ARB l10n via `flutter gen-l10n`.
 
-**Spec:** `docs/superpowers/specs/2026-09-12-dives-only-uddf-participants-gear-design.md`
+**Spec:** `docs/design/specs/2026-09-12-dives-only-uddf-participants-gear-design.md`
 
 ## Global Constraints
 

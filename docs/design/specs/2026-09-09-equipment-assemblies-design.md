@@ -478,7 +478,7 @@ the table with no custom exporter, `fetchRecord`, `fetchRecords`,
 `upsertRecord`, `upsertRecords`, `recordIdsFor`, `tableFor`, the `SyncData`
 field, constructor, `toJson` and `fromJson`, `hlcTargets` in
 `sync_repository.dart`, and `_hlcTables`. The worked checklist is in
-`docs/superpowers/plans/2026-07-16-equipment-attributes.md`.
+`docs/design/plans/2026-07-16-equipment-attributes.md`.
 
 The two provenance columns need only `parentRefs` entries for
 `diveEquipment` and `divePlanEquipment`: `viaEquipmentId` with parent

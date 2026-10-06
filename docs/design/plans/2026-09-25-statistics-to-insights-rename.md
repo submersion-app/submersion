@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Riverpod, go_router, `flutter gen-l10n` (ARB), Python 3 (stdlib only, `unittest`).
 
-**Spec:** `docs/superpowers/specs/2026-09-25-statistics-to-insights-rename-design.md`
+**Spec:** `docs/design/specs/2026-09-25-statistics-to-insights-rename-design.md`
 
 ## Global Constraints
 
@@ -393,7 +393,7 @@ Create `scripts/rename_statistics_to_insights.py` with exactly this content:
 #!/usr/bin/env python3
 """Rename the Statistics section to Insights.
 
-Implements docs/superpowers/specs/2026-09-25-statistics-to-insights-rename-design.md.
+Implements docs/design/specs/2026-09-25-statistics-to-insights-rename-design.md.
 Three phases, one commit each, each safe to rerun (for example after a rebase
 brings in new code that still uses the old names):
 

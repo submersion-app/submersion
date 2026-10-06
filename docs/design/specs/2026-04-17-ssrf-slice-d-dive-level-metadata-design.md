@@ -39,7 +39,7 @@ Parse three categories of dive-level metadata from SSRF divecomputer children (`
 - `test/features/dive_import/data/services/uddf_entity_importer_test.dart` — one end-to-end test using `dual-cylinder.ssrf` or synthetic inline XML to assert persistence.
 
 **Files modified (docs):**
-- `docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md` — three row updates + Slice D bullet.
+- `docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md` — three row updates + Slice D bullet.
 
 **No schema migration. No new columns. No new domain entities.**
 

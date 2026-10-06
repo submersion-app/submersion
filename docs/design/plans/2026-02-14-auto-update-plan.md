@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod, auto_updater (Sparkle 2 / WinSparkle), http, package_info_plus, shared_preferences, GitHub Releases API v3.
 
-**Design doc:** `docs/plans/2026-02-14-auto-update-design.md`
+**Design doc:** `docs/design/specs/2026-02-14-auto-update-design.md`
 
 ---
 

@@ -16,7 +16,7 @@
 - No emojis in code, comments, or documentation.
 - Run `dart format .` before every commit; the pre-push hook runs `dart format --set-exit-if-changed`, `flutter analyze`, and `flutter test`.
 - Baseline at plan start: 903 tests pass in `test/core/services/sync` and `test/features/backup`.
-- Spec: `docs/superpowers/specs/2026-08-11-652-reset-rebuild-ux-design.md`.
+- Spec: `docs/design/specs/2026-08-11-652-reset-rebuild-ux-design.md`.
 
 ---
 
@@ -1542,7 +1542,7 @@ Expected: no formatting changes, analyze clean, full suite green.
 
 - [ ] **Step 2: Confirm the four items by hand against the spec**
 
-Re-read `docs/superpowers/specs/2026-08-11-652-reset-rebuild-ux-design.md` and confirm each of items 1-4 has landed, including the deliberate behavior change (sanitization now applies to epoch markers).
+Re-read `docs/design/specs/2026-08-11-652-reset-rebuild-ux-design.md` and confirm each of items 1-4 has landed, including the deliberate behavior change (sanitization now applies to epoch markers).
 
 - [ ] **Step 3: Push and open the PR**
 

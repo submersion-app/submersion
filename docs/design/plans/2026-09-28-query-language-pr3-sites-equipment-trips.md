@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod 3 (hand-written providers, legacy `StateProvider`), Drift (split database layout: `lib/core/database/tables/*`, `lib/core/database/migrations/*`), the ARB pipeline (`flutter gen-l10n`, generated Dart committed), `scripts/gen_query_label_lookup.py`.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-entity-query-language-design.md`, Units 3, 5 ("Other entities") and 6 ("Placement"), plus "Amendments recorded while planning PR 1" and the two "Deviations recorded during implementation" sections, which are authoritative where the body differs. Program issue #2365 (`Refs #2365`; PR 5 closes it).
+**Spec:** `docs/design/specs/2026-09-25-entity-query-language-design.md`, Units 3, 5 ("Other entities") and 6 ("Placement"), plus "Amendments recorded while planning PR 1" and the two "Deviations recorded during implementation" sections, which are authoritative where the body differs. Program issue #2365 (`Refs #2365`; PR 5 closes it).
 
 ## Decisions settled for this plan
 
@@ -2151,7 +2151,7 @@ git commit -m "feat(equipment): the gear filter sheet takes a typed or built que
 ### Task 15: Spec record, full verification, screenshots and the PR
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-09-25-entity-query-language-design.md`
+- Modify: `docs/design/specs/2026-09-25-entity-query-language-design.md`
 
 - [ ] **Step 1: Record the deviations**
 
@@ -2170,7 +2170,7 @@ Capture, with the throwaway-golden method (`matchesGoldenFile` plus `--update-go
 - [ ] **Step 4: Commit, push, open the PR**
 
 ```bash
-git add docs/superpowers/specs/2026-09-25-entity-query-language-design.md
+git add docs/design/specs/2026-09-25-entity-query-language-design.md
 git commit -m "docs(query): record the PR 3 deviations"
 git push -u origin HEAD
 gh pr create --title "feat(query): entity query language, PR 3: sites, equipment and trips on the query engine" --body-file <body file>

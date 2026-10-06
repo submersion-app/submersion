@@ -4,7 +4,7 @@
 
 **Goal:** Add S3-compatible object storage (AWS S3, MinIO, Cloudflare R2, Backblaze B2, NAS) as a third sync backend behind the existing `CloudStorageProvider` abstraction, with zero changes to the sync engine.
 
-**Architecture:** A hand-rolled SigV4 signer (pure functions) and a minimal five-operation S3 REST client (`PutObject`, `GetObject`, `HeadObject`, `DeleteObject`, `ListObjectsV2`) sit beneath a new `S3StorageProvider`. Credentials live in `FlutterSecureStorage` as one JSON blob. A new `CloudProviderType.s3` enum variant wires into the existing Riverpod provider switch, sync-page tile list, and router. Spec: `docs/superpowers/specs/2026-06-09-s3-sync-backend-design.md`.
+**Architecture:** A hand-rolled SigV4 signer (pure functions) and a minimal five-operation S3 REST client (`PutObject`, `GetObject`, `HeadObject`, `DeleteObject`, `ListObjectsV2`) sit beneath a new `S3StorageProvider`. Credentials live in `FlutterSecureStorage` as one JSON blob. A new `CloudProviderType.s3` enum variant wires into the existing Riverpod provider switch, sync-page tile list, and router. Spec: `docs/design/specs/2026-06-09-s3-sync-backend-design.md`.
 
 **Tech Stack:** Flutter/Dart, Riverpod, `package:http` (^1.2.2, already a dep), `package:crypto` (^3.0.3, already a dep), `package:xml` (^6.5.0, already a dep), `flutter_secure_storage` (^10.0.0, already a dep). **No new pub dependencies.**
 
@@ -47,7 +47,7 @@
 | `lib/features/settings/presentation/pages/cloud_sync_page.dart` | Third provider tile (S3) with configure/select/edit behavior |
 | `lib/core/router/app_router.dart:859-863` | Nested route `cloud-sync/s3-config` |
 | `lib/l10n/arb/app_en.arb` + 10 locale arbs | ~19 new strings, fully translated |
-| `docs/superpowers/specs/2026-06-09-s3-sync-backend-design.md` | Correction: `xml` was already a dependency |
+| `docs/design/specs/2026-06-09-s3-sync-backend-design.md` | Correction: `xml` was already a dependency |
 
 **Key interface being implemented** (`lib/core/services/cloud_storage/cloud_storage_provider.dart`, read it before Task 7): `CloudStorageProvider` with `providerName`, `providerId`, `isAvailable()`, `isAuthenticated()`, `authenticate()`, `signOut()`, `getUserEmail()`, `uploadFile(Uint8List data, String filename, {String? folderId})`, `downloadFile(String fileId)`, `getFileInfo(String fileId)`, `listFiles({String? folderId, String? namePattern})`, `deleteFile(String fileId)`, `fileExists(String fileId)`, `createFolder(String folderName, {String? parentFolderId})`, `getOrCreateSyncFolder()`. Plus `CloudFileInfo(id, name, modifiedTime, sizeBytes)`, `UploadResult(fileId, uploadTime)`, `CloudStorageException(message, [cause, stackTrace])`, and `CloudStorageProviderMixin` (sync filename constants/helpers).
 
@@ -3437,7 +3437,7 @@ git commit -m "feat(settings): surface the S3 provider tile and config route"
 ### Task 12: Full verification, spec correction, manual MinIO round-trip
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-06-09-s3-sync-backend-design.md` (dependency correction)
+- Modify: `docs/design/specs/2026-06-09-s3-sync-backend-design.md` (dependency correction)
 
 - [ ] **Step 12.1: Run the full quality gate**
 
@@ -3459,7 +3459,7 @@ During implementation it turned out `xml` was already in `pubspec.yaml`
 (line 86), so the feature adds zero new dependencies. Fix the two places the
 spec says otherwise.
 
-In `docs/superpowers/specs/2026-06-09-s3-sync-backend-design.md`, change the
+In `docs/design/specs/2026-06-09-s3-sync-backend-design.md`, change the
 decision-record row:
 
 ```text
@@ -3489,7 +3489,7 @@ No new pub dependencies: `xml` (parses ListObjectsV2 responses), `http`,
 Commit:
 
 ```bash
-git add docs/superpowers/specs/2026-06-09-s3-sync-backend-design.md
+git add docs/design/specs/2026-06-09-s3-sync-backend-design.md
 git commit -m "docs(sync): correct S3 spec - xml was already a dependency"
 ```
 
@@ -3575,5 +3575,5 @@ skill to choose merge vs PR for `feat/s3-sync-backend`.
 - **If `flutter analyze` reports pre-existing issues** unrelated to a task's
   change, do not fix them in this branch; note them and move on.
 - **Reference docs**: spec at
-  `docs/superpowers/specs/2026-06-09-s3-sync-backend-design.md`; SigV4 vectors
+  `docs/design/specs/2026-06-09-s3-sync-backend-design.md`; SigV4 vectors
   at `https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-examples.html`.

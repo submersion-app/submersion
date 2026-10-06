@@ -1,5 +1,5 @@
 /// Utilities for the first-sync date cutoff (see
-/// docs/superpowers/specs/2026-08-04-first-sync-date-cutoff-design.md).
+/// docs/design/specs/2026-08-04-first-sync-date-cutoff-design.md).
 ///
 /// The Shearwater petrel-family fingerprint is the dive start timestamp: a
 /// big-endian u32 ticks value that round-trips to Dart through

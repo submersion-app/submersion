@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, go_router (`push<String>` / `pop`), Riverpod (`ref.read`), Drift (repository layer)
 
-**Spec:** `docs/superpowers/specs/2026-03-15-site-autoselect-on-create-design.md`
+**Spec:** `docs/design/specs/2026-03-15-site-autoselect-on-create-design.md`
 
 ---
 

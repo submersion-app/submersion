@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart 3, Drift, `flutter_test`, the in-repo sync serializer and service.
 
-**Spec:** `docs/superpowers/specs/2026-09-18-dpv-mission-planner-design.md` (issue #2086), "Persistence" section. PR 1 (#2138) supplies the entities. This plan amends the spec in Task 7 (see "Deviations from the spec").
+**Spec:** `docs/design/specs/2026-09-18-dpv-mission-planner-design.md` (issue #2086), "Persistence" section. PR 1 (#2138) supplies the entities. This plan amends the spec in Task 7 (see "Deviations from the spec").
 
 ## Global Constraints
 
@@ -54,7 +54,7 @@
 | `lib/features/planner/domain/services/dive_plan_state_mapper.dart` | modify | mission both ways |
 | `lib/features/planner/data/services/plan_file_mission_codec.dart` | create | mission to and from the file map |
 | `lib/features/planner/data/services/plan_file_codec.dart` | modify | version 3, optional `mission` block |
-| `docs/superpowers/specs/2026-09-18-dpv-mission-planner-design.md` | modify | record the deviations |
+| `docs/design/specs/2026-09-18-dpv-mission-planner-design.md` | modify | record the deviations |
 
 ---
 
@@ -2744,7 +2744,7 @@ Refs #2086"
 ### Task 7: Spec amendment and whole-project verification
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-09-18-dpv-mission-planner-design.md` ("Persistence" section)
+- Modify: `docs/design/specs/2026-09-18-dpv-mission-planner-design.md` ("Persistence" section)
 
 - [ ] **Step 1: Bring the spec up to date**
 
@@ -2756,7 +2756,7 @@ The spec was amended in PR #2138 (commit "revise the DPV mission design after is
 Then confirm nothing contradicts the implementation:
 
 ```bash
-grep -n "mission_id\|v229\|database.dart" docs/superpowers/specs/2026-09-18-dpv-mission-planner-design.md
+grep -n "mission_id\|v229\|database.dart" docs/design/specs/2026-09-18-dpv-mission-planner-design.md
 ```
 
 Expected: no `mission_id`, no `v229`, and no `database.dart` in the persistence section. If Step 5 had to renumber the rung, use that number here instead.
@@ -2799,7 +2799,7 @@ If main is still at 240, nothing to do. If it moved to 241 or above, merge `orig
 - [ ] **Step 6: Commit the spec and any renumbering**
 
 ```bash
-git add docs/superpowers/specs/2026-09-18-dpv-mission-planner-design.md
+git add docs/design/specs/2026-09-18-dpv-mission-planner-design.md
 git add lib/core/database test/core/database   # only if Step 5 renumbered
 git commit -m "docs(planner): record the DPV mission tables' layout and rung
 

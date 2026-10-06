@@ -8,7 +8,7 @@
 
 **Tech Stack:** Drift 2.30 (codegen via build_runner), the app's changeset-log sync (HLC conflict resolution), Riverpod, pure-Dart engine.
 
-**Spec:** `docs/superpowers/specs/2026-07-05-dive-planner-redesign-design.md` (section "Plan domain and persistence (Phase 2)")
+**Spec:** `docs/design/specs/2026-07-05-dive-planner-redesign-design.md` (section "Plan domain and persistence (Phase 2)")
 
 ## Global Constraints
 

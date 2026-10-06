@@ -6,7 +6,7 @@
 
 **Architecture:** One combined badge derived from PR 2a's cheap `mediaProvenanceProvider`, replacing the transfer-only badge. A pure ladder function decides the state so it can be tested without a widget tree.
 
-**Spec:** `docs/superpowers/specs/2026-08-16-media-provenance-design.md` section 8.
+**Spec:** `docs/design/specs/2026-08-16-media-provenance-design.md` section 8.
 
 **Predecessor:** PR 2b (`#1122`), itself stacked on PR 2a (`#1120`). Retarget down the stack as each merges.
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Kotlin, AndroidX Media3 (`transformer`, `common`, `effect`), Flutter platform channels. Template: `packages/submersion_ocr/android`.
 
-**Spec:** `docs/superpowers/specs/2026-07-21-video-transcoding-phase-b-design.md` (§9 channel shape, §10 Android notes, §15). Scope = Android ONLY; Windows is B4.
+**Spec:** `docs/design/specs/2026-07-21-video-transcoding-phase-b-design.md` (§9 channel shape, §10 Android notes, §15). Scope = Android ONLY; Windows is B4.
 
 ## Global Constraints
 

@@ -34,7 +34,7 @@ const Map<String, Set<String>> deviceLocalSyncColumns = {
 ///
 /// Rule for a new key: "is this answer the same across all of one user's
 /// devices?" If not, add it here. Either way, update the "What Syncs Between
-/// Devices" section of docs/guide/multi-device-sync.md.
+/// Devices" section of docs/user/guide/multi-device-sync.md.
 const Set<String> deviceLocalSettingsKeys = {
   // Each device auto-creates its own owner diver at first launch.
   'active_diver_id',

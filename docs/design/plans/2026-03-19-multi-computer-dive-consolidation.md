@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift ORM (SQLite), Riverpod, fl_chart, Mockito for tests
 
-**Spec:** `docs/superpowers/specs/2026-03-19-multi-computer-dive-consolidation-design.md`
+**Spec:** `docs/design/specs/2026-03-19-multi-computer-dive-consolidation-design.md`
 
 ---
 

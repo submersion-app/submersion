@@ -19,7 +19,7 @@ was executed; see the amendments at the end.)
 **Tech Stack:** Flutter, Riverpod, flutter_map, Drift-backed providers,
 flutter_test widget tests.
 
-**Spec:** `docs/superpowers/specs/2026-09-20-trip-story-split-band-design.md`
+**Spec:** `docs/design/specs/2026-09-20-trip-story-split-band-design.md`
 
 ## Global Constraints
 

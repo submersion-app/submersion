@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift (local cache DB `submersion_local.db`), Riverpod, `package:http` with `MockClient` tests, `flutter gen-l10n`.
 
-**Spec:** `docs/superpowers/specs/2026-08-09-tide-accuracy-design.md` (root causes, decisions, validation evidence).
+**Spec:** `docs/design/specs/2026-08-09-tide-accuracy-design.md` (root causes, decisions, validation evidence).
 
 ## Global Constraints
 
@@ -2454,7 +2454,7 @@ gh pr create --title "Fix tide prediction accuracy: harmonic engine bugs plus NO
 - Golden tests pin the engine against NOAA published predictions for San Francisco (mixed), Boston (semi-diurnal), and Pensacola (diurnal) on 2026-09-15 and 2027-06-15: worst error 15.6 minutes / 0.071 m (asserted at 20 min / 0.15 m).
 - M2 frequency regression test (12.4206 h period), Meeus astronomy tests, Doodson-vs-speed table consistency test, resolver/service/cache/badge/heal unit and widget tests.
 
-Spec: docs/superpowers/specs/2026-08-09-tide-accuracy-design.md
+Spec: docs/design/specs/2026-08-09-tide-accuracy-design.md
 EOF
 )"
 ```

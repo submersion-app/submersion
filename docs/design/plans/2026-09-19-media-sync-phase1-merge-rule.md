@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (SQLite, `NativeDatabase.memory()` in tests), the in-house changeset sync engine (`SyncService`, `SyncDataSerializer`, `SyncRepository`, `SyncClock`/`Hlc`), `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-09-18-media-sync-program-design.md`, section 5.1 and locked decision 7 (both updated in the same change as this plan).
+**Spec:** `docs/design/specs/2026-09-18-media-sync-program-design.md`, section 5.1 and locked decision 7 (both updated in the same change as this plan).
 
 ## Global Constraints
 

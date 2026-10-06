@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter Material 3, Drift ORM, Riverpod, ARB l10n.
 
-**Spec:** `docs/superpowers/specs/2026-07-23-color-accents-design.md` (read it first).
+**Spec:** `docs/design/specs/2026-07-23-color-accents-design.md` (read it first).
 
 ## Global Constraints
 

@@ -3,7 +3,7 @@
 Date: 2026-09-25
 Status: Approved design, pending spec review
 Supersedes: the two-way sync design in PR #603
-(`docs/superpowers/specs/2026-07-16-divelogs-de-sync-design.md` on branch
+(`docs/design/specs/2026-07-16-divelogs-de-sync-design.md` on branch
 `worktree-divelogs-sync`)
 
 ## Goal

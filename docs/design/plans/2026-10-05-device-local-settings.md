@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (SQLite), flutter_test.
 
-**Spec:** `docs/superpowers/specs/2026-10-05-device-local-settings-design.md`
+**Spec:** `docs/design/specs/2026-10-05-device-local-settings-design.md`
 
 ## Global Constraints
 

@@ -13,7 +13,7 @@
 
 **Tech Stack:** Flutter, Riverpod (StateNotifier), Drift, `dart:io HttpClient` against Nominatim, `geocoding` 5.x, `clock` + `fake_async` for time, `flutter gen-l10n` ARB localisation.
 
-**Spec:** `docs/superpowers/specs/2026-08-25-site-location-from-coordinates-design.md`
+**Spec:** `docs/design/specs/2026-08-25-site-location-from-coordinates-design.md`
 
 ## Global Constraints
 

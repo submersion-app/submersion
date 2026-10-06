@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift ORM, Riverpod 3 (hand-written providers, no codegen), go_router, existing HLC sync framework.
 
-**Spec:** `docs/superpowers/specs/2026-07-16-pre-dive-checklist-design.md` — read it before starting.
+**Spec:** `docs/design/specs/2026-07-16-pre-dive-checklist-design.md` — read it before starting.
 
 ## Global Constraints
 
@@ -3084,4 +3084,4 @@ git commit -m "feat: localize pre-dive checklist strings across all locales"
 - **Schema version collisions:** if `currentSchemaVersion` is no longer 112 when you start, take the next free number and update: the constant, `migrationVersions`, the `onUpgrade` guard, both tests in Task 1, and the tripwire expectations.
 - **Do not run the full test suite in one command** — it times out. Per-file only, plus the final `test/features/pre_dive/` directory which is all new and small.
 - **Pre-push hooks** run `dart format --set-exit-if-changed`, `flutter analyze`, and `flutter test` from the MAIN working tree — format the whole repo before every commit and keep analyze clean as you go.
-- The spec (`docs/superpowers/specs/2026-07-16-pre-dive-checklist-design.md`) is the tiebreaker for any behavioral question this plan leaves open.
+- The spec (`docs/design/specs/2026-07-16-pre-dive-checklist-design.md`) is the tiebreaker for any behavioral question this plan leaves open.

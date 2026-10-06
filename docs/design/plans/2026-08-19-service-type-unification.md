@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift ORM (SQLite), Riverpod, go_router, `flutter gen-l10n`.
 
-**Spec:** `docs/superpowers/specs/2026-08-19-service-type-unification-design.md`
+**Spec:** `docs/design/specs/2026-08-19-service-type-unification-design.md`
 
 ## Global Constraints
 

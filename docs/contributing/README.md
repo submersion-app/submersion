@@ -16,7 +16,7 @@ Found a bug? [Open an issue](https://github.com/submersion-app/submersion/issues
 
 ### Suggest Features
 
-Have an idea? Check the [roadmap](contributing/roadmap.md) first, then [open a discussion](https://github.com/submersion-app/submersion/discussions).
+Have an idea? Check the [roadmap](roadmap.md) first, then [open a discussion](https://github.com/submersion-app/submersion/discussions).
 
 ### Submit Code
 
@@ -72,7 +72,7 @@ git checkout -b feature/your-feature-name
 
 ### 1. Make Changes
 
-Follow the [code style guide](contributing/code-style.md).
+Follow the [code style guide](code-style.md).
 
 ### 2. Write Tests
 
@@ -116,7 +116,7 @@ Follow [conventional commits](https://www.conventionalcommits.org/):
 
 ### 5. Submit PR
 
-See [Pull Request Guidelines](contributing/pull-requests.md).
+See [Pull Request Guidelines](pull-requests.md).
 
 ## Project Structure
 

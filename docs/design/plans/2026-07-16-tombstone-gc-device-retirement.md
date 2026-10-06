@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift ORM (SQLite), existing changeset-log sync transport (`lib/core/services/sync/changeset_log/`), `FakeCloudStorageProvider` test harness.
 
-**Spec:** `docs/superpowers/specs/2026-07-16-tombstone-gc-device-retirement-design.md`
+**Spec:** `docs/design/specs/2026-07-16-tombstone-gc-device-retirement-design.md`
 
 ## Global Constraints
 
@@ -546,7 +546,7 @@ Expected: FAIL (files missing).
 
 ```dart
 /// Tuning constants for fleet-acked tombstone GC and device retirement.
-/// See docs/superpowers/specs/2026-07-16-tombstone-gc-device-retirement-design.md.
+/// See docs/design/specs/2026-07-16-tombstone-gc-device-retirement-design.md.
 class SyncLiveness {
   SyncLiveness._();
 
@@ -2064,4 +2064,4 @@ git commit -m "feat(sync): retirement fence -- cloud-wins rejoin preserving pend
 - [ ] `dart format .` produces no changes; `flutter analyze` clean.
 - [ ] Run the complete sync-adjacent suites once: `flutter test test/core/services/sync/ test/core/data/repositories/ test/core/database/`.
 - [ ] Verify spec invariants against the code: (1) marker-before-deletion in `DeviceRetirement.sweep`; (2) GC blocked by any live no-ack manifest in `TombstoneHorizon.compute`; (3) base still exports the full retained deletion log (untouched `exportBaseToTempFile` path); (4) heartbeat preserves `uploadNonce`.
-- [ ] Update `docs/superpowers/specs/2026-07-16-tombstone-gc-device-retirement-design.md` status line to "Implemented".
+- [ ] Update `docs/design/specs/2026-07-16-tombstone-gc-device-retirement-design.md` status line to "Implemented".

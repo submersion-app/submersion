@@ -344,7 +344,7 @@ class AppSettings {
   final double gtrReservePressure;
 
   /// Algorithm used for calculated CNS%; see
-  /// docs/plans/2026-07-16-cns-calculation-method-setting-design.md
+  /// docs/design/specs/2026-07-16-cns-calculation-method-setting-design.md
   final CnsCalculationMethod cnsCalculationMethod;
 
   // Appearance settings

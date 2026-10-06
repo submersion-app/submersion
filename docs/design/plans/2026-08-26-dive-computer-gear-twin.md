@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Drift ORM, SQLite, Riverpod, `uuid` package.
 
-**Spec:** `docs/superpowers/specs/2026-08-26-dive-computer-gear-twin-design.md`
+**Spec:** `docs/design/specs/2026-08-26-dive-computer-gear-twin-design.md`
 
 > **Schema number, after the fact:** the shipped claim is **v175**. The Goal,
 > Architecture and Global Constraints above state that, because they describe

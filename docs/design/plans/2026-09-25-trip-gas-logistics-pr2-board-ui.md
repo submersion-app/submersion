@@ -8,11 +8,11 @@
 
 **Tech Stack:** Flutter, Dart, Riverpod (through `core/providers/provider.dart`), go_router, Drift (via the PR 1 repository), `flutter gen-l10n`, flutter_test.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-trip-gas-logistics-design.md` (sections Phase 1 UI, Deriving a slot's state, Edge cases, Testing, Delivery item 2). PR 1 plan for the data layer names: `docs/superpowers/plans/2026-09-25-trip-gas-logistics-pr1-data-sync.md`.
+**Spec:** `docs/design/specs/2026-09-25-trip-gas-logistics-design.md` (sections Phase 1 UI, Deriving a slot's state, Edge cases, Testing, Delivery item 2). PR 1 plan for the data layer names: `docs/design/plans/2026-09-25-trip-gas-logistics-pr1-data-sync.md`.
 
 ## Global Constraints
 
-- Starts only after PR 1 (#2331) is merged. Create a fresh worktree from `origin/main` containing that merge, then run `git submodule update --init --recursive`, `flutter pub get`, and codegen (`grep build_runner scripts/setup.sh | sh`; a bare `build` token is refused in a Bash command). Copy this plan into the new worktree's `docs/superpowers/plans/` if it is not already on main.
+- Starts only after PR 1 (#2331) is merged. Create a fresh worktree from `origin/main` containing that merge, then run `git submodule update --init --recursive`, `flutter pub get`, and codegen (`grep build_runner scripts/setup.sh | sh`; a bare `build` token is refused in a Bash command). Copy this plan into the new worktree's `docs/design/plans/` if it is not already on main.
 - No schema change in this PR. If a task seems to need one, stop: it belongs to PR 4.
 - A fill on a slot holding one of the diver's own cylinders is also written to that cylinder's passport (`cylinder_fills`, PR #2364), under an id derived from the trip event id. Fill edits update the copy and fill deletes remove it; slot and trip deletes keep it; adjustments are never copied (decision 2026-09-26, Task 6).
 - Out of scope, PR 3: the tank editor's trip cylinder picker, the per-slot "Log dive" action and the new-dive shortcut, and the slot line on dive detail. The spec lists "Log dive" among the board's slot actions; it arrives with PR 3, which owns the dive side.

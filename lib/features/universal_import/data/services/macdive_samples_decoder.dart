@@ -11,7 +11,7 @@ import 'package:submersion/features/universal_import/data/services/tea_block_cip
 /// (`sampleDataForArrayOfSamples:withOptions:` writes it,
 /// `sampleArrayFromDataV2:` reads it) and verified sample-for-sample against
 /// MacDive's own UDDF and XML exports of a 540-dive library; see
-/// `docs/import-formats/macdive-zsamples.md`.
+/// `docs/developer/reference/formats/macdive-zsamples.md`.
 ///
 /// ```text
 /// u32le version   1, or 2..4 (every blob seen in the wild says 4)

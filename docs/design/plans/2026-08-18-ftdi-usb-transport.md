@@ -8,7 +8,7 @@
 
 **Tech Stack:** Swift 5.9 (pure logic plus IOKit glue), C (IOUSBLib shim), Kotlin (Android probe table), Dart (entitlement file assertion). Tests run through `packages/libdivecomputer_plugin/darwin/run_native_tests.sh` (standalone `swiftc`), Gradle JVM unit tests, and `flutter test`.
 
-**Spec:** `docs/superpowers/specs/2026-08-18-ftdi-usb-transport-design.md`
+**Spec:** `docs/design/specs/2026-08-18-ftdi-usb-transport-design.md`
 
 ## Global Constraints
 

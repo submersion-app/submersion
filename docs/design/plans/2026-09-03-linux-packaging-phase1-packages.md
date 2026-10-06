@@ -15,7 +15,7 @@ containers install the results in CI as a smoke test.
 **Tech Stack:** GitHub Actions, Docker containers, Python 3 (stdlib only), fpm
 (Ruby), dpkg, rpm, systemd udev, Flutter/Dart, C++ (GTK runner).
 
-**Spec:** `docs/superpowers/specs/2026-09-03-linux-packaging-design.md`
+**Spec:** `docs/design/specs/2026-09-03-linux-packaging-design.md`
 
 **Phase 2** (the APT/DNF repositories on GitHub Pages, self-enrollment, and the
 in-app update-channel wiring that depends on them) is a separate plan, written
@@ -102,7 +102,7 @@ silently links `webkit2gtk-4.0` and `libsoup-2.4` instead
 runtime contract without failing the build.
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-09-03-linux-packaging-design.md` (Risks table)
+- Modify: `docs/design/specs/2026-09-03-linux-packaging-design.md` (Risks table)
 
 **Interfaces:**
 - Produces: a recorded yes/no that Tasks 2, 5, and 7 depend on.
@@ -147,7 +147,7 @@ revisiting, and the remaining tasks assume it holds.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add docs/superpowers/specs/2026-09-03-linux-packaging-design.md
+git add docs/design/specs/2026-09-03-linux-packaging-design.md
 git commit -m "docs: verify webkit2gtk-4.1 availability at the Ubuntu 22.04 floor"
 ```
 

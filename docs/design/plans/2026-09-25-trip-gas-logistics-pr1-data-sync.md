@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Drift over SQLite, Riverpod (through `core/providers/provider.dart`), Equatable, flutter_test.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-trip-gas-logistics-design.md` (sections Data model, Sync registration, Deletion, Deriving a slot's state, Testing, Delivery item 1).
+**Spec:** `docs/design/specs/2026-09-25-trip-gas-logistics-design.md` (sections Data model, Sync registration, Deletion, Deriving a slot's state, Testing, Delivery item 1).
 
 ## Global Constraints
 
@@ -4016,7 +4016,7 @@ git commit -m "feat(trips): trip cylinder slot and state providers (#2325)"
 
 - [ ] **Step 1: Re-check the schema ladder once more**
 
-Run the command from Task 1 step 1 again. Expected: no open PR other than this branch claims 228. If one now does, renumber (`grep -rn "228" lib/core/database/database.dart test/core/database/migration_v228_trip_cylinders_test.dart docs/superpowers/specs/2026-09-25-trip-gas-logistics-design.md`), rename the migration test file to the new number, and re-run Task 1 step 12.
+Run the command from Task 1 step 1 again. Expected: no open PR other than this branch claims 228. If one now does, renumber (`grep -rn "228" lib/core/database/database.dart test/core/database/migration_v228_trip_cylinders_test.dart docs/design/specs/2026-09-25-trip-gas-logistics-design.md`), rename the migration test file to the new number, and re-run Task 1 step 12.
 
 - [ ] **Step 2: Format and analyze the whole project**
 
@@ -4082,7 +4082,7 @@ Phase 1 of trip-scale gas logistics, data and sync only. No UI.
 
 ## Spec
 
-`docs/superpowers/specs/2026-09-25-trip-gas-logistics-design.md`, Delivery item 1. PRs 2 to 5 follow, each off main after this merges.
+`docs/design/specs/2026-09-25-trip-gas-logistics-design.md`, Delivery item 1. PRs 2 to 5 follow, each off main after this merges.
 
 ## Testing
 

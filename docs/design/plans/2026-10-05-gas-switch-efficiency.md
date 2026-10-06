@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Riverpod, Drift (schema v261), fl_chart, ARB l10n (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-10-05-gas-switch-efficiency-design.md`
+**Spec:** `docs/design/specs/2026-10-05-gas-switch-efficiency-design.md`
 
 ## Global Constraints
 

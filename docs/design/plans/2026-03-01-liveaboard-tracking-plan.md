@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Drift ORM, Riverpod, go_router, flutter_map, latlong2, Material 3
 
-**Design Doc:** `docs/plans/2026-03-01-liveaboard-tracking-design.md`
+**Design Doc:** `docs/design/specs/2026-03-01-liveaboard-tracking-design.md`
 
 ---
 

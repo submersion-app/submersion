@@ -21,7 +21,7 @@ coreutils. Tests are plain bash scripts already wired into `ci.yaml`'s
 
 ## Global Constraints
 
-- Design spec: `docs/superpowers/specs/2026-08-11-beta-release-notes-completeness-design.md`.
+- Design spec: `docs/design/specs/2026-08-11-beta-release-notes-completeness-design.md`.
 - Work happens in the worktree `.claude/worktrees/beta-notes-completeness` on
   branch `fix/beta-notes-completeness`. Do not check this branch out in the
   main tree.
@@ -51,7 +51,7 @@ coreutils. Tests are plain bash scripts already wired into `ci.yaml`'s
 | --- | --- | --- |
 | `scripts/release/beta_release_notes.sh` | Turn a commit range into tester-facing notes in three formats | Modify: `subjects_in_range`, `classify_subjects`, cumulative gating, store rendering |
 | `scripts/release/beta_release_notes_test.sh` | Behavioural tests for the above | Modify: add temp-repo cases, invert one assertion |
-| `docs/superpowers/specs/2026-08-11-...-design.md` | Approved design | Already committed, read-only |
+| `docs/design/specs/2026-08-11-...-design.md` | Approved design | Already committed, read-only |
 
 `.github/workflows/beta.yml` and `.github/workflows/ci.yaml` are **not**
 modified. The test script is already registered in `ci.yaml`'s `script-tests`

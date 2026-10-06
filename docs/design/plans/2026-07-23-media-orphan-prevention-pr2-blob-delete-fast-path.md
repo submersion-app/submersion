@@ -7,7 +7,7 @@ thumb + rendition) via the existing transfer queue, with a drain-time
 refcount guard; and stop stranding S3 multipart sessions on failure.
 
 **Architecture:** PR 2 of 4 from
-`docs/superpowers/specs/2026-07-23-media-store-orphan-prevention-design.md`
+`docs/design/specs/2026-07-23-media-store-orphan-prevention-design.md`
 (sections 5.1-5.6). Exploration-driven refinement of spec 5.1: the queue
 table already has unused `direction` (default `'upload'`) and `contentHash`
 columns from Phase 1, so delete intents ride `direction = 'delete'` and

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter drawVertices + ImageShader, dart:ui image codecs, http (injectable client), Riverpod, the existing keyless tile endpoints (`MapTileConfig`).
 
-**Spec:** `docs/superpowers/specs/2026-08-15-site-scape-unification-design.md` (PR 2 section)
+**Spec:** `docs/design/specs/2026-08-15-site-scape-unification-design.md` (PR 2 section)
 
 ## Global Constraints
 
@@ -1234,7 +1234,7 @@ git commit -m "feat(seascape): wire terrain imagery through the seascape pages"
 
 - [ ] **Step 1: Amend the spec's stitching sentence**
 
-In `docs/superpowers/specs/2026-08-15-site-scape-unification-design.md` (PR 2 section), reword "stitch tiles ... onto one canvas cropped to the grid box in Web Mercator" to "stitch tiles onto one tile-aligned canvas; the UV frame maps the grid box into it (correction at planning time: cropping bought nothing the frame does not)".
+In `docs/design/specs/2026-08-15-site-scape-unification-design.md` (PR 2 section), reword "stitch tiles ... onto one canvas cropped to the grid box in Web Mercator" to "stitch tiles onto one tile-aligned canvas; the UV frame maps the grid box into it (correction at planning time: cropping bought nothing the frame does not)".
 
 - [ ] **Step 2: Verify**
 

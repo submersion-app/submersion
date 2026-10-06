@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod, fl_chart, Drift (existing providers)
 
-**Spec:** `docs/superpowers/specs/2026-03-20-consolidation-comparison-card-redesign.md`
+**Spec:** `docs/design/specs/2026-03-20-consolidation-comparison-card-redesign.md`
 
 ---
 

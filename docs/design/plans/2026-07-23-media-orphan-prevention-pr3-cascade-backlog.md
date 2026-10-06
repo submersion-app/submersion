@@ -8,7 +8,7 @@ sweep clears the existing orphan-row backlog — both honoring the amended
 safe predicate (spec section 3, verification gate RESOLVED).
 
 **Architecture:** PR 3 of 4 from
-`docs/superpowers/specs/2026-07-23-media-store-orphan-prevention-design.md`
+`docs/design/specs/2026-07-23-media-store-orphan-prevention-design.md`
 (sections 3, 4.2, 4.3 as amended 2026-07-23). The gate audit found two
 protected classes: `networkUrl` / `manifestEntry` rows are legitimate
 library-level media (never deleted for being unlinked; cascade reverts them

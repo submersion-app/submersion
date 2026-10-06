@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift ORM (migration v35), Riverpod state management, go_router, l10n (10 ARB files).
 
-**Design doc:** `docs/plans/2026-02-17-card-coloring-design.md`
+**Design doc:** `docs/design/specs/2026-02-17-card-coloring-design.md`
 
 ---
 

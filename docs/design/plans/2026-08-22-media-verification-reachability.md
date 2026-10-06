@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.47 / Dart, Riverpod 3, Drift, `flutter gen-l10n` across 11 locales.
 
-**Spec:** `docs/superpowers/specs/2026-08-22-media-verification-reachability-design.md`
+**Spec:** `docs/design/specs/2026-08-22-media-verification-reachability-design.md`
 
 ## Global Constraints
 

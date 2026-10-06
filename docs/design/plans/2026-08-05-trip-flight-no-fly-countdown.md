@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3 / Material 3, Drift ORM (SQLite), Riverpod, go_router, flutter gen-l10n.
 
-**Spec:** `docs/superpowers/specs/2026-08-05-trip-flight-no-fly-countdown-design.md`
+**Spec:** `docs/design/specs/2026-08-05-trip-flight-no-fly-countdown-design.md`
 
 ## Global Constraints
 

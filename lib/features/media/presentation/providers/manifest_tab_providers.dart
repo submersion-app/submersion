@@ -2,7 +2,7 @@
 // (Phase 3b, Task 13).
 //
 // Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3b.md`
+// `docs/design/plans/2026-04-28-media-source-extension-phase3b.md`
 // Task 13. Deviations from the plan code:
 //
 // - The plan re-declares `manifestFetchServiceProvider` here (with an

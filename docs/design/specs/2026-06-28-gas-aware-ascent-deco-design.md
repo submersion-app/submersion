@@ -186,4 +186,4 @@ Use only the committed fixtures in `test/dives/`. This spec exercises the OC fix
 - Efficiency / technique metric derived from `idealTts` vs. `realizedTts` (replay recorded switch depths), surfaced in dive analysis rather than in TTS.
 - Side-by-side calculated-vs-recorded TTS display (Subsurface-style) for transparency.
 - "Real ascent" model option (replay recorded switch depths) for users who want the as-dived projection rather than the optimal one.
-- Companion implementation plan in `docs/superpowers/plans/` once this design is approved.
+- Companion implementation plan in `docs/design/plans/` once this design is approved.

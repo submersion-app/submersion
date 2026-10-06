@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart 3, Drift (SQLite), flutter_test.
 
-**Spec:** `docs/superpowers/specs/2026-09-30-clockless-child-clear-sync-design.md`
+**Spec:** `docs/design/specs/2026-09-30-clockless-child-clear-sync-design.md`
 
 ## Global Constraints
 
@@ -461,7 +461,7 @@ Refs #2644"
 **Files:**
 - Create: `test/helpers/peer_pull.dart`
 - Modify: `lib/core/services/sync/sync_service.dart` (`_mergeEntity`: next to `final toUpsert` near line 3015, the clockless `factGroups.isEmpty` block near lines 3202-3207, after the `for (final w in factWrites)` loop near line 3400; a new private helper directly above `_extractHlc` near line 3536; one import)
-- Modify: `docs/superpowers/specs/2026-09-30-clockless-child-clear-sync-design.md` (failure-handling sentence, Step 6)
+- Modify: `docs/design/specs/2026-09-30-clockless-child-clear-sync-design.md` (failure-handling sentence, Step 6)
 - Test: `test/core/services/sync/child_clear_merge_test.dart`
 
 **Interfaces:**
@@ -815,7 +815,7 @@ Expected: PASS.
 
 ```bash
 dart format lib/core/services/sync/sync_service.dart test/core/services/sync/child_clear_merge_test.dart test/helpers/peer_pull.dart
-git add lib/core/services/sync/sync_service.dart test/core/services/sync/child_clear_merge_test.dart test/helpers/peer_pull.dart docs/superpowers/specs/2026-09-30-clockless-child-clear-sync-design.md
+git add lib/core/services/sync/sync_service.dart test/core/services/sync/child_clear_merge_test.dart test/helpers/peer_pull.dart docs/design/specs/2026-09-30-clockless-child-clear-sync-design.md
 git commit -m "fix(sync): a newer peer copy clears a child column it set to null
 
 Refs #2644"

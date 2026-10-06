@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Drift ORM (SQLite), Riverpod, `package:image` (photo compression), `shared_preferences` (per-device policy), `flutter gen-l10n` (localization).
 
-**Spec:** `docs/superpowers/specs/2026-07-20-adjustable-media-upload-quality-design.md` (commit 458efa6f343).
+**Spec:** `docs/design/specs/2026-07-20-adjustable-media-upload-quality-design.md` (commit 458efa6f343).
 
 ## Global Constraints
 

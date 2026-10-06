@@ -8,7 +8,7 @@
 
 **Tech Stack:** Drift 2.34, the plan 2a repositories (`ProfileSeriesRepository`, `TankPressureSeriesRepository`), the PR 1 codecs, `flutter_test` with `setUpTestDatabase()`.
 
-**Spec:** `docs/superpowers/specs/2026-08-28-profile-sample-storage-design.md`, section 6 (read paths: "every existing read method selects series rows for the dive and decodes; merge order across sources and the promote tiebreaker are reproduced in Dart"; `getBatchProfileSummaries` decodes one series per dive). Section 6's removal of `TankPressurePoint.id` is deferred to plan 2e: it touches about a hundred test constructions and belongs with the other mechanical cleanups, section 3 (decode only inside the repositories), section 9 (the nine SQL consumers are plan 2d, not this plan).
+**Spec:** `docs/design/specs/2026-08-28-profile-sample-storage-design.md`, section 6 (read paths: "every existing read method selects series rows for the dive and decodes; merge order across sources and the promote tiebreaker are reproduced in Dart"; `getBatchProfileSummaries` decodes one series per dive). Section 6's removal of `TankPressurePoint.id` is deferred to plan 2e: it touches about a hundred test constructions and belongs with the other mechanical cleanups, section 3 (decode only inside the repositories), section 9 (the nine SQL consumers are plan 2d, not this plan).
 
 ## Global Constraints
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, libdivecomputer (C), Pigeon FFI, sqlite3 FFI (via Drift), gzip decompression
 
-**Spec:** `docs/superpowers/specs/2026-03-27-shearwater-cloud-import-design.md`
+**Spec:** `docs/design/specs/2026-03-27-shearwater-cloud-import-design.md`
 
 **Worktree:** `.worktrees/shearwater-cloud-import` (branch: `feature/shearwater-cloud-import`)
 

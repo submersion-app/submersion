@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (`package:submersion/core/providers/provider.dart` barrel), Drift, mockito codegen for repository mocks, `flutter gen-l10n` with 11 ARB locales.
 
-**Spec:** `docs/superpowers/specs/2026-08-26-photo-gps-site-suggestions-design.md` (Sections 1, 3, 4, 5). Plan A (`2026-08-26-photo-gps-desktop-readers.md`) covers Section 2 and is independent of this plan.
+**Spec:** `docs/design/specs/2026-08-26-photo-gps-site-suggestions-design.md` (Sections 1, 3, 4, 5). Plan A (`2026-08-26-photo-gps-desktop-readers.md`) covers Section 2 and is independent of this plan.
 
 ## Global Constraints
 

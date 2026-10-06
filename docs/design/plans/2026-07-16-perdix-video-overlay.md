@@ -4,7 +4,7 @@
 
 **Goal:** A draggable, translucent Shearwater-Perdix-style dive computer face overlaid on videos (synced to playback) and photos (static at capture instant) in `PhotoViewerPage`.
 
-**Architecture:** A pure `PerdixFaceResolver` maps a dive-time second to an immutable `PerdixFaceData` using the existing `resolveSample()` machinery; a presentational `PerdixFace` widget renders it Perdix-style; a `DraggablePerdixOverlay` wrapper adds fraction-based dragging and an `AnimatedBuilder`-driven video clock; `PhotoViewerPage` mounts it behind an availability gate with a toggle button, hoisting the `VideoPlayerController` up via callback. Spec: `docs/superpowers/specs/2026-07-16-perdix-video-overlay-design.md`.
+**Architecture:** A pure `PerdixFaceResolver` maps a dive-time second to an immutable `PerdixFaceData` using the existing `resolveSample()` machinery; a presentational `PerdixFace` widget renders it Perdix-style; a `DraggablePerdixOverlay` wrapper adds fraction-based dragging and an `AnimatedBuilder`-driven video clock; `PhotoViewerPage` mounts it behind an availability gate with a toggle button, hoisting the `VideoPlayerController` up via callback. Spec: `docs/design/specs/2026-07-16-perdix-video-overlay-design.md`.
 
 **Tech Stack:** Flutter, Riverpod (StateNotifier settings), video_player, SharedPreferences, flutter gen-l10n.
 

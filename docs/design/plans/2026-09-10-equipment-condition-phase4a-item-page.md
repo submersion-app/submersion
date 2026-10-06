@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, fl_chart 1.x, flutter_localizations with ARB files (11 locales), flutter_test.
 
-**Spec:** `docs/superpowers/specs/2026-09-09-equipment-condition-intelligence-design.md` (sections Condition findings: Evidence and wording, Dismissal; Surfaces: Equipment detail: condition section). Phase 4b (badges, trip margin, pre-dive snapshot, statistics) stacks on this branch.
+**Spec:** `docs/design/specs/2026-09-09-equipment-condition-intelligence-design.md` (sections Condition findings: Evidence and wording, Dismissal; Surfaces: Equipment detail: condition section). Phase 4b (badges, trip margin, pre-dive snapshot, statistics) stacks on this branch.
 
 **Decisions (asked and answered 2026-09-10):** phase 4 ships as 4a (this plan, item page) then 4b (elsewhere), stacked; the trend chart is `DiveTrendChart` extended with secondary series plus a shaded highlight range (chosen after three mockups); replace creates the successor inline after a confirm dialog, same type and name and slot, installed today, serial and notes empty; list badges (4b) raise on caution and significant findings only.
 
@@ -57,7 +57,7 @@ Modify:
 ### Task 0: Branch and plan
 
 - [ ] `git checkout -b ericgriffin/equipment-condition-phase4a-item-page ericgriffin/equipment-condition-phase3b-engine` (done at plan time).
-- [ ] Commit this plan: `git add docs/superpowers/plans/2026-09-10-equipment-condition-phase4a-item-page.md && git commit -m "docs(equipment): phase 4a plan, item page condition section"`.
+- [ ] Commit this plan: `git add docs/design/plans/2026-09-10-equipment-condition-phase4a-item-page.md && git commit -m "docs(equipment): phase 4a plan, item page condition section"`.
 
 ---
 
@@ -341,7 +341,7 @@ Every page test site overrides `equipmentComponentsProvider(equipment.id)` in th
 
 ### Task 8: Wrap-up
 
-- [ ] `dart format .`, `flutter analyze` (whole project, zero infos), `flutter gen-l10n && git status --short lib/l10n` (clean), em-dash scan over `lib/features/equipment lib/features/statistics test docs/superpowers/plans/2026-09-10-*`.
+- [ ] `dart format .`, `flutter analyze` (whole project, zero infos), `flutter gen-l10n && git status --short lib/l10n` (clean), em-dash scan over `lib/features/equipment lib/features/statistics test docs/design/plans/2026-09-10-*`.
 - [ ] Full suite once: `flutter test > <scratchpad>/full_4a.log 2>&1`.
 - [ ] Mutation checks: (a) in `conditionFindingTitle` swap `recentMedian` and `baselineMedian` and confirm the decline sentence test fails; (b) in `buildConditionTrend` drop the serial filter and confirm the transmitter builder test fails; (c) in `replaceChild` skip the `cellSlot` copy and confirm the repository test fails. Restore each from a scratchpad backup, never with `git checkout`.
 - [ ] Fill the Translation Appendix below with every shipped string per locale.

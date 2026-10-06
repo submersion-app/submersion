@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.47, Riverpod 3 with the legacy `StateNotifierProvider` API (the media feature's convention), Drift, flutter_map 8.2, flutter_map_marker_cluster 8.2, latlong2, `flutter gen-l10n` for the eleven ARB files.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-media-map-mode-design.md` (issue #2329; the PR body must say `Closes #2329`).
+**Spec:** `docs/design/specs/2026-09-25-media-map-mode-design.md` (issue #2329; the PR body must say `Closes #2329`).
 
 ## Global Constraints
 
@@ -3783,8 +3783,8 @@ Adds a fourth media library view mode, `map`, that places photo and video thumbn
 - New unpaged repository query with a second site join through the media row's own site link, and a change tick over media, dives and dive_sites.
 - `MapCameraAnimator` and `boundsForPoints` are extracted into the maps feature. The dive, site and dive-center maps keep their private copies; #2330 migrates them.
 
-Spec: docs/superpowers/specs/2026-09-25-media-map-mode-design.md
-Plan: docs/superpowers/plans/2026-09-25-media-map-mode.md
+Spec: docs/design/specs/2026-09-25-media-map-mode-design.md
+Plan: docs/design/plans/2026-09-25-media-map-mode.md
 ```
 
 Create it with `gh pr create --title "<title>" --body-file <path to a file holding the body>` from the scratchpad, never inline with a `read` loop. No attribution lines, no tool mention.

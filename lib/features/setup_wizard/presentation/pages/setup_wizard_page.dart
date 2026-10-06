@@ -21,7 +21,7 @@ import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_indicator.dart';
 
 /// Multi-step setup wizard for new databases (first run) and Settings
-/// re-entry. See docs/superpowers/specs/2026-07-10-setup-wizard-design.md.
+/// re-entry. See docs/design/specs/2026-07-10-setup-wizard-design.md.
 class SetupWizardPage extends ConsumerStatefulWidget {
   final SetupWizardMode mode;
 

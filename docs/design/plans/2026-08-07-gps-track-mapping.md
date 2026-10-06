@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Drift ORM, Riverpod 3, go_router, flutter_map 8.3, flutter_map_tile_caching, latlong2, the `xml` package, `compute()` isolates.
 
-**Spec:** `docs/superpowers/specs/2026-08-07-gps-track-mapping-design.md`
+**Spec:** `docs/design/specs/2026-08-07-gps-track-mapping-design.md`
 
 ## Global Constraints
 

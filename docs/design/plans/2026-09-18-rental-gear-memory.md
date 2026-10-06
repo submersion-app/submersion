@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (hand-written providers), Drift (`dart run build_runner build`), `flutter gen-l10n` ARB localization, `flutter_test`, in-memory SQLite for repository tests.
 
-**Spec:** `docs/superpowers/specs/2026-09-18-rental-gear-memory-design.md`. Every decision there is fixed; this plan implements it. Two deliberate deviations from the spec text, both forced by the codebase: timestamps are stored as Unix milliseconds in integer columns like every neighbouring table (the spec said "datetime"), and the resolver takes the single hydrated latest dive rather than a list, because the repository query already excludes the current dive and orders by date.
+**Spec:** `docs/design/specs/2026-09-18-rental-gear-memory-design.md`. Every decision there is fixed; this plan implements it. Two deliberate deviations from the spec text, both forced by the codebase: timestamps are stored as Unix milliseconds in integer columns like every neighbouring table (the spec said "datetime"), and the resolver takes the single hydrated latest dive rather than a list, because the repository query already excludes the current dive and orders by date.
 
 ## Global Constraints
 
@@ -3961,7 +3961,7 @@ Remember what worked with a dive center's rental gear, and surface it on a retur
 - Notes sync as a parent-gated child of dive centers; deleting a center tombstones its notes so peers do not resurrect them. Deleting a dive detaches its notes rather than removing them.
 - All values respect the diver's weight and volume units. Strings in all 11 locales.
 
-Design: `docs/superpowers/specs/2026-09-18-rental-gear-memory-design.md`. Plan: `docs/superpowers/plans/2026-09-18-rental-gear-memory.md`.
+Design: `docs/design/specs/2026-09-18-rental-gear-memory-design.md`. Plan: `docs/design/plans/2026-09-18-rental-gear-memory.md`.
 ```
 
 Title: `feat(dive-centers): remember what worked with an operator's rental gear`

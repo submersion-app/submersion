@@ -10,7 +10,7 @@ discontinuity); user-facing source links were added as follow-up Task 6b.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** User-selectable CNS toxicity calculation method (classic NOAA step table, Shearwater-style linear interpolation, Subsurface-style exponential fit) with Shearwater-style as the new default, per the approved design in `docs/plans/2026-07-16-cns-calculation-method-setting-design.md`.
+**Goal:** User-selectable CNS toxicity calculation method (classic NOAA step table, Shearwater-style linear interpolation, Subsurface-style exponential fit) with Shearwater-style as the new default, per the approved design in `docs/design/specs/2026-07-16-cns-calculation-method-setting-design.md`.
 
 **Architecture:** A `CnsCalculationMethod` enum in the deco core owns all three rate functions; `CnsTable`/`O2ToxicityCalculator` delegate to it. The chosen method is a per-diver setting persisted like gradient factors (Drift `diver_settings` column, `AppSettings` field, `settingsProvider`), threaded into profile analysis and both planners via existing provider wiring, and edited from a dialog in the settings Decompression section.
 
@@ -526,7 +526,7 @@ Run codegen: `dart run build_runner build --delete-conflicting-outputs`
 - line ~412: `cnsCalculationMethod: CnsCalculationMethod.fromDbValue(row.cnsCalculationMethod),`
 
 `settings_providers.dart`:
-- AppSettings: field `final CnsCalculationMethod cnsCalculationMethod;` (doc: "Algorithm used for calculated CNS%; see docs/plans/2026-07-16-cns-calculation-method-setting-design.md"), constructor default `this.cnsCalculationMethod = CnsCalculationMethod.shearwater`, copyWith param + assignment.
+- AppSettings: field `final CnsCalculationMethod cnsCalculationMethod;` (doc: "Algorithm used for calculated CNS%; see docs/design/specs/2026-07-16-cns-calculation-method-setting-design.md"), constructor default `this.cnsCalculationMethod = CnsCalculationMethod.shearwater`, copyWith param + assignment.
 - SettingsNotifier, next to `setDefaultCnsSource`:
 
 ```dart
@@ -829,7 +829,7 @@ git commit -m "i18n: translate CNS method setting strings"
 ### Task 8: Full verification, docs, PR update
 
 **Files:**
-- Modify: `docs/plans/2026-07-16-cns-calculation-method-setting-design.md` (status line only)
+- Modify: `docs/design/specs/2026-07-16-cns-calculation-method-setting-design.md` (status line only)
 
 - [ ] **Step 1: Full gate**
 
@@ -850,7 +850,7 @@ flutter test             # expect: all pass
 ```
 
 ```bash
-git add docs/plans/2026-07-16-cns-calculation-method-setting-design.md CHANGELOG.md
+git add docs/design/specs/2026-07-16-cns-calculation-method-setting-design.md CHANGELOG.md
 git commit -m "docs: mark CNS method design as implemented, changelog entry"
 ```
 

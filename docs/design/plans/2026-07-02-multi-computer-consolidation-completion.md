@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Drift ORM (SQLite), Riverpod, `flutter_test`, `build_runner` codegen.
 
-**Spec:** `docs/superpowers/specs/2026-07-02-multi-computer-consolidation-completion-design.md`
+**Spec:** `docs/design/specs/2026-07-02-multi-computer-consolidation-completion-design.md`
 
 ## Global Constraints
 
@@ -1071,7 +1071,7 @@ git commit -m "feat(consolidation): per-computer chart overlays follow toggle ba
 - Delete: `lib/features/dive_log/presentation/widgets/profile_selector_widget.dart` (+ its l10n keys from every locale; `grep -rn "ProfileSelectorWidget\|profileSelector" lib test` to find keys/references)
 - Modify: `docs/FEATURE_ROADMAP.md:180-200` (§2.2: mark "Profile merging" complete, describe toggle bar not selector), `docs/features/profile-analysis.md:119-145`, `docs/guide/dive-computer.md:140-152`
 - Test: `test/features/dive_log/integration/consolidation_sync_roundtrip_test.dart` (create)
-- Modify: `docs/superpowers/specs/2026-07-02-multi-computer-consolidation-completion-design.md` — status line to "Implemented"
+- Modify: `docs/design/specs/2026-07-02-multi-computer-consolidation-completion-design.md` — status line to "Implemented"
 
 **Interfaces:**
 - Consumes: everything prior; sync test harness — copy the two-device scaffolding from an existing sync round-trip test (`grep -rln "roundtrip\|round_trip\|two device" test/ | head`).

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.47, Dart 3.13, Riverpod, `path_parsing` 1.1 (promoted from transitive to direct), `crypto` (already direct), Python 3 standard library for the generator.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-diver-figure-design.md` (tracking issue #2326; this PR says `Part of #2326`).
+**Spec:** `docs/design/specs/2026-09-25-diver-figure-design.md` (tracking issue #2326; this PR says `Part of #2326`).
 
 ## Global Constraints
 
@@ -4115,7 +4115,7 @@ Phase 1 of the diver figure program: an illustrated front-and-back diver drawn f
 - Theme-derived palette tested across every preset and brightness
 - DiverFigure widget with numbered discs (40 pt targets) and the set page numbering its list as the legend, with tap-to-highlight both ways
 
-Spec: docs/superpowers/specs/2026-09-25-diver-figure-design.md
+Spec: docs/design/specs/2026-09-25-diver-figure-design.md
 
 Part of #2326
 ```

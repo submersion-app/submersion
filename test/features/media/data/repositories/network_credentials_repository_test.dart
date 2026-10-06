@@ -1,4 +1,4 @@
-// Adapted from plan `docs/superpowers/plans/2026-04-28-media-source-extension-phase3a.md`
+// Adapted from plan `docs/design/plans/2026-04-28-media-source-extension-phase3a.md`
 // Task 3. Schema deviations applied vs. plan code:
 //
 // - `network_credential_hosts.id` is TEXT (String), not INTEGER. The plan's

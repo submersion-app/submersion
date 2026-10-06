@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3 standard library (`unittest`), Dart and flutter_test, GitHub Actions, Codecov.
 
-**Spec:** `docs/superpowers/specs/2026-09-27-isolate-safe-tests-and-ci-bundling-design.md`
+**Spec:** `docs/design/specs/2026-09-27-isolate-safe-tests-and-ci-bundling-design.md`
 
 ## Global Constraints
 

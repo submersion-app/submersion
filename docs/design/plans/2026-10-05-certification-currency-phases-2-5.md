@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (hand-written providers, `ref.invalidateSelfWhen`), Drift (in-memory SQLite in tests), `flutter gen-l10n` with 11 ARB locales, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-09-22-certification-currency-design.md`. Phase 1 plan: `docs/superpowers/plans/2026-09-22-certification-currency-phase1-data-and-sync.md` (implemented on this branch).
+**Spec:** `docs/design/specs/2026-09-22-certification-currency-design.md`. Phase 1 plan: `docs/design/plans/2026-09-22-certification-currency-phase1-data-and-sync.md` (implemented on this branch).
 
 ## Global Constraints
 

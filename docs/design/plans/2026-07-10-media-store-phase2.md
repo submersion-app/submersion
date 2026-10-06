@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Thumbnail objects (fast cross-device grids), a Transfers view, gallery status badges, "Upload existing library" backfill, and network policies — Phase 2 of the Media Store spec (`docs/superpowers/specs/2026-07-10-s3-media-storage-design.md`, sections 9, 10, 14, 17).
+**Goal:** Thumbnail objects (fast cross-device grids), a Transfers view, gallery status badges, "Upload existing library" backfill, and network policies — Phase 2 of the Media Store spec (`docs/design/specs/2026-07-10-s3-media-storage-design.md`, sections 9, 10, 14, 17).
 
 **Architecture:** Builds directly on Phase 1 (branch `worktree-s3-media-store`): the upload pipeline gains a best-effort thumbnail step (512 px JPEG uploaded to `smv1/thumbs/<aa>/<hash>.jpg` BEFORE the original), the resolver routes thumbnail requests to thumb objects, the per-device queue becomes observable (drift streams) to power a Transfers page and per-tile badges, and a `NetworkStatusService` + `MediaStorePolicies` gate the worker. Videos become explicitly ineligible for upload until Phase 3's multipart transfer (this also closes a Phase 1 gap where a video would have gone through the whole-bytes path).
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (`StateProvider`, `ConsumerStatefulWidget`), flutter_test widget tests, ARB l10n with `flutter gen-l10n`.
 
-**Spec:** `docs/superpowers/specs/2026-10-05-site-selection-lists-design.md`
+**Spec:** `docs/design/specs/2026-10-05-site-selection-lists-design.md`
 
 ## Global Constraints
 

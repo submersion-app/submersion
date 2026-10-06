@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Videos upload through S3 multipart with per-part resume and progress, survive kill-and-resume, and play on a second device; gallery-video poster thumbs render everywhere — Phase 3 of the Media Store spec (`docs/superpowers/specs/2026-07-10-s3-media-storage-design.md`, sections 8, 9, 17).
+**Goal:** Videos upload through S3 multipart with per-part resume and progress, survive kill-and-resume, and play on a second device; gallery-video poster thumbs render everywhere — Phase 3 of the Media Store spec (`docs/design/specs/2026-07-10-s3-media-storage-design.md`, sections 8, 9, 17).
 
 **Architecture:** The `MediaObjectStore` interface gains optional progress/resume parameters (the extension Phase 1 planned for). `S3ApiClient` gains the multipart operations (Create/UploadPart/Complete/Abort/ListParts) plus Range GET; `S3MediaObjectStore.putFile` becomes threshold-switched (single-shot under 8 MiB, multipart loop above, resume state persisted after every acknowledged part), and `getFile` streams Range chunks to disk so downloads stay memory-bounded. The pipeline lifts Phase 2's video-ineligibility gate, threads resume state and progress through the queue (local cache DB v3 adds progress columns), and video playback on remote devices rides a store fallback inside `resolvedFilePathProvider` — the single seam `photo_viewer_page`'s `_VideoItem` already consumes.
 

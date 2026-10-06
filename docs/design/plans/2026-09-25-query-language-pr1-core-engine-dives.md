@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart 3 (sealed classes, records, patterns), Drift `customSelect`, Riverpod, `flutter_test` with the in-memory `setUpTestDatabase()` helper.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-entity-query-language-design.md` (read it first; the plan argues from it).
+**Spec:** `docs/design/specs/2026-09-25-entity-query-language-design.md` (read it first; the plan argues from it).
 
 **Issue:** `Refs #2365` in the PR body (the program issue; PR 5 closes it).
 
@@ -5514,8 +5514,8 @@ git commit -m "refactor(dive-log): every dive view narrows by the compiled query
 ### Task 16: Whole-suite verification, spec deviations and the PR
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-09-25-entity-query-language-design.md` (a "Deviations recorded during implementation (PR 1)" section)
-- Modify: `docs/superpowers/plans/2026-09-25-query-language-pr1-core-engine-dives.md` (tick every box)
+- Modify: `docs/design/specs/2026-09-25-entity-query-language-design.md` (a "Deviations recorded during implementation (PR 1)" section)
+- Modify: `docs/design/plans/2026-09-25-query-language-pr1-core-engine-dives.md` (tick every box)
 
 - [x] **Step 1: Format, analyze, l10n staleness**
 
@@ -5585,8 +5585,8 @@ engine and moves every dive filter path onto it.
 - No UI yet (PR 2 adds the editor and saved queries); the `query` field on
   `DiveFilterState` is the seam.
 
-Spec: `docs/superpowers/specs/2026-09-25-entity-query-language-design.md`.
-Plan: `docs/superpowers/plans/2026-09-25-query-language-pr1-core-engine-dives.md`.
+Spec: `docs/design/specs/2026-09-25-entity-query-language-design.md`.
+Plan: `docs/design/plans/2026-09-25-query-language-pr1-core-engine-dives.md`.
 ```
 
 Then `mcp__ccd_pr__get_status`, bind the PR if it is not reported, and read its CI; request Copilot review with `gh pr edit <n> --add-reviewer "@copilot"`.

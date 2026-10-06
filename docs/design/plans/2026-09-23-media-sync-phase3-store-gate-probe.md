@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, the media store adapters behind `MediaObjectStore`, the two-device media harness.
 
-**Spec:** `docs/superpowers/specs/2026-09-18-media-sync-program-design.md`, section 7.2.
+**Spec:** `docs/design/specs/2026-09-18-media-sync-program-design.md`, section 7.2.
 
 ## Global Constraints
 

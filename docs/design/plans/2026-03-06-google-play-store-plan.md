@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Fastlane (supply), GitHub Actions, Google Play Console
 
-**Design doc:** `docs/plans/2026-03-06-google-play-store-design.md`
+**Design doc:** `docs/design/specs/2026-03-06-google-play-store-design.md`
 
 ---
 

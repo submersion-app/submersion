@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Drift over SQLite, `photo_manager` 3.12.0 (`PhotoManager.plugin.getCloudIdentifiers`), Riverpod, `flutter_test`, mockito, the two-device media harness.
 
-**Spec:** `docs/superpowers/specs/2026-09-18-media-sync-program-design.md`, section 6.2. Sub-issue #2116 (reopened 2026-09-23), part of #2090. Closes #1937. Turns scenario S6 green.
+**Spec:** `docs/design/specs/2026-09-18-media-sync-program-design.md`, section 6.2. Sub-issue #2116 (reopened 2026-09-23), part of #2090. Closes #1937. Turns scenario S6 green.
 
 ## Global Constraints
 
@@ -1994,7 +1994,7 @@ git commit -m "feat(media): back-fill the iCloud identifier of this device's old
 ### Task 7: Spec notes, mutation checks, full verification
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-09-18-media-sync-program-design.md` (section 6.2)
+- Modify: `docs/design/specs/2026-09-18-media-sync-program-design.md` (section 6.2)
 - Modify: this plan (an "Execution notes" section at the end)
 
 - [ ] **Step 1: Record the decisions in spec 6.2**
@@ -2044,7 +2044,7 @@ Expected: no format changes, no analyzer issues, the full suite green with S6 no
 - [ ] **Step 4: Commit the notes**
 
 ```bash
-git add docs/superpowers/specs/2026-09-18-media-sync-program-design.md docs/superpowers/plans/2026-09-23-media-sync-phase2-cloud-identifier.md
+git add docs/design/specs/2026-09-18-media-sync-program-design.md docs/design/plans/2026-09-23-media-sync-phase2-cloud-identifier.md
 git commit -m "docs(spec): record slice 8's decisions in 6.2"
 ```
 

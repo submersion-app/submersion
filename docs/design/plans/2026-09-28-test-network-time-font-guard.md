@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart `dart:io` (`HttpOverrides`, `IOOverrides`), `flutter_test`, `package:test` config (`dart_test.yaml`), `google_fonts`, Python 3 (stdlib) for the measurement script.
 
-**Spec:** `docs/superpowers/specs/2026-09-28-test-network-time-font-guard-design.md`
+**Spec:** `docs/design/specs/2026-09-28-test-network-time-font-guard-design.md`
 
 ## Global Constraints
 
@@ -58,7 +58,7 @@
 **Files:**
 - Create: `test/helpers/blocked_network.dart`
 - Create: `test/helpers/blocked_network_test.dart`
-- Modify: `docs/superpowers/specs/2026-09-28-test-network-time-font-guard-design.md` (the example message)
+- Modify: `docs/design/specs/2026-09-28-test-network-time-font-guard-design.md` (the example message)
 
 **Interfaces:**
 - Produces: `bool isLoopbackHost(Object? host)`; `StateError networkRefusal(String target)`; `class BlockedNetworkHttpOverrides extends HttpOverrides`; `class BlockedNetworkIOOverrides extends IOOverrides`; `final BlockedNetworkHttpOverrides blockedNetworkHttpOverrides`; `final BlockedNetworkIOOverrides blockedNetworkIOOverrides`.
@@ -336,7 +336,7 @@ Expected: PASS (all).
 
 - [ ] **Step 5: Update the spec's example message**
 
-In `docs/superpowers/specs/2026-09-28-test-network-time-font-guard-design.md`, replace the example refusal block
+In `docs/design/specs/2026-09-28-test-network-time-font-guard-design.md`, replace the example refusal block
 
 ```text
 > A test reached the network: GET https://example.com/fonts.ttf. Tests must
@@ -362,7 +362,7 @@ and in the Testing list replace "a request to a public host fails with its metho
 ```bash
 flutter analyze test/helpers/blocked_network.dart test/helpers/blocked_network_test.dart
 dart format .
-git add test/helpers/blocked_network.dart test/helpers/blocked_network_test.dart docs/superpowers/specs/2026-09-28-test-network-time-font-guard-design.md
+git add test/helpers/blocked_network.dart test/helpers/blocked_network_test.dart docs/design/specs/2026-09-28-test-network-time-font-guard-design.md
 git commit -m "test: loopback-only HTTP and socket overrides for the test harness"
 ```
 

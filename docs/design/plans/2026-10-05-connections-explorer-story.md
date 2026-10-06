@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod 3 (`package:submersion/core/providers/provider.dart`, which also exports the legacy `StateProvider`/`StateNotifier`), `dart:ui` `PictureRecorder`, `flutter_test` with `fakeAsync` (from `package:fake_async`, already a transitive test dependency through flutter_test), ARB localisation via `flutter gen-l10n`.
 
-**Spec:** `docs/superpowers/specs/2026-10-05-connections-explorer-story-design.md`
+**Spec:** `docs/design/specs/2026-10-05-connections-explorer-story-design.md`
 
 ## Global Constraints
 

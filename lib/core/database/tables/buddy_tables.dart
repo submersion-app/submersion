@@ -249,7 +249,7 @@ class Courses extends Table {
 }
 
 /// Countable requirements for a training course (requirement tracker spec,
-/// docs/superpowers/specs/2026-07-16-course-requirement-tracker-design.md).
+/// docs/design/specs/2026-07-16-course-requirement-tracker-design.md).
 /// kind is a RequirementKind enum name: 'dive' rows derive progress from
 /// course_requirement_dives links; 'checklist' rows complete via completedAt.
 @DataClassName('CourseRequirementRow')

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift ORM (build_runner codegen), Riverpod, go_router, flutter gen-l10n.
 
-**Spec:** `docs/superpowers/specs/2026-07-10-dive-roles-design.md`
+**Spec:** `docs/design/specs/2026-07-10-dive-roles-design.md`
 
 ## Global Constraints
 

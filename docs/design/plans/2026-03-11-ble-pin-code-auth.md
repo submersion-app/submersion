@@ -8,7 +8,7 @@
 
 **Tech Stack:** Pigeon codegen (Dart/Swift/Kotlin/C++/GObject), CoreBluetooth (Darwin), Android BLE + JNI, WinRT BLE (Windows), BlueZ D-Bus (Linux), Flutter AlertDialog
 
-**Spec:** `docs/superpowers/specs/2026-03-11-ble-pin-code-auth-design.md`
+**Spec:** `docs/design/specs/2026-03-11-ble-pin-code-auth-design.md`
 
 ---
 

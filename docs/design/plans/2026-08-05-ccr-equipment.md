@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Drift ORM (SQLite), Riverpod, go_router, `flutter_test`, `drift/native` in-memory databases for repository and migration tests.
 
-**Spec:** `docs/superpowers/specs/2026-08-05-ccr-equipment-design.md`
+**Spec:** `docs/design/specs/2026-08-05-ccr-equipment-design.md`
 **Issue:** [#804](https://github.com/submersion-app/submersion/issues/804)
 **Worktree:** `/Users/ericgriffin/repos/submersion-app/submersion/.claude/worktrees/feat-804-ccr-equipment`, branch `worktree-feat-804-ccr-equipment`
 

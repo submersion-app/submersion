@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (StateNotifier), Drift ORM, go_router, Material 3
 
-**Spec:** `docs/superpowers/specs/2026-04-06-table-mode-full-width-details-toggle-design.md`
+**Spec:** `docs/design/specs/2026-04-06-table-mode-full-width-details-toggle-design.md`
 
 ---
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod, go_router, Drift ORM, Material 3
 
-**Design Doc:** `docs/plans/2026-02-23-diver-profile-settings-design.md`
+**Design Doc:** `docs/design/specs/2026-02-23-diver-profile-settings-design.md`
 
 ---
 

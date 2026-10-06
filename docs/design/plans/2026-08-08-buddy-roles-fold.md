@@ -4,7 +4,7 @@
 
 **Goal:** Delete the `buddy_roles` table and derive buddy professional status (instructor/divemaster/dive guide) from buddy-owned `certifications` rows, migrating existing credential rows into certifications.
 
-**Architecture:** UI layers are rewired to certifications first (while the table still exists, so every commit compiles), then the data layer is deleted, then one coupled commit performs the v147 migration + Drift table removal + sync deregistration. Spec: `docs/superpowers/specs/2026-08-08-buddy-professional-roles-fold-design.md`.
+**Architecture:** UI layers are rewired to certifications first (while the table still exists, so every commit compiles), then the data layer is deleted, then one coupled commit performs the v147 migration + Drift table removal + sync deregistration. Spec: `docs/design/specs/2026-08-08-buddy-professional-roles-fold-design.md`.
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, flutter_test.
 

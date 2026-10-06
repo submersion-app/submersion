@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, desktop_drop, receive_sharing_intent, Riverpod, go_router, existing FormatDetector
 
-**Spec:** `docs/superpowers/specs/2026-04-02-drag-drop-file-import-design.md`
+**Spec:** `docs/design/specs/2026-04-02-drag-drop-file-import-design.md`
 
 ---
 

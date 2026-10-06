@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (legacy `StateProvider` via `core/providers/provider.dart`), go_router, gen-l10n (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-10-02-unified-dive-search-design.md` (sections 4.2, 5.6, 6, 7, 8, 11). Issue #2773. Branch `ericgriffin/dive-search-refine-panel`, stacked on PR 1 (#2789); the PR targets `main` and its body says to review only its own commits.
+**Spec:** `docs/design/specs/2026-10-02-unified-dive-search-design.md` (sections 4.2, 5.6, 6, 7, 8, 11). Issue #2773. Branch `ericgriffin/dive-search-refine-panel`, stacked on PR 1 (#2789); the PR targets `main` and its body says to review only its own commits.
 
 ## Global Constraints
 

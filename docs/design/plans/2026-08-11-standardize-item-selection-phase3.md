@@ -16,7 +16,7 @@ hand-rolled checkbox with `SelectionLeading`. Each gains a keyed `Select` button
 
 ## Scope
 
-Phase 3 of the spec `docs/superpowers/specs/2026-08-11-standardize-item-selection-design.md`.
+Phase 3 of the spec `docs/design/specs/2026-08-11-standardize-item-selection-design.md`.
 Phases 4-5 (ten surfaces with no selection today) and Phase 6 (cleanup) follow.
 
 **Stacked PR:** this branch (`worktree-selection-phase3`) is cut from

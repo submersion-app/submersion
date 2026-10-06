@@ -20,7 +20,7 @@ also persisted so the pending-setup card can offer a reconnect.
 **Tech Stack:** Flutter, Dart, Drift (local cache database), Riverpod,
 SharedPreferences, flutter gen-l10n (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-09-18-media-sync-program-design.md`,
+**Spec:** `docs/design/specs/2026-09-18-media-sync-program-design.md`,
 section 7.1. Harness seeds: `test/features/media/two_device/store_scenarios_test.dart`
 (S8, S10).
 
@@ -67,7 +67,7 @@ section 7.1. Harness seeds: `test/features/media/two_device/store_scenarios_test
 | `lib/l10n/arb/app_*.arb` | 4 new keys |
 | `test/helpers/two_device_media_harness.dart` | Preflight type |
 | `test/features/media/two_device/store_scenarios_test.dart` | Unskip S8, S10 |
-| `docs/superpowers/specs/2026-09-18-media-sync-program-design.md` | Amend 7.1 |
+| `docs/design/specs/2026-09-18-media-sync-program-design.md` | Amend 7.1 |
 
 ---
 
@@ -1158,7 +1158,7 @@ git commit -m "feat(media-store): a marker mismatch offers a reconnect, and the 
 ### Task 6: Spec, full verification
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-09-18-media-sync-program-design.md` (7.1)
+- Modify: `docs/design/specs/2026-09-18-media-sync-program-design.md` (7.1)
 
 - [ ] **Step 1: Amend 7.1**
 
@@ -1191,7 +1191,7 @@ Expected: no format changes, no analyze issues, all tests pass.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add docs/superpowers/specs/2026-09-18-media-sync-program-design.md
+git add docs/design/specs/2026-09-18-media-sync-program-design.md
 git commit -m "docs(spec): record slice 10's decisions in 7.1"
 ```
 

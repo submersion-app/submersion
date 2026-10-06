@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (`flutter_riverpod`), Drift (via `NavTrackRepository`), go_router, `flutter gen-l10n` ARB localisation (11 locales), flutter_test.
 
-**Spec:** `docs/superpowers/specs/2026-10-02-underwater-route-entry-points-design.md`
+**Spec:** `docs/design/specs/2026-10-02-underwater-route-entry-points-design.md`
 
 **Issues:** the PR description must contain, outside any code span: `Closes #2796, closes #2396, closes #2397`, and `Refs #2398` (its page-UI refinement stays open).
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** C (libdivecomputer + wrapper), Pigeon (Dart/Swift/Kotlin/C++/GObject), Drift (SQLite), Flutter/Riverpod, flutter_map.
 
-**Reference spec:** `docs/superpowers/specs/2026-05-22-shearwater-swift-gps-entry-exit-design.md`
+**Reference spec:** `docs/design/specs/2026-05-22-shearwater-swift-gps-entry-exit-design.md`
 
 **Source of truth:** GPS comes ONLY from direct dive-computer download. The Shearwater Cloud `.db` import path is intentionally NOT touched.
 

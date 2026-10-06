@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (`dart run build_runner build`), Riverpod (hand-written providers), `flutter gen-l10n` ARB localization, `flutter_test`, in-memory SQLite for schema and repository tests.
 
-**Spec:** `docs/superpowers/specs/2026-09-22-certification-currency-design.md`. Every decision there is fixed; this plan implements the phase 1 slice of it. One deliberate deviation from the spec text: the spec says the new tables go into "the provider-capture test that catches the writers being right while the app is broken". No such enumerating test exists in this repository. What exists is a per-feature capture test (`export_uddf_site_features_test.dart` and two siblings) that intercepts `#saveAllDataToUddfFile` and asserts one named argument. Task 6 writes a new test in that shape rather than extending a test that is not there.
+**Spec:** `docs/design/specs/2026-09-22-certification-currency-design.md`. Every decision there is fixed; this plan implements the phase 1 slice of it. One deliberate deviation from the spec text: the spec says the new tables go into "the provider-capture test that catches the writers being right while the app is broken". No such enumerating test exists in this repository. What exists is a per-feature capture test (`export_uddf_site_features_test.dart` and two siblings) that intercepts `#saveAllDataToUddfFile` and asserts one named argument. Task 6 writes a new test in that shape rather than extending a test that is not there.
 
 ## Global Constraints
 

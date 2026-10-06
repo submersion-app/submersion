@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart/Flutter, Riverpod providers, Drift ORM, Buhlmann ZH-L16C algorithm
 
-**Design doc:** `docs/plans/2026-03-01-cumulative-tissue-otu-design.md`
+**Design doc:** `docs/design/specs/2026-03-01-cumulative-tissue-otu-design.md`
 
 ---
 

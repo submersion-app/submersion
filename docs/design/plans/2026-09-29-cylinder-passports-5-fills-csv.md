@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart 3, Drift, Riverpod, `csv`, `intl`, `uuid`, flutter_test with the in-memory test database (`test/helpers/test_database.dart`).
 
-**Spec:** `docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md` (section 4 scope note, section 10.2 `cylinder_fills`, section 10.8 visibility, section 17 row 5). Issue #2339, umbrella #2333.
+**Spec:** `docs/design/specs/2026-09-25-smart-cylinder-passports-design.md` (section 4 scope note, section 10.2 `cylinder_fills`, section 10.8 visibility, section 17 row 5). Issue #2339, umbrella #2333.
 
 ## Global Constraints
 
@@ -48,7 +48,7 @@
 
 **Modify**
 
-- Spec: `docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md`.
+- Spec: `docs/design/specs/2026-09-25-smart-cylinder-passports-design.md`.
 - Codec: `lib/core/services/export/csv/codec/csv_column.dart`, `codec/submersion_csv_signatures.dart`.
 - Repository: `lib/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart` (one new query).
 - Export chain: `lib/core/services/export/csv/csv_export_service.dart`, `lib/core/services/export/export_service.dart`, `lib/features/settings/presentation/providers/export_providers.dart`, `lib/features/transfer/presentation/widgets/csv_export_dialog.dart`, `lib/features/transfer/presentation/pages/transfer_page.dart`.
@@ -64,7 +64,7 @@
 ### Task 1: Amend the spec with the 2026-09-29 decisions
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md` (section 4 lines 75-76, end of section 10.2 before line 364 `### 10.3`, section 17 row 5 line 657)
+- Modify: `docs/design/specs/2026-09-25-smart-cylinder-passports-design.md` (section 4 lines 75-76, end of section 10.2 before line 364 `### 10.3`, section 17 row 5 line 657)
 
 **Interfaces:**
 - Consumes: nothing.
@@ -141,13 +141,13 @@ with
 
 - [ ] **Step 4: Check the file for dashes**
 
-Run: `grep -nP '\x{2014}|\x{2013}' docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md | grep -n "2026-09-29" ; echo "exit $?"`
+Run: `grep -nP '\x{2014}|\x{2013}' docs/design/specs/2026-09-25-smart-cylinder-passports-design.md | grep -n "2026-09-29" ; echo "exit $?"`
 Expected: no line printed for the new paragraphs (pre-existing dashes elsewhere in the file, if any, are left alone).
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md
+git add docs/design/specs/2026-09-25-smart-cylinder-passports-design.md
 git commit -m "docs(spec): cylinder passports, decide the fills CSV shape for PR 5
 
 Refs #2339, refs #2333"

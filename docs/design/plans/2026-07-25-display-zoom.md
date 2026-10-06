@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Spec: `docs/superpowers/specs/2026-07-25-display-zoom-design.md`
+- Spec: `docs/design/specs/2026-07-25-display-zoom-design.md`
 - Zoom range is exactly 70%-140% in 5% steps: `min = 0.70`, `max = 1.40`, `step = 0.05`, `defaultValue = 1.0`, `divisions = 14`.
 - `displayZoom` must NOT be added to `AppSettings` or to `sync_data_serializer.dart`. It is device-local only.
 - SharedPreferences key is exactly `display_zoom`, declared as a constant on the existing `SettingsKeys` class.

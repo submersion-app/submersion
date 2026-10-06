@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.47 / Dart 3.13, Riverpod 3, go_router 17, Drift, `nfc_manager` 4.2.1 through the existing `NfcTagService` seam.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md` sections 2 (Fill handoff row), 6.2 (fill keys), 6.4 (drop order), 11 (the newest fill on the tag), 16 and the rescoped "3 Fill on the tag" row of section 17. Issue #2337, umbrella #2333.
+**Spec:** `docs/design/specs/2026-09-25-smart-cylinder-passports-design.md` sections 2 (Fill handoff row), 6.2 (fill keys), 6.4 (drop order), 11 (the newest fill on the tag), 16 and the rescoped "3 Fill on the tag" row of section 17. Issue #2337, umbrella #2333.
 
 ## Global Constraints
 
@@ -43,7 +43,7 @@
 | `lib/features/cylinder_passports/data/services/tag_fill_importer.dart` | Stores an own cylinder's tag fill once |
 | `lib/features/cylinder_passports/presentation/utils/write_fill_to_tag.dart` | The "Write it to the tank's tag?" step and `tagPayloadProvider` |
 | `lib/features/gas_calculators/presentation/widgets/blender/blender_cylinder_picker.dart` | Choose cylinder (your tanks or Scan tag), shared by both blender actions |
-| `docs/superpowers/specs/2026-09-28-cylinder-passports-3-device-checklist.md` | Device checks CI cannot run |
+| `docs/design/specs/2026-09-28-cylinder-passports-3-device-checklist.md` | Device checks CI cannot run |
 
 **Modified** (main ones): `cylinder_passport_payload.dart`, `passport_payload_codec.dart`, `ndef_fit.dart`, `nfc_write_sheet.dart` (`tagFieldLabel`, success line), `passport_tag_card.dart` (`fullPayloadFor` takes the newest fill), `cylinder_fill_repository.dart` (`wasDeleted`), `scan_cylinder_tag.dart`, `tank_editor.dart`, `passport_current_fill_card.dart`, `passport_fill_history_card.dart`, `foreign_passport_page.dart`, `log_fill_sheet.dart` (initial values), `blender_cylinder_card.dart`, `blender_procedure_card.dart`, the 11 ARBs, `docs/import-formats/cylinder-passport-tag.md`, and in the website repo `passport/tag.js`, `passport/display.js`, `c.html` and tests.
 
@@ -952,7 +952,7 @@ git commit -m "feat(blender): choose one of your cylinders to fill in its size a
 
 **Files:**
 - Modify: `docs/import-formats/cylinder-passport-tag.md` (the fill keys, the drop order, the NFC layout)
-- Create: `docs/superpowers/specs/2026-09-28-cylinder-passports-3-device-checklist.md`
+- Create: `docs/design/specs/2026-09-28-cylinder-passports-3-device-checklist.md`
 - Website repo (`submersion-app/submersion-website`, its own branch and PR): `passport/tag.js`, `passport/display.js`, `passport/render.js`, `c.html`, `tests/passport-tag.test.mjs`, `tests/passport-render.test.mjs`
 
 - [ ] **Step 1: The tag document**
@@ -961,7 +961,7 @@ Add the fill rows of spec section 6.2 to the payload table, a paragraph saying t
 
 - [ ] **Step 2: The device checklist**
 
-`docs/superpowers/specs/2026-09-28-cylinder-passports-3-device-checklist.md`, like the phase 2 checklist:
+`docs/design/specs/2026-09-28-cylinder-passports-3-device-checklist.md`, like the phase 2 checklist:
 
 - iPhone and Android: Log a fill, Write to tag, then tap the tag with the app closed on a second phone with its own library: the passport opens and says "Fill from the tag added"; tap again: nothing is added.
 - The same tag on the first phone: nothing is added (the fill is already its own).

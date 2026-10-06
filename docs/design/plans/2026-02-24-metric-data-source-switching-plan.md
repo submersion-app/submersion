@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift ORM (SQLite), Riverpod state management
 
-**Design doc:** `docs/plans/2026-02-23-metric-data-source-switching-design.md`
+**Design doc:** `docs/design/specs/2026-02-23-metric-data-source-switching-design.md`
 
 ---
 

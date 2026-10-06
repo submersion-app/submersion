@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod 3 (`flutter_riverpod`, legacy `StateProvider` via `core/providers/provider.dart`), go_router 17, flutter_map, gen-l10n ARB files (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-10-02-tracks-navigation-consolidation-design.md` (tracking issue #2833)
+**Spec:** `docs/design/specs/2026-10-02-tracks-navigation-consolidation-design.md` (tracking issue #2833)
 
 ## Global Constraints
 
@@ -4977,7 +4977,7 @@ Before committing, confirm `git status --short` lists only the paths this task t
 ### Task 14: Verification, spec sync and screenshots
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-10-02-tracks-navigation-consolidation-design.md`
+- Modify: `docs/design/specs/2026-10-02-tracks-navigation-consolidation-design.md`
 
 - [ ] **Step 1: Check the spec still matches what was built**
 
@@ -5016,7 +5016,7 @@ Run the app on macOS (and a phone simulator) and capture, light and dark: the na
 - [ ] **Step 6: Commit the spec sync and stop**
 
 ```bash
-dart format . && git add docs/superpowers/specs/2026-10-02-tracks-navigation-consolidation-design.md && git commit -m "docs(tracks): bring the Tracks spec in line with the implementation
+dart format . && git add docs/design/specs/2026-10-02-tracks-navigation-consolidation-design.md && git commit -m "docs(tracks): bring the Tracks spec in line with the implementation
 
 Refs #2833"
 ```

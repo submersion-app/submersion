@@ -17,7 +17,7 @@ layer; providers become thin wrappers.
 **Tech Stack:** Flutter 3.x, Riverpod (via `core/providers/provider.dart`
 barrel), Drift ORM, `flutter gen-l10n` with ARB files.
 
-**Spec:** `docs/superpowers/specs/2026-07-26-gas-calculators-weather-cns-units-design.md`
+**Spec:** `docs/design/specs/2026-07-26-gas-calculators-weather-cns-units-design.md`
 
 ## Global Constraints
 

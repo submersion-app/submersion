@@ -89,7 +89,7 @@ void main() {
       // dive export, so Dive.fromJson threw on every receiving device and
       // _mergeEntity masked it as a "conflict" -- so nothing ever synced.
       // Fixed by exporting isPlanned. See
-      // docs/superpowers/findings/2026-06-02-icloud-sync-diagnosis.md.
+      // docs/design/findings/2026-06-02-icloud-sync-diagnosis.md.
       final restored = await diveRepo.getDiveById('dive-xfer-1');
       expect(
         restored,

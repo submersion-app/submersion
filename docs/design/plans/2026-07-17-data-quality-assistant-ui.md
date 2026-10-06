@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift, Riverpod, go_router, SharedPreferences, flutter gen-l10n.
 
-**Prerequisite:** Plan 1 (`2026-07-17-data-quality-assistant-engine.md`) fully executed. **Spec:** `docs/superpowers/specs/2026-07-17-data-quality-assistant-design.md`.
+**Prerequisite:** Plan 1 (`2026-07-17-data-quality-assistant-engine.md`) fully executed. **Spec:** `docs/design/specs/2026-07-17-data-quality-assistant-design.md`.
 
 ## Global Constraints
 

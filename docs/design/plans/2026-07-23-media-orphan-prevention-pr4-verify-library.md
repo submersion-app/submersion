@@ -10,7 +10,7 @@ runs both manually (settings action) and opportunistically (fleet-wide
 program.
 
 **Architecture:** PR 4 of 4 from
-`docs/superpowers/specs/2026-07-23-media-store-orphan-prevention-design.md`
+`docs/design/specs/2026-07-23-media-store-orphan-prevention-design.md`
 (section 6). New `MediaVerifyService` orchestrates: referenced-hash set from
 the media table vs `MediaObjectStore.list()` (implemented by all four
 adapters, previously uncalled), plus a new `reapStaleUploadSessions` store

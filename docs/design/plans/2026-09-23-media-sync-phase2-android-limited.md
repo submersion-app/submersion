@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, `photo_manager` 3.12.0 (`getPermissionState`, `openSetting`, `presentLimited`), Riverpod, `flutter_test`, mockito, the two-device media harness.
 
-**Spec:** `docs/superpowers/specs/2026-09-18-media-sync-program-design.md`, section 6.3. Sub-issue #2121, part of #2090. Refs #1625 (spec 10: it closes on the reporter's or the hardware pass's confirmation). Turns scenario S7 green.
+**Spec:** `docs/design/specs/2026-09-18-media-sync-program-design.md`, section 6.3. Sub-issue #2121, part of #2090. Refs #1625 (spec 10: it closes on the reporter's or the hardware pass's confirmation). Turns scenario S7 green.
 
 ## Global Constraints
 

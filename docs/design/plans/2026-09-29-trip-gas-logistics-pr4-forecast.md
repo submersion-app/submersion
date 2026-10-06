@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (via `core/providers/provider.dart`), Drift (in-memory in tests), `package:clock`, `flutter gen-l10n` (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-09-25-trip-gas-logistics-design.md` (sections "Phase 2, its own rung", "Phase 2 forecasting", "Testing", "Delivery" item 4).
+**Spec:** `docs/design/specs/2026-09-25-trip-gas-logistics-design.md` (sections "Phase 2, its own rung", "Phase 2 forecasting", "Testing", "Delivery" item 4).
 
 ## Global Constraints
 

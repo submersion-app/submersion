@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Rebuild the Home tab (Dashboard) as a monitor-first, responsive card grid that is dense on desktop and identical in content/order on phone, per the approved spec at `docs/superpowers/specs/2026-07-24-home-page-redesign-design.md`.
+**Goal:** Rebuild the Home tab (Dashboard) as a monitor-first, responsive card grid that is dense on desktop and identical in content/order on phone, per the approved spec at `docs/design/specs/2026-07-24-home-page-redesign-design.md`.
 
 **Architecture:** A new `DashboardGrid` widget lays out an ordered list of blocks (full-width, one-third, or lead+side group) into 1/2/3 columns keyed off the existing `ResponsiveBreakpoints`. A new always-on `GaugeStrip` (plus a conditional `UrgentBanner`) replaces `ActivityStatsBar`, `AlertsCard`, and `ServiceDueCard`. `HeroHeader` gains a left logo and subdued center stats at desktop widths. Five new cards (milestones, photo ribbon, on-this-day, year-in-review, recent-sites map) are backed by new read-only providers; `PersonalRecordsCard` is deleted. No schema changes.
 

@@ -11,7 +11,7 @@ stamped `lastVerified: 2026-07-01`, and the file's own `note` calls itself a
 "starter directory".
 
 This was a known gap, not an oversight in design. The original safety spec
-(`docs/superpowers/specs/2026-07-16-safety-features-design.md`) called for a
+(`docs/design/specs/2026-07-16-safety-features-design.md`) called for a
 "bundled JSON asset compiled from DAN regional lists and national hyperbaric
 registries", described as "a scoped data-curation task within this phase". The
 curation task never happened; the 14 hand-typed entries shipped in its place.

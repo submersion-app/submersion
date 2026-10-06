@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (FutureProvider families), Drift (no schema change), flutter_map 8 with the app's `TileCacheService`, ARB localization in 11 locales, flutter_test widget tests.
 
-**Spec:** `docs/superpowers/specs/2026-10-02-planned-trip-page-redesign-design.md`
+**Spec:** `docs/design/specs/2026-10-02-planned-trip-page-redesign-design.md`
 
 ## Global Constraints
 

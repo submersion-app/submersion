@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, go_router (`ShellRoute`), Riverpod 3, `photo_view`, `video_player`, flutter_test, ARB l10n (`flutter gen-l10n`).
 
-**Spec:** `docs/superpowers/specs/2026-10-05-media-viewer-fullscreen-design.md`
+**Spec:** `docs/design/specs/2026-10-05-media-viewer-fullscreen-design.md`
 
 ## Global Constraints
 

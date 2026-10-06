@@ -14,7 +14,7 @@
 
 This is a **diagnostic** plan. Its deliverable is *knowledge*, not a finished feature. Tasks 1-3 are pure-Dart tests that may immediately reproduce a logic bug (in which case later tasks may be unnecessary). Tasks 4-6 prepare and run the on-device observation needed if the logic layer turns out to be fine. **Do not write a fix in this phase.** Stop at the Checkpoint and report findings; the fix + data-coverage + UI work is a separate plan.
 
-Spec: `docs/superpowers/specs/2026-06-01-icloud-sync-all-data-design.md`.
+Spec: `docs/design/specs/2026-06-01-icloud-sync-all-data-design.md`.
 
 ### Key facts established during planning (so you don't have to rediscover them)
 
@@ -38,7 +38,7 @@ Spec: `docs/superpowers/specs/2026-06-01-icloud-sync-all-data-design.md`.
 | `lib/core/services/cloud_storage/icloud_storage_provider.dart` | Modify | Add INFO-level logging of container path / fallback / listFiles. |
 | `lib/features/settings/presentation/providers/sync_providers.dart` | Modify | Log provider selection outcome (selected / null / custom-folder-disabled). |
 | `lib/features/settings/.../settings_page.dart` (or a debug entry) | Modify | Temporary reachable trigger so sync can be run on-device for observation. |
-| `docs/superpowers/findings/2026-06-02-icloud-sync-diagnosis.md` | Create (Task 6) | The evidence + one-sentence root cause. |
+| `docs/design/findings/2026-06-02-icloud-sync-diagnosis.md` | Create (Task 6) | The evidence + one-sentence root cause. |
 
 ---
 
@@ -511,7 +511,7 @@ git commit -m "feat(sync): add debug-only on-device sync trigger for diagnosis"
 ## Task 6: Hardware reproduction run + findings
 
 **Files:**
-- Create: `docs/superpowers/findings/2026-06-02-icloud-sync-diagnosis.md`
+- Create: `docs/design/findings/2026-06-02-icloud-sync-diagnosis.md`
 
 - [ ] **Step 1: Run on real hardware (not the Simulator)**
 
@@ -534,7 +534,7 @@ Create the findings doc with: the Task 2/3 test outcomes; the on-device log exce
 - [ ] **Step 4: Commit**
 
 ```bash
-git add docs/superpowers/findings/2026-06-02-icloud-sync-diagnosis.md
+git add docs/design/findings/2026-06-02-icloud-sync-diagnosis.md
 git commit -m "docs(sync): record Phase 0 iCloud sync diagnosis"
 ```
 

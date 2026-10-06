@@ -10,7 +10,7 @@
 
 **Tech Stack:** Flutter 3.x + Material 3, Riverpod 2.x, Drift (no schema changes — Phase 1 added every table 3c reads), `package:http` (added by 3a), `cached_network_image` 3.4.1 / `flutter_cache_manager` 3.4.1 (added by 3a), `path_provider` (transitive via `flutter_cache_manager`), `package:http/testing.dart` for unit tests.
 
-**Spec:** [docs/superpowers/specs/2026-04-25-media-source-extension-design.md](../specs/2026-04-25-media-source-extension-design.md) — Phase 3 deliverables **3** (Settings → Network Sources page) and **8** (User-triggered HTTP scan).
+**Spec:** [docs/design/specs/2026-04-25-media-source-extension-design.md](../specs/2026-04-25-media-source-extension-design.md) — Phase 3 deliverables **3** (Settings → Network Sources page) and **8** (User-triggered HTTP scan).
 
 **No schema migration needed** — Phase 1's v72 migration already created `network_credential_hosts`, `media_subscriptions`, `media_subscription_state`, and `media_fetch_diagnostics` (database.dart:599-680). Phase 3a/3b own write paths; Phase 3c reads, lists, deletes, and triggers actions.
 
@@ -20,8 +20,8 @@
 
 Read these before starting:
 
-- [docs/superpowers/specs/2026-04-25-media-source-extension-design.md](../specs/2026-04-25-media-source-extension-design.md) — Phase 3 spec, especially deliverables 3 and 8 (lines 452-456 and 519-526).
-- [docs/superpowers/plans/2026-04-27-media-source-extension-phase2.md](2026-04-27-media-source-extension-phase2.md) — sibling plan that 3c mirrors structurally (Settings page additions + diagnostics service pattern in Task 15).
+- [docs/design/specs/2026-04-25-media-source-extension-design.md](../specs/2026-04-25-media-source-extension-design.md) — Phase 3 spec, especially deliverables 3 and 8 (lines 452-456 and 519-526).
+- [docs/design/plans/2026-04-27-media-source-extension-phase2.md](2026-04-27-media-source-extension-phase2.md) — sibling plan that 3c mirrors structurally (Settings page additions + diagnostics service pattern in Task 15).
 - [lib/features/media/presentation/pages/media_sources_page.dart](../../lib/features/media/presentation/pages/media_sources_page.dart) — current Settings → Data → Media Sources page (Phase 1 + 2). 3c modifies this to append a "Network sources" entry that pushes a new sub-page.
 - [lib/features/media/data/services/local_files_diagnostics_service.dart](../../lib/features/media/data/services/local_files_diagnostics_service.dart) — Phase 2 diagnostics service. The 3c scan service mirrors the pattern: required-named-constructor deps, `try/catch + _log.error + rethrow` on public methods, persisted state for the read path, fresh fetches only on the user-triggered write path.
 - [lib/features/media/data/repositories/media_repository.dart](../../lib/features/media/data/repositories/media_repository.dart) — `getAllBySourceType(MediaSourceType)` already exists (line 336); `markAsVerified`, `markAsOrphaned`, and `updateMedia` are the per-row writers used by the scan.
@@ -3215,7 +3215,7 @@ If smoke testing surfaced minor issues, fix them and commit as `chore(media): sm
 
 ---
 
-**Plan complete and saved to `docs/superpowers/plans/2026-04-28-media-source-extension-phase3c.md`. Two execution options:**
+**Plan complete and saved to `docs/design/plans/2026-04-28-media-source-extension-phase3c.md`. Two execution options:**
 
 **1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration
 

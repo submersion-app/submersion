@@ -3,7 +3,7 @@
 Date: 2026-09-26
 Status: Approved in conversation, pending review of this document
 Branch: ericgriffin/tide-calculation-accuracy-d51e4a
-Follows: `docs/superpowers/specs/2026-08-09-tide-accuracy-design.md` (PR #932)
+Follows: `docs/design/specs/2026-08-09-tide-accuracy-design.md` (PR #932)
 
 ## Problem
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart/Flutter, `archive: ^3.6.1` (promote from transitive), flutter_test. No new native code.
 
-**Spec:** `docs/superpowers/specs/2026-07-10-diverlog-import-design.md`
+**Spec:** `docs/design/specs/2026-07-10-diverlog-import-design.md`
 
 ## Global Constraints
 

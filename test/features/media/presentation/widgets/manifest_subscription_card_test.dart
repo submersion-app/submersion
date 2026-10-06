@@ -1,7 +1,7 @@
 // Widget tests for the Manifest subscriptions card (Phase 3c, Task 7).
 //
 // Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3c.md`
+// `docs/design/plans/2026-04-28-media-source-extension-phase3c.md`
 // Task 7. Deviations from the plan code:
 //
 // - The plan's `_FakeRepo` calls `listAll`, `updateSubscription(sub)`, and

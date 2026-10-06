@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, `pdf` 3.13.0 (`pw.Chart`, `pw.LineDataSet`, `pw.CartesianGrid`, `pw.MultiPage`), Drift, Riverpod, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-08-20-pdf-logbook-export-design.md`
+**Spec:** `docs/design/specs/2026-08-20-pdf-logbook-export-design.md`
 
 ## Global Constraints
 

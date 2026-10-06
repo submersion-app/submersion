@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift (local cache DB only), Riverpod, `http` ^1.2.2 (`MockClient` from `package:http/testing` for tests).
 
-**Spec:** `docs/superpowers/specs/2026-07-28-site-bathymetry-seascape-design.md`
+**Spec:** `docs/design/specs/2026-07-28-site-bathymetry-seascape-design.md`
 
 ## Global Constraints
 

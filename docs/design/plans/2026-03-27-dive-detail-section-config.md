@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift ORM (SQLite), Riverpod (StateNotifier), go_router, ReorderableListView
 
-**Spec:** `docs/superpowers/specs/2026-03-27-dive-detail-section-config-design.md`
+**Spec:** `docs/design/specs/2026-03-27-dive-detail-section-config-design.md`
 
 ---
 

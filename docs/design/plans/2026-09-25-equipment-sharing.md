@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod 3 (`flutter_riverpod`), `flutter_test`, ARB l10n (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-09-17-equipment-sharing-transfer-identity-design.md` (PR 2 of its Delivery section, plus the "Equipment history" section). Read it before starting any task.
+**Spec:** `docs/design/specs/2026-09-17-equipment-sharing-transfer-identity-design.md` (PR 2 of its Delivery section, plus the "Equipment history" section). Read it before starting any task.
 
 **PR:** one PR from branch `ericgriffin/equipment-sharing-profiles-67d843`. Description must contain `Closes #2046` and `Refs #1549`.
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (via `core/providers/provider.dart`), Drift (in-memory in tests), `package:csv`, `flutter gen-l10n` (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-09-25-trip-gas-logistics-design.md` (sections "Phase 3" (no schema), "Deriving a slot's state", "Phase 3 gas record", "Delivery" item 5).
+**Spec:** `docs/design/specs/2026-09-25-trip-gas-logistics-design.md` (sections "Phase 3" (no schema), "Deriving a slot's state", "Phase 3 gas record", "Delivery" item 5).
 
 ## Global Constraints
 

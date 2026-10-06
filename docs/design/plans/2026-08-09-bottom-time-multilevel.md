@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift ORM (raw `customSelect`/`customStatement` in migrations), flutter_test.
 
-**Spec:** `docs/superpowers/specs/2026-08-09-bottom-time-multilevel-design.md`
+**Spec:** `docs/design/specs/2026-08-09-bottom-time-multilevel-design.md`
 
 ## Global Constraints
 
@@ -872,7 +872,7 @@ git commit -m "Add v146 backfill correcting machine-derived multilevel bottom ti
 ### Task 5: Full verification
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-08-09-bottom-time-multilevel-design.md` (only if verification reveals a deviation worth recording)
+- Modify: `docs/design/specs/2026-08-09-bottom-time-multilevel-design.md` (only if verification reveals a deviation worth recording)
 
 **Interfaces:**
 - Consumes: everything above.

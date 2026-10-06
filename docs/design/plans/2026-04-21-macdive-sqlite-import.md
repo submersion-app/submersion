@@ -1958,7 +1958,7 @@ git commit -am "chore: changelog for MacDive SQLite import"
 
 Follow-up work closing the "profile samples" gap:
 
-- **Design spec:** `docs/superpowers/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md`
-- **Phase 1 spike plan (completed):** `docs/superpowers/plans/2026-04-23-macdive-zsamples-phase-1-spike.md`
+- **Design spec:** `docs/design/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md`
+- **Phase 1 spike plan (completed):** `docs/design/plans/2026-04-23-macdive-zsamples-phase-1-spike.md`
 - **Phase 1 outcome:** NO-GO on `ZSAMPLES` (proprietary format, probably block-cipher encrypted). Full findings at `docs/import-formats/macdive-zsamples.md`.
-- **Phase 2 plan (pivot):** `docs/superpowers/plans/2026-04-23-macdive-profile-phase-2-zrawdata.md` — decodes `ZRAWDATA` via the existing `libdivecomputer_plugin` for 100% coverage of Shearwater dives (267/267).
+- **Phase 2 plan (pivot):** `docs/design/plans/2026-04-23-macdive-profile-phase-2-zrawdata.md` — decodes `ZRAWDATA` via the existing `libdivecomputer_plugin` for 100% coverage of Shearwater dives (267/267).

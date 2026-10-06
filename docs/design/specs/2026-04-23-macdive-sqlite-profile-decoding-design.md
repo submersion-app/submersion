@@ -3,7 +3,7 @@
 **Status:** Draft
 **Author:** Eric Griffin
 **Created:** 2026-04-23
-**Context:** Continuation of the MacDive Import Robustness work (`docs/superpowers/specs/2026-04-21-macdive-import-design.md`). Milestone 3 of that plan (PR #256, `feature/macdive-sqlite`) deferred decoding of `ZDIVE.ZSAMPLES` — MacDive's proprietary profile-sample BLOB. This spec covers the follow-up that closes the gap.
+**Context:** Continuation of the MacDive Import Robustness work (`docs/design/specs/2026-04-21-macdive-import-design.md`). Milestone 3 of that plan (PR #256, `feature/macdive-sqlite`) deferred decoding of `ZDIVE.ZSAMPLES` — MacDive's proprietary profile-sample BLOB. This spec covers the follow-up that closes the gap.
 
 ## Problem
 
@@ -251,7 +251,7 @@ The profiles PR targets `feature/macdive-sqlite`, not `main`, preserving review 
 
 ### Plan alignment
 
-Append a link to this spec at the tail of `docs/superpowers/plans/2026-04-21-macdive-sqlite-import.md` so future readers can find the continuation.
+Append a link to this spec at the tail of `docs/design/plans/2026-04-21-macdive-sqlite-import.md` so future readers can find the continuation.
 
 ## Open questions
 
@@ -275,7 +275,7 @@ Without the encryption key (would require static analysis of the MacDive binary)
 **Artifacts produced:**
 - `docs/import-formats/macdive-zsamples.md` — full Phase 1 findings document.
 - `scripts/reverse_engineering/zsamples/` — retained tooling and 19 passing pytest tests.
-- Phase 2 plan (pivot): `docs/superpowers/plans/2026-04-23-macdive-profile-phase-2-zrawdata.md`.
+- Phase 2 plan (pivot): `docs/design/plans/2026-04-23-macdive-profile-phase-2-zrawdata.md`.
 
 **Decisions for Phase 2 under the pivot:**
 - Decoder target: `ZRAWDATA` column, not `ZSAMPLES`.

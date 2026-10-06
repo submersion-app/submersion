@@ -550,7 +550,7 @@ remembered.
 ## 8. Phase 4: verification matrix
 
 A manual checklist committed as
-`docs/superpowers/specs/2026-09-18-media-sync-manual-test-checklist.md`,
+`docs/design/specs/2026-09-18-media-sync-manual-test-checklist.md`,
 in the style of the Google Drive checklist. Each row is a harness scenario
 first and a hardware pass second:
 

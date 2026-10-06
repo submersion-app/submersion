@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Rename the Statistics section to Insights.
 
-Implements docs/superpowers/specs/2026-09-25-statistics-to-insights-rename-design.md.
+Implements docs/design/specs/2026-09-25-statistics-to-insights-rename-design.md.
 Three phases, one commit each, each safe to rerun (for example after a rebase
 brings in new code that still uses the old names):
 

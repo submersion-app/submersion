@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter / Dart, Material 3, `flutter_test` widget tests, `flutter gen-l10n`.
 
-**Spec:** `docs/superpowers/specs/2026-06-23-dive-edit-calculate-affordance-design.md`
+**Spec:** `docs/design/specs/2026-06-23-dive-edit-calculate-affordance-design.md`
 **Issue:** [#388](https://github.com/submersion-app/submersion/issues/388)
 
 ## Global Constraints

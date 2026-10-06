@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Riverpod, `CustomPaint`/`Canvas`, the repo's `SceneProjector` (orthographic), Drift-backed providers.
 
-**Spec:** `docs/superpowers/specs/2026-07-12-tissue-3d-axes-grid-tooltips-design.md`
+**Spec:** `docs/design/specs/2026-07-12-tissue-3d-axes-grid-tooltips-design.md`
 
 ## Global Constraints
 

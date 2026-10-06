@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (legacy `StateProvider` / `StateNotifierProvider` via `core/providers/provider.dart`), go_router, gen-l10n (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-10-02-unified-dive-search-design.md` (sections 3.3, 3.6, 4.1 states 3 and 6, 5.6 `AskController`, 5.8, 6, 7 "Ask" and "Shortcuts" and "Router", 8 row 3, 9 rows 6, 11, 12). Issue #2773. Branch `ericgriffin/dive-search-ask` from `main` at `08d4f1f51d3` (PR 1 #2789 and PR 2 #2807 merged).
+**Spec:** `docs/design/specs/2026-10-02-unified-dive-search-design.md` (sections 3.3, 3.6, 4.1 states 3 and 6, 5.6 `AskController`, 5.8, 6, 7 "Ask" and "Shortcuts" and "Router", 8 row 3, 9 rows 6, 11, 12). Issue #2773. Branch `ericgriffin/dive-search-ask` from `main` at `08d4f1f51d3` (PR 1 #2789 and PR 2 #2807 merged).
 
 ## Global Constraints
 

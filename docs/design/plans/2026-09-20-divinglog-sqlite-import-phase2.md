@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart, Flutter, `package:sqlite3` ^3.5.1, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-09-20-divinglog-sqlite-import-phase2-design.md`
+**Spec:** `docs/design/specs/2026-09-20-divinglog-sqlite-import-phase2-design.md`
 
 ## Global Constraints
 
@@ -2345,8 +2345,8 @@ Verified against the reporter's 444-dive logbook, which is personal data and
 is not committed: 16 buddies, 31 equipment items, 28 trips, 22 dive centers,
 10 dive types, 5 certifications, and sites carrying coordinates.
 
-Design: `docs/superpowers/specs/2026-09-20-divinglog-sqlite-import-phase2-design.md`
-Plan: `docs/superpowers/plans/2026-09-20-divinglog-sqlite-import-phase2.md`
+Design: `docs/design/specs/2026-09-20-divinglog-sqlite-import-phase2-design.md`
+Plan: `docs/design/plans/2026-09-20-divinglog-sqlite-import-phase2.md`
 ```
 
 Do not add any attribution line, co-author trailer, tool name or session link

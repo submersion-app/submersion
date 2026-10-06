@@ -422,7 +422,7 @@ feat: add theme registry with palette and full theme support
 - Create: `lib/core/theme/full_themes/minimalist_theme.dart`
 - Create: `lib/core/theme/full_themes/deep_theme.dart`
 
-Each file defines `final ThemeData <name>Light` and `final ThemeData <name>Dark`. Use the exact colors, typography, and component overrides from the HTML mockups (docs/plans/2026-02-25-app-theme-presets-design.md).
+Each file defines `final ThemeData <name>Light` and `final ThemeData <name>Dark`. Use the exact colors, typography, and component overrides from the HTML mockups (docs/design/specs/2026-02-25-app-theme-presets-design.md).
 
 **Console theme key properties:**
 

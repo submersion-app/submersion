@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart 3 + Flutter 3 + `package:xml` + `flutter_test` + Drift (all unchanged).
 
-**Spec reference:** `docs/superpowers/specs/2026-04-17-ssrf-slice-d-dive-level-metadata-design.md`
+**Spec reference:** `docs/design/specs/2026-04-17-ssrf-slice-d-dive-level-metadata-design.md`
 
 **Branch:** `feat/ssrf-slice-d` (already created off `feat/ssrf-slice-c3`).
 
@@ -50,7 +50,7 @@
 Pure investigation. Confirms pre-findings, writes a brief note, and commits it.
 
 **Files:**
-- Create: `docs/superpowers/plans/2026-04-17-ssrf-slice-d-discovery.md`
+- Create: `docs/design/plans/2026-04-17-ssrf-slice-d-discovery.md`
 
 - [ ] **Step 1.1: Confirm importer-side key coverage**
 
@@ -90,7 +90,7 @@ Open `lib/features/dive_import/data/services/uddf_entity_importer.dart` around l
 
 - [ ] **Step 1.5: Write discovery note**
 
-Create `docs/superpowers/plans/2026-04-17-ssrf-slice-d-discovery.md` with:
+Create `docs/design/plans/2026-04-17-ssrf-slice-d-discovery.md` with:
 
 ```markdown
 # Slice D Discovery
@@ -115,7 +115,7 @@ Create `docs/superpowers/plans/2026-04-17-ssrf-slice-d-discovery.md` with:
 - [ ] **Step 1.6: Commit**
 
 ```bash
-git add docs/superpowers/plans/2026-04-17-ssrf-slice-d-discovery.md
+git add docs/design/plans/2026-04-17-ssrf-slice-d-discovery.md
 git commit -m "docs(slice-d): discovery findings for SSRF dive-level metadata parsing"
 ```
 
@@ -692,7 +692,7 @@ git commit -m "test(ssrf-import): end-to-end dive-level metadata fixture test"
 ## Task 6: Tracker doc update
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md`
+- Modify: `docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md`
 
 - [ ] **Step 6.1: Update combined table `Dive-level deco metadata` row**
 
@@ -754,7 +754,7 @@ Find the three SSRF sub-table rows and rewrite the Why cells:
 Add at the end of the bullet list, before any footnote definitions:
 
 ```
-- Slice D (2026-04-17) adds dive-level metadata parsing from SSRF: dive computer identity (model, serial, firmware from `<divecomputer model>` attribute + `Serial` / `FW Version` extradata), deco metadata (algo + gradient factors parsed from `Deco model` extradata via regex), and surface pressure (from `<surface pressure>` child). Populates matching columns on both `Dives` and `DiveDataSources`. No schema work — all target columns exist. Altitude (barometric derivation) and surface interval (cross-dive computation) remain deferred as separate work. See `docs/superpowers/specs/2026-04-17-ssrf-slice-d-dive-level-metadata-design.md`.
+- Slice D (2026-04-17) adds dive-level metadata parsing from SSRF: dive computer identity (model, serial, firmware from `<divecomputer model>` attribute + `Serial` / `FW Version` extradata), deco metadata (algo + gradient factors parsed from `Deco model` extradata via regex), and surface pressure (from `<surface pressure>` child). Populates matching columns on both `Dives` and `DiveDataSources`. No schema work — all target columns exist. Altitude (barometric derivation) and surface interval (cross-dive computation) remain deferred as separate work. See `docs/design/specs/2026-04-17-ssrf-slice-d-dive-level-metadata-design.md`.
 ```
 
 - [ ] **Step 6.6: Visual sanity check**
@@ -764,7 +764,7 @@ Verify column counts preserved (combined: 6 cols / 7 pipes; sub-tables: 4 cols /
 - [ ] **Step 6.7: Commit**
 
 ```bash
-git add docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md
+git add docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md
 git commit -m "docs(tracker): record Slice D dive-level metadata coverage"
 ```
 
@@ -819,7 +819,7 @@ git status --short
 git log --oneline origin/main..HEAD | head -15
 ```
 
-Working tree shows only untracked `docs/superpowers/` 2026-04-17 files. Commit log shows Slice D commits layered on top of Slice A + C + C.2 + C.3.
+Working tree shows only untracked `docs/design/` 2026-04-17 files. Commit log shows Slice D commits layered on top of Slice A + C + C.2 + C.3.
 
 - [ ] **Step 7.6: Spot-check**
 

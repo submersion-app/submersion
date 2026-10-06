@@ -2,7 +2,7 @@
 
 **Date:** 2026-04-17
 **Status:** Draft
-**Relates to:** Issue #155; closes a subset of the "Gaps NOT addressed by PR #170" follow-up work. Also corrects an inaccuracy in `docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md`.
+**Relates to:** Issue #155; closes a subset of the "Gaps NOT addressed by PR #170" follow-up work. Also corrects an inaccuracy in `docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md`.
 
 ## Purpose
 
@@ -28,7 +28,7 @@ Close three concrete SSRF-import gaps that map directly from Subsurface XML to c
 - `lib/features/universal_import/data/parsers/subsurface_xml_parser.dart` — add a shared event-forward-fill helper, wire it for setpoint, and relax the empty-cylinder skip condition.
 
 **Files touched (docs):**
-- `docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md` — correct UDDF rows, update SSRF rows affected by this slice.
+- `docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md` — correct UDDF rows, update SSRF rows affected by this slice.
 
 **Files touched (tests):**
 - `test/features/universal_import/data/parsers/subsurface_xml_parser_test.dart` — add tests for setpoint parsing and partial cylinders.
@@ -125,7 +125,7 @@ The presence check uses the private helper `_hasNonEmptyAttribute` so empty-stri
 
 ### 3. Tracker correction
 
-In `docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md`:
+In `docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md`:
 
 **Combined table row "Tank role / material metadata":**
 - Change `UDDF Support` column from `No` to `Yes`.

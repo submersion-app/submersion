@@ -14,7 +14,7 @@
 - **Target platform: macOS** (the developer's everyday machine).
 - **Densest dive for the worst-case render:** `0822a39f-26fd-4119-bdaa-673ea4562da3` (3,644 samples).
 - **Known artificial startup floor:** ~1.9 s = 1 s hard minimum (`lib/core/presentation/pages/startup_page.dart:191`) + 900 ms fade (`:110`).
-- **Findings report path:** `docs/superpowers/specs/2026-06-24-app-performance-findings.md`.
+- **Findings report path:** `docs/design/specs/2026-06-24-app-performance-findings.md`.
 - **Do not commit incidental regenerated `.mocks.dart` files** (codegen side effects); stage only the findings report.
 - **No `Co-Authored-By` trailer** in commits (developer preference).
 - This phase changes **no application code** — only adds the findings document.
@@ -31,7 +31,7 @@ Each scenario is a capture-and-record loop. The "test" for a measurement task is
 ### Task 1: Profiling environment + report scaffold
 
 **Files:**
-- Create: `docs/superpowers/specs/2026-06-24-app-performance-findings.md`
+- Create: `docs/design/specs/2026-06-24-app-performance-findings.md`
 
 **Interfaces:**
 - Produces: the findings document with an environment section and three empty scenario sections that Tasks 2-4 fill in, and a ranking section Task 5 completes.
@@ -57,13 +57,13 @@ In the run console, note the DevTools URL it prints (`The Flutter DevTools debug
 
 - [ ] **Step 3: Create the findings report scaffold**
 
-Create `docs/superpowers/specs/2026-06-24-app-performance-findings.md` with this content:
+Create `docs/design/specs/2026-06-24-app-performance-findings.md` with this content:
 
 ```markdown
 # App Performance — Phase 1 Findings
 
 **Date:** 2026-06-24
-**Spec:** docs/superpowers/specs/2026-06-24-app-performance-investigation-design.md
+**Spec:** docs/design/specs/2026-06-24-app-performance-investigation-design.md
 **Mode:** profile, macOS
 
 ## Environment
@@ -90,8 +90,8 @@ Fill the Environment values from Steps 1-2.
 
 Run:
 ```bash
-git add docs/superpowers/specs/2026-06-24-app-performance-findings.md
-git status -s -- docs/superpowers/specs/2026-06-24-app-performance-findings.md   # expect: A  ...findings.md
+git add docs/design/specs/2026-06-24-app-performance-findings.md
+git status -s -- docs/design/specs/2026-06-24-app-performance-findings.md   # expect: A  ...findings.md
 git commit -F - <<'MSG'
 docs: app performance findings scaffold + measurement environment
 
@@ -107,7 +107,7 @@ Expected: one file changed; no `.mocks.dart` in the commit.
 ### Task 2: Scenario 1 — cold-start / load time
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-06-24-app-performance-findings.md` (Scenario 1 section)
+- Modify: `docs/design/specs/2026-06-24-app-performance-findings.md` (Scenario 1 section)
 
 **Interfaces:**
 - Consumes: the report scaffold from Task 1.
@@ -159,7 +159,7 @@ Append under `## Scenario 1`:
 
 Run:
 ```bash
-git add docs/superpowers/specs/2026-06-24-app-performance-findings.md
+git add docs/design/specs/2026-06-24-app-performance-findings.md
 git commit -m "docs: cold-start measurement findings (scenario 1)"
 ```
 
@@ -168,7 +168,7 @@ git commit -m "docs: cold-start measurement findings (scenario 1)"
 ### Task 3: Scenario 2 — first dive-details lag
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-06-24-app-performance-findings.md` (Scenario 2 section)
+- Modify: `docs/design/specs/2026-06-24-app-performance-findings.md` (Scenario 2 section)
 
 **Interfaces:**
 - Consumes: the report from Task 2.
@@ -220,7 +220,7 @@ Top CPU self-time (densest open): <fill list of 8>
 
 Run:
 ```bash
-git add docs/superpowers/specs/2026-06-24-app-performance-findings.md
+git add docs/design/specs/2026-06-24-app-performance-findings.md
 git commit -m "docs: dive-details lag measurement findings (scenario 2)"
 ```
 
@@ -229,7 +229,7 @@ git commit -m "docs: dive-details lag measurement findings (scenario 2)"
 ### Task 4: Scenario 3 — background-sync stutter
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-06-24-app-performance-findings.md` (Scenario 3 section)
+- Modify: `docs/design/specs/2026-06-24-app-performance-findings.md` (Scenario 3 section)
 
 **Interfaces:**
 - Consumes: the report from Task 3.
@@ -279,7 +279,7 @@ Append under `## Scenario 3`:
 
 Run:
 ```bash
-git add docs/superpowers/specs/2026-06-24-app-performance-findings.md
+git add docs/design/specs/2026-06-24-app-performance-findings.md
 git commit -m "docs: sync-stutter measurement findings (scenario 3)"
 ```
 
@@ -288,7 +288,7 @@ git commit -m "docs: sync-stutter measurement findings (scenario 3)"
 ### Task 5: Synthesize findings and rank Phase 2
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-06-24-app-performance-findings.md` (ranking section)
+- Modify: `docs/design/specs/2026-06-24-app-performance-findings.md` (ranking section)
 
 **Interfaces:**
 - Consumes: the three completed scenario sections.
@@ -329,7 +329,7 @@ Order by measured impact × inverse risk. Demote any avenue the data refuted.
 
 Run:
 ```bash
-git add docs/superpowers/specs/2026-06-24-app-performance-findings.md
+git add docs/design/specs/2026-06-24-app-performance-findings.md
 git commit -m "docs: phase 1 findings synthesis + phase 2 ranking"
 ```
 
@@ -345,6 +345,6 @@ State the confirmed top avenues and their numbers, and recommend the first Phase
 
 **Placeholder scan:** `<fill>` markers are measurement capture fields — the *deliverable* of a measurement task, not undefined behavior. Every step gives an exact command or exact DevTools action; no vague "profile it" instructions remain.
 
-**Type/name consistency:** File path `docs/superpowers/specs/2026-06-24-app-performance-findings.md` is identical across all five tasks. Section headers (`## Scenario 1/2/3`, `## Avenue verdicts & Phase 2 ranking`) created in Task 1 match those appended to in Tasks 2-5. The densest-dive id matches the spec.
+**Type/name consistency:** File path `docs/design/specs/2026-06-24-app-performance-findings.md` is identical across all five tasks. Section headers (`## Scenario 1/2/3`, `## Avenue verdicts & Phase 2 ranking`) created in Task 1 match those appended to in Tasks 2-5. The densest-dive id matches the spec.
 
 **Scope:** Phase 1 only, by design (the spec's measure-before-fix gate). Phase 2 fixes are deliberately out of scope and become separate writing-plans rounds grounded in this report.

@@ -18,7 +18,7 @@ localisation across 11 locales, `flutter_test` for widget tests.
 
 ## Global Constraints
 
-- Spec: `docs/superpowers/specs/2026-08-09-certification-wallet-card-photos-design.md`
+- Spec: `docs/design/specs/2026-08-09-certification-wallet-card-photos-design.md`
 - No emojis in code, comments, or documentation.
 - All Dart must pass `dart format .` with no changes.
 - `flutter analyze` must report no new issues. Infos are fatal in CI.

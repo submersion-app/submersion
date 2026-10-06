@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Design tokens for the shared form system. Values match the header-in-card
-/// design-freeze mockup (docs/superpowers/specs/assets/
+/// design-freeze mockup (docs/design/specs/assets/
 /// 2026-07-17-edit-form-chrome-redesign-mockup.html); tune here, never inline.
 abstract final class FormStyle {
   /// Corner radius of section groups and collapsed bars.

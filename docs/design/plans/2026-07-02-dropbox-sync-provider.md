@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart/Flutter, `http` (MockClient for tests), `crypto` (SHA-256 for PKCE), `flutter_secure_storage` via existing `FallbackSecureStorage`, Riverpod, existing l10n pipeline (`flutter gen-l10n`).
 
-**Spec:** `docs/superpowers/specs/2026-07-02-dropbox-sync-design.md` — read it before starting.
+**Spec:** `docs/design/specs/2026-07-02-dropbox-sync-design.md` — read it before starting.
 
 ## Global Constraints
 
@@ -104,7 +104,7 @@ Create `lib/core/services/cloud_storage/dropbox/dropbox_app.dart`:
 ///
 /// Empty until the Dropbox app is registered; the connect flow reports
 /// "not configured in this build" until it is filled in. Registration
-/// runbook: docs/superpowers/specs/2026-07-02-dropbox-sync-design.md.
+/// runbook: docs/design/specs/2026-07-02-dropbox-sync-design.md.
 const String dropboxAppKey = '';
 ```
 

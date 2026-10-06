@@ -8,14 +8,14 @@
 
 **Tech Stack:** Flutter, Dart 3 sealed classes and switch expressions, `intl`, `flutter gen-l10n` (11 locales), flutter_test.
 
-**Spec:** `docs/superpowers/specs/2026-09-26-validated-numeric-input-design.md`
+**Spec:** `docs/design/specs/2026-09-26-validated-numeric-input-design.md`
 
 ## Global Constraints
 
 - Worktree: every command and file path is inside `/Users/ericgriffin/repos/submersion-app/submersion/.claude/worktrees/github-issue-1900-644bed`. Never edit or commit in the main checkout. Use absolute paths.
 - Parser: smart parsing everywhere (`smartParseUserDecimal`, new `smartParseUserInt`), reached only through `readNumber`.
 - Unreadable input: Form pages block save; live fields keep the last value the diver typed and show the error. Nothing unreadable is ever written as 0 or null.
-- Blank input: each field keeps today's blank meaning, written as an explicit `NumberBlank()` case. Do not change any blank meaning; record questionable ones in `docs/superpowers/plans/2026-09-26-blank-input-audit.md` (created in Task 5, appended by later tasks).
+- Blank input: each field keeps today's blank meaning, written as an explicit `NumberBlank()` case. Do not change any blank meaning; record questionable ones in `docs/design/plans/2026-09-26-blank-input-audit.md` (created in Task 5, appended by later tasks).
 - Messages: `numberInput_invalidNumber(separator)`, `numberInput_invalidWholeNumber`, `numberInput_required`. A field-specific key is deleted only when its every remaining use is the pure "unreadable" case; keys carrying a range or semantic rule stay for that rule.
 - No em-dashes anywhere (code, comments, commits). No emojis. No mention of Claude or Anthropic in commits.
 - Commit messages: conventional style, no attribution trailers.
@@ -716,7 +716,7 @@ final o2 = switch (readNumber(_o2Controller.text)) {
 
 **Every migration task also:**
 - Replaces every `parseUserDecimal(` / `parseUserInt(` / `smartParseUserDecimal(` in its files with `readNumber` (grep the files before committing: `grep -n "parseUser\|smartParse" <files>` must print nothing).
-- Appends any questionable blank meaning to `docs/superpowers/plans/2026-09-26-blank-input-audit.md` as a row `| file:line | field | blank today | why it looks questionable |`.
+- Appends any questionable blank meaning to `docs/design/plans/2026-09-26-blank-input-audit.md` as a row `| file:line | field | blank today | why it looks questionable |`.
 - Updates existing tests that asserted the old message text ("Enter a valid number", "Enter a number", "Enter a valid amount") to the new text.
 - Runs the listed test directories, `dart format .`, and `flutter analyze` before committing.
 
@@ -728,7 +728,7 @@ final o2 = switch (readNumber(_o2Controller.text)) {
 - Modify: `lib/features/dive_log/presentation/pages/dive_edit_page.dart` (save path ~5190-5330, bulk edit ~1250-1275 and ~1910-1950 including `_bulkNumberField`, weight row ~4808, runtime-to-exit ~422, altitude warning ~5625-5640)
 - Modify: `lib/features/dive_log/presentation/widgets/edit_sections/the_dive_section.dart`, `conditions_section.dart` (delete `_decimalFilter`; add validators to the numeric `FormRow.text` rows)
 - Modify: `lib/features/dive_log/presentation/formatters/visibility_display.dart` (`parseVisibilityInput` returns via `readNumber`; keep its documented null for blank)
-- Create: `docs/superpowers/plans/2026-09-26-blank-input-audit.md` with header `| Site | Field | Blank today | Why questionable |` and `|---|---|---|---|`
+- Create: `docs/design/plans/2026-09-26-blank-input-audit.md` with header `| Site | Field | Blank today | Why questionable |` and `|---|---|---|---|`
 - Test: `test/features/dive_log/presentation/pages/dive_edit_page_test.dart`
 
 **Interfaces:**
@@ -773,7 +773,7 @@ Expected: all pass.
 ```bash
 dart format . && flutter analyze
 grep -n "parseUser\|smartParse" lib/features/dive_log/presentation/pages/dive_edit_page.dart lib/features/dive_log/presentation/widgets/edit_sections/*.dart lib/features/dive_log/presentation/formatters/visibility_display.dart
-git add lib/features/dive_log/presentation/pages/dive_edit_page.dart lib/features/dive_log/presentation/widgets/edit_sections/ lib/features/dive_log/presentation/formatters/visibility_display.dart test/features/dive_log/presentation/pages/dive_edit_page_test.dart docs/superpowers/plans/2026-09-26-blank-input-audit.md
+git add lib/features/dive_log/presentation/pages/dive_edit_page.dart lib/features/dive_log/presentation/widgets/edit_sections/ lib/features/dive_log/presentation/formatters/visibility_display.dart test/features/dive_log/presentation/pages/dive_edit_page_test.dart docs/design/plans/2026-09-26-blank-input-audit.md
 git commit -m "fix(dive-log): block saving a dive with unreadable numbers (#1900)"
 ```
 
@@ -863,7 +863,7 @@ Expected: all pass.
 
 ```bash
 dart format . && flutter analyze
-git add lib/features/dive_log/presentation/widgets/tank_editor.dart lib/features/dive_log/presentation/widgets/ccr_settings_panel.dart lib/features/dive_log/presentation/widgets/scr_settings_panel.dart test/features/dive_log/presentation/widgets/ docs/superpowers/plans/2026-09-26-blank-input-audit.md
+git add lib/features/dive_log/presentation/widgets/tank_editor.dart lib/features/dive_log/presentation/widgets/ccr_settings_panel.dart lib/features/dive_log/presentation/widgets/scr_settings_panel.dart test/features/dive_log/presentation/widgets/ docs/design/plans/2026-09-26-blank-input-audit.md
 git commit -m "fix(dive-log): show errors for unreadable tank and rebreather numbers (#1900)"
 ```
 

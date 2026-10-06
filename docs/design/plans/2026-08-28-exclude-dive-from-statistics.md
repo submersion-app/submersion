@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, raw `customSelect` SQL throughout.
 
-**Spec:** `docs/superpowers/specs/2026-08-28-exclude-dive-from-statistics-design.md`
+**Spec:** `docs/design/specs/2026-08-28-exclude-dive-from-statistics-design.md`
 
 ## Global Constraints
 
@@ -426,7 +426,7 @@ Create `lib/core/database/dive_stats_scope.dart`:
 /// practice dive still cycled the regulator, and a dive the diver linked to a
 /// course requirement was linked on purpose.
 ///
-/// See `docs/superpowers/specs/2026-08-28-exclude-dive-from-statistics-design.md`.
+/// See `docs/design/specs/2026-08-28-exclude-dive-from-statistics-design.md`.
 class DiveStatsScope {
   const DiveStatsScope._();
 

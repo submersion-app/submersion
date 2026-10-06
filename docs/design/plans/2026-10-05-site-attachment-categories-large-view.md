@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.47, Riverpod 3, Drift (SQLite), pdfrx, flutter_test, ARB l10n (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-10-05-site-attachment-categories-large-view-design.md`
+**Spec:** `docs/design/specs/2026-10-05-site-attachment-categories-large-view-design.md`
 
 ## Global Constraints
 

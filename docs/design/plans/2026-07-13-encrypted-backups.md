@@ -22,7 +22,7 @@
 - **Run specific test files** during TDD (not the whole suite each step) to avoid timeouts; run the full suite only in the final task.
 - **Commit** at the end of each task with a conventional-commit message; do not add a co-author trailer.
 
-**Reference the approved spec:** `docs/superpowers/specs/2026-07-13-encrypted-backups-design.md`.
+**Reference the approved spec:** `docs/design/specs/2026-07-13-encrypted-backups-design.md`.
 
 ---
 

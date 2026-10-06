@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart 3 (records, pattern matching), `equatable`, `flutter_test`. No Riverpod, Drift or widgets in this PR.
 
-**Spec:** `docs/superpowers/specs/2026-09-18-dpv-mission-planner-design.md` (issue #2086). Read the spec first; the plan argues from it.
+**Spec:** `docs/design/specs/2026-09-18-dpv-mission-planner-design.md` (issue #2086). Read the spec first; the plan argues from it.
 
 ## Global Constraints
 

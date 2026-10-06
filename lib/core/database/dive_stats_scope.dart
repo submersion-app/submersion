@@ -40,7 +40,7 @@
 /// course requirement was linked on purpose.
 ///
 /// See
-/// `docs/superpowers/specs/2026-08-28-exclude-dive-from-statistics-design.md`.
+/// `docs/design/specs/2026-08-28-exclude-dive-from-statistics-design.md`.
 class DiveStatsScope {
   const DiveStatsScope._();
 

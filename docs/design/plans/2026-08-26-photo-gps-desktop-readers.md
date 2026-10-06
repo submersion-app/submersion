@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart `dart:io` `RandomAccessFile` seeks; `package:image ^4.3.0` (resolved 4.9.1) for JPEG EXIF and `ExifData.gpsIfd`; `flutter_test`; `--dart-define` gated real-sample tests.
 
-**Spec:** `docs/superpowers/specs/2026-08-26-photo-gps-site-suggestions-design.md` (Section 2). Plan B (`2026-08-26-photo-gps-site-suggestions.md`) implements the rest of the spec and does not depend on this plan.
+**Spec:** `docs/design/specs/2026-08-26-photo-gps-site-suggestions-design.md` (Section 2). Plan B (`2026-08-26-photo-gps-site-suggestions.md`) implements the rest of the spec and does not depend on this plan.
 
 ## Global Constraints
 

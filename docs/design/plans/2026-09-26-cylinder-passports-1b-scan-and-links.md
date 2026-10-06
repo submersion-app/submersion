@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.47 (CI pin), Riverpod 3 (hand-written providers), go_router 17, Drift, `mobile_scanner` ^7.4.2, `app_links` ^7.2.1, `flutter gen-l10n`, `xml` for platform-file tests, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md`, sections 7, 9, 13.1, 13.2, 13.4, 13.5, 16, 19 and the "1b Scan and links" row of section 17. Phase 1a (PR #2364) is merged; its code under `lib/features/cylinder_passports/` is the base.
+**Spec:** `docs/design/specs/2026-09-25-smart-cylinder-passports-design.md`, sections 7, 9, 13.1, 13.2, 13.4, 13.5, 16, 19 and the "1b Scan and links" row of section 17. Phase 1a (PR #2364) is merged; its code under `lib/features/cylinder_passports/` is the base.
 
 **Decisions made while planning (2026-09-26, by the maintainer):**
 - Scanning a tag in the dive editor fills the tank's spec and gas mix and adds the cylinder to the dive's **gear list** (`_addGear`). It never writes `dive_tanks.equipment_id`, which stays owned by the transmitter registry. This replaces the spec's "a hit sets the tank's equipmentId" (section 7.2).
@@ -69,7 +69,7 @@ Inputs the spec implies and no obvious test covers, most likely to bite first. E
 | `lib/features/dive_log/presentation/widgets/tank_editor.dart`, `lib/features/dive_log/presentation/widgets/edit_sections/tank_row.dart` (modify) | tank card Scan |
 | `lib/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart` (create) | link source seam, filtering, dedupe, queue-until-ready |
 | `lib/app.dart` (modify) | wires the dispatcher |
-| `docs/import-formats/cylinder-passport-tag.md`, the spec, `docs/superpowers/specs/2026-09-26-cylinder-passports-1b-device-checklist.md` (modify, create) | docs and the device checklist |
+| `docs/import-formats/cylinder-passport-tag.md`, the spec, `docs/design/specs/2026-09-26-cylinder-passports-1b-device-checklist.md` (modify, create) | docs and the device checklist |
 
 ---
 
@@ -3410,8 +3410,8 @@ Refs #2335"
 
 **Files:**
 - Modify: `docs/import-formats/cylinder-passport-tag.md`
-- Modify: `docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md` (sections 7.2 and 13.2)
-- Create: `docs/superpowers/specs/2026-09-26-cylinder-passports-1b-device-checklist.md`
+- Modify: `docs/design/specs/2026-09-25-smart-cylinder-passports-design.md` (sections 7.2 and 13.2)
+- Create: `docs/design/specs/2026-09-26-cylinder-passports-1b-device-checklist.md`
 
 **Interfaces:** none.
 
@@ -3454,13 +3454,13 @@ and delete the bullet that begins "Whether Flutter hands the fragment through in
 
 - [ ] **Step 3: Write the device checklist**
 
-Create `docs/superpowers/specs/2026-09-26-cylinder-passports-1b-device-checklist.md`:
+Create `docs/design/specs/2026-09-26-cylinder-passports-1b-device-checklist.md`:
 
 ```markdown
 # Cylinder passports 1b: device checklist
 
 **Issue:** #2335
-**Spec:** `docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md`
+**Spec:** `docs/design/specs/2026-09-25-smart-cylinder-passports-design.md`
 
 Everything here needs real hardware; CI runs none of it. Record the device,
 OS version and build for each line.
@@ -3514,11 +3514,11 @@ OS version and build for each line.
 
 - [ ] **Step 4: Scan and commit**
 
-Run: `grep -nP "\x{2014}|\x{2013}" docs/import-formats/cylinder-passport-tag.md docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md docs/superpowers/specs/2026-09-26-cylinder-passports-1b-device-checklist.md`
+Run: `grep -nP "\x{2014}|\x{2013}" docs/import-formats/cylinder-passport-tag.md docs/design/specs/2026-09-25-smart-cylinder-passports-design.md docs/design/specs/2026-09-26-cylinder-passports-1b-device-checklist.md`
 Expected: no output.
 
 ```bash
-git add docs/import-formats/cylinder-passport-tag.md docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md docs/superpowers/specs/2026-09-26-cylinder-passports-1b-device-checklist.md
+git add docs/import-formats/cylinder-passport-tag.md docs/design/specs/2026-09-25-smart-cylinder-passports-design.md docs/design/specs/2026-09-26-cylinder-passports-1b-device-checklist.md
 git commit -m "docs: cylinder passport scanning, link intake decisions, device checklist
 
 Refs #2335"
@@ -3602,7 +3602,7 @@ app-site-association and assetlinks files for links to open the app.
 
 - [x] `flutter test` passes
 - [x] `flutter analyze` passes
-- [ ] Device checklist: `docs/superpowers/specs/2026-09-26-cylinder-passports-1b-device-checklist.md`
+- [ ] Device checklist: `docs/design/specs/2026-09-26-cylinder-passports-1b-device-checklist.md`
 ```
 
 Then bind the PR in the desktop app (`get_status`, then `bind_pr` if not reported). Do not poll CI.

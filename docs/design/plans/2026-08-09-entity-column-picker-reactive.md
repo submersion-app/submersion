@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.44.4 / Dart 3.12.2, Riverpod (legacy `StateNotifierProvider`), Material 3, `flutter_test` widget tests.
 
-**Spec:** `docs/superpowers/specs/2026-08-09-entity-column-picker-reactive-design.md`
+**Spec:** `docs/design/specs/2026-08-09-entity-column-picker-reactive-design.md`
 
 ## Global Constraints
 

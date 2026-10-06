@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.47, Riverpod, Drift (SQLite), `shared_preferences`, `intl`/`flutter gen-l10n`.
 
-**Spec:** `docs/superpowers/specs/2026-09-09-dive-list-trip-grouping-design.md`
+**Spec:** `docs/design/specs/2026-09-09-dive-list-trip-grouping-design.md`
 
 ## Global Constraints
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart/Flutter, Drift (SQLite ORM, companions), Riverpod, flutter_test, flutter gen-l10n.
 
-**Spec:** `docs/superpowers/specs/2026-07-02-combine-dives-design.md`
+**Spec:** `docs/design/specs/2026-07-02-combine-dives-design.md`
 
 ## Global Constraints
 

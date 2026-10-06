@@ -574,13 +574,13 @@ lib/
 - **flutter_map:** OpenStreetMap integration
 - **libdivecomputer:** FFI bindings for dive computer communication
 
-See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed documentation.
+See the [architecture guide](docs/developer/architecture.md) for detailed documentation.
 
 </details>
 
 ## Roadmap
 
-See [FEATURE_ROADMAP.md](docs/FEATURE_ROADMAP.md) for what is built, what is in progress, and what is planned.
+See the [roadmap](docs/contributing/roadmap.md) for what is built, what is in progress, and what is planned.
 
 ## Contributing
 

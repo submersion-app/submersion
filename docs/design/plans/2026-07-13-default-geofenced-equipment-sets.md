@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- **Spec:** `docs/superpowers/specs/2026-07-13-default-geofenced-equipment-sets-design.md`.
+- **Spec:** `docs/design/specs/2026-07-13-default-geofenced-equipment-sets-design.md`.
 - **Schema migration:** bump `currentSchemaVersion` (currently `108`) to the next free version — **use `109` on this branch**; if PR #584 (buddy-cert, reserves v109/v110) lands first, rebase and bump to the next free number. Append the new version to the `migrationVersions` list. Add an idempotent `onUpgrade` block AND a `beforeOpen` backstop (parallel-branch collision self-heal).
 - **Drift codegen after any schema change:** `dart run build_runner build --delete-conflicting-outputs`.
 - **Formatting:** all Dart must pass `dart format .` with no changes (pre-push enforces `dart format --set-exit-if-changed`, `flutter analyze`, `flutter test`).

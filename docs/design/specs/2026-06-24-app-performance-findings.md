@@ -1,8 +1,8 @@
 # App Performance — Phase 1 Findings
 
 **Date:** 2026-06-24
-**Spec:** docs/superpowers/specs/2026-06-24-app-performance-investigation-design.md
-**Plan:** docs/superpowers/plans/2026-06-24-app-performance-phase1-measurement.md
+**Spec:** docs/design/specs/2026-06-24-app-performance-investigation-design.md
+**Plan:** docs/design/plans/2026-06-24-app-performance-phase1-measurement.md
 **Mode:** profile, macOS
 
 ## Environment

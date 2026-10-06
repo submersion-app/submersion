@@ -1,7 +1,7 @@
 // Failing widget tests for the URL tab + sign-in sheet (Phase 3a, Task 13).
 //
 // Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3a.md`.
+// `docs/design/plans/2026-04-28-media-source-extension-phase3a.md`.
 //
 // These tests intentionally fail at compile time until Task 14 lands the
 // providers (`url_tab_providers.dart`) and Task 15 lands the widget

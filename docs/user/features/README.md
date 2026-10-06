@@ -83,7 +83,7 @@ Core functionality:
 - Dive planning tools
 - Video integration
 
-[View full roadmap &rarr;](contributing/roadmap.md)
+[View full roadmap &rarr;](https://github.com/submersion-app/submersion/blob/main/docs/contributing/roadmap.md)
 
 ## Feature Deep Dives
 

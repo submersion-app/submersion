@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Drift ORM (codegen via build_runner), Riverpod, per-row HLC sync.
 
-**Spec:** `docs/superpowers/specs/2026-07-02-buddy-instructor-integration-design.md`
+**Spec:** `docs/design/specs/2026-07-02-buddy-instructor-integration-design.md`
 
 ## Global Constraints
 
@@ -1628,4 +1628,4 @@ git commit -m "test: verification fixes for buddy/instructor integration (#395)"
 
 - Push with `--no-verify` (the worktree pre-push hook runs against the main tree and reports false failures).
 - PR title suggestion: `feat: buddy professional roles and instructor picker for certifications/courses (#395)`; body should reference the spec and note the v94 migration.
-- Do NOT delete or modify `docs/superpowers/specs/2026-07-02-buddy-instructor-integration-design.md`.
+- Do NOT delete or modify `docs/design/specs/2026-07-02-buddy-instructor-integration-design.md`.

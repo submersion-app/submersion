@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Drift over SQLite, the in-house changeset sync (`SyncRepository`), `flutter_test` with in-memory databases, the two-device media harness.
 
-**Spec:** `docs/superpowers/specs/2026-09-18-media-sync-program-design.md`, section 5.4 (and 5.3 for the enrichment tombstones). Sub-issue #2108, closes #1954, part of #2090. Stacked on slice 4 (#2239).
+**Spec:** `docs/design/specs/2026-09-18-media-sync-program-design.md`, section 5.4 (and 5.3 for the enrichment tombstones). Sub-issue #2108, closes #1954, part of #2090. Stacked on slice 4 (#2239).
 
 > **Revised in review (PR #2289).** Review moved the plan inside the delete's
 > transaction (after Step 0, before any delete) so it is atomic with the
@@ -48,7 +48,7 @@ Two traps shape this plan. An implementer who skips this section will fall into 
 - Create `test/features/divers/data/repositories/diver_delete_media_cascade_test.dart`: the diver delete end to end on one device.
 - Modify `test/helpers/two_device_media_harness.dart`: `deleteDiver` passes this device's queue.
 - Modify `test/features/media/two_device/deletion_scenarios_test.dart`: unskip S9.
-- Modify `docs/superpowers/specs/2026-09-18-media-sync-program-design.md`: section 5.4 records the signer link and the enrichment tombstones.
+- Modify `docs/design/specs/2026-09-18-media-sync-program-design.md`: section 5.4 records the signer link and the enrichment tombstones.
 
 ---
 
@@ -810,7 +810,7 @@ git commit -m "feat(media): plan a cascade over several dying parent sets at onc
 - Modify: `lib/features/divers/data/repositories/diver_repository.dart` (constructor near line 45; `deleteDiverWithReassignment` near line 330)
 - Modify: `lib/features/media/data/repositories/media_repository.dart` (`deleteMultipleMedia`)
 - Modify: `lib/features/media_store/data/media_deletion_coordinator.dart` (`deleteMediaItems`, `_delete`)
-- Modify: `docs/superpowers/specs/2026-09-18-media-sync-program-design.md` (section 5.4)
+- Modify: `docs/design/specs/2026-09-18-media-sync-program-design.md` (section 5.4)
 - Test: `test/features/divers/data/repositories/diver_delete_media_cascade_test.dart`
 
 **Interfaces:**
@@ -1594,7 +1594,7 @@ Expected: all pass. The census splits `diver_repository.dart` into one chunk per
 
 - [ ] **Step 8: Record the scope in the spec**
 
-In `docs/superpowers/specs/2026-09-18-media-sync-program-design.md`, section 5.4, after the sentence ending `Originals are never touched.`, insert:
+In `docs/design/specs/2026-09-18-media-sync-program-design.md`, section 5.4, after the sentence ending `Originals are never touched.`, insert:
 
 ```markdown
 The diver's buddies go too, and `media.signer_id` is also `ON DELETE SET
@@ -1610,7 +1610,7 @@ the plan classifies every row against all the dying sets at once.
 - [ ] **Step 9: Commit**
 
 ```bash
-git add lib/features/divers/data/repositories/diver_repository.dart lib/features/media/data/repositories/media_repository.dart lib/features/media_store/data/media_deletion_coordinator.dart test/features/divers/data/repositories/diver_delete_media_cascade_test.dart docs/superpowers/specs/2026-09-18-media-sync-program-design.md
+git add lib/features/divers/data/repositories/diver_repository.dart lib/features/media/data/repositories/media_repository.dart lib/features/media_store/data/media_deletion_coordinator.dart test/features/divers/data/repositories/diver_delete_media_cascade_test.dart docs/design/specs/2026-09-18-media-sync-program-design.md
 git commit -m "fix(divers): a diver delete cascades their media like the single-entity deletes"
 ```
 

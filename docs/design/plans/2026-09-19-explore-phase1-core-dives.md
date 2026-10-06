@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.47 / Dart ^3.10, Riverpod (StateProvider, FutureProvider, StateNotifier), Drift (main DB and local cache DB), fl_chart via `DiveTrendChart`, Swift (FoundationModels, iOS 26 / macOS 26), Kotlin (`com.google.mlkit:genai-prompt`).
 
-**Spec:** `docs/superpowers/specs/2026-09-19-explore-natural-language-search-design.md`
+**Spec:** `docs/design/specs/2026-09-19-explore-natural-language-search-design.md`
 
 ## Global Constraints
 
@@ -5781,7 +5781,7 @@ git commit -m "feat(explore): route, gated entry point and shortcut"
 ### Task 17: Whole-project verification, manual smoke, and spec deviations
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-09-19-explore-natural-language-search-design.md` (append a `## Deviations recorded during implementation` section)
+- Modify: `docs/design/specs/2026-09-19-explore-natural-language-search-design.md` (append a `## Deviations recorded during implementation` section)
 - Modify: `docs/releases/` is NOT touched here; release notes are written at release time.
 
 - [ ] **Step 1: Format and analyze the whole project**
@@ -5825,7 +5825,7 @@ Append to the spec:
 - [ ] **Step 5: Commit**
 
 ```bash
-git add docs/superpowers/specs/2026-09-19-explore-natural-language-search-design.md
+git add docs/design/specs/2026-09-19-explore-natural-language-search-design.md
 git commit -m "docs(explore): record phase 1 implementation deviations"
 ```
 

@@ -4,7 +4,7 @@
 
 **Goal:** Replace the fl_chart planner chart with a CustomPainter "Precision Instrument" chart (stop tags, ceiling no-go band, gas flags, mean-depth line), plus the shared planner widget vocabulary, inside the existing layout.
 
-**Architecture:** A new `lib/features/planner/presentation/chart/` family: pure `PlanChartGeometry` (mapping + hit-testing), `PlanChartPalette` (theme-derived colors), `StopTagLayouter` (tag collision avoidance), and three painters split by repaint frequency (backdrop / series / overlay), composed by a `PlanProfileChart` ConsumerWidget. Data flow is unchanged: the chart consumes `planCanvasSeriesProvider`, `deviationGhostSeriesProvider`, `planBailoutProvider`, `scrubTimeProvider`. Spec: docs/superpowers/specs/2026-07-17-planner-ui-redesign-design.md section 6.1.
+**Architecture:** A new `lib/features/planner/presentation/chart/` family: pure `PlanChartGeometry` (mapping + hit-testing), `PlanChartPalette` (theme-derived colors), `StopTagLayouter` (tag collision avoidance), and three painters split by repaint frequency (backdrop / series / overlay), composed by a `PlanProfileChart` ConsumerWidget. Data flow is unchanged: the chart consumes `planCanvasSeriesProvider`, `deviationGhostSeriesProvider`, `planBailoutProvider`, `scrubTimeProvider`. Spec: docs/design/specs/2026-07-17-planner-ui-redesign-design.md section 6.1.
 
 **Tech Stack:** Flutter CustomPainter, Riverpod 3, existing planner providers. No new dependencies. fl_chart remains (other features still use it).
 

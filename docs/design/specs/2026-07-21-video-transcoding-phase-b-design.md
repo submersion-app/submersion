@@ -2,7 +2,7 @@
 
 Status: design approved (brainstorm 2026-07-21). Phase B of the Adjustable
 Media Upload Quality feature
-(`docs/superpowers/specs/2026-07-20-adjustable-media-upload-quality-design.md`,
+(`docs/design/specs/2026-07-20-adjustable-media-upload-quality-design.md`,
 Phase A shipped as PR #666 on `worktree-media-upload-quality`). Built on branch
 `worktree-media-upload-quality-phase-b`, stacked on Phase A.
 

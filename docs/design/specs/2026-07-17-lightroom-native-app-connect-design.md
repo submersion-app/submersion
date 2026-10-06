@@ -2,7 +2,7 @@
 
 Date: 2026-07-17
 Status: Approved pending user review
-Amends: `docs/superpowers/specs/2026-07-11-lightroom-auto-linking-design.md` — the
+Amends: `docs/design/specs/2026-07-11-lightroom-auto-linking-design.md` — the
 auth/credential sections only. The acquisition-source architecture, scan, matching,
 enrichment, and Media Store integration from that spec are unchanged.
 

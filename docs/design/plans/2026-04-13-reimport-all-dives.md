@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Riverpod, go_router, Material 3, Drift, Mockito, flutter_test.
 
-**Reference spec:** `docs/superpowers/specs/2026-04-13-reimport-all-dives-design.md`
+**Reference spec:** `docs/design/specs/2026-04-13-reimport-all-dives-design.md`
 
 ---
 
@@ -1097,7 +1097,7 @@ gh pr create --title "feat: re-import all dives from dive computer (#206)" --bod
 Closes #206.
 
 ## Design
-Full spec at `docs/superpowers/specs/2026-04-13-reimport-all-dives-design.md`.
+Full spec at `docs/design/specs/2026-04-13-reimport-all-dives-design.md`.
 
 ## Test plan
 - [x] `flutter test test/features/import_wizard/ test/features/dive_computer/ test/core/router/` passes

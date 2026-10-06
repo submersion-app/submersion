@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.41 + Material 3, Riverpod 2.x, `file_picker`, `native_exif`, `flutter_secure_storage`, Drift (no schema changes — Phase 1 already added `localPath` and `bookmarkRef` columns), Swift on iOS/macOS, Kotlin on Android.
 
-**Spec:** [docs/superpowers/specs/2026-04-25-media-source-extension-design.md](../specs/2026-04-25-media-source-extension-design.md) (section 5).
+**Spec:** [docs/design/specs/2026-04-25-media-source-extension-design.md](../specs/2026-04-25-media-source-extension-design.md) (section 5).
 
 **No schema migration needed** — Phase 1's v72 migration already added `localPath`, `bookmarkRef`, `originDeviceId` and the rest. Phase 2 fills in the user-facing flow that produces those rows.
 
@@ -18,7 +18,7 @@
 
 Read these before starting:
 
-- [docs/superpowers/specs/2026-04-25-media-source-extension-design.md](../specs/2026-04-25-media-source-extension-design.md) section 5 — Phase 2 spec.
+- [docs/design/specs/2026-04-25-media-source-extension-design.md](../specs/2026-04-25-media-source-extension-design.md) section 5 — Phase 2 spec.
 - [lib/features/media/data/resolvers/local_file_resolver.dart](../../lib/features/media/data/resolvers/local_file_resolver.dart) — Phase 1 stub to replace.
 - [lib/features/media/data/services/local_media_platform.dart](../../lib/features/media/data/services/local_media_platform.dart) — Dart wrapper for the native channel.
 - [lib/features/media/data/services/trip_media_scanner.dart](../../lib/features/media/data/services/trip_media_scanner.dart) — existing matcher logic; Phase 2 extracts it into `DivePhotoMatcher`.
@@ -2586,7 +2586,7 @@ If the smoke tests surfaced minor issues, fix them and commit as `chore(media): 
 
 ---
 
-**Plan complete and saved to `docs/superpowers/plans/2026-04-27-media-source-extension-phase2.md`. Two execution options:**
+**Plan complete and saved to `docs/design/plans/2026-04-27-media-source-extension-phase2.md`. Two execution options:**
 
 **1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration
 

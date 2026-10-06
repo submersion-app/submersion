@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift ORM, raw sqlite3 (for version pre-check), Material 3
 
-**Spec:** `docs/superpowers/specs/2026-04-08-startup-migration-progress-design.md`
+**Spec:** `docs/design/specs/2026-04-08-startup-migration-progress-design.md`
 **Issue:** [#186](https://github.com/submersion-app/submersion/issues/186)
 
 ---

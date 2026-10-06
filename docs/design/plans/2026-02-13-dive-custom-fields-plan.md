@@ -8,7 +8,7 @@
 
 **Tech Stack:** Drift ORM, Riverpod, Flutter Material 3, xml package for UDDF, pdf package for PDF, csv package for CSV.
 
-**Design Doc:** `docs/plans/2026-02-13-dive-custom-fields-design.md`
+**Design Doc:** `docs/design/specs/2026-02-13-dive-custom-fields-design.md`
 
 ---
 

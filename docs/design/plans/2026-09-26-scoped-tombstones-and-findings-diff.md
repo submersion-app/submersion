@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Drift (SQLite), the in-repo changeset sync (`lib/core/services/sync/`), `uuid` ^4.5.
 
-**Spec:** `docs/superpowers/specs/2026-09-26-scoped-tombstones-and-findings-diff-design.md`
+**Spec:** `docs/design/specs/2026-09-26-scoped-tombstones-and-findings-diff-design.md`
 
 ## Global Constraints
 

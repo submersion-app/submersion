@@ -342,8 +342,8 @@ Run:
 
 ```bash
 git diff main...HEAD -- \
-  docs/superpowers/specs/2026-08-11-fullscreen-profile-phone-readout-close-design.md \
-  docs/superpowers/plans/2026-08-11-fullscreen-profile-phone-readout-close.md \
+  docs/design/specs/2026-08-11-fullscreen-profile-phone-readout-close-design.md \
+  docs/design/plans/2026-08-11-fullscreen-profile-phone-readout-close.md \
   lib/features/dive_log/presentation/pages/fullscreen_profile_page.dart \
   lib/features/dive_log/presentation/widgets/draggable_readout_card.dart \
   test/features/dive_log/presentation/pages/fullscreen_profile_page_test.dart \

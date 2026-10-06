@@ -8,7 +8,7 @@
 
 **Tech Stack:** Drift, Riverpod (project hub `core/providers/provider.dart`), flutter_map, the existing sync serializer/service/repository trio.
 
-**Spec:** `docs/superpowers/specs/2026-08-16-site-features-design.md`
+**Spec:** `docs/design/specs/2026-08-16-site-features-design.md`
 
 ## Global Constraints
 

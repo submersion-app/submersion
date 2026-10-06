@@ -5,7 +5,7 @@ Status: approved design, implementation plan pending
 Branch: ericgriffin/github-issue-2187-phase2
 Issue: #2187 (this PR body says `Closes #2187`)
 Phase 1: merged 2026-09-20 as 06d62e0b58f (PR #2198)
-Phase 1 design: `docs/superpowers/specs/2026-09-19-divinglog-sqlite-import-design.md`
+Phase 1 design: `docs/design/specs/2026-09-19-divinglog-sqlite-import-design.md`
 
 ## Problem
 

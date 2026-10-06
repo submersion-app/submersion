@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Riverpod 3, Drift ORM, mockito for generated mocks, `flutter_test`.
 
-**Design spec:** `docs/superpowers/specs/2026-07-23-media-local-upload-badge-design.md`
+**Design spec:** `docs/design/specs/2026-07-23-media-local-upload-badge-design.md`
 
 ## Global Constraints
 

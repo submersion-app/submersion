@@ -4,7 +4,7 @@
 family and Aladin Square, Suunto EON Steel family) under the USB transfer mode
 on macOS, Windows and Linux (issue #1271).
 
-**Spec:** `docs/superpowers/specs/2026-08-29-usb-hid-transport-design.md`
+**Spec:** `docs/design/specs/2026-08-29-usb-hid-transport-design.md`
 
 **Architecture:** libdivecomputer is opened through `dc_custom_open` with a
 plugin-owned eleven-slot callback table, so a new byte pipe needs no change to

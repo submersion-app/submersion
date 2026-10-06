@@ -1360,7 +1360,7 @@ Refs #974."
 
 **Files:**
 - Modify: `test/architecture/provider_change_tick_test.dart`
-- Modify: `docs/superpowers/specs/2026-08-11-provider-change-tick-enforcement-design.md` (record the final counts)
+- Modify: `docs/design/specs/2026-08-11-provider-change-tick-enforcement-design.md` (record the final counts)
 
 - [ ] **Step 1: Delete `_knownViolations` and simplify the assertion**
 

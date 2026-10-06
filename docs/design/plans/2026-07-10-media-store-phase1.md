@@ -4,7 +4,7 @@
 
 **Goal:** A photo attached on device A displays on device B through a user-configured S3 bucket: schema v103, `MediaObjectStore` + S3 adapter, transfer queue, upload-on-attach, store-fallback resolution with a content-addressed cache, and a Media Storage settings page.
 
-**Architecture:** New `media_store` subsystem parallel to sync (spec: `docs/superpowers/specs/2026-07-10-s3-media-storage-design.md`, sections 5-10, 13-14, Phase 1 of section 17). Bytes live at content-addressed keys (`smv1/objects/<aa>/<sha256>.<ext>`) in the user's bucket; the synced `media` row carries `content_hash` + `remote_uploaded_at` stamps; display falls back from the native resolver to a store-backed cache. Photos only, single-shot transfers (no multipart/resume — that is Phase 3); thumbnails, badges, backfill are Phase 2.
+**Architecture:** New `media_store` subsystem parallel to sync (spec: `docs/design/specs/2026-07-10-s3-media-storage-design.md`, sections 5-10, 13-14, Phase 1 of section 17). Bytes live at content-addressed keys (`smv1/objects/<aa>/<sha256>.<ext>`) in the user's bucket; the synced `media` row carries `content_hash` + `remote_uploaded_at` stamps; display falls back from the native resolver to a store-backed cache. Photos only, single-shot transfers (no multipart/resume — that is Phase 3); thumbnails, badges, backfill are Phase 2.
 
 **Tech Stack:** Flutter/Dart, Drift (two databases), Riverpod, existing `S3ApiClient`/`SigV4Signer`, `crypto` (SHA-256), `flutter_secure_storage` via `FallbackSecureStorage`, `shared_preferences`, go_router.
 

@@ -16,7 +16,7 @@ coalesced to a non-null value.
 **Tech Stack:** Flutter, Riverpod (`StateNotifierProvider`, `StateProvider`),
 Drift ORM over SQLite, `flutter_test` widget tests, ARB localization.
 
-**Spec:** `docs/superpowers/specs/2026-08-23-media-filter-sort-design.md`
+**Spec:** `docs/design/specs/2026-08-23-media-filter-sort-design.md`
 
 ## Global Constraints
 

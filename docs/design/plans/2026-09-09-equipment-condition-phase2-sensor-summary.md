@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, `compute` isolates, fl_chart, flutter_localizations with ARB files (11 locales), flutter_test.
 
-**Spec:** `docs/superpowers/specs/2026-09-09-equipment-condition-intelligence-design.md` (sections Architecture, Data model for `dive_sensor_summaries`, Sensor summary, Surfaces: dive profile chart). This plan is phase 2 of four.
+**Spec:** `docs/design/specs/2026-09-09-equipment-condition-intelligence-design.md` (sections Architecture, Data model for `dive_sensor_summaries`, Sensor summary, Surfaces: dive profile chart). This plan is phase 2 of four.
 
 **Decisions taken for this phase (asked and answered 2026-09-09):** stacked PRs, one per phase, phase 2 branches from main; inline execution; one plan per phase written just before building it; existing libraries are backfilled by a background sweep at startup plus a manual "Rebuild sensor summaries" action in the Equipment condition settings section; the refresh hook is its own scheduler called beside each quality-scan call; the chart gains a list of secondary highlight ranges and keeps the single selected-finding range.
 

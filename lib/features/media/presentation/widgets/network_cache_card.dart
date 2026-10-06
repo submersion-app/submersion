@@ -1,5 +1,5 @@
 // Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3c.md`
+// `docs/design/plans/2026-04-28-media-source-extension-phase3c.md`
 // Task 8. The widget reads `cacheSizeProvider` from the Phase 3c Task 5
 // providers file and exposes a confirmation dialog before invoking
 // `CachedNetworkImageDiagnostics.clearCache()`.

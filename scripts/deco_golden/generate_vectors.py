@@ -3,7 +3,7 @@
 
 Independent ZH-L16C + gradient-factor implementation. Semantics are pinned
 to the contract in
-docs/superpowers/plans/2026-07-05-dive-planner-phase1-engine.md (Task 9).
+docs/design/plans/2026-07-05-dive-planner-phase1-engine.md (Task 9).
 Regenerate with:
 
     python3 scripts/deco_golden/generate_vectors.py \

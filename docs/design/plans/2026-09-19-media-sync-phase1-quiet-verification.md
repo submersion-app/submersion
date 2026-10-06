@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (SQLite), the in-house changeset sync engine (`SyncRepository`, fact clocks from slice 3), `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-09-18-media-sync-program-design.md`, sections 5.2 and 5.3 (both amended in the same change as this plan).
+**Spec:** `docs/design/specs/2026-09-18-media-sync-program-design.md`, sections 5.2 and 5.3 (both amended in the same change as this plan).
 
 ## Global Constraints
 

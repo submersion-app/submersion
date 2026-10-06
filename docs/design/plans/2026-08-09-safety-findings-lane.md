@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, fl_chart, Riverpod, existing Submersion widgets/providers.
 
-**Spec:** `docs/superpowers/specs/2026-08-09-safety-findings-lane-design.md`
+**Spec:** `docs/design/specs/2026-08-09-safety-findings-lane-design.md`
 
 ## Global Constraints
 

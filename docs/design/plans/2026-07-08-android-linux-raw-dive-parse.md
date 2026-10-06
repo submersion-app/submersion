@@ -8,7 +8,7 @@
 
 **Tech Stack:** C++/JNI (Android NDK, CMake), Kotlin (Pigeon host API), C++/GObject (Flutter Linux embedder), AndroidX instrumented tests.
 
-**Spec:** `docs/superpowers/specs/2026-07-08-android-linux-raw-dive-parse-design.md`
+**Spec:** `docs/design/specs/2026-07-08-android-linux-raw-dive-parse-design.md`
 
 ## Global Constraints
 

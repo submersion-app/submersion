@@ -21,7 +21,7 @@ asserts a `Center` placeholder for the URL tab. Phase 3a swaps that
 placeholder for a real URL bulk-import tab.
 
 **Phase 3a covers spec deliverables 1 (URLs mode only), 2, 5, 7, and 9 from
-`docs/superpowers/specs/2026-04-25-media-source-extension-design.md` lines
+`docs/design/specs/2026-04-25-media-source-extension-design.md` lines
 428–552.** Manifest mode (deliverable 1 Manifest, 4, 6) is Phase 3b. Settings
 page (deliverable 3) and HTTP scan (deliverable 8) are Phase 3c.
 
@@ -31,7 +31,7 @@ so 3b can drop in without UI rewiring.
 
 ## Background reading
 
-- Spec: `docs/superpowers/specs/2026-04-25-media-source-extension-design.md`
+- Spec: `docs/design/specs/2026-04-25-media-source-extension-design.md`
   lines 428–552.
 - Phase 1 schema: `lib/core/database/database.dart` (only `network_credential_hosts`
   + four `media` columns; one grep allowed if anything looks off).

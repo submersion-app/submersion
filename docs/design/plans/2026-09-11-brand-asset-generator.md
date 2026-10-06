@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.10+ (3.14 locally, `python3.14`; system `python3` is 3.9 and too old), Pillow >= 10.1 (float font sizes), `unittest`, GitHub Actions.
 
-**Spec:** `docs/superpowers/specs/2026-09-11-brand-asset-generator-design.md`
+**Spec:** `docs/design/specs/2026-09-11-brand-asset-generator-design.md`
 
 ## Global Constraints
 
@@ -1575,6 +1575,6 @@ Expected: 16 files in `assets/brand/` (about 2 MB), all tests PASS.
 - [x] **Step 5: Commit**
 
 ```bash
-git add .gitignore scripts/brand/README.md scripts/brand/generate_brand_assets.py scripts/brand/generate_brand_assets_test.py docs/superpowers/specs/2026-09-11-brand-asset-generator-design.md assets/brand/*.png
+git add .gitignore scripts/brand/README.md scripts/brand/generate_brand_assets.py scripts/brand/generate_brand_assets_test.py docs/design/specs/2026-09-11-brand-asset-generator-design.md assets/brand/*.png
 git commit -m "feat(brand): commit the generated brand images under assets/brand"
 ```

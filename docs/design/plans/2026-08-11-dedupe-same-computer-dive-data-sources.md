@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart, Drift (SQLite ORM), `flutter_test` with an in-memory `AppDatabase`.
 
-Spec: `docs/superpowers/specs/2026-08-11-dedupe-same-computer-dive-data-sources-design.md`
+Spec: `docs/design/specs/2026-08-11-dedupe-same-computer-dive-data-sources-design.md`
 
 ---
 

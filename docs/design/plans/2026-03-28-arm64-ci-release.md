@@ -8,7 +8,7 @@
 
 **Tech Stack:** GitHub Actions YAML, Inno Setup, Bash (appcast script), Dart (update provider)
 
-**Spec:** `docs/superpowers/specs/2026-03-28-arm64-ci-release-design.md`
+**Spec:** `docs/design/specs/2026-03-28-arm64-ci-release-design.md`
 
 ---
 

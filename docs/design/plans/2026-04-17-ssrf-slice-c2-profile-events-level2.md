@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart 3 + Flutter 3 + `package:xml` + `flutter_test` + Drift (unchanged from Slice C).
 
-**Spec reference:** `docs/superpowers/specs/2026-04-17-ssrf-slice-c2-profile-events-level2-design.md`
+**Spec reference:** `docs/design/specs/2026-04-17-ssrf-slice-c2-profile-events-level2-design.md`
 
 **Branch:** `feat/ssrf-slice-c2` (already created off `feat/ssrf-slice-c` which is in PR #243).
 
@@ -223,7 +223,7 @@ git add lib/features/dive_log/domain/entities/profile_event.dart \
 git commit -m "feat(profile-event): add decoStop, decoViolation, ppO2High factories"
 ```
 
-**Do NOT include** untracked `docs/superpowers/` 2026-04-17 files.
+**Do NOT include** untracked `docs/design/` 2026-04-17 files.
 
 ---
 
@@ -857,7 +857,7 @@ git commit -m "feat(ssrf-import): persist 6 new event types with source=imported
 ## Task 5: Tracker doc update
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md`
+- Modify: `docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md`
 
 - [ ] **Step 5.1: Update SSRF sub-table `Profile events / markers` row**
 
@@ -878,13 +878,13 @@ Leave the `[ ]` Fixed column as-is (still open because UDDF parity isn't done an
 Find the `## Notes` section. Add a bullet at the end of the list, just before the `[^1]` footnote:
 
 ```
-- Slice C.2 (2026-04-17) extends SSRF `_parseProfileEvents` with 6 additional event types (`bookmark`, `safety stop`, `deco stop`, `ceiling`, `violation`, `ascent`, `po2`), flat one-to-one mapping to existing `ProfileEventType` values. Three new factory constructors on `ProfileEvent` (`decoStop`, `decoViolation`, `ppO2High`). One synthetic fixture `profile-events-variety.ssrf`. No schema change. Mapping is based on Subsurface's documented event vocabulary — not verified against real-world exports; future enrichment slices may correct mapping as real data surfaces. See `docs/superpowers/specs/2026-04-17-ssrf-slice-c2-profile-events-level2-design.md`.
+- Slice C.2 (2026-04-17) extends SSRF `_parseProfileEvents` with 6 additional event types (`bookmark`, `safety stop`, `deco stop`, `ceiling`, `violation`, `ascent`, `po2`), flat one-to-one mapping to existing `ProfileEventType` values. Three new factory constructors on `ProfileEvent` (`decoStop`, `decoViolation`, `ppO2High`). One synthetic fixture `profile-events-variety.ssrf`. No schema change. Mapping is based on Subsurface's documented event vocabulary — not verified against real-world exports; future enrichment slices may correct mapping as real data surfaces. See `docs/design/specs/2026-04-17-ssrf-slice-c2-profile-events-level2-design.md`.
 ```
 
 - [ ] **Step 5.3: Commit**
 
 ```bash
-git add docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md
+git add docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md
 git commit -m "docs(tracker): record Slice C.2 expanded SSRF event coverage"
 ```
 
@@ -939,7 +939,7 @@ git status --short
 git log --oneline origin/main..HEAD
 ```
 
-Expected: working tree has only the 4+ untracked `docs/superpowers/` 2026-04-17 files (including the new Slice C.2 spec and this plan). Commit log shows the Slice C.2 commits plus the Slice C commits they're built on.
+Expected: working tree has only the 4+ untracked `docs/design/` 2026-04-17 files (including the new Slice C.2 spec and this plan). Commit log shows the Slice C.2 commits plus the Slice C commits they're built on.
 
 - [ ] **Step 6.6: Spot-check file state**
 

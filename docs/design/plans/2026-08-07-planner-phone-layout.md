@@ -4,7 +4,7 @@
 
 **Goal:** Reclaim vertical space in the phone dive-planner layout by moving the status and contingency chip rows onto the chart as dive-computer-style overlays and shrinking the chart from 40% to a clamped 30% of body height.
 
-**Architecture:** Spec: `docs/superpowers/specs/2026-08-07-planner-phone-layout-design.md`. Only the phone branch (`_buildPhone`, width < 760 px) of `PlanCanvasPage` changes. A new `PlanChartReadouts` widget overlays instrument readouts on the chart `Stack` (no painter changes); `ContingencyChips` gains an `overlay` mode; desktop layouts and the fullscreen chart page are untouched.
+**Architecture:** Spec: `docs/design/specs/2026-08-07-planner-phone-layout-design.md`. Only the phone branch (`_buildPhone`, width < 760 px) of `PlanCanvasPage` changes. A new `PlanChartReadouts` widget overlays instrument readouts on the chart `Stack` (no painter changes); `ContingencyChips` gains an `overlay` mode; desktop layouts and the fullscreen chart page are untouched.
 
 **Tech Stack:** Flutter 3.x, Riverpod (legacy StateNotifier/StateProvider style via `core/providers/provider.dart`), existing planner providers, flutter_test widget tests.
 

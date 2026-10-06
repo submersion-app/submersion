@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod, `package:http` (+ `package:http/testing.dart` `MockClient`), `url_launcher`, `flutter gen-l10n`, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-08-26-species-online-lookup-design.md`
+**Spec:** `docs/design/specs/2026-08-26-species-online-lookup-design.md`
 
 ## Global Constraints
 

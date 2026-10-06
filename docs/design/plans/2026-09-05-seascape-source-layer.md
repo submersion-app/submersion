@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart, Flutter, `package:http` with `MockClient` from `package:http/testing.dart` for tests, `dart:typed_data` for the GeoTIFF reader.
 
-**Spec:** `docs/superpowers/specs/2026-09-05-seascape-extent-and-detail-design.md`
+**Spec:** `docs/design/specs/2026-09-05-seascape-extent-and-detail-design.md`
 
 ## Global Constraints
 

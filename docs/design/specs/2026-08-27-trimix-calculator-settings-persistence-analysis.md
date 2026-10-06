@@ -50,7 +50,7 @@ only existing AppBar action on the calculators page is a reset button
 ### What is already persisted, and what is not
 
 A prior feature (issue #1100, see
-`docs/superpowers/specs/2026-08-20-trimix-blender-optimisation-design.md`)
+`docs/design/specs/2026-08-20-trimix-blender-optimisation-design.md`)
 already built a persistence layer for *part* of the blender's state:
 
 - `BlenderPreferences` (`domain/blending/blender_preferences.dart`) is a plain
@@ -109,7 +109,7 @@ That system is **not** what feeds the blender's cylinder dropdown, and it
 carries more fields than the issue asks for (`workingPressureBar`,
 `TankMaterial`, `sortOrder`, `ratedCapacityCuft`, per-diver ownership) plus a
 real Drift table with its own schema-version history
-(`docs/superpowers/specs/2026-03-18-default-tank-preset-design.md`). Issue
+(`docs/design/specs/2026-03-18-default-tank-preset-design.md`). Issue
 #1335 only asks for name + liters, scoped to the blender.
 
 ### Settings/DB modeling in general

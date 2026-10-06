@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (`StateNotifier` + `FutureProvider`), Equatable value objects, Drift (untouched here), `flutter gen-l10n` with checked-in generated ARB output.
 
-**Spec:** `docs/superpowers/specs/2026-08-26-media-capture-time-offset-design.md`
+**Spec:** `docs/design/specs/2026-08-26-media-capture-time-offset-design.md`
 
 ## Global Constraints
 

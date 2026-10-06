@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Riverpod 3, Drift (untouched here), Python 3 with `requests` and `pypdf`, `unittest` for Python tests, `flutter_test` for Dart.
 
-**Spec:** `docs/superpowers/specs/2026-08-26-chamber-directory-rework-design.md`
+**Spec:** `docs/design/specs/2026-08-26-chamber-directory-rework-design.md`
 
 ## Global Constraints
 

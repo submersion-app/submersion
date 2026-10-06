@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift ORM, Riverpod (`StateNotifierProvider`), `flutter_test`. No new package dependencies.
 
-**Spec:** `docs/superpowers/specs/2026-08-14-gps-coordinate-formats-design.md`
+**Spec:** `docs/design/specs/2026-08-14-gps-coordinate-formats-design.md`
 
 ## Global Constraints
 

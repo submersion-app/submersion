@@ -14,7 +14,7 @@
 
 ## Spec
 
-See `docs/superpowers/specs/2026-05-25-surface-gps-interactive-map-design.md`.
+See `docs/design/specs/2026-05-25-surface-gps-interactive-map-design.md`.
 
 ## Files & responsibilities
 

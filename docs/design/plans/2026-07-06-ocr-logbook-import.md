@@ -4,7 +4,7 @@
 
 **Goal:** Photograph a paper dive log page and turn it into a prefilled Submersion dive entry, fully on-device.
 
-**Architecture:** Three layers per the approved spec (`docs/superpowers/specs/2026-07-06-ocr-logbook-import-design.md`): an `OcrEngine` interface with per-platform implementations (Apple Vision, ML Kit, Windows OCR, Tesseract), a pure-Dart layout-aware parser that turns positioned text into `ParsedDiveFields`, and a scan flow that ends in `DiveEditPage` (create mode) prefilled via a new `DivePrefill` parameter with the source photo attached.
+**Architecture:** Three layers per the approved spec (`docs/design/specs/2026-07-06-ocr-logbook-import-design.md`): an `OcrEngine` interface with per-platform implementations (Apple Vision, ML Kit, Windows OCR, Tesseract), a pure-Dart layout-aware parser that turns positioned text into `ParsedDiveFields`, and a scan flow that ends in `DiveEditPage` (create mode) prefilled via a new `DivePrefill` parameter with the source photo attached.
 
 **Tech Stack:** Flutter/Dart, Riverpod, go_router, `google_mlkit_text_recognition` (Android), new in-repo plugin `packages/submersion_ocr` (Swift Vision for iOS/macOS, C++ WinRT for Windows), Tesseract CLI (Linux).
 
@@ -2817,10 +2817,10 @@ Push the branch (use `git push --no-verify` — the worktree pre-push hook runs 
   - iOS/Android: camera capture path (requires hardware).
   - Verify: photo attached to the dive, `importSource` = 'ocr', units correct against the diver's settings, notes appendix present for unmapped values.
 
-- [ ] **Step 5: Update the spec's status line** in `docs/superpowers/specs/2026-07-06-ocr-logbook-import-design.md` from "pending implementation plan" to "Implemented (plan: docs/superpowers/plans/2026-07-06-ocr-logbook-import.md)" and commit:
+- [ ] **Step 5: Update the spec's status line** in `docs/design/specs/2026-07-06-ocr-logbook-import-design.md` from "pending implementation plan" to "Implemented (plan: docs/design/plans/2026-07-06-ocr-logbook-import.md)" and commit:
 
 ```bash
-git add docs/superpowers/specs/2026-07-06-ocr-logbook-import-design.md
+git add docs/design/specs/2026-07-06-ocr-logbook-import-design.md
 git commit -m "docs: mark OCR logbook import spec implemented"
 ```
 

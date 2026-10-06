@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, xml builder, excel_community, csv, flutter_localizations with ARB files (11 locales), flutter_test.
 
-**Spec:** `docs/superpowers/specs/2026-09-09-equipment-condition-intelligence-design.md` (sections Data model: `equipment_observations` and `ObservationTag`; Observations and incidents; Sync; Export and import). This plan is the first half of phase 3; phase 3b (condition engine, findings, review marker, settings toggles) stacks on it.
+**Spec:** `docs/design/specs/2026-09-09-equipment-condition-intelligence-design.md` (sections Data model: `equipment_observations` and `ObservationTag`; Observations and incidents; Sync; Export and import). This plan is the first half of phase 3; phase 3b (condition engine, findings, review marker, settings toggles) stacks on it.
 
 **Decisions taken for phase 3 (asked and answered 2026-09-09):** two stacked PRs, 3a observations then 3b engine; the check-in chip and sheet appear on the dive's equipment rows AND on cylinder rows that carry a gear link; rule toggles (3b) always compute and hide at display time; the engine toggles (3b) live in `diver_settings` columns behind a v206 rung. Nothing in 3a takes a rung.
 

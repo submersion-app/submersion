@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, flutter_localizations with ARB files (11 locales), flutter_test.
 
-**Spec:** `docs/superpowers/specs/2026-09-09-equipment-condition-intelligence-design.md` (sections Data model: `equipment_findings`, `equipment_condition_reviews`, Enums, Settings; Condition findings: Engine, Rules, Evidence, Dismissal; Sync). This plan is the second half of phase 3; phase 4 (surfaces) stacks on it.
+**Spec:** `docs/design/specs/2026-09-09-equipment-condition-intelligence-design.md` (sections Data model: `equipment_findings`, `equipment_condition_reviews`, Enums, Settings; Condition findings: Engine, Rules, Evidence, Dismissal; Sync). This plan is the second half of phase 3; phase 4 (surfaces) stacks on it.
 
 **Decisions (asked and answered 2026-09-09):** the engine master and rule toggles are `diver_settings` columns behind a v206 rung (204 and 205 are claimed by other branches; re-check the ladder in Task 0); rules always compute and hide at display time; phase 3 ships as 3a then 3b, stacked.
 

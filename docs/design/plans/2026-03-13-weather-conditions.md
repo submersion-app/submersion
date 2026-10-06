@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift ORM, Riverpod, http package, Open-Meteo Historical Weather API
 
-**Spec:** `docs/superpowers/specs/2026-03-13-weather-conditions-design.md`
+**Spec:** `docs/design/specs/2026-03-13-weather-conditions-design.md`
 
 ---
 

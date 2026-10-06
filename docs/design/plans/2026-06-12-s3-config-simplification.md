@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, package:http + MockClient for tests, flutter gen-l10n, Riverpod.
 
-**Spec:** `docs/superpowers/specs/2026-06-12-s3-config-simplification-design.md`
+**Spec:** `docs/design/specs/2026-06-12-s3-config-simplification-design.md`
 
 **Branch:** `feat/s3-config-simplification` (create via worktree per CLAUDE.md; run `git submodule update --init --recursive` and `flutter pub get` in a fresh worktree).
 

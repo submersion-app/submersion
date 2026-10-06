@@ -8,7 +8,7 @@
 
 **Tech Stack:** C (libdivecomputer wrapper), Pigeon (Dart/Swift/Kotlin/C++/GObject-C codegen), Kotlin + JNI (Android), Swift (Darwin), Drift ORM + SQLite, Flutter, Riverpod, fl_chart.
 
-**Spec:** `docs/superpowers/specs/2026-08-15-o2-cell-millivolt-graph-design.md`
+**Spec:** `docs/design/specs/2026-08-15-o2-cell-millivolt-graph-design.md`
 
 **Issue:** [#810](https://github.com/submersion-app/submersion/issues/810)
 

@@ -1,7 +1,7 @@
 # Equipment transfer, safe profile deletion and overlapping gear use
 
 Date: 2026-10-03
-Builds on: `docs/superpowers/specs/2026-09-17-equipment-sharing-transfer-identity-design.md`
+Builds on: `docs/design/specs/2026-09-17-equipment-sharing-transfer-identity-design.md`
 (the "original spec"). This document replaces its "Transfer", "Diver deletion
 and merge" and "Overlapping use" sections and items 3 and 4 of its Delivery
 section. Everything else in the original spec still stands.

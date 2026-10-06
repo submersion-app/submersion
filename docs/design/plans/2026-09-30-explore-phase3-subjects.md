@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Riverpod, Drift/SQLite, the entity query language under `lib/core/query/` and `lib/features/query/`.
 
-**Spec:** `docs/superpowers/specs/2026-09-19-explore-natural-language-search-design.md` (Phase 3 section). This plan deviates from the spec's phase 3 table on purpose; Task 9 records each deviation in the spec. The 2026-09-21 phase 3 plan (commit `098bb3f22be` on `ericgriffin/explore-phase2-derived-predicates`) is superseded: it predates the shared registries.
+**Spec:** `docs/design/specs/2026-09-19-explore-natural-language-search-design.md` (Phase 3 section). This plan deviates from the spec's phase 3 table on purpose; Task 9 records each deviation in the spec. The 2026-09-21 phase 3 plan (commit `098bb3f22be` on `ericgriffin/explore-phase2-derived-predicates`) is superseded: it predates the shared registries.
 
 ## Global Constraints
 
@@ -3630,7 +3630,7 @@ git commit -m "feat(explore): the prompt names every subject's fields; schema ve
 ### Task 9: Whole-project verification, the spec, and the pull request
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-09-19-explore-natural-language-search-design.md`
+- Modify: `docs/design/specs/2026-09-19-explore-natural-language-search-design.md`
 
 - [ ] **Step 1: Record the phase 3 deviations in the spec**
 
@@ -3657,7 +3657,7 @@ Expected: all pass.
 - [ ] **Step 3: Commit the spec**
 
 ```bash
-git add docs/superpowers/specs/2026-09-19-explore-natural-language-search-design.md
+git add docs/design/specs/2026-09-19-explore-natural-language-search-design.md
 git commit -m "docs(explore): record the phase 3 deviations"
 ```
 

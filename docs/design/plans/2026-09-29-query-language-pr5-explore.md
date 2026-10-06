@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Riverpod 3 (legacy `StateProvider`), Drift/SQLite, the entity query language (`lib/core/query`, `lib/features/query`), Explore (`lib/features/explore`).
 
-**Spec:** `docs/superpowers/specs/2026-09-25-entity-query-language-design.md` (Program shape row 5; "Explore" under Unit 5; "Open items"). Explore's own spec: `docs/superpowers/specs/2026-09-19-explore-natural-language-search-design.md`.
+**Spec:** `docs/design/specs/2026-09-25-entity-query-language-design.md` (Program shape row 5; "Explore" under Unit 5; "Open items"). Explore's own spec: `docs/design/specs/2026-09-19-explore-natural-language-search-design.md`.
 
 ## Decisions (fixed with Eric on 2026-09-29; do not re-litigate)
 
@@ -1894,7 +1894,7 @@ git commit -m "feat(explore): results, charts and the handoff read one query"
 
 **Files:**
 - Modify: `lib/core/query/syntax/date_grammar.dart:1-3` (the header says Explore still has a copy that PR 5 deletes; Explore already uses this file)
-- Modify: `docs/superpowers/specs/2026-09-25-entity-query-language-design.md` (a "Deviations recorded during implementation (PR 5)" section after PR 4's)
+- Modify: `docs/design/specs/2026-09-25-entity-query-language-design.md` (a "Deviations recorded during implementation (PR 5)" section after PR 4's)
 
 - [ ] **Step 1: Fix the header**
 
@@ -1932,7 +1932,7 @@ Expected: `All tests passed!` (pre-existing skips only).
 
 ```bash
 dart format lib test
-git add lib/core/query/syntax/date_grammar.dart docs/superpowers/specs/2026-09-25-entity-query-language-design.md
+git add lib/core/query/syntax/date_grammar.dart docs/design/specs/2026-09-25-entity-query-language-design.md
 git commit -m "docs(query): record the PR 5 deviations"
 ```
 

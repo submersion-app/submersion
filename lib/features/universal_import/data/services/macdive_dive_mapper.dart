@@ -93,7 +93,7 @@ enum _SamplesOutcome {
 /// is rejected, or whose computer resolves to nothing, counts toward one
 /// aggregated [ImportWarning] pointing at MacDive's XML export - exactly the
 /// behaviour every unrecognised computer already had. See
-/// `docs/import-formats/macdive-zsamples.md`.
+/// `docs/developer/reference/formats/macdive-zsamples.md`.
 ///
 /// Not every dive has `ZRAWDATA` at all: presence tracks how the dive entered
 /// MacDive (a native download versus manual entry or a file import) rather

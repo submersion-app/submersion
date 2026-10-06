@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart (`dart:io` `Process`), ffmpeg/ffprobe CLI (system-installed, Linux), Drift/Riverpod app patterns from Phase A.
 
-**Spec:** `docs/superpowers/specs/2026-07-21-video-transcoding-phase-b-design.md` (commit 09c8a47ebde). Scope = spec delivery-order steps 1–2 ONLY; darwin/Android/Windows engines are later plans.
+**Spec:** `docs/design/specs/2026-07-21-video-transcoding-phase-b-design.md` (commit 09c8a47ebde). Scope = spec delivery-order steps 1–2 ONLY; darwin/Android/Windows engines are later plans.
 
 ## Global Constraints
 
@@ -1637,7 +1637,7 @@ git commit -m "feat(media-store): Linux ffmpeg hint on the upload quality sectio
 
 **Files:**
 - Create: `test/features/media_store/linux_ffmpeg_engine_smoke_test.dart`
-- Modify: `docs/superpowers/specs/2026-07-21-video-transcoding-phase-b-design.md` (section 14 fixture sentence)
+- Modify: `docs/design/specs/2026-07-21-video-transcoding-phase-b-design.md` (section 14 fixture sentence)
 
 - [ ] **Step 1: Write the smoke test** (runtime-skips wherever ffmpeg is absent, so plain `flutter test` stays engine-free on dev machines; ubuntu CI runners ship ffmpeg, so it runs there with no ci.yaml change):
 
@@ -1707,7 +1707,7 @@ void main() {
 Run: `flutter test test/features/media_store/linux_ffmpeg_engine_smoke_test.dart`
 Expected: PASS if ffmpeg is installed locally, otherwise SKIPPED — both acceptable.
 
-- [ ] **Step 3: Update the spec's fixture sentence** — in `docs/superpowers/specs/2026-07-21-video-transcoding-phase-b-design.md` section 14, replace the "Fixture:" bullet with:
+- [ ] **Step 3: Update the spec's fixture sentence** — in `docs/design/specs/2026-07-21-video-transcoding-phase-b-design.md` section 14, replace the "Fixture:" bullet with:
 
 ```markdown
 - **Fixture:** the smoke test synthesizes its own input clip with ffmpeg's
@@ -1729,7 +1729,7 @@ Expected: format clean, analyzer clean, all listed suites PASS. Then run the ful
 - [ ] **Step 5: Commit**
 
 ```bash
-git add test/features/media_store/linux_ffmpeg_engine_smoke_test.dart docs/superpowers/specs/2026-07-21-video-transcoding-phase-b-design.md
+git add test/features/media_store/linux_ffmpeg_engine_smoke_test.dart docs/design/specs/2026-07-21-video-transcoding-phase-b-design.md
 git commit -m "test(transcoder): real-ffmpeg smoke test with synthesized fixture"
 ```
 

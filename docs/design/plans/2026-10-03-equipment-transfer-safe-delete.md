@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod, Drift (SQLite), flutter_test, ARB l10n (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-10-03-equipment-transfer-and-overlap-design.md` (sections "PR 3"). Read it before starting any task.
+**Spec:** `docs/design/specs/2026-10-03-equipment-transfer-and-overlap-design.md` (sections "PR 3"). Read it before starting any task.
 
 ## Global Constraints
 

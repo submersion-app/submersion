@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.47, Dart 3.13, Drift, Riverpod 3, go_router, flutter gen-l10n (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md`, sections 8 (Trip card row), 10.4, 10.6, 10.7, 10.8, and the "4 Trip assignment" row of section 17. Task 1 amends it with the 2026-09-29 decisions.
+**Spec:** `docs/design/specs/2026-09-25-smart-cylinder-passports-design.md`, sections 8 (Trip card row), 10.4, 10.6, 10.7, 10.8, and the "4 Trip assignment" row of section 17. Task 1 amends it with the 2026-09-29 decisions.
 
 ## Global Constraints
 
@@ -63,7 +63,7 @@
 ### Task 1: The table and the v248 rung (plus the spec amendment)
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md` (section 8 Trip row, section 10.4, section 17 row 4)
+- Modify: `docs/design/specs/2026-09-25-smart-cylinder-passports-design.md` (section 8 Trip row, section 10.4, section 17 row 4)
 - Modify: `lib/core/database/tables/trip_tables.dart` (append after `TripChecklistItems`)
 - Modify: `lib/core/database/database.dart` (`@DriftDatabase` list end at `ConnectionMaps,`; `currentSchemaVersion`; `migrationVersions` tail)
 - Modify: `lib/core/database/migrations/helpers/trip_migrations.dart` (append a helper)
@@ -310,7 +310,7 @@ Expected: PASS, including `database_table_libraries_test.dart` and `performance_
 - [ ] **Step 7: Commit**
 
 ```bash
-git add docs/superpowers/specs lib/core/database test/core/database
+git add docs/design/specs lib/core/database test/core/database
 git commit -m "feat(trips): add trip_equipment, gear packed for a trip (schema v248)"
 ```
 

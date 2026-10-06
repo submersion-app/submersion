@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter l10n (ARB files), `intl` package, `flutter_localizations`
 
-**Spec:** `docs/superpowers/specs/2026-03-29-chinese-localization-design.md`
+**Spec:** `docs/design/specs/2026-03-29-chinese-localization-design.md`
 
 ---
 

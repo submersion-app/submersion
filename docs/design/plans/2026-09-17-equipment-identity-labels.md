@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod, Drift (untouched here), `flutter gen-l10n` ARB localization, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-09-17-equipment-sharing-transfer-identity-design.md`, sections "Identity in lists (#1549)" and "Delivery" item 1. This plan covers PR 1 only. PRs 2 to 4 (sharing, transfer, overlap) each get their own plan once the PR before it has merged, because they build on code this PR introduces. The owner chip and the "Shared with me" picker section belong to PR 2, not here.
+**Spec:** `docs/design/specs/2026-09-17-equipment-sharing-transfer-identity-design.md`, sections "Identity in lists (#1549)" and "Delivery" item 1. This plan covers PR 1 only. PRs 2 to 4 (sharing, transfer, overlap) each get their own plan once the PR before it has merged, because they build on code this PR introduces. The owner chip and the "Shared with me" picker section belong to PR 2, not here.
 
 ## Global Constraints
 

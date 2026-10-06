@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (StateProvider, StateNotifier), Drift ORM (SQLite), Material 3
 
-**Spec:** `docs/superpowers/specs/2026-03-21-compact-dive-list-view-design.md`
+**Spec:** `docs/design/specs/2026-03-21-compact-dive-list-view-design.md`
 
 ---
 

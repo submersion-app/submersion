@@ -16,7 +16,7 @@ import 'dart:math' as math;
 /// - R. C. Helling, "Calculating Oxygen CNS toxicity" (derivation behind the
 ///   Subsurface fit):
 ///   https://thetheoreticaldiver.org/wordpress/index.php/2019/08/15/calculating-oxygen-cns-toxicity/
-/// - Decision record: docs/plans/2026-07-16-cns-calculation-method-setting-design.md
+/// - Decision record: docs/design/specs/2026-07-16-cns-calculation-method-setting-design.md
 ///   and https://github.com/submersion-app/submersion/issues/578
 enum CnsCalculationMethod {
   /// Steps: each 0.1-bar band charged at its harsher edge (legacy behavior).

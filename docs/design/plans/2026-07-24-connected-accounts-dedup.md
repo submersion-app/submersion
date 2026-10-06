@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart / Flutter, Drift ORM, Riverpod, `uuid` package, `flutter_secure_storage`, `shared_preferences`, `flutter_test`.
 
-Spec: `docs/superpowers/specs/2026-07-24-connected-accounts-dedup-design.md`
+Spec: `docs/design/specs/2026-07-24-connected-accounts-dedup-design.md`
 
 ## Global Constraints
 

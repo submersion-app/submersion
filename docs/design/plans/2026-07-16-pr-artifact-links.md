@@ -8,7 +8,7 @@
 
 **Tech Stack:** GitHub Actions YAML; first-party actions `actions/upload-artifact@v7`, `actions/download-artifact@v4`, `actions/github-script@v7`.
 
-**Spec:** `docs/superpowers/specs/2026-07-16-pr-artifact-links-design.md`
+**Spec:** `docs/design/specs/2026-07-16-pr-artifact-links-design.md`
 
 ## Global Constraints
 

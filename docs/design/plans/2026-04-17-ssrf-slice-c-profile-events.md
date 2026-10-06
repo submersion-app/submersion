@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart 3 + Flutter 3 + Drift ORM + `package:xml` + `flutter_test`.
 
-**Spec reference:** `docs/superpowers/specs/2026-04-17-ssrf-slice-c-profile-events-design.md`
+**Spec reference:** `docs/design/specs/2026-04-17-ssrf-slice-c-profile-events-design.md`
 
 **Branch:** `feat/ssrf-slice-c` (already created from `feat/ssrf-slice-a` HEAD; Slice A is in PR #236 and its backout is on the parent chain).
 
@@ -37,7 +37,7 @@ These findings inform task paths below. **Task 1 formally verifies them** and su
 Pure investigation. No code changes. Produces a discovery note file that subsequent tasks reference.
 
 **Files:**
-- Create: `docs/superpowers/plans/2026-04-17-ssrf-slice-c-discovery.md` (discovery findings log)
+- Create: `docs/design/plans/2026-04-17-ssrf-slice-c-discovery.md` (discovery findings log)
 - Read-only inspection: `lib/core/database/database.dart`, `lib/features/universal_import/presentation/providers/universal_import_providers.dart`, `lib/features/dive_computer/data/services/reparse_service.dart`, `lib/core/services/sync/sync_data_serializer.dart`
 
 - [ ] **Step 1.1: Confirm current schema version**
@@ -72,7 +72,7 @@ Record each reader. If any pattern-matches on `ProfileEvent` exhaustively (e.g.,
 
 - [ ] **Step 1.5: Write the discovery note**
 
-Create `docs/superpowers/plans/2026-04-17-ssrf-slice-c-discovery.md` with sections:
+Create `docs/design/plans/2026-04-17-ssrf-slice-c-discovery.md` with sections:
 - **Schema version**: current N, Slice C migration target N+1
 - **SSRF persistence bridge**: file path, method signature, exact line numbers for parser-output consumption
 - **Existing DiveProfileEvents writers**: file:line for each, with a source-field recommendation per writer
@@ -83,7 +83,7 @@ Keep it to one page. This is a working note, not a polished doc.
 - [ ] **Step 1.6: Commit the discovery note**
 
 ```bash
-git add docs/superpowers/plans/2026-04-17-ssrf-slice-c-discovery.md
+git add docs/design/plans/2026-04-17-ssrf-slice-c-discovery.md
 git commit -m "docs(slice-c): discovery findings for SSRF profile-events integration"
 ```
 
@@ -1581,7 +1581,7 @@ git commit -m "feat(dive-log): add SetpointSegment derivation helper"
 Restore `Sample setpoint` to `[x]` and note the derivation-based architecture.
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md`
+- Modify: `docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md`
 
 - [ ] **Step 10.1: Update combined table row for `Sample setpoint`**
 
@@ -1640,7 +1640,7 @@ Replace with:
 In the `## Notes` section, append this bullet at the end of the bullet list (before the existing `[^1]` footnote):
 
 ```markdown
-- Slice C (2026-04-17) adds source tagging to `DiveProfileEvents` (new `source` column) and closes SSRF `SP change` event persistence via a `setpointChange` event type, consumed by a `SetpointSegment` derivation helper parallel to PR #137's `ProfileGasSegment`. Further SSRF event types (bookmarks, alarms) remain open. See `docs/superpowers/specs/2026-04-17-ssrf-slice-c-profile-events-design.md`.
+- Slice C (2026-04-17) adds source tagging to `DiveProfileEvents` (new `source` column) and closes SSRF `SP change` event persistence via a `setpointChange` event type, consumed by a `SetpointSegment` derivation helper parallel to PR #137's `ProfileGasSegment`. Further SSRF event types (bookmarks, alarms) remain open. See `docs/design/specs/2026-04-17-ssrf-slice-c-profile-events-design.md`.
 ```
 
 - [ ] **Step 10.6: Visual sanity check**
@@ -1650,7 +1650,7 @@ Open the file and scan the tables. Column counts must still match (6 in combined
 - [ ] **Step 10.7: Commit**
 
 ```bash
-git add docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md
+git add docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md
 git commit -m "docs(tracker): restore Sample setpoint to fixed via Slice C derivation"
 ```
 

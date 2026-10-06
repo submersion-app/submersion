@@ -8,7 +8,7 @@
 
 **Tech Stack:** fl_chart (inverted-Y convention from `plan_profile_chart.dart`), `ResponsiveBreakpoints`, `DraggableScrollableSheet`, `testApp` widget-test helper, `flutter gen-l10n` with 11 ARB locales.
 
-**Spec:** `docs/superpowers/specs/2026-07-05-dive-planner-redesign-design.md` ("Planner UI — Live Profile Canvas (Phase 3)"). Mockup approved 2026-07-05 (Live Profile Canvas, option A).
+**Spec:** `docs/design/specs/2026-07-05-dive-planner-redesign-design.md` ("Planner UI — Live Profile Canvas (Phase 3)"). Mockup approved 2026-07-05 (Live Profile Canvas, option A).
 
 ## Global Constraints
 

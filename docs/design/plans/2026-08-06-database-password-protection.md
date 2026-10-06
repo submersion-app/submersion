@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, drift, sqlite3 dart package, sqlcipher_flutter_libs, cryptography (Argon2id/AES-GCM/HKDF — already a dep), flutter_secure_storage (already a dep), local_auth (new), Riverpod 3, SharedPreferences.
 
-**Spec:** `docs/superpowers/specs/2026-08-06-database-password-protection-design.md`
+**Spec:** `docs/design/specs/2026-08-06-database-password-protection-design.md`
 
 ## Global Constraints
 

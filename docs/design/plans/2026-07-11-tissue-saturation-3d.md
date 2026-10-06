@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter stable, Riverpod, existing `BuhlmannAlgorithm` (`lib/core/deco/buhlmann_algorithm.dart`), `Canvas.drawVertices` renderer. No external 3D library.
 
-**Spec:** `docs/superpowers/specs/2026-07-11-tissue-saturation-3d-design.md`
+**Spec:** `docs/design/specs/2026-07-11-tissue-saturation-3d-design.md`
 
 ## Global Constraints
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart, Flutter test framework
 
-**Spec:** `docs/superpowers/specs/2026-03-29-safety-stop-false-positive-design.md`
+**Spec:** `docs/design/specs/2026-03-29-safety-stop-false-positive-design.md`
 
 ---
 

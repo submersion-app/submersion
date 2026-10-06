@@ -480,7 +480,7 @@ builder, the dive list and Explore all get them.
 
 ## Deviations recorded during implementation (phase 3, 2026-09-30)
 
-Plan: `docs/superpowers/plans/2026-09-30-explore-phase3-subjects.md`. The
+Plan: `docs/design/plans/2026-09-30-explore-phase3-subjects.md`. The
 phase 3 table above predates the entity query language (#2365), which by then
 gave every subject a registry, a query-driven list and one name index.
 

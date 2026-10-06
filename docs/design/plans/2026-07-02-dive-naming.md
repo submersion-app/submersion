@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Drift ORM (codegen via build_runner), Riverpod, flutter_localizations (gen-l10n), Equatable entities.
 
-**Spec:** `docs/superpowers/specs/2026-07-02-dive-naming-design.md`
+**Spec:** `docs/design/specs/2026-07-02-dive-naming-design.md`
 
 ## Global Constraints
 

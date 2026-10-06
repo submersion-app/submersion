@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift 2.34 (`DoUpdate(where:)`), SharedPreferences, `dart:io` HttpClient in tools, `flutter gen-l10n`, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-08-27-species-catalog-growth-design.md`
+**Spec:** `docs/design/specs/2026-08-27-species-catalog-growth-design.md`
 
 ## Global Constraints
 

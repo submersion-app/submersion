@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart / Flutter, Riverpod 3, `flutter_test`, `flutter gen-l10n`.
 
-**Spec:** `docs/superpowers/specs/2026-08-16-media-provenance-design.md`
+**Spec:** `docs/design/specs/2026-08-16-media-provenance-design.md`
 
 **Predecessor:** PR 1 (`#1107`, branch `worktree-media-provenance`) must merge first. This plan builds on `ServedFrom`, `ServedTier`, and `MediaServingRecorder`.
 

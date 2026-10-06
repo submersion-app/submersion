@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (StateNotifier settings + FutureProvider.family geometry), CustomPainter rendering (no GL), SharedPreferences, flutter gen-l10n.
 
-**Spec:** `docs/superpowers/specs/2026-08-15-seascape-contours-chart-mode-design.md`
+**Spec:** `docs/design/specs/2026-08-15-seascape-contours-chart-mode-design.md`
 
 ## Global Constraints
 
@@ -3536,7 +3536,7 @@ git commit -m "feat(seascape): open the seascape from the sites map callout"
 ### Task 17: Spec amendment + full verification
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-08-15-seascape-contours-chart-mode-design.md`
+- Modify: `docs/design/specs/2026-08-15-seascape-contours-chart-mode-design.md`
 
 - [ ] **Step 1: Amend the spec (two corrections found at planning time)**
 
@@ -3574,7 +3574,7 @@ Expected: format makes no changes on the second run, analyze reports zero issues
 - [ ] **Step 3: Commit**
 
 ```bash
-git add docs/superpowers/specs/2026-08-15-seascape-contours-chart-mode-design.md
+git add docs/design/specs/2026-08-15-seascape-contours-chart-mode-design.md
 git commit -m "docs(seascape): record device-local persistence lane in spec"
 ```
 

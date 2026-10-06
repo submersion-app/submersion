@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Drift (SQLite), Riverpod, go_router, flutter_test, mockito. Schema rung v200.
 
-**Spec:** `docs/superpowers/specs/2026-09-08-transmitter-registry-design.md` (read it first; every task argues from it).
+**Spec:** `docs/design/specs/2026-09-08-transmitter-registry-design.md` (read it first; every task argues from it).
 
 **Deviations from the spec, deliberate:** the matcher operates on `TankData` rather than `DownloadedTank`, because only `TankData` carries the spec fields (working pressure, material, preset, gear link) that a matched entry writes; re-parse converts through `DiveParser.tankDataFrom` so both paths share one function. Re-parse keys existing rows on `(computerId, source_tank_index)` with a fallback to bare `tank_order` for rows from before v200 rather than on `computerId` alone. Consolidation carries `source_tank_index` through its existing whole-row copy, so no consolidation test is added; the exchange test in Task 8 covers the column's semantics.
 
@@ -64,7 +64,7 @@ Run from the worktree root `/Users/ericgriffin/repos/submersion-app/submersion/.
 git fetch origin && git merge --no-edit origin/main
 ```
 
-Expected: a merge commit (the branch was two commits behind, both docs and features unrelated to tanks). If a conflict appears in `docs/superpowers/specs/`, keep this branch's version.
+Expected: a merge commit (the branch was two commits behind, both docs and features unrelated to tanks). If a conflict appears in `docs/design/specs/`, keep this branch's version.
 
 - [ ] **Step 2: Initialize the worktree**
 

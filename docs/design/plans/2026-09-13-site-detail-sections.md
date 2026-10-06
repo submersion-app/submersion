@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (legacy `StateNotifier` settings), Drift (SQLite), go_router, gen-l10n ARB files (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-09-13-site-detail-sections-design.md`
+**Spec:** `docs/design/specs/2026-09-13-site-detail-sections-design.md`
 
 **Issue:** #1884
 

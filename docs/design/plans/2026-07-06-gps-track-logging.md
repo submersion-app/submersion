@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift ORM, Riverpod, geolocator ^14.0.2 (already a dependency), go_router.
 
-**Spec:** `docs/superpowers/specs/2026-07-06-gps-track-logging-design.md` — read it before starting.
+**Spec:** `docs/design/specs/2026-07-06-gps-track-logging-design.md` — read it before starting.
 
 ## Global Constraints
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (`StateNotifierProvider`, `FutureProvider`), Drift (raw `customSelect` SQL), Equatable, `flutter gen-l10n` (11 arb files), `flutter_test` widget tests with `testApp`/`ProviderScope` overrides.
 
-**Spec:** `docs/superpowers/specs/2026-08-26-site-buddy-card-enrichment-design.md`
+**Spec:** `docs/design/specs/2026-08-26-site-buddy-card-enrichment-design.md`
 
 ## Global Constraints
 

@@ -2,7 +2,7 @@
 
 Date: 2026-09-08
 Issue: https://github.com/submersion-app/submersion/issues/1216
-Status: approved; implementation plan at docs/superpowers/plans/2026-09-08-dive-computer-clock-sync.md
+Status: approved; implementation plan at docs/design/plans/2026-09-08-dive-computer-clock-sync.md
 
 ## Goal
 

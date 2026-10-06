@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, `flutter gen-l10n` (ARB files under `lib/l10n/arb/`, generated `app_localizations*.dart` checked in), `flutter test`.
 
-**Spec:** `docs/superpowers/specs/2026-08-26-sac-rmv-split-design.md`, sections D1 (code naming), D8 (planner and calculator keys), and Sequencing item 1.
+**Spec:** `docs/design/specs/2026-08-26-sac-rmv-split-design.md`, sections D1 (code naming), D8 (planner and calculator keys), and Sequencing item 1.
 
 ## Global Constraints
 
@@ -499,7 +499,7 @@ Expected: all pass. A lone failure in a file unrelated to this change (media sha
 - [ ] **Step 3: Commit the plan file, push, open the PR**
 
 ```bash
-git add docs/superpowers/plans/2026-08-26-sac-rmv-relabel.md
+git add docs/design/plans/2026-08-26-sac-rmv-relabel.md
 git commit -m "docs(plan): SAC to RMV relabel"
 git push -u origin worktree-sac-rmv-relabel
 gh pr create --title "i18n: label volume-only consumption surfaces RMV" --body "$(cat <<'EOF'

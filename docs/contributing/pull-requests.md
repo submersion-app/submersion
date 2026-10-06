@@ -8,7 +8,7 @@ This guide explains how to submit effective pull requests.
 
 1. Search [existing issues](https://github.com/submersion-app/submersion/issues)
 2. Check [open PRs](https://github.com/submersion-app/submersion/pulls)
-3. Review the [roadmap](contributing/roadmap.md)
+3. Review the [roadmap](roadmap.md)
 
 Every PR must relate to an issue (see [Linking Issues](#linking-issues)). If
 none exists for your change, open one before you open the PR.
@@ -39,7 +39,7 @@ git checkout -b feature/your-feature
 
 ### 2. Make Changes
 
-- Follow [code style](contributing/code-style.md)
+- Follow [code style](code-style.md)
 - Write tests for new code
 - Update documentation if needed
 

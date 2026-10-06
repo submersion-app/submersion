@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship the Phase 0 groundwork from the release-channels spec (`docs/superpowers/specs/2026-07-28-release-channels-design.md`): fix the latent `UPDATE_CHANNEL`/asset-suffix bugs and close the data-safety gaps (startup screen dead end, missing sync schema-version gate) that must hold before a beta channel exposes users to newer-schema databases.
+**Goal:** Ship the Phase 0 groundwork from the release-channels spec (`docs/design/specs/2026-07-28-release-channels-design.md`): fix the latent `UPDATE_CHANNEL`/asset-suffix bugs and close the data-safety gaps (startup screen dead end, missing sync schema-version gate) that must hold before a beta channel exposes users to newer-schema databases.
 
 **Architecture:** Three independent strands: (1) one-line distribution fixes in `update_providers.dart`, `release.yml`, and the iOS Fastfile; (2) a friendlier newer-database startup screen; (3) a schema-version stamp in sync manifests plus an ingest gate in `ChangesetReader`, surfaced through `SyncResult`, copying the proven library-epoch skip pattern end to end.
 

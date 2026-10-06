@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod, Drift (SQLite), go_router, the in-app query language (`lib/core/query`), ARB localization (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-10-05-equipment-locations-design.md`
+**Spec:** `docs/design/specs/2026-10-05-equipment-locations-design.md`
 
 ## Global Constraints
 

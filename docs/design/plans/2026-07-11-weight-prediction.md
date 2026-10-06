@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Drift (SQLite), Riverpod, go_router, Equatable. No new dependencies.
 
-**Spec:** `docs/superpowers/specs/2026-07-11-weight-prediction-design.md` (committed in this worktree).
+**Spec:** `docs/design/specs/2026-07-11-weight-prediction-design.md` (committed in this worktree).
 
 ## Global Constraints
 

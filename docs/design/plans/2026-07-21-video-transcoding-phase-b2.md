@@ -8,7 +8,7 @@
 
 **Tech Stack:** Swift (AVFoundation / VideoToolbox), Flutter platform channels, Dart. Template: `packages/submersion_ocr` (sharedDarwinSource Swift plugin).
 
-**Spec:** `docs/superpowers/specs/2026-07-21-video-transcoding-phase-b-design.md` (§9 plugin/channel shape, §10 darwin notes, §15 delivery order). Scope = the darwin engine ONLY; Android is B3, Windows is B4.
+**Spec:** `docs/design/specs/2026-07-21-video-transcoding-phase-b-design.md` (§9 plugin/channel shape, §10 darwin notes, §15 delivery order). Scope = the darwin engine ONLY; Android is B3, Windows is B4.
 
 ## Global Constraints
 

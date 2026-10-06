@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Riverpod (`StateNotifier`), Drift, file_picker, desktop_drop.
 
-**Spec:** `docs/superpowers/specs/2026-07-06-bulk-file-import-design.md`
+**Spec:** `docs/design/specs/2026-07-06-bulk-file-import-design.md`
 
 ## Global Constraints
 

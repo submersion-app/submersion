@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (legacy `StateProvider` via `core/providers/provider.dart`), Drift, go_router, gen-l10n (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-10-02-unified-dive-search-design.md` (read sections 3, 4.1, 5, 6, 7, 8 and 11 before starting). Issue: #2773.
+**Spec:** `docs/design/specs/2026-10-02-unified-dive-search-design.md` (read sections 3, 4.1, 5, 6, 7, 8 and 11 before starting). Issue: #2773.
 
 ## Global Constraints
 

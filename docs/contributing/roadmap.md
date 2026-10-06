@@ -266,7 +266,7 @@ Community features and advanced integrations.
 
 1. Pick from planned items
 2. Comment on related issue
-3. Follow [PR guidelines](contributing/pull-requests.md)
+3. Follow [PR guidelines](pull-requests.md)
 
 ### Priority Considerations
 

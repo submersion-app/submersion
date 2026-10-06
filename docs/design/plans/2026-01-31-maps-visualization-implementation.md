@@ -2535,7 +2535,7 @@ This plan implements:
 
 ---
 
-Plan complete and saved to `docs/plans/2026-01-31-maps-visualization-implementation.md`. Two execution options:
+Plan complete and saved to `docs/design/plans/2026-01-31-maps-visualization-implementation.md`. Two execution options:
 
 **1. Subagent-Driven (this session)** - I dispatch fresh subagent per task, review between tasks, fast iteration
 

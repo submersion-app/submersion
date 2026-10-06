@@ -12,7 +12,7 @@ import 'dart:typed_data';
 /// MacDive stores exactly these compressed bytes in `ZDIVE.ZRAWDATA`. An
 /// earlier investigation fed them to the parser without decompressing and
 /// concluded the format was proprietary; see
-/// `docs/import-formats/macdive-zsamples.md`.
+/// `docs/developer/reference/formats/macdive-zsamples.md`.
 ///
 /// This is a Dart port of `shearwater_common_decompress_lre` and
 /// `shearwater_common_decompress_xor` in

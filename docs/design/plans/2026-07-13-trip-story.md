@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3 / Material 3, Riverpod (manual providers, no codegen for these files), flutter_map + latlong2, Drift (raw SQL via customSelect for aggregates), go_router.
 
-**Spec:** `docs/superpowers/specs/2026-07-13-trip-story-design.md`
+**Spec:** `docs/design/specs/2026-07-13-trip-story-design.md`
 
 ## Deviations from spec (agreed rationale, discovered during planning)
 
@@ -3507,7 +3507,7 @@ git commit -m "feat(trips): rebuild Overview tab as interactive trip story (clos
 ### Task 14: Final verification and close-out
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-07-13-trip-story-design.md` (append implementation-deviation notes if any accumulated beyond the five listed in this plan)
+- Modify: `docs/design/specs/2026-07-13-trip-story-design.md` (append implementation-deviation notes if any accumulated beyond the five listed in this plan)
 
 - [ ] **Step 1: Whole-project gates**
 
@@ -3531,7 +3531,7 @@ Expected: zero failures.
 Re-read the spec's "Mode behavior" and "Disposition of existing Overview content" tables and verify each row is implemented or documented as a deviation. Append any new deviations to the spec's deviation list, commit docs change if any:
 
 ```bash
-git add docs/superpowers/specs/2026-07-13-trip-story-design.md
+git add docs/design/specs/2026-07-13-trip-story-design.md
 git commit -m "docs(trips): record trip story implementation deviations"
 ```
 

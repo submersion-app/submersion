@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (StateNotifier), Drift (SQLite), flutter_localizations ARB files.
 
-**Spec:** `docs/superpowers/specs/2026-10-05-distance-unit-setting-design.md`
+**Spec:** `docs/design/specs/2026-10-05-distance-unit-setting-design.md`
 
 ## Global Constraints
 

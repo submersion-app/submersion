@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart, Flutter, `package:sqlite3` ^3.5.1, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-09-19-divinglog-sqlite-import-design.md`
+**Spec:** `docs/design/specs/2026-09-19-divinglog-sqlite-import-design.md`
 
 ## Global Constraints
 
@@ -2307,7 +2307,7 @@ buddies from the `Logbook` and `Tank` tables. Equipment and trips need the
 relational tables and land in phase 2, once a sample file is available to
 map against, which is why this says Refs rather than Closes.
 
-Design: `docs/superpowers/specs/2026-09-19-divinglog-sqlite-import-design.md`
+Design: `docs/design/specs/2026-09-19-divinglog-sqlite-import-design.md`
 ```
 
 Do not add any attribution line, co-author trailer, tool name, or session

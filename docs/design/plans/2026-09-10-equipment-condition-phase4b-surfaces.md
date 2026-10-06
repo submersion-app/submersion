@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, flutter_localizations with ARB files (11 locales), flutter_test.
 
-**Spec:** `docs/superpowers/specs/2026-09-09-equipment-condition-intelligence-design.md` (Surfaces: Elsewhere, Trip scrubber margin; Testing). Stacked on phase 4a (#1724).
+**Spec:** `docs/design/specs/2026-09-09-equipment-condition-intelligence-design.md` (Surfaces: Elsewhere, Trip scrubber margin; Testing). Stacked on phase 4a (#1724).
 
 **Decisions (asked and answered 2026-09-10):** one PR for all of 4b; pre-dive shows significant findings in the same warning block as the overdue clocks, after them, as short rule labels; statistics uses ranking cards reusing the existing ranking widget; the scrubber margin card appears on every trip including past ones, computed as of the trip start; badges raise on caution and significant only (caution shares the due-soon colour, significant the overdue colour), read in one query.
 

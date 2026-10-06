@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3 + Pillow (image compositing), macOS `sips` (quick dimension checks), GitHub-flavored Markdown.
 
-**Source of truth:** Design spec at `docs/superpowers/specs/2026-06-13-readme-redesign-design.md`.
+**Source of truth:** Design spec at `docs/design/specs/2026-06-13-readme-redesign-design.md`.
 
 ---
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod 3 (`StateProvider`, `FutureProvider`), Drift `customSelect`, fl_chart `LineChart`, `CustomPainter`, flutter_test.
 
-**Spec:** `docs/superpowers/specs/2026-10-05-insights-chart-navigation-and-dive-focus-design.md`
+**Spec:** `docs/design/specs/2026-10-05-insights-chart-navigation-and-dive-focus-design.md`
 
 ## Global Constraints
 

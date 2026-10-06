@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Drift ORM (schema v112 → v113), Riverpod, go_router, flutter_local_notifications, gen-l10n.
 
-**Spec:** `docs/superpowers/specs/2026-07-16-gear-service-ledger-design.md`
+**Spec:** `docs/design/specs/2026-07-16-gear-service-ledger-design.md`
 
 ## Global Constraints
 

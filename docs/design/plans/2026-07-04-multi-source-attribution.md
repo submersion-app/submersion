@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Riverpod, Drift (SQLite), fl_chart.
 
-**Spec:** `docs/superpowers/specs/2026-07-04-multi-source-attribution-design.md`
+**Spec:** `docs/design/specs/2026-07-04-multi-source-attribution-design.md`
 
 ## Global Constraints
 

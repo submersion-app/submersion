@@ -11,8 +11,8 @@ The "`ZSAMPLES` remains NO-GO (AES-encrypted with a per-dive key)" conclusion th
 The 2026-04-24 "ZRAWDATA pivot invalidated" section below is **historically inaccurate** and is retained only to show how the wrong conclusion was reached.
 **Date:** 2026-04-23 (initial), 2026-04-24 (ZRAWDATA invalidation), 2026-08-09 (ZRAWDATA solved), 2026-08-29 (Suunto ZRAWDATA confirmed), 2026-09-01 (model allowlist removed), 2026-09-02 (ZSAMPLES solved)
 **Author:** Eric Griffin
-**Spec:** `docs/superpowers/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md`
-**Plan:** `docs/superpowers/plans/2026-04-23-macdive-zsamples-phase-1-spike.md`
+**Spec:** `docs/design/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md`
+**Plan:** `docs/design/plans/2026-04-23-macdive-zsamples-phase-1-spike.md`
 
 This document records what was learned about MacDive's proprietary `ZSAMPLES` binary format during the Phase 1 spike, so that any future attempt can build on concrete observations rather than repeat the search. It also justifies the NO-GO decision and the recommended pivot to the `ZRAWDATA` column via the already-integrated `libdivecomputer` plugin.
 

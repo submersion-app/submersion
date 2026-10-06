@@ -8,7 +8,7 @@
 
 **Tech Stack:** Swift (iOS/macOS), Kotlin + JNI/C++ (Android), C++/WinRT (Windows), C/GLib + BlueZ D-Bus (Linux), Pigeon code generation, CMake, CocoaPods
 
-**Design Doc:** `docs/plans/2026-02-24-platform-parity-design.md`
+**Design Doc:** `docs/design/specs/2026-02-24-platform-parity-design.md`
 
 **Plugin Root:** `packages/libdivecomputer_plugin/`
 

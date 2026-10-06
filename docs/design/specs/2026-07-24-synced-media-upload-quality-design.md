@@ -1,7 +1,7 @@
 # Synced Media Upload Quality
 
 Status: design approved (brainstorm 2026-07-24). Amends
-`docs/superpowers/specs/2026-07-20-adjustable-media-upload-quality-design.md`
+`docs/design/specs/2026-07-20-adjustable-media-upload-quality-design.md`
 (Phase A, PR #666) and its Phase B video-transcoding follow-on
 (`2026-07-21-video-transcoding-phase-b-design.md`, PRs #668/#669/#673/#674).
 

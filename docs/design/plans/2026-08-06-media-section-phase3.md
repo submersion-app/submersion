@@ -4,7 +4,7 @@
 
 **Goal:** Ship the multi-source bulk re-link engine — folder scan with prefix-move detection, photo-library rematch, cloud-backed conversion — behind a 3-step wizard on a new Missing console section, with the single-item Replace link rewired through the same engine.
 
-**Architecture:** A pure match core (`buildRepairProposals` + `detectPrefixMove`) consumes candidates from three `CandidateSource`s; a staged apply (per-row I/O, one DB transaction, then queue enqueues) writes results through sync-safe `MediaRepository` ops. Cloud-backed rows become a first-class `MediaSourceType.mediaStore` whose registered resolver wraps the existing store fallback by composition. Spec: `docs/superpowers/specs/2026-08-05-media-section-design.md` section 6.
+**Architecture:** A pure match core (`buildRepairProposals` + `detectPrefixMove`) consumes candidates from three `CandidateSource`s; a staged apply (per-row I/O, one DB transaction, then queue enqueues) writes results through sync-safe `MediaRepository` ops. Cloud-backed rows become a first-class `MediaSourceType.mediaStore` whose registered resolver wraps the existing store fallback by composition. Spec: `docs/design/specs/2026-08-05-media-section-design.md` section 6.
 
 **Tech Stack:** Flutter 3.x, Drift, Riverpod (barrel), photo_manager (behind a port), file_picker, crypto (via `sha256OfFile` in `lib/core/services/media_store/store_keys.dart`).
 

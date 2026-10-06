@@ -183,6 +183,6 @@ Expected: no issues.
 
 - [x] **Step 4: Review the final diff**
 
-Run: `git diff --check` and `git diff -- lib/core/services/security/database_security_service.dart lib/features/settings/presentation/pages/security_settings_page.dart test/core/services/security/database_security_service_test.dart test/core/presentation/pages/startup_lock_gate_test.dart test/features/settings/presentation/pages/security_settings_page_test.dart docs/superpowers/plans/2026-08-11-decouple-app-lock-database-encryption.md`
+Run: `git diff --check` and `git diff -- lib/core/services/security/database_security_service.dart lib/features/settings/presentation/pages/security_settings_page.dart test/core/services/security/database_security_service_test.dart test/core/presentation/pages/startup_lock_gate_test.dart test/features/settings/presentation/pages/security_settings_page_test.dart docs/design/plans/2026-08-11-decouple-app-lock-database-encryption.md`
 
 Expected: no whitespace errors; only the planned behavior and tests are present.

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift ORM, Riverpod (legacy StateNotifier imports), file_picker, photo_manager, pdfrx (new dependency), share_plus.
 
-**Spec:** `docs/superpowers/specs/2026-08-10-site-media-attachments-design.md`
+**Spec:** `docs/design/specs/2026-08-10-site-media-attachments-design.md`
 
 ## Global Constraints
 

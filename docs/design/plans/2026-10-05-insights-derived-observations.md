@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod 3 (`package:submersion/core/providers/provider.dart`), Drift, `package:clock`, `package:crypto`, ARB l10n (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-10-05-insights-derived-observations-design.md`
+**Spec:** `docs/design/specs/2026-10-05-insights-derived-observations-design.md`
 
 ## Global Constraints
 

@@ -187,7 +187,7 @@ The bundled grid is generated from FES2022b by
 | **v1.5** | **Complete** | Dive computers, deco algorithms, O2 tracking, localization, accessibility |
 | **v2.0** | In Progress | Cloud sync UI, photos, social, community |
 
-[View full roadmap &rarr;](contributing/roadmap.md)
+[View full roadmap &rarr;](https://github.com/submersion-app/submersion/blob/main/docs/contributing/roadmap.md)
 
 ---
 
@@ -195,9 +195,9 @@ The bundled grid is generated from FES2022b by
 
 Submersion is open source under the GPL-3.0 license. We welcome contributions!
 
-- [How to contribute](contributing/)
-- [Code style guide](contributing/code-style.md)
-- [Pull request guidelines](contributing/pull-requests.md)
+- [How to contribute](https://github.com/submersion-app/submersion/tree/main/docs/contributing)
+- [Code style guide](https://github.com/submersion-app/submersion/blob/main/docs/contributing/code-style.md)
+- [Pull request guidelines](https://github.com/submersion-app/submersion/blob/main/docs/contributing/pull-requests.md)
 
 ---
 

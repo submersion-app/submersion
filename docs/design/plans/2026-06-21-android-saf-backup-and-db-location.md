@@ -19,7 +19,7 @@
 - New user-facing strings added to `lib/l10n/arb/app_en.arb` AND all 10 non-en locale ARBs, then `flutter gen-l10n` run — never leave English fallbacks.
 - Do not auto-commit outside these tasks; each task ends with one commit on branch `worktree-worktree-issue-300-android-backup`.
 
-Spec: `docs/superpowers/specs/2026-06-20-android-saf-backup-and-db-location-design.md`
+Spec: `docs/design/specs/2026-06-20-android-saf-backup-and-db-location-design.md`
 
 ---
 

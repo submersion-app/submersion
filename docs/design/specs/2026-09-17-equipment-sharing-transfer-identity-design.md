@@ -5,7 +5,7 @@ Issues: #1549, #2046
 
 > **Superseded in part (2026-10-03):** the "Transfer", "Diver deletion and merge"
 > and "Overlapping use" sections and Delivery items 3 and 4 are replaced by
-> `docs/superpowers/specs/2026-10-03-equipment-transfer-and-overlap-design.md`,
+> `docs/design/specs/2026-10-03-equipment-transfer-and-overlap-design.md`,
 > which corrects them against the code as merged.
 
 ## Problem

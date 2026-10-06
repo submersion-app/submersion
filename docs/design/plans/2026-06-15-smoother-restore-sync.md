@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (`StateNotifier`), Drift, SharedPreferences, go_router, Flutter gen-l10n. Tests use `flutter_test`, hand-written fakes, `SharedPreferences.setMockInitialValues`, and `ProviderContainer` overrides.
 
-**Spec:** `docs/superpowers/specs/2026-06-15-smoother-restore-sync-design.md`
+**Spec:** `docs/design/specs/2026-06-15-smoother-restore-sync-design.md`
 
 **Branch:** `feat/smoother-restore-sync` (already created from the post-#330 `origin/main`).
 
@@ -1509,7 +1509,7 @@ git commit -m "style: dart format" # only if Step 1 changed files
 
 ```bash
 git push -u origin feat/smoother-restore-sync
-gh pr create --base main --title "feat(sync): smoother database restore (auto-resume merge, unmissable replace-adopt)" --body "Implements docs/superpowers/specs/2026-06-15-smoother-restore-sync-design.md"
+gh pr create --base main --title "feat(sync): smoother database restore (auto-resume merge, unmissable replace-adopt)" --body "Implements docs/design/specs/2026-06-15-smoother-restore-sync-design.md"
 ```
 
 ---

@@ -1,4 +1,4 @@
-// Adapted from plan `docs/superpowers/plans/2026-04-28-media-source-extension-phase3c.md`
+// Adapted from plan `docs/design/plans/2026-04-28-media-source-extension-phase3c.md`
 // Task 3. Deviations from the plan code:
 //
 // - `NetworkCredentialsService.headersFor` actually takes a `Uri` and returns

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Riverpod, `package:timezone` 0.11.0, Python 3.14 with `numpy` and `netCDF4` (extraction only), node (fixture generation only).
 
-**Spec:** `docs/superpowers/specs/2026-09-26-tide-site-time-and-grid-design.md`
+**Spec:** `docs/design/specs/2026-09-26-tide-site-time-and-grid-design.md`
 
 ## Global Constraints
 
@@ -3283,7 +3283,7 @@ Expected: PASS.
 Run:
 ```bash
 git rm assets/data/tide/constituents_grid.json assets/data/tide/metadata.json scripts/tide/extract_fes_constituents.py scripts/tide/generate_fes_config.py scripts/tide/export_dive_sites.dart scripts/tide/requirements.txt
-grep -rn -E "constituents_grid|metadata\.json|extract_fes_constituents|generate_fes_config|export_dive_sites|pyfes|PyFES" lib test scripts docs README.md pubspec.yaml --include='*' | grep -v "docs/superpowers/"
+grep -rn -E "constituents_grid|metadata\.json|extract_fes_constituents|generate_fes_config|export_dive_sites|pyfes|PyFES" lib test scripts docs README.md pubspec.yaml --include='*' | grep -v "docs/design/"
 ```
 Expected: the grep prints only lines in `scripts/tide/README.md` and `docs/README.md`, which the next step rewrites. Any other hit must be fixed in this task.
 

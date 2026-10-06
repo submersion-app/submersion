@@ -8,7 +8,7 @@
 
 **Tech Stack:** Pure-Dart CustomPainter rendering (NO three_js - engine reversal 2026-07-11, see spec), Riverpod, existing Buhlmann analysis pipeline.
 
-**Spec:** `docs/superpowers/specs/2026-07-11-3d-flythrough-design.md` (see the PR-2 addendum section added 2026-07-11).
+**Spec:** `docs/design/specs/2026-07-11-3d-flythrough-design.md` (see the PR-2 addendum section added 2026-07-11).
 
 ## Global Constraints
 

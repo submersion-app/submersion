@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift ORM, Riverpod, Pigeon codegen, Swift (iOS/macOS), Kotlin+JNI (Android), C++ (Windows), GObject C (Linux), libdivecomputer C library.
 
-**Spec:** `docs/superpowers/specs/2026-03-12-incremental-dive-download-design.md`
+**Spec:** `docs/design/specs/2026-03-12-incremental-dive-download-design.md`
 
 ---
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift ORM, Riverpod, go_router
 
-**Spec:** `docs/superpowers/specs/2026-03-18-default-tank-preset-design.md`
+**Spec:** `docs/design/specs/2026-03-18-default-tank-preset-design.md`
 
 ---
 

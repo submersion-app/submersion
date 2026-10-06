@@ -8,7 +8,7 @@
 
 **Tech Stack:** C (libdivecomputer fork), pigeon 22 (Swift, Kotlin, GObject, C++ outputs), Swift, Kotlin + JNI + AIDL, Flutter/Riverpod (StateNotifier), SharedPreferences, mockito, flutter_test, CMake/ctest for native tests.
 
-**Spec:** `docs/superpowers/specs/2026-09-08-dive-computer-clock-sync-design.md`
+**Spec:** `docs/design/specs/2026-09-08-dive-computer-clock-sync-design.md`
 
 ## Global Constraints
 

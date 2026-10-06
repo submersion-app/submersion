@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.9+ standard library and unittest (app repo); plain HTML, CSS and ES modules, Node 22 `node:test` (website repo, GitHub Pages); `gh`, `curl`, `git`; a scheduled cloud agent.
 
-**Spec:** `docs/superpowers/specs/2026-10-02-dive-computer-support-matrix-design.md` (app repo). Read it before any task.
+**Spec:** `docs/design/specs/2026-10-02-dive-computer-support-matrix-design.md` (app repo). Read it before any task.
 
 ## Global Constraints
 
@@ -22,7 +22,7 @@
 - Outcomes: `works`, `caveats`, `fails`. Sources: `scubaboard`, `github-issue`, `github-pr`, `github-discussion`, `reddit`, `app-store`, `play-store`. Release notes only corroborate `fixedIn`.
 - Generator runs on Python 3.9 (no `match`, no `X | None` annotations). Locally use `python3.14`; the system `python3` is 3.9.6, which the code must also support.
 - App repo PRs carry `Refs #2616` (PR 1) or `Closes #2616` (PR 5) in the description body.
-- Website copy rules (its `docs/superpowers/specs/2026-08-23-content-rewrite-design.md`): second person, present tense, one idea per sentence, no metaphor or slogan; every homepage claim maps to a row in that spec's verified-claims table.
+- Website copy rules (its `docs/design/specs/2026-08-23-content-rewrite-design.md`): second person, present tense, one idea per sentence, no metaphor or slogan; every homepage claim maps to a row in that spec's verified-claims table.
 - Run `dart format .` only if a task touches Dart (none here). Never `git add -A`; stage explicit paths.
 - Pushing a branch or opening a PR is a stop-and-ask point: get the maintainer's yes in chat first.
 - The Write and Edit tools decode a backslash-u escape in their arguments into the real character. `validate.mjs` and `tests/support-matrix-validate.test.mjs` must contain the six-character escape (backslash, `u2014`), never a literal em dash: write those two files with a script, or fix them up after, then check each with `python3 -c "import sys;print(open(sys.argv[1],encoding='utf-8').read().count(chr(0x2014)))" <file>` (expect `0`).
@@ -69,7 +69,7 @@ Website repo (`submersion-website`, a new worktree):
 | `tools/support-matrix/SWEEP.md` | The sweep procedure, initial and monthly |
 | `tests/fixtures/support-matrix-catalog.json` | Shared small catalog for JS tests |
 | `tests/support-matrix-*.test.mjs` | Tests, picked up by the existing `node --test tests/*.test.mjs` |
-| `index.html`, `docs/superpowers/specs/2026-08-23-content-rewrite-design.md` | Homepage link and its claims row |
+| `index.html`, `docs/design/specs/2026-08-23-content-rewrite-design.md` | Homepage link and its claims row |
 
 ---
 
@@ -821,7 +821,7 @@ Create `computers/status.js`:
 ```js
 // Cell status for the support matrix: the one place that decides what a cell
 // shows. The rules are in the app repo's spec,
-// docs/superpowers/specs/2026-10-02-dive-computer-support-matrix-design.md.
+// docs/design/specs/2026-10-02-dive-computer-support-matrix-design.md.
 
 export const STATUS = Object.freeze({
   VERIFIED: "verified",
@@ -1890,7 +1890,7 @@ git commit -m "feat(computers): validate, merge and date-stamp support matrix re
 - Create: `computers/data/catalog.json` (generated), `computers/data/reports.json`
 - Create: `tests/support-matrix-data.test.mjs`
 - Modify: `index.html` (the `#computer` zone's "350+ models" feature, around line 131)
-- Modify: `docs/superpowers/specs/2026-08-23-content-rewrite-design.md` (verified-claims "Tested computers" row, around line 47)
+- Modify: `docs/design/specs/2026-08-23-content-rewrite-design.md` (verified-claims "Tested computers" row, around line 47)
 
 **Interfaces:**
 - Consumes: `buildRows`, `filterRows`, `parseState`, `urlFor`, `revealTarget`, `vendorsOf` (rows.js); `renderRows`, `renderDetail`, `renderBrandOptions`, `renderUnsupported`, `renderProvenance` (render.js); `validate` (validate.mjs).
@@ -2206,7 +2206,7 @@ with:
 <a href="/computers/">See which models divers have verified on your platform</a>, and which still need a tester.
 ```
 
-In `docs/superpowers/specs/2026-08-23-content-rewrite-design.md`, replace the "Tested computers" row of the verified-claims table with:
+In `docs/design/specs/2026-08-23-content-rewrite-design.md`, replace the "Tested computers" row of the verified-claims table with:
 
 ```
 | Tested computers | "See which models divers have verified on your platform, and which still need a tester." | `/computers/` page, data in `computers/data/` |
@@ -2248,7 +2248,7 @@ The empty `reports.json` means every reachable cell reads Untested; to exercise 
 - [ ] **Step 9: Commit and stop to ask before PR 2**
 
 ```bash
-git add computers/index.html computers/page.css computers/page.js computers/data/catalog.json computers/data/reports.json tests/support-matrix-data.test.mjs index.html docs/superpowers/specs/2026-08-23-content-rewrite-design.md
+git add computers/index.html computers/page.css computers/page.js computers/data/catalog.json computers/data/reports.json tests/support-matrix-data.test.mjs index.html docs/design/specs/2026-08-23-content-rewrite-design.md
 git commit -m "feat(computers): publish the dive computer support matrix page"
 ```
 
@@ -2282,7 +2282,7 @@ How `computers/data/reports.json` gets new evidence. The same procedure runs
 the first time (every watermark empty, so every source is read in full) and
 monthly (each source read from its own watermark). The page, the validator
 and the status rules are described in the app repo's spec,
-`docs/superpowers/specs/2026-10-02-dive-computer-support-matrix-design.md`.
+`docs/design/specs/2026-10-02-dive-computer-support-matrix-design.md`.
 
 ## Rules for every report
 

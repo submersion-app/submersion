@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Riverpod, Drift, `xml` package, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-08-26-subsurface-picture-import-design.md`
+**Spec:** `docs/design/specs/2026-08-26-subsurface-picture-import-design.md`
 
 ## Global Constraints
 

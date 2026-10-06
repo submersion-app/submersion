@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod 3, Equatable, Open-Meteo archive API via the existing `WeatherService`.
 
-**Spec:** `docs/superpowers/specs/2026-08-26-trip-day-weather-storage-design.md`
+**Spec:** `docs/design/specs/2026-08-26-trip-day-weather-storage-design.md`
 
 ## Global Constraints
 

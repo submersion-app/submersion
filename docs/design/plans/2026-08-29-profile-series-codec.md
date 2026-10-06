@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart 3 (records, switch expressions), `dart:typed_data`, `dart:io` `ZLibCodec`, `package:equatable`, `flutter_test`, Drift's generated table metadata (test only).
 
-**Spec:** `docs/superpowers/specs/2026-08-28-profile-sample-storage-design.md`, sections 3 (architecture), 5 (codec v1), 10 (codec tests), 11 (delivery: this is PR 1).
+**Spec:** `docs/design/specs/2026-08-28-profile-sample-storage-design.md`, sections 3 (architecture), 5 (codec v1), 10 (codec tests), 11 (delivery: this is PR 1).
 
 ## Global Constraints
 
@@ -2373,7 +2373,7 @@ Write the body file first with exactly this content (no attribution line, no ses
 ## Summary
 
 Part 1 of the packed profile sample storage program
-(`docs/superpowers/specs/2026-08-28-profile-sample-storage-design.md`).
+(`docs/design/specs/2026-08-28-profile-sample-storage-design.md`).
 Adds a pure-Dart, lossless, versioned codec that packs a series of profile
 samples (or a tank's pressure readings) into one zlib-compressed columnar
 blob, plus the summary scalars the series tables will store. Nothing in

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart 3, Drift (SQLite), Riverpod 3 (`flutter_riverpod` 3.4, legacy `StateNotifier` API via the `core/providers/provider.dart` facade), `equatable`, `flutter_test`, `flutter gen-l10n`.
 
-**Spec:** `docs/superpowers/specs/2026-09-13-legacy-buddy-text-conversion-design.md`
+**Spec:** `docs/design/specs/2026-09-13-legacy-buddy-text-conversion-design.md`
 
 ## Global Constraints
 

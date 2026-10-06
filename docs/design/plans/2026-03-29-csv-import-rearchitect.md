@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift ORM (SQLite), Riverpod state management, `csv` package for parsing, `intl` for date formatting, `uuid` for ID generation.
 
-**Design spec:** `docs/superpowers/specs/2026-03-29-csv-import-rearchitect-design.md`
+**Design spec:** `docs/design/specs/2026-03-29-csv-import-rearchitect-design.md`
 
 ---
 

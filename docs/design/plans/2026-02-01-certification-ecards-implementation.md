@@ -1814,7 +1814,7 @@ Run: `flutter run -d macos`
 
 ---
 
-Plan complete and saved to `docs/plans/2026-02-01-certification-ecards-implementation.md`.
+Plan complete and saved to `docs/design/plans/2026-02-01-certification-ecards-implementation.md`.
 
 **Two execution options:**
 

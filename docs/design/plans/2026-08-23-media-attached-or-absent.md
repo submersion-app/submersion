@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Riverpod (StateNotifier / FutureProvider.family), Drift, flutter_test with in-memory `AppDatabase` (`setUpTestDatabase()`), mockito for the URL-tab mocks, `flutter gen-l10n` for the eleven ARB catalogs.
 
-**Spec:** `docs/superpowers/specs/2026-08-23-media-attached-or-absent-design.md`
+**Spec:** `docs/design/specs/2026-08-23-media-attached-or-absent-design.md`
 
 ## Global Constraints
 
@@ -3507,7 +3507,7 @@ not-yet-upgraded peer syncs in."
 ### Task 11: Whole-tree verification and hand-off
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-08-23-media-attached-or-absent-design.md` (status line only)
+- Modify: `docs/design/specs/2026-08-23-media-attached-or-absent-design.md` (status line only)
 
 - [ ] **Step 1: Leftover symbol scan**
 
@@ -3530,7 +3530,7 @@ Expected: the summary line shows zero failures. A lone failure in a file this br
 Change the spec's `**Status:**` line to `approved 2026-08-23, implemented on this branch`.
 
 ```bash
-git add docs/superpowers/specs/2026-08-23-media-attached-or-absent-design.md
+git add docs/design/specs/2026-08-23-media-attached-or-absent-design.md
 git commit -m "docs(media): mark attached-or-absent spec implemented"
 ```
 

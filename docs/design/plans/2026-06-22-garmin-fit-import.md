@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Dart, `fit_tool: ^1.0.5` (FIT parsing), Drift (SQLite), Riverpod, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-06-22-garmin-fit-import-design.md` (read Appendix A/B for verified FIT field/scale ground truth).
+**Spec:** `docs/design/specs/2026-06-22-garmin-fit-import-design.md` (read Appendix A/B for verified FIT field/scale ground truth).
 
 ## Global Constraints
 
@@ -1560,7 +1560,7 @@ git commit -m "test(fit): end-to-end Garmin FIT import integration"
 
 ## Execution Handoff
 
-**Plan complete and saved to `docs/superpowers/plans/2026-06-22-garmin-fit-import.md`. Two execution options:**
+**Plan complete and saved to `docs/design/plans/2026-06-22-garmin-fit-import.md`. Two execution options:**
 
 **1. Subagent-Driven (recommended)** — I dispatch a fresh subagent per task, review between tasks, fast iteration.
 

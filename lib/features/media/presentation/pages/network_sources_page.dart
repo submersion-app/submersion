@@ -1,5 +1,5 @@
 // Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3c.md`
+// `docs/design/plans/2026-04-28-media-source-extension-phase3c.md`
 // Task 10. The page is pure composition: it stacks Tasks 6/7/8's cards in
 // a `ListView` and adds a final "Scan all network media" tonal action that
 // opens Task 9's `NetworkScanDialog`.

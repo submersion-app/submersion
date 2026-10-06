@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (hand-written providers), Drift with `build_runner`, `flutter gen-l10n` ARB localisation, `pdf` for the label, the transitive `qr` package for the on-screen code, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md`, sections 5, 6, 8, 10.1, 10.2, 10.6 to 10.8, 14 (tag page), 15, 16 and the "1a Passport core" row of section 17. This plan covers PR 1a only. Scanning, routes for incoming links, the foreign passport and the tank editor Scan are PR 1b (#2335); NFC is PR 2; signed records are PR 3; the Trip card is PR 4; CSV is PR 5.
+**Spec:** `docs/design/specs/2026-09-25-smart-cylinder-passports-design.md`, sections 5, 6, 8, 10.1, 10.2, 10.6 to 10.8, 14 (tag page), 15, 16 and the "1a Passport core" row of section 17. This plan covers PR 1a only. Scanning, routes for incoming links, the foreign passport and the tank editor Scan are PR 1b (#2335); NFC is PR 2; signed records are PR 3; the Trip card is PR 4; CSV is PR 5.
 
 ## Global Constraints
 
@@ -6322,7 +6322,7 @@ Create `docs/import-formats/cylinder-passport-tag.md`:
 # Cylinder Passport Tag Format
 
 **Status:** Version 1, shipped with Submersion 1.9.
-**Spec:** `docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md`, section 6.
+**Spec:** `docs/design/specs/2026-09-25-smart-cylinder-passports-design.md`, section 6.
 
 A cylinder passport tag is one short string, printed as a QR code or written
 to an NFC tag as an NDEF URI record. Scanning it in Submersion opens that
@@ -6454,7 +6454,7 @@ Open the PR against `main` with the title `Cylinder passports 1a: passport id, f
 ## Summary
 
 Phase 1a of the smart cylinder passports program (spec:
-docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md).
+docs/design/specs/2026-09-25-smart-cylinder-passports-design.md).
 
 - `passport_id` becomes a system attribute on cylinders, with a lookup index.
 - The tag payload codec (`https://submersion.app/c#...`) and the NDEF size

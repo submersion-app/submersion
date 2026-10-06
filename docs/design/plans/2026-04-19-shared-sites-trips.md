@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Drift ORM, Riverpod, Material 3, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-04-19-shared-sites-trips-design.md`
+**Spec:** `docs/design/specs/2026-04-19-shared-sites-trips-design.md`
 
 ---
 

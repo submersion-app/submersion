@@ -4,7 +4,7 @@
 
 **Goal:** Close the Media section program: a background watcher that auto-repairs exact-hash moves, a per-device repair audit trail, synced smart albums, and a per-source browsing section.
 
-**Architecture:** Two independent halves. **Part A (repair automation)** adds a per-device cache-DB index of watched folders, a scanner that re-hashes only changed files and feeds exact matches straight into the Phase 3 `MediaRepairService`, and an audit log every repair path writes. **Part B (library extras)** makes `MediaLibraryFilter` JSON-serializable so a smart album is a named saved filter (synced), plus a Sources section that browses by source type. Spec: `docs/superpowers/specs/2026-08-05-media-section-design.md` sections 4 and 7.
+**Architecture:** Two independent halves. **Part A (repair automation)** adds a per-device cache-DB index of watched folders, a scanner that re-hashes only changed files and feeds exact matches straight into the Phase 3 `MediaRepairService`, and an audit log every repair path writes. **Part B (library extras)** makes `MediaLibraryFilter` JSON-serializable so a smart album is a named saved filter (synced), plus a Sources section that browses by source type. Spec: `docs/design/specs/2026-08-05-media-section-design.md` sections 4 and 7.
 
 **Tech Stack:** Flutter 3.x, Drift (main DB + local cache DB), Riverpod (barrel), the Phase 3 repair engine (`MediaRepairService`, `RepairProposal`, `sha256OfFile`).
 

@@ -1,4 +1,4 @@
-// Adapted from plan `docs/superpowers/plans/2026-04-28-media-source-extension-phase3a.md`
+// Adapted from plan `docs/design/plans/2026-04-28-media-source-extension-phase3a.md`
 // Task 5. Deviations from the plan code:
 //
 // - The plan's hand-written `_FakeSecureStorage` is replaced with Mockito-

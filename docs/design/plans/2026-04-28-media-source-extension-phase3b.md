@@ -10,7 +10,7 @@
 
 **Tech Stack:** Flutter 3.x + Material 3, Riverpod 2.x, `package:xml ^6.5.0` (already in `pubspec.yaml`), `package:csv ^6.0.0` (already in `pubspec.yaml`), `package:crypto ^3.0.3` (already in `pubspec.yaml`), `package:http ^1.2.2` (already in `pubspec.yaml`, also used by 3a), Drift (no schema changes — Phase 1's v72 migration already added the `MediaSubscriptions` and `MediaSubscriptionState` tables and the unique partial index `idx_media_subscription_entry`).
 
-**Spec:** [docs/superpowers/specs/2026-04-25-media-source-extension-design.md](../specs/2026-04-25-media-source-extension-design.md) lines 428–552 (Phase 3 deliverables 1 [Manifest mode], 4, 5 [manifest entries], 6).
+**Spec:** [docs/design/specs/2026-04-25-media-source-extension-design.md](../specs/2026-04-25-media-source-extension-design.md) lines 428–552 (Phase 3 deliverables 1 [Manifest mode], 4, 5 [manifest entries], 6).
 
 **No new pubspec dependencies are required.** Every package this plan references is already declared in `pubspec.yaml`.
 
@@ -20,9 +20,9 @@
 
 Read these before starting:
 
-- [docs/superpowers/specs/2026-04-25-media-source-extension-design.md](../specs/2026-04-25-media-source-extension-design.md) Phase 3 section, especially deliverables 1 (Manifest mode UI), 4 (parsers), 5 (eager fetch, manifest entry path), and 6 (subscription polling).
-- [docs/superpowers/plans/2026-04-27-media-source-extension-phase2.md](./2026-04-27-media-source-extension-phase2.md) — companion plan, same conventions, similar widget/provider/repo split.
-- The Phase 3a plan (`docs/superpowers/plans/2026-04-28-media-source-extension-phase3a.md` — produced in parallel). 3b builds on 3a's `NetworkCredentialsService`, `NetworkUrlResolver`, `UrlMetadataExtractor`, `network_fetch_pipeline.dart`, and the URL-tab segmented-control scaffold. Cross-reference its task numbering when integrating.
+- [docs/design/specs/2026-04-25-media-source-extension-design.md](../specs/2026-04-25-media-source-extension-design.md) Phase 3 section, especially deliverables 1 (Manifest mode UI), 4 (parsers), 5 (eager fetch, manifest entry path), and 6 (subscription polling).
+- [docs/design/plans/2026-04-27-media-source-extension-phase2.md](./2026-04-27-media-source-extension-phase2.md) — companion plan, same conventions, similar widget/provider/repo split.
+- The Phase 3a plan (`docs/design/plans/2026-04-28-media-source-extension-phase3a.md` — produced in parallel). 3b builds on 3a's `NetworkCredentialsService`, `NetworkUrlResolver`, `UrlMetadataExtractor`, `network_fetch_pipeline.dart`, and the URL-tab segmented-control scaffold. Cross-reference its task numbering when integrating.
 - [lib/core/database/database.dart](../../lib/core/database/database.dart) lines 599–630 (the `MediaSubscriptions` and `MediaSubscriptionState` table definitions) and lines 3556–3565 (the partial unique index `idx_media_subscription_entry ON media(subscription_id, entry_key) WHERE subscription_id IS NOT NULL`).
 - [lib/features/media/domain/entities/media_item.dart](../../lib/features/media/domain/entities/media_item.dart) (note the existing `subscriptionId` and `entryKey` columns/fields).
 - [lib/features/media/domain/value_objects/media_source_metadata.dart](../../lib/features/media/domain/value_objects/media_source_metadata.dart) (returned by every resolver and reused by the manifest entry pipeline).
@@ -64,7 +64,7 @@ Conventions:
 | `lib/features/media/data/services/network_fetch_pipeline.dart` | Modify | 3a created. Extend to handle `sourceType = manifestEntry` (skip EXIF when manifest already supplied `takenAt`/`lat`/`lon`). |
 | `lib/features/media/presentation/providers/media_resolver_providers.dart` | Modify | Register `ManifestEntryResolver` under `MediaSourceType.manifestEntry`. Wire app-launch hook for `SubscriptionPoller`. |
 | `lib/main.dart` | Modify (minimal) | Schedule `SubscriptionPoller.startAfterWarmup()` after 30 s. Adds 6 lines. |
-| `docs/superpowers/specs/manifest_json_v1.md` | Create | User-facing JSON manifest v1 schema documentation. |
+| `docs/design/specs/manifest_json_v1.md` | Create | User-facing JSON manifest v1 schema documentation. |
 | Plus tests for every new file in `test/` (mirror lib/ structure). | | |
 
 `MediaSubscriptions` (synced) and `MediaSubscriptionState` (per-device) are **already** in the schema (Phase 1, v72). The partial unique index `idx_media_subscription_entry ON media(subscription_id, entry_key) WHERE subscription_id IS NOT NULL` is already in place. Cross-device dedup is a free side-effect of that index plus the sync engine.
@@ -404,21 +404,21 @@ Expected: PASS (7 tests total).
 ## Task 2: JSON Manifest v1 Schema Documentation
 
 **Files:**
-- Create: `docs/superpowers/specs/manifest_json_v1.md`
+- Create: `docs/design/specs/manifest_json_v1.md`
 
 A user-facing schema doc (not auto-tested). Drivers: 3a's design spec promised it, the JSON parser will reference it, and downstream user docs will link it.
 
 - [ ] **Step 1: Verify the spec doc directory exists**
 
 ```bash
-ls docs/superpowers/specs/2026-04-25-media-source-extension-design.md
+ls docs/design/specs/2026-04-25-media-source-extension-design.md
 ```
 
 Expected: file exists.
 
 - [ ] **Step 2: Author `manifest_json_v1.md`**
 
-Create `docs/superpowers/specs/manifest_json_v1.md`:
+Create `docs/design/specs/manifest_json_v1.md`:
 
 ```markdown
 # Submersion Manifest — JSON v1
@@ -517,7 +517,7 @@ runs.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add docs/superpowers/specs/manifest_json_v1.md
+git add docs/design/specs/manifest_json_v1.md
 git commit -m "docs(media): add JSON manifest v1 schema spec"
 ```
 
@@ -691,7 +691,7 @@ import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/parsers/manifest_parse_result.dart';
 
 /// Parses a Submersion JSON manifest v1 document. See
-/// `docs/superpowers/specs/manifest_json_v1.md` for the schema.
+/// `docs/design/specs/manifest_json_v1.md` for the schema.
 ///
 /// Per-item parse failures are reported in
 /// [ManifestParseResult.warnings] rather than thrown. Top-level shape
@@ -4041,7 +4041,7 @@ Manual smoke test (best done on macOS; iOS / Android flows are identical apart f
 | 4 (Atom/RSS, JSON, CSV parsers returning `List<ManifestEntry>`) | 1 (value type), 3 (JSON), 4 (Atom/RSS), 5 (CSV) |
 | 5 (Eager fetch pipeline for manifest entries: skip EXIF when manifest pre-filled metadata) | 9 (resolver), 10 (pipeline extension), 14 (commit feeds the pipeline) |
 | 6 (Subscription polling: app-launch warm-up + periodic timer + Poll-now; conditional GET; diff insert/patch/orphan; backoff; cross-device dedup) | 8 (repo), 11 (cycle), 12 (scheduler) |
-| Manifest format spec doc | 2 (`docs/superpowers/specs/manifest_json_v1.md`) |
+| Manifest format spec doc | 2 (`docs/design/specs/manifest_json_v1.md`) |
 
 ### 2. 3a-vs-3b boundary
 

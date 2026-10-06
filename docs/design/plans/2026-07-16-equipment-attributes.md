@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Drift ORM, Riverpod, gen_l10n (11 ARB locales).
 
-**Spec:** `docs/superpowers/specs/2026-07-16-equipment-attributes-design.md`
+**Spec:** `docs/design/specs/2026-07-16-equipment-attributes-design.md`
 
 ## Global Constraints
 
@@ -3136,7 +3136,7 @@ Expected: ALL PASS.
 
 - [ ] **Step 3: Spec cross-check**
 
-Open `docs/superpowers/specs/2026-07-16-equipment-attributes-design.md` and verify each Goal maps to shipped code: (1) curated per-type form -> Task 6; (2) custom fields -> Tasks 5-6; (3) stats filter + chart -> Task 8; (4) legacy migration + frozen columns -> Tasks 1, 5; (5) sync semantics -> Tasks 1-2, 5. Confirm the schema-version number used matches the ladder reality at implementation time.
+Open `docs/design/specs/2026-07-16-equipment-attributes-design.md` and verify each Goal maps to shipped code: (1) curated per-type form -> Task 6; (2) custom fields -> Tasks 5-6; (3) stats filter + chart -> Task 8; (4) legacy migration + frozen columns -> Tasks 1, 5; (5) sync semantics -> Tasks 1-2, 5. Confirm the schema-version number used matches the ladder reality at implementation time.
 
 - [ ] **Step 4: Manual smoke (if a device/desktop is available)**
 

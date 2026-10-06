@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, fl_chart, Drift ORM, Riverpod (StateNotifierProvider), Equatable, go_router.
 
-**Design doc:** `docs/plans/2026-02-16-profile-editing-design.md`
+**Design doc:** `docs/design/specs/2026-02-16-profile-editing-design.md`
 
 ---
 

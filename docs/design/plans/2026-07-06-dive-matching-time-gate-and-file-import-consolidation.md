@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift (SQLite), Riverpod, flutter_test + mockito, real-DB test harness (`setUpTestDatabase`).
 
-**Spec:** `docs/superpowers/specs/2026-07-06-dive-matching-time-gate-and-file-import-consolidation-design.md`
+**Spec:** `docs/design/specs/2026-07-06-dive-matching-time-gate-and-file-import-consolidation-design.md`
 
 ## Global Constraints
 
@@ -571,7 +571,7 @@ Expected: (a) shows a possible-duplicate with a Consolidate option that folds in
 - [ ] **Step 5: Commit docs (if not yet committed)**
 
 ```bash
-git add docs/superpowers/specs/2026-07-06-dive-matching-time-gate-and-file-import-consolidation-design.md docs/superpowers/plans/2026-07-06-dive-matching-time-gate-and-file-import-consolidation.md
+git add docs/design/specs/2026-07-06-dive-matching-time-gate-and-file-import-consolidation-design.md docs/design/plans/2026-07-06-dive-matching-time-gate-and-file-import-consolidation.md
 git commit -m "docs: spec and plan for dive matching time-gate and file-import consolidation"
 ```
 

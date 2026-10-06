@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Drift over SQLite, `photo_manager` behind `GalleryAssetReader` and `PhotoPickerService`, Riverpod, `flutter_test`, the two-device media harness.
 
-**Spec:** `docs/superpowers/specs/2026-09-18-media-sync-program-design.md`, section 6.1. Sub-issue #2113, part of #2090. Turns scenario S5 green.
+**Spec:** `docs/design/specs/2026-09-18-media-sync-program-design.md`, section 6.1. Sub-issue #2113, part of #2090. Turns scenario S5 green.
 
 ## Global Constraints
 
@@ -1137,7 +1137,7 @@ git commit -m "test(media): S5 turns green, and an old row's origin crosses devi
 ### Task 5: Record the decisions, verify the branch, open the PR
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-09-18-media-sync-program-design.md` (section 6.1)
+- Modify: `docs/design/specs/2026-09-18-media-sync-program-design.md` (section 6.1)
 
 - [ ] **Step 1: Record the owner decisions in spec 6.1**
 
@@ -1165,7 +1165,7 @@ Expected: `exit=0`, `All tests passed!`. Capture to a file; never pipe `flutter 
 - [ ] **Step 3: Commit the spec, then push and open the PR (ask the owner first)**
 
 ```bash
-git add docs/superpowers/specs/2026-09-18-media-sync-program-design.md
+git add docs/design/specs/2026-09-18-media-sync-program-design.md
 git commit -m "docs(spec): record slice 7's origin decisions in 6.1"
 ```
 

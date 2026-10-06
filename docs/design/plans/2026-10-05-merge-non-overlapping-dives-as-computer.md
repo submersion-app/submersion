@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod, Drift, flutter_test, ARB l10n (`flutter gen-l10n`).
 
-**Spec:** `docs/superpowers/specs/2026-10-05-merge-non-overlapping-dives-as-computer-design.md`
+**Spec:** `docs/design/specs/2026-10-05-merge-non-overlapping-dives-as-computer-design.md`
 
 ## Global Constraints
 

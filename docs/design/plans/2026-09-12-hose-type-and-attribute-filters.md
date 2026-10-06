@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Riverpod 3 (`FutureProvider.family`, `StateProvider`), Drift (SQLite, `customSelect`), gen-l10n ARB files.
 
-**Spec:** `docs/superpowers/specs/2026-09-12-hose-type-and-attribute-filters-design.md`
+**Spec:** `docs/design/specs/2026-09-12-hose-type-and-attribute-filters-design.md`
 
 ## Global Constraints
 

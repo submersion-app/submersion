@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, flutter_map, Riverpod (project hub `core/providers/provider.dart`), go_router.
 
-**Spec:** `docs/superpowers/specs/2026-08-15-site-scape-unification-design.md` (PR 3 section). Planning-time corrections to the spec are folded into Task 9.
+**Spec:** `docs/design/specs/2026-08-15-site-scape-unification-design.md` (PR 3 section). Planning-time corrections to the spec are folded into Task 9.
 
 ## Global Constraints
 
@@ -1158,7 +1158,7 @@ git commit -m "refactor(sitescape): delete the superseded SiteSeascapePage"
 
 - [ ] **Step 1: Amend the spec's PR 3 section**
 
-In `docs/superpowers/specs/2026-08-15-site-scape-unification-design.md`, append to the PR 3 section:
+In `docs/design/specs/2026-08-15-site-scape-unification-design.md`, append to the PR 3 section:
 
 ```markdown
 Corrections at planning time (PR 3): the sites surface has no `?site=`

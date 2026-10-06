@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Riverpod (StateNotifier), SharedPreferences, go_router, flutter gen-l10n.
 
-**Spec:** `docs/superpowers/specs/2026-08-07-customizable-home-screen-design.md`
+**Spec:** `docs/design/specs/2026-08-07-customizable-home-screen-design.md`
 
 ## Global Constraints
 

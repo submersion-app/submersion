@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod 3 (manual providers, no codegen), Drift, `go_router`, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-08-29-storage-reclamation-design.md`
+**Spec:** `docs/design/specs/2026-08-29-storage-reclamation-design.md`
 
 ## Global Constraints
 

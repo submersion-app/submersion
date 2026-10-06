@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Riverpod (StateNotifier), go_router, Drift ORM, Material 3
 
-**Spec:** `docs/superpowers/specs/2026-03-23-unified-import-wizard-design.md`
+**Spec:** `docs/design/specs/2026-03-23-unified-import-wizard-design.md`
 
 ---
 

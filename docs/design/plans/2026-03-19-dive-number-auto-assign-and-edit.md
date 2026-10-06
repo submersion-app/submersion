@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift ORM, Riverpod, Mockito for tests
 
-**Spec:** `docs/superpowers/specs/2026-03-19-dive-number-auto-assign-and-edit-design.md`
+**Spec:** `docs/design/specs/2026-03-19-dive-number-auto-assign-and-edit-design.md`
 
 ---
 

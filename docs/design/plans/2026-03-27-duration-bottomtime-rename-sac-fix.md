@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift ORM (SQLite), Riverpod
 
-**Spec:** `docs/superpowers/specs/2026-03-25-duration-bottomtime-rename-design.md`
+**Spec:** `docs/design/specs/2026-03-25-duration-bottomtime-rename-design.md`
 
 ---
 

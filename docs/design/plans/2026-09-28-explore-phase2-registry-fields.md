@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Drift (SQLite), Riverpod, the entity query language (`lib/core/query`, `lib/features/dive_log/query`), Explore (`lib/features/explore`).
 
-**Spec:** `docs/superpowers/specs/2026-09-19-explore-natural-language-search-design.md` (section "Phase 2: profile-derived predicates") and `docs/superpowers/specs/2026-09-25-entity-query-language-design.md` (Explore, lines 277-285 and 459-465). This plan **supersedes** `docs/superpowers/plans/2026-09-20-explore-phase2-derived-predicates.md`, whose filter wiring (a `derivedPredicates` axis, hand SQL in three paths, a custom tick) predates the query language and no longer fits main.
+**Spec:** `docs/design/specs/2026-09-19-explore-natural-language-search-design.md` (section "Phase 2: profile-derived predicates") and `docs/design/specs/2026-09-25-entity-query-language-design.md` (Explore, lines 277-285 and 459-465). This plan **supersedes** `docs/design/plans/2026-09-20-explore-phase2-derived-predicates.md`, whose filter wiring (a `derivedPredicates` axis, hand SQL in three paths, a custom tick) predates the query language and no longer fits main.
 
 **Source of the engine code:** branch `origin/ericgriffin/explore-phase2-derived-predicates` (called **B** below). Its engine, worker and scheduler were written and tested on 2026-09-20; this plan restores them with `git show` and changes only what the new design needs. Restore commands use `B=origin/ericgriffin/explore-phase2-derived-predicates` and must brace the ref (`"${B}:path"`): in zsh, `$B:l...` is read as a colon modifier.
 
@@ -2703,9 +2703,9 @@ git commit -m "feat(explore): a SAC chart when the sentence asks about SAC"
 ### Task 10: Specs, whole-project verification and the PR
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-09-19-explore-natural-language-search-design.md` (a deviations section)
-- Modify: `docs/superpowers/specs/2026-09-25-entity-query-language-design.md` (the Explore note)
-- Modify: `docs/superpowers/plans/2026-09-20-explore-phase2-derived-predicates.md` (a superseded line)
+- Modify: `docs/design/specs/2026-09-19-explore-natural-language-search-design.md` (a deviations section)
+- Modify: `docs/design/specs/2026-09-25-entity-query-language-design.md` (the Explore note)
+- Modify: `docs/design/plans/2026-09-20-explore-phase2-derived-predicates.md` (a superseded line)
 
 - [ ] **Step 1: Record the deviations**
 
@@ -2753,7 +2753,7 @@ over the stored table `dive_derived_metrics` (`sacTrend`, `sacChange`,
 them as given.
 ```
 
-At the top of `docs/superpowers/plans/2026-09-20-explore-phase2-derived-predicates.md`, under the title, add:
+At the top of `docs/design/plans/2026-09-20-explore-phase2-derived-predicates.md`, under the title, add:
 
 ```markdown
 > **Superseded** by `2026-09-28-explore-phase2-registry-fields.md`: this plan's filter wiring predates the entity query language.
@@ -2776,7 +2776,7 @@ The PR changes what the diver sees (rule-builder fields and the `bar/min` suffix
 - [ ] **Step 4: Commit, push, open the PR**
 
 ```bash
-git add docs/superpowers/specs/2026-09-19-explore-natural-language-search-design.md docs/superpowers/specs/2026-09-25-entity-query-language-design.md docs/superpowers/plans/2026-09-20-explore-phase2-derived-predicates.md
+git add docs/design/specs/2026-09-19-explore-natural-language-search-design.md docs/design/specs/2026-09-25-entity-query-language-design.md docs/design/plans/2026-09-20-explore-phase2-derived-predicates.md
 git commit -m "docs(explore): phase 2 as registry fields, and what that leaves to PR 5"
 git push -u origin ericgriffin/explore-phase2-registry-2195
 ```

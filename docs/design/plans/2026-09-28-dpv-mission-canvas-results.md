@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart 3 (`dart:isolate`), Riverpod 3 (`FutureProvider`), `flutter_test`, gen-l10n.
 
-**Spec:** `docs/superpowers/specs/2026-09-18-dpv-mission-planner-design.md`, "User interface" (Results, Providers, Units) and "Error handling" (issue #2086). Decision taken with the user on 2026-09-28: the mission engine always runs in an isolate (no measurement gate), which replaces the spec's "measure, then move to an isolate" sentence; Task 7 records that in the spec.
+**Spec:** `docs/design/specs/2026-09-18-dpv-mission-planner-design.md`, "User interface" (Results, Providers, Units) and "Error handling" (issue #2086). Decision taken with the user on 2026-09-28: the mission engine always runs in an isolate (no measurement gate), which replaces the spec's "measure, then move to an isolate" sentence; Task 7 records that in the spec.
 
 **Builds on PR 3a, merged as #2576 and #2584.** Start from a branch off `origin/main`. This plan uses, as shipped there:
 - `missionIssueText(l10n, issue, mission)` and `missionLegName(l10n, leg)` (`mission_issue_text.dart`);
@@ -54,7 +54,7 @@
 | `lib/features/planner/presentation/widgets/plan_results_sheet.dart` | modify | the "Mission" section while a mission is on |
 | `lib/features/planner/presentation/widgets/plan_status_chips.dart` | modify | `MissionIssuesChip` |
 | `lib/l10n/arb/app_*.arb` (11) and generated `app_localizations*.dart` (12) | modify | the strings |
-| `docs/superpowers/specs/2026-09-18-dpv-mission-planner-design.md` | modify | the isolate decision |
+| `docs/design/specs/2026-09-18-dpv-mission-planner-design.md` | modify | the isolate decision |
 
 ---
 
@@ -1664,7 +1664,7 @@ Refs #2086"
 ### Task 7: Record the isolate decision in the spec
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-09-18-dpv-mission-planner-design.md` ("Providers" paragraph of "User interface")
+- Modify: `docs/design/specs/2026-09-18-dpv-mission-planner-design.md` ("Providers" paragraph of "User interface")
 
 - [ ] **Step 1: Replace the measurement sentence**
 
@@ -1683,7 +1683,7 @@ and change "`missionOutcomeProvider` ... runs the mission engine synchronously a
 - [ ] **Step 2: Commit**
 
 ```bash
-git add docs/superpowers/specs/2026-09-18-dpv-mission-planner-design.md
+git add docs/design/specs/2026-09-18-dpv-mission-planner-design.md
 git commit -m "docs(planner): record that the DPV mission engine runs on an isolate
 
 Refs #2086"

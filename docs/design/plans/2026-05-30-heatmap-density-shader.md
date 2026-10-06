@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, `dart:ui` (`FragmentProgram`, `PictureRecorder`, `Canvas`), flutter_map (`MapCamera`), Riverpod, GLSL fragment shader.
 
-**Spec:** `docs/superpowers/specs/2026-05-30-heatmap-density-shader-design.md`
+**Spec:** `docs/design/specs/2026-05-30-heatmap-density-shader-design.md`
 
 ---
 

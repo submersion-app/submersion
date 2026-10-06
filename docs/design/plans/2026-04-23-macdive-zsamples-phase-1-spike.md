@@ -15,7 +15,7 @@
 - `scripts/sample_data/Apr 4 no iPad sync.uddf` — 540 dives in UDDF, matched to the SQLite set by UUID (`ZDIVE.ZUUID` ↔ UDDF `@id`).
 - `scripts/sample_data/Apr 4 no iPad Mini sync.xml` — MacDive native XML, same 540 dives; secondary cross-reference source if UDDF has gaps.
 
-**Scope note:** This is the Phase 1 plan from spec `docs/superpowers/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md`. Phase 2 (the Dart decoder implementation) is not planned here because its task content depends on what Phase 1 reveals about the format. Task 9 produces the Phase 2 plan once the format spec exists.
+**Scope note:** This is the Phase 1 plan from spec `docs/design/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md`. Phase 2 (the Dart decoder implementation) is not planned here because its task content depends on what Phase 1 reveals about the format. Task 9 produces the Phase 2 plan once the format spec exists.
 
 ---
 
@@ -38,8 +38,8 @@
 | `scripts/reverse_engineering/zsamples/hypotheses/h3_tlv_stream.py` | Hypothesis 3: typed record stream (TLV). | Created |
 | `scripts/reverse_engineering/zsamples/hypotheses/h4_vendor_frames.py` | Hypothesis 4: container of vendor-specific dive-computer frames. | Created |
 | `docs/import-formats/macdive-zsamples.md` | The output of Phase 1: the written format spec. Either describes the cracked format in full, or documents the investigation and the no-go decision. | Created |
-| `docs/superpowers/plans/2026-04-21-macdive-sqlite-import.md` | Append a tail link to the new Phase 1 plan and the resulting Phase 2 plan (or no-go doc). | Modified |
-| `docs/superpowers/plans/2026-04-23-macdive-zsamples-phase-2-decoder.md` OR `docs/superpowers/specs/2026-04-23-macdive-zsamples-nogo.md` | Task 9's output. Written once the spike concludes. | Created (Task 9) |
+| `docs/design/plans/2026-04-21-macdive-sqlite-import.md` | Append a tail link to the new Phase 1 plan and the resulting Phase 2 plan (or no-go doc). | Modified |
+| `docs/design/plans/2026-04-23-macdive-zsamples-phase-2-decoder.md` OR `docs/design/specs/2026-04-23-macdive-zsamples-nogo.md` | Task 9's output. Written once the spike concludes. | Created (Task 9) |
 
 ---
 
@@ -122,7 +122,7 @@ Throwaway tooling for decoding MacDive's proprietary `ZDIVE.ZSAMPLES`
 binary profile format. Output is a written format spec at
 `docs/import-formats/macdive-zsamples.md` (or a no-go note).
 
-See `docs/superpowers/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md`
+See `docs/design/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md`
 for the full investigation plan.
 
 ## Setup
@@ -1465,13 +1465,13 @@ git commit -m "docs(zsamples): format specification from Phase 1 spike"
 ## Task 9: Go/no-go decision and hand off to Phase 2
 
 **Files:**
-- Modify: `docs/superpowers/plans/2026-04-21-macdive-sqlite-import.md` (append tail link)
-- Modify: `docs/superpowers/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md` (append decision outcome)
+- Modify: `docs/design/plans/2026-04-21-macdive-sqlite-import.md` (append tail link)
+- Modify: `docs/design/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md` (append decision outcome)
 - Conditional: Create either the Phase 2 plan or the no-go spec.
 
 - [ ] **Step 1: Record the go/no-go decision in the spec**
 
-Append a `## Phase 1 outcome` section to `docs/superpowers/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md`:
+Append a `## Phase 1 outcome` section to `docs/design/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md`:
 
 ```markdown
 ## Phase 1 outcome
@@ -1482,32 +1482,32 @@ Append a `## Phase 1 outcome` section to `docs/superpowers/specs/2026-04-23-macd
 
 **Format spec:** `docs/import-formats/macdive-zsamples.md`.
 
-**Phase 2 plan:** `docs/superpowers/plans/2026-04-23-macdive-zsamples-phase-2-decoder.md` (GO only).
+**Phase 2 plan:** `docs/design/plans/2026-04-23-macdive-zsamples-phase-2-decoder.md` (GO only).
 
-**No-go spec:** `docs/superpowers/specs/2026-04-23-macdive-zsamples-nogo.md` (NO-GO only).
+**No-go spec:** `docs/design/specs/2026-04-23-macdive-zsamples-nogo.md` (NO-GO only).
 ```
 
 - [ ] **Step 2: Append tail link to the parent plan**
 
-Append to `docs/superpowers/plans/2026-04-21-macdive-sqlite-import.md`:
+Append to `docs/design/plans/2026-04-21-macdive-sqlite-import.md`:
 
 ```markdown
 ## Continuation
 
-- Phase 1 spike: `docs/superpowers/plans/2026-04-23-macdive-zsamples-phase-1-spike.md`
-- Phase 2 decoder: `docs/superpowers/plans/2026-04-23-macdive-zsamples-phase-2-decoder.md` (written once Phase 1 completes GO)
+- Phase 1 spike: `docs/design/plans/2026-04-23-macdive-zsamples-phase-1-spike.md`
+- Phase 2 decoder: `docs/design/plans/2026-04-23-macdive-zsamples-phase-2-decoder.md` (written once Phase 1 completes GO)
 ```
 
 - [ ] **Step 3 (GO only): Invoke writing-plans to produce the Phase 2 plan**
 
 From the agent's perspective, invoke the `superpowers:writing-plans` skill with these arguments:
-> Spec: `docs/superpowers/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md`.
+> Spec: `docs/design/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md`.
 > Format spec (the thing this plan produces): `docs/import-formats/macdive-zsamples.md`.
-> Produce the Phase 2 implementation plan — the Dart decoder and its wiring. Reference the format spec for all byte-layout details. Output: `docs/superpowers/plans/2026-04-23-macdive-zsamples-phase-2-decoder.md`.
+> Produce the Phase 2 implementation plan — the Dart decoder and its wiring. Reference the format spec for all byte-layout details. Output: `docs/design/plans/2026-04-23-macdive-zsamples-phase-2-decoder.md`.
 
 - [ ] **Step 3 (NO-GO only): Write the no-go spec**
 
-Create `docs/superpowers/specs/2026-04-23-macdive-zsamples-nogo.md` summarizing:
+Create `docs/design/specs/2026-04-23-macdive-zsamples-nogo.md` summarizing:
 - What was attempted.
 - Why the ZSAMPLES format resisted decoding.
 - The recommended pivot: ZRAWDATA decoded via `libdivecomputer`.
@@ -1516,8 +1516,8 @@ Create `docs/superpowers/specs/2026-04-23-macdive-zsamples-nogo.md` summarizing:
 - [ ] **Step 4: Final commit**
 
 ```bash
-git add docs/superpowers/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md \
-        docs/superpowers/plans/2026-04-21-macdive-sqlite-import.md
+git add docs/design/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md \
+        docs/design/plans/2026-04-21-macdive-sqlite-import.md
 # Plus the Phase 2 plan or the no-go spec from Step 3.
 git commit -m "docs(zsamples): Phase 1 decision recorded — [GO|NO-GO]"
 ```

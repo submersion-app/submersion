@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Riverpod, SharedPreferences, flutter_test.
 
-**Spec:** `docs/superpowers/specs/2026-07-24-dark-deep-splash-hero-design.md`
+**Spec:** `docs/design/specs/2026-07-24-dark-deep-splash-hero-design.md`
 
 ## Global Constraints
 

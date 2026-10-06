@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- **Spec:** `docs/superpowers/specs/2026-08-11-apple-store-platform-mention-guard-design.md`.
+- **Spec:** `docs/design/specs/2026-08-11-apple-store-platform-mention-guard-design.md`.
 - **Stdout purity.** Every script in `scripts/release/` writes notes and only notes to stdout; all progress and diagnostics go to stderr. `generate_changelog.sh` previously violated this and embedded `Changelog: ...` lines in every published beta release body.
 - **Pure stdlib.** No new Python or Ruby dependencies. `ci.yaml`'s `script-tests` job installs only `coverage`.
 - **`Windows`, `PC`, and `Microsoft` are matched case-sensitively.** Across every file in `docs/releases/`, capitalized `Windows` is the operating system and lowercase `window`/`windows` is a UI window or a time window. Case-insensitive matching would corrupt real prose.

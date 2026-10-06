@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart 3 records and patterns, Drift (SQLite), Riverpod 3, Equatable, `flutter gen-l10n` ARB localisation, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-09-09-equipment-assemblies-design.md`, sections 3, 4 and the leaf-only half of 5, plus the "Combining with the gear arrangement" amendment (decided 2026-09-09). PR 1 (#1696, merged) delivered sections 1, 2 and the rollup; PR 3 delivers the swap-with-history dialog and interchange.
+**Spec:** `docs/design/specs/2026-09-09-equipment-assemblies-design.md`, sections 3, 4 and the leaf-only half of 5, plus the "Combining with the gear arrangement" amendment (decided 2026-09-09). PR 1 (#1696, merged) delivered sections 1, 2 and the rollup; PR 3 delivers the swap-with-history dialog and interchange.
 
 ## Global Constraints
 

@@ -3,7 +3,7 @@
 Submersion uses a two-channel release model: every green merge to `main`
 becomes a **beta** automatically, and a **stable** release is a promotion of
 a beta that soaked well - the identical artifacts, never a rebuild. The
-design history lives in `docs/superpowers/specs/2026-07-28-release-channels-design.md`;
+design history lives in `docs/design/specs/2026-07-28-release-channels-design.md`;
 this page is the operational guide.
 
 User-facing channel documentation is on the wiki:

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift ORM, Riverpod, go_router, Material 3
 
-**Spec:** `docs/superpowers/specs/2026-03-22-buddy-merge-design.md`
+**Spec:** `docs/design/specs/2026-03-22-buddy-merge-design.md`
 
 ---
 

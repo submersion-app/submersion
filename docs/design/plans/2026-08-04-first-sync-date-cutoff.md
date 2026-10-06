@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Riverpod (legacy StateNotifier via `core/providers/provider.dart` barrel), Drift, C (vendored libdivecomputer fork), CMake native tests.
 
-**Spec:** `docs/superpowers/specs/2026-08-04-first-sync-date-cutoff-design.md` — read it first.
+**Spec:** `docs/design/specs/2026-08-04-first-sync-date-cutoff-design.md` — read it first.
 
 ## Global Constraints
 
@@ -273,7 +273,7 @@ Expected: FAIL — file/functions do not exist.
 
 ```dart
 /// Utilities for the first-sync date cutoff (see
-/// docs/superpowers/specs/2026-08-04-first-sync-date-cutoff-design.md).
+/// docs/design/specs/2026-08-04-first-sync-date-cutoff-design.md).
 ///
 /// The Shearwater petrel-family fingerprint is the dive start timestamp: a
 /// big-endian u32 ticks value that round-trips to Dart through

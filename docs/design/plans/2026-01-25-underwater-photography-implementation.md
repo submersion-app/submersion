@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift ORM, Riverpod, photo_manager (platform photo access), image (thumbnail generation)
 
-**Design Document:** `docs/plans/2026-01-25-underwater-photography-design.md`
+**Design Document:** `docs/design/specs/2026-01-25-underwater-photography-design.md`
 
 ---
 

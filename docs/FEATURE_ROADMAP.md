@@ -184,7 +184,7 @@
 | Multiple computers per dive | ✅ Implemented | v1.5 | DiveComputer entity with profiles |
 | Per-computer overlay UI | ✅ Implemented | v1.6 | ComputerToggleBar drives depth/temperature/event/pressure overlays |
 | Profile comparison (buddies) | 📋 Planned | v2.0 | Side-by-side view |
-| Profile merging (consolidation) | ✅ Implemented | v1.6 | Full-fidelity multi-computer consolidation; see docs/superpowers/specs/2026-07-02-multi-computer-consolidation-completion-design.md |
+| Profile merging (consolidation) | ✅ Implemented | v1.6 | Full-fidelity multi-computer consolidation; see docs/design/specs/2026-07-02-multi-computer-consolidation-completion-design.md |
 | Multi-transmitter support | 🚧 Partial | v1.6 | Pressure samples stored per computer (v94); chart still draws one series per tank -- per-(tank, computer) series split is a follow-up |
 
 **v1.5 Tasks:**

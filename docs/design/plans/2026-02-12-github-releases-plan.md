@@ -8,7 +8,7 @@
 
 **Tech Stack:** GitHub Actions, Fastlane (Ruby), Flutter build tooling, `create-dmg`, `xcrun notarytool`, `softprops/action-gh-release`
 
-**Design doc:** `docs/plans/2026-02-12-github-releases-design.md`
+**Design doc:** `docs/design/specs/2026-02-12-github-releases-design.md`
 
 ---
 
@@ -335,7 +335,7 @@ Create the main GitHub Actions workflow that builds all platforms and creates a 
 # Beta tags (v1.0.0-beta.1) create pre-releases.
 # Clean tags (v1.0.0) create full releases.
 #
-# Required Secrets - see docs/plans/2026-02-12-github-releases-design.md
+# Required Secrets - see docs/design/specs/2026-02-12-github-releases-design.md
 
 name: Release
 

@@ -85,7 +85,7 @@ of one diver the same answer, which is what #214 actually needed.
 from a dive's GPS, on "Use my location", and on "Pick from map", and each
 fills only empty country/region. Sites created before PR #784 or by import
 have no way to be enriched. The bug-campaign log
-(`docs/superpowers/plans/2026-07-31-bug-campaign-log.md:61`) already notes
+(`docs/design/plans/2026-07-31-bug-campaign-log.md:61`) already notes
 the missing backfill.
 
 **F7. `SiteRepositoryImpl._mapRowToSite` (`site_repository_impl.dart:820`)

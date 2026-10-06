@@ -1,5 +1,5 @@
 // Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3b.md` Task 9.
+// `docs/design/plans/2026-04-28-media-source-extension-phase3b.md` Task 9.
 // Deviations from the plan code:
 //
 // - The plan introduces a `NetworkUrlResolverFacade` decoupling interface so

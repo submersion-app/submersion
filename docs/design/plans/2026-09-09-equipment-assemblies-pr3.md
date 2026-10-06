@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart 3 sealed classes and patterns, Drift (SQLite), Riverpod 3, Equatable, `xml` package builders and parsers, `flutter gen-l10n` ARB localisation, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-09-09-equipment-assemblies-design.md`, section 2 "Swap with history", section 6 "UDDF" and "CSV and Excel", Testing and Delivery item 3. PR 1 (#1696) delivered the template and PR 2 (#1716) the dive side; both are on main at 0ccd4859605.
+**Spec:** `docs/design/specs/2026-09-09-equipment-assemblies-design.md`, section 2 "Swap with history", section 6 "UDDF" and "CSV and Excel", Testing and Delivery item 3. PR 1 (#1696) delivered the template and PR 2 (#1716) the dive side; both are on main at 0ccd4859605.
 
 ## Global Constraints
 

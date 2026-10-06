@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift 2.34.3, SQLite; `ProfileSeriesCodec` / `TankPressureSeriesCodec` (PR 1); `flutter test`; `dart format`; `flutter analyze`; `compute` from `package:flutter/foundation.dart`.
 
-**Spec:** `docs/superpowers/specs/2026-08-28-profile-sample-storage-design.md` (sections 3, 6 "Reads", 7, 9, 12 bind this plan; section 10's benchmark gates and section 8's VACUUM are plan 2e). The 2b/2c hand-off notes (session scratchpad `2b-handoff-checklist.md`) are folded into the constraints and Task 9.
+**Spec:** `docs/design/specs/2026-08-28-profile-sample-storage-design.md` (sections 3, 6 "Reads", 7, 9, 12 bind this plan; section 10's benchmark gates and section 8's VACUUM are plan 2e). The 2b/2c hand-off notes (session scratchpad `2b-handoff-checklist.md`) are folded into the constraints and Task 9.
 
 ## Global Constraints
 

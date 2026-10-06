@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Drift 2.30, sqlite3 FFI, Riverpod, SharedPreferences via `BackupPreferences`, existing `BackupService`. Tests use `flutter_test`, `test`, and in-memory Drift (`NativeDatabase.memory`).
 
-**Reference spec:** `docs/superpowers/specs/2026-04-12-db-backup-before-migration-design.md`
+**Reference spec:** `docs/design/specs/2026-04-12-db-backup-before-migration-design.md`
 
 ---
 

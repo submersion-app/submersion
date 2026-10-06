@@ -4,7 +4,7 @@
 
 **Goal:** DAN/UHMS guideline no-fly countdown surfaced on the dashboard and a new Safety hub, plus the altitude-UX flag from the spec.
 
-**Architecture:** Pure `NoFlyService` classifier over a lightweight trailing-window dive query (end time + had-deco flag from `dive_profiles.deco_type`/`ceiling` aggregates). New `lib/features/safety/` slice hosts the hub page. Settings gain a conservatism preset (schema v125, renumbered from v117/v124 as main advanced past it at merge time). Spec: `docs/superpowers/specs/2026-07-16-safety-features-design.md` Phase 2.
+**Architecture:** Pure `NoFlyService` classifier over a lightweight trailing-window dive query (end time + had-deco flag from `dive_profiles.deco_type`/`ceiling` aggregates). New `lib/features/safety/` slice hosts the hub page. Settings gain a conservatism preset (schema v125, renumbered from v117/v124 as main advanced past it at merge time). Spec: `docs/design/specs/2026-07-16-safety-features-design.md` Phase 2.
 
 **Tech Stack:** Flutter, Drift, Riverpod, go_router. Branch `safety-phase2-no-fly` stacked on `worktree-safety-features`.
 

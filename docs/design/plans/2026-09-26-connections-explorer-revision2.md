@@ -10,7 +10,7 @@
 
 **Tech Stack:** Flutter, Drift (raw `customSelect` plus one new table), Riverpod 3 (`package:submersion/core/providers/provider.dart`), go_router, shared_preferences, equatable, flutter_test with an in-memory Drift database.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-connections-explorer-design.md`, section "Revision 2" (binding). Phase 1 (the sections before it) is implemented on this branch; Revision 2 wins wherever they conflict.
+**Spec:** `docs/design/specs/2026-09-25-connections-explorer-design.md`, section "Revision 2" (binding). Phase 1 (the sections before it) is implemented on this branch; Revision 2 wins wherever they conflict.
 
 **Already done, not in this plan:** the nine phase 1 review fixes the spec lists under "Carried-in fixes" landed in `20bfaf3dc77`.
 

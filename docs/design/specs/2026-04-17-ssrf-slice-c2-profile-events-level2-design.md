@@ -70,7 +70,7 @@ Extend Slice C's `_parseProfileEvents` + persistence pipeline to cover the commo
 - `test/features/universal_import/data/parsers/fixtures/profile-events-variety.ssrf` — single dive with 7 events demonstrating each mapped type.
 
 **Files modified (docs):**
-- `docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md` — update combined + SSRF sub-table rows for "Profile events / markers" to reflect expanded coverage. Add Slice C.2 bullet to Notes.
+- `docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md` — update combined + SSRF sub-table rows for "Profile events / markers" to reflect expanded coverage. Add Slice C.2 bullet to Notes.
 
 **No schema migration. No new enum values. No DB-level changes.**
 

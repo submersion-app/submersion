@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.47, Dart 3.13, Riverpod, Drift. No new dependencies.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-diver-figure-design.md`, sections 9 (item colour), 10 (set edit page), 11 (dive detail page), 12 and 13 (strings and tests). Tracking issue #2326; this is the last phase, so its PR says `Closes #2326`.
+**Spec:** `docs/design/specs/2026-09-25-diver-figure-design.md`, sections 9 (item colour), 10 (set edit page), 11 (dive detail page), 12 and 13 (strings and tests). Tracking issue #2326; this is the last phase, so its PR says `Closes #2326`.
 
 ## Global Constraints
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.47, Dart 3.13, Riverpod, the phase 1 figure code on this branch.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-diver-figure-design.md`, sections 3, 4.1, 4.2 and 8 (revised 2026-09-25). This plan continues branch `ericgriffin/equipment-visual-representation-db57a6` after commit `59d4eb57b88`.
+**Spec:** `docs/design/specs/2026-09-25-diver-figure-design.md`, sections 3, 4.1, 4.2 and 8 (revised 2026-09-25). This plan continues branch `ericgriffin/equipment-visual-representation-db57a6` after commit `59d4eb57b88`.
 
 ## Global Constraints
 

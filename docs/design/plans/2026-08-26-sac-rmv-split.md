@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (legacy `StateProvider` / `StateNotifier` via `package:submersion/core/providers/provider.dart`), Drift (schema migration at v170), `flutter gen-l10n`, `flutter test`.
 
-**Spec:** `docs/superpowers/specs/2026-08-26-sac-rmv-split-design.md`. Every task below cites the spec section it implements.
+**Spec:** `docs/design/specs/2026-08-26-sac-rmv-split-design.md`. Every task below cites the spec section it implements.
 
 ## Global Constraints
 
@@ -3321,7 +3321,7 @@ git commit -m "refactor: retire SacUnit, its shim, and the single-lane l10n keys
 
 ### Task 15: Full verification and the PR
 
-**Files:** `docs/superpowers/specs/2026-08-26-sac-rmv-split-design.md`, `docs/superpowers/plans/2026-08-26-sac-rmv-split.md`, `docs/superpowers/plans/2026-08-26-sac-rmv-relabel.md` (all three sit uncommitted in this worktree until this task).
+**Files:** `docs/design/specs/2026-08-26-sac-rmv-split-design.md`, `docs/design/plans/2026-08-26-sac-rmv-split.md`, `docs/design/plans/2026-08-26-sac-rmv-relabel.md` (all three sit uncommitted in this worktree until this task).
 
 - [ ] **Step 1: Codegen, format, analyze**
 
@@ -3344,7 +3344,7 @@ Expected: all pass. A lone failure in an unrelated file (media share helper, syn
 Write the PR body to a scratch file first so the heredoc cannot collide with anything in the shell:
 
 ```bash
-git add docs/superpowers/specs/2026-08-26-sac-rmv-split-design.md docs/superpowers/plans/2026-08-26-sac-rmv-split.md docs/superpowers/plans/2026-08-26-sac-rmv-relabel.md
+git add docs/design/specs/2026-08-26-sac-rmv-split-design.md docs/design/plans/2026-08-26-sac-rmv-split.md docs/design/plans/2026-08-26-sac-rmv-relabel.md
 git commit -m "docs: SAC and RMV split design and plans"
 git push -u origin worktree-sac-rmv-split
 cat > /tmp/sac-rmv-pr-body.md <<'PR'

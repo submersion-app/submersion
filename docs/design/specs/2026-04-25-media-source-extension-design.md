@@ -459,7 +459,7 @@ Phase 1 is intentionally invisible to end users. No new sources appear, no new b
 
    - **`atom_manifest_parser.dart`** — uses `package:xml`. Pulls `<entry>` (Atom) or `<item>` (RSS). Per entry: `id`/`<guid>` → `entryKey`; `<media:content>` or `<enclosure>` → `url`; `<published>`/`<pubDate>` → `takenAt`; `<title>` → `caption`; `<media:thumbnail>` for preview; `<georss:point>` → lat/lon. Tolerant of mixed Atom/RSS in the wild.
 
-   - **`json_manifest_parser.dart`** — Submersion JSON manifest v1 (documented in `docs/superpowers/specs/manifest_json_v1.md` for users to author):
+   - **`json_manifest_parser.dart`** — Submersion JSON manifest v1 (documented in `docs/design/specs/manifest_json_v1.md` for users to author):
 
      ```json
      {
@@ -1048,7 +1048,7 @@ None outstanding. All major decisions confirmed during design:
 
 ## Appendix A — Submersion JSON Manifest v1
 
-The full JSON manifest format spec lives in `docs/superpowers/specs/manifest_json_v1.md` (created during phase 3) and is documented for users to author their own manifests. Fields summary:
+The full JSON manifest format spec lives in `docs/design/specs/manifest_json_v1.md` (created during phase 3) and is documented for users to author their own manifests. Fields summary:
 
 - `version` (number, required, currently `1`)
 - `title` (string, optional) — display name for the manifest

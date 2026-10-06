@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod, Pigeon (platform channels), Drift (SharedPreferences for debug mode), go_router, share_plus, file_picker, path_provider
 
-**Spec:** `docs/superpowers/specs/2026-03-27-debug-log-viewer-design.md`
+**Spec:** `docs/design/specs/2026-03-27-debug-log-viewer-design.md`
 
 ---
 

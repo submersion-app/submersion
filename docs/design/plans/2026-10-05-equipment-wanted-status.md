@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod, Drift (SQLite), flutter gen-l10n (11 ARB locales), flutter_test.
 
-**Spec:** `docs/superpowers/specs/2026-10-05-equipment-wanted-status-design.md`
+**Spec:** `docs/design/specs/2026-10-05-equipment-wanted-status-design.md`
 
 ## Global Constraints
 
@@ -650,7 +650,7 @@ git commit -m "feat(equipment): hide Wanted gear from the default list and bulk 
 - Modify: `lib/features/cylinder_configs/presentation/pages/cylinder_config_edit_page.dart:133-136`
 - Modify: `lib/features/pre_dive/presentation/widgets/start_session_sheet.dart:152-153`
 - Modify: `lib/features/dive_log/presentation/widgets/refine/groups/refine_gas_equipment_group.dart:~194`
-- Modify: `docs/superpowers/specs/2026-10-05-equipment-wanted-status-design.md` (the `ownedEquipmentTypesProvider` bullet)
+- Modify: `docs/design/specs/2026-10-05-equipment-wanted-status-design.md` (the `ownedEquipmentTypesProvider` bullet)
 - Test: `test/features/equipment/presentation/providers/dive_gear_types_provider_test.dart` (create)
 - Test: `test/features/cylinder_configs/presentation/cylinder_config_edit_page_test.dart`
 - Test: `test/features/pre_dive/presentation/widgets/start_session_sheet_test.dart`
@@ -846,7 +846,7 @@ Run: `flutter test test/features/equipment/presentation/providers/dive_gear_type
 Expected: PASS.
 
 ```bash
-git add lib/features/equipment/presentation/providers/equipment_providers.dart lib/features/dive_log/presentation/widgets/dive_filter_gear_attributes_section.dart lib/features/cylinder_configs/presentation/pages/cylinder_config_edit_page.dart lib/features/pre_dive/presentation/widgets/start_session_sheet.dart lib/features/dive_log/presentation/widgets/refine/groups/refine_gas_equipment_group.dart docs/superpowers/specs/2026-10-05-equipment-wanted-status-design.md test/features/equipment/presentation/providers/dive_gear_types_provider_test.dart test/features/dive_log/presentation/widgets/dive_filter_gear_attributes_section_test.dart test/features/cylinder_configs/presentation/cylinder_config_edit_page_test.dart test/features/pre_dive/presentation/widgets/start_session_sheet_test.dart test/features/dive_log/presentation/widgets/refine/groups/refine_gas_equipment_group_test.dart
+git add lib/features/equipment/presentation/providers/equipment_providers.dart lib/features/dive_log/presentation/widgets/dive_filter_gear_attributes_section.dart lib/features/cylinder_configs/presentation/pages/cylinder_config_edit_page.dart lib/features/pre_dive/presentation/widgets/start_session_sheet.dart lib/features/dive_log/presentation/widgets/refine/groups/refine_gas_equipment_group.dart docs/design/specs/2026-10-05-equipment-wanted-status-design.md test/features/equipment/presentation/providers/dive_gear_types_provider_test.dart test/features/dive_log/presentation/widgets/dive_filter_gear_attributes_section_test.dart test/features/cylinder_configs/presentation/cylinder_config_edit_page_test.dart test/features/pre_dive/presentation/widgets/start_session_sheet_test.dart test/features/dive_log/presentation/widgets/refine/groups/refine_gas_equipment_group_test.dart
 git commit -m "feat(equipment): keep Wanted gear out of dive filters, pre-dive and rebreather pickers"
 ```
 

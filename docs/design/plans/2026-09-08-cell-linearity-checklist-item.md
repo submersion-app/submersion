@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Drift (SQLite), Riverpod, `flutter_test`, ARB localisation across 11 locales.
 
-**Spec:** `docs/superpowers/specs/2026-09-08-cell-linearity-checklist-item-design.md`
+**Spec:** `docs/design/specs/2026-09-08-cell-linearity-checklist-item-design.md`
 
 ## Global Constraints
 

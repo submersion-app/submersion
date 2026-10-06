@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod, Drift, `package:http` (+ `package:http/testing.dart` MockClient in tests), Open-Meteo elevation API.
 
-**Spec:** `docs/superpowers/specs/2026-08-06-conditions-weather-altitude-design.md`
+**Spec:** `docs/design/specs/2026-08-06-conditions-weather-altitude-design.md`
 
 ## Global Constraints
 

@@ -1,4 +1,4 @@
-// Adapted from plan `docs/superpowers/plans/2026-04-28-media-source-extension-phase3b.md`
+// Adapted from plan `docs/design/plans/2026-04-28-media-source-extension-phase3b.md`
 // Task 8. Test-helper deviations applied vs. plan code:
 //
 // - Plan uses `AppDatabase.forTesting(NativeDatabase.memory())`; the codebase

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart / Flutter, Riverpod 3, `flutter_test`, Drift (test fixtures only).
 
-**Spec:** `docs/superpowers/specs/2026-08-16-media-provenance-design.md`
+**Spec:** `docs/design/specs/2026-08-16-media-provenance-design.md`
 
 **Branch / worktree:** `worktree-media-provenance` at `.claude/worktrees/media-provenance`. All work happens there. The worktree init trio (submodules, `flutter pub get`, `build_runner`) has already been run.
 
@@ -1597,7 +1597,7 @@ Expected: "clean".
 ```bash
 git push -u origin worktree-media-provenance
 gh pr create --base main --title "Media provenance PR 1: the provenance channel" --body "$(cat <<'BODY'
-First of three PRs implementing docs/superpowers/specs/2026-08-16-media-provenance-design.md.
+First of three PRs implementing docs/design/specs/2026-08-16-media-provenance-design.md.
 
 Adds ServedFrom and ServedTier to MediaSourceData, stamps them at every
 resolver production site, and records the outcome of real resolutions in a

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, flutter_map 8.x (`OverlayImageLayer`, unused so far), Riverpod, `dart:ui` PictureRecorder/PNG encode, latlong2.
 
-**Spec:** `docs/superpowers/specs/2026-08-15-site-scape-unification-design.md` (PR 1 section)
+**Spec:** `docs/design/specs/2026-08-15-site-scape-unification-design.md` (PR 1 section)
 
 ## Global Constraints
 

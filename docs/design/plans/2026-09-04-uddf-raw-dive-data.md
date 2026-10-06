@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Drift (SQLite), `xml: ^7.0.1`, `archive: ^4.0.9` (BZip2Encoder/BZip2Decoder), Riverpod.
 
-**Spec:** `docs/superpowers/specs/2026-09-04-uddf-raw-dive-data-design.md`
+**Spec:** `docs/design/specs/2026-09-04-uddf-raw-dive-data-design.md`
 
 ## Global Constraints
 

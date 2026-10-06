@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace the flat 18-card dive edit form and the site edit form with a shared, collapsible, stat-forward form system (`lib/shared/widgets/forms/`) per the approved spec `docs/superpowers/specs/2026-06-11-edit-form-redesign-design.md`.
+**Goal:** Replace the flat 18-card dive edit form and the site edit form with a shared, collapsible, stat-forward form system (`lib/shared/widgets/forms/`) per the approved spec `docs/design/specs/2026-06-11-edit-form-redesign-design.md`.
 
 **Architecture:** Seven presentational primitives (FormStyle, FormSection, StatStrip/StatCell, FormRow, UnitField, AddSectionRow, EditFormScaffold) are built TDD-first, then the dive edit page is rebuilt group-by-group (The Dive, Gas & Gear, Conditions, Trip, Buddies, Experience, rare) with each commit leaving the page working, then the site edit page (Identity, Location, Dive info, Access & safety, Life & notes) including merge mode. Pages keep all existing state management (`ConsumerStatefulWidget`, controllers, repositories, picker sheets); the primitives are pure presentation.
 
@@ -119,7 +119,7 @@ Pure constants/helpers — no dedicated test file (exercised by every widget tes
 import 'package:flutter/material.dart';
 
 /// Design tokens for the shared form system. Initial values match the
-/// design-freeze mockup (docs/superpowers/specs/assets/
+/// design-freeze mockup (docs/design/specs/assets/
 /// 2026-06-11-edit-form-redesign-mockup.html); tune here, never inline.
 abstract final class FormStyle {
   /// Corner radius of section groups and collapsed bars.
@@ -3424,7 +3424,7 @@ Manual check: full new-look page; dive with a course shows the course group; one
 **Files:**
 - Modify: `lib/features/dive_log/presentation/pages/dive_edit_page.dart`
 - Modify: `test/features/dive_log/presentation/pages/dive_edit_page_test.dart`
-- Modify: `docs/superpowers/specs/2026-06-11-edit-form-redesign-design.md` (one correction)
+- Modify: `docs/design/specs/2026-06-11-edit-form-redesign-design.md` (one correction)
 
 - [ ] **Step 15.1: Adopt EditFormScaffold**
 
@@ -3508,7 +3508,7 @@ Expected: roughly 2,000-2,300 lines (state + save + pickers wiring + slot builde
 
 - [ ] **Step 15.5: Record the spec corrections**
 
-Two accepted deviations to record in `docs/superpowers/specs/2026-06-11-edit-form-redesign-design.md`:
+Two accepted deviations to record in `docs/design/specs/2026-06-11-edit-form-redesign-design.md`:
 
 1. In the Interaction rules section, amend the validation sentence to: "On failed save: auto-expand groups containing errors (inline errors become visible; explicit scroll-to-first-error is deferred — the validated fields sit in the top two groups on both pages)."
 2. In the Code organization section, amend the coordinator line to:
@@ -3562,7 +3562,7 @@ flutter test test/features/dive_log/presentation/pages/dive_edit_page_test.dart
 flutter test test/shared/widgets/forms/edit_form_scaffold_test.dart
 dart format lib/ test/ docs/ 2>/dev/null || dart format lib/ test/
 flutter analyze
-git add lib/features/dive_log/ test/features/dive_log/ docs/superpowers/specs/
+git add lib/features/dive_log/ test/features/dive_log/ docs/design/specs/
 git commit -m "feat(dive-log): adopt EditFormScaffold, dirty guard and error auto-expand"
 ```
 
@@ -4265,7 +4265,7 @@ git log --oneline main..HEAD
 git push -u origin feat/edit-form-redesign
 ```
 
-Then hand back for PR creation (`docs/superpowers/specs/2026-06-11-edit-form-redesign-design.md` is the PR description's source material). Remaining follow-up recorded in the spec: migrate the other ~18 edit pages onto the primitives; relocate dive-page slot builders into their section files.
+Then hand back for PR creation (`docs/design/specs/2026-06-11-edit-form-redesign-design.md` is the PR description's source material). Remaining follow-up recorded in the spec: migrate the other ~18 edit pages onto the primitives; relocate dive-page slot builders into their section files.
 
 
 

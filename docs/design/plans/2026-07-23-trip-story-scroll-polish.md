@@ -4,7 +4,7 @@
 
 **Goal:** In the trip story view: keep the pinned map usable when collapsed (180px, map-only), make each day's title a sticky header that the next day pushes out, and remove the redundant right-side dive profile sparkline.
 
-**Architecture:** The pinned `SliverPersistentHeader` map delegate becomes map-only with a taller `minExtent`; the trip stat strip moves into scrollable content. Each day becomes a `SliverMainAxisGroup` containing a pinned fixed-extent day header sliver plus the day card body — group semantics bound the pin to the day, giving "sticky until the next day arrives" natively. Spec: `docs/superpowers/specs/2026-07-23-trip-story-scroll-polish-design.md`.
+**Architecture:** The pinned `SliverPersistentHeader` map delegate becomes map-only with a taller `minExtent`; the trip stat strip moves into scrollable content. Each day becomes a `SliverMainAxisGroup` containing a pinned fixed-extent day header sliver plus the day card body — group semantics bound the pin to the day, giving "sticky until the next day arrives" natively. Spec: `docs/design/specs/2026-07-23-trip-story-scroll-polish-design.md`.
 
 **Tech Stack:** Flutter (Material 3), `SliverMainAxisGroup` (Flutter 3.13+, available — Dart SDK floor is ^3.10), flutter_map, Riverpod, flutter_test widget tests.
 

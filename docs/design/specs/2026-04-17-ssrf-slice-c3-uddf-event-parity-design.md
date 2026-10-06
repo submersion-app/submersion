@@ -71,7 +71,7 @@ Fix the long-standing key mismatch that silently drops profile events during Sub
 - `test/features/dive_import/data/services/uddf_entity_importer_test.dart` — add a round-trip test: construct `ProfileEvent` entities → export UDDF via `UddfExportBuilder` → parse via `UddfFullImportService` → feed back through `_importDives` → verify all 8 event types preserved with correct severity and depth.
 
 **Files modified (docs):**
-- `docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md` — combined table + UDDF sub-table rows for `Profile events / markers`, plus Slice C.3 note bullet.
+- `docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md` — combined table + UDDF sub-table rows for `Profile events / markers`, plus Slice C.3 note bullet.
 
 **No schema migration. No new enum values. No new factories. No `ProfileEvent` API changes.**
 
@@ -217,7 +217,7 @@ Concrete test code must match the existing test harness style in the file. The p
 
 ### 4. Tracker update
 
-In `docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md`:
+In `docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md`:
 
 **Combined table `Profile events / markers` row**: change `UDDF Support` from `Partial` to `Yes`. Keep `Fixed` as `[ ]` because third-party UDDF imports still don't have `<profileevents>` and that's not what this slice fixes.
 
@@ -236,7 +236,7 @@ Add a footnote if table width allows, or update the SSRF/UDDF sub-table rows to 
 **Slice C.3 bullet in Notes**:
 
 ```markdown
-- Slice C.3 (2026-04-17) fixes the UDDF-vs-SSRF event-key mismatch (UDDF parser now writes `diveData['events']` instead of `diveData['profileEvents']`). Extends `_importDives` to consume UDDF's richer event shape (severity, depth) via post-construction `copyWith` overrides. Round-trip test confirms Submersion-authored UDDF exports preserve all 8 event types end-to-end. See `docs/superpowers/specs/2026-04-17-ssrf-slice-c3-uddf-event-parity-design.md`.
+- Slice C.3 (2026-04-17) fixes the UDDF-vs-SSRF event-key mismatch (UDDF parser now writes `diveData['events']` instead of `diveData['profileEvents']`). Extends `_importDives` to consume UDDF's richer event shape (severity, depth) via post-construction `copyWith` overrides. Round-trip test confirms Submersion-authored UDDF exports preserve all 8 event types end-to-end. See `docs/design/specs/2026-04-17-ssrf-slice-c3-uddf-event-parity-design.md`.
 ```
 
 ## Testing Strategy

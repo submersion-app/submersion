@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift (SQLite), Riverpod, uuid ^4.5.0, SharedPreferences.
 
-**Spec:** `docs/superpowers/specs/2026-07-17-data-quality-assistant-design.md` — read it first.
+**Spec:** `docs/design/specs/2026-07-17-data-quality-assistant-design.md` — read it first.
 
 ## Global Constraints
 

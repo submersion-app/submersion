@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (StateNotifier/StateProvider), Drift, `package:http` (+ `http/testing.dart` `MockClient`), `flutter_secure_storage` via `FallbackSecureStorage`, gen-l10n ARB files.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-divelogs-import-design.md`
+**Spec:** `docs/design/specs/2026-09-25-divelogs-import-design.md`
 
 ## Global Constraints
 
@@ -66,7 +66,7 @@ Expected: `feature/divelogs-import`
 - [ ] **Step 3: Open the tracking issue (ask the user before running; it publishes to GitHub)**
 
 ```bash
-gh issue create --repo submersion-app/submersion --title "Import logbook from divelogs.de" --body "Import a divelogs.de logbook through the import wizard: dives with profiles, dive sites, gear, certifications, dive-to-gear links and dive photos. Import only (no push or two-way sync). Re-importing must be safe. Photos are saved into a folder the user chooses and linked, never copied into app storage. Supersedes the two-way sync attempt in PR #603. Design: docs/superpowers/specs/2026-09-25-divelogs-import-design.md"
+gh issue create --repo submersion-app/submersion --title "Import logbook from divelogs.de" --body "Import a divelogs.de logbook through the import wizard: dives with profiles, dive sites, gear, certifications, dive-to-gear links and dive photos. Import only (no push or two-way sync). Re-importing must be safe. Photos are saved into a folder the user chooses and linked, never copied into app storage. Supersedes the two-way sync attempt in PR #603. Design: docs/design/specs/2026-09-25-divelogs-import-design.md"
 ```
 
 Record the issue number; the PR body in Task 12 needs `Closes #<number>`.

@@ -12,7 +12,7 @@
 
 ## Spec correction note
 
-The approved spec at [docs/superpowers/specs/2026-04-15-statistics-overview-design.md](../specs/2026-04-15-statistics-overview-design.md) describes creating a new `diveTypeDistributionProvider`. That provider **already exists** in [lib/features/statistics/presentation/providers/statistics_providers.dart:83](../../lib/features/statistics/presentation/providers/statistics_providers.dart#L83) and returns `List<DistributionSegment>` via the statistics repository. This plan reuses it rather than creating a new one. Task 6 uses the existing provider; no `DiveTypeCount` value type is needed.
+The approved spec at [docs/design/specs/2026-04-15-statistics-overview-design.md](../specs/2026-04-15-statistics-overview-design.md) describes creating a new `diveTypeDistributionProvider`. That provider **already exists** in [lib/features/statistics/presentation/providers/statistics_providers.dart:83](../../lib/features/statistics/presentation/providers/statistics_providers.dart#L83) and returns `List<DistributionSegment>` via the statistics repository. This plan reuses it rather than creating a new one. Task 6 uses the existing provider; no `DiveTypeCount` value type is needed.
 
 ## File Structure
 

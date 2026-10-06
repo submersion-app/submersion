@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, flutter_localizations with ARB files (11 locales), flutter_test.
 
-**Spec:** `docs/superpowers/specs/2026-09-09-equipment-condition-intelligence-design.md` (sections Data model, Exposure and service clocks, Sync, migration, export; this plan is phase 1 of four).
+**Spec:** `docs/design/specs/2026-09-09-equipment-condition-intelligence-design.md` (sections Data model, Exposure and service clocks, Sync, migration, export; this plan is phase 1 of four).
 
 ## Global Constraints
 

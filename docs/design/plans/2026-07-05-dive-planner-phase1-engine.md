@@ -8,7 +8,7 @@
 
 **Tech Stack:** Pure Dart (no Flutter imports in `lib/core/deco/`), flutter_test, python3 (vector generation only).
 
-**Spec:** `docs/superpowers/specs/2026-07-05-dive-planner-redesign-design.md`
+**Spec:** `docs/design/specs/2026-07-05-dive-planner-redesign-design.md`
 
 ## Global Constraints
 
@@ -2215,7 +2215,7 @@ Create `scripts/deco_golden/generate_vectors.py`. Full implementation (~250 line
 """Golden-vector generator for the Submersion deco engine.
 
 Independent ZH-L16C + gradient-factor implementation. Semantics are pinned
-to the contract in docs/superpowers/plans/2026-07-05-dive-planner-phase1-engine.md
+to the contract in docs/design/plans/2026-07-05-dive-planner-phase1-engine.md
 (Task 9). Regenerate with:
 
     python3 scripts/deco_golden/generate_vectors.py > test/core/deco/golden/vectors.json
@@ -2657,7 +2657,7 @@ Expected once reconciled: ALL cases PASS.
 
 `generate_vectors.py` is an independent Python implementation of the
 ZH-L16C + gradient-factor model, sharing pinned semantics with the Dart
-engine (see docs/superpowers/plans/2026-07-05-dive-planner-phase1-engine.md,
+engine (see docs/design/plans/2026-07-05-dive-planner-phase1-engine.md,
 Task 9). It generates `test/core/deco/golden/vectors.json`, which
 `golden_vector_test.dart` replays against the Dart engine.
 

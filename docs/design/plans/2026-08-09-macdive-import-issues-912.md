@@ -27,7 +27,7 @@ Verified against the paired XML ground truth: **266/267 dives** match the XML de
 
 | Item | Decision |
 |---|---|
-| Photos (glazerama a) | **Separate PR.** Revise `docs/superpowers/plans/2026-04-21-macdive-photo-import.md` first: it assumes `ZDIVEIMAGE.ZPATH` is an absolute path, but the real DB stores a bare filename inside MacDive's own image folder. |
+| Photos (glazerama a) | **Separate PR.** Revise `docs/design/plans/2026-04-21-macdive-photo-import.md` first: it assumes `ZDIVEIMAGE.ZPATH` is an absolute path, but the real DB stores a bare filename inside MacDive's own image folder. |
 | "Profiles" (Manatee Diver 1) | **Both readings.** Import `ZDIVELOG` static membership as tags, *and* read `ZDIVER` so multi-diver databases are separated rather than silently merged. |
 | Temperature precision | 1 decimal for both units, trailing `.0` trimmed. |
 | Trips ↔ dive centers (glazerama d) | No schema change. A Trip already spans centers because `diveCenterId` lives on the dive, not the trip. Answer in the issue thread. |

@@ -7,7 +7,7 @@ neither a dive nor a site, by scoping `getBackfillCandidateIds()` with a
 shared linkage predicate.
 
 **Architecture:** PR 1 of 4 from
-`docs/superpowers/specs/2026-07-23-media-store-orphan-prevention-design.md`.
+`docs/design/specs/2026-07-23-media-store-orphan-prevention-design.md`.
 One new static predicate on `MediaRepository` (spec section 3: defined once,
 reused later by the dive-deletion cascade and backlog sweep in PR 3) ANDed
 onto the existing backfill WHERE clause, covering both the photo and video

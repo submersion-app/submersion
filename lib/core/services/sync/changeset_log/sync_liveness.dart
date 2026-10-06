@@ -1,5 +1,5 @@
 /// Tuning constants for fleet-acked tombstone GC and device retirement.
-/// See docs/superpowers/specs/2026-07-16-tombstone-gc-device-retirement-design.md.
+/// See docs/design/specs/2026-07-16-tombstone-gc-device-retirement-design.md.
 class SyncLiveness {
   SyncLiveness._();
 

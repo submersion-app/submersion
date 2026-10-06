@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart 3 (patterns, records), Riverpod (`StateNotifier`), Drift, `csv` package, `intl` `DateFormat`, `shared_preferences`, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-09-12-unit-aware-csv-round-trip-design.md`
+**Spec:** `docs/design/specs/2026-09-12-unit-aware-csv-round-trip-design.md`
 
 ## Global Constraints
 

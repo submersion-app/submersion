@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Drift/SQLite (sqlite3 package), flutter_test, gen-l10n ARB localization (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-09-13-restore-journal-design.md` (issue #1901)
+**Spec:** `docs/design/specs/2026-09-13-restore-journal-design.md` (issue #1901)
 
 ## Global Constraints
 

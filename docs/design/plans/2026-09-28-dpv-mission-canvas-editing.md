@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart 3, Riverpod 3 (legacy `StateNotifier` API via `core/providers/provider.dart`), `flutter_test`, gen-l10n (11 ARB files).
 
-**Spec:** `docs/superpowers/specs/2026-09-18-dpv-mission-planner-design.md`, "User interface" and "Error handling" sections (issue #2086). Decisions taken with the user on 2026-09-28: PR 3 ships as two PRs (this one edits, PR 3b shows results); the team card's "who" picker lists buddies and "Me" only (no separate diver-profile list); the mission engine always runs in an isolate (PR 3b).
+**Spec:** `docs/design/specs/2026-09-18-dpv-mission-planner-design.md`, "User interface" and "Error handling" sections (issue #2086). Decisions taken with the user on 2026-09-28: PR 3 ships as two PRs (this one edits, PR 3b shows results); the team card's "who" picker lists buddies and "Me" only (no separate diver-profile list); the mission engine always runs in an isolate (PR 3b).
 
 **Depends on:** #2538 (PR 2, `DivePlanState.mission`, persistence) and #2558 (calculator follow-ups: `MissionIssueType.speedBelowHeadwayFloor`, `MissionBindingFactor.scenarioFailed`). Start only after both are merged: `git fetch origin && git merge origin/main` into this branch, then `dart run build_runner build --delete-conflicting-outputs`. Confirm with `grep -n "final DpvMission? mission" lib/features/dive_planner/domain/entities/plan_result.dart` and `grep -n speedBelowHeadwayFloor lib/features/planner/domain/entities/mission/mission_outcome.dart`.
 

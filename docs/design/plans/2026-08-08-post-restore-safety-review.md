@@ -18,7 +18,7 @@ than the replaced device's cached ones.
 **Tech Stack:** Flutter 3.x, Riverpod 3.1 (`flutter_riverpod`), Drift ORM over
 SQLite, `flutter_test`, `flutter gen-l10n` for ARB localization.
 
-**Spec:** `docs/superpowers/specs/2026-08-08-post-restore-safety-review-design.md`
+**Spec:** `docs/design/specs/2026-08-08-post-restore-safety-review-design.md`
 
 ## Global Constraints
 

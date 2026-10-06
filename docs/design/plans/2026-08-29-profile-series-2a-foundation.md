@@ -8,7 +8,7 @@
 
 **Tech Stack:** Drift 2.34 (raw `customSelect`/`customUpdate` in the packer; generated companions in the repositories), `package:uuid` v5, the PR 1 codecs under `lib/features/dive_log/domain/codecs/`, `flutter_test` with `NativeDatabase.memory(setup:)` fixtures.
 
-**Spec:** `docs/superpowers/specs/2026-08-28-profile-sample-storage-design.md`, sections 3 (architecture), 4 (schema), 6 (write and read API), 8 (migration: the rung, deterministic ids), 10 (migration tests). Section 8's "drop the old tables", "purge retired tombstones", and the `VACUUM` belong to plan 2e; section 7 (sync) to plan 2d.
+**Spec:** `docs/design/specs/2026-08-28-profile-sample-storage-design.md`, sections 3 (architecture), 4 (schema), 6 (write and read API), 8 (migration: the rung, deterministic ids), 10 (migration tests). Section 8's "drop the old tables", "purge retired tombstones", and the `VACUUM` belong to plan 2e; section 7 (sync) to plan 2d.
 
 ## Global Constraints
 

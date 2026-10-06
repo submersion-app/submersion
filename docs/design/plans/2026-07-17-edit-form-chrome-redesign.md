@@ -2,14 +2,14 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Rebuild the edit-form section chrome as header-in-card (`FormSection` v2), migrate every field on the dive and site edit pages onto the flat `FormRow` language, replace the tank hero card with an identity-first row, and unify sub-headers, actions, and empty states — per the approved spec `docs/superpowers/specs/2026-07-17-edit-form-chrome-redesign-design.md`.
+**Goal:** Rebuild the edit-form section chrome as header-in-card (`FormSection` v2), migrate every field on the dive and site edit pages onto the flat `FormRow` language, replace the tank hero card with an identity-first row, and unify sub-headers, actions, and empty states — per the approved spec `docs/design/specs/2026-07-17-edit-form-chrome-redesign-design.md`.
 
 **Architecture:** `FormSection` is rewritten in place (parameter-compatible, so all 10 consumer files keep compiling; the `hero` slot is deleted only in the final task once nothing passes it). Three new tiny shared widgets (`FormOverline`, `FormAppendRow`, `FormEmptyRow`) plus two new row primitives (`EnumPickerRow`, `SuggestionFormRow`) carry the unified language. The dive page's Conditions/Weather interiors and the whole site form then migrate onto rows; site sections are extracted into `edit_sections/` files mirroring the dive form. Pages keep all state management, controllers, picker sheets, save paths, and merge/bulk semantics.
 
 **Tech Stack:** Flutter/Dart (Material 3), Riverpod, `flutter gen-l10n` (template `lib/l10n/arb/app_en.arb` + 10 locales: ar, de, es, fr, he, hu, it, nl, pt, zh). **No new pub dependencies.**
 
 **Reference mockup (design freeze, keep open while implementing):**
-`docs/superpowers/specs/assets/2026-07-17-edit-form-chrome-redesign-mockup.html`
+`docs/design/specs/assets/2026-07-17-edit-form-chrome-redesign-mockup.html`
 
 ## Global Constraints
 
@@ -3610,7 +3610,7 @@ git commit -m "feat(site-edit): Dive Info, Access & Safety, Life & Notes section
 - Modify: `lib/shared/widgets/forms/form_section.dart` (remove `hero`)
 - Modify: `lib/shared/widgets/forms/form_style.dart` (comment + dead-token cleanup)
 - Modify: `test/shared/widgets/forms/form_section_test.dart` (remove hero test)
-- Modify: `docs/superpowers/specs/2026-07-17-edit-form-chrome-redesign-design.md` (Deviations section)
+- Modify: `docs/design/specs/2026-07-17-edit-form-chrome-redesign-design.md` (Deviations section)
 
 - [ ] **Step 1: Verify nothing passes `hero:` anymore**
 
@@ -3623,7 +3623,7 @@ In `form_section.dart`: delete the `hero` field, its constructor entry, its doc 
 
 - [ ] **Step 3: Token cleanup in `form_style.dart`**
 
-- Update the header comment to reference `docs/superpowers/specs/assets/2026-07-17-edit-form-chrome-redesign-mockup.html`.
+- Update the header comment to reference `docs/design/specs/assets/2026-07-17-edit-form-chrome-redesign-mockup.html`.
 - Run: `grep -rn "FormStyle.labelStyle\|FormStyle.labelGap" lib/` — if the only consumers were the old FormSection chrome, delete `labelStyle` and `labelGap`. Keep `heroPadding`/`heroValueStyle`/`heroUnitStyle`/`heroLabelStyle` (StatStrip still uses them — verify with `grep -n "FormStyle." lib/shared/widgets/forms/stat_strip.dart` before touching).
 
 - [ ] **Step 4: Full verification sweep**
@@ -3664,7 +3664,7 @@ Expected: all PASS.
 
 - [ ] **Step 5: Record deviations in the spec**
 
-Append a `## Deviations` section to `docs/superpowers/specs/2026-07-17-edit-form-chrome-redesign-design.md` recording anything that diverged during implementation (known upfront: site rating star tooltips are dropped by the shared rating row; bulk-form interiors keep their outlined fields, inheriting only the v2 chrome; GPS/hazards/surface-pressure helper texts removed per the quiet design).
+Append a `## Deviations` section to `docs/design/specs/2026-07-17-edit-form-chrome-redesign-design.md` recording anything that diverged during implementation (known upfront: site rating star tooltips are dropped by the shared rating row; bulk-form interiors keep their outlined fields, inheriting only the v2 chrome; GPS/hazards/surface-pressure helper texts removed per the quiet design).
 
 - [ ] **Step 6: Manual smoke checklist (run `flutter run -d macos`)**
 

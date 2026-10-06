@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (StateNotifier + Provider), Drift (key-value `settings` table), `flutter_test` / `integration_test`, Material 3 `ReorderableListView`.
 
-**Reference spec:** `docs/superpowers/specs/2026-04-20-bottom-nav-customization-design.md`
+**Reference spec:** `docs/design/specs/2026-04-20-bottom-nav-customization-design.md`
 
 ---
 
@@ -1973,7 +1973,7 @@ gh pr create --title "feat(nav): customizable bottom nav primary slots on phone"
 - Preference is global (stored via `AppSettingsRepository` / Drift `settings` table), matching the `shareByDefault` pattern.
 - Wide-screen rail is unaffected.
 
-See spec: `docs/superpowers/specs/2026-04-20-bottom-nav-customization-design.md`
+See spec: `docs/design/specs/2026-04-20-bottom-nav-customization-design.md`
 
 ## Test plan
 - [ ] `flutter analyze` clean

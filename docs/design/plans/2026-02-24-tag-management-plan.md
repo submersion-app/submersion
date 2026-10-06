@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift ORM, Riverpod (StateNotifier), go_router, Material 3
 
-**Design doc:** `docs/plans/2026-02-24-tag-management-design.md`
+**Design doc:** `docs/design/specs/2026-02-24-tag-management-design.md`
 
 ---
 

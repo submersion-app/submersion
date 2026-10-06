@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, go_router, `xml` builder, CSV codecs, `flutter gen-l10n` (11 ARB locales).
 
-**Spec:** `docs/superpowers/specs/2026-09-13-equipment-tags-design.md`
+**Spec:** `docs/design/specs/2026-09-13-equipment-tags-design.md`
 
 ## Global Constraints
 

@@ -16,7 +16,7 @@ thin workflow.
 **Tech Stack:** GitHub Actions, GitHub Pages, Python 3 (stdlib only),
 `dpkg-scanpackages`, `apt-ftparchive`, `createrepo_c`, GnuPG, `gh` CLI.
 
-**Spec:** `docs/superpowers/specs/2026-09-03-linux-packaging-design.md`, Section 4
+**Spec:** `docs/design/specs/2026-09-03-linux-packaging-design.md`, Section 4
 
 **Depends on:** Phase 1 (PR #1514). The `.deb` and `.rpm` must exist as release
 assets before there is anything to index.

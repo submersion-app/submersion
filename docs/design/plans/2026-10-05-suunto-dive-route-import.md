@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (`StateProvider`, `Provider`), Drift (test DB via `setUpTestDatabase`), go_router, mockito (reusing `suunto_cloud_adapter_test.mocks.dart`), file_picker 12 (handles), ARB l10n (11 locales).
 
-**Spec:** [docs/superpowers/specs/2026-10-05-suunto-dive-route-import-design.md](../specs/2026-10-05-suunto-dive-route-import-design.md)
+**Spec:** [docs/design/specs/2026-10-05-suunto-dive-route-import-design.md](../specs/2026-10-05-suunto-dive-route-import-design.md)
 
 ## Global Constraints
 

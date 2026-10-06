@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace the name-only welcome page with a multi-step setup wizard (units, appearance, backup/sync, existing-data restore/adopt paths) per the approved spec `docs/superpowers/specs/2026-07-10-setup-wizard-design.md` (discussion #523).
+**Goal:** Replace the name-only welcome page with a multi-step setup wizard (units, appearance, backup/sync, existing-data restore/adopt paths) per the approved spec `docs/design/specs/2026-07-10-setup-wizard-design.md` (discussion #523).
 
 **Architecture:** New `lib/features/setup_wizard/` feature with a draft-and-apply `StateNotifier` and a small `PageView` shell; `WizardStepDef`/`WizardStepIndicator` move to `lib/shared/widgets/wizard/` and are shared with the import wizard. Existing-data paths re-skin presentation over the existing restore, sync, and storage engines. First-run settings are seeded via `DiverSettingsRepository.createSettingsForDiver(id, settings: draft)` BEFORE `setCurrentDiver` (avoids the SettingsNotifier reload race — this supersedes the spec's `applySettings()` bulk-method idea; amend the spec in Task 5).
 
@@ -756,7 +756,7 @@ git commit -m "feat(setup): setup wizard draft notifier and preview locale provi
 **Files:**
 - Create: `lib/features/setup_wizard/data/setup_apply_service.dart`
 - Test: `test/features/setup_wizard/data/setup_apply_service_test.dart`
-- Modify: `docs/superpowers/specs/2026-07-10-setup-wizard-design.md` (Architecture item 3: replace the `applySettings()` bulk-method sentence with the seed-before-switch approach)
+- Modify: `docs/design/specs/2026-07-10-setup-wizard-design.md` (Architecture item 3: replace the `applySettings()` bulk-method sentence with the seed-before-switch approach)
 
 **Interfaces:**
 - Consumes: `diverListNotifierProvider`, `currentDiverIdProvider`, `realignActiveDiverAfterDataReplace` (diver_providers.dart); `diverSettingsRepositoryProvider`, `settingsProvider` (settings_providers.dart); `backupSettingsProvider` (backup_providers.dart); Task 3/4 types.
@@ -995,7 +995,7 @@ Expected: PASS (3 tests).
 
 - [ ] **Step 5: Amend the spec's apply paragraph**
 
-In `docs/superpowers/specs/2026-07-10-setup-wizard-design.md`, replace item 3 of the "Apply order on Finish (first-run)" list (the sentence proposing `SettingsNotifier.applySettings(AppSettings)` and its mock-cost note) with:
+In `docs/design/specs/2026-07-10-setup-wizard-design.md`, replace item 3 of the "Apply order on Finish (first-run)" list (the sentence proposing `SettingsNotifier.applySettings(AppSettings)` and its mock-cost note) with:
 
 ```markdown
 3. Seed the draft settings into the new diver's `DiverSettings` row via
@@ -1012,7 +1012,7 @@ Renumber the surrounding list so the switch happens AFTER the seed (create diver
 
 ```bash
 dart format .
-git add lib/features/setup_wizard test/features/setup_wizard docs/superpowers/specs/2026-07-10-setup-wizard-design.md
+git add lib/features/setup_wizard test/features/setup_wizard docs/design/specs/2026-07-10-setup-wizard-design.md
 git commit -m "feat(setup): draft apply service with race-safe settings seeding"
 ```
 
@@ -1380,7 +1380,7 @@ import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_indicator.dart';
 
 /// Multi-step setup wizard for new databases (first run) and Settings
-/// re-entry. See docs/superpowers/specs/2026-07-10-setup-wizard-design.md.
+/// re-entry. See docs/design/specs/2026-07-10-setup-wizard-design.md.
 class SetupWizardPage extends ConsumerStatefulWidget {
   final SetupWizardMode mode;
 
@@ -3563,7 +3563,7 @@ Keep each doc's existing voice and formatting; update code samples in navigation
 - [ ] **Step 2: Verify no stale references**
 
 Run: `rg -n "WelcomePage|name-only|onboarding/" docs FEATURE_ROADMAP.md | rg -v "setup_wizard|setup wizard"`
-Expected: no hits describing the old flow as current (historical spec/plan docs under docs/superpowers/ are exempt — leave them).
+Expected: no hits describing the old flow as current (historical spec/plan docs under docs/design/ are exempt — leave them).
 
 - [ ] **Step 3: Commit**
 

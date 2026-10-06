@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod, Drift (`NativeDatabase.memory()`), `shared_preferences`, `share_plus` through `file_export_utils.dart`, `flutter gen-l10n` with 11 checked-in ARB catalogs.
 
-**Spec:** `docs/superpowers/specs/2026-09-18-media-sync-program-design.md` (sections 3, 4.1 to 4.4, 9 and slices 1 and 2 of section 10).
+**Spec:** `docs/design/specs/2026-09-18-media-sync-program-design.md` (sections 3, 4.1 to 4.4, 9 and slices 1 and 2 of section 10).
 
 ## Global Constraints
 

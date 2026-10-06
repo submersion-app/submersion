@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (legacy providers via `core/providers/provider.dart`), Drift (local cache database), go_router, gen-l10n (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-10-02-unified-dive-search-design.md` (sections 3.8, 4.1 states 2 and 4, 4.2 saved chips, 5.4, 5.5, 7 "Save", 8 row 4, 9 rows 6 and 8). Issue #2773 (this PR `Closes` it). Branch `ericgriffin/dive-search-saving`, from `main` after PR 3 (#2857) merges.
+**Spec:** `docs/design/specs/2026-10-02-unified-dive-search-design.md` (sections 3.8, 4.1 states 2 and 4, 4.2 saved chips, 5.4, 5.5, 7 "Save", 8 row 4, 9 rows 6 and 8). Issue #2773 (this PR `Closes` it). Branch `ericgriffin/dive-search-saving`, from `main` after PR 3 (#2857) merges.
 
 ## Global Constraints
 

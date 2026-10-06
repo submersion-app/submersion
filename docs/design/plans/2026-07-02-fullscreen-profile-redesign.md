@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make the fullscreen dive profile view fill the screen (#443) and add a dive-computer-style instrument bar with playback that tracks the cursor (#169), per the approved spec at `docs/superpowers/specs/2026-07-02-fullscreen-profile-redesign-design.md`.
+**Goal:** Make the fullscreen dive profile view fill the screen (#443) and add a dive-computer-style instrument bar with playback that tracks the cursor (#169), per the approved spec at `docs/design/specs/2026-07-02-fullscreen-profile-redesign-design.md`.
 
 **Architecture:** Extract the fullscreen view out of `dive_detail_page.dart` into a new `FullscreenProfilePage` that takes only a `diveId` and watches family providers. `DiveProfileChart` gains height flexibility (fills bounded parents) and a `legendLeading` slot so the close button and title share the legend row. The existing playback engine is reworked to frame-based ticking with compressed speed presets; a unified review-position provider drives the chart cursor, instrument tiles, and slider.
 

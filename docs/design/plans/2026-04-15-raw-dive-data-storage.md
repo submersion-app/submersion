@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift ORM, Pigeon (platform channels), C (libdivecomputer native), Swift (Darwin), Kotlin (Android), C++ (Windows), GObject/C (Linux), Riverpod (state management)
 
-**Spec:** `docs/superpowers/specs/2026-04-15-raw-dive-data-storage-design.md`
+**Spec:** `docs/design/specs/2026-04-15-raw-dive-data-storage-design.md`
 
 ---
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Swift + CoreBluetooth (darwin), Kotlin + android.bluetooth (Android), C++/WinRT (Windows), C + GDBus/BlueZ (Linux), JUnit 4, standalone `swiftc` tests.
 
-**Spec:** `docs/superpowers/specs/2026-09-26-ble-read-poll-transport-design.md`
+**Spec:** `docs/design/specs/2026-09-26-ble-read-poll-transport-design.md`
 
 ## Global Constraints
 

@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build the shared selection package described in
-`docs/superpowers/specs/2026-08-11-standardize-item-selection-design.md` and convert
+`docs/design/specs/2026-08-11-standardize-item-selection-design.md` and convert
 the Dives list to it, so multi-select is discoverable and every later surface has a
 proven component set to adopt.
 

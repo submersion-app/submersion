@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Riverpod (StateNotifier), Dart 3, flutter_test, Material 3.
 
-**Spec:** `docs/superpowers/specs/2026-04-12-import-duplicate-required-selection-design.md`
+**Spec:** `docs/design/specs/2026-04-12-import-duplicate-required-selection-design.md`
 
 **Working directory:** All commands run from `.worktrees/issue-200-require-duplicate-selection/`. Branch: `feature/issue-200-require-duplicate-selection`.
 

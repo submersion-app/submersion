@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (`package:submersion/core/providers/provider.dart`), Drift (typed selects with joins plus `customSelect` for aggregates), the shared `SelectionController` and `DragSelectGridView`, `flutter gen-l10n` ARB localization, `flutter_test` with the media widget harness.
 
-**Spec:** `docs/superpowers/specs/2026-08-26-species-photos-design.md` (sections 1 to 6 and 8 to 10 are phase A; section 7 is phase B and is NOT in this plan).
+**Spec:** `docs/design/specs/2026-08-26-species-photos-design.md` (sections 1 to 6 and 8 to 10 are phase A; section 7 is phase B and is NOT in this plan).
 
 ## Global Constraints
 

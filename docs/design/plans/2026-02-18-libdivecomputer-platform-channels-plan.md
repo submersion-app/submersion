@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Pigeon, libdivecomputer (C), Swift (iOS/macOS), Kotlin + JNI (Android), C++ (Linux/Windows), CMake, CoreBluetooth, Android BLE API
 
-**Design Doc:** `docs/plans/2026-02-18-libdivecomputer-platform-channels-design.md`
+**Design Doc:** `docs/design/specs/2026-02-18-libdivecomputer-platform-channels-design.md`
 
 ---
 

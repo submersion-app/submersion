@@ -14,7 +14,7 @@ cannot be acted on supply a non-selectable predicate.
 
 ## Scope
 
-Phases 4 and 5 of `docs/superpowers/specs/2026-08-11-standardize-item-selection-design.md`.
+Phases 4 and 5 of `docs/design/specs/2026-08-11-standardize-item-selection-design.md`.
 
 **Stacked PR:** this branch is cut from `worktree-selection-phase3`, which is itself
 cut from `worktree-standardize-selection`. Retarget order after merges:

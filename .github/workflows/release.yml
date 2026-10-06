@@ -8,7 +8,7 @@
 # Beta tags (v1.0.0-beta.1) create pre-releases.
 # Clean tags (v1.0.0) create full releases.
 #
-# Required Secrets - see docs/plans/2026-02-12-github-releases-design.md
+# Required Secrets - see docs/design/specs/2026-02-12-github-releases-design.md
 
 name: Release
 

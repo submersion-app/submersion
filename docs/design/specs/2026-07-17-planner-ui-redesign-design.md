@@ -2,7 +2,7 @@
 
 Date: 2026-07-17
 Status: Approved (brainstorm validated section-by-section)
-Predecessor: docs/superpowers/specs/2026-07-05-dive-planner-redesign-design.md (engine,
+Predecessor: docs/design/specs/2026-07-05-dive-planner-redesign-design.md (engine,
 canvas, CCR, contingencies, log integration - all merged via PRs #484-#491)
 
 ## 1. Motivation

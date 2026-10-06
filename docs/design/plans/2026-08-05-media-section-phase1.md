@@ -4,7 +4,7 @@
 
 **Goal:** Ship the new top-level Media section: nav entry, adaptive console scaffold, paginated cross-dive library with three view modes, shared full-screen viewer, multi-select with Delete/Share, a Transfers view, and the v140 `retain_in_library` migration.
 
-**Architecture:** A new `/media` shell route hosts `MediaSectionPage`, which wraps content in `MediaConsoleScaffold` (desktop sidebar, phone top tabs). A new `MediaLibraryRepository` provides keyset-paginated, filtered, cross-dive reads (Drift join of media + dives + dive_sites), consumed by a paged `StateNotifier`. Tiles reuse `MediaItemView`; the full-screen viewer is `PhotoViewerPage` generalized to take a media list instead of a dive id. Spec: `docs/superpowers/specs/2026-08-05-media-section-design.md`.
+**Architecture:** A new `/media` shell route hosts `MediaSectionPage`, which wraps content in `MediaConsoleScaffold` (desktop sidebar, phone top tabs). A new `MediaLibraryRepository` provides keyset-paginated, filtered, cross-dive reads (Drift join of media + dives + dive_sites), consumed by a paged `StateNotifier`. Tiles reuse `MediaItemView`; the full-screen viewer is `PhotoViewerPage` generalized to take a media list instead of a dive id. Spec: `docs/design/specs/2026-08-05-media-section-design.md`.
 
 **Tech Stack:** Flutter 3.x, Drift, Riverpod (via `package:submersion/core/providers/provider.dart` barrel), go_router, intl.
 

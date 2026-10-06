@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (`StateProvider` via `package:submersion/core/providers/provider.dart`), go_router (nested `GoRoute` children), `flutter gen-l10n` (11 arb files), `flutter_test` widget tests with `testApp`/`ProviderScope` overrides.
 
-**Spec:** `docs/superpowers/specs/2026-08-28-gas-calculators-split-view-design.md`
+**Spec:** `docs/design/specs/2026-08-28-gas-calculators-split-view-design.md`
 
 ## Global Constraints
 

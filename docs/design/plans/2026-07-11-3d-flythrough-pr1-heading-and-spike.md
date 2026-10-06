@@ -8,7 +8,7 @@
 
 **Tech Stack:** Drift ORM (migration + codegen), Pigeon 22 (platform channel codegen), libdivecomputer C wrapper, three_js (Dart port of three.js).
 
-**Spec:** `docs/superpowers/specs/2026-07-11-3d-flythrough-design.md`
+**Spec:** `docs/design/specs/2026-07-11-3d-flythrough-design.md`
 
 ## Global Constraints
 

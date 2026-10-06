@@ -8,7 +8,7 @@
 
 **Tech Stack:** Pure Dart in `lib/core/buoyancy/` (no Flutter/DB imports there); Riverpod bridge in the weight-planner feature.
 
-**Spec:** `docs/superpowers/specs/2026-07-17-weight-planner-attribute-priors-design.md`
+**Spec:** `docs/design/specs/2026-07-17-weight-planner-attribute-priors-design.md`
 
 ## Global Constraints
 

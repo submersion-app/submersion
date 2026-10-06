@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Material 3, Riverpod, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-08-14-selection-checkbox-placement-design.md`
+**Spec:** `docs/design/specs/2026-08-14-selection-checkbox-placement-design.md`
 
 ## Global Constraints
 

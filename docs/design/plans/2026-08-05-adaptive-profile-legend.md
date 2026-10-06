@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Riverpod (`profileLegendProvider`), flutter_test. No database, no l10n, no provider changes.
 
-**Spec:** `docs/superpowers/specs/2026-08-05-adaptive-profile-legend-design.md`
+**Spec:** `docs/design/specs/2026-08-05-adaptive-profile-legend-design.md`
 
 ## Global Constraints
 

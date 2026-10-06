@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart 3 + Flutter 3 + `package:xml` + `flutter_test` + Drift (all unchanged from Slice C).
 
-**Spec reference:** `docs/superpowers/specs/2026-04-17-ssrf-slice-c3-uddf-event-parity-design.md`
+**Spec reference:** `docs/design/specs/2026-04-17-ssrf-slice-c3-uddf-event-parity-design.md`
 
 **Branch:** `feat/ssrf-slice-c3` (already created off `feat/ssrf-slice-c2`, which is PR #244 stacked on #243).
 
@@ -39,7 +39,7 @@
 Pure investigation. Produces a discovery note. No code changes beyond the note itself.
 
 **Files:**
-- Create: `docs/superpowers/plans/2026-04-17-ssrf-slice-c3-discovery.md`
+- Create: `docs/design/plans/2026-04-17-ssrf-slice-c3-discovery.md`
 
 - [ ] **Step 1.1: Confirm exporter field coverage**
 
@@ -73,7 +73,7 @@ Find the public method that accepts XML bytes or a string and returns import res
 
 - [ ] **Step 1.5: Write the discovery note**
 
-Create `docs/superpowers/plans/2026-04-17-ssrf-slice-c3-discovery.md` with sections:
+Create `docs/design/plans/2026-04-17-ssrf-slice-c3-discovery.md` with sections:
 - **Exporter field coverage**: confirmed list of fields written to each `<event>` element with line numbers.
 - **`buildDiveElement` signature**: exact Dart signature. Which params are required, which have defaults, which accept profileEvents.
 - **Import service public API**: the method Task 4's round-trip test will call.
@@ -84,7 +84,7 @@ Keep it brief — one page. Working doc, not polished.
 - [ ] **Step 1.6: Commit**
 
 ```bash
-git add docs/superpowers/plans/2026-04-17-ssrf-slice-c3-discovery.md
+git add docs/design/plans/2026-04-17-ssrf-slice-c3-discovery.md
 git commit -m "docs(slice-c.3): discovery findings for UDDF event parity"
 ```
 
@@ -625,7 +625,7 @@ git commit -m "test(uddf-import): round-trip test pins Submersion UDDF export/im
 ## Task 5: Tracker doc update
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md`
+- Modify: `docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md`
 
 - [ ] **Step 5.1: Update combined table `Profile events / markers` row**
 
@@ -654,7 +654,7 @@ Find the row in the UDDF sub-table. Update Fixed to `[x]` and the Why cell:
 At the end of the Notes bullet list, before any footnote definitions:
 
 ```markdown
-- Slice C.3 (2026-04-17) fixes the UDDF-vs-SSRF event-key mismatch — the UDDF parser now writes `diveData['events']` instead of `diveData['profileEvents']`. Extends `_importDives` to consume UDDF's richer event shape (severity, depth) via post-construction `copyWith` overrides, while keeping the SSRF path unchanged. Round-trip test confirms Submersion-authored UDDF exports preserve all 8 event types end-to-end. Third-party UDDF event parsing remains a separate future slice. See `docs/superpowers/specs/2026-04-17-ssrf-slice-c3-uddf-event-parity-design.md`.
+- Slice C.3 (2026-04-17) fixes the UDDF-vs-SSRF event-key mismatch — the UDDF parser now writes `diveData['events']` instead of `diveData['profileEvents']`. Extends `_importDives` to consume UDDF's richer event shape (severity, depth) via post-construction `copyWith` overrides, while keeping the SSRF path unchanged. Round-trip test confirms Submersion-authored UDDF exports preserve all 8 event types end-to-end. Third-party UDDF event parsing remains a separate future slice. See `docs/design/specs/2026-04-17-ssrf-slice-c3-uddf-event-parity-design.md`.
 ```
 
 - [ ] **Step 5.4: Visual sanity check**
@@ -664,7 +664,7 @@ Column counts should remain 6 (combined) and 4 (sub-tables). `[^1]` footnote sti
 - [ ] **Step 5.5: Commit**
 
 ```bash
-git add docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md
+git add docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md
 git commit -m "docs(tracker): record Slice C.3 UDDF event parity"
 ```
 
@@ -720,14 +720,14 @@ git status --short
 git log --oneline origin/main..HEAD
 ```
 
-Working tree has only the untracked spec/plan docs in `docs/superpowers/`. Commit log shows Slice C.3 commits layered on top of Slice C + C.2.
+Working tree has only the untracked spec/plan docs in `docs/design/`. Commit log shows Slice C.3 commits layered on top of Slice C + C.2.
 
 - [ ] **Step 6.6: Spot-check files**
 
 Read and confirm:
 - `lib/core/services/export/uddf/uddf_full_import_service.dart:872` writes to `'events'`, not `'profileEvents'`.
 - `lib/features/dive_import/data/services/uddf_entity_importer.dart` has `_parseSeverity` helper and `applyOverrides` closure; all 8 switch cases wrap their factory calls with `applyOverrides(...)` and pass `depth ?? 0.0` (required-depth factories) or `depth` (optional) from the extracted `depth` variable.
-- `docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md` combined row UDDF Support is now `Yes`; UDDF sub-table row has `[x]` Fixed; Notes section has Slice C.3 bullet.
+- `docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md` combined row UDDF Support is now `Yes`; UDDF sub-table row has `[x]` Fixed; Notes section has Slice C.3 bullet.
 
 ---
 

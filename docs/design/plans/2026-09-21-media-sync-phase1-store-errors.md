@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, `http`, `xml`, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-09-18-media-sync-program-design.md`, section 5.3 (the Google Drive bullet).
+**Spec:** `docs/design/specs/2026-09-18-media-sync-program-design.md`, section 5.3 (the Google Drive bullet).
 
 ## Global Constraints
 

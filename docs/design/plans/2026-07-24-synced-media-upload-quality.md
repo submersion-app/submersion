@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-07-24-synced-media-upload-quality-design.md`
+**Spec:** `docs/design/specs/2026-07-24-synced-media-upload-quality-design.md`
 
 ## Global Constraints
 

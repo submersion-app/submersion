@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, flutter_test, ARB localization.
 
-**Spec:** `docs/superpowers/specs/2026-10-05-custom-weight-names-design.md`
+**Spec:** `docs/design/specs/2026-10-05-custom-weight-names-design.md`
 
 ## Global Constraints
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (StateNotifier and FutureProvider), Drift (SQLite), the app's HLC sync (`SyncDataSerializer` / `SyncService`), gen-l10n ARB files in 11 locales.
 
-**Spec:** `docs/superpowers/specs/2026-09-30-shared-trip-site-ownership-design.md`
+**Spec:** `docs/design/specs/2026-09-30-shared-trip-site-ownership-design.md`
 
 ## Global Constraints
 

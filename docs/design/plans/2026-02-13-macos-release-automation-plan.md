@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter integration tests, Fastlane (Ruby), Bash shell scripts
 
-**Design doc:** `docs/plans/2026-02-13-macos-release-automation-design.md`
+**Design doc:** `docs/design/specs/2026-02-13-macos-release-automation-design.md`
 
 ---
 

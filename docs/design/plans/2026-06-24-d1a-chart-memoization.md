@@ -14,7 +14,7 @@
 - **`dart format .`** (whole repo) must pass before any push.
 - **No `Co-Authored-By`** trailer in commits.
 - **Dive-safety (for the decimator):** a decimated index set MUST keep the max-depth sample, every ascent-rate **band** boundary, and every **`decoType`** transition. Verified by tests.
-- **Decimator stays unwired in this plan** — it is exercised only by its unit tests. Wiring is Plan B (`docs/superpowers/specs/2026-06-24-d1-profile-chart-perf-design.md`).
+- **Decimator stays unwired in this plan** — it is exercised only by its unit tests. Wiring is Plan B (`docs/design/specs/2026-06-24-d1-profile-chart-perf-design.md`).
 - **Measurement is profile-mode only** (`flutter run --profile -d macos`); debug numbers are meaningless.
 - Frequent commits — one per task.
 
@@ -567,7 +567,7 @@ Run `flutter run --profile -d macos`, grab the VM Service ws URL, and use `scrat
 
 - [ ] **Step 3: Record before/after**
 
-Compare against the Phase 1 findings (35 ms build, 56 ms `combineMultiTankPressures`). Capture: cold-open worst-frame build ms, and whether hover/playback/zoom now produce **zero** series rebuilds (cache hits → flat frame times during interaction). Append the numbers to `docs/superpowers/specs/2026-06-24-app-performance-findings.md` under a "Phase 2 — D1a result" heading (on this branch).
+Compare against the Phase 1 findings (35 ms build, 56 ms `combineMultiTankPressures`). Capture: cold-open worst-frame build ms, and whether hover/playback/zoom now produce **zero** series rebuilds (cache hits → flat frame times during interaction). Append the numbers to `docs/design/specs/2026-06-24-app-performance-findings.md` under a "Phase 2 — D1a result" heading (on this branch).
 
 - [ ] **Step 4: Decide Plan B**
 

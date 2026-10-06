@@ -1,7 +1,7 @@
 # Cylinder Passport Tag Format
 
 **Status:** Format version 1.
-**Spec:** `docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md`, section 6.
+**Spec:** `docs/design/specs/2026-09-25-smart-cylinder-passports-design.md`, section 6.
 
 A cylinder passport tag is one short string, printed as a QR code or written
 to an NFC tag as an NDEF URI record. Scanning it in Submersion opens that

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x / Material 3, Drift ORM, Riverpod, go_router, flutter gen-l10n.
 
-**Spec:** `docs/superpowers/specs/2026-07-16-course-requirement-tracker-design.md`
+**Spec:** `docs/design/specs/2026-07-16-course-requirement-tracker-design.md`
 
 ## Refinements vs the spec (discovered during codebase survey; all approved patterns)
 
@@ -154,7 +154,7 @@ In `lib/core/database/database.dart`, immediately after the `Courses` table's cl
 
 ```dart
 /// Countable requirements for a training course (requirement tracker spec,
-/// docs/superpowers/specs/2026-07-16-course-requirement-tracker-design.md).
+/// docs/design/specs/2026-07-16-course-requirement-tracker-design.md).
 /// kind is a RequirementKind enum name: 'dive' rows derive progress from
 /// course_requirement_dives links; 'checklist' rows complete via completedAt.
 @DataClassName('CourseRequirementRow')

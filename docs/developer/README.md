@@ -4,13 +4,13 @@ Welcome to the Submersion developer documentation. This section covers architect
 
 ## Quick Links
 
-- [Architecture](developer/architecture.md) - System design and layers
-- [Database](developer/database.md) - Schema and Drift ORM
-- [State Management](developer/state-management.md) - Riverpod patterns
-- [Navigation](developer/navigation.md) - go_router setup
-- [Testing](developer/testing.md) - Test organization and running
-- [Local Test Performance](developer/local-test-performance.md) - Making local test runs fast
-- [Building](developer/building.md) - Build and run instructions
+- [Architecture](architecture.md) - System design and layers
+- [Database](database.md) - Schema and Drift ORM
+- [State Management](state-management.md) - Riverpod patterns
+- [Navigation](navigation.md) - go_router setup
+- [Testing](testing.md) - Test organization and running
+- [Local Test Performance](local-test-performance.md) - Making local test runs fast
+- [Building](building.md) - Build and run instructions
 
 ## Technology Stack
 
@@ -163,11 +163,11 @@ class DiveRepository {
 
 ## Contributing
 
-See the [Contributing Guide](contributing/) for:
+See the [Contributing Guide](../contributing/README.md) for:
 
-- [Code Style](contributing/code-style.md)
-- [Pull Requests](contributing/pull-requests.md)
-- [Roadmap](contributing/roadmap.md)
+- [Code Style](../contributing/code-style.md)
+- [Pull Requests](../contributing/pull-requests.md)
+- [Roadmap](../contributing/roadmap.md)
 
 ## Need Help?
 

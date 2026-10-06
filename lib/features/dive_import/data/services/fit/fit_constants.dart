@@ -1,5 +1,5 @@
 /// Verified Garmin FIT message/field numbers and scales (see design spec
-/// `docs/superpowers/specs/2026-06-22-garmin-fit-import-design.md`, Appendix A).
+/// `docs/design/specs/2026-06-22-garmin-fit-import-design.md`, Appendix A).
 ///
 /// fit_tool 1.0.5 has no named classes for the tank messages, so they are read
 /// by global id + field number off a [GenericMessage] (which carries no profile

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter widgets (Stack/Align/GestureDetector), Riverpod settings notifier, SharedPreferences, flutter gen-l10n.
 
-**Spec:** `docs/superpowers/specs/2026-07-05-fullscreen-draggable-readout-design.md`
+**Spec:** `docs/design/specs/2026-07-05-fullscreen-draggable-readout-design.md`
 
 ## Global Constraints
 

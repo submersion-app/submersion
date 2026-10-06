@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift ORM, Riverpod, Material 3
 
-**Design doc:** `docs/plans/2026-03-04-trip-auto-add-dives-design.md`
+**Design doc:** `docs/design/specs/2026-03-04-trip-auto-add-dives-design.md`
 
 ---
 

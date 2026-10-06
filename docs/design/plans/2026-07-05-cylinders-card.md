@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x / Material 3, Riverpod (StateNotifier + FutureProvider.family), flutter gen-l10n (ARB, 11 locales), flutter_test widget tests.
 
-**Spec:** `docs/superpowers/specs/2026-07-05-cylinders-card-design.md`
+**Spec:** `docs/design/specs/2026-07-05-cylinders-card-design.md`
 
 ## Global Constraints
 

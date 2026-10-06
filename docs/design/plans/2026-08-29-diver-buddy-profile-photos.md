@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (SQLite/SQLCipher), Riverpod, `image: ^4.3.0`, `image_picker: ^1.1.2`, `flutter_contacts: ^2.0.2`, GoRouter.
 
-**Spec:** `docs/superpowers/specs/2026-08-29-diver-buddy-profile-photos-design.md`
+**Spec:** `docs/design/specs/2026-08-29-diver-buddy-profile-photos-design.md`
 
 ## Global Constraints
 

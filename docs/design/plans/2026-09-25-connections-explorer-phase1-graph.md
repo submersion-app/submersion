@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Drift (raw `customSelect`), Riverpod 3 (`package:submersion/core/providers/provider.dart`), go_router, shared_preferences, equatable, flutter_test with an in-memory Drift database.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-connections-explorer-design.md`
+**Spec:** `docs/design/specs/2026-09-25-connections-explorer-design.md`
 
 **Issue:** #2322 (phase 1). PR body: `Closes #2322` and `Refs #2321`.
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart 3 (records, pattern matching), `equatable`, `flutter_test`. No UI, no schema, no persistence.
 
-**Spec:** `docs/superpowers/specs/2026-09-18-dpv-mission-planner-design.md`, sections "Domain model", "Calculation" and "Revision 2026-09-25". Branch `ericgriffin/dpv-mission-planner-a7b686` (PR #2138).
+**Spec:** `docs/design/specs/2026-09-18-dpv-mission-planner-design.md`, sections "Domain model", "Calculation" and "Revision 2026-09-25". Branch `ericgriffin/dpv-mission-planner-a7b686` (PR #2138).
 
 ## Global Constraints
 

@@ -2979,7 +2979,7 @@ class DiveRepository {
   /// need to detect truncation pass `limit + 1` and treat a full-length
   /// result as "more matches exist". Replaces the unbounded full-Dive-
   /// hydrating search whose roughly-ten-queries-per-match N+1 dominated
-  /// search cost on large databases (docs/superpowers/specs/2026-07-10-
+  /// search cost on large databases (docs/design/specs/2026-07-10-
   /// large-db-performance-findings.md).
   // stats-scope-exempt: search results are a displayed list, like the logbook
   Future<List<DiveSummary>> searchDiveSummaries(

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Drift ORM (SQLite), Riverpod, Material 3, go_router
 
-**Spec:** `docs/superpowers/specs/2026-03-24-dive-data-source-provenance-design.md`
+**Spec:** `docs/design/specs/2026-03-24-dive-data-source-provenance-design.md`
 
 ---
 

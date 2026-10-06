@@ -8,7 +8,7 @@
 
 **Tech Stack:** GitHub Actions YAML, Fastlane (Ruby), App Store Connect API, Google Play API
 
-**Spec:** `docs/superpowers/specs/2026-03-10-release-upload-gate-design.md`
+**Spec:** `docs/design/specs/2026-03-10-release-upload-gate-design.md`
 
 ---
 

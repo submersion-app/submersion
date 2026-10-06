@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.x, Drift ORM, `package:sqlite3` ^2.9.4 (direct dependency), dart:developer VM-service protocol.
 
-**Spec:** `docs/superpowers/specs/2026-07-10-large-db-performance-design.md`
+**Spec:** `docs/design/specs/2026-07-10-large-db-performance-design.md`
 
 ## Global Constraints
 
@@ -30,7 +30,7 @@ The measurement comes first: this task produces the before/after numbers that ju
 **Files:**
 - Create: `lib/core/database/performance_indexes.dart` (const list only in this task)
 - Create: `tools/db_bench.dart`
-- Create: `docs/superpowers/specs/2026-07-10-large-db-performance-findings.md`
+- Create: `docs/design/specs/2026-07-10-large-db-performance-findings.md`
 
 **Interfaces:**
 - Consumes: nothing (first task).
@@ -47,7 +47,7 @@ Create `lib/core/database/performance_indexes.dart`. The list is every `CREATE I
 /// blocks, so a database created fresh at a recent schema version -- or
 /// arriving via restore or sync-adopt -- never got them and every child-table
 /// lookup degraded to a full table scan (issue: large-DB performance,
-/// docs/superpowers/specs/2026-07-10-large-db-performance-design.md).
+/// docs/design/specs/2026-07-10-large-db-performance-design.md).
 ///
 /// This list is asserted idempotently on every open from
 /// AppDatabase.beforeOpen. Keep it in sync: any migration that adds a
@@ -609,7 +609,7 @@ Expected: per-index build times plus total (this number is the one-time first-op
 
 - [ ] **Step 7: Write the findings doc**
 
-Create `docs/superpowers/specs/2026-07-10-large-db-performance-findings.md` with the structure below, filling in the real numbers from Steps 5-6:
+Create `docs/design/specs/2026-07-10-large-db-performance-findings.md` with the structure below, filling in the real numbers from Steps 5-6:
 
 ```markdown
 # Large-DB Performance Findings (Phase 3)
@@ -661,7 +661,7 @@ After: <paste the USING INDEX lines>
 ```bash
 cd /Users/ericgriffin/repos/submersion-app/submersion
 dart format . && flutter analyze
-git add lib/core/database/performance_indexes.dart tools/db_bench.dart docs/superpowers/specs/2026-07-10-large-db-performance-findings.md
+git add lib/core/database/performance_indexes.dart tools/db_bench.dart docs/design/specs/2026-07-10-large-db-performance-findings.md
 git commit -m "perf(db): canonical index list, db_bench tool, WS0 SQL baseline"
 ```
 
@@ -673,7 +673,7 @@ The June-era vmcap tool lived only in a session scratchpad and is lost; this rec
 
 **Files:**
 - Create: `tools/vmcap.dart`
-- Create: `docs/superpowers/specs/2026-07-10-large-db-performance-baseline-runbook.md`
+- Create: `docs/design/specs/2026-07-10-large-db-performance-baseline-runbook.md`
 
 **Interfaces:**
 - Consumes: nothing.
@@ -862,7 +862,7 @@ Expected: a socket connection error (nothing is listening on port 1) and a NON-z
 
 - [ ] **Step 3: Write the runbook**
 
-Create `docs/superpowers/specs/2026-07-10-large-db-performance-baseline-runbook.md`:
+Create `docs/design/specs/2026-07-10-large-db-performance-baseline-runbook.md`:
 
 ```markdown
 # Large-DB Performance Measurement Runbook (Phase 3)
@@ -914,7 +914,7 @@ and commit hash.
 ```bash
 cd /Users/ericgriffin/repos/submersion-app/submersion
 dart format . && flutter analyze
-git add tools/vmcap.dart docs/superpowers/specs/2026-07-10-large-db-performance-baseline-runbook.md
+git add tools/vmcap.dart docs/design/specs/2026-07-10-large-db-performance-baseline-runbook.md
 git commit -m "perf: vmcap VM-service profiler tool and measurement runbook"
 ```
 
@@ -1186,7 +1186,7 @@ Combine two pieces of evidence: (a) Task 1 Step 6 — did the fixture's `summari
 ```bash
 cd /Users/ericgriffin/repos/submersion-app/submersion
 dart format . && flutter analyze
-git add test/core/database/query_plan_test.dart lib/core/database/performance_indexes.dart docs/superpowers/specs/2026-07-10-large-db-performance-findings.md
+git add test/core/database/query_plan_test.dart lib/core/database/performance_indexes.dart docs/design/specs/2026-07-10-large-db-performance-findings.md
 git commit -m "test(db): query-plan regression tests for performance indexes"
 ```
 
@@ -1197,7 +1197,7 @@ git commit -m "test(db): query-plan regression tests for performance indexes"
 This task needs Eric at the keyboard: it heals his real 335 MB database and captures the UI-level re-baseline that prioritizes WS1+.
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-07-10-large-db-performance-findings.md` (fill "In-app verification" + post-WS0 UI re-baseline)
+- Modify: `docs/design/specs/2026-07-10-large-db-performance-findings.md` (fill "In-app verification" + post-WS0 UI re-baseline)
 
 **Interfaces:**
 - Consumes: everything above.
@@ -1238,7 +1238,7 @@ Fill the "In-app verification" section and a "Post-WS0 UI re-baseline" section i
 
 ```bash
 cd /Users/ericgriffin/repos/submersion-app/submersion
-git add docs/superpowers/specs/2026-07-10-large-db-performance-findings.md
+git add docs/design/specs/2026-07-10-large-db-performance-findings.md
 git commit -m "docs: WS0 in-app verification and post-WS0 UI re-baseline"
 ```
 

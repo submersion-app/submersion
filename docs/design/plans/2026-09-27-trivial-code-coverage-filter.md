@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3 standard library (`unittest`, `re`), GitHub Actions, Codecov, Flutter lcov output.
 
-**Spec:** `docs/superpowers/specs/2026-09-27-trivial-code-coverage-filter-design.md`
+**Spec:** `docs/design/specs/2026-09-27-trivial-code-coverage-filter-design.md`
 
 ## Global Constraints
 
@@ -40,7 +40,7 @@
 | `scripts/filter_trivial_coverage_test.py` (new) | Its unit tests |
 | `.github/workflows/ci.yaml` | Run the filter in each test shard; run its tests in Script Tests |
 | `docs/developer/testing.md` | The coverage policy, replacing stale tables |
-| `docs/superpowers/specs/2026-09-27-trivial-code-coverage-filter-design.md` | Correct the measured `copyWith` count |
+| `docs/design/specs/2026-09-27-trivial-code-coverage-filter-design.md` | Correct the measured `copyWith` count |
 
 ---
 
@@ -895,7 +895,7 @@ git commit -m "ci: drop trivial members from each shard's coverage before upload
 
 **Files:**
 - Modify: `docs/developer/testing.md` (the `## Overview` table near the top, and `## Coverage Goals` at the end)
-- Modify: `docs/superpowers/specs/2026-09-27-trivial-code-coverage-filter-design.md` (the measured `copyWith` count)
+- Modify: `docs/design/specs/2026-09-27-trivial-code-coverage-filter-design.md` (the measured `copyWith` count)
 
 **Interfaces:**
 - Consumes: the step name from Task 2.
@@ -974,7 +974,7 @@ with the `DA:` records in `coverage/lcov.info`, the way Codecov does.
 
 - [ ] **Step 3: Correct the spec's measurement**
 
-In `docs/superpowers/specs/2026-09-27-trivial-code-coverage-filter-design.md`, replace
+In `docs/design/specs/2026-09-27-trivial-code-coverage-filter-design.md`, replace
 
 ```markdown
 Measured on main: 198 of 225 `copyWith` methods are pure, about 2,800 lines;
@@ -994,8 +994,8 @@ the hand-written code.
 - [ ] **Step 4: Check and commit**
 
 ```bash
-python3 -c "import sys; [print(p, n) for p in sys.argv[1:] for n, line in enumerate(open(p, encoding='utf-8'), 1) if '\u2013' in line or '\u2014' in line]" docs/developer/testing.md docs/superpowers/specs/2026-09-27-trivial-code-coverage-filter-design.md
-git add docs/developer/testing.md docs/superpowers/specs/2026-09-27-trivial-code-coverage-filter-design.md
+python3 -c "import sys; [print(p, n) for p in sys.argv[1:] for n, line in enumerate(open(p, encoding='utf-8'), 1) if '\u2013' in line or '\u2014' in line]" docs/developer/testing.md docs/design/specs/2026-09-27-trivial-code-coverage-filter-design.md
+git add docs/developer/testing.md docs/design/specs/2026-09-27-trivial-code-coverage-filter-design.md
 git commit -m "docs(testing): describe what the coverage targets count"
 ```
 

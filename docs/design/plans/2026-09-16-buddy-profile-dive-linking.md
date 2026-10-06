@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod, Drift (SQLite), go_router, mockito, gen-l10n ARB files (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-09-15-buddy-profile-dive-linking-design.md`
+**Spec:** `docs/design/specs/2026-09-15-buddy-profile-dive-linking-design.md`
 
 **Issue:** #2002
 
@@ -4778,8 +4778,8 @@ Push with `git push -u origin ericgriffin/buddy-submersion-dive-linking-18925d`.
 
 Schema v<N>: `buddies.linked_diver_id` (FK divers, ON DELETE SET NULL) and `dives.outing_id`. Additive; sync floor unchanged.
 
-Spec: `docs/superpowers/specs/2026-09-15-buddy-profile-dive-linking-design.md`
-Plan: `docs/superpowers/plans/2026-09-16-buddy-profile-dive-linking.md`
+Spec: `docs/design/specs/2026-09-15-buddy-profile-dive-linking-design.md`
+Plan: `docs/design/plans/2026-09-16-buddy-profile-dive-linking.md`
 
 ## Test plan
 

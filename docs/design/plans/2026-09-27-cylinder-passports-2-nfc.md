@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.47, Riverpod 3 (hand-written providers), `nfc_manager` 4.2.1, `nfc_manager_ndef` 1.1.0, `ndef_record` 1.5.0, `flutter gen-l10n` (11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md` (sections 6.4, 6.6, 7.1, 8 Tag row, 13.1, 13.3, 15, 16, and the "2 NFC" row of section 17).
+**Spec:** `docs/design/specs/2026-09-25-smart-cylinder-passports-design.md` (sections 6.4, 6.6, 7.1, 8 Tag row, 13.1, 13.3, 15, 16, and the "2 NFC" row of section 17).
 
 ## Global Constraints
 
@@ -2429,8 +2429,8 @@ Refs #2336"
 
 **Files:**
 - Modify: `docs/import-formats/cylinder-passport-tag.md` ("NFC layout")
-- Modify: `docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md` (sections 6.4 and 13.3)
-- Create: `docs/superpowers/specs/2026-09-27-cylinder-passports-2-nfc-device-checklist.md`
+- Modify: `docs/design/specs/2026-09-25-smart-cylinder-passports-design.md` (sections 6.4 and 13.3)
+- Create: `docs/design/specs/2026-09-27-cylinder-passports-2-nfc-device-checklist.md`
 
 **Interfaces:** none.
 
@@ -2474,13 +2474,13 @@ In section 13.3, replace the iOS bullet with:
 
 - [ ] **Step 3: Write the device checklist**
 
-Create `docs/superpowers/specs/2026-09-27-cylinder-passports-2-nfc-device-checklist.md`:
+Create `docs/design/specs/2026-09-27-cylinder-passports-2-nfc-device-checklist.md`:
 
 ```markdown
 # Cylinder passports 2: NFC device checklist
 
 **Issue:** #2336
-**Spec:** `docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md`
+**Spec:** `docs/design/specs/2026-09-25-smart-cylinder-passports-design.md`
 
 Everything here needs real hardware; CI runs none of it. Record the device,
 OS version, build and tag model for each line.
@@ -2529,11 +2529,11 @@ OS version, build and tag model for each line.
 
 - [ ] **Step 4: Scan and commit**
 
-Run: `grep -nP "\x{2014}|\x{2013}" docs/import-formats/cylinder-passport-tag.md docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md docs/superpowers/specs/2026-09-27-cylinder-passports-2-nfc-device-checklist.md`
+Run: `grep -nP "\x{2014}|\x{2013}" docs/import-formats/cylinder-passport-tag.md docs/design/specs/2026-09-25-smart-cylinder-passports-design.md docs/design/specs/2026-09-27-cylinder-passports-2-nfc-device-checklist.md`
 Expected: no output.
 
 ```bash
-git add docs/import-formats/cylinder-passport-tag.md docs/superpowers/specs/2026-09-25-smart-cylinder-passports-design.md docs/superpowers/specs/2026-09-27-cylinder-passports-2-nfc-device-checklist.md
+git add docs/import-formats/cylinder-passport-tag.md docs/design/specs/2026-09-25-smart-cylinder-passports-design.md docs/design/specs/2026-09-27-cylinder-passports-2-nfc-device-checklist.md
 git commit -m "docs: NFC tag capacity and entitlement rulings, NFC device checklist
 
 Refs #2336"
@@ -2614,7 +2614,7 @@ and regenerate the provisioning profiles.
 - [x] `flutter test` passes
 - [x] `flutter analyze` passes
 - [x] iOS simulator build links with the NFC plugin
-- [ ] Device checklist: `docs/superpowers/specs/2026-09-27-cylinder-passports-2-nfc-device-checklist.md`
+- [ ] Device checklist: `docs/design/specs/2026-09-27-cylinder-passports-2-nfc-device-checklist.md`
 
 ## Screenshots
 

@@ -4,7 +4,7 @@
 
 **Goal:** Automatically analyze recorded dive profiles for safety-relevant events (rapid ascents, missed deco stops, omitted safety stops, sawtooth profiles, high surface GF) and surface them as a quiet badge on the dive list plus a neutral-toned "Safety review" section in dive detail.
 
-**Architecture:** A pure rules engine (`SafetyReviewService`) consumes the existing `ProfileAnalysis` (produced by the Bühlmann replay in `ProfileAnalysisService`) and emits `SafetyFinding`s. Findings persist to two new child-of-dive tables (`dive_safety_reviews` marker + `dive_safety_findings`) so list badges never require replaying a profile. Computation is lazy (compute-through-cache in a Riverpod provider when a dive is viewed, or via a bulk "Analyze all dives" settings action); invalidation happens at the two profile-write choke points. Spec: `docs/superpowers/specs/2026-07-16-safety-features-design.md` (Phase 1 section).
+**Architecture:** A pure rules engine (`SafetyReviewService`) consumes the existing `ProfileAnalysis` (produced by the Bühlmann replay in `ProfileAnalysisService`) and emits `SafetyFinding`s. Findings persist to two new child-of-dive tables (`dive_safety_reviews` marker + `dive_safety_findings`) so list badges never require replaying a profile. Computation is lazy (compute-through-cache in a Riverpod provider when a dive is viewed, or via a bulk "Analyze all dives" settings action); invalidation happens at the two profile-write choke points. Spec: `docs/design/specs/2026-07-16-safety-features-design.md` (Phase 1 section).
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, go_router. Worktree: `.claude/worktrees/safety-features` (branch `worktree-safety-features`).
 

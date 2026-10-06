@@ -1247,14 +1247,14 @@ git commit -m "test(dive-log): end-to-end bulk-edit form integration test"
 
 ## Self-Review (run before execution)
 
-This plan was checked against the spec (`docs/superpowers/specs/2026-06-23-bulk-dive-editing-design.md`):
+This plan was checked against the spec (`docs/design/specs/2026-06-23-bulk-dive-editing-design.md`):
 - **Spec coverage:** reuse-the-edit-form (Approach B) ✓ (Task 2 `bulkDiveIds`/`isBulk` mirrors `SiteEditPage`); per-field gate ✓ (`BulkFieldGate`, Task 4); hidden measured fields ✓ (Global Constraints + never added to the bulk path); comprehensive scalars ✓ (Phase 3 table); dive-mode cascade with rebreather fields staying reachable ✓ (Task 8); collections Add/Remove/Replace with owned-vs-reference rule + tank `onlyIfEmpty` ✓ (Phase 4); notes Set/Append ✓ (Task 11); confirm step with contradiction + destructive-replace warnings ✓ (Tasks 12-13); undo ✓ (Task 13 snackbar → `service.undo`); l10n in 11 locales ✓ (Task 14).
 - **Known integration risks the implementer must verify against the live `dive_edit_page.dart`** (flagged inline, not placeholders): exact controller field names (`_gfLowController` etc.), extracting currently-inlined `DropdownButtonFormField`s from `_environmentChild`/`_weatherChild` into shared private builders (keep normal-form behavior identical), and the exact `DivesCompanion` column names. Each task says to grep/confirm before wiring.
 - **Net-new shared-widget changes:** none (the deliberate design choice). New widgets are additive: `BulkFieldGate`, `BulkCollectionModeSelector`, `BulkEditConfirmDialog`, `BulkDiveEditPage`, `bulk_edit_field_set.dart`.
 
 ## Execution Handoff
 
-**Plan complete and saved to `docs/superpowers/plans/2026-06-23-bulk-dive-editing-form.md`.** This consumes the Plan 1 engine (PR #393) and should be executed on a branch based off (or after the merge of) that PR.
+**Plan complete and saved to `docs/design/plans/2026-06-23-bulk-dive-editing-form.md`.** This consumes the Plan 1 engine (PR #393) and should be executed on a branch based off (or after the merge of) that PR.
 
 Two execution options:
 1. **Subagent-Driven (recommended)** — fresh subagent per task, review between tasks. Best for this UI-heavy plan where each task touches the large `dive_edit_page.dart` and benefits from a review checkpoint.

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (legacy `StateProvider` via `package:submersion/core/providers/provider.dart`), fl_chart.
 
-**Spec:** `docs/superpowers/specs/2026-08-07-safety-finding-chart-highlight-design.md`
+**Spec:** `docs/design/specs/2026-08-07-safety-finding-chart-highlight-design.md`
 
 ## Global Constraints
 

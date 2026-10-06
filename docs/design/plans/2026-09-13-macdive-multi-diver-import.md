@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.47, Dart 3 (sealed classes, patterns, records), Riverpod (`StateNotifier`, legacy providers), Drift, mockito, `flutter_test`, `sqlite3` (test fixtures), `flutter gen-l10n`.
 
-**Spec:** `docs/superpowers/specs/2026-09-13-macdive-multi-diver-import-design.md`
+**Spec:** `docs/design/specs/2026-09-13-macdive-multi-diver-import-design.md`
 
 ## Global Constraints
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (legacy StateNotifier plus Provider.family), Drift (SQLite), flutter_test, ARB l10n via `flutter gen-l10n`.
 
-**Spec:** `docs/superpowers/specs/2026-10-05-hide-built-in-entries-design.md`
+**Spec:** `docs/design/specs/2026-10-05-hide-built-in-entries-design.md`
 
 **Renumbered after this plan was executed:** while this branch was open, other rungs took v261 through v267 and #3043 holds v268, so the column landed as **v269** (`from < 269`, test `migration_v269_hidden_built_ins_test.dart`). Read every v261 below as v269.
 

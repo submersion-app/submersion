@@ -555,7 +555,7 @@ jobs:
       # required GLIBC_2.38, pinned by libsqlcipher.so and the two plugin
       # libraries rather than by the app, so building on an older host would
       # buy reach the project has never claimed at the cost of a container
-      # and its toolchain. See docs/guide/installation.md for the distro
+      # and its toolchain. See docs/user/guide/installation.md for the distro
       # requirement this implies.
       #
       # binutils supplies readelf for scripts/linux_package_deps.py; the

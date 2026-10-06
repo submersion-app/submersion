@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter/Dart, Drift ORM, Riverpod, flutter_secure_storage (via `FallbackSecureStorage`), SharedPreferences.
 
-**Spec:** `docs/superpowers/specs/2026-07-12-media-linking-storage-program-design.md` section 5.
+**Spec:** `docs/design/specs/2026-07-12-media-linking-storage-program-design.md` section 5.
 
 ## Global Constraints
 

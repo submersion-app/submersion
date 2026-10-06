@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter (Material 3), Riverpod (`flutter_riverpod`), Drift (unchanged here), `flutter_test`, Flutter `gen-l10n` (ARB files, 11 locales).
 
-**Spec:** `docs/superpowers/specs/2026-05-30-site-field-autocomplete-design.md`
+**Spec:** `docs/design/specs/2026-05-30-site-field-autocomplete-design.md`
 **Branch:** `feat/site-field-autocomplete`
 
 ---

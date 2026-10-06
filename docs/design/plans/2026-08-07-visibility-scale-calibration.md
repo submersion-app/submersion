@@ -15,7 +15,7 @@ stored on `diver_settings`). All display flows through one formatter.
 **Tech Stack:** Flutter 3.x, Drift ORM (SQLite), Riverpod, `flutter_localizations`
 with ARB files.
 
-**Design spec:** `docs/superpowers/specs/2026-08-07-visibility-scale-calibration-design.md`
+**Design spec:** `docs/design/specs/2026-08-07-visibility-scale-calibration-design.md`
 
 ## Global Constraints
 
@@ -1667,7 +1667,7 @@ git commit -m "Fix formatting and analysis issues from the visibility scale work
 ## Self-Review Notes
 
 Spec coverage check against
-`docs/superpowers/specs/2026-08-07-visibility-scale-calibration-design.md`:
+`docs/design/specs/2026-08-07-visibility-scale-calibration-design.md`:
 
 | Spec section | Task |
 | -------------- | ------ |

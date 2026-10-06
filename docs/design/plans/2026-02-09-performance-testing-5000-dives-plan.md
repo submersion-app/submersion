@@ -10,7 +10,7 @@
 
 **Working directory:** `.worktrees/performance-testing/` (branch `feature/performance-testing-5000-dives`)
 
-**Design doc:** `docs/plans/2026-02-09-performance-testing-5000-dives-design.md`
+**Design doc:** `docs/design/specs/2026-02-09-performance-testing-5000-dives-design.md`
 
 ---
 

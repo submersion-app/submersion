@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, fl_chart ^1.1.1, flutter_test.
 
-**Spec:** [docs/superpowers/specs/2026-07-21-deco-stop-band-design.md](../specs/2026-07-21-deco-stop-band-design.md)
+**Spec:** [docs/design/specs/2026-07-21-deco-stop-band-design.md](../specs/2026-07-21-deco-stop-band-design.md)
 
 ## Global Constraints
 

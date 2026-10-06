@@ -193,7 +193,7 @@ Replace it with (comment added; behavior unchanged):
     // participate in PageStorage's storage path: a detail page whose scroll
     // view carries a stable PageStorageKey therefore retains its scroll offset
     // across selections (compare a section across items without re-scrolling).
-    // See docs/superpowers/specs/2026-07-11-detail-pane-scroll-retention-design.md.
+    // See docs/design/specs/2026-07-11-detail-pane-scroll-retention-design.md.
     if (selectedId != null) {
       return KeyedSubtree(
         key: ValueKey('detail_$selectedId'),

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart / Flutter, Riverpod 3, `flutter_test`.
 
-**Spec:** `docs/superpowers/specs/2026-08-16-media-provenance-design.md`
+**Spec:** `docs/design/specs/2026-08-16-media-provenance-design.md`
 
 **Predecessor:** PR 2a (`#1120`, branch `worktree-media-provenance-pr2a`). This branch is stacked on it and must be retargeted to `main` once 2a merges.
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Dart, Riverpod (`FutureProvider`), Flutter method channels, Swift (macOS + iOS, Security.framework), Flutter `gen-l10n` ARB localization.
 
-**Spec:** `docs/superpowers/specs/2026-06-16-icloud-unsupported-build-ux-design.md`
+**Spec:** `docs/design/specs/2026-06-16-icloud-unsupported-build-ux-design.md`
 
 **Branch:** `feat/icloud-unsupported-build-ux` (already created off `main`).
 

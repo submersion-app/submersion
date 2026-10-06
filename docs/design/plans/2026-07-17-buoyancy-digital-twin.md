@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Model net buoyancy through a dive (cylinder swing, suit compression) and surface a diagnosis + chart on dive detail, plus forward simulation in the Dive Planner and Weight Planner, per the approved spec `docs/superpowers/specs/2026-07-17-buoyancy-digital-twin-design.md`.
+**Goal:** Model net buoyancy through a dive (cylinder swing, suit compression) and surface a diagnosis + chart on dive detail, plus forward simulation in the Dive Planner and Weight Planner, per the approved spec `docs/design/specs/2026-07-17-buoyancy-digital-twin-design.md`.
 
 **Architecture:** A pure-Dart simulator in `lib/core/buoyancy/` composes the existing weight-prediction pieces (`BuoyancyPhysics`, `FittedWeightModel`) with `DiveEnvironment` (from `core/deco`) for depth-to-pressure. Feature glue assembles inputs from the dive log, runs the simulator in a `compute` isolate behind a `FutureProvider.family`, and three UI surfaces consume one result type.
 
@@ -840,7 +840,7 @@ Semantics: below the prediction card, an expandable "Through the dive" panel wit
 
 **Files:** none new.
 
-- [ ] **Step 1: Spec coverage check** — reread `docs/superpowers/specs/2026-07-17-buoyancy-digital-twin-design.md` section by section and confirm each requirement maps to landed code; fix gaps now.
+- [ ] **Step 1: Spec coverage check** — reread `docs/design/specs/2026-07-17-buoyancy-digital-twin-design.md` section by section and confirm each requirement maps to landed code; fix gaps now.
 - [ ] **Step 2: Full formatting + analysis**
 
 ```bash

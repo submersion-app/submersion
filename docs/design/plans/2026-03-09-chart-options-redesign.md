@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (codegen), Material 3 `SegmentedButton`, `ExpansionTile`
 
-**Spec:** `docs/superpowers/specs/2026-03-09-chart-options-redesign-design.md`
+**Spec:** `docs/design/specs/2026-03-09-chart-options-redesign-design.md`
 
 ---
 

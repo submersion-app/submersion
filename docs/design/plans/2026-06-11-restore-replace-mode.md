@@ -4,7 +4,7 @@
 
 **Goal:** Add a "Replace everywhere" mode to database restore: the restored backup becomes the library locally, in the cloud, and on every synced device, instead of merging with the cloud on the next sync.
 
-**Architecture:** A replace mints a library *epoch* (UUID). The replacing device writes a cloud marker file first, wipes all sync files, and re-uploads its library stamped with the new epoch; every sync gates on the marker, ignores stale-stamped files, and peers that knew the old epoch are prompted to adopt (wholesale authoritative apply with a safety backup first). A SharedPreferences-persisted pending-replace intent makes the cloud side at-least-once and fences off merging until it lands. Spec: `docs/superpowers/specs/2026-06-11-restore-replace-mode-design.md`.
+**Architecture:** A replace mints a library *epoch* (UUID). The replacing device writes a cloud marker file first, wipes all sync files, and re-uploads its library stamped with the new epoch; every sync gates on the marker, ignores stale-stamped files, and peers that knew the old epoch are prompted to adopt (wholesale authoritative apply with a safety backup first). A SharedPreferences-persisted pending-replace intent makes the cloud side at-least-once and fences off merging until it lands. Spec: `docs/design/specs/2026-06-11-restore-replace-mode-design.md`.
 
 **Tech Stack:** Flutter/Dart, Drift (SQLite), Riverpod StateNotifier, SharedPreferences, per-device JSON sync files over `CloudStorageProvider` (iCloud/Drive/S3), flutter gen-l10n (11 ARB locales).
 

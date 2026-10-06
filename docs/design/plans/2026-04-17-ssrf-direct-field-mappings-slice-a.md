@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart 3 + Flutter 3 + `package:xml` for XML parsing + `flutter_test` for assertions.
 
-**Spec reference:** `docs/superpowers/specs/2026-04-17-ssrf-direct-field-mappings-slice-a-design.md`
+**Spec reference:** `docs/design/specs/2026-04-17-ssrf-direct-field-mappings-slice-a-design.md`
 
 ---
 
@@ -562,7 +562,7 @@ git commit -m "test(ssrf-import): pin cylinder source-index behavior for pressur
 Fix the factual error about UDDF tank role/material being unsupported (they are in fact supported — see `uddf_full_import_service.dart:1315-1329` and `uddf_entity_importer.dart:1290-1318`). Update the rows affected by this slice's parser changes.
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md`
+- Modify: `docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md`
 
 - [ ] **Step 6.1: Update the combined table row for "Sample `setpoint`"**
 
@@ -673,7 +673,7 @@ Replace with:
 In the "Notes" section at the bottom of the tracker (just before the final bullet or at the end of the bullet list), add:
 
 ```markdown
-- Slice A (2026-04-17) closes sample `setpoint` and partial cylinder preservation for SSRF, and corrects the UDDF tank role/material entries to reflect existing end-to-end support. Active-tank-per-sample, which requires a new `DiveProfiles` column, is split out as Slice A.2. See `docs/superpowers/specs/2026-04-17-ssrf-direct-field-mappings-slice-a-design.md`.
+- Slice A (2026-04-17) closes sample `setpoint` and partial cylinder preservation for SSRF, and corrects the UDDF tank role/material entries to reflect existing end-to-end support. Active-tank-per-sample, which requires a new `DiveProfiles` column, is split out as Slice A.2. See `docs/design/specs/2026-04-17-ssrf-direct-field-mappings-slice-a-design.md`.
 ```
 
 - [ ] **Step 6.9: Verify the tracker still renders cleanly**
@@ -683,7 +683,7 @@ Open the file and visually scan the tables for alignment. Column counts must mat
 - [ ] **Step 6.10: Commit**
 
 ```bash
-git add docs/superpowers/specs/2026-04-05-imported-profile-gap-priority-tracker.md
+git add docs/design/specs/2026-04-05-imported-profile-gap-priority-tracker.md
 git commit -m "docs: update import-gap tracker for slice A changes and UDDF correction"
 ```
 

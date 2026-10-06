@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter, Riverpod (`package:submersion/core/providers/provider.dart`), Drift (`TableInfo.$columns` for the coverage guard), gen-l10n ARB files (11 locales), `package:collection` for deep equality.
 
-**Spec:** `docs/superpowers/specs/2026-10-05-sync-conflict-comparison-design.md`
+**Spec:** `docs/design/specs/2026-10-05-sync-conflict-comparison-design.md`
 
 ## Global Constraints
 

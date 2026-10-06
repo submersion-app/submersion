@@ -8,7 +8,7 @@
 
 **Tech Stack:** Dart, `xml` package (already a dependency), Flutter test framework
 
-**Spec:** `docs/superpowers/specs/2026-03-15-subsurface-xml-import-design.md`
+**Spec:** `docs/design/specs/2026-03-15-subsurface-xml-import-design.md`
 
 ---
 

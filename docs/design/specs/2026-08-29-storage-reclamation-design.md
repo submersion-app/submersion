@@ -29,8 +29,8 @@ held. Three findings changed the shape of the work.
 `StartupMaintenanceRunner` was built in PR #516 and then removed, and the
 decision not to revive it is recorded twice:
 
-- `docs/superpowers/specs/2026-07-17-data-quality-assistant-design.md:85`
-- `docs/superpowers/plans/2026-08-06-media-section-phase5.md:589`
+- `docs/design/specs/2026-07-17-data-quality-assistant-design.md:85`
+- `docs/design/plans/2026-08-06-media-section-phase5.md:589`
 
 `lib/features/media/presentation/providers/media_watcher_providers.dart:196`
 works around its absence explicitly.

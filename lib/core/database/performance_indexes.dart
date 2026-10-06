@@ -4,7 +4,7 @@
 /// blocks, so a database created fresh at a recent schema version -- or
 /// arriving via restore or sync-adopt -- never got them and every child-table
 /// lookup degraded to a full table scan (issue: large-DB performance,
-/// docs/superpowers/specs/2026-07-10-large-db-performance-design.md).
+/// docs/design/specs/2026-07-10-large-db-performance-design.md).
 ///
 /// This list is asserted idempotently on every open from
 /// AppDatabase.beforeOpen. Keep it in sync: any migration that adds a
@@ -45,7 +45,7 @@ const List<PerformanceIndex> kPerformanceIndexes = [
   // evaluated in the WS0 baseline and DROPPED: the planner never selected
   // it (sorting a ~1k-row candidate set beats maintaining expression-index
   // order), so it would cost write amplification for nothing. Evidence in
-  // docs/superpowers/specs/2026-07-10-large-db-performance-findings.md.
+  // docs/design/specs/2026-07-10-large-db-performance-findings.md.
   (
     name: 'idx_dives_site_id',
     ddl: 'CREATE INDEX IF NOT EXISTS idx_dives_site_id ON dives(site_id)',
