@@ -69,4 +69,44 @@ void main() {
       );
     }
   });
+
+  // A new agency (ACUC and DAN arrived in #690) must be a deliberate choice
+  // here, not a card that silently never warns.
+  test('every agency with a diver ladder has a refresher', () async {
+    final covered = <CertificationAgency>{
+      for (final id in const [
+        'padi_reactivate',
+        'ssi_skills_update',
+        'generic_refresher',
+      ])
+        ...(await scopeOf(id)).agencies,
+    };
+    // GUE revalidates on a date of its own; DAN issues no diver grades.
+    final expected = CertificationAgency.values.toSet()
+      ..removeAll({CertificationAgency.gue, CertificationAgency.dan});
+    expect(covered, containsAll(expected));
+  });
+
+  test('first aid renewal covers every DAN provider credential', () async {
+    final scope = await scopeOf('first_aid_24mo');
+    final danProvider = {
+      ...CertificationLevelCatalog.ladderFor(CertificationAgency.dan),
+      ...CertificationLevelCatalog.specialtiesFor(CertificationAgency.dan),
+    }.where((l) => !l.isInstructorLevel);
+    expect(scope.agencies, isEmpty, reason: 'any agency issues first aid');
+    expect(scope.levels, containsAll(danProvider));
+  });
+
+  test('membership renewal covers every instructor rating of its agencies, '
+      'ACUC and DAN included', () async {
+    final scope = await scopeOf('pro_membership_annual');
+    expect(
+      scope.agencies,
+      containsAll({CertificationAgency.acuc, CertificationAgency.dan}),
+    );
+    final instructorRatings = laddersOf(
+      scope.agencies,
+    ).where((l) => l.isInstructorLevel);
+    expect(scope.levels, containsAll(instructorRatings));
+  });
 }

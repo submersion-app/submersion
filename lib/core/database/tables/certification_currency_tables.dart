@@ -129,7 +129,10 @@ class CertificationCurrencyEvents extends Table {
 /// The three refresher rules cover every rung of their agencies' ladders in
 /// CertificationLevelCatalog, professional rungs included, resolved to level
 /// names here so a later change to the catalog never moves a diver's rules.
-/// currency_seed_catalog_test pins the two together.
+/// currency_seed_catalog_test pins the two together, and fails when a new
+/// agency is covered by no refresher (ACUC joined with issue #690). DAN's
+/// provider credentials renew with first aid, its instructors with
+/// membership.
 const String kSeedBuiltInCurrencyRulesSql = '''
   INSERT OR IGNORE INTO certification_currency_rules
     (id, diver_id, name, clock_kind, applicable_agencies, applicable_levels,
@@ -153,16 +156,17 @@ const String kSeedBuiltInCurrencyRulesSql = '''
       365, 185, '[]', '[]', 'currencyRule_ssi_skills_update_advisory'
     UNION ALL SELECT 'generic_refresher', 'Refresher',
       'activity',
-      '["naui","sdi","tdi","raid","bsac","cmas","iantd","psai","ffessm","other"]',
-      '["openWater","advancedOpenWater","rescue","masterDiver","diveGuide","diveMaster","assistantInstructor","instructor","courseDirector","masterInstructor","nitrox","advancedNitrox","decompression","extendedRange","trimix","advancedTrimix","cavern","cave","rebreather","bsacOceanDiver","bsacSportsDiver","bsacDiveLeader","bsacAdvancedDiver","bsacFirstClassDiver","bsacOpenWaterInstructor","bsacAdvancedInstructor","bsacNationalInstructor","cmas1StarDiver","cmas2StarDiver","cmas3StarDiver","cmas4StarDiver","cmas3StarDiverAssistantInstructor","cmas4StarDiverAssistantInstructor","cmas1StarInstructor","cmas2StarInstructor","cmas3StarInstructor","ffessmPlongeurBronze","ffessmPlongeurArgent","ffessmPlongeurOr","ffessmN1","ffessmN2","ffessmN3","ffessmN4","ffessmN5","ffessmInitiateur","ffessmE2","ffessmMf1","ffessmMf2"]',
+      '["naui","sdi","tdi","raid","bsac","cmas","iantd","psai","ffessm","acuc","other"]',
+      '["openWater","advancedOpenWater","rescue","masterDiver","diveGuide","diveMaster","assistantInstructor","instructor","courseDirector","masterInstructor","nitrox","advancedNitrox","decompression","extendedRange","trimix","advancedTrimix","cavern","cave","rebreather","bsacOceanDiver","bsacSportsDiver","bsacDiveLeader","bsacAdvancedDiver","bsacFirstClassDiver","bsacOpenWaterInstructor","bsacAdvancedInstructor","bsacNationalInstructor","cmas1StarDiver","cmas2StarDiver","cmas3StarDiver","cmas4StarDiver","cmas3StarDiverAssistantInstructor","cmas4StarDiverAssistantInstructor","cmas1StarInstructor","cmas2StarInstructor","cmas3StarInstructor","ffessmPlongeurBronze","ffessmPlongeurArgent","ffessmPlongeurOr","ffessmN1","ffessmN2","ffessmN3","ffessmN4","ffessmN5","ffessmInitiateur","ffessmE2","ffessmMf1","ffessmMf2","acucScubaDiver","acucAdvancedDiver","acucRescueLeader","acucUnderwaterGuide","acucTeachingAssistant","acucOpenWaterInstructor","acucAdvancedInstructor","acucInstructorTrainer","acucInstructorTrainerEvaluator"]',
       365, 185, '[]', '[]', 'currencyRule_generic_refresher_advisory'
     UNION ALL SELECT 'first_aid_24mo', 'First aid and CPR renewal',
-      'date', '[]', '["firstAid","oxygenProvider"]',
+      'date', '[]',
+      '["firstAid","oxygenProvider","danBls","danEmergencyOxygen","danDfaPro","danDemp","danAdvancedOxygen","danNeurologicalAssessment","danMarineLifeInjuries"]',
       730, 60, '[]', '[]', 'currencyRule_first_aid_advisory'
     UNION ALL SELECT 'pro_membership_annual',
       'Professional membership renewal', 'date',
-      '["padi","ssi","naui","sdi","tdi","raid","bsac","cmas","iantd","psai","other"]',
-      '["diveGuide","diveMaster","assistantInstructor","instructor","masterInstructor","courseDirector","cmas1StarInstructor","cmas2StarInstructor","cmas3StarInstructor","bsacOpenWaterInstructor","bsacAdvancedInstructor","bsacNationalInstructor"]',
+      '["padi","ssi","naui","sdi","tdi","raid","bsac","cmas","iantd","psai","acuc","dan","other"]',
+      '["diveGuide","diveMaster","assistantInstructor","instructor","masterInstructor","courseDirector","cmas1StarInstructor","cmas2StarInstructor","cmas3StarInstructor","bsacOpenWaterInstructor","bsacAdvancedInstructor","bsacNationalInstructor","acucUnderwaterGuide","acucTeachingAssistant","acucOpenWaterInstructor","acucAdvancedInstructor","acucInstructorTrainer","acucInstructorTrainerEvaluator","danInstructor","danInstructorTrainer"]',
       365, 45, '[]', '[]', 'currencyRule_pro_membership_advisory'
     UNION ALL SELECT 'gue_revalidation', 'GUE revalidation',
       'date', '["gue"]', '[]',

@@ -110,9 +110,9 @@ deliberately few, conservative, and editable. Levels named below are
 | --- | --- | --- | --- | --- | --- | --- |
 | `padi_reactivate` | PADI refresher (ReActivate) | agency padi, ladder levels | activity | 185 | 365 | any dive |
 | `ssi_skills_update` | SSI Scuba Skills Update | agency ssi, ladder levels | activity | 185 | 365 | any dive |
-| `generic_refresher` | Refresher | agencies naui, sdi, tdi, raid, bsac, cmas, iantd, psai, ffessm, other; ladder levels | activity | 185 | 365 | any dive |
-| `first_aid_24mo` | First aid and CPR renewal | any agency, levels firstAid and oxygenProvider | date | 60 | 730 | n/a |
-| `pro_membership_annual` | Professional membership renewal | any agency except ffessm, professional levels | date | 45 | 365 | n/a |
+| `generic_refresher` | Refresher | agencies naui, sdi, tdi, raid, bsac, cmas, iantd, psai, ffessm, acuc, other; ladder levels | activity | 185 | 365 | any dive |
+| `first_aid_24mo` | First aid and CPR renewal | any agency, levels firstAid, oxygenProvider and DAN's provider credentials | date | 60 | 730 | n/a |
+| `pro_membership_annual` | Professional membership renewal | any agency except ffessm and gue, professional levels including ACUC's and DAN's | date | 45 | 365 | n/a |
 | `gue_revalidation` | GUE revalidation | agency gue, any level | date | 90 | 1095 | n/a |
 | `ffessm_licence_annual` | FFESSM licence and medical certificate | agency ffessm, any level | date | 45 | 365 | n/a |
 | `cave_currency` | Cave currency | any agency, levels cave, cavern, gueCave1, gueCave2 | activity | 90 | 365 | dive types cave, cavern |
@@ -133,6 +133,13 @@ days since the last dive, the same day the home strip's last-dive chip does.
 `gue` is left out of `generic_refresher` because `gue_revalidation` already
 speaks for those cards. `ffessm` is in both, because an annual licence and
 in-water currency are two different things.
+
+ACUC and DAN arrived from #3011 while this was open. ACUC is a diver
+ladder like any other, so it joins `generic_refresher` and membership. DAN
+issues first aid and emergency credentials rather than diver grades, so its
+provider credentials renew with `first_aid_24mo` and its instructor ratings
+with membership; it gets no refresher. `currency_seed_catalog_test.dart`
+fails when a later agency is covered by no refresher.
 
 No rule ships for nitrox, sidemount, drysuit, wreck, ice, night, drift, deep
 or altitude. Nothing about them lapses, and a catalog that warns about a
@@ -459,7 +466,7 @@ Modified:
 - `lib/core/database/database.dart` (the table list, `currentSchemaVersion`
   and `migrationVersions` only; since the split in #2502 no table or rung
   lives there)
-- `lib/core/constants/enums.dart` (`firstAid`, `oxygenProvider`)
+- `lib/core/constants/certification_enums.dart` (`firstAid`, `oxygenProvider`)
 - `lib/core/constants/certification_levels.dart` (specialties)
 - `lib/core/data/repositories/sync_repository.dart` (`hlcTargets`)
 - `lib/core/services/sync/sync_data_serializer.dart` (export and import)

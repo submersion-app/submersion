@@ -143,7 +143,9 @@ void main() {
         .getSingle();
     expect(
       row.read<String>('applicable_levels'),
-      '["firstAid","oxygenProvider"]',
+      '["firstAid","oxygenProvider","danBls","danEmergencyOxygen",'
+      '"danDfaPro","danDemp","danAdvancedOxygen",'
+      '"danNeurologicalAssessment","danMarineLifeInjuries"]',
     );
   });
 
