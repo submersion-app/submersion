@@ -16082,6 +16082,15 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo abrir ese cilindro. Inténtalo de nuevo.';
 
   @override
+  String gasCalculators_blender_cylinderNoVolume(String name) {
+    return 'No hay volumen de agua registrado para $name';
+  }
+
+  @override
+  String get gasCalculators_blender_noCylinders =>
+      'Aún no hay cilindros en tu equipo. Escribe el volumen de agua en su lugar.';
+
+  @override
   String gasCalculators_blender_filledFrom(String name, String mix) {
     return '$name: $mix';
   }
@@ -16254,16 +16263,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Volumen de agua del cilindro';
 
   @override
-  String get gasCalculators_blender_cylinderPresets => 'Preajustes';
-
-  @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'Precio por 100 $unit';
   }
-
-  @override
-  String get gasCalculators_blender_manageCylinderSizes =>
-      'Gestionar tamaños de cilindro';
 
   @override
   String get gasCalculators_blender_costTotal => 'Total';
@@ -49213,4 +49215,19 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get query_saveNeedsDiver =>
       'Crea un perfil de buceador para guardar consultas';
+
+  @override
+  String get builtIns_showColumnLabel => 'Mostrar';
+
+  @override
+  String get builtIns_showInPickers => 'Mostrar en los selectores';
+
+  @override
+  String preDive_start_allTemplatesHidden(String path) {
+    return 'Todas las listas de verificación están ocultas. Vuelve a mostrar una en $path.';
+  }
+
+  @override
+  String get settings_conflict_field_hiddenBuiltInIds =>
+      'Entradas integradas ocultas';
 }

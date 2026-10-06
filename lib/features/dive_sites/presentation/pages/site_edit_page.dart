@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb, setEquals;
 import 'package:flutter/material.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -1052,6 +1054,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           if (!widget.isMerging)
             TypeTagsSection(
               allTypes: ref.watch(siteTypesProvider).value ?? const [],
+              hiddenTypeIds: ref.watch(
+                hiddenBuiltInIdsProvider(BuiltInCatalog.siteTypes),
+              ),
+              keepTypeIds: _originalTypeIds,
               selectedTypeIds: _selectedTypeIds,
               onTypesChanged: (ids) => setState(() {
                 _selectedTypeIds = ids;

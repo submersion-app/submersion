@@ -199,6 +199,19 @@ extension DiverMigrations on AppDatabase {
     }
   }
 
+  /// The beforeOpen backstop for both hidden-picker-entry columns: v227's
+  /// tank presets (#2305) and v269's built-in catalog entries (#401). One
+  /// call keeps before_open.dart inside its line budget.
+  Future<void> _assertHiddenPickerEntryColumns() async {
+    await _assertHiddenTankPresetIdsColumn();
+    await _assertHiddenBuiltInIdsColumn();
+  }
+
+  /// v269: diver_settings.hidden_built_in_ids (issue #401). PRAGMA-guarded
+  /// and idempotent so both onUpgrade and the beforeOpen backstop can call it.
+  Future<void> _assertHiddenBuiltInIdsColumn() =>
+      _addColumnIfMissing('diver_settings', 'hidden_built_in_ids', 'TEXT');
+
   /// v133: diver_settings deco stop band columns. PRAGMA-guarded and
   /// idempotent so it is safe to call from both onUpgrade and the beforeOpen
   /// backstop. The guard on cols.isNotEmpty keeps partial-schema migration

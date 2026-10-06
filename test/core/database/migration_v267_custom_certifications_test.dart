@@ -74,8 +74,9 @@ void main() {
   };
 
   test('v267 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v268 (equipment locations, #3037) landed on top; the
-    // newest rung owns the exact assertions.
+    // Relaxed once v268 (equipment locations, #3037) and v269
+    // (diver_settings.hidden_built_in_ids, #401) landed on top; the newest
+    // rung owns the exact assertions.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(267));
     expect(AppDatabase.migrationVersions, contains(267));
     expect(

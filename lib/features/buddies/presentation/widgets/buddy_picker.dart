@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/sort_options.dart';
@@ -37,6 +39,10 @@ class BuddyPicker extends ConsumerWidget {
   final String? diverRoleId;
   final ValueChanged<String?>? onDiverRoleChanged;
 
+  /// Roles offered even when hidden from the pickers (issue #401): the ones
+  /// the dive had when the editor opened.
+  final Set<String> keepRoleIds;
+
   const BuddyPicker({
     super.key,
     this.diveId,
@@ -44,12 +50,16 @@ class BuddyPicker extends ConsumerWidget {
     required this.onChanged,
     this.diverRoleId,
     this.onDiverRoleChanged,
+    this.keepRoleIds = const {},
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(certificationCatalogSyncProvider);
     final roles = ref.watch(allDiveRolesProvider).value ?? const <DiveRole>[];
+    final hiddenRoleIds = ref.watch(
+      hiddenBuiltInIdsProvider(BuiltInCatalog.diveRoles),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -82,11 +92,14 @@ class BuddyPicker extends ConsumerWidget {
                 _MeChip(
                   diverRoleId: diverRoleId,
                   onChanged: onDiverRoleChanged!,
+                  keepRoleIds: keepRoleIds,
                 ),
               ...selectedBuddies.map((bwr) {
                 return _BuddyChip(
                   buddyWithRole: bwr,
                   roles: roles,
+                  hiddenRoleIds: hiddenRoleIds,
+                  keepRoleIds: keepRoleIds,
                   onCreateCustomRole: (name) =>
                       _createCustomRole(context, ref, name),
                   onRemove: () {
@@ -189,6 +202,12 @@ class BuddyPicker extends ConsumerWidget {
 class _BuddyChip extends StatelessWidget {
   final BuddyWithRole buddyWithRole;
   final List<DiveRole> roles;
+
+  /// Built-in roles hidden from the pickers (issue #401).
+  final Set<String> hiddenRoleIds;
+
+  /// Roles offered even when hidden.
+  final Set<String> keepRoleIds;
   final VoidCallback onRemove;
   final ValueChanged<DiveRole> onRoleChanged;
   final Future<DiveRole?> Function(String name) onCreateCustomRole;
@@ -199,6 +218,8 @@ class _BuddyChip extends StatelessWidget {
     required this.onRemove,
     required this.onRoleChanged,
     required this.onCreateCustomRole,
+    this.hiddenRoleIds = const {},
+    this.keepRoleIds = const {},
   });
 
   @override
@@ -238,6 +259,8 @@ class _BuddyChip extends StatelessWidget {
       context,
       title: context.l10n.buddies_picker_selectRole(buddyWithRole.buddy.name),
       roles: roles,
+      hiddenRoleIds: hiddenRoleIds,
+      keepRoleIds: keepRoleIds,
       selectedRoleId: buddyWithRole.role.id,
       onCreateCustomRole: onCreateCustomRole,
     );
@@ -252,7 +275,14 @@ class _MeChip extends ConsumerWidget {
   final String? diverRoleId;
   final ValueChanged<String?> onChanged;
 
-  const _MeChip({required this.diverRoleId, required this.onChanged});
+  const _MeChip({
+    required this.diverRoleId,
+    required this.onChanged,
+    this.keepRoleIds = const {},
+  });
+
+  /// Roles offered even when hidden.
+  final Set<String> keepRoleIds;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -305,6 +335,10 @@ class _MeChip extends ConsumerWidget {
           context,
           title: context.l10n.buddies_picker_selectMyRole,
           roles: roles,
+          hiddenRoleIds: ref.read(
+            hiddenBuiltInIdsProvider(BuiltInCatalog.diveRoles),
+          ),
+          keepRoleIds: keepRoleIds,
           allowNone: true,
           selectedRoleId: diverRoleId,
         );
@@ -748,6 +782,9 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
       context,
       title: context.l10n.buddies_picker_selectRole(buddy.name),
       roles: roles,
+      hiddenRoleIds: ref.read(
+        hiddenBuiltInIdsProvider(BuiltInCatalog.diveRoles),
+      ),
       credentialRoleIds: _professionalRoleIds(certs),
       onCreateCustomRole: _createCustomRole,
     );

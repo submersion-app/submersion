@@ -250,5 +250,11 @@ extension RungsFromV231 on AppDatabase {
       await _assertEquipmentLocationSchema();
     }
     if (from < 268) await reportProgress();
+    // v269: diver_settings.hidden_built_in_ids (issue #401). Column-only
+    // rung, no backfill: null reads back as "nothing hidden".
+    if (from < 269) {
+      await _assertHiddenBuiltInIdsColumn();
+    }
+    if (from < 269) await reportProgress();
   }
 }

@@ -119,6 +119,8 @@
   "gasCalculators_blender_scanTag": "扫描标签",
   "gasCalculators_blender_notYourCylinder": "该气瓶不在你的装备中",
   "gasCalculators_blender_cylinderFailed": "无法打开该气瓶，请重试。",
+  "gasCalculators_blender_cylinderNoVolume": "{name} 未记录水容积",
+  "gasCalculators_blender_noCylinders": "你的装备中还没有气瓶。请直接输入水容积。",
   "gasCalculators_blender_filledFrom": "{name}：{mix}",
   "gasCalculators_blender_error_targetPressure": "目标压力必须高于初始压力。",
   "gasCalculators_blender_error_invalidMix": "混合气的 O₂ + He 不能超过 100%。",
@@ -161,9 +163,7 @@
   "gasCalculators_blender_templateAdjust": "调整数值",
   "gasCalculators_blender_billing": "费用",
   "gasCalculators_blender_cylinderVolume": "气瓶水容积",
-  "gasCalculators_blender_cylinderPresets": "预设",
   "gasCalculators_blender_unitPrice": "每 100 {unit} 价格",
-  "gasCalculators_blender_manageCylinderSizes": "管理气瓶尺寸",
   "gasCalculators_blender_costTotal": "合计",
   "gasCalculators_blender_costBasis": "按实际充入的压力计费（气瓶水容积 × 充入的 bar），与充气站的计量方式一致。",
   "gasCalculators_blender_costMissingPrice": "为每种气体输入价格后即可看到合计。",
@@ -14652,5 +14652,9 @@
   "settings_manage_savedQueries": "已保存的查询",
   "settings_manage_savedQueries_subtitle": "重命名、重新排序和删除已保存的查询",
   "query_editor_needsText": "请至少输入一个词",
-  "query_saveNeedsDiver": "请先创建潜水员档案再保存查询"
+  "query_saveNeedsDiver": "请先创建潜水员档案再保存查询",
+  "builtIns_showColumnLabel": "显示",
+  "builtIns_showInPickers": "在选择列表中显示",
+  "preDive_start_allTemplatesHidden": "所有检查清单都已隐藏。可在 {path} 中重新显示。",
+  "settings_conflict_field_hiddenBuiltInIds": "已隐藏的内置项目"
 }

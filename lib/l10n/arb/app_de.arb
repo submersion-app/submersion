@@ -119,6 +119,8 @@
   "gasCalculators_blender_scanTag": "Tag scannen",
   "gasCalculators_blender_notYourCylinder": "Diese Flasche gehört nicht zu deiner Ausrüstung",
   "gasCalculators_blender_cylinderFailed": "Die Flasche konnte nicht geöffnet werden. Versuche es erneut.",
+  "gasCalculators_blender_cylinderNoVolume": "Für {name} ist kein Wasservolumen erfasst",
+  "gasCalculators_blender_noCylinders": "Noch keine Flaschen in deiner Ausrüstung. Gib stattdessen das Wasservolumen ein.",
   "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_error_targetPressure": "Zieldruck muss höher als der Ausgangsdruck sein.",
   "gasCalculators_blender_error_invalidMix": "O₂ + He eines Gasgemischs darf 100 % nicht überschreiten.",
@@ -165,9 +167,7 @@
   "gasCalculators_blender_templateAdjust": "Werte anpassen",
   "gasCalculators_blender_billing": "Kosten",
   "gasCalculators_blender_cylinderVolume": "Wasservolumen der Flasche",
-  "gasCalculators_blender_cylinderPresets": "Voreinstellungen",
   "gasCalculators_blender_unitPrice": "Preis pro 100 {unit}",
-  "gasCalculators_blender_manageCylinderSizes": "Flaschengrößen verwalten",
   "gasCalculators_blender_costTotal": "Gesamt",
   "gasCalculators_blender_costBasis": "Abgerechnet wird der gelieferte Druck (Wasservolumen der Flasche × zugeführte bar), so wie eine Füllstation misst.",
   "gasCalculators_blender_costMissingPrice": "Gib für jedes Gas einen Preis ein, um die Summe zu sehen.",
@@ -14773,5 +14773,9 @@
   "settings_manage_savedQueries": "Gespeicherte Abfragen",
   "settings_manage_savedQueries_subtitle": "Gespeicherte Abfragen umbenennen, sortieren und löschen",
   "query_editor_needsText": "Mindestens ein Wort eingeben",
-  "query_saveNeedsDiver": "Legen Sie ein Taucherprofil an, um Abfragen zu speichern"
+  "query_saveNeedsDiver": "Legen Sie ein Taucherprofil an, um Abfragen zu speichern",
+  "builtIns_showColumnLabel": "Anzeigen",
+  "builtIns_showInPickers": "In der Auswahl anzeigen",
+  "preDive_start_allTemplatesHidden": "Alle Checklisten sind ausgeblendet. Unter {path} wieder einblenden.",
+  "settings_conflict_field_hiddenBuiltInIds": "Ausgeblendete integrierte Einträge"
 }

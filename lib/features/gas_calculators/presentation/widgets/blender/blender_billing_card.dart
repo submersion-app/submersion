@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/number_input.dart';
@@ -9,38 +8,16 @@ import 'package:submersion/features/gas_calculators/domain/blending/blend_billin
 import 'package:submersion/features/gas_calculators/domain/blending/blender_gas_role.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/flush_fee.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_cylinder_picker.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_formatting.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_responsive_header_row.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_section_title.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_table_style.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_volume_conversion.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
-
-/// One entry in the cylinder-size dropdown, reduced to just what the row
-/// needs to show and select. Every entry comes from the diver's global tank
-/// presets (issue #1335 follow-up): the blender no longer keeps its own
-/// cylinder-size vault, so renaming or deleting a size under Settings ->
-/// Manage -> Tank Presets is renaming or deleting it here too.
-class _CylinderChoice {
-  const _CylinderChoice({required this.label, required this.liters})
-    : isManageLink = false;
-
-  /// The "manage cylinder sizes" entry appended after the presets: a marker
-  /// rather than a null value, because [PopupMenuButton] reads a null
-  /// selection as "dismissed without choosing" and never calls [onSelected]
-  /// for it.
-  const _CylinderChoice.manageLink()
-    : label = '',
-      liters = 0,
-      isManageLink = true;
-
-  final String label;
-  final double liters;
-  final bool isManageLink;
-}
 
 /// What the blend costs at the fill station's prices.
 ///
@@ -169,133 +146,54 @@ class _BlenderBillingCardState extends ConsumerState<BlenderBillingCard> {
     AppSettings settings,
     UnitFormatter units,
   ) {
-    // Sourced from the diver's global tank presets (issue #1335 follow-up):
-    // working pressure and material live on the preset too, but the blender
-    // has no use for either, so only the display name and water volume cross
-    // over.
-    final presetsAsync = ref.watch(tankPresetsProvider);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: NumberField(
-            controller: _cylinder,
-            decoration: InputDecoration(
-              labelText:
-                  '${context.l10n.gasCalculators_blender_cylinderVolume} '
-                  '(${units.volumeSymbol})',
-              isDense: true,
-              border: const OutlineInputBorder(),
-            ),
-            onChanged: (read) {
-              final liters = ref.read(blenderCylinderLitersProvider.notifier);
-              liters.state = switch (read) {
-                NumberValue(:final value) => displayVolumeToLiters(
-                  value,
-                  settings,
-                ),
-                NumberBlank() => 0, // no cylinder volume yet, as before
-                // Used to read as 0 L too; keep it, the field says why.
-                NumberInvalid() => liters.state,
-              };
-            },
-            onEditingComplete: () => saveBlenderPreferences(ref),
-            onFieldSubmitted: (_) => saveBlenderPreferences(ref),
-          ),
+    return BlenderResponsiveHeaderRow(
+      rowCrossAxisAlignment: CrossAxisAlignment.start,
+      leading: NumberField(
+        controller: _cylinder,
+        decoration: InputDecoration(
+          labelText:
+              '${context.l10n.gasCalculators_blender_cylinderVolume} '
+              '(${units.volumeSymbol})',
+          isDense: true,
+          border: const OutlineInputBorder(),
         ),
-        const SizedBox(width: 8),
-        // A cubic-foot diver does not know their cylinder's water capacity in
-        // cubic feet (an AL80 is 0.39), so the presets fill it for them.
-        presetsAsync.when(
-          loading: () => const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            child: SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ),
-          error: (error, stackTrace) => IconButton(
-            icon: const Icon(Icons.error_outline),
-            tooltip: context.l10n.gasCalculators_blender_cylinderPresets,
-            onPressed: null,
-          ),
-          data: (presets) {
-            final choices = [
-              for (final preset in presets)
-                _CylinderChoice(
-                  label:
-                      '${preset.displayName} '
-                      '(${units.formatTankVolume(preset.volumeLiters, null)})',
-                  liters: preset.volumeLiters,
-                ),
-            ];
-            return PopupMenuButton<_CylinderChoice>(
-              key: const Key('blender-cylinder-presets'),
-              tooltip: context.l10n.gasCalculators_blender_cylinderPresets,
-              position: PopupMenuPosition.under,
-              itemBuilder: (context) => [
-                for (final choice in choices)
-                  PopupMenuItem<_CylinderChoice>(
-                    value: choice,
-                    child: Text(choice.label),
-                  ),
-                if (choices.isNotEmpty) const PopupMenuDivider(),
-                // Last, directly under the list it manages (issue #1335
-                // follow-up review): opens the global tank presets this
-                // dropdown reads, since the blender no longer keeps its own
-                // cylinder-size vault.
-                PopupMenuItem<_CylinderChoice>(
-                  key: const Key('blender-cylinder-sizes-link'),
-                  value: const _CylinderChoice.manageLink(),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.straighten, size: 18),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          context
-                              .l10n
-                              .gasCalculators_blender_manageCylinderSizes,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              onSelected: (choice) {
-                if (choice.isManageLink) {
-                  context.push('/tank-presets');
-                  return;
-                }
-                ref.read(blenderCylinderLitersProvider.notifier).state =
-                    choice.liters;
-                _cylinder.text = formatRoundedForInput(
-                  litersToDisplayVolume(choice.liters, settings),
-                  2,
-                );
-                saveBlenderPreferences(ref);
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 12,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(context.l10n.gasCalculators_blender_cylinderPresets),
-                    const Icon(Icons.arrow_drop_down),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ],
+        onChanged: (read) {
+          final liters = ref.read(blenderCylinderLitersProvider.notifier);
+          liters.state = switch (read) {
+            NumberValue(:final value) => displayVolumeToLiters(value, settings),
+            NumberBlank() => 0, // no cylinder volume yet, as before
+            // Used to read as 0 L too; keep it, the field says why.
+            NumberInvalid() => liters.state,
+          };
+        },
+        onEditingComplete: () => saveBlenderPreferences(ref),
+        onFieldSubmitted: (_) => saveBlenderPreferences(ref),
+      ),
+      trailing: TextButton.icon(
+        key: const Key('blender-billing-choose-cylinder'),
+        icon: const Icon(Icons.propane_tank_outlined, size: 18),
+        label: Text(context.l10n.gasCalculators_blender_chooseCylinder),
+        onPressed: () => _chooseCylinder(context, settings),
+      ),
     );
+  }
+
+  /// Picks one of the diver's own tanks for its water volume (issue #2926).
+  /// A customer's cylinder, which has no equipment entry, still goes through
+  /// the free-text field above.
+  Future<void> _chooseCylinder(
+    BuildContext context,
+    AppSettings settings,
+  ) async {
+    final picked = await pickBlenderCylinderSpecs(context, ref);
+    if (picked == null) return;
+    final litres = picked.volumeL;
+    ref.read(blenderCylinderLitersProvider.notifier).state = litres;
+    _cylinder.text = formatRoundedForInput(
+      litersToDisplayVolume(litres, settings),
+      2,
+    );
+    saveBlenderPreferences(ref);
   }
 
   static const List<int> _costFlex = [4, 4, 4, 4];

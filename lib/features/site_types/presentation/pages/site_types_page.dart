@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/built_in_show_column.dart';
 
 /// Settings > Manage Data > Site Types (issue #1765): the built-in types,
 /// read-only, and the diver's custom types with inline edit and delete. Uses
@@ -18,6 +22,9 @@ class SiteTypesPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final typesAsync = ref.watch(siteTypeListNotifierProvider);
+    final hidden = ref.watch(
+      hiddenBuiltInIdsProvider(BuiltInCatalog.siteTypes),
+    );
     final stats = ref.watch(siteTypeStatisticsProvider).value ?? const [];
     final siteCounts = {for (final s in stats) s.siteType.id: s.siteCount};
 
@@ -48,9 +55,20 @@ class SiteTypesPage extends ConsumerWidget {
                   _tile(context, ref, type, siteCounts[type.id] ?? 0),
                 const Divider(),
               ],
-              _header(context, l10n.siteTypes_builtIn),
+              BuiltInShowColumnHeader(
+                title: l10n.siteTypes_builtIn,
+                titleStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
               for (final type in builtIn)
-                _tile(context, ref, type, siteCounts[type.id] ?? 0),
+                _tile(
+                  context,
+                  ref,
+                  type,
+                  siteCounts[type.id] ?? 0,
+                  isHidden: hidden.contains(type.id),
+                ),
             ],
           );
         },
@@ -72,19 +90,36 @@ class SiteTypesPage extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     SiteTypeEntity type,
-    int siteCount,
-  ) {
+    int siteCount, {
+    bool isHidden = false,
+  }) {
     final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
+    final disabled = Theme.of(context).disabledColor;
     return ListTile(
+      // A hidden built-in stays listed so it can be shown again (issue #401).
+      textColor: isHidden ? disabled : null,
       leading: Icon(
         type.isBuiltIn ? Icons.category : Icons.category_outlined,
-        color: type.isBuiltIn ? colorScheme.primary : colorScheme.secondary,
+        color: isHidden
+            ? disabled
+            : type.isBuiltIn
+            ? colorScheme.primary
+            : colorScheme.secondary,
       ),
       title: Text(type.localizedName(l10n)),
       subtitle: Text(l10n.siteTypes_siteCount(siteCount)),
       trailing: type.isBuiltIn
-          ? null
+          ? BuiltInShowSwitch(
+              switchKey: builtInShowSwitchKey(
+                BuiltInCatalog.siteTypes,
+                type.id,
+              ),
+              shown: !isHidden,
+              onChanged: (shown) => ref
+                  .read(settingsProvider.notifier)
+                  .setBuiltInHidden(BuiltInCatalog.siteTypes, type.id, !shown),
+            )
           : Row(
               mainAxisSize: MainAxisSize.min,
               children: [

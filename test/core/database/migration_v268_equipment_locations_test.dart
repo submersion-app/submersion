@@ -14,13 +14,15 @@ void main() {
     return rows.map((r) => r.read<String>('name')).toSet();
   }
 
-  test('v268 is the current schema version and in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands. From 267 this is one
-    // step.
-    expect(AppDatabase.currentSchemaVersion, 268);
-    expect(AppDatabase.migrationVersions.last, 268);
-    expect(AppDatabase.migrationStepCount(267), 1);
+  test('v268 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v269 (diver_settings.hidden_built_in_ids, #401) landed
+    // on top; the newest rung owns the exact assertions.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(268));
+    expect(AppDatabase.migrationVersions, contains(268));
+    expect(
+      AppDatabase.migrationStepCount(267),
+      AppDatabase.migrationStepCount(268) + 1,
+    );
   });
 
   test('a fresh database has both tables and their indexes', () async {

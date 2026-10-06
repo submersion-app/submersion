@@ -14,7 +14,9 @@ import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/start_session_sheet.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
 /// Serves canned template items so selecting a template in the sheet can
@@ -83,13 +85,17 @@ class _FakeSessionRepo implements PreDiveSessionRepository {
 void main() {
   final now = DateTime.fromMillisecondsSinceEpoch(1700000000000);
 
-  PreDiveChecklistTemplate template(String id, String name) =>
-      PreDiveChecklistTemplate(
-        id: id,
-        name: name,
-        createdAt: now,
-        updatedAt: now,
-      );
+  PreDiveChecklistTemplate template(
+    String id,
+    String name, {
+    bool builtIn = false,
+  }) => PreDiveChecklistTemplate(
+    id: id,
+    name: name,
+    isBuiltIn: builtIn,
+    createdAt: now,
+    updatedAt: now,
+  );
 
   PreDiveChecklistTemplateItem tItem(String templateId, PreDiveItemType type) =>
       PreDiveChecklistTemplateItem(
@@ -123,6 +129,9 @@ void main() {
 
   Future<void> pumpSheet(
     WidgetTester tester, {
+    MockSettingsNotifier? settings,
+    List<PreDiveChecklistTemplate>? templates,
+    Locale locale = const Locale('en'),
     List<EquipmentItem>? gear,
   }) async {
     final fakeRepo = _FakeTemplateRepo({
@@ -142,15 +151,20 @@ void main() {
     });
     await tester.pumpWidget(
       testApp(
-        locale: const Locale('en'),
+        locale: locale,
         overrides: [
+          settingsProvider.overrideWith(
+            (ref) => settings ?? MockSettingsNotifier(),
+          ),
           preDiveTemplateRepositoryProvider.overrideWithValue(fakeRepo),
           preDiveTemplatesProvider.overrideWith(
-            (ref) async => [
-              template('plain', 'BWRAF'),
-              template('packing', 'Gear Packing'),
-              template('computer', 'Computer Check'),
-            ],
+            (ref) async =>
+                templates ??
+                [
+                  template('plain', 'BWRAF', builtIn: true),
+                  template('packing', 'Gear Packing'),
+                  template('computer', 'Computer Check'),
+                ],
           ),
           equipmentSetsProvider.overrideWith((ref) async => [defaultSet]),
           allEquipmentProvider.overrideWith(
@@ -422,6 +436,70 @@ void main() {
       expect(find.text('SESSION newsession'), findsOneWidget);
     },
   );
+
+  testWidgets('hidden built-in templates are not offered (issue #401)', (
+    tester,
+  ) async {
+    await pumpSheet(
+      tester,
+      settings: MockSettingsNotifier(
+        const AppSettings(
+          hiddenBuiltInIds: {
+            'preDiveTemplates': {'plain'},
+          },
+        ),
+      ),
+    );
+    await tester.tap(
+      find.byType(DropdownButtonFormField<PreDiveChecklistTemplate>),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('BWRAF'), findsNothing);
+    expect(find.text('Gear Packing'), findsWidgets);
+  });
+
+  testWidgets('says where to show a checklist when every one is hidden', (
+    tester,
+  ) async {
+    const hint =
+        'Every checklist is hidden. Show one again in '
+        'Settings > Manage > Pre-Dive Checklists.';
+    await pumpSheet(
+      tester,
+      templates: [template('plain', 'BWRAF', builtIn: true)],
+      settings: MockSettingsNotifier(
+        const AppSettings(
+          hiddenBuiltInIds: {
+            'preDiveTemplates': {'plain'},
+          },
+        ),
+      ),
+    );
+    expect(find.text(hint), findsOneWidget);
+  });
+
+  testWidgets('shows no hint while a checklist is offered', (tester) async {
+    await pumpSheet(tester);
+    expect(find.textContaining('Every checklist is hidden'), findsNothing);
+  });
+
+  testWidgets('the hint names Settings as the navigation labels it', (
+    tester,
+  ) async {
+    await pumpSheet(
+      tester,
+      locale: const Locale('es'),
+      templates: [template('plain', 'BWRAF', builtIn: true)],
+      settings: MockSettingsNotifier(
+        const AppSettings(
+          hiddenBuiltInIds: {
+            'preDiveTemplates': {'plain'},
+          },
+        ),
+      ),
+    );
+    expect(find.textContaining('Configuración >'), findsOneWidget);
+  });
 
   testWidgets('Begin keeps a remembered device that is now on the wishlist '
       '(#2025)', (tester) async {

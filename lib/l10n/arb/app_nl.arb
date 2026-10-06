@@ -119,6 +119,8 @@
   "gasCalculators_blender_scanTag": "Tag scannen",
   "gasCalculators_blender_notYourCylinder": "Die fles zit niet in je uitrusting",
   "gasCalculators_blender_cylinderFailed": "Kan die fles niet openen. Probeer het opnieuw.",
+  "gasCalculators_blender_cylinderNoVolume": "Geen waterinhoud geregistreerd voor {name}",
+  "gasCalculators_blender_noCylinders": "Nog geen flessen in je uitrusting. Vul in plaats daarvan de waterinhoud in.",
   "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_error_targetPressure": "De doeldruk moet hoger zijn dan de begindruk.",
   "gasCalculators_blender_error_invalidMix": "O₂ + He van een mengsel mag niet meer dan 100% zijn.",
@@ -161,9 +163,7 @@
   "gasCalculators_blender_templateAdjust": "Waarden aanpassen",
   "gasCalculators_blender_billing": "Kosten",
   "gasCalculators_blender_cylinderVolume": "Waterinhoud van de fles",
-  "gasCalculators_blender_cylinderPresets": "Voorinstellingen",
   "gasCalculators_blender_unitPrice": "Prijs per 100 {unit}",
-  "gasCalculators_blender_manageCylinderSizes": "Flesmaten beheren",
   "gasCalculators_blender_costTotal": "Totaal",
   "gasCalculators_blender_costBasis": "Er wordt afgerekend op de geleverde druk (waterinhoud van de fles × toegevoegde bar), zoals een vulstation meet.",
   "gasCalculators_blender_costMissingPrice": "Voer voor elk gas een prijs in om het totaal te zien.",
@@ -14652,5 +14652,9 @@
   "settings_manage_savedQueries": "Opgeslagen query's",
   "settings_manage_savedQueries_subtitle": "Opgeslagen query's hernoemen, herschikken en verwijderen",
   "query_editor_needsText": "Voer minstens één woord in",
-  "query_saveNeedsDiver": "Maak een duikersprofiel aan om query's op te slaan"
+  "query_saveNeedsDiver": "Maak een duikersprofiel aan om query's op te slaan",
+  "builtIns_showColumnLabel": "Tonen",
+  "builtIns_showInPickers": "Tonen in kiezers",
+  "preDive_start_allTemplatesHidden": "Alle checklists zijn verborgen. Toon er weer een via {path}.",
+  "settings_conflict_field_hiddenBuiltInIds": "Verborgen ingebouwde items"
 }
