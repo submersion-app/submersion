@@ -106,8 +106,8 @@ change when it touches `lib/**/presentation/`, `lib/shared/widgets/`,
 - Design records live under `docs/design/`: specs in `docs/design/specs/`,
   implementation plans in `docs/design/plans/`, investigation write-ups in
   `docs/design/findings/`. This overrides the superpowers skills' default
-  location. `scripts/check_docs_links.py` fails CI if a record lands
-  anywhere else.
+  location. `scripts/check_docs_links.py` fails CI if the retired
+  `docs/superpowers/` or `docs/plans/` folder reappears or is cited from code.
 
 ### Attribution
 

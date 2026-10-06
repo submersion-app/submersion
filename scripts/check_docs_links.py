@@ -10,7 +10,9 @@ Three checks, each printed as file:line and the unresolved target:
 2. A docs path cited from code (lib/, test/, scripts/, .github/,
    README.md, CONTRIBUTING.md, CLAUDE.md) exists. Only paths under a known
    docs folder and ending in a file extension count, which skips lookalikes
-   such as "docs/CI-only".
+   such as "docs/CI-only". A path under a retired folder (docs/superpowers/,
+   docs/plans/, docs/api/, docs/import-formats/) fails and names the new
+   home, so a branch whose spec git moved still has its comments caught.
 3. The retired folders docs/superpowers/ and docs/plans/ do not exist. A
    branch created before the docs restructure fails here and is told where
    its file belongs.
@@ -55,6 +57,18 @@ FENCE_RE = re.compile(r"^\s*(```|~~~)")
 SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
 CODE_REF_RE = re.compile(
     r"docs/(?:user|developer|contributing|design|releases|assets)/"
+    r"[A-Za-z0-9_./-]+\.(?:md|html|png|jpg|json)\b"
+)
+# Folders the restructure retired, and where their files went. The
+# lookbehind skips "docs/" inside a longer path or URL.
+RETIRED_REF_HOMES = {
+    "superpowers": "docs/design/",
+    "plans": "docs/design/specs/ or docs/design/plans/",
+    "api": "docs/developer/reference/",
+    "import-formats": "docs/developer/reference/formats/",
+}
+RETIRED_REF_RE = re.compile(
+    r"(?<![A-Za-z0-9_./-])docs/(superpowers|plans|api|import-formats)/"
     r"[A-Za-z0-9_./-]+\.(?:md|html|png|jpg|json)\b"
 )
 
@@ -128,6 +142,12 @@ def check_code_refs(root):
                 ref = match.group(0)
                 if not os.path.exists(os.path.join(root, *ref.split("/"))):
                     failures.append(f"{rel}:{number}: missing docs path -> {ref}")
+            for match in RETIRED_REF_RE.finditer(line):
+                home = RETIRED_REF_HOMES[match.group(1)]
+                failures.append(
+                    f"{rel}:{number}: retired docs path -> {match.group(0)} "
+                    f"(its file now lives under {home})"
+                )
     return failures
 
 

@@ -98,6 +98,18 @@ class CodeRefTests(unittest.TestCase):
         write(self.root, "CLAUDE.md", "See docs/contributing/gone.md\n")
         self.assertEqual(len(guard.check_code_refs(self.root)), 1)
 
+    def test_retired_path_cited_from_code_fails(self):
+        write(self.root, "lib/a.dart", "/// docs/superpowers/specs/2026-01-01-x-design.md\n")
+        write(self.root, "lib/b.dart", "// see docs/api/entities.md\n")
+        failures = guard.check_code_refs(self.root)
+        self.assertEqual(len(failures), 2)
+        self.assertIn("docs/design/", failures[0])
+        self.assertIn("docs/developer/reference/", failures[1])
+
+    def test_retired_path_inside_a_url_is_ignored(self):
+        write(self.root, "lib/a.dart", "// https://example.com/docs/api/index.html\n")
+        self.assertEqual(guard.check_code_refs(self.root), [])
+
     def test_guard_test_file_is_not_scanned(self):
         write(self.root, "scripts/check_docs_links_test.py", "'docs/developer/gone.md'\n")
         self.assertEqual(guard.check_code_refs(self.root), [])
