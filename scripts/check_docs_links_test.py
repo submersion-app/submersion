@@ -84,6 +84,36 @@ class LinkTests(unittest.TestCase):
         )
         self.assertEqual(guard.check_links(self.root), [])
 
+    def test_invalid_utf8_file_is_still_checked(self):
+        path = os.path.join(self.root, "docs", "developer", "README.md")
+        os.makedirs(os.path.dirname(path))
+        with open(path, "wb") as fh:
+            fh.write(b"caf\xe9 notes\n[x](gone.md)\n")
+        self.assertEqual(len(guard.check_links(self.root)), 1)
+
+    def test_fence_closes_only_on_matching_marker(self):
+        write(
+            self.root,
+            "docs/contributing/README.md",
+            "````\n```\n[a](inside.md)\n```\n````\n[b](after.md)\n",
+        )
+        failures = guard.check_links(self.root)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("after.md", failures[0])
+
+    def test_reference_definitions_and_html_are_checked(self):
+        write(self.root, "docs/developer/ok.md")
+        write(
+            self.root,
+            "docs/developer/README.md",
+            "[ok]: ok.md\n[gone]: gone.md \"Title\"\n<img src=\"missing.png\">\n"
+            '<a href="https://example.com/x.md">ext</a>\n',
+        )
+        failures = guard.check_links(self.root)
+        self.assertEqual(len(failures), 2)
+        self.assertIn("gone.md", failures[0])
+        self.assertIn("missing.png", failures[1])
+
     def test_link_to_directory_with_readme_passes(self):
         write(self.root, "docs/contributing/README.md")
         write(self.root, "docs/README.md", "[C](contributing/)\n")
@@ -118,6 +148,14 @@ class CodeRefTests(unittest.TestCase):
     def test_docs_path_inside_external_url_is_ignored(self):
         write(self.root, "lib/a.dart", "// https://example.org/docs/developer/guide.md\n")
         self.assertEqual(guard.check_code_refs(self.root), [])
+
+    def test_dot_relative_references_are_checked(self):
+        write(self.root, "scripts/a.py", "# see ../docs/design/specs/gone-design.md\n")
+        write(self.root, "README.md", "[x](./docs/developer/gone.md)\n")
+        write(self.root, "lib/b.dart", "// ../docs/plans/old-plan.md\n")
+        failures = guard.check_code_refs(self.root)
+        self.assertEqual(len(failures), 3)
+        self.assertTrue(any("retired docs path" in f for f in failures))
 
     def test_binary_files_are_skipped(self):
         path = os.path.join(self.root, "test", "fixture.bin")
@@ -172,6 +210,17 @@ class RetiredTests(unittest.TestCase):
 
 
 class MainTests(unittest.TestCase):
+    def test_default_root_is_the_repository(self):
+        self.assertTrue(os.path.isdir(os.path.join(guard.DEFAULT_ROOT, "docs")))
+        self.assertTrue(os.path.isdir(os.path.join(guard.DEFAULT_ROOT, "scripts")))
+
+    def test_root_without_docs_is_an_error(self):
+        with tempfile.TemporaryDirectory() as root:
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                self.assertEqual(guard.main(["prog", root]), 2)
+            self.assertIn("no docs/ folder", out.getvalue())
+
     def test_exit_codes(self):
         with tempfile.TemporaryDirectory() as root:
             write(root, "docs/README.md", "ok\n")

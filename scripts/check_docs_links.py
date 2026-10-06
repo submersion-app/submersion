@@ -17,7 +17,8 @@ Three checks, each printed as file:line and the unresolved target:
    branch created before the docs restructure fails here and is told where
    its file belongs.
 
-Pure stdlib. Usage: check_docs_links.py [repo-root]
+Pure stdlib. Usage: check_docs_links.py [repo-root]; the root defaults to
+the repository this script lives in, so it can run from any directory.
 """
 
 import os
@@ -59,15 +60,12 @@ LINK_RE = re.compile(
     r"\]\(\s*(?:<([^>\n]+)>|((?:[^()\s]|\([^()\s]*\))+))"
     r"(?:\s+\"[^\"]*\")?\s*\)"
 )
+# A reference definition ("[ref]: path"), but not a footnote ("[^1]: text").
+REF_DEF_RE = re.compile(r"^\s{0,3}\[(?!\^)[^\]]+\]:\s*(?:<([^>]+)>|(\S+))")
+HTML_ATTR_RE = re.compile(r"""(?:href|src)\s*=\s*(?:"([^"]+)"|'([^']+)')""")
 INLINE_CODE_RE = re.compile(r"(`+).+?\1")
-FENCE_RE = re.compile(r"^\s*(```|~~~)")
+FENCE_RE = re.compile(r"^\s*(`{3,}|~{3,})")
 SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
-# The lookbehind skips "docs/" inside a longer path or URL, which is not a
-# path in this repository.
-CODE_REF_RE = re.compile(
-    r"(?<![A-Za-z0-9_./-])docs/(?:user|developer|contributing|design|releases|assets)/"
-    r"[A-Za-z0-9_./-]+\.(?:md|html|png|jpg|json)\b"
-)
 # Folders the restructure retired, and where their files went.
 RETIRED_REF_HOMES = {
     "superpowers": "docs/design/",
@@ -75,10 +73,16 @@ RETIRED_REF_HOMES = {
     "api": "docs/developer/reference/",
     "import-formats": "docs/developer/reference/formats/",
 }
-RETIRED_REF_RE = re.compile(
-    r"(?<![A-Za-z0-9_./-])docs/(superpowers|plans|api|import-formats)/"
-    r"[A-Za-z0-9_./-]+\.(?:md|html|png|jpg|json)\b"
+# A docs path cited from code. The lookbehinds skip "docs/" inside a longer
+# path or URL ("example.org/docs/..."), which is not a path in this
+# repository, while still matching "./docs/..." and "../docs/...".
+DOCS_REF_RE = re.compile(
+    r"(?<![A-Za-z0-9_-])(?<![A-Za-z0-9_-]/)docs/"
+    r"(user|developer|contributing|design|releases|assets|"
+    + "|".join(re.escape(folder) for folder in RETIRED_REF_HOMES)
+    + r")/[A-Za-z0-9_./-]+\.(?:md|html|png|jpg|json)\b"
 )
+DEFAULT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def _walk(root, entries, keep):
@@ -108,19 +112,36 @@ def _read_text(path):
             head = fh.read(8192)
             if b"\0" in head:
                 return None
-            return (head + fh.read()).decode("utf-8")
-    except (OSError, UnicodeDecodeError):
+            # A stray non-UTF-8 byte must not hide the rest of the file.
+            return (head + fh.read()).decode("utf-8", errors="replace")
+    except OSError:
         return None
 
 
 def _unfenced_lines(text):
-    in_fence = False
+    """Yield (number, line) outside fenced code blocks.
+
+    A fence closes only on the same character repeated at least as many
+    times as it opened with, so a ```` block can show a ``` example.
+    """
+    fence = None
     for number, line in enumerate(text.splitlines(), 1):
-        if FENCE_RE.match(line):
-            in_fence = not in_fence
-            continue
-        if not in_fence:
+        match = FENCE_RE.match(line)
+        if fence is None:
+            if match:
+                fence = match.group(1)
+                continue
             yield number, line
+        elif match and match.group(1)[0] == fence[0] and len(match.group(1)) >= len(fence):
+            fence = None
+
+
+def _link_targets(line):
+    """Every link destination on a line: inline, reference definition, HTML."""
+    line = INLINE_CODE_RE.sub("", line)
+    for regex in (LINK_RE, REF_DEF_RE, HTML_ATTR_RE):
+        for match in regex.finditer(line):
+            yield match.group(1) or match.group(2)
 
 
 def check_links(root):
@@ -131,8 +152,7 @@ def check_links(root):
             continue
         base = os.path.dirname(os.path.join(root, rel))
         for number, line in _unfenced_lines(text):
-            for match in LINK_RE.finditer(INLINE_CODE_RE.sub("", line)):
-                url = match.group(1) or match.group(2)
+            for url in _link_targets(line):
                 if SCHEME_RE.match(url) or url.startswith(("#", "//")):
                     continue
                 target = unquote(url.split("#", 1)[0].split("?", 1)[0])
@@ -155,16 +175,15 @@ def check_code_refs(root):
         if text is None:
             continue
         for number, line in enumerate(text.splitlines(), 1):
-            for match in CODE_REF_RE.finditer(line):
-                ref = match.group(0)
-                if not os.path.exists(os.path.join(root, *ref.split("/"))):
+            for match in DOCS_REF_RE.finditer(line):
+                ref, folder = match.group(0), match.group(1)
+                if folder in RETIRED_REF_HOMES:
+                    failures.append(
+                        f"{rel}:{number}: retired docs path -> {ref} "
+                        f"(its file now lives under {RETIRED_REF_HOMES[folder]})"
+                    )
+                elif not os.path.exists(os.path.join(root, *ref.split("/"))):
                     failures.append(f"{rel}:{number}: missing docs path -> {ref}")
-            for match in RETIRED_REF_RE.finditer(line):
-                home = RETIRED_REF_HOMES[match.group(1)]
-                failures.append(
-                    f"{rel}:{number}: retired docs path -> {match.group(0)} "
-                    f"(its file now lives under {home})"
-                )
     return failures
 
 
@@ -190,7 +209,10 @@ def check_retired(root):
 
 
 def main(argv):
-    root = argv[1] if len(argv) > 1 else os.getcwd()
+    root = argv[1] if len(argv) > 1 else DEFAULT_ROOT
+    if not os.path.isdir(os.path.join(root, "docs")):
+        print(f"{root}: no docs/ folder; pass the repository root")
+        return 2
     checks = (
         ("Relative links in docs", check_links),
         ("Docs paths cited from code", check_code_refs),
