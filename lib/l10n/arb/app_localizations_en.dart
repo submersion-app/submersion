@@ -11744,6 +11744,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentStatus_spare => 'Spare';
 
   @override
+  String get enum_equipmentStatus_wanted => 'Wanted';
+
+  @override
   String get enum_equipmentType_backplate => 'Backplate';
 
   @override
@@ -13526,6 +13529,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_detail_retiredChip => 'Retired';
 
   @override
+  String get equipment_detail_markPurchased => 'Mark as purchased';
+
+  @override
   String get equipment_detail_serialNumberLabel => 'Serial Number';
 
   @override
@@ -14112,6 +14118,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'Purchase Price';
+
+  @override
+  String get equipment_edit_expectedPriceLabel => 'Expected Price';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -14902,6 +14911,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_snackbar_reactivated => 'Equipment reactivated';
 
   @override
+  String get equipment_snackbar_purchased => 'Moved to your active gear';
+
+  @override
   String get equipment_snackbar_retired => 'Equipment retired';
 
   @override
@@ -14948,6 +14960,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String equipment_summary_totalValue(String currency) {
     return 'Total Value ($currency)';
+  }
+
+  @override
+  String equipment_summary_wantedValue(String currency) {
+    return 'Wanted Value ($currency)';
   }
 
   @override
@@ -16622,6 +16639,93 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_siteMediaSection_addPhotos => 'Add photos or videos';
+
+  @override
+  String get media_siteAttachment_categoryAccess => 'Access and entry';
+
+  @override
+  String get media_siteAttachment_categoryAnchorage => 'Anchorage and mooring';
+
+  @override
+  String get media_siteAttachment_categoryGeneral => 'General';
+
+  @override
+  String get media_siteAttachment_categoryLabel => 'Category';
+
+  @override
+  String get media_siteAttachment_categoryNone => 'Uncategorized';
+
+  @override
+  String get media_siteAttachment_categoryParking => 'Parking';
+
+  @override
+  String get media_siteAttachment_categorySiteMap => 'Site map';
+
+  @override
+  String get media_siteAttachment_categoryUnderwater => 'Underwater';
+
+  @override
+  String get media_siteAttachment_detailsTitle => 'Attachment details';
+
+  @override
+  String get media_siteAttachment_editDetails => 'Edit details';
+
+  @override
+  String media_siteAttachment_groupHeading(String category, int count) {
+    return '$category ($count)';
+  }
+
+  @override
+  String get media_siteAttachment_moreOptions => 'More options';
+
+  @override
+  String media_siteAttachment_pageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pages',
+      one: '$count page',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_saveError(Object error) {
+    return 'Couldn\'t save: $error';
+  }
+
+  @override
+  String get media_siteAttachment_setCategory => 'Set category';
+
+  @override
+  String media_siteAttachment_setCategoryError(Object error) {
+    return 'Failed to set category: $error';
+  }
+
+  @override
+  String media_siteAttachment_setCategorySuccess(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Updated $count items',
+      one: 'Updated $count item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_sizeDefault(String size) {
+    return 'Default ($size)';
+  }
+
+  @override
+  String get media_siteAttachment_sizeLabel => 'Display size';
+
+  @override
+  String get media_siteAttachment_sizeLarge => 'Large';
+
+  @override
+  String get media_siteAttachment_sizeTile => 'Tile';
 
   @override
   String get media_siteMediaSection_addDocument => 'Add document';
@@ -20176,6 +20280,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_depthUnit => 'Depth unit';
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'Distance unit';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Profile shows late gas switches';
+
+  @override
+  String get settings_conflict_field_insightsMutedObservationRules =>
+      'Hidden observation kinds';
+
+  @override
+  String get settings_conflict_field_fingerprint => 'Observation fingerprint';
 
   @override
   String get settings_conflict_field_descentRate => 'Descent rate';
@@ -24412,6 +24530,299 @@ class AppLocalizationsEn extends AppLocalizations {
     Object siteName,
   ) {
     return '$title: $siteName';
+  }
+
+  @override
+  String get insights_observations_title => 'Observations';
+
+  @override
+  String get insights_observations_seeAll => 'See all';
+
+  @override
+  String get insights_observations_filterNote =>
+      'Observations use your whole log, so the filter does not apply to them';
+
+  @override
+  String get insights_observations_empty =>
+      'Observations appear as your log grows';
+
+  @override
+  String get insights_observations_error => 'Couldn\'t load observations';
+
+  @override
+  String get insights_observations_actions => 'Observation actions';
+
+  @override
+  String get insights_observations_dismiss => 'Dismiss';
+
+  @override
+  String get insights_observations_dismissed => 'Observation dismissed';
+
+  @override
+  String get insights_observations_dismissFailed =>
+      'Couldn\'t dismiss the observation';
+
+  @override
+  String get insights_observations_mute => 'Don\'t show this kind';
+
+  @override
+  String get insights_observations_muted =>
+      'Observations of this kind are hidden';
+
+  @override
+  String get insights_observations_undo => 'Undo';
+
+  @override
+  String get insights_observations_mutedKinds => 'Muted kinds';
+
+  @override
+  String get insights_observations_mutedKinds_empty => 'No kinds are muted';
+
+  @override
+  String get insights_observations_unmute => 'Unmute';
+
+  @override
+  String get insights_observations_rule_rmvTrend => 'RMV trend';
+
+  @override
+  String get insights_observations_rule_maxDepthTrend => 'Max depth trend';
+
+  @override
+  String get insights_observations_rule_diveTimeTrend => 'Dive time trend';
+
+  @override
+  String get insights_observations_rule_weightTrend => 'Weight trend';
+
+  @override
+  String get insights_observations_rule_frequencyTrend => 'Dive frequency';
+
+  @override
+  String get insights_observations_rule_diveCountMilestone =>
+      'Dive count milestones';
+
+  @override
+  String get insights_observations_rule_diveHoursMilestone =>
+      'Dive hours milestones';
+
+  @override
+  String get insights_observations_rule_deepestDive => 'New deepest dive';
+
+  @override
+  String get insights_observations_rule_longestDive => 'New longest dive';
+
+  @override
+  String get insights_observations_rule_newCountry => 'New countries';
+
+  @override
+  String get insights_observations_rule_newSpecies => 'New species';
+
+  @override
+  String get insights_observations_rule_diveGap => 'Time since last dive';
+
+  @override
+  String get insights_observations_rule_favouriteSite => 'Favourite site';
+
+  @override
+  String get insights_observations_rule_regularBuddy => 'Regular buddy';
+
+  @override
+  String get insights_observations_rule_busiestMonth => 'Busiest month';
+
+  @override
+  String get insights_observations_rule_ascentRate => 'Ascent rate';
+
+  @override
+  String insights_observations_rmvTrend_improved(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Your RMV improved: $recent over the last 12 months, $percent% lower than the year before ($previous)';
+  }
+
+  @override
+  String insights_observations_rmvTrend_rose(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Your RMV rose: $recent over the last 12 months, $percent% higher than the year before ($previous)';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_deeper(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Over the last 12 months your average max depth was $recent, $percent% deeper than the year before ($previous)';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_shallower(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Over the last 12 months your average max depth was $recent, $percent% shallower than the year before ($previous)';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_longer(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Over the last 12 months your average dive time was $recent, $percent% longer than the year before ($previous)';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_shorter(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Over the last 12 months your average dive time was $recent, $percent% shorter than the year before ($previous)';
+  }
+
+  @override
+  String insights_observations_weightTrend_more(String amount) {
+    return 'Over the last 12 months you carried $amount more weight on average than the year before';
+  }
+
+  @override
+  String insights_observations_weightTrend_less(String amount) {
+    return 'Over the last 12 months you carried $amount less weight on average than the year before';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_more(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'You logged $count dives in the last 12 months, $percent% more than the year before',
+      one:
+          'You logged 1 dive in the last 12 months, $percent% more than the year before',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_fewer(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'You logged $count dives in the last 12 months, $percent% fewer than the year before',
+      one:
+          'You logged 1 dive in the last 12 months, $percent% fewer than the year before',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone(String count, String date) {
+    return 'You reached $count dives on $date';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone_logged(
+    String count,
+    String date,
+  ) {
+    return 'You reached $count logged dives on $date';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone(String hours, String date) {
+    return 'You passed $hours hours underwater on $date';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone_logged(
+    String hours,
+    String date,
+  ) {
+    return 'You passed $hours logged hours underwater on $date';
+  }
+
+  @override
+  String insights_observations_deepestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return 'New deepest dive: $value on $date, beyond your previous $previous';
+  }
+
+  @override
+  String insights_observations_longestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return 'New longest dive: $value on $date, beyond your previous $previous';
+  }
+
+  @override
+  String insights_observations_newCountry(String country, String date) {
+    return 'Your first dive in $country, on $date';
+  }
+
+  @override
+  String insights_observations_newSpecies(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new species in the last 90 days, most recently $name',
+      one: 'A new species in the last 90 days: $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveGap(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Your last dive was $count days ago',
+      one: 'Your last dive was 1 day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_favouriteSite(
+    String site,
+    String dives,
+    String total,
+  ) {
+    return '$site hosted $dives of your $total dives in the last 12 months';
+  }
+
+  @override
+  String insights_observations_regularBuddy(
+    String buddyName,
+    String dives,
+    String total,
+  ) {
+    return 'You dived with $buddyName on $dives of your $total dives in the last 12 months';
+  }
+
+  @override
+  String insights_observations_busiestMonth(String month, String years) {
+    return '$month has been your busiest month in $years different years';
+  }
+
+  @override
+  String insights_observations_ascentRate(
+    String rate,
+    String dives,
+    String low,
+    String high,
+  ) {
+    return 'Your average ascent rate over the last 12 months was $rate, across $dives dives. Common guidance is $low to $high or slower';
   }
 
   @override

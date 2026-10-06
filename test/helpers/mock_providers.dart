@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_sites/domain/matching/site_match_sensit
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/insights/domain/observations/observation_rule_id.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -326,6 +327,20 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   }
 
   @override
+  Future<void> setObservationRuleMuted(
+    ObservationRuleId rule,
+    bool muted,
+  ) async {
+    final rules = {...state.insightsMutedObservationRules};
+    if (muted) {
+      rules.add(rule.dbValue);
+    } else {
+      rules.remove(rule.dbValue);
+    }
+    state = state.copyWith(insightsMutedObservationRules: rules);
+  }
+
+  @override
   Future<void> setShowAscentRateColors(bool value) async =>
       state = state.copyWith(showAscentRateColors: value);
   @override
@@ -385,6 +400,12 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDiveCenterListViewMode(ListViewMode mode) async =>
       state = state.copyWith(diveCenterListViewMode: mode);
+  @override
+  Future<void> setCertificationListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(certificationListViewMode: mode);
+  @override
+  Future<void> setCourseListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(courseListViewMode: mode);
   @override
   Future<void> setMapStyle(MapStyle style) async =>
       state = state.copyWith(mapStyle: style);

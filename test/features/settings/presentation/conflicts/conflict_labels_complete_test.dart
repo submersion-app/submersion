@@ -110,6 +110,7 @@ void main() {
       (volumeUnitLabeler, VolumeUnit.values),
       (weightUnitLabeler, WeightUnit.values),
       (altitudeUnitLabeler, AltitudeUnit.values),
+      (distanceUnitLabeler, DistanceUnit.values),
       (dateFormatLabeler, DateFormatPreference.values),
       (timeFormatLabeler, TimeFormat.values),
       (listViewModeLabeler, ListViewMode.values),

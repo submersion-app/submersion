@@ -20,7 +20,7 @@ void main() {
     ];
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [ownedEquipmentTypesProvider.overrideWithValue(withChoices)],
+        overrides: [diveGearTypesProvider.overrideWithValue(withChoices)],
         child: MaterialApp(
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,

@@ -19243,6 +19243,12 @@ abstract class AppLocalizations {
   /// **'Spare'**
   String get enum_equipmentStatus_spare;
 
+  /// No description provided for @enum_equipmentStatus_wanted.
+  ///
+  /// In en, this message translates to:
+  /// **'Wanted'**
+  String get enum_equipmentStatus_wanted;
+
   /// No description provided for @enum_equipmentType_backplate.
   ///
   /// In en, this message translates to:
@@ -22345,6 +22351,12 @@ abstract class AppLocalizations {
   /// **'Retired'**
   String get equipment_detail_retiredChip;
 
+  /// No description provided for @equipment_detail_markPurchased.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as purchased'**
+  String get equipment_detail_markPurchased;
+
   /// No description provided for @equipment_detail_serialNumberLabel.
   ///
   /// In en, this message translates to:
@@ -23206,6 +23218,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Purchase Price'**
   String get equipment_edit_purchasePriceLabel;
+
+  /// No description provided for @equipment_edit_expectedPriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected Price'**
+  String get equipment_edit_expectedPriceLabel;
 
   /// No description provided for @equipment_edit_remindMeBeforeServiceDue.
   ///
@@ -24482,6 +24500,12 @@ abstract class AppLocalizations {
   /// **'Equipment reactivated'**
   String get equipment_snackbar_reactivated;
 
+  /// No description provided for @equipment_snackbar_purchased.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to your active gear'**
+  String get equipment_snackbar_purchased;
+
   /// No description provided for @equipment_snackbar_retired.
   ///
   /// In en, this message translates to:
@@ -24565,6 +24589,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total Value ({currency})'**
   String equipment_summary_totalValue(String currency);
+
+  /// No description provided for @equipment_summary_wantedValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Wanted Value ({currency})'**
+  String equipment_summary_wantedValue(String currency);
 
   /// No description provided for @equipment_tab_equipment.
   ///
@@ -27219,6 +27249,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add photos or videos'**
   String get media_siteMediaSection_addPhotos;
+
+  /// No description provided for @media_siteAttachment_categoryAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Access and entry'**
+  String get media_siteAttachment_categoryAccess;
+
+  /// No description provided for @media_siteAttachment_categoryAnchorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Anchorage and mooring'**
+  String get media_siteAttachment_categoryAnchorage;
+
+  /// No description provided for @media_siteAttachment_categoryGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get media_siteAttachment_categoryGeneral;
+
+  /// No description provided for @media_siteAttachment_categoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get media_siteAttachment_categoryLabel;
+
+  /// No description provided for @media_siteAttachment_categoryNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncategorized'**
+  String get media_siteAttachment_categoryNone;
+
+  /// No description provided for @media_siteAttachment_categoryParking.
+  ///
+  /// In en, this message translates to:
+  /// **'Parking'**
+  String get media_siteAttachment_categoryParking;
+
+  /// No description provided for @media_siteAttachment_categorySiteMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Site map'**
+  String get media_siteAttachment_categorySiteMap;
+
+  /// No description provided for @media_siteAttachment_categoryUnderwater.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater'**
+  String get media_siteAttachment_categoryUnderwater;
+
+  /// No description provided for @media_siteAttachment_detailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment details'**
+  String get media_siteAttachment_detailsTitle;
+
+  /// No description provided for @media_siteAttachment_editDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit details'**
+  String get media_siteAttachment_editDetails;
+
+  /// Site media group heading
+  ///
+  /// In en, this message translates to:
+  /// **'{category} ({count})'**
+  String media_siteAttachment_groupHeading(String category, int count);
+
+  /// No description provided for @media_siteAttachment_moreOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get media_siteAttachment_moreOptions;
+
+  /// Page count badge on a large PDF card
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} page} other{{count} pages}}'**
+  String media_siteAttachment_pageCount(int count);
+
+  /// Edit details save failure
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save: {error}'**
+  String media_siteAttachment_saveError(Object error);
+
+  /// No description provided for @media_siteAttachment_setCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Set category'**
+  String get media_siteAttachment_setCategory;
+
+  /// Bulk set category failure
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to set category: {error}'**
+  String media_siteAttachment_setCategoryError(Object error);
+
+  /// Bulk set category success
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Updated {count} item} other{Updated {count} items}}'**
+  String media_siteAttachment_setCategorySuccess(int count);
+
+  /// Size segment that follows the category default
+  ///
+  /// In en, this message translates to:
+  /// **'Default ({size})'**
+  String media_siteAttachment_sizeDefault(String size);
+
+  /// No description provided for @media_siteAttachment_sizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Display size'**
+  String get media_siteAttachment_sizeLabel;
+
+  /// No description provided for @media_siteAttachment_sizeLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get media_siteAttachment_sizeLarge;
+
+  /// No description provided for @media_siteAttachment_sizeTile.
+  ///
+  /// In en, this message translates to:
+  /// **'Tile'**
+  String get media_siteAttachment_sizeTile;
 
   /// No description provided for @media_siteMediaSection_addDocument.
   ///
@@ -32809,6 +32965,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Depth unit'**
   String get settings_conflict_field_depthUnit;
+
+  /// No description provided for @settings_conflict_field_distanceUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance unit'**
+  String get settings_conflict_field_distanceUnit;
+
+  /// No description provided for @settings_conflict_field_defaultShowLateGasSwitches.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile shows late gas switches'**
+  String get settings_conflict_field_defaultShowLateGasSwitches;
+
+  /// No description provided for @settings_conflict_field_insightsMutedObservationRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden observation kinds'**
+  String get settings_conflict_field_insightsMutedObservationRules;
+
+  /// No description provided for @settings_conflict_field_fingerprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Observation fingerprint'**
+  String get settings_conflict_field_fingerprint;
 
   /// No description provided for @settings_conflict_field_descentRate.
   ///
@@ -40362,6 +40542,381 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{title}: {siteName}'**
   String insights_records_milestoneSemanticLabel(Object title, Object siteName);
+
+  /// Heading of the observations strip and page
+  ///
+  /// In en, this message translates to:
+  /// **'Observations'**
+  String get insights_observations_title;
+
+  /// Opens the full observations page
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get insights_observations_seeAll;
+
+  /// Shown when the Insights filter is on: observations ignore it
+  ///
+  /// In en, this message translates to:
+  /// **'Observations use your whole log, so the filter does not apply to them'**
+  String get insights_observations_filterNote;
+
+  /// Observations page with nothing to show
+  ///
+  /// In en, this message translates to:
+  /// **'Observations appear as your log grows'**
+  String get insights_observations_empty;
+
+  /// Observations failed to load
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load observations'**
+  String get insights_observations_error;
+
+  /// Tooltip of the observation card menu
+  ///
+  /// In en, this message translates to:
+  /// **'Observation actions'**
+  String get insights_observations_actions;
+
+  /// Hides one observation until its facts change
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get insights_observations_dismiss;
+
+  /// Snackbar after dismissing an observation
+  ///
+  /// In en, this message translates to:
+  /// **'Observation dismissed'**
+  String get insights_observations_dismissed;
+
+  /// Snackbar when a dismissal could not be saved
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t dismiss the observation'**
+  String get insights_observations_dismissFailed;
+
+  /// Hides every observation of this rule
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t show this kind'**
+  String get insights_observations_mute;
+
+  /// Snackbar after muting a kind of observation
+  ///
+  /// In en, this message translates to:
+  /// **'Observations of this kind are hidden'**
+  String get insights_observations_muted;
+
+  /// Snackbar action that reverts a dismiss or mute
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get insights_observations_undo;
+
+  /// Title of the sheet listing muted kinds
+  ///
+  /// In en, this message translates to:
+  /// **'Muted kinds'**
+  String get insights_observations_mutedKinds;
+
+  /// The muted kinds sheet with nothing muted
+  ///
+  /// In en, this message translates to:
+  /// **'No kinds are muted'**
+  String get insights_observations_mutedKinds_empty;
+
+  /// Tooltip: show this kind of observation again
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute'**
+  String get insights_observations_unmute;
+
+  /// Kind label
+  ///
+  /// In en, this message translates to:
+  /// **'RMV trend'**
+  String get insights_observations_rule_rmvTrend;
+
+  /// Kind label
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth trend'**
+  String get insights_observations_rule_maxDepthTrend;
+
+  /// Kind label
+  ///
+  /// In en, this message translates to:
+  /// **'Dive time trend'**
+  String get insights_observations_rule_diveTimeTrend;
+
+  /// Kind label
+  ///
+  /// In en, this message translates to:
+  /// **'Weight trend'**
+  String get insights_observations_rule_weightTrend;
+
+  /// Kind label
+  ///
+  /// In en, this message translates to:
+  /// **'Dive frequency'**
+  String get insights_observations_rule_frequencyTrend;
+
+  /// Kind label
+  ///
+  /// In en, this message translates to:
+  /// **'Dive count milestones'**
+  String get insights_observations_rule_diveCountMilestone;
+
+  /// Kind label
+  ///
+  /// In en, this message translates to:
+  /// **'Dive hours milestones'**
+  String get insights_observations_rule_diveHoursMilestone;
+
+  /// Kind label
+  ///
+  /// In en, this message translates to:
+  /// **'New deepest dive'**
+  String get insights_observations_rule_deepestDive;
+
+  /// Kind label
+  ///
+  /// In en, this message translates to:
+  /// **'New longest dive'**
+  String get insights_observations_rule_longestDive;
+
+  /// Kind label
+  ///
+  /// In en, this message translates to:
+  /// **'New countries'**
+  String get insights_observations_rule_newCountry;
+
+  /// Kind label
+  ///
+  /// In en, this message translates to:
+  /// **'New species'**
+  String get insights_observations_rule_newSpecies;
+
+  /// Kind label
+  ///
+  /// In en, this message translates to:
+  /// **'Time since last dive'**
+  String get insights_observations_rule_diveGap;
+
+  /// Kind label
+  ///
+  /// In en, this message translates to:
+  /// **'Favourite site'**
+  String get insights_observations_rule_favouriteSite;
+
+  /// Kind label
+  ///
+  /// In en, this message translates to:
+  /// **'Regular buddy'**
+  String get insights_observations_rule_regularBuddy;
+
+  /// Kind label
+  ///
+  /// In en, this message translates to:
+  /// **'Busiest month'**
+  String get insights_observations_rule_busiestMonth;
+
+  /// Kind label
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent rate'**
+  String get insights_observations_rule_ascentRate;
+
+  /// RMV (L/min or cuft/min, formatted) fell; percent is a whole number
+  ///
+  /// In en, this message translates to:
+  /// **'Your RMV improved: {recent} over the last 12 months, {percent}% lower than the year before ({previous})'**
+  String insights_observations_rmvTrend_improved(
+    String recent,
+    String previous,
+    String percent,
+  );
+
+  /// RMV rose
+  ///
+  /// In en, this message translates to:
+  /// **'Your RMV rose: {recent} over the last 12 months, {percent}% higher than the year before ({previous})'**
+  String insights_observations_rmvTrend_rose(
+    String recent,
+    String previous,
+    String percent,
+  );
+
+  /// Average max depth rose; values are formatted depths
+  ///
+  /// In en, this message translates to:
+  /// **'Over the last 12 months your average max depth was {recent}, {percent}% deeper than the year before ({previous})'**
+  String insights_observations_maxDepthTrend_deeper(
+    String recent,
+    String previous,
+    String percent,
+  );
+
+  /// Average max depth fell
+  ///
+  /// In en, this message translates to:
+  /// **'Over the last 12 months your average max depth was {recent}, {percent}% shallower than the year before ({previous})'**
+  String insights_observations_maxDepthTrend_shallower(
+    String recent,
+    String previous,
+    String percent,
+  );
+
+  /// Average runtime rose; values are formatted minutes
+  ///
+  /// In en, this message translates to:
+  /// **'Over the last 12 months your average dive time was {recent}, {percent}% longer than the year before ({previous})'**
+  String insights_observations_diveTimeTrend_longer(
+    String recent,
+    String previous,
+    String percent,
+  );
+
+  /// Average runtime fell
+  ///
+  /// In en, this message translates to:
+  /// **'Over the last 12 months your average dive time was {recent}, {percent}% shorter than the year before ({previous})'**
+  String insights_observations_diveTimeTrend_shorter(
+    String recent,
+    String previous,
+    String percent,
+  );
+
+  /// Average weight carried rose by a formatted weight
+  ///
+  /// In en, this message translates to:
+  /// **'Over the last 12 months you carried {amount} more weight on average than the year before'**
+  String insights_observations_weightTrend_more(String amount);
+
+  /// Average weight carried fell
+  ///
+  /// In en, this message translates to:
+  /// **'Over the last 12 months you carried {amount} less weight on average than the year before'**
+  String insights_observations_weightTrend_less(String amount);
+
+  /// More dives than the year before
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{You logged 1 dive in the last 12 months, {percent}% more than the year before} other{You logged {count} dives in the last 12 months, {percent}% more than the year before}}'**
+  String insights_observations_frequencyTrend_more(int count, String percent);
+
+  /// Fewer dives than the year before
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{You logged 1 dive in the last 12 months, {percent}% fewer than the year before} other{You logged {count} dives in the last 12 months, {percent}% fewer than the year before}}'**
+  String insights_observations_frequencyTrend_fewer(int count, String percent);
+
+  /// Career dive count (prior experience included) reached a milestone
+  ///
+  /// In en, this message translates to:
+  /// **'You reached {count} dives on {date}'**
+  String insights_observations_diveCountMilestone(String count, String date);
+
+  /// Logged dive count reached a milestone
+  ///
+  /// In en, this message translates to:
+  /// **'You reached {count} logged dives on {date}'**
+  String insights_observations_diveCountMilestone_logged(
+    String count,
+    String date,
+  );
+
+  /// Career hours underwater reached a milestone
+  ///
+  /// In en, this message translates to:
+  /// **'You passed {hours} hours underwater on {date}'**
+  String insights_observations_diveHoursMilestone(String hours, String date);
+
+  /// Logged hours underwater reached a milestone
+  ///
+  /// In en, this message translates to:
+  /// **'You passed {hours} logged hours underwater on {date}'**
+  String insights_observations_diveHoursMilestone_logged(
+    String hours,
+    String date,
+  );
+
+  /// A new deepest dive; values are formatted depths
+  ///
+  /// In en, this message translates to:
+  /// **'New deepest dive: {value} on {date}, beyond your previous {previous}'**
+  String insights_observations_deepestDive(
+    String value,
+    String date,
+    String previous,
+  );
+
+  /// A new longest dive; values are formatted minutes
+  ///
+  /// In en, this message translates to:
+  /// **'New longest dive: {value} on {date}, beyond your previous {previous}'**
+  String insights_observations_longestDive(
+    String value,
+    String date,
+    String previous,
+  );
+
+  /// First dive in a country
+  ///
+  /// In en, this message translates to:
+  /// **'Your first dive in {country}, on {date}'**
+  String insights_observations_newCountry(String country, String date);
+
+  /// Species first seen in the last 90 days
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{A new species in the last 90 days: {name}} other{{count} new species in the last 90 days, most recently {name}}}'**
+  String insights_observations_newSpecies(int count, String name);
+
+  /// Days since the last dive
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Your last dive was 1 day ago} other{Your last dive was {count} days ago}}'**
+  String insights_observations_diveGap(int count);
+
+  /// One site holds a large share of recent dives
+  ///
+  /// In en, this message translates to:
+  /// **'{site} hosted {dives} of your {total} dives in the last 12 months'**
+  String insights_observations_favouriteSite(
+    String site,
+    String dives,
+    String total,
+  );
+
+  /// One buddy was on a large share of recent dives
+  ///
+  /// In en, this message translates to:
+  /// **'You dived with {buddyName} on {dives} of your {total} dives in the last 12 months'**
+  String insights_observations_regularBuddy(
+    String buddyName,
+    String dives,
+    String total,
+  );
+
+  /// A month that led in several years; month is a full month name
+  ///
+  /// In en, this message translates to:
+  /// **'{month} has been your busiest month in {years} different years'**
+  String insights_observations_busiestMonth(String month, String years);
+
+  /// Average ascent rate above the common guidance; rates are formatted
+  ///
+  /// In en, this message translates to:
+  /// **'Your average ascent rate over the last 12 months was {rate}, across {dives} dives. Common guidance is {low} to {high} or slower'**
+  String insights_observations_ascentRate(
+    String rate,
+    String dives,
+    String low,
+    String high,
+  );
 
   /// No description provided for @insights_records_milestones.
   ///

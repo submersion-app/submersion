@@ -219,6 +219,18 @@ void main() {
     expect(find.text('JJ-CCR (Sold)'), findsOneWidget);
   });
 
+  testWidgets('a host set to Wanted is named as Wanted, not retired (#2025)', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      child: cell(),
+      parent: host.copyWith(status: EquipmentStatus.wanted, isActive: false),
+    );
+
+    expect(find.text('JJ-CCR (Wanted)'), findsOneWidget);
+  });
+
   testWidgets('a legacy inactive host under a live status reads as retired', (
     tester,
   ) async {

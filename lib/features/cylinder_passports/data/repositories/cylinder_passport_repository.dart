@@ -89,12 +89,13 @@ class CylinderPassportRepository {
     return sorted.first.id;
   }
 
-  /// In service: active and neither retired nor sold, as EquipmentItem
-  /// defines it.
+  /// In service: active and neither retired, sold nor wanted (#2025), as
+  /// EquipmentItem.isFitted defines it.
   static bool _isFitted(EquipmentData row) =>
       row.isActive &&
       row.status != EquipmentStatus.retired.name &&
-      row.status != EquipmentStatus.sold.name;
+      row.status != EquipmentStatus.sold.name &&
+      row.status != EquipmentStatus.wanted.name;
 
   /// Items that are no longer cylinders but still carry [passportId], other
   /// than [except]: the leftovers of a retype.

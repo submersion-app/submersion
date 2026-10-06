@@ -76,6 +76,11 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_ccrSetpointLow,
     FieldKind.partialPressure,
   ),
+  'certificationListViewMode': ConflictField(
+    (l) => l.settings_appearance_listView_certifications,
+    FieldKind.enumValue,
+    enumLabel: listViewModeLabeler,
+  ),
   'cnsCalculationMethod': ConflictField(
     (l) => l.settings_decompression_cnsMethodTitle,
     FieldKind.enumValue,
@@ -101,6 +106,11 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_coordinateFormat,
     FieldKind.enumValue,
     enumLabel: coordinateFormatLabeler,
+  ),
+  'courseListViewMode': ConflictField(
+    (l) => l.settings_appearance_listView_courses,
+    FieldKind.enumValue,
+    enumLabel: listViewModeLabeler,
   ),
   'dateFormat': ConflictField(
     (l) => l.settings_conflict_field_dateFormat,
@@ -163,6 +173,10 @@ final Map<String, ConflictField> diverSettingsFields = {
   ),
   'defaultShowEvents': ConflictField(
     (l) => l.settings_conflict_field_defaultShowEvents,
+    FieldKind.boolean,
+  ),
+  'defaultShowLateGasSwitches': ConflictField(
+    (l) => l.settings_conflict_field_defaultShowLateGasSwitches,
     FieldKind.boolean,
   ),
   'defaultShowGasDensity': ConflictField(
@@ -258,6 +272,11 @@ final Map<String, ConflictField> diverSettingsFields = {
     FieldKind.enumValue,
     enumLabel: depthUnitLabeler,
   ),
+  'distanceUnit': ConflictField(
+    (l) => l.settings_conflict_field_distanceUnit,
+    FieldKind.enumValue,
+    enumLabel: distanceUnitLabeler,
+  ),
   'diveCenterListViewMode': ConflictField(
     (l) => l.settings_conflict_field_diveCenterListViewMode,
     FieldKind.enumValue,
@@ -320,6 +339,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_highO2ThresholdPercent,
     FieldKind.percent,
   ),
+  'insightsMutedObservationRules': ConflictField(
+    (l) => l.settings_conflict_field_insightsMutedObservationRules,
+    FieldKind.opaque,
+  ),
   'locale': ConflictField(
     (l) => l.settings_conflict_field_locale,
     FieldKind.shortText,
@@ -354,6 +377,14 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_pressureUnit,
     FieldKind.enumValue,
     enumLabel: pressureUnitLabeler,
+  ),
+  'profileMetricsFollowViewport': ConflictField(
+    (l) => l.settings_appearance_metricsFollowViewport,
+    FieldKind.boolean,
+  ),
+  'pscrRatio': ConflictField(
+    (l) => l.plannerCanvas_pscr_ratio,
+    FieldKind.number,
   ),
   'reminderTime': ConflictField(
     (l) => l.settings_conflict_field_reminderTime,

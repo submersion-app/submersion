@@ -121,7 +121,10 @@ void main() {
     type: EquipmentType.values.first,
   );
 
-  Future<void> pumpSheet(WidgetTester tester) async {
+  Future<void> pumpSheet(
+    WidgetTester tester, {
+    List<EquipmentItem>? gear,
+  }) async {
     final fakeRepo = _FakeTemplateRepo({
       'plain': [tItem('plain', PreDiveItemType.check)],
       'packing': [tItem('packing', PreDiveItemType.equipmentSet)],
@@ -151,7 +154,7 @@ void main() {
           ),
           equipmentSetsProvider.overrideWith((ref) async => [defaultSet]),
           allEquipmentProvider.overrideWith(
-            (ref) async => [primaryComputer, backupComputer],
+            (ref) async => gear ?? [primaryComputer, backupComputer],
           ),
         ],
         child: Builder(
@@ -167,6 +170,48 @@ void main() {
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
   }
+
+  Future<void> chooseComputerCheck(WidgetTester tester) async {
+    await tester.tap(find.text('Checklist'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Computer Check').last);
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('wishlist gear is not offered for an equipment item (#2025)', (
+    tester,
+  ) async {
+    const wish = EquipmentItem(
+      id: 'g3',
+      name: 'Dream computer',
+      type: EquipmentType.computer,
+      status: EquipmentStatus.wanted,
+      isActive: false,
+    );
+    await pumpSheet(tester, gear: [primaryComputer, backupComputer, wish]);
+    await chooseComputerCheck(tester);
+
+    await tester.tap(find.text('Primary computer'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Backup computer'), findsWidgets);
+    expect(find.text('Dream computer'), findsNothing);
+  });
+
+  testWidgets('a remembered device now on the wishlist is not pre-filled '
+      '(#2025)', (tester) async {
+    // The template remembers g1, which the diver has since set to Wanted.
+    final wishedPrimary = primaryComputer.copyWith(
+      status: EquipmentStatus.wanted,
+      isActive: false,
+    );
+    await pumpSheet(tester, gear: [wishedPrimary, backupComputer]);
+    await chooseComputerCheck(tester);
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Primary computer'), findsNothing);
+    expect(find.text('None'), findsOneWidget);
+  });
 
   testWidgets(
     'equipment picker appears only for equipmentSet-bearing templates',
@@ -204,8 +249,10 @@ void main() {
   /// Opens the sheet inside a GoRouter so the post-start `context.push` to the
   /// runner resolves. Returns the fake repos for assertions.
   Future<(_FakeSessionRepo, _FakeTemplateRepo)> pumpSheetForBegin(
-    WidgetTester tester,
-  ) async {
+    WidgetTester tester, {
+    List<EquipmentItem>? gear,
+    String? rememberedId,
+  }) async {
     final fakeTemplateRepo = _FakeTemplateRepo({
       'plain': [tItem('plain', PreDiveItemType.check)],
       'packing': [tItem('packing', PreDiveItemType.equipmentSet)],
@@ -215,6 +262,7 @@ void main() {
           templateId: 'computer',
           title: 'Computer check',
           itemType: PreDiveItemType.equipment,
+          equipmentId: rememberedId,
           createdAt: now,
           updatedAt: now,
         ),
@@ -256,7 +304,7 @@ void main() {
           ),
           equipmentSetsProvider.overrideWith((ref) async => [defaultSet]),
           allEquipmentProvider.overrideWith(
-            (ref) async => [primaryComputer, backupComputer],
+            (ref) async => gear ?? [primaryComputer, backupComputer],
           ),
           serviceClockStatusesProvider(
             'g1',
@@ -374,4 +422,52 @@ void main() {
       expect(find.text('SESSION newsession'), findsOneWidget);
     },
   );
+
+  testWidgets('Begin keeps a remembered device that is now on the wishlist '
+      '(#2025)', (tester) async {
+    final wishedPrimary = primaryComputer.copyWith(
+      status: EquipmentStatus.wanted,
+      isActive: false,
+    );
+    final (repo, templateRepo) = await pumpSheetForBegin(
+      tester,
+      gear: [wishedPrimary, backupComputer],
+      rememberedId: 'g1',
+    );
+
+    await tester.tap(find.text('Checklist'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Computer Check').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Begin'));
+    await tester.pumpAndSettle();
+
+    expect(repo.startCalls, 1);
+    // Hidden is not unchosen: once bought, the next session pre-fills it.
+    expect(
+      templateRepo.updatedEquipmentByItemId,
+      isNot(contains('computer-i')),
+    );
+  });
+
+  testWidgets('a chosen device that turns Wanted while the sheet is open '
+      'stays chosen (#2025)', (tester) async {
+    final gear = [primaryComputer, backupComputer];
+    await pumpSheet(tester, gear: gear);
+    await chooseComputerCheck(tester);
+    // The template remembers g1, so it is pre-filled.
+    expect(find.text('Primary computer'), findsOneWidget);
+
+    gear[0] = primaryComputer.copyWith(
+      status: EquipmentStatus.wanted,
+      isActive: false,
+    );
+    ProviderScope.containerOf(
+      tester.element(find.text('Computer check')),
+    ).invalidate(allEquipmentProvider);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Primary computer'), findsOneWidget);
+  });
 }

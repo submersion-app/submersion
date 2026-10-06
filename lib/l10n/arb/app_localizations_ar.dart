@@ -12080,6 +12080,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentStatus_spare => 'احتياطي';
 
   @override
+  String get enum_equipmentStatus_wanted => 'مرغوب';
+
+  @override
   String get enum_equipmentType_backplate => 'لوحة ظهر';
 
   @override
@@ -13893,6 +13896,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_retiredChip => 'متقاعد';
 
   @override
+  String get equipment_detail_markPurchased => 'تحديد كمُشترى';
+
+  @override
   String get equipment_detail_serialNumberLabel => 'الرقم التسلسلي';
 
   @override
@@ -14502,6 +14508,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'سعر الشراء';
+
+  @override
+  String get equipment_edit_expectedPriceLabel => 'السعر المتوقع';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -15311,6 +15320,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_snackbar_reactivated => 'تم إعادة تفعيل المعدات';
 
   @override
+  String get equipment_snackbar_purchased => 'تم النقل إلى معداتك النشطة';
+
+  @override
   String get equipment_snackbar_retired => 'تم إيقاف المعدات';
 
   @override
@@ -15357,6 +15369,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String equipment_summary_totalValue(String currency) {
     return 'القيمة الإجمالية ($currency)';
+  }
+
+  @override
+  String equipment_summary_wantedValue(String currency) {
+    return 'القيمة المرغوبة ($currency)';
   }
 
   @override
@@ -17065,6 +17082,101 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_siteMediaSection_addPhotos => 'إضافة صور أو مقاطع فيديو';
+
+  @override
+  String get media_siteAttachment_categoryAccess => 'الوصول والدخول';
+
+  @override
+  String get media_siteAttachment_categoryAnchorage => 'المرسى والربط';
+
+  @override
+  String get media_siteAttachment_categoryGeneral => 'عام';
+
+  @override
+  String get media_siteAttachment_categoryLabel => 'الفئة';
+
+  @override
+  String get media_siteAttachment_categoryNone => 'بدون فئة';
+
+  @override
+  String get media_siteAttachment_categoryParking => 'موقف السيارات';
+
+  @override
+  String get media_siteAttachment_categorySiteMap => 'خريطة الموقع';
+
+  @override
+  String get media_siteAttachment_categoryUnderwater => 'تحت الماء';
+
+  @override
+  String get media_siteAttachment_detailsTitle => 'تفاصيل المرفق';
+
+  @override
+  String get media_siteAttachment_editDetails => 'تعديل التفاصيل';
+
+  @override
+  String media_siteAttachment_groupHeading(String category, int count) {
+    return '$category ($count)';
+  }
+
+  @override
+  String get media_siteAttachment_moreOptions => 'خيارات إضافية';
+
+  @override
+  String media_siteAttachment_pageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صفحة',
+      many: '$count صفحة',
+      few: '$count صفحات',
+      two: '$count صفحتان',
+      one: '$count صفحة',
+      zero: '$count صفحة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_saveError(Object error) {
+    return 'تعذر الحفظ: $error';
+  }
+
+  @override
+  String get media_siteAttachment_setCategory => 'تعيين الفئة';
+
+  @override
+  String media_siteAttachment_setCategoryError(Object error) {
+    return 'فشل في تعيين الفئة: $error';
+  }
+
+  @override
+  String media_siteAttachment_setCategorySuccess(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديث $count عنصر',
+      many: 'تم تحديث $count عنصرًا',
+      few: 'تم تحديث $count عناصر',
+      two: 'تم تحديث $count عنصرين',
+      one: 'تم تحديث $count عنصر',
+      zero: 'تم تحديث $count عنصر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_sizeDefault(String size) {
+    return 'افتراضي ($size)';
+  }
+
+  @override
+  String get media_siteAttachment_sizeLabel => 'حجم العرض';
+
+  @override
+  String get media_siteAttachment_sizeLarge => 'كبير';
+
+  @override
+  String get media_siteAttachment_sizeTile => 'مصغّر';
 
   @override
   String get media_siteMediaSection_addDocument => 'إضافة مستند';
@@ -20713,6 +20825,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_depthUnit => 'وحدة العمق';
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'وحدة المسافة';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'الملف يعرض تبديلات الغاز المتأخرة';
+
+  @override
+  String get settings_conflict_field_insightsMutedObservationRules =>
+      'أنواع الملاحظات المخفية';
+
+  @override
+  String get settings_conflict_field_fingerprint => 'بصمة الملاحظة';
 
   @override
   String get settings_conflict_field_descentRate => 'سرعة النزول';
@@ -24962,6 +25088,320 @@ class AppLocalizationsAr extends AppLocalizations {
     Object siteName,
   ) {
     return '$title: $siteName';
+  }
+
+  @override
+  String get insights_observations_title => 'ملاحظات';
+
+  @override
+  String get insights_observations_seeAll => 'عرض الكل';
+
+  @override
+  String get insights_observations_filterNote =>
+      'تعتمد الملاحظات على سجلك بالكامل، لذلك لا يُطبَّق عليها عامل التصفية';
+
+  @override
+  String get insights_observations_empty => 'تظهر الملاحظات كلما كبر سجلك';
+
+  @override
+  String get insights_observations_error => 'تعذّر تحميل الملاحظات';
+
+  @override
+  String get insights_observations_actions => 'إجراءات الملاحظة';
+
+  @override
+  String get insights_observations_dismiss => 'تجاهل';
+
+  @override
+  String get insights_observations_dismissed => 'تم تجاهل الملاحظة';
+
+  @override
+  String get insights_observations_dismissFailed => 'تعذّر تجاهل الملاحظة';
+
+  @override
+  String get insights_observations_mute => 'عدم عرض هذا النوع';
+
+  @override
+  String get insights_observations_muted => 'الملاحظات من هذا النوع مخفية';
+
+  @override
+  String get insights_observations_undo => 'تراجع';
+
+  @override
+  String get insights_observations_mutedKinds => 'الأنواع المخفية';
+
+  @override
+  String get insights_observations_mutedKinds_empty => 'لا توجد أنواع مخفية';
+
+  @override
+  String get insights_observations_unmute => 'إظهار مجددًا';
+
+  @override
+  String get insights_observations_rule_rmvTrend => 'اتجاه RMV';
+
+  @override
+  String get insights_observations_rule_maxDepthTrend => 'اتجاه العمق الأقصى';
+
+  @override
+  String get insights_observations_rule_diveTimeTrend => 'اتجاه زمن الغوص';
+
+  @override
+  String get insights_observations_rule_weightTrend => 'اتجاه الأثقال';
+
+  @override
+  String get insights_observations_rule_frequencyTrend => 'تكرار الغوص';
+
+  @override
+  String get insights_observations_rule_diveCountMilestone =>
+      'محطات عدد الغطسات';
+
+  @override
+  String get insights_observations_rule_diveHoursMilestone =>
+      'محطات ساعات الغوص';
+
+  @override
+  String get insights_observations_rule_deepestDive => 'أعمق غوصة جديدة';
+
+  @override
+  String get insights_observations_rule_longestDive => 'أطول غوصة جديدة';
+
+  @override
+  String get insights_observations_rule_newCountry => 'دول جديدة';
+
+  @override
+  String get insights_observations_rule_newSpecies => 'أنواع جديدة';
+
+  @override
+  String get insights_observations_rule_diveGap => 'الوقت منذ آخر غوصة';
+
+  @override
+  String get insights_observations_rule_favouriteSite => 'الموقع المفضل';
+
+  @override
+  String get insights_observations_rule_regularBuddy => 'الرفيق الدائم';
+
+  @override
+  String get insights_observations_rule_busiestMonth => 'أكثر الشهور نشاطًا';
+
+  @override
+  String get insights_observations_rule_ascentRate => 'سرعة الصعود';
+
+  @override
+  String insights_observations_rmvTrend_improved(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'تحسّن RMV لديك: $recent خلال آخر 12 شهرًا، أقل بنسبة $percent% من العام السابق ($previous)';
+  }
+
+  @override
+  String insights_observations_rmvTrend_rose(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'ارتفع RMV لديك: $recent خلال آخر 12 شهرًا، أعلى بنسبة $percent% من العام السابق ($previous)';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_deeper(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'خلال آخر 12 شهرًا كان متوسط عمقك الأقصى $recent، أعمق بنسبة $percent% من العام السابق ($previous)';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_shallower(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'خلال آخر 12 شهرًا كان متوسط عمقك الأقصى $recent، أقل عمقًا بنسبة $percent% من العام السابق ($previous)';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_longer(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'خلال آخر 12 شهرًا كان متوسط زمن غوصك $recent، أطول بنسبة $percent% من العام السابق ($previous)';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_shorter(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'خلال آخر 12 شهرًا كان متوسط زمن غوصك $recent، أقصر بنسبة $percent% من العام السابق ($previous)';
+  }
+
+  @override
+  String insights_observations_weightTrend_more(String amount) {
+    return 'خلال آخر 12 شهرًا حملت في المتوسط $amount أثقالًا أكثر من العام السابق';
+  }
+
+  @override
+  String insights_observations_weightTrend_less(String amount) {
+    return 'خلال آخر 12 شهرًا حملت في المتوسط $amount أثقالًا أقل من العام السابق';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_more(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'سجّلت $count غوصة خلال آخر 12 شهرًا، أكثر بنسبة $percent% من العام السابق',
+      many:
+          'سجّلت $count غوصة خلال آخر 12 شهرًا، أكثر بنسبة $percent% من العام السابق',
+      few:
+          'سجّلت $count غوصات خلال آخر 12 شهرًا، أكثر بنسبة $percent% من العام السابق',
+      two:
+          'سجّلت غوصتين خلال آخر 12 شهرًا، أكثر بنسبة $percent% من العام السابق',
+      one:
+          'سجّلت غوصة واحدة خلال آخر 12 شهرًا، أكثر بنسبة $percent% من العام السابق',
+      zero:
+          'سجّلت $count غوصة خلال آخر 12 شهرًا، أكثر بنسبة $percent% من العام السابق',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_fewer(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'سجّلت $count غوصة خلال آخر 12 شهرًا، أقل بنسبة $percent% من العام السابق',
+      many:
+          'سجّلت $count غوصة خلال آخر 12 شهرًا، أقل بنسبة $percent% من العام السابق',
+      few:
+          'سجّلت $count غوصات خلال آخر 12 شهرًا، أقل بنسبة $percent% من العام السابق',
+      two:
+          'سجّلت غوصتين خلال آخر 12 شهرًا، أقل بنسبة $percent% من العام السابق',
+      one:
+          'سجّلت غوصة واحدة خلال آخر 12 شهرًا، أقل بنسبة $percent% من العام السابق',
+      zero:
+          'سجّلت $count غوصة خلال آخر 12 شهرًا، أقل بنسبة $percent% من العام السابق',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone(String count, String date) {
+    return 'بلغت $count غوصة في $date';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone_logged(
+    String count,
+    String date,
+  ) {
+    return 'بلغت $count غوصة مسجّلة في $date';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone(String hours, String date) {
+    return 'تجاوزت $hours ساعة تحت الماء في $date';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone_logged(
+    String hours,
+    String date,
+  ) {
+    return 'تجاوزت $hours ساعة مسجّلة تحت الماء في $date';
+  }
+
+  @override
+  String insights_observations_deepestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return 'أعمق غوصة جديدة: $value في $date، متجاوزةً رقمك السابق $previous';
+  }
+
+  @override
+  String insights_observations_longestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return 'أطول غوصة جديدة: $value في $date، متجاوزةً رقمك السابق $previous';
+  }
+
+  @override
+  String insights_observations_newCountry(String country, String date) {
+    return 'أول غوصة لك في $country، في $date';
+  }
+
+  @override
+  String insights_observations_newSpecies(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نوع جديد خلال آخر 90 يومًا، آخرها $name',
+      many: '$count نوعًا جديدًا خلال آخر 90 يومًا، آخرها $name',
+      few: '$count أنواع جديدة خلال آخر 90 يومًا، آخرها $name',
+      two: 'نوعان جديدان خلال آخر 90 يومًا، آخرهما $name',
+      one: 'نوع جديد واحد خلال آخر 90 يومًا: $name',
+      zero: '$count نوع جديد خلال آخر 90 يومًا، آخرها $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveGap(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'كانت آخر غوصة لك قبل $count يوم',
+      many: 'كانت آخر غوصة لك قبل $count يومًا',
+      few: 'كانت آخر غوصة لك قبل $count أيام',
+      two: 'كانت آخر غوصة لك قبل يومين',
+      one: 'كانت آخر غوصة لك قبل يوم واحد',
+      zero: 'كانت آخر غوصة لك اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_favouriteSite(
+    String site,
+    String dives,
+    String total,
+  ) {
+    return 'استضاف $site $dives من أصل $total غوصة لك خلال آخر 12 شهرًا';
+  }
+
+  @override
+  String insights_observations_regularBuddy(
+    String buddyName,
+    String dives,
+    String total,
+  ) {
+    return 'غصت مع $buddyName في $dives من أصل $total غوصة لك خلال آخر 12 شهرًا';
+  }
+
+  @override
+  String insights_observations_busiestMonth(String month, String years) {
+    return 'كان $month أكثر شهورك نشاطًا في $years سنوات مختلفة';
+  }
+
+  @override
+  String insights_observations_ascentRate(
+    String rate,
+    String dives,
+    String low,
+    String high,
+  ) {
+    return 'كان متوسط سرعة صعودك خلال آخر 12 شهرًا $rate، عبر $dives غوصة. التوصية الشائعة هي من $low إلى $high أو أبطأ';
   }
 
   @override

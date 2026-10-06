@@ -2,6 +2,30 @@ part of '../app_database_migrations.dart';
 
 /// Diver profiles and diver settings.
 extension DiverMigrations on AppDatabase {
+  /// v262: diver_settings columns for settings that now sync (issue #2948).
+  /// The two view modes are not null with a 'detailed' default; the two
+  /// moved preferences are nullable with no default, so null marks a row
+  /// that has never held a value. Idempotent, so it is safe to call from
+  /// both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertSyncedDeviceSettingsColumns() async {
+    await _addColumnIfMissing(
+      'diver_settings',
+      'certification_list_view_mode',
+      "TEXT NOT NULL DEFAULT 'detailed'",
+    );
+    await _addColumnIfMissing(
+      'diver_settings',
+      'course_list_view_mode',
+      "TEXT NOT NULL DEFAULT 'detailed'",
+    );
+    await _addColumnIfMissing(
+      'diver_settings',
+      'profile_metrics_follow_viewport',
+      'INTEGER',
+    );
+    await _addColumnIfMissing('diver_settings', 'pscr_ratio', 'REAL');
+  }
+
   /// v263: diver_settings.distance_unit (issue #2030). Not null, default
   /// 'kilometers'. As the column is added, a diver who logs depth in feet
   /// gets miles, so nobody's site distances change unit on upgrade. The
@@ -27,10 +51,12 @@ extension DiverMigrations on AppDatabase {
   }
 
   /// The beforeOpen backstop for diver_settings display columns: v263's
-  /// distance unit and v237's dive figure switch. Grouped so the backstop
-  /// list in before_open.dart does not grow past its size cap.
+  /// distance unit, v262's synced view mode and device-preference columns
+  /// (#2948) and v237's dive figure switch. Grouped so the backstop list in
+  /// before_open.dart does not grow past its size cap.
   Future<void> _assertDiverSettingsDisplayColumns() async {
     await _assertDistanceUnitColumn();
+    await _assertSyncedDeviceSettingsColumns();
     await _assertShowDiveFigureColumn();
   }
 

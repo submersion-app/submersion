@@ -30,7 +30,8 @@ extension BeforeOpenBackstops on AppDatabase {
     // consolidated dive that arrived since with nothing recorded.
     await _assertTankSharedComputerIds();
 
-    // v263 and v237 backstops: the distance unit and the dive figure switch.
+    // v263, v262 and v237 backstops: the distance unit, the synced view
+    // mode and device-preference columns, and the dive figure switch.
     await _assertDiverSettingsDisplayColumns();
 
     // v229 backstop: the per-set diver figure switch.
@@ -196,10 +197,11 @@ extension BeforeOpenBackstops on AppDatabase {
     // v250 backstop: trip_hides and site_hides (idempotent).
     await _assertTripHidesSchema();
     await _assertSiteHidesSchema();
+    // v265 backstop: Insights observation dismissals and muted rules.
+    await _assertInsightObservationsSchema();
 
-    // v122 backstop: re-assert service ledger schema + built-in kinds.
-    // The legacy backfill is NOT here (onUpgrade only) -- re-running it
-    // would resurrect user-deleted schedules.
+    // v122 backstop: service ledger schema + built-in kinds. The legacy
+    // backfill is onUpgrade only: re-running it resurrects deleted schedules.
     await _assertServiceLedgerSchema();
 
     // v123 backstop: re-assert safety review tables + settings columns
@@ -208,9 +210,8 @@ extension BeforeOpenBackstops on AppDatabase {
     // v253 backstop: the review's inputs fingerprint, after the table above.
     await _assertSafetyReviewInputsHashColumn();
 
-    // v124 backstop: re-assert the equipment_attributes table (schema
-    // only -- the legacy-column copy must NOT run here, it would
-    // resurrect attribute rows the user has cleared).
+    // v124 backstop: equipment_attributes schema only. The legacy copy must
+    // NOT run here: it would resurrect attribute rows the user cleared.
     await _assertEquipmentAttributesSchema();
 
     // v125 backstop: re-assert diver_settings.no_fly_preset.
@@ -385,10 +386,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // parallel-branch version-collision self-heal).
     await _assertSiteSuggestionDismissedAtColumn();
 
-    // v164 backstop: re-assert media.manual_elapsed_seconds (issue
-    // #1090; same parallel-branch version-collision self-heal). The
-    // media row mapper reads it on every hydration.
-    await _assertMediaManualElapsedColumn();
+    // v164 and v266 backstops: re-assert media.manual_elapsed_seconds
+    // (#1090) and the site attachment columns (#1039). The media row
+    // mapper reads all three on every hydration.
+    await _assertMediaRowColumns();
     // v165 backstop: re-assert diver_settings.trim_tank_pressure_at_
     // surfacing (issue #1092; same parallel-branch collision self-heal).
     await _assertSurfacingPressureColumn();

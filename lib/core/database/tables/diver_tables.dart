@@ -260,6 +260,10 @@ class DiverSettings extends Table {
   /// v227: built-in tank presets the diver hid from the pickers (issue
   /// #2305), JSON list of preset slugs. Null or absent = none hidden.
   TextColumn get hiddenTankPresetIds => text().nullable()();
+
+  /// v265: muted Insights observation rules (#2381), JSON list of
+  /// ObservationRuleId.dbValue. Null or absent = none muted.
+  TextColumn get insightsMutedObservationRules => text().nullable()();
   // Appearance settings
   BoolColumn get showDepthColoredDiveCards =>
       boolean().withDefault(const Constant(false))();
@@ -313,6 +317,21 @@ class DiverSettings extends Table {
       text().withDefault(const Constant('detailed'))();
   TextColumn get diveCenterListViewMode =>
       text().withDefault(const Constant('detailed'))();
+
+  /// v262 (issue #2948): the certification and course list view modes,
+  /// which were in-memory only and reset on every restart.
+  TextColumn get certificationListViewMode =>
+      text().withDefault(const Constant('detailed'))();
+  TextColumn get courseListViewMode =>
+      text().withDefault(const Constant('detailed'))();
+
+  /// v262 (issue #2948): profile metric overlays follow the zoomed depth
+  /// window, and the passive-SCR ratio. Both were device-local prefs.
+  /// Nullable ON PURPOSE: null marks a row that has never held a value,
+  /// which is what lets each device adopt its old pref into it (see
+  /// SettingsNotifier). Null reads as off and 100.
+  BoolColumn get profileMetricsFollowViewport => boolean().nullable()();
+  RealColumn get pscrRatio => real().nullable()();
   // Map style (v67)
   TextColumn get mapStyle =>
       text().withDefault(const Constant('openStreetMap'))();

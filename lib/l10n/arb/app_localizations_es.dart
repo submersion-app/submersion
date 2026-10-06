@@ -11923,6 +11923,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_equipmentStatus_spare => 'De repuesto';
 
   @override
+  String get enum_equipmentStatus_wanted => 'Deseado';
+
+  @override
   String get enum_equipmentType_backplate => 'Placa dorsal';
 
   @override
@@ -13727,6 +13730,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_detail_retiredChip => 'Retirado';
 
   @override
+  String get equipment_detail_markPurchased => 'Marcar como comprado';
+
+  @override
   String get equipment_detail_serialNumberLabel => 'Número de serie';
 
   @override
@@ -14317,6 +14323,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'Precio de compra';
+
+  @override
+  String get equipment_edit_expectedPriceLabel => 'Precio previsto';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -15126,6 +15135,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_snackbar_reactivated => 'Equipo reactivado';
 
   @override
+  String get equipment_snackbar_purchased => 'Movido a tu equipo activo';
+
+  @override
   String get equipment_snackbar_retired => 'Equipo retirado';
 
   @override
@@ -15172,6 +15184,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String equipment_summary_totalValue(String currency) {
     return 'Valor total ($currency)';
+  }
+
+  @override
+  String equipment_summary_wantedValue(String currency) {
+    return 'Valor deseado ($currency)';
   }
 
   @override
@@ -16876,6 +16893,93 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_siteMediaSection_addPhotos => 'Añadir fotos o vídeos';
+
+  @override
+  String get media_siteAttachment_categoryAccess => 'Acceso y entrada';
+
+  @override
+  String get media_siteAttachment_categoryAnchorage => 'Fondeo y amarre';
+
+  @override
+  String get media_siteAttachment_categoryGeneral => 'General';
+
+  @override
+  String get media_siteAttachment_categoryLabel => 'Categoría';
+
+  @override
+  String get media_siteAttachment_categoryNone => 'Sin categoría';
+
+  @override
+  String get media_siteAttachment_categoryParking => 'Aparcamiento';
+
+  @override
+  String get media_siteAttachment_categorySiteMap => 'Mapa del punto de buceo';
+
+  @override
+  String get media_siteAttachment_categoryUnderwater => 'Bajo el agua';
+
+  @override
+  String get media_siteAttachment_detailsTitle => 'Detalles del adjunto';
+
+  @override
+  String get media_siteAttachment_editDetails => 'Editar detalles';
+
+  @override
+  String media_siteAttachment_groupHeading(String category, int count) {
+    return '$category ($count)';
+  }
+
+  @override
+  String get media_siteAttachment_moreOptions => 'Más opciones';
+
+  @override
+  String media_siteAttachment_pageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count páginas',
+      one: '$count página',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_saveError(Object error) {
+    return 'No se pudo guardar: $error';
+  }
+
+  @override
+  String get media_siteAttachment_setCategory => 'Asignar categoría';
+
+  @override
+  String media_siteAttachment_setCategoryError(Object error) {
+    return 'Error al asignar la categoría: $error';
+  }
+
+  @override
+  String media_siteAttachment_setCategorySuccess(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos actualizados',
+      one: '$count elemento actualizado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_sizeDefault(String size) {
+    return 'Predeterminado ($size)';
+  }
+
+  @override
+  String get media_siteAttachment_sizeLabel => 'Tamaño de visualización';
+
+  @override
+  String get media_siteAttachment_sizeLarge => 'Grande';
+
+  @override
+  String get media_siteAttachment_sizeTile => 'Miniatura';
 
   @override
   String get media_siteMediaSection_addDocument => 'Añadir documento';
@@ -20512,6 +20616,20 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_field_depthUnit => 'Unidad de profundidad';
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'Unidad de distancia';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'El perfil muestra cambios de gas tardíos';
+
+  @override
+  String get settings_conflict_field_insightsMutedObservationRules =>
+      'Tipos de observación ocultos';
+
+  @override
+  String get settings_conflict_field_fingerprint => 'Huella de la observación';
 
   @override
   String get settings_conflict_field_descentRate => 'Velocidad de descenso';
@@ -24873,6 +24991,308 @@ class AppLocalizationsEs extends AppLocalizations {
     Object siteName,
   ) {
     return '$title: $siteName';
+  }
+
+  @override
+  String get insights_observations_title => 'Observaciones';
+
+  @override
+  String get insights_observations_seeAll => 'Ver todo';
+
+  @override
+  String get insights_observations_filterNote =>
+      'Las observaciones usan todo tu registro, así que el filtro no se les aplica';
+
+  @override
+  String get insights_observations_empty =>
+      'Las observaciones aparecen a medida que crece tu registro';
+
+  @override
+  String get insights_observations_error =>
+      'No se pudieron cargar las observaciones';
+
+  @override
+  String get insights_observations_actions => 'Acciones de la observación';
+
+  @override
+  String get insights_observations_dismiss => 'Descartar';
+
+  @override
+  String get insights_observations_dismissed => 'Observación descartada';
+
+  @override
+  String get insights_observations_dismissFailed =>
+      'No se pudo descartar la observación';
+
+  @override
+  String get insights_observations_mute => 'No mostrar este tipo';
+
+  @override
+  String get insights_observations_muted =>
+      'Las observaciones de este tipo están ocultas';
+
+  @override
+  String get insights_observations_undo => 'Deshacer';
+
+  @override
+  String get insights_observations_mutedKinds => 'Tipos silenciados';
+
+  @override
+  String get insights_observations_mutedKinds_empty =>
+      'No hay tipos silenciados';
+
+  @override
+  String get insights_observations_unmute => 'Volver a mostrar';
+
+  @override
+  String get insights_observations_rule_rmvTrend => 'Tendencia de RMV';
+
+  @override
+  String get insights_observations_rule_maxDepthTrend =>
+      'Tendencia de profundidad máxima';
+
+  @override
+  String get insights_observations_rule_diveTimeTrend =>
+      'Tendencia de tiempo de inmersión';
+
+  @override
+  String get insights_observations_rule_weightTrend => 'Tendencia de lastre';
+
+  @override
+  String get insights_observations_rule_frequencyTrend =>
+      'Frecuencia de inmersiones';
+
+  @override
+  String get insights_observations_rule_diveCountMilestone =>
+      'Hitos de número de inmersiones';
+
+  @override
+  String get insights_observations_rule_diveHoursMilestone =>
+      'Hitos de horas de inmersión';
+
+  @override
+  String get insights_observations_rule_deepestDive =>
+      'Nueva inmersión más profunda';
+
+  @override
+  String get insights_observations_rule_longestDive =>
+      'Nueva inmersión más larga';
+
+  @override
+  String get insights_observations_rule_newCountry => 'Países nuevos';
+
+  @override
+  String get insights_observations_rule_newSpecies => 'Especies nuevas';
+
+  @override
+  String get insights_observations_rule_diveGap =>
+      'Tiempo desde la última inmersión';
+
+  @override
+  String get insights_observations_rule_favouriteSite => 'Sitio favorito';
+
+  @override
+  String get insights_observations_rule_regularBuddy => 'Compañero habitual';
+
+  @override
+  String get insights_observations_rule_busiestMonth => 'Mes más activo';
+
+  @override
+  String get insights_observations_rule_ascentRate => 'Velocidad de ascenso';
+
+  @override
+  String insights_observations_rmvTrend_improved(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Tu RMV mejoró: $recent en los últimos 12 meses, un $percent % menos que el año anterior ($previous)';
+  }
+
+  @override
+  String insights_observations_rmvTrend_rose(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Tu RMV subió: $recent en los últimos 12 meses, un $percent % más que el año anterior ($previous)';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_deeper(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'En los últimos 12 meses tu profundidad máxima media fue $recent, un $percent % más profunda que el año anterior ($previous)';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_shallower(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'En los últimos 12 meses tu profundidad máxima media fue $recent, un $percent % menos profunda que el año anterior ($previous)';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_longer(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'En los últimos 12 meses tu tiempo medio de inmersión fue $recent, un $percent % más largo que el año anterior ($previous)';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_shorter(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'En los últimos 12 meses tu tiempo medio de inmersión fue $recent, un $percent % más corto que el año anterior ($previous)';
+  }
+
+  @override
+  String insights_observations_weightTrend_more(String amount) {
+    return 'En los últimos 12 meses llevaste de media $amount más de lastre que el año anterior';
+  }
+
+  @override
+  String insights_observations_weightTrend_less(String amount) {
+    return 'En los últimos 12 meses llevaste de media $amount menos de lastre que el año anterior';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_more(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Registraste $count inmersiones en los últimos 12 meses, un $percent % más que el año anterior',
+      one:
+          'Registraste 1 inmersión en los últimos 12 meses, un $percent % más que el año anterior',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_fewer(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Registraste $count inmersiones en los últimos 12 meses, un $percent % menos que el año anterior',
+      one:
+          'Registraste 1 inmersión en los últimos 12 meses, un $percent % menos que el año anterior',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone(String count, String date) {
+    return 'Llegaste a $count inmersiones el $date';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone_logged(
+    String count,
+    String date,
+  ) {
+    return 'Llegaste a $count inmersiones registradas el $date';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone(String hours, String date) {
+    return 'Superaste $hours horas bajo el agua el $date';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone_logged(
+    String hours,
+    String date,
+  ) {
+    return 'Superaste $hours horas registradas bajo el agua el $date';
+  }
+
+  @override
+  String insights_observations_deepestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return 'Nueva inmersión más profunda: $value el $date, por encima de tu récord anterior de $previous';
+  }
+
+  @override
+  String insights_observations_longestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return 'Nueva inmersión más larga: $value el $date, por encima de tu récord anterior de $previous';
+  }
+
+  @override
+  String insights_observations_newCountry(String country, String date) {
+    return 'Tu primera inmersión en $country, el $date';
+  }
+
+  @override
+  String insights_observations_newSpecies(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count especies nuevas en los últimos 90 días, la más reciente $name',
+      one: 'Una especie nueva en los últimos 90 días: $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveGap(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tu última inmersión fue hace $count días',
+      one: 'Tu última inmersión fue hace 1 día',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_favouriteSite(
+    String site,
+    String dives,
+    String total,
+  ) {
+    return '$site acogió $dives de tus $total inmersiones de los últimos 12 meses';
+  }
+
+  @override
+  String insights_observations_regularBuddy(
+    String buddyName,
+    String dives,
+    String total,
+  ) {
+    return 'Buceaste con $buddyName en $dives de tus $total inmersiones de los últimos 12 meses';
+  }
+
+  @override
+  String insights_observations_busiestMonth(String month, String years) {
+    return '$month ha sido tu mes más activo en $years años distintos';
+  }
+
+  @override
+  String insights_observations_ascentRate(
+    String rate,
+    String dives,
+    String low,
+    String high,
+  ) {
+    return 'Tu velocidad media de ascenso en los últimos 12 meses fue $rate, en $dives inmersiones. La recomendación habitual es de $low a $high o más lento';
   }
 
   @override

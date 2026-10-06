@@ -83,6 +83,7 @@ EquipmentItem _makeEquipment({
   String? brand,
   String? model,
   EquipmentStatus status = EquipmentStatus.active,
+  bool isActive = true,
 }) {
   return EquipmentItem(
     id: id,
@@ -91,6 +92,7 @@ EquipmentItem _makeEquipment({
     brand: brand,
     model: model,
     status: status,
+    isActive: isActive,
   );
 }
 
@@ -736,6 +738,62 @@ void main() {
 
       expect(notifier.retired, ['e1', 'e2']);
       expect(notifier.reactivated, isEmpty);
+    });
+
+    testWidgets('reactivate is not offered for wishlist gear (#2025)', (
+      tester,
+    ) async {
+      final widget = await host([
+        _makeEquipment(
+          id: 'w1',
+          name: 'Dream Wing',
+          status: EquipmentStatus.wanted,
+          isActive: false,
+        ),
+      ]);
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      await enterSelectionViaMenu(tester);
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+
+      // Buying it is not reactivating it: Mark as purchased does that.
+      expect(
+        tester
+            .widget<IconButton>(
+              find.byKey(const ValueKey('selection_action_reactivate')),
+            )
+            .onPressed,
+        isNull,
+      );
+    });
+
+    testWidgets('retire is not offered for wishlist gear left active (#2025)', (
+      tester,
+    ) async {
+      final widget = await host([
+        _makeEquipment(
+          id: 'w2',
+          name: 'Imported Wish',
+          status: EquipmentStatus.wanted,
+        ),
+      ]);
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
+
+      await enterSelectionViaMenu(tester);
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<IconButton>(
+              find.byKey(const ValueKey('selection_action_retire')),
+            )
+            .onPressed,
+        isNull,
+      );
     });
 
     testWidgets('cancelling deletes nothing and keeps the selection', (

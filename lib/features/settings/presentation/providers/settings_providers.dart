@@ -22,6 +22,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/insights/domain/observations/observation_rule_id.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
@@ -94,6 +95,9 @@ class SettingsKeys {
   static const String showNdlOnProfile = 'show_ndl_on_profile';
   static const String lastStopDepth = 'last_stop_depth';
   static const String decoStopIncrement = 'deco_stop_increment';
+  // pSCR ratio and profile "metrics follow viewport" (below): since v262
+  // per-diver and synced (issue #2948). The prefs are only the store while
+  // no diver exists, and the value a diver row with none adopts.
   static const String pscrRatio = 'pscr_ratio';
 
   static const String hiddenHomeChips = 'hidden_home_chips';
@@ -103,14 +107,14 @@ class SettingsKeys {
   static const String homeCardOrder = 'home_card_order';
   static const String hiddenHomeCards = 'hidden_home_cards';
 
-  // Whether profile-chart metric overlays follow the visible depth window when
-  // zoomed (device-local, stored directly in SharedPreferences rather than
-  // per-diver in the DB).
+  // Whether profile-chart metric overlays follow the visible depth window
+  // when zoomed. Per-diver since v262; see [pscrRatio].
   static const String profileMetricsFollowViewport =
       'profile_metrics_follow_viewport';
 
   // Which unit the O2 cell traces are drawn in when a dive carries both
-  // (device-local, a viewing preference like the one above).
+  // (device-local, a viewing preference stored directly in
+  // SharedPreferences rather than per-diver in the DB).
   static const String o2CellUnit = 'o2_cell_unit';
 
   // Perdix-style media overlay preferences (device-local, stored directly in
@@ -274,6 +278,11 @@ class AppSettings {
   /// Display-time only: the engine always runs every rule.
   final Set<String> conditionDisabledRules;
 
+  /// Insights observation rules the diver muted (#2381), as
+  /// ObservationRuleId.dbValue strings. Unknown ids (a newer build's rules)
+  /// are kept so a save never drops them.
+  final Set<String> insightsMutedObservationRules;
+
   /// Bundled chamber ids hidden from the emergency card
   final Set<String> hiddenChamberIds;
 
@@ -292,9 +301,9 @@ class AppSettings {
   /// Deco stop increment in meters (typically 3)
   final double decoStopIncrement;
 
-  /// Passive-SCR ratio (Subsurface `pscr_ratio`, default 100). A device-local
-  /// planning preference describing the diver's pSCR unit; larger values add
-  /// more fresh gas and shrink the inspired-O2 drop.
+  /// Passive-SCR ratio (Subsurface `pscr_ratio`, default 100). A per-diver
+  /// planning preference (synced since v262) describing the diver's pSCR
+  /// unit; larger values add more fresh gas and shrink the inspired-O2 drop.
   final double pscrRatio;
 
   /// Which carried gases feed the ideal (best-gas) ascent projection.
@@ -364,6 +373,10 @@ class AppSettings {
 
   /// Which layout to use for the dive center list
   final ListViewMode diveCenterListViewMode;
+
+  /// Certification and course list view modes (v262, issue #2948).
+  final ListViewMode certificationListViewMode;
+  final ListViewMode courseListViewMode;
 
   /// Which map tile style to use
   final MapStyle mapStyle;
@@ -539,8 +552,8 @@ class AppSettings {
 
   /// Whether the dive profile chart's secondary-axis metric overlays (NDL,
   /// ppO2, GF, ...) follow the visible depth window when zoomed instead of
-  /// magnifying with the depth axis and scrolling out of view. Device-local,
-  /// not per-diver. See MetricBand.
+  /// magnifying with the depth axis and scrolling out of view. Per-diver
+  /// (synced) since v262. See MetricBand.
   final bool profileMetricsFollowViewport;
 
   /// Unit for the per-cell O2 traces on dives that log both a calibrated ppO2
@@ -619,6 +632,7 @@ class AppSettings {
     this.highO2ThresholdPercent = 40.0,
     this.conditionEngineEnabled = true,
     this.conditionDisabledRules = const {},
+    this.insightsMutedObservationRules = const {},
     this.hiddenChamberIds = const {},
     this.emergencyRegion,
     this.showAscentRateColors = false,
@@ -647,6 +661,8 @@ class AppSettings {
     this.equipmentListViewMode = ListViewMode.detailed,
     this.buddyListViewMode = ListViewMode.detailed,
     this.diveCenterListViewMode = ListViewMode.detailed,
+    this.certificationListViewMode = ListViewMode.detailed,
+    this.courseListViewMode = ListViewMode.detailed,
     this.mapStyle = MapStyle.openStreetMap,
     this.siteMatchSensitivity = SiteMatchSensitivity.balanced,
     this.trimTankPressureAtSurfacing = true,
@@ -805,6 +821,7 @@ class AppSettings {
     double? highO2ThresholdPercent,
     bool? conditionEngineEnabled,
     Set<String>? conditionDisabledRules,
+    Set<String>? insightsMutedObservationRules,
     Set<String>? hiddenChamberIds,
     String? emergencyRegion,
     bool clearEmergencyRegion = false,
@@ -832,6 +849,8 @@ class AppSettings {
     ListViewMode? equipmentListViewMode,
     ListViewMode? buddyListViewMode,
     ListViewMode? diveCenterListViewMode,
+    ListViewMode? certificationListViewMode,
+    ListViewMode? courseListViewMode,
     MapStyle? mapStyle,
     SiteMatchSensitivity? siteMatchSensitivity,
     bool? trimTankPressureAtSurfacing,
@@ -967,6 +986,8 @@ class AppSettings {
           conditionEngineEnabled ?? this.conditionEngineEnabled,
       conditionDisabledRules:
           conditionDisabledRules ?? this.conditionDisabledRules,
+      insightsMutedObservationRules:
+          insightsMutedObservationRules ?? this.insightsMutedObservationRules,
       hiddenChamberIds: hiddenChamberIds ?? this.hiddenChamberIds,
       emergencyRegion: clearEmergencyRegion
           ? null
@@ -998,6 +1019,9 @@ class AppSettings {
       buddyListViewMode: buddyListViewMode ?? this.buddyListViewMode,
       diveCenterListViewMode:
           diveCenterListViewMode ?? this.diveCenterListViewMode,
+      certificationListViewMode:
+          certificationListViewMode ?? this.certificationListViewMode,
+      courseListViewMode: courseListViewMode ?? this.courseListViewMode,
       mapStyle: mapStyle ?? this.mapStyle,
       siteMatchSensitivity: siteMatchSensitivity ?? this.siteMatchSensitivity,
       trimTankPressureAtSurfacing:
@@ -1143,6 +1167,13 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   final Ref _ref;
   String? _validatedDiverId;
 
+  /// Whether [state] came from the no-diver load, so its pSCR ratio and
+  /// viewport choice are this device's prefs (v262, issue #2948). Only then
+  /// does a save write them back: after a failed load [state] holds the
+  /// defaults, and mid-switch the previous diver's synced values, and either
+  /// would overwrite the prefs a diver row may still adopt.
+  bool _prefsAreStore = false;
+
   /// Completes when the constructor's first load has finished, or, if a
   /// diver change superseded that load before it landed, the load that
   /// replaced it.
@@ -1276,6 +1307,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       if (previous != next) {
         // Reset diver ID immediately to prevent saving to wrong diver during switch
         _validatedDiverId = null;
+        _prefsAreStore = false;
         _replaceBase(null);
         // Starting a new load supersedes any still in flight: its reads may
         // return after this one's, and must not overwrite the new diver's
@@ -1306,6 +1338,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     } catch (_) {
       if (_isCurrentLoad(generation) && _landedGeneration != generation) {
         _validatedDiverId = null;
+        _prefsAreStore = false;
         _replaceBase(null);
         // Only an EARLIER load's settings need replacing. When none has
         // landed (a failed startup load) state already holds the defaults.
@@ -1323,8 +1356,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     hiddenHomeChips: state.hiddenHomeChips,
     homeCardOrder: state.homeCardOrder,
     hiddenHomeCards: state.hiddenHomeCards,
-    pscrRatio: state.pscrRatio,
-    profileMetricsFollowViewport: state.profileMetricsFollowViewport,
     o2CellUnit: state.o2CellUnit,
     perdixOverlayEnabled: state.perdixOverlayEnabled,
     perdixOverlayX: state.perdixOverlayX,
@@ -1382,14 +1413,13 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       homeCardOrder = const [];
       hiddenHomeCards = const <String>{};
     }
-    // pSCR ratio is a device-local planning preference (kept out of the
-    // per-diver settings table), so it is read straight from SharedPreferences
-    // like the fullscreen tile prefs above.
-    final pscrRatio = prefs.getDouble(SettingsKeys.pscrRatio);
-    // Profile-chart overlay scaling is a device-local viewing preference,
-    // kept out of the per-diver settings table like the prefs above.
-    final profileMetricsFollowViewport =
-        prefs.getBool(SettingsKeys.profileMetricsFollowViewport) ?? false;
+    // Since v262 the pSCR ratio and "metrics follow viewport" are per-diver
+    // (synced, issue #2948). These prefs are the store while no diver
+    // exists, and the value a diver row that has never held one adopts.
+    final pscrRatioPref = prefs.getDouble(SettingsKeys.pscrRatio);
+    final followViewportPref = prefs.getBool(
+      SettingsKeys.profileMetricsFollowViewport,
+    );
     final o2CellUnit = O2CellUnit.values.firstWhere(
       (u) => u.name == prefs.getString(SettingsKeys.o2CellUnit),
       orElse: () => O2CellUnit.ppO2,
@@ -1413,14 +1443,15 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         hiddenHomeChips: hiddenHomeChips,
         homeCardOrder: homeCardOrder,
         hiddenHomeCards: hiddenHomeCards,
-        pscrRatio: pscrRatio ?? 100.0,
-        profileMetricsFollowViewport: profileMetricsFollowViewport,
+        pscrRatio: pscrRatioPref ?? 100.0,
+        profileMetricsFollowViewport: followViewportPref ?? false,
         o2CellUnit: o2CellUnit,
         perdixOverlayEnabled: perdixOverlayEnabled,
         perdixOverlayX: perdixOverlayX,
         perdixOverlayY: perdixOverlayY,
         seascapeAppearance: seascapeAppearance,
       );
+      _prefsAreStore = true;
       _landedGeneration = generation;
       await _writeCachedTheme(prefs);
       return;
@@ -1432,8 +1463,43 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         legacySeascapeRaw != null &&
         !(await _repository.hasSeascapeAppearance(diverId));
 
+    // A row with no pSCR ratio or viewport choice yet (pre-v262, or a new
+    // diver) adopts this device's pref, but only one that differs from the
+    // default. Before v262 every save wrote both prefs, so a default-valued
+    // one is no sign of a choice, and adopting it would stamp a fresh clock
+    // that lets this device's default overwrite a value chosen on another.
+    const defaults = AppSettings();
+    final pscrRatioCandidate = pscrRatioPref != defaults.pscrRatio
+        ? pscrRatioPref
+        : null;
+    final followViewportCandidate =
+        followViewportPref != defaults.profileMetricsFollowViewport
+        ? followViewportPref
+        : null;
+    // Nothing to adopt (no pref, or only defaults): skip the row read.
+    final unset = pscrRatioCandidate == null && followViewportCandidate == null
+        ? (pscrRatio: false, profileMetricsFollowViewport: false)
+        : await _repository.unsetAdoptableColumns(diverId);
+    final adoptPscrRatio = unset.pscrRatio ? pscrRatioCandidate : null;
+    final adoptFollowViewport = unset.profileMetricsFollowViewport
+        ? followViewportCandidate
+        : null;
+
     // Load settings from database
-    final settings = await _repository.getOrCreateSettingsForDiver(diverId);
+    final created = await _repository.getOrCreateSettingsForDiver(diverId);
+    // Not _saveSettings: its diff cannot see a change in a null column. The
+    // write only fills columns still null, so whenever one was attempted
+    // re-read the row: a sync may have filled a column since [created] was
+    // read, and then the write lands nothing but the row has still moved.
+    final adopting = adoptPscrRatio != null || adoptFollowViewport != null;
+    await _repository.adoptDeviceLocalValues(
+      diverId,
+      pscrRatio: adoptPscrRatio,
+      profileMetricsFollowViewport: adoptFollowViewport,
+    );
+    final settings = adopting
+        ? await _repository.getSettingsForDiver(diverId) ?? created
+        : created;
     // The notifier can be disposed while this read is in flight -- a
     // ProviderScope teardown (restartApp's soft restart, or the throwaway
     // container the post-restore safety sweep builds) tears down mid-load,
@@ -1447,8 +1513,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       hiddenHomeChips: hiddenHomeChips,
       homeCardOrder: homeCardOrder,
       hiddenHomeCards: hiddenHomeCards,
-      pscrRatio: pscrRatio,
-      profileMetricsFollowViewport: profileMetricsFollowViewport,
       o2CellUnit: o2CellUnit,
       perdixOverlayEnabled: perdixOverlayEnabled,
       perdixOverlayX: perdixOverlayX,
@@ -1527,11 +1591,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         SettingsKeys.hiddenHomeCards,
         state.hiddenHomeCards.toList()..sort(),
       );
-      await prefs.setDouble(SettingsKeys.pscrRatio, state.pscrRatio);
-      await prefs.setBool(
-        SettingsKeys.profileMetricsFollowViewport,
-        state.profileMetricsFollowViewport,
-      );
       await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
       await prefs.setBool(
         SettingsKeys.perdixOverlayEnabled,
@@ -1548,6 +1607,15 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       await _writeCachedTheme(prefs);
 
       if (diverId == null) {
+        // No diver yet: these prefs are the pSCR ratio's and viewport
+        // choice's only store; a diver row adopts them on load (v262).
+        if (_prefsAreStore) {
+          await prefs.setDouble(SettingsKeys.pscrRatio, state.pscrRatio);
+          await prefs.setBool(
+            SettingsKeys.profileMetricsFollowViewport,
+            state.profileMetricsFollowViewport,
+          );
+        }
         // No diver yet: the device-local pref is the seascape knobs' only
         // store; it is adopted into the diver row and retired on the first
         // load with a diver (see _loadSettings).
@@ -2057,6 +2125,22 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  /// Mutes or unmutes one Insights observation rule (#2381), keeping any
+  /// rule ids this build does not know.
+  Future<void> setObservationRuleMuted(
+    ObservationRuleId rule,
+    bool muted,
+  ) async {
+    final rules = {...state.insightsMutedObservationRules};
+    if (muted) {
+      rules.add(rule.dbValue);
+    } else {
+      rules.remove(rule.dbValue);
+    }
+    state = state.copyWith(insightsMutedObservationRules: rules);
+    await _saveSettings();
+  }
+
   Future<void> setNoFlyPreset(NoFlyPreset preset) async {
     state = state.copyWith(noFlyPreset: preset);
     await _saveSettings();
@@ -2216,6 +2300,16 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setDiveCenterListViewMode(ListViewMode mode) async {
     state = state.copyWith(diveCenterListViewMode: mode);
+    await _saveSettings();
+  }
+
+  Future<void> setCertificationListViewMode(ListViewMode mode) async {
+    state = state.copyWith(certificationListViewMode: mode);
+    await _saveSettings();
+  }
+
+  Future<void> setCourseListViewMode(ListViewMode mode) async {
+    state = state.copyWith(courseListViewMode: mode);
     await _saveSettings();
   }
 
@@ -2817,9 +2911,9 @@ final lastStopDepthProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.lastStopDepth));
 });
 
-/// The device-local passive-SCR ratio (Subsurface `pscr_ratio`, default 100).
-/// Persisted to SharedPreferences, not per-diver, so switching the active diver
-/// does not change it.
+/// The diver's passive-SCR ratio (Subsurface `pscr_ratio`, default 100).
+/// Per-diver and synced since v262 (issue #2948), so switching the active
+/// diver switches it too.
 final pscrRatioProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.pscrRatio));
 });

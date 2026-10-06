@@ -11840,6 +11840,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentStatus_spare => 'Reserve';
 
   @override
+  String get enum_equipmentStatus_wanted => 'Gewenst';
+
+  @override
   String get enum_equipmentType_backplate => 'Backplate';
 
   @override
@@ -13633,6 +13636,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_detail_retiredChip => 'Buiten gebruik';
 
   @override
+  String get equipment_detail_markPurchased => 'Markeren als gekocht';
+
+  @override
   String get equipment_detail_serialNumberLabel => 'Serienummer';
 
   @override
@@ -14221,6 +14227,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'Aankoopprijs';
+
+  @override
+  String get equipment_edit_expectedPriceLabel => 'Verwachte prijs';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -15030,6 +15039,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_snackbar_reactivated => 'Uitrusting geheractiveerd';
 
   @override
+  String get equipment_snackbar_purchased =>
+      'Verplaatst naar je actieve uitrusting';
+
+  @override
   String get equipment_snackbar_retired => 'Uitrusting buiten gebruik gesteld';
 
   @override
@@ -15076,6 +15089,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String equipment_summary_totalValue(String currency) {
     return 'Totale waarde ($currency)';
+  }
+
+  @override
+  String equipment_summary_wantedValue(String currency) {
+    return 'Gewenste waarde ($currency)';
   }
 
   @override
@@ -16769,6 +16787,93 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get media_siteMediaSection_addPhotos =>
       'Foto\'s of video\'s toevoegen';
+
+  @override
+  String get media_siteAttachment_categoryAccess => 'Toegang en instap';
+
+  @override
+  String get media_siteAttachment_categoryAnchorage => 'Ankerplaats en afmeren';
+
+  @override
+  String get media_siteAttachment_categoryGeneral => 'Algemeen';
+
+  @override
+  String get media_siteAttachment_categoryLabel => 'Categorie';
+
+  @override
+  String get media_siteAttachment_categoryNone => 'Zonder categorie';
+
+  @override
+  String get media_siteAttachment_categoryParking => 'Parkeren';
+
+  @override
+  String get media_siteAttachment_categorySiteMap => 'Kaart van de duikstek';
+
+  @override
+  String get media_siteAttachment_categoryUnderwater => 'Onder water';
+
+  @override
+  String get media_siteAttachment_detailsTitle => 'Bijlagedetails';
+
+  @override
+  String get media_siteAttachment_editDetails => 'Details bewerken';
+
+  @override
+  String media_siteAttachment_groupHeading(String category, int count) {
+    return '$category ($count)';
+  }
+
+  @override
+  String get media_siteAttachment_moreOptions => 'Meer opties';
+
+  @override
+  String media_siteAttachment_pageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pagina\'s',
+      one: '$count pagina',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_saveError(Object error) {
+    return 'Opslaan mislukt: $error';
+  }
+
+  @override
+  String get media_siteAttachment_setCategory => 'Categorie instellen';
+
+  @override
+  String media_siteAttachment_setCategoryError(Object error) {
+    return 'Categorie instellen mislukt: $error';
+  }
+
+  @override
+  String media_siteAttachment_setCategorySuccess(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items bijgewerkt',
+      one: '$count item bijgewerkt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_siteAttachment_sizeDefault(String size) {
+    return 'Standaard ($size)';
+  }
+
+  @override
+  String get media_siteAttachment_sizeLabel => 'Weergavegrootte';
+
+  @override
+  String get media_siteAttachment_sizeLarge => 'Groot';
+
+  @override
+  String get media_siteAttachment_sizeTile => 'Tegel';
 
   @override
   String get media_siteMediaSection_addDocument => 'Document toevoegen';
@@ -20361,6 +20466,21 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_field_depthUnit => 'Eenheid voor diepte';
+
+  @override
+  String get settings_conflict_field_distanceUnit => 'Afstandseenheid';
+
+  @override
+  String get settings_conflict_field_defaultShowLateGasSwitches =>
+      'Profiel toont late gaswissels';
+
+  @override
+  String get settings_conflict_field_insightsMutedObservationRules =>
+      'Verborgen soorten waarnemingen';
+
+  @override
+  String get settings_conflict_field_fingerprint =>
+      'Vingerafdruk van de waarneming';
 
   @override
   String get settings_conflict_field_descentRate => 'Afdaalsnelheid';
@@ -24666,6 +24786,302 @@ class AppLocalizationsNl extends AppLocalizations {
     Object siteName,
   ) {
     return '$title: $siteName';
+  }
+
+  @override
+  String get insights_observations_title => 'Waarnemingen';
+
+  @override
+  String get insights_observations_seeAll => 'Alles bekijken';
+
+  @override
+  String get insights_observations_filterNote =>
+      'Waarnemingen gebruiken uw hele logboek, dus het filter geldt er niet voor';
+
+  @override
+  String get insights_observations_empty =>
+      'Waarnemingen verschijnen naarmate uw logboek groeit';
+
+  @override
+  String get insights_observations_error =>
+      'Waarnemingen konden niet worden geladen';
+
+  @override
+  String get insights_observations_actions => 'Acties voor de waarneming';
+
+  @override
+  String get insights_observations_dismiss => 'Negeren';
+
+  @override
+  String get insights_observations_dismissed => 'Waarneming genegeerd';
+
+  @override
+  String get insights_observations_dismissFailed =>
+      'De waarneming kon niet worden genegeerd';
+
+  @override
+  String get insights_observations_mute => 'Dit soort niet meer tonen';
+
+  @override
+  String get insights_observations_muted =>
+      'Waarnemingen van dit soort zijn verborgen';
+
+  @override
+  String get insights_observations_undo => 'Ongedaan maken';
+
+  @override
+  String get insights_observations_mutedKinds => 'Verborgen soorten';
+
+  @override
+  String get insights_observations_mutedKinds_empty => 'Geen soorten verborgen';
+
+  @override
+  String get insights_observations_unmute => 'Weer tonen';
+
+  @override
+  String get insights_observations_rule_rmvTrend => 'RMV-trend';
+
+  @override
+  String get insights_observations_rule_maxDepthTrend =>
+      'Trend maximale diepte';
+
+  @override
+  String get insights_observations_rule_diveTimeTrend => 'Trend duiktijd';
+
+  @override
+  String get insights_observations_rule_weightTrend => 'Trend lood';
+
+  @override
+  String get insights_observations_rule_frequencyTrend => 'Duikfrequentie';
+
+  @override
+  String get insights_observations_rule_diveCountMilestone =>
+      'Mijlpalen aantal duiken';
+
+  @override
+  String get insights_observations_rule_diveHoursMilestone =>
+      'Mijlpalen duikuren';
+
+  @override
+  String get insights_observations_rule_deepestDive => 'Nieuwe diepste duik';
+
+  @override
+  String get insights_observations_rule_longestDive => 'Nieuwe langste duik';
+
+  @override
+  String get insights_observations_rule_newCountry => 'Nieuwe landen';
+
+  @override
+  String get insights_observations_rule_newSpecies => 'Nieuwe soorten';
+
+  @override
+  String get insights_observations_rule_diveGap => 'Tijd sinds de laatste duik';
+
+  @override
+  String get insights_observations_rule_favouriteSite => 'Favoriete duikplek';
+
+  @override
+  String get insights_observations_rule_regularBuddy => 'Vaste buddy';
+
+  @override
+  String get insights_observations_rule_busiestMonth => 'Drukste maand';
+
+  @override
+  String get insights_observations_rule_ascentRate => 'Opstijgsnelheid';
+
+  @override
+  String insights_observations_rmvTrend_improved(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Uw RMV is verbeterd: $recent in de afgelopen 12 maanden, $percent% lager dan het jaar ervoor ($previous)';
+  }
+
+  @override
+  String insights_observations_rmvTrend_rose(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'Uw RMV is gestegen: $recent in de afgelopen 12 maanden, $percent% hoger dan het jaar ervoor ($previous)';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_deeper(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'In de afgelopen 12 maanden was uw gemiddelde maximale diepte $recent, $percent% dieper dan het jaar ervoor ($previous)';
+  }
+
+  @override
+  String insights_observations_maxDepthTrend_shallower(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'In de afgelopen 12 maanden was uw gemiddelde maximale diepte $recent, $percent% ondieper dan het jaar ervoor ($previous)';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_longer(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'In de afgelopen 12 maanden was uw gemiddelde duiktijd $recent, $percent% langer dan het jaar ervoor ($previous)';
+  }
+
+  @override
+  String insights_observations_diveTimeTrend_shorter(
+    String recent,
+    String previous,
+    String percent,
+  ) {
+    return 'In de afgelopen 12 maanden was uw gemiddelde duiktijd $recent, $percent% korter dan het jaar ervoor ($previous)';
+  }
+
+  @override
+  String insights_observations_weightTrend_more(String amount) {
+    return 'In de afgelopen 12 maanden droeg u gemiddeld $amount meer lood dan het jaar ervoor';
+  }
+
+  @override
+  String insights_observations_weightTrend_less(String amount) {
+    return 'In de afgelopen 12 maanden droeg u gemiddeld $amount minder lood dan het jaar ervoor';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_more(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'U hebt in de afgelopen 12 maanden $count duiken gelogd, $percent% meer dan het jaar ervoor',
+      one:
+          'U hebt in de afgelopen 12 maanden 1 duik gelogd, $percent% meer dan het jaar ervoor',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_frequencyTrend_fewer(int count, String percent) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'U hebt in de afgelopen 12 maanden $count duiken gelogd, $percent% minder dan het jaar ervoor',
+      one:
+          'U hebt in de afgelopen 12 maanden 1 duik gelogd, $percent% minder dan het jaar ervoor',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone(String count, String date) {
+    return 'U bereikte $count duiken op $date';
+  }
+
+  @override
+  String insights_observations_diveCountMilestone_logged(
+    String count,
+    String date,
+  ) {
+    return 'U bereikte $count gelogde duiken op $date';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone(String hours, String date) {
+    return 'U passeerde $hours uur onder water op $date';
+  }
+
+  @override
+  String insights_observations_diveHoursMilestone_logged(
+    String hours,
+    String date,
+  ) {
+    return 'U passeerde $hours gelogde uren onder water op $date';
+  }
+
+  @override
+  String insights_observations_deepestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return 'Nieuwe diepste duik: $value op $date, voorbij uw vorige record van $previous';
+  }
+
+  @override
+  String insights_observations_longestDive(
+    String value,
+    String date,
+    String previous,
+  ) {
+    return 'Nieuwe langste duik: $value op $date, voorbij uw vorige record van $previous';
+  }
+
+  @override
+  String insights_observations_newCountry(String country, String date) {
+    return 'Uw eerste duik in $country, op $date';
+  }
+
+  @override
+  String insights_observations_newSpecies(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count nieuwe soorten in de afgelopen 90 dagen, als laatste $name',
+      one: 'Een nieuwe soort in de afgelopen 90 dagen: $name',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveGap(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Uw laatste duik was $count dagen geleden',
+      one: 'Uw laatste duik was 1 dag geleden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_observations_favouriteSite(
+    String site,
+    String dives,
+    String total,
+  ) {
+    return '$site was goed voor $dives van uw $total duiken in de afgelopen 12 maanden';
+  }
+
+  @override
+  String insights_observations_regularBuddy(
+    String buddyName,
+    String dives,
+    String total,
+  ) {
+    return 'U dook met $buddyName bij $dives van uw $total duiken in de afgelopen 12 maanden';
+  }
+
+  @override
+  String insights_observations_busiestMonth(String month, String years) {
+    return '$month was in $years verschillende jaren uw drukste maand';
+  }
+
+  @override
+  String insights_observations_ascentRate(
+    String rate,
+    String dives,
+    String low,
+    String high,
+  ) {
+    return 'Uw gemiddelde opstijgsnelheid in de afgelopen 12 maanden was $rate, over $dives duiken. Gangbaar advies is $low tot $high of langzamer';
   }
 
   @override
