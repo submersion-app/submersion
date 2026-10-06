@@ -138,6 +138,46 @@ library while it generates code. The same test that guards the table
 libraries enforces this, and keeps every file under `tables/` and
 `migrations/` under 800 lines.
 
+### Migration Principles
+
+- **Never lose data.** A rung transforms or backfills; it never drops a
+  column or table that still holds user data without first copying it.
+- **Forward only.** There are no down migrations. Opening a database whose
+  stored schema is newer than the running app supports throws
+  `DatabaseVersionMismatchException`
+  (`lib/core/database/database_version_exception.dart`, raised in
+  `lib/core/services/database_service.dart`) instead of opening it, so an
+  older app cannot run stale rungs or lower the version stamp. A headless
+  isolate (the background task) that finds an older database throws
+  `SchemaUpgradePendingException` from the same file and leaves the
+  upgrade to the next foreground launch.
+- **Back up first.** Before a pending ladder runs, the startup page takes a
+  full copy of the database with `PreMigrationBackupService`
+  (`lib/features/backup/data/services/pre_migration_backup_service.dart`),
+  keeping the last few copies, so a failed upgrade can be recovered.
+
+### Testing Migrations
+
+Each rung that changes the schema or rewrites data has a test under
+`test/core/database/`, named `migration_v<N>_test.dart` or
+`migration_v<N>_<topic>_test.dart`. The test opens an in-memory
+`NativeDatabase` whose `setup` sets `PRAGMA user_version` to the version
+before the rung and creates the affected tables in their old shape with
+sample rows, then wraps it in `AppDatabase`, forces the ladder to run with
+a trivial query, and asserts the new columns and the migrated values.
+`migration_v86_test.dart` is a compact example.
+`pre_migration_backup_integration_test.dart` covers the backup.
+
+### New Migration Checklist
+
+1. Follow the numbered steps in [Schema Version](#schema-version).
+2. Write the `migration_v<N>` test first and watch it fail.
+3. If the rung rewrites user data, assert values before and after, not
+   only that the column exists.
+4. If a restored or synced database must satisfy the change too, add the
+   backstop to `before_open.dart`.
+5. Run `flutter test test/core/database` before pushing.
+
 ## Core Tables
 
 ### Divers
