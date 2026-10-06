@@ -16,6 +16,8 @@ import 'package:submersion/features/dive_sites/domain/matching/site_match_sensit
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
+import 'package:submersion/features/media/presentation/helpers/site_attachment_labels.dart';
 import 'package:submersion/features/media/presentation/match_confidence_display.dart';
 import 'package:submersion/features/media/presentation/widgets/media_info_panel.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -230,6 +232,20 @@ final ConflictEnumLabeler matchConfidenceLabeler = enumLabeler(
 final ConflictEnumLabeler mediaSourceTypeLabeler = enumLabeler(
   MediaSourceType.values,
   (l, v) => sourceTypeLabel(l, v),
+);
+
+/// A site attachment's category (issue #1039), stored by key.
+final ConflictEnumLabeler siteAttachmentCategoryLabeler = enumLabeler(
+  SiteAttachmentCategory.values,
+  (l, v) => v.label(l),
+  storedAs: (v) => v.storageKey,
+);
+
+/// A site attachment's size override (issue #1039), stored by key.
+final ConflictEnumLabeler attachmentDisplaySizeLabeler = enumLabeler(
+  AttachmentDisplaySize.values,
+  (l, v) => v.label(l),
+  storedAs: (v) => v.storageKey,
 );
 
 /// The theme mode is stored as the word, not an enum name.

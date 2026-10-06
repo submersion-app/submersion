@@ -148,15 +148,19 @@ the merge right after it finishes.
 
 ### Synced With Your Diver Profile
 
+The pSCR ratio and **Keep overlays in view when zooming** used to stay on each
+device. After updating, a diver profile that has no value yet takes this
+device's setting if you had changed it from the default.
+
 | Area | Settings |
 |------|----------|
 | **Units** | Unit system and every individual unit, gas consumption display, gas calculations, default water type, default currency, visibility scale, coordinate format, time and date format |
 | **Language** | App language, place name language |
-| **Decompression** | Gradient factors, CNS calculation, ppO2 limits, CCR setpoints, data source preferences (NDL, deco stop, TTS, GTR, and CNS sources), narcosis (O2 is narcotic, END limit), ascent planning, GTR reserve pressure, ascent-rate warning levels, last stop depth and stop increment |
+| **Decompression** | Gradient factors, CNS calculation, ppO2 limits, CCR setpoints, data source preferences (NDL, deco stop, TTS, GTR, and CNS sources), narcosis (O2 is narcotic, END limit), ascent planning, GTR reserve pressure, ascent-rate warning levels, last stop depth and stop increment, the pSCR ratio in the dive planner |
 | **Safety** | Post-dive safety review and its rules, flying after diving preset, equipment condition thresholds and rules |
 | **Appearance** | Color theme, map style, color accents |
-| **Appearance, per section** (Dives, Sites, Trips, and so on) | List view, list fields and field presets, card coloring, map backgrounds on cards, Show Details Pane, profile panel in table view, data source badges, diver figure, dive and site detail section order and visibility |
-| **Dive profile chart** | Right Y-axis metric, default visible metrics, max depth, pressure threshold and gas switch markers, gas timeline, ceiling, ascent rate colors, NDL and deco stops on the profile, tissue display |
+| **Appearance, per section** (Dives, Sites, Trips, Certifications, Courses, and so on) | List view, list fields and field presets, card coloring, map backgrounds on cards, Show Details Pane, profile panel in table view, data source badges, diver figure, dive and site detail section order and visibility |
+| **Dive profile chart** | Right Y-axis metric, default visible metrics, max depth, pressure threshold and gas switch markers, gas timeline, ceiling, ascent rate colors, NDL and deco stops on the profile, tissue display, Keep overlays in view when zooming |
 | **Dive defaults and imports** | Default dive type, tank, and start pressure, applying the default tank to imports, auto-tagging imports, auto site matching, tank pressure at surfacing, grouping trips in the dive list |
 | **Other** | Items hidden from this profile, hidden built-in tank presets, emergency region and hidden chambers, 3D seascape appearance |
 
@@ -199,10 +203,10 @@ them.
 | **Backup & Restore** | Automatic backups, frequency, how many backups to keep, backup location, cloud backup |
 | **Database Storage** | Where the database file is kept |
 | **Updates** | Automatic updates, update channel |
-| **Appearance** | Light or dark mode, **Navigation layout** and **Always hide labels**, Display size, the Home screen layout (status chips and home cards), Keep overlays in view when zooming |
+| **Appearance** | Light or dark mode, **Navigation layout** and **Always hide labels**, Display size, the Home screen layout (status chips and home cards) |
 | **Photos & Media** | Show source badges on thumbnails, Upload photos automatically, uploading on cellular |
 | **Dive computers** | Bluetooth pairing, Sync dive computer clocks |
-| **Other** | Which diver is active, Data quality checks, the pSCR ratio in the dive planner, the O2 cell unit in chart options, CSV export units, your sign-ins to other services (Garmin, Suunto, divelogs.de, Adobe Lightroom, and media storage logins), which dive detail sections are expanded, which trips are collapsed in the dive list, Debug mode |
+| **Other** | Which diver is active, Data quality checks, the O2 cell unit in chart options, CSV export units, your sign-ins to other services (Garmin, Suunto, divelogs.de, Adobe Lightroom, and media storage logins), which dive detail sections are expanded, which trips are collapsed in the dive list, Debug mode |
 
 Changing a setting that stays on the device never changes it on another
 device, and a sync never overwrites it. A device that joins your library keeps

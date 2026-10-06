@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
@@ -357,10 +358,11 @@ final inProgressCourseCountProvider = FutureProvider<int>((ref) async {
 // Course List View Mode
 // ============================================================================
 
-/// In-memory view mode for the course list. Defaults to detailed.
-/// Not persisted in AppSettings — resets to detailed on app restart.
+/// Runtime-scoped course list view mode. Same contract as
+/// [certificationListViewModeProvider]: seeded once from the saved setting
+/// (v262) with `ref.read`, overridden by the list's menu for the session.
 final courseListViewModeProvider = StateProvider<ListViewMode>((ref) {
-  return ListViewMode.detailed;
+  return ref.read(settingsProvider).courseListViewMode;
 });
 
 // ============================================================================

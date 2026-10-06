@@ -123,6 +123,36 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  // Issue #1039: an attachment can be renamed or recategorized from here;
+  // a dive photo belongs to its dive, not the site, so it cannot.
+  testWidgets('the attachments viewer offers Edit details', (tester) async {
+    await pumpViewer(tester);
+    expect(find.byTooltip('Edit details'), findsOneWidget);
+  });
+
+  testWidgets('Edit details opens the sheet for the current photo', (
+    tester,
+  ) async {
+    await pumpViewer(tester, initialMediaId: 'm2');
+    await tester.tap(find.byTooltip('Edit details'));
+    await tester.pumpAndSettle();
+    expect(find.text('Attachment details'), findsOneWidget);
+    expect(find.text('wall.png'), findsWidgets);
+  });
+
+  testWidgets('the dive photos viewer does not', (tester) async {
+    await pumpViewer(
+      tester,
+      scope: SiteViewerScope.divePhotos,
+      extraOverrides: [
+        flatMediaFromDivesAtSiteProvider(
+          'site-1',
+        ).overrideWith((ref) async => [first, second]),
+      ],
+    );
+    expect(find.byTooltip('Edit details'), findsNothing);
+  });
+
   testWidgets('renders the gallery pager and the 1-based page indicator', (
     tester,
   ) async {
