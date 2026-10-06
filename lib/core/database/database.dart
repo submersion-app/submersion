@@ -1130,12 +1130,18 @@ class AppDatabase extends _$AppDatabase {
     // so the floor stays. Renumbered several times while this was open; 268
     // is held by an open branch (#3043).
     269,
+    // v270: dive_weights.label and weight_preset_entries.label, a diver's own
+    // name for a weight (issue #956). Additive defaulted columns, so the
+    // floor stays: an older peer's payload omits the key and the row keeps
+    // its local value or the '' default. Renumbered as other rungs shipped
+    // first (261 through 269); 268 is held by an open branch (#3043).
+    270,
     // v271: certification currency (issue #2267): the rule catalog with its
     // built-in seed, per certification overrides and the event ledger. New
     // synced tables only, so the floor stays. Built-in rules are reference
     // data, re-seeded by INSERT OR IGNORE from onCreate, the rung and
     // beforeOpen. Renumbered from 261, 262, 266, 267 and 269 as main shipped
-    // those first; 268 and 270 are held by open branches.
+    // those first (and then 270); 268 is held by an open branch.
     271,
   ];
 

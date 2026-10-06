@@ -301,6 +301,7 @@ void main() {
     String id, {
     required String diveId,
     double amountKg = 2.0,
+    String label = '',
   }) async {
     await db
         .into(db.diveWeights)
@@ -311,6 +312,7 @@ void main() {
             weightType: 'Integrated',
             amountKg: amountKg,
             createdAt: 0,
+            label: Value(label),
           ),
         );
   }
@@ -1306,6 +1308,31 @@ void main() {
   // import that dropped them, is repaired by re-importing the file and
   // consolidating each dive into its duplicate. The fold adopts them onto the
   // target the way it adopts GPS above: only when the target has none.
+  group('weight names (#956)', () {
+    test('a weight copied from a secondary keeps its name, and undo '
+        'restores the original', () async {
+      await seedConsolidatableFixture();
+      await seedWeight('weight-s1', diveId: 's', label: 'Top pocket');
+
+      final outcome = await service.apply(
+        targetDiveId: 't',
+        secondaryDiveIds: ['s'],
+      );
+
+      final copied = await (db.select(
+        db.diveWeights,
+      )..where((t) => t.diveId.equals('t'))).get();
+      expect(copied.single.label, 'Top pocket');
+
+      await service.undo(outcome.snapshot);
+
+      final restored = await (db.select(
+        db.diveWeights,
+      )..where((t) => t.id.equals('weight-s1'))).get();
+      expect(restored.single.label, 'Top pocket');
+    });
+  });
+
   group('apply site and runtime (#1809)', () {
     Future<void> setSiteAndRuntime(
       String id, {

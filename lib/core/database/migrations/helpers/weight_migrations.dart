@@ -34,4 +34,20 @@ extension WeightMigrations on AppDatabase {
       'ON weight_preset_entries(preset_id)',
     );
   }
+
+  /// Idempotent DDL for the v270 weight name columns (issue #956) on
+  /// dive_weights and weight_preset_entries. Called from the v270 rung and
+  /// re-asserted in beforeOpen, so a database that arrives by restore or
+  /// sync-adopt, or one a renumbered rung skipped, still gains them.
+  Future<void> _assertWeightLabelColumns() async {
+    for (final table in const ['dive_weights', 'weight_preset_entries']) {
+      final cols = await customSelect("PRAGMA table_info('$table')").get();
+      if (cols.isEmpty) continue;
+      final names = cols.map((c) => c.read<String>('name')).toSet();
+      if (names.contains('label')) continue;
+      await customStatement(
+        "ALTER TABLE $table ADD COLUMN label TEXT NOT NULL DEFAULT ''",
+      );
+    }
+  }
 }

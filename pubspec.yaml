@@ -140,6 +140,7 @@ dependencies:
   archive: ^4.0.9  # ZIP expansion for DiveCloud export archives
   fit_tool: ^1.0.5  # Garmin FIT file parsing for dive imports
   logger: ^2.0.0  # Used to suppress fit_tool's verbose warnings
+  characters: ^1.4.0  # grapheme-safe weight name length (issue #956), same version Flutter pins
   collection: ^1.18.0
   equatable: ^2.0.7
   crypto: ^3.0.3

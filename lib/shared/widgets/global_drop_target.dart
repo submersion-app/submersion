@@ -16,6 +16,8 @@ import 'package:submersion/features/media/presentation/helpers/media_drop_destin
 import 'package:submersion/features/media/presentation/helpers/media_drop_import.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
+import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
+import 'package:submersion/features/import_wizard/presentation/suunto_file_import_navigation.dart';
 import 'package:submersion/features/universal_import/data/services/batch_parse_service.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -94,7 +96,7 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
     if (!mounted) return;
     final routerState = GoRouterState.of(context);
     final currentPath = routerState.uri.path;
-    if (currentPath.startsWith('/transfer/import-wizard') ||
+    if (isImportWizardRoute(currentPath) ||
         ref.read(openPhotoPickerSessionsProvider).value > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.dropTarget_error_wizardActive)),
@@ -191,6 +193,10 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
         context.push('/transfer/import-wizard');
       case IncomingFileOutcome.navigateToNavTrackReview:
         await navigateToNavTrackReview(context, bytes, fileName: fileName);
+      case IncomingFileOutcome.navigateToSuuntoFileImport:
+        await openSuuntoFileImport(context, [
+          SuuntoJsonFile(name: fileName, bytes: bytes),
+        ]);
       case IncomingFileOutcome.none:
         break;
     }

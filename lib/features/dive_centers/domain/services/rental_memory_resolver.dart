@@ -45,16 +45,7 @@ class LastDiveAtCenter extends Equatable {
   List<DiveWeight> weightsForNewDive({
     required String diveId,
     required String Function() newId,
-  }) => [
-    for (final w in weights)
-      DiveWeight(
-        id: newId(),
-        diveId: diveId,
-        weightType: w.weightType,
-        amountKg: w.amountKg,
-        notes: w.notes,
-      ),
-  ];
+  }) => [for (final w in weights) w.copyWith(id: newId(), diveId: diveId)];
 
   /// The cylinders as rows for a new dive: the rig (size, rating, preset,
   /// material, mix, role, order) travels; the pressures do not, because the

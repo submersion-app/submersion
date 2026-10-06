@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerates the label lookups the query registry and Explore read.
+"""Regenerates the label lookup the query registry reads.
 
 lib/features/query/presentation/query_label_lookup.dart: the query registry
 names labels by ARB key (query_<subject>_<field>); Dart has no reflection, so
@@ -7,11 +7,7 @@ this switch maps each key to its AppLocalizations getter. The guard test
 test/features/query/presentation/query_labels_test.dart fails until you rerun
 this after adding a query_* key.
 
-lib/features/explore/presentation/explore_label_lookup.dart: each Explore field
-names its chip label by ARB key too (explore_field_* or explore_chip_*, or a
-query_* key it shares with the registry). The guard test
-test/features/explore/presentation/explore_label_lookup_test.dart fails until
-you rerun this after adding such a key.
+(It once also wrote an Explore lookup; that page was retired in #2857.)
 
 Keys whose English value has a placeholder generate methods, not getters,
 and are left out.
@@ -23,9 +19,6 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 ARB = ROOT / "lib" / "l10n" / "arb" / "app_en.arb"
 QUERY_OUT = (
     ROOT / "lib" / "features" / "query" / "presentation" / "query_label_lookup.dart"
-)
-EXPLORE_OUT = (
-    ROOT / "lib" / "features" / "explore" / "presentation" / "explore_label_lookup.dart"
 )
 
 arb = json.loads(ARB.read_text(encoding="utf-8"))
@@ -75,22 +68,4 @@ write(
     "queryLabelForKey",
     plain_keys(("query_",)),
     "key",
-)
-
-write(
-    EXPLORE_OUT,
-    "// Do not edit by hand; rerun the script after adding an explore_field_*\n"
-    "// or explore_chip_* key.",
-    [
-        "import 'package:submersion/features/query/presentation/query_label_lookup.dart';",
-        "import 'package:submersion/l10n/arb/app_localizations.dart';",
-    ],
-    [
-        "/// The localized label for an Explore field's label key. Any other key",
-        "/// goes to [queryLabelForKey], which returns the key itself when no such",
-        "/// string exists (a guard test keeps that from shipping).",
-    ],
-    "exploreLabelForKey",
-    plain_keys(("explore_field_", "explore_chip_")),
-    "queryLabelForKey(l10n, key)",
 )

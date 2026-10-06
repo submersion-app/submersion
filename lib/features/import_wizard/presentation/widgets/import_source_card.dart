@@ -149,7 +149,8 @@ class ImportSourceCard extends ConsumerWidget {
     ImportSourceType.divelogs => Icons.cloud_download_outlined,
     ImportSourceType.uddf ||
     ImportSourceType.fit ||
-    ImportSourceType.universal =>
+    ImportSourceType.universal ||
+    ImportSourceType.suuntoFile =>
       (source.details.fileCount ?? 0) > 1
           ? Icons.folder_copy_outlined
           : Icons.insert_drive_file_outlined,

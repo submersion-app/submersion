@@ -7068,6 +7068,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_label_waterType => 'סוג מים';
 
   @override
+  String get diveLog_edit_label_weightName => 'שם (אופציונלי)';
+
+  @override
+  String get diveLog_edit_hint_weightName => 'לדוגמה: כיס עליון';
+
+  @override
   String get diveLog_edit_marineLifeHint => 'הקש \"הוספה\" לרישום תצפיות';
 
   @override
@@ -28406,6 +28412,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_triage_excludedCsv => 'ייבוא נפרד (CSV)';
 
   @override
+  String universalImport_triage_excludedHandoff(String format) {
+    return 'ייבוא נפרד ($format)';
+  }
+
+  @override
   String get universalImport_triage_unsupported => 'פורמט לא נתמך';
 
   @override
@@ -46913,6 +46924,57 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_handoff_reviewTrackButton => 'בדיקת המסלול התת-ימי';
 
   @override
+  String get suuntoJson_handoff_recognized => 'זוהה ייצוא צלילה של Suunto';
+
+  @override
+  String get suuntoJson_handoff_description =>
+      'קובץ זה יוצא מאפליקציית Suunto. מייבא Suunto קורא אותו באותו אופן כמו הייבוא מ-Suunto Cloud, כולל המסלול המוקלט של הצלילה.';
+
+  @override
+  String get suuntoJson_handoff_importButton => 'ייבוא צלילת Suunto';
+
+  @override
+  String get suuntoFile_step_title => 'ייצואים מאפליקציית Suunto';
+
+  @override
+  String get suuntoFile_step_description =>
+      'בחר צלילה אחת או יותר שיוצאו מאפליקציית Suunto כ-JSON. צלילות שהוקלטו עם מסלול מביאות אותו איתן.';
+
+  @override
+  String get suuntoFile_step_chooseFiles => 'בחירת קבצים';
+
+  @override
+  String suuntoFile_step_readyCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות מוכנות לייבוא',
+      one: 'צלילה אחת מוכנה לייבוא',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get suuntoFile_step_routeIncluded => 'כולל מסלול מוקלט';
+
+  @override
+  String get suuntoFile_step_noRoute => 'אין מסלול מוקלט';
+
+  @override
+  String get suuntoFile_rejection_notJson => 'לא קובץ JSON';
+
+  @override
+  String get suuntoFile_rejection_notSuuntoExport =>
+      'לא ייצוא מאפליקציית Suunto';
+
+  @override
+  String get suuntoFile_rejection_notADive => 'לא צלילה (סוג פעילות אחר)';
+
+  @override
+  String get universalImport_summary_importWithSuunto =>
+      'ייבוא עם מייבא Suunto';
+
+  @override
   String get navTrack_section_trackTitle => 'מסלול תת-ימי';
 
   @override
@@ -47843,6 +47905,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_weights_amount => 'כמות';
+
+  @override
+  String get query_weights_label => 'שם';
 
   @override
   String get query_weights_notes => 'הערות';

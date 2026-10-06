@@ -434,6 +434,31 @@ void main() {
         expect(requestedCells, [BathymetryRepository.quantize(routeAnchor)]);
       });
 
+      // A measured route spans metres inside a terrain tile kilometres
+      // wide; its scene is built at route scale (#1445).
+      test('frames a measured route at its own scale', () async {
+        final container = await containerFor(
+          _route(
+            points: points,
+            anchorLatitude: 10.0005,
+            anchorLongitude: 20.0005,
+          ),
+        );
+
+        final result = await container.read(
+          spatialGeometryProvider('d1').future,
+        );
+
+        // The route is 10 m north-south and 0 m east-west; padded, the frame
+        // is 15 m by 4 m rather than the tile's ~220 m.
+        final frame = result!.axisInputs!;
+        expect(frame.maxNorth - frame.minNorth, closeTo(15, 0.5));
+        expect(frame.maxEast - frame.minEast, closeTo(4, 0.5));
+        // The hover grid matches the resampled terrain mesh.
+        expect(result.grid!.rows, 24);
+        expect(result.imagery, isNull);
+      });
+
       test(
         'uses the route\'s own anchor, not the dive\'s entry location',
         () async {

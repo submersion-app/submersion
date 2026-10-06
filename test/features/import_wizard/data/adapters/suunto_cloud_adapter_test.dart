@@ -199,6 +199,7 @@ void main() {
         final bundle = await adapter.buildBundle();
 
         expect(bundle.hasType(ImportEntityType.dives), isTrue);
+        expect(bundle.source.type, ImportSourceType.suuntoCloud);
         expect(bundle.groups[ImportEntityType.dives]!.items, hasLength(1));
         verify(mockComputerRepo.createComputer(any)).called(1);
       },

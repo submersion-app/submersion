@@ -8,6 +8,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_log/domain/entities/weight_label.dart';
 import 'package:submersion/features/weight_presets/domain/entities/weight_preset.dart';
 
 /// CRUD for the diver's reusable weighting rigs (issue #1609). Mirrors
@@ -109,7 +110,12 @@ class WeightPresetRepository {
     notes: notes,
     entries: [
       for (final w in weights)
-        (weightType: w.weightType, amountKg: w.amountKg, notes: w.notes),
+        (
+          weightType: w.weightType,
+          amountKg: w.amountKg,
+          notes: w.notes,
+          label: w.label,
+        ),
     ],
   );
 
@@ -152,6 +158,7 @@ class WeightPresetRepository {
                 weightType: Value(entries[i].weightType.name),
                 amountKg: Value(entries[i].amountKg),
                 notes: Value(entries[i].notes),
+                label: Value(normalizeWeightLabel(entries[i].label)),
                 sortOrder: Value(i),
                 createdAt: Value(now),
               ),
@@ -243,6 +250,7 @@ class WeightPresetRepository {
                 weightType: Value(entries[i].weightType.name),
                 amountKg: Value(entries[i].amountKg),
                 notes: Value(entries[i].notes),
+                label: Value(normalizeWeightLabel(entries[i].label)),
                 sortOrder: Value(i),
                 createdAt: Value(now),
               ),
@@ -320,6 +328,7 @@ class WeightPresetRepository {
     ),
     amountKg: row.amountKg,
     notes: row.notes,
+    label: row.label,
     sortOrder: row.sortOrder,
   );
 }

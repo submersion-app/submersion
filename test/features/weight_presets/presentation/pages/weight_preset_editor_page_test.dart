@@ -71,6 +71,16 @@ WeightPreset _preset(
   );
 }
 
+/// A row's amount field (its label is the weight unit).
+Finder _amountField() => find.byWidgetPredicate(
+  (w) => w is TextField && w.decoration?.labelText == 'kg',
+);
+
+/// A row's optional name field (issue #956).
+Finder _nameField() => find.byWidgetPredicate(
+  (w) => w is TextField && w.decoration?.labelText == 'Name (optional)',
+);
+
 void main() {
   late _RecordingRepo repo;
 
@@ -125,8 +135,7 @@ void main() {
     await pump(tester);
 
     await tester.enterText(find.byType(TextFormField).first, 'Wetsuit');
-    // the single amount field
-    await tester.enterText(find.byType(TextFormField).last, '4');
+    await tester.enterText(_amountField().last, '4');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
@@ -139,7 +148,7 @@ void main() {
 
   testWidgets('new: refuses to save without a name', (tester) async {
     await pump(tester);
-    await tester.enterText(find.byType(TextFormField).last, '4');
+    await tester.enterText(_amountField().last, '4');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
@@ -162,7 +171,7 @@ void main() {
   ) async {
     await pump(tester);
     await tester.enterText(find.byType(TextFormField).first, 'Wetsuit');
-    await tester.enterText(find.byType(TextFormField).last, '4..5');
+    await tester.enterText(_amountField().last, '4..5');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
@@ -218,5 +227,116 @@ void main() {
     expect(find.text('This weighting rig no longer exists.'), findsOneWidget);
     expect(find.text('list'), findsOneWidget); // popped back to the list route
     expect(find.byType(WeightPresetEditorPage), findsNothing);
+  });
+
+  group('weight names (#956)', () {
+    testWidgets('new: a row\'s name saves with its entry', (tester) async {
+      await pump(tester);
+      await tester.enterText(find.byType(TextFormField).first, 'Sidemount');
+      await tester.enterText(_amountField().last, '2');
+      await tester.enterText(_nameField().last, 'Top pocket');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(repo.created.single.entries.single.label, 'Top pocket');
+    });
+
+    testWidgets('edit: an entry\'s name is pre-filled and saved back', (
+      tester,
+    ) async {
+      repo.loadReturns = _preset(
+        'p1',
+        'Sidemount',
+        entries: const [
+          WeightPresetEntry(
+            id: 'p1-e0',
+            presetId: 'p1',
+            weightType: WeightType.trimWeights,
+            amountKg: 2.0,
+            label: 'Top pocket',
+          ),
+        ],
+      );
+      await pump(tester, presetId: 'p1');
+
+      expect(find.widgetWithText(TextFormField, 'Top pocket'), findsOneWidget);
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(repo.updated.single.entries.single.label, 'Top pocket');
+    });
+
+    testWidgets('deleting a middle row keeps the others\' names and types', (
+      tester,
+    ) async {
+      repo.loadReturns = _preset(
+        'p1',
+        'Sidemount',
+        entries: const [
+          WeightPresetEntry(
+            id: 'e0',
+            presetId: 'p1',
+            weightType: WeightType.trimWeights,
+            amountKg: 2.0,
+            label: 'Top pocket',
+          ),
+          WeightPresetEntry(
+            id: 'e1',
+            presetId: 'p1',
+            weightType: WeightType.ankleWeights,
+            amountKg: 1.0,
+            label: 'Ankles',
+          ),
+          WeightPresetEntry(
+            id: 'e2',
+            presetId: 'p1',
+            weightType: WeightType.belt,
+            amountKg: 3.0,
+            label: 'Belt',
+          ),
+        ],
+      );
+      await pump(tester, presetId: 'p1');
+
+      await tester.tap(find.byIcon(Icons.delete_outline).at(1));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final saved = repo.updated.single.entries;
+      expect(saved.map((e) => e.label), ['Top pocket', 'Belt']);
+      expect(saved.map((e) => e.weightType), [
+        WeightType.trimWeights,
+        WeightType.belt,
+      ]);
+      expect(find.text('Ankle Weights'), findsNothing);
+    });
+  });
+
+  testWidgets('edit: a preset with no entries starts with one blank row', (
+    tester,
+  ) async {
+    repo.loadReturns = _preset('p1', 'Empty', entries: const []);
+    await pump(tester, presetId: 'p1');
+
+    expect(find.byType(DropdownButtonFormField<WeightType>), findsOneWidget);
+    expect(_nameField(), findsOneWidget);
+  });
+
+  testWidgets('a row\'s type change is saved', (tester) async {
+    await pump(tester);
+    await tester.enterText(find.byType(TextFormField).first, 'Ankles');
+    await tester.enterText(_amountField().last, '1');
+    await tester.tap(find.text('Weight Belt'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ankle Weights').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(
+      repo.created.single.entries.single.weightType,
+      WeightType.ankleWeights,
+    );
   });
 }

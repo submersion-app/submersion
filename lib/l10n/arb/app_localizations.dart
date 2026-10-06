@@ -11443,6 +11443,18 @@ abstract class AppLocalizations {
   /// **'Water Type'**
   String get diveLog_edit_label_waterType;
 
+  /// Label of the optional name field under a weight row in the dive and weight preset editors
+  ///
+  /// In en, this message translates to:
+  /// **'Name (optional)'**
+  String get diveLog_edit_label_weightName;
+
+  /// Example name shown in the empty weight name field
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Top pocket'**
+  String get diveLog_edit_hint_weightName;
+
   /// No description provided for @diveLog_edit_marineLifeHint.
   ///
   /// In en, this message translates to:
@@ -46285,6 +46297,12 @@ abstract class AppLocalizations {
   /// **'Import individually (CSV)'**
   String get universalImport_triage_excludedCsv;
 
+  /// No description provided for @universalImport_triage_excludedHandoff.
+  ///
+  /// In en, this message translates to:
+  /// **'Import individually ({format})'**
+  String universalImport_triage_excludedHandoff(String format);
+
   /// Triage status for files whose format has no parser
   ///
   /// In en, this message translates to:
@@ -76029,6 +76047,84 @@ abstract class AppLocalizations {
   /// **'Review underwater track'**
   String get navTrack_handoff_reviewTrackButton;
 
+  /// No description provided for @suuntoJson_handoff_recognized.
+  ///
+  /// In en, this message translates to:
+  /// **'Suunto dive export recognised'**
+  String get suuntoJson_handoff_recognized;
+
+  /// No description provided for @suuntoJson_handoff_description.
+  ///
+  /// In en, this message translates to:
+  /// **'This file was exported from the Suunto app. The Suunto importer reads it the same way as the Suunto Cloud import, including the dive\'s recorded route.'**
+  String get suuntoJson_handoff_description;
+
+  /// No description provided for @suuntoJson_handoff_importButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Suunto dive'**
+  String get suuntoJson_handoff_importButton;
+
+  /// No description provided for @suuntoFile_step_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Suunto app exports'**
+  String get suuntoFile_step_title;
+
+  /// No description provided for @suuntoFile_step_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose one or more dives exported from the Suunto app as JSON. Dives recorded with a route bring it along.'**
+  String get suuntoFile_step_description;
+
+  /// No description provided for @suuntoFile_step_chooseFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose files'**
+  String get suuntoFile_step_chooseFiles;
+
+  /// No description provided for @suuntoFile_step_readyCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive ready to import} other{{count} dives ready to import}}'**
+  String suuntoFile_step_readyCount(num count);
+
+  /// No description provided for @suuntoFile_step_routeIncluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes recorded route'**
+  String get suuntoFile_step_routeIncluded;
+
+  /// No description provided for @suuntoFile_step_noRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'No recorded route'**
+  String get suuntoFile_step_noRoute;
+
+  /// No description provided for @suuntoFile_rejection_notJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a JSON file'**
+  String get suuntoFile_rejection_notJson;
+
+  /// No description provided for @suuntoFile_rejection_notSuuntoExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a Suunto app export'**
+  String get suuntoFile_rejection_notSuuntoExport;
+
+  /// No description provided for @suuntoFile_rejection_notADive.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a dive (another activity type)'**
+  String get suuntoFile_rejection_notADive;
+
+  /// No description provided for @universalImport_summary_importWithSuunto.
+  ///
+  /// In en, this message translates to:
+  /// **'Import with Suunto importer'**
+  String get universalImport_summary_importWithSuunto;
+
   /// No description provided for @navTrack_section_trackTitle.
   ///
   /// In en, this message translates to:
@@ -77774,6 +77870,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Amount'**
   String get query_weights_amount;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_weights_label;
 
   /// Field label in the query builder
   ///

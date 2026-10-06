@@ -23,6 +23,11 @@ final _encBytes = File(
   'test/fixtures/nav_tracks/seacraft_enc3_short.csv',
 ).readAsBytesSync();
 
+/// A Suunto app JSON export, handed to the Suunto importer (#1445).
+final _suuntoJsonBytes = Uint8List.fromList(
+  '{"DeviceLog":{"Header":{"ActivityType":51}}}'.codeUnits,
+);
+
 /// PNG magic bytes -- not a supported dive-log format.
 final _pngBytes = Uint8List.fromList([
   0x89,
@@ -78,6 +83,25 @@ void main() {
 
       expect(result, IncomingFileOutcome.none);
     });
+
+    test(
+      'treats the Suunto file wizard as a busy import too (#1445)',
+      () async {
+        final result = await handleIncomingFile(
+          bytes: _suuntoJsonBytes,
+          fileName: 'nautic.json',
+          currentPath: '/transfer/import-file/suunto',
+          notifier: notifier,
+          messenger: null,
+        );
+
+        expect(result, IncomingFileOutcome.none);
+        expect(notifier.state.fileBytes, isNull);
+        expect(isImportWizardRoute('/transfer/import-wizard'), isTrue);
+        expect(isImportWizardRoute('/transfer/import-file/suunto'), isTrue);
+        expect(isImportWizardRoute('/transfer'), isFalse);
+      },
+    );
 
     testWidgets(
       'returns false and shows snackbar for unsupported file format',
@@ -173,6 +197,24 @@ void main() {
         expect(result, IncomingFileOutcome.navigateToNavTrackReview);
         // The notifier stays reset -- the file never enters the dive
         // import wizard's own state.
+        expect(notifier.state.currentStep, ImportWizardStep.fileSelection);
+        expect(notifier.state.fileBytes, isNull);
+      },
+    );
+
+    testWidgets(
+      'returns navigateToSuuntoFileImport for a Suunto JSON export without '
+      'touching the wizard state (#1445)',
+      (tester) async {
+        final result = await handleIncomingFile(
+          bytes: _suuntoJsonBytes,
+          fileName: 'nautic.json',
+          currentPath: '/home',
+          notifier: notifier,
+          messenger: null,
+        );
+
+        expect(result, IncomingFileOutcome.navigateToSuuntoFileImport);
         expect(notifier.state.currentStep, ImportWizardStep.fileSelection);
         expect(notifier.state.fileBytes, isNull);
       },

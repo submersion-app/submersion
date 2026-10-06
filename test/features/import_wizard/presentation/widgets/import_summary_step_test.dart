@@ -1968,6 +1968,55 @@ void main() {
     });
   });
 
+  group('ImportSummaryStep - excluded Suunto JSON export in a batch', () {
+    testWidgets(
+      '"Import with Suunto importer" appears for a Suunto JSON outcome with a '
+      'path, and the route action does not (#1445)',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(800, 900));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        final notifier = _makeNotifier();
+        notifier.state = notifier.state.copyWith(
+          importResult: const UnifiedImportResult(
+            importedCounts: {},
+            consolidatedCount: 0,
+            skippedCount: 0,
+            fileOutcomes: [
+              ImportFileOutcome(
+                fileName: 'no-path.json',
+                formatName: 'Suunto JSON',
+                status: ImportFileOutcomeStatus.needsIndividualImport,
+                isSuuntoJson: true,
+              ),
+              ImportFileOutcome(
+                fileName: 'nautic.json',
+                formatName: 'Suunto JSON',
+                status: ImportFileOutcomeStatus.needsIndividualImport,
+                isSuuntoJson: true,
+                // Only needs to be non-null; never read.
+                filePath: 'nautic.json',
+              ),
+            ],
+          ),
+        );
+
+        await tester.pumpWidget(_buildWidget(notifier));
+        await tester.pump();
+
+        expect(
+          find.byKey(const ValueKey('import-summary-import-with-suunto')),
+          findsOneWidget,
+        );
+        expect(find.text('Import with Suunto importer'), findsOneWidget);
+        expect(
+          find.byKey(const ValueKey('import-summary-import-as-route')),
+          findsNothing,
+        );
+      },
+    );
+  });
+
   group('ImportSummaryStep - excluded Seacraft ENC route in a batch', () {
     testWidgets(
       '"Import as underwater track" only appears for a navTrack outcome with a path',

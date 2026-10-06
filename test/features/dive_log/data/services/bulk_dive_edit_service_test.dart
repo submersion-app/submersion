@@ -218,6 +218,29 @@ void main() {
     expect((await sightingsOf('d1')).single, 'origFish');
   });
 
+  test('undo restores each weight\'s name', () async {
+    await seed('d1');
+    await diveRepo.bulkAddWeights(
+      ['d1'],
+      [weight(3).copyWith(label: 'Top pocket')],
+    );
+
+    final snap = await service.apply(
+      BulkEditRequest(
+        diveIds: const ['d1'],
+        ops: [
+          WeightsOp(mode: BulkCollectionMode.replace, weights: [weight(9)]),
+        ],
+      ),
+    );
+    await service.undo(snap);
+
+    final rows = await (db.select(
+      db.diveWeights,
+    )..where((t) => t.diveId.equals('d1'))).get();
+    expect(rows.single.label, 'Top pocket');
+  });
+
   test(
     'undoing a tank replace keeps each tank linked to its cylinder',
     () async {

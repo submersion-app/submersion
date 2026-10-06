@@ -251,9 +251,17 @@ extension RungsFromV231 on AppDatabase {
       await _assertHiddenBuiltInIdsColumn();
     }
     if (from < 269) await reportProgress();
+    // v270: dive_weights.label and weight_preset_entries.label, a diver's
+    // own name for a weight (issue #956). Defaulted columns, no backfill:
+    // existing rows read '' (unnamed). Re-asserted in beforeOpen. 268 is
+    // held by an open branch (#3043).
+    if (from < 270) {
+      await _assertWeightLabelColumns();
+    }
+    if (from < 270) await reportProgress();
     // v271: certification currency (issue #2267). Three synced tables and
     // the seeded built-in rule catalog, no backfill. Re-asserted in
-    // beforeOpen. 268 and 270 are held by open branches.
+    // beforeOpen. 268 is held by an open branch.
     if (from < 271) {
       await _assertCertificationCurrencySchema();
     }

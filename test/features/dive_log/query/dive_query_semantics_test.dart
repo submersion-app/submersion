@@ -92,6 +92,8 @@ void main() {
     expect(await ids('buddies = Ana AND buddies = Cid'), {'d5'});
     expect(await ids('gear[type = wetsuit] AND gear[type = drysuit]'), {'d5'});
     expect(await ids('weights[amount >= 2]'), {'d1'});
+    expect(await ids('weights[label ~ "pocket"]'), {'d1'});
+    expect(await ids('weights[label ~ "canister"]'), isEmpty);
     expect(await ids('weight >= 2'), {
       'd1',
       'd2',

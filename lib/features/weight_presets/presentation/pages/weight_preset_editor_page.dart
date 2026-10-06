@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/weight_label_field.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
@@ -35,7 +36,15 @@ class WeightPresetEditorPage extends ConsumerStatefulWidget {
 class _Row {
   WeightType type;
   final TextEditingController amount;
-  _Row(this.type, this.amount);
+
+  /// The entry's optional name (issue #956).
+  final TextEditingController label;
+  _Row(this.type, this.amount, this.label);
+
+  void dispose() {
+    amount.dispose();
+    label.dispose();
+  }
 }
 
 class _WeightPresetEditorPageState
@@ -53,7 +62,9 @@ class _WeightPresetEditorPageState
     if (widget.isEditing) {
       _load();
     } else {
-      _rows.add(_Row(WeightType.belt, TextEditingController()));
+      _rows.add(
+        _Row(WeightType.belt, TextEditingController(), TextEditingController()),
+      );
     }
   }
 
@@ -81,7 +92,7 @@ class _WeightPresetEditorPageState
       _loading = false;
       _nameController.text = preset.displayName;
       for (final r in _rows) {
-        r.amount.dispose();
+        r.dispose();
       }
       _rows
         ..clear()
@@ -92,11 +103,18 @@ class _WeightPresetEditorPageState
               TextEditingController(
                 text: formatRoundedForInput(units.convertWeight(e.amountKg), 3),
               ),
+              TextEditingController(text: e.label),
             ),
           ),
         );
       if (_rows.isEmpty) {
-        _rows.add(_Row(WeightType.belt, TextEditingController()));
+        _rows.add(
+          _Row(
+            WeightType.belt,
+            TextEditingController(),
+            TextEditingController(),
+          ),
+        );
       }
     });
   }
@@ -105,7 +123,7 @@ class _WeightPresetEditorPageState
   void dispose() {
     _nameController.dispose();
     for (final r in _rows) {
-      r.amount.dispose();
+      r.dispose();
     }
     super.dispose();
   }
@@ -124,7 +142,12 @@ class _WeightPresetEditorPageState
     final entries = <WeightEntryDraft>[
       for (final r in _rows)
         if (_amount(r) case final amount when amount > 0)
-          (weightType: r.type, amountKg: units.weightToKg(amount), notes: ''),
+          (
+            weightType: r.type,
+            amountKg: units.weightToKg(amount),
+            notes: '',
+            label: r.label.text,
+          ),
     ];
     if (entries.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -217,7 +240,11 @@ class _WeightPresetEditorPageState
                     child: TextButton.icon(
                       onPressed: () => setState(
                         () => _rows.add(
-                          _Row(WeightType.belt, TextEditingController()),
+                          _Row(
+                            WeightType.belt,
+                            TextEditingController(),
+                            TextEditingController(),
+                          ),
                         ),
                       ),
                       icon: const Icon(Icons.add),
@@ -232,56 +259,67 @@ class _WeightPresetEditorPageState
 
   Widget _buildRow(int index, UnitFormatter units, AppLocalizations l10n) {
     final row = _rows[index];
+    // Keyed by the row, so removing one above does not hand its dropdown's
+    // state to the next row.
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
+      key: ObjectKey(row),
+      // A row's name sits closer to its own row than to the next.
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
-            flex: 2,
-            child: DropdownButtonFormField<WeightType>(
-              initialValue: row.type,
-              isExpanded: true,
-              decoration: InputDecoration(
-                labelText: l10n.diveLog_edit_label_type,
-                isDense: true,
-              ),
-              items: [
-                for (final t in WeightType.values)
-                  DropdownMenuItem(
-                    value: t,
-                    child: Text(t.localizedName(l10n)),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: DropdownButtonFormField<WeightType>(
+                  initialValue: row.type,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: l10n.diveLog_edit_label_type,
+                    isDense: true,
                   ),
-              ],
-              onChanged: (v) {
-                if (v != null) setState(() => row.type = v);
-              },
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 1,
-            child: TextFormField(
-              controller: row.amount,
-              decoration: InputDecoration(
-                labelText: units.weightSymbol,
-                isDense: true,
+                  items: [
+                    for (final t in WeightType.values)
+                      DropdownMenuItem(
+                        value: t,
+                        child: Text(t.localizedName(l10n)),
+                      ),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) setState(() => row.type = v);
+                  },
+                ),
               ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 1,
+                child: TextFormField(
+                  controller: row.amount,
+                  decoration: InputDecoration(
+                    labelText: units.weightSymbol,
+                    isDense: true,
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: numberInputFormatters(),
+                  validator: numberValidator(context),
+                ),
               ),
-              inputFormatters: numberInputFormatters(),
-              validator: numberValidator(context),
-            ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline),
+                tooltip: l10n.diveLog_edit_tooltip_removeWeight,
+                onPressed: _rows.length == 1
+                    ? null
+                    : () => setState(() {
+                        _rows.removeAt(index).dispose();
+                      }),
+              ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            tooltip: l10n.diveLog_edit_tooltip_removeWeight,
-            onPressed: _rows.length == 1
-                ? null
-                : () => setState(() {
-                    _rows.removeAt(index).amount.dispose();
-                  }),
-          ),
+          const SizedBox(height: 8),
+          WeightLabelField(controller: row.label),
         ],
       ),
     );

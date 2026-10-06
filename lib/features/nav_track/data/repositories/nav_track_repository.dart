@@ -103,6 +103,11 @@ class NavTrackRepository {
   /// here" or a drag on the alignment page explicitly overrides it. No site
   /// chosen, or a site with no coordinates yet, leaves the anchor null, same
   /// as before.
+  ///
+  /// An explicit [anchorLatitude]/[anchorLongitude] pair, given when the
+  /// source file carries its own origin fix (a Suunto `DiveRouteOrigin`,
+  /// issue #1445), is stored as-is and skips both fallbacks: the route's
+  /// east/north are relative to that fix, not to the site or entry.
   Future<String> insertImportedRoute({
     required List<NavTrackPoint> points,
     required domain.NavTrackSource source,
@@ -113,6 +118,8 @@ class NavTrackRepository {
     String? siteId,
     String? equipmentId,
     String? diverId,
+    double? anchorLatitude,
+    double? anchorLongitude,
   }) async {
     try {
       if (points.length < 2) {
@@ -126,9 +133,14 @@ class NavTrackRepository {
       final now = DateTime.now().millisecondsSinceEpoch;
       final stats = NavTrackStats.of(points);
       final isPrimary = diveId == null || await _shouldBePrimary(diveId);
-      var anchor = siteId == null
-          ? null
-          : (await _siteRepository.getSiteById(siteId))?.location;
+      final explicitAnchor = anchorLatitude != null && anchorLongitude != null
+          ? GeoPoint(anchorLatitude, anchorLongitude)
+          : null;
+      var anchor =
+          explicitAnchor ??
+          (siteId == null
+              ? null
+              : (await _siteRepository.getSiteById(siteId))?.location);
       // No site chosen on the review page but the route is being pre-linked
       // to a dive: fall back to the dive's own entry fix, the same
       // inheritance `link()`'s `_siteAndAnchorToInherit` already gives a
@@ -142,7 +154,10 @@ class NavTrackRepository {
           : await (_db.select(
               _db.dives,
             )..where((t) => t.id.equals(diveId))).getSingleOrNull();
-      if (anchor == null && siteId == null && diveRow != null) {
+      if (explicitAnchor == null &&
+          anchor == null &&
+          siteId == null &&
+          diveRow != null) {
         final entryLat = diveRow.entryLatitude;
         final entryLon = diveRow.entryLongitude;
         if (entryLat != null && entryLon != null) {

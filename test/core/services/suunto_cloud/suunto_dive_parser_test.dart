@@ -1497,4 +1497,83 @@ void main() {
       expect(result.computerTissue, isNull);
     });
   });
+
+  // The Nautic S records an inertial route that the Suunto app exports as
+  // DiveRoute (#1445). It must land on the same clock as the dive itself,
+  // including when the cloud's sample clock runs a whole zone off (#2604).
+  group('DiveRoute', () {
+    Map<String, dynamic> headerAt(String dateTime) => {
+      'DateTime': dateTime,
+      'ActivityType': 51,
+      'Device': {'Name': 'Ylivieska', 'SerialNumber': 'NS-1'},
+      'DiveTime': 1800,
+    };
+
+    List<Map<String, dynamic>> samplesAt(String hhmm, String offset) => [
+      {
+        'TimeISO8601': '2026-04-19T$hhmm:40.000$offset',
+        'Depth': 1.2,
+        'DiveEvents': const {'DiveStatus': true},
+        'DiveRouteOrigin': const {'Latitude': 47.3, 'Longitude': -2.9},
+        'DiveRoute': const {'X': 0.0, 'Y': 0.0, 'Z': 1.2},
+      },
+      {
+        'TimeISO8601': '2026-04-19T$hhmm:41.000$offset',
+        'Depth': 1.8,
+        'DiveRoute': const {'X': 0.4, 'Y': 0.9, 'Z': 1.8},
+      },
+    ];
+
+    test('carries the route on the parsed dive, on the dive start clock', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:44:00.000+02:00'),
+        samples: samplesAt('13:44', '+02:00'),
+      );
+
+      final route = result.route!;
+      expect(route.points, hasLength(2));
+      expect(
+        route.points.first.timestamp,
+        result.dive.startTime.millisecondsSinceEpoch ~/ 1000,
+      );
+      expect(route.originLatitude, 47.3);
+      expect(route.originLongitude, -2.9);
+    });
+
+    test('shifts the route with the dive when the sample clock runs late '
+        '(#2604)', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:44:00.000+02:00'),
+        samples: samplesAt('15:44', '+02:00'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
+      expect(
+        result.route!.points.first.timestamp,
+        result.dive.startTime.millisecondsSinceEpoch ~/ 1000,
+      );
+    });
+
+    test('has no route when the export carries no DiveRoute samples', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:44:00.000+02:00'),
+        samples: [
+          {
+            'TimeISO8601': '2026-04-19T13:44:40.000+02:00',
+            'Depth': 1.2,
+            'DiveEvents': const {'DiveStatus': true},
+          },
+        ],
+      );
+      expect(result.route, isNull);
+    });
+
+    test('copyWith keeps the route', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:44:00.000+02:00'),
+        samples: samplesAt('13:44', '+02:00'),
+      );
+      expect(result.copyWith(notes: 'n').route, same(result.route));
+    });
+  });
 }

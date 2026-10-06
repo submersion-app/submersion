@@ -4362,6 +4362,10 @@
   "diveLog_edit_label_visibility": "Visibility",
   "diveLog_edit_label_waterTemp": "Water Temp",
   "diveLog_edit_label_waterType": "Water Type",
+  "diveLog_edit_label_weightName": "Name (optional)",
+  "@diveLog_edit_label_weightName": {"description": "Label of the optional name field under a weight row in the dive and weight preset editors"},
+  "diveLog_edit_hint_weightName": "e.g. Top pocket",
+  "@diveLog_edit_hint_weightName": {"description": "Example name shown in the empty weight name field"},
   "diveLog_edit_marineLifeHint": "Tap \"Add\" to record sightings",
   "diveLog_edit_nearbySitesFirst": "Nearby sites first",
   "diveLog_edit_noEquipmentSelected": "No equipment selected",
@@ -17191,6 +17195,14 @@
   "universalImport_triage_readyCount": "{count, plural, =1{1 file ready to import} other{{count} files ready to import}}",
   "universalImport_label_filesSelected": "{count, plural, =1{1 file selected} other{{count} files selected}}",
   "universalImport_triage_excludedCsv": "Import individually (CSV)",
+  "universalImport_triage_excludedHandoff": "Import individually ({format})",
+  "@universalImport_triage_excludedHandoff": {
+    "placeholders": {
+      "format": {
+        "type": "String"
+      }
+    }
+  },
   "universalImport_triage_unsupported": "Unsupported format",
   "universalImport_triage_parseFailed": "Could not be read",
   "universalImport_triage_parsing": "Parsing file {current} of {total}…",
@@ -28729,6 +28741,26 @@
   "navTrack_handoff_recognized": "Seacraft ENC navigation log recognised",
   "navTrack_handoff_trackDescription": "This is an underwater track, not a dive log. It has its own place in Submersion, separate from your dive import.",
   "navTrack_handoff_reviewTrackButton": "Review underwater track",
+  "suuntoJson_handoff_recognized": "Suunto dive export recognised",
+  "suuntoJson_handoff_description": "This file was exported from the Suunto app. The Suunto importer reads it the same way as the Suunto Cloud import, including the dive's recorded route.",
+  "suuntoJson_handoff_importButton": "Import Suunto dive",
+  "suuntoFile_step_title": "Suunto app exports",
+  "suuntoFile_step_description": "Choose one or more dives exported from the Suunto app as JSON. Dives recorded with a route bring it along.",
+  "suuntoFile_step_chooseFiles": "Choose files",
+  "suuntoFile_step_readyCount": "{count, plural, one{{count} dive ready to import} other{{count} dives ready to import}}",
+  "@suuntoFile_step_readyCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "suuntoFile_step_routeIncluded": "Includes recorded route",
+  "suuntoFile_step_noRoute": "No recorded route",
+  "suuntoFile_rejection_notJson": "Not a JSON file",
+  "suuntoFile_rejection_notSuuntoExport": "Not a Suunto app export",
+  "suuntoFile_rejection_notADive": "Not a dive (another activity type)",
+  "universalImport_summary_importWithSuunto": "Import with Suunto importer",
   "navTrack_section_trackTitle": "Underwater Track",
   "navTrack_section_trackCount": "{count, plural, one{{count} track} other{{count} tracks}}",
   "@navTrack_section_trackCount": {
@@ -29322,6 +29354,8 @@
   "@query_trips_tripType": {"description": "Field label in the query builder"},
   "query_weights_amount": "Amount",
   "@query_weights_amount": {"description": "Field label in the query builder"},
+  "query_weights_label": "Name",
+  "@query_weights_label": {"description": "Field label in the query builder"},
   "query_weights_notes": "Notes",
   "@query_weights_notes": {"description": "Field label in the query builder"},
   "query_weights_type": "Type",

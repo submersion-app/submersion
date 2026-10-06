@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -1095,6 +1096,22 @@ void main() {
     });
 
     group('loadFileFromBytes', () {
+      test(
+        'keeps a Suunto JSON export on file selection for its hand-off card',
+        () async {
+          final bytes = Uint8List.fromList(
+            utf8.encode('{"DeviceLog":{"Header":{"ActivityType":51}}}'),
+          );
+
+          final result = await notifier.loadFileFromBytes(bytes, 'dive.json');
+
+          expect(result.format, ImportFormat.suuntoJson);
+          expect(notifier.state.currentStep, ImportWizardStep.fileSelection);
+          expect(notifier.state.fileBytes, bytes);
+          expect(notifier.state.fileName, 'dive.json');
+        },
+      );
+
       test(
         'sets state to sourceConfirmation for a recognized UDDF file',
         () async {

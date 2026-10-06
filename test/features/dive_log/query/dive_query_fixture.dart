@@ -162,7 +162,12 @@ Future<void> seedQueryFixture(AppDatabase db) async {
     bottom: 20 * 60,
   );
 
-  Future<void> weight(String id, String diveId, double kg) => db
+  Future<void> weight(
+    String id,
+    String diveId,
+    double kg, {
+    String label = '',
+  }) => db
       .into(db.diveWeights)
       .insert(
         DiveWeightsCompanion.insert(
@@ -171,9 +176,10 @@ Future<void> seedQueryFixture(AppDatabase db) async {
           weightType: 'belt',
           amountKg: kg,
           createdAt: now,
+          label: Value(label),
         ),
       );
-  await weight('w1', 'd1', 2);
+  await weight('w1', 'd1', 2, label: 'Top pocket');
   await weight('w5', 'd5', 1);
 
   Future<void> link(String diveId, String equipmentId) => db
