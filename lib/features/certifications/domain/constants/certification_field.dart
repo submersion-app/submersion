@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Enumeration of every displayable field for the certification table view.
 enum CertificationField implements EntityField {
@@ -168,7 +168,15 @@ class CertificationFieldAdapter
     extends EntityFieldAdapter<Certification, CertificationField> {
   static final CertificationFieldAdapter instance =
       CertificationFieldAdapter._();
-  CertificationFieldAdapter._();
+  CertificationFieldAdapter._({CertificationCatalog? catalog})
+    : _catalog = catalog ?? CertificationCatalog.builtInOnly;
+
+  /// An adapter that names custom agencies and levels from [catalog]
+  /// (issue #690). The shared [instance] knows built-ins only.
+  factory CertificationFieldAdapter.withCatalog(CertificationCatalog catalog) =>
+      CertificationFieldAdapter._(catalog: catalog);
+
+  final CertificationCatalog _catalog;
 
   static const List<CertificationField> _allFields = CertificationField.values;
 
@@ -192,7 +200,10 @@ class CertificationFieldAdapter
     return switch (field) {
       // Not entity.name: that is empty for certs without a custom name, and
       // for legacy rows it repeats the Agency and Certification columns.
-      CertificationField.certName => certificationTitle(entity),
+      CertificationField.certName => certificationTitle(
+        entity,
+        catalog: _catalog,
+      ),
       CertificationField.agency => entity.agency,
       CertificationField.level => entity.level,
       CertificationField.cardNumber => entity.cardNumber,
@@ -213,10 +224,12 @@ class CertificationFieldAdapter
   ) {
     if (value == null) return '--';
     return switch (field) {
-      CertificationField.agency => (value as CertificationAgency).name,
-      // displayName, not name: the latter is the enum identifier, so the
-      // column read "openWater" rather than "Open Water".
-      CertificationField.level => (value as CertificationLevel).displayName,
+      // Ids are enum names or custom ids (issue #690); show the name, not
+      // the id, so the column reads "Open Water" rather than "openWater".
+      CertificationField.agency =>
+        _catalog.agency(value as String).interchangeName,
+      CertificationField.level =>
+        _catalog.level(value as String).interchangeName,
       CertificationField.issueDate => units.formatDate(value as DateTime),
       CertificationField.expiryDate => units.formatDate(value as DateTime),
       _ => value is String ? (value.isEmpty ? '--' : value) : value.toString(),

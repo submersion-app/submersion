@@ -135,7 +135,8 @@ class QueryPrinter {
     }(),
     StringValue(:final value) => _word(value),
     BoolValue(:final value) => value ? 'true' : 'false',
-    EnumValue(:final name) => name,
+    EnumValue(:final name, :final label) =>
+      label != null ? _quote(label) : name,
     DateValue(:final day) => _day(day),
     DateRangeValue() => _dateRange(v),
     ListValue(:final items) =>

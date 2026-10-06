@@ -83,6 +83,19 @@ abstract final class DivelogsReferenceMappers {
     return CertificationAgency.other;
   }
 
+  /// The agency to hand the importer for [org]: the built-in it names, or
+  /// the organisation's own text when it names none, which the importer
+  /// turns into a custom agency (issue #690). Blank stays Other.
+  static Object agencyValueForOrg(String? org) {
+    final agency = agencyForOrg(org);
+    final text = org?.trim() ?? '';
+    if (agency != CertificationAgency.other || text.isEmpty) return agency;
+    return CertificationAgency.other.displayName.toLowerCase() ==
+            text.toLowerCase()
+        ? agency
+        : text;
+  }
+
   /// Matches a remote certification name onto a known level, or null.
   /// The original text stays in the certification's name field either way.
   static CertificationLevel? levelForName(String name) {

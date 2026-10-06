@@ -243,4 +243,22 @@ extension BuddyMigrations on AppDatabase {
       'ON certifications (buddy_id)',
     );
   }
+
+  /// Idempotent creation of the v267 custom certification tables (issue
+  /// #690) and the level-by-agency index. Called from the v267 rung and the
+  /// beforeOpen backstop. Skipped on a partial migration fixture without
+  /// `divers`, so an older fixture does not gain tables whose foreign keys
+  /// point nowhere.
+  Future<void> _assertCustomCertificationSchema() async {
+    final divers = await customSelect(
+      "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'divers'",
+    ).get();
+    if (divers.isEmpty) return;
+    await Migrator(this).createTable(customCertificationAgencies);
+    await Migrator(this).createTable(customCertificationLevels);
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_custom_certification_levels_agency '
+      'ON custom_certification_levels(agency_id)',
+    );
+  }
 }

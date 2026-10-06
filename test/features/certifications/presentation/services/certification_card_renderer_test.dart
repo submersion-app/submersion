@@ -13,7 +13,7 @@ final _now = DateTime(2026, 8, 9);
 Certification _cert({DateTime? issueDate}) => Certification(
   id: 'cert-1',
   name: 'Open Water Diver',
-  agency: CertificationAgency.padi,
+  agency: CertificationAgency.padi.name,
   cardNumber: '1802G4921',
   issueDate: issueDate,
   createdAt: _now,

@@ -8,6 +8,33 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_agency.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_level.dart';
+
+final _customCatalog = CertificationCatalog(
+  agencies: [
+    CustomCertificationAgency(
+      id: 'club-x',
+      diverId: 'a',
+      name: 'Club X',
+      colorArgb: 0xFF3B82F6,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    ),
+  ],
+  levels: [
+    CustomCertificationLevel(
+      id: 'ice-diver',
+      diverId: 'a',
+      agencyId: 'padi',
+      name: 'Ice Diver',
+      isProgression: false,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    ),
+  ],
+);
 
 void main() {
   // These assertions are formatted by intl, which resolves against
@@ -37,8 +64,8 @@ void main() {
   final testCert = Certification(
     id: 'cert-1',
     name: 'Advanced Open Water',
-    agency: CertificationAgency.padi,
-    level: CertificationLevel.advancedOpenWater,
+    agency: CertificationAgency.padi.name,
+    level: CertificationLevel.advancedOpenWater.name,
     cardNumber: 'AOW-12345',
     issueDate: DateTime(2023, 6, 15),
     expiryDate: DateTime(2026, 6, 15),
@@ -132,14 +159,14 @@ void main() {
     test('returns agency', () {
       expect(
         adapter.extractValue(CertificationField.agency, testCert),
-        equals(CertificationAgency.padi),
+        equals(CertificationAgency.padi.name),
       );
     });
 
     test('returns level', () {
       expect(
         adapter.extractValue(CertificationField.level, testCert),
-        equals(CertificationLevel.advancedOpenWater),
+        equals(CertificationLevel.advancedOpenWater.name),
       );
     });
 
@@ -201,7 +228,7 @@ void main() {
       final noLevelCert = Certification(
         id: 'cert-no-level',
         name: 'Basic',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -215,7 +242,7 @@ void main() {
       final noCardCert = Certification(
         id: 'cert-no-card',
         name: 'Basic',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -229,7 +256,7 @@ void main() {
       final noDateCert = Certification(
         id: 'cert-no-date',
         name: 'Basic',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -243,7 +270,7 @@ void main() {
       final noExpiryCert = Certification(
         id: 'cert-no-expiry',
         name: 'Basic',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -257,7 +284,7 @@ void main() {
       final noInstructorCert = Certification(
         id: 'cert-no-inst',
         name: 'Basic',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -274,7 +301,7 @@ void main() {
       final noInstNumCert = Certification(
         id: 'cert-no-instnum',
         name: 'Basic',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -291,7 +318,7 @@ void main() {
       final noExpiryCert = Certification(
         id: 'cert-no-expiry',
         name: 'Basic',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -305,7 +332,7 @@ void main() {
       final expiredCert = Certification(
         id: 'cert-expired',
         name: 'Expired Cert',
-        agency: CertificationAgency.padi,
+        agency: CertificationAgency.padi.name,
         expiryDate: DateTime(2020, 1, 1),
         createdAt: DateTime(2019, 1, 1),
         updatedAt: DateTime(2019, 1, 1),
@@ -320,7 +347,7 @@ void main() {
       final noNotesCert = Certification(
         id: 'cert-no-notes',
         name: 'Basic',
-        agency: CertificationAgency.ssi,
+        agency: CertificationAgency.ssi.name,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -352,14 +379,14 @@ void main() {
       );
     });
 
-    test('formats agency using enum name', () {
+    test('formats agency using its display name (issue #690)', () {
       expect(
         adapter.formatValue(
           CertificationField.agency,
-          CertificationAgency.padi,
+          CertificationAgency.padi.name,
           units,
         ),
-        equals('padi'),
+        equals('PADI'),
       );
     });
 
@@ -367,7 +394,7 @@ void main() {
       expect(
         adapter.formatValue(
           CertificationField.level,
-          CertificationLevel.advancedOpenWater,
+          CertificationLevel.advancedOpenWater.name,
           units,
         ),
         equals('Advanced Open Water'),
@@ -683,5 +710,31 @@ void main() {
         );
       }
     });
+  });
+
+  test('formats custom agencies and levels by name (issue #690)', () {
+    final adapter = CertificationFieldAdapter.withCatalog(_customCatalog);
+    const units = UnitFormatter(AppSettings());
+    expect(
+      adapter.formatValue(CertificationField.agency, 'club-x', units),
+      'Club X',
+    );
+    expect(
+      adapter.formatValue(CertificationField.level, 'ice-diver', units),
+      'Ice Diver',
+    );
+    expect(
+      adapter.formatValue(CertificationField.agency, 'padi', units),
+      'PADI',
+    );
+    // The shared instance knows built-ins only.
+    expect(
+      CertificationFieldAdapter.instance.formatValue(
+        CertificationField.agency,
+        'club-x',
+        units,
+      ),
+      'Unknown agency',
+    );
   });
 }

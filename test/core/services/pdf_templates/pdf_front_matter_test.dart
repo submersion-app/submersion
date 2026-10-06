@@ -19,7 +19,7 @@ void main() {
   Certification cert(String name, {String? card}) => Certification(
     id: name,
     name: name,
-    agency: CertificationAgency.padi,
+    agency: CertificationAgency.padi.name,
     cardNumber: card,
     issueDate: DateTime(2020, 5, 1),
     createdAt: DateTime(2020, 5, 1),

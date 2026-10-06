@@ -8,8 +8,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 
 /// Minutes string for a logbook Duration field (#644).
 ///
@@ -289,6 +290,7 @@ class PdfSharedComponents {
   /// fit on one page silently lost the remainder (#1017).
   static List<pw.Widget> buildCertificationCardsBody({
     required List<Certification> certifications,
+    CertificationCatalog? certificationCatalog,
     required PdfDateFormatter dates,
     required AppLocalizations l10n,
     Diver? diver,
@@ -319,11 +321,10 @@ class PdfSharedComponents {
           cert,
           dates: dates,
           l10n: l10n,
+          catalog: certificationCatalog ?? CertificationCatalog.builtInOnly,
           isHighlighted:
               highlightAgency != null &&
-              cert.agency.name.toLowerCase().contains(
-                highlightAgency.toLowerCase(),
-              ),
+              cert.agency.toLowerCase().contains(highlightAgency.toLowerCase()),
           accentColor: accentColor,
         ),
       ),
@@ -333,6 +334,7 @@ class PdfSharedComponents {
   static pw.Widget _buildCertificationCard(
     Certification cert, {
     required PdfDateFormatter dates,
+    required CertificationCatalog catalog,
     required AppLocalizations l10n,
     bool isHighlighted = false,
     PdfColor accentColor = PdfColors.blue800,
@@ -378,7 +380,7 @@ class PdfSharedComponents {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      certificationTitle(cert),
+                      certificationTitle(cert, catalog: catalog),
                       style: pw.TextStyle(
                         fontSize: 14,
                         fontWeight: pw.FontWeight.bold,
@@ -387,7 +389,7 @@ class PdfSharedComponents {
                     ),
                     pw.SizedBox(height: 4),
                     pw.Text(
-                      cert.agency.localizedName(l10n),
+                      catalog.agency(cert.agency).localizedName(l10n),
                       style: const pw.TextStyle(
                         fontSize: 12,
                         color: PdfColors.grey600,
@@ -398,7 +400,7 @@ class PdfSharedComponents {
               ),
               // Only when the title above is a custom name -- otherwise the
               // title already is the certification.
-              if (certificationSubtitle(cert) != null)
+              if (certificationSubtitle(cert, catalog: catalog) != null)
                 pw.Container(
                   padding: const pw.EdgeInsets.symmetric(
                     horizontal: 8,
@@ -409,7 +411,7 @@ class PdfSharedComponents {
                     borderRadius: pw.BorderRadius.circular(4),
                   ),
                   child: pw.Text(
-                    certificationSubtitle(cert)!,
+                    certificationSubtitle(cert, catalog: catalog)!,
                     style: pw.TextStyle(
                       fontSize: 10,
                       fontWeight: pw.FontWeight.bold,

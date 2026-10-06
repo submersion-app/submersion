@@ -7,9 +7,10 @@ import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dar
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 
 /// Front-matter pages shared by the logbook templates.
 ///
@@ -36,6 +37,7 @@ class PdfFrontMatter {
     required AppLocalizations l10n,
     required int diveCount,
     List<Certification> certifications = const [],
+    CertificationCatalog? certificationCatalog,
     Uint8List? photoBytes,
     PdfColor accentColor = PdfColors.blue800,
   }) {
@@ -58,7 +60,12 @@ class PdfFrontMatter {
         ),
         pw.SizedBox(height: 8),
         ...certifications.map(
-          (cert) => _buildCertificationLine(cert, dates, l10n),
+          (cert) => _buildCertificationLine(
+            cert,
+            dates,
+            l10n,
+            certificationCatalog ?? CertificationCatalog.builtInOnly,
+          ),
         ),
       ],
     ];
@@ -70,6 +77,7 @@ class PdfFrontMatter {
     required AppLocalizations l10n,
     required int diveCount,
     List<Certification> certifications = const [],
+    CertificationCatalog? certificationCatalog,
     Uint8List? photoBytes,
     PdfColor accentColor = PdfColors.blue800,
   }) {
@@ -116,7 +124,12 @@ class PdfFrontMatter {
           ),
           pw.SizedBox(height: 8),
           ...certifications.map(
-            (cert) => _buildCertificationLine(cert, dates, l10n),
+            (cert) => _buildCertificationLine(
+              cert,
+              dates,
+              l10n,
+              certificationCatalog ?? CertificationCatalog.builtInOnly,
+            ),
           ),
         ],
       ],
@@ -157,6 +170,7 @@ class PdfFrontMatter {
     Certification cert,
     PdfDateFormatter dates,
     AppLocalizations l10n,
+    CertificationCatalog catalog,
   ) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 4),
@@ -179,7 +193,8 @@ class PdfFrontMatter {
           // twice.
           pw.Expanded(
             child: pw.Text(
-              '${cert.agency.localizedName(l10n)} - ${certificationTitle(cert)}',
+              '${catalog.agency(cert.agency).localizedName(l10n)} - '
+              '${certificationTitle(cert, catalog: catalog)}',
               style: const pw.TextStyle(fontSize: 10),
             ),
           ),

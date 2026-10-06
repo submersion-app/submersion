@@ -12,6 +12,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_stat.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Two-line compact card tile for the buddy list, driven by
 /// [buddyCompactCardConfigProvider]. No avatar, no chips.
@@ -38,11 +40,12 @@ class CompactBuddyListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
     final units = UnitFormatter(ref.watch(settingsProvider));
     final slots = ref.watch(buddyCompactCardConfigProvider).slots;
-    final adapter = BuddyFieldAdapter.instance;
+    final adapter = BuddyFieldAdapter.withCatalog(context.certificationCatalog);
     final secondaryTextColor = colorScheme.onSurfaceVariant;
     final cardColor = (isSelected || isHighlighted)
         ? colorScheme.primaryContainer.withValues(alpha: 0.5)

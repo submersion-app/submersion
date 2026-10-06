@@ -23,7 +23,7 @@ Certification _makeCertification({
     id: id,
     diverId: diverId,
     name: name,
-    agency: CertificationAgency.padi,
+    agency: CertificationAgency.padi.name,
     createdAt: now,
     updatedAt: now,
   );

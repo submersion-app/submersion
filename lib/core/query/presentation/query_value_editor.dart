@@ -242,11 +242,25 @@ class QueryValueEditor extends StatelessWidget {
     );
   }
 
+  /// Custom values a field also takes (issue #690): the visible custom
+  /// agencies or levels, id to name, from the editor's name index.
+  Map<String, String> _customOptions(QueryField field) {
+    final subject = field.customValueSubject;
+    return switch (context.names) {
+      final NameEntries entries when subject != null => {
+        for (final r in entries.refEntries(subject)) r.id: r.label,
+      },
+      _ => const {},
+    };
+  }
+
   Widget _enumDropdown(QueryField field) {
     final values = field.enumValues!;
+    final custom = _customOptions(field);
     final current = (value as EnumValue?)?.name ?? values.first;
+    final known = values.contains(current) || custom.containsKey(current);
     return DropdownButton<String>(
-      value: values.contains(current) ? current : values.first,
+      value: known ? current : values.first,
       isExpanded: true,
       items: [
         for (final v in values)
@@ -254,9 +268,11 @@ class QueryValueEditor extends StatelessWidget {
             value: v,
             child: Text(context.labels.enumValue(field, v)),
           ),
+        for (final MapEntry(key: id, value: label) in custom.entries)
+          DropdownMenuItem(value: id, child: Text(label)),
       ],
       onChanged: (v) {
-        if (v != null) onChanged(EnumValue(v));
+        if (v != null) onChanged(EnumValue(v, label: custom[v]));
       },
     );
   }
@@ -264,17 +280,18 @@ class QueryValueEditor extends StatelessWidget {
   Widget _enumChips(QueryField field) {
     // Names the field still lists: a retired name is dropped on the next
     // edit, so it must not count toward the last selected value.
+    final custom = _customOptions(field);
+    final options = [...field.enumValues!, ...custom.keys];
     final selected = {
       for (final item in (value as ListValue?)?.items ?? const <QueryValue>[])
-        if (item is EnumValue && field.enumValues!.contains(item.name))
-          item.name,
+        if (item is EnumValue && options.contains(item.name)) item.name,
     };
     return Wrap(
       spacing: 8,
       children: [
-        for (final v in field.enumValues!)
+        for (final v in options)
           FilterChip(
-            label: Text(context.labels.enumValue(field, v)),
+            label: Text(custom[v] ?? context.labels.enumValue(field, v)),
             selected: selected.contains(v),
             // The last selected value cannot go: an empty list is no
             // condition. Disabled, rather than a tap that bounces back.
@@ -282,8 +299,9 @@ class QueryValueEditor extends StatelessWidget {
                 ? null
                 : (on) => onChanged(
                     ListValue([
-                      for (final e in field.enumValues!)
-                        if (e == v ? on : selected.contains(e)) EnumValue(e),
+                      for (final e in options)
+                        if (e == v ? on : selected.contains(e))
+                          EnumValue(e, label: custom[e]),
                     ]),
                   ),
           ),

@@ -4,6 +4,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_agency.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
@@ -100,5 +105,46 @@ void main() {
       labels.enumValue(species.field('category')!, 'plant'),
       'Plant/Algae',
     );
+  });
+
+  testWidgets('a custom agency or level labels with its name (issue #690)', (
+    tester,
+  ) async {
+    late AppQueryLabels labels;
+    final catalog = CertificationCatalog(
+      agencies: [
+        CustomCertificationAgency(
+          id: 'club-x-id',
+          diverId: 'a',
+          name: 'Club X',
+          colorArgb: 0xFF3B82F6,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          certificationCatalogSyncProvider.overrideWithValue(catalog),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) {
+              labels = AppQueryLabels(context);
+              return const SizedBox();
+            },
+          ),
+        ),
+      ),
+    );
+    final certs = appQueryRegistry.entityFor(QuerySubject.certifications);
+    expect(labels.enumValue(certs.field('agency')!, 'club-x-id'), 'Club X');
+    expect(labels.enumValue(certs.field('agency')!, 'padi'), 'PADI');
+    final courses = appQueryRegistry.entityFor(QuerySubject.courses);
+    expect(labels.enumValue(courses.field('agency')!, 'club-x-id'), 'Club X');
   });
 }

@@ -157,6 +157,7 @@ import 'package:submersion/features/dive_log/presentation/formatters/visibility_
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 import 'package:submersion/features/tides/presentation/tide_state_display.dart';
 import 'package:submersion/features/tides/domain/services/site_wall_clock.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
@@ -5566,6 +5567,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         extras: await ref.read(uddfDivesExtrasFetchProvider)([
                           dive.id,
                         ], choice.options),
+                        certificationCatalog: await ref.read(
+                          allCustomCertificationsCatalogProvider.future,
+                        ),
                       ),
                   saveFn: (choice) async => ref
                       .read(exportServiceProvider)
@@ -5579,6 +5583,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         extras: await ref.read(uddfDivesExtrasFetchProvider)([
                           dive.id,
                         ], choice.options),
+                        certificationCatalog: await ref.read(
+                          allCustomCertificationsCatalogProvider.future,
+                        ),
                       ),
                 );
               },

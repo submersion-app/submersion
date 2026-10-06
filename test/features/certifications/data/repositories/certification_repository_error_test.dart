@@ -27,7 +27,7 @@ void main() {
       final cert = Certification(
         id: 'c1',
         name: 'Open Water',
-        agency: CertificationAgency.padi,
+        agency: CertificationAgency.padi.name,
         createdAt: now,
         updatedAt: now,
       );

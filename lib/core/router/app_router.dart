@@ -192,6 +192,8 @@ import 'package:submersion/features/surface_interval_tool/presentation/pages/sur
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
+import 'package:submersion/features/certification_agencies/presentation/pages/certification_agencies_page.dart';
+import 'package:submersion/features/certification_agencies/presentation/pages/certification_agency_edit_page.dart';
 
 /// Root navigator key, so app-wide modals (e.g. the replaced-library adopt
 /// dialog surfaced from the app root) can be shown above the shell.
@@ -1510,6 +1512,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/dive-roles',
             name: 'diveRoles',
             builder: (context, state) => const DiveRolesPage(),
+          ),
+
+          // Certification agencies and their certifications (issue #690).
+          // :id is a built-in enum name or a custom agency id.
+          GoRoute(
+            path: '/certification-agencies',
+            name: 'certificationAgencies',
+            builder: (context, state) => const CertificationAgenciesPage(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                name: 'certificationAgencyEdit',
+                builder: (context, state) => CertificationAgencyEditPage(
+                  agencyId: state.pathParameters['id']!,
+                ),
+              ),
+            ],
           ),
 
           // Saved queries management (#2365)

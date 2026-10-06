@@ -20,6 +20,7 @@ import 'package:submersion/features/signatures/domain/entities/signature.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/fake_hosts.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Records what the export service hands the template, then builds as usual.
 class _RecordingSimple extends PdfTemplateSimple {
@@ -36,6 +37,7 @@ class _RecordingSimple extends PdfTemplateSimple {
     String? title,
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
+    CertificationCatalog? certificationCatalog,
     Diver? diver,
     Map<String, PdfProfileSeries>? profiles,
     Uint8List? diverPhoto,

@@ -115,6 +115,9 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DiveDiveTypes,
     DiveTypes,
     DiveRoles,
+    // Custom certification agencies and levels (v261, issue #690)
+    CustomCertificationAgencies,
+    CustomCertificationLevels,
     TankPresets,
     WeightPresets,
     WeightPresetEntries,
@@ -1111,11 +1114,15 @@ class AppDatabase extends _$AppDatabase {
     // so the floor stays. Renumbered from 263, which main shipped first
     // (#2030); 262 is claimed by an open branch.
     266,
+    // v267: custom certification agencies and levels (issue #690). Two new
+    // synced tables and an index, no data migration, so the floor stays.
+    // Renumbered from 265 and 266, which main shipped first.
+    267,
     // v268: dive_weights.label and weight_preset_entries.label, a diver's own
     // name for a weight (issue #956). Additive defaulted columns, so the
     // floor stays: an older peer's payload omits the key and the row keeps
     // its local value or the '' default. Renumbered as other rungs shipped
-    // first (261 through 266); 267 is held by an open branch (#3043).
+    // first (261 through 267).
     268,
   ];
 

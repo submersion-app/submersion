@@ -6,7 +6,7 @@ void main() {
   Certification base() => Certification(
     id: 'c1',
     name: 'Nitrox',
-    agency: CertificationAgency.padi,
+    agency: CertificationAgency.padi.name,
     createdAt: DateTime(2024, 1, 1),
     updatedAt: DateTime(2024, 1, 1),
   );
@@ -30,34 +30,31 @@ void main() {
       final c = base();
       expect(c.hasMultipleCredentials, isFalse);
       expect(c.credentials, const [
-        CertificationCredential(agency: CertificationAgency.padi, level: null),
+        CertificationCredential(agency: 'padi', level: null),
       ]);
     });
 
     test('credentials is the row pair followed by the extras, in order', () {
       final c = base().copyWith(
-        agency: CertificationAgency.ffessm,
-        level: CertificationLevel.ffessmN1,
+        agency: CertificationAgency.ffessm.name,
+        level: CertificationLevel.ffessmN1.name,
         additionalCredentials: const [
-          CertificationCredential(
-            agency: CertificationAgency.cmas,
-            level: CertificationLevel.cmas1StarDiver,
-          ),
+          CertificationCredential(agency: 'cmas', level: 'cmas1StarDiver'),
         ],
       );
       expect(c.hasMultipleCredentials, isTrue);
       expect(c.credentials.map((x) => x.agency), [
-        CertificationAgency.ffessm,
-        CertificationAgency.cmas,
+        CertificationAgency.ffessm.name,
+        CertificationAgency.cmas.name,
       ]);
       expect(c.credentials.map((x) => x.level), [
-        CertificationLevel.ffessmN1,
-        CertificationLevel.cmas1StarDiver,
+        CertificationLevel.ffessmN1.name,
+        CertificationLevel.cmas1StarDiver.name,
       ]);
     });
 
     test('additionalCredentials round-trips through copyWith and equality', () {
-      const extra = [CertificationCredential(agency: CertificationAgency.cmas)];
+      const extra = [CertificationCredential(agency: 'cmas')];
       final a = base().copyWith(additionalCredentials: extra);
       expect(a.additionalCredentials, extra);
       expect(a == base(), isFalse);
@@ -67,11 +64,11 @@ void main() {
 
     test('CertificationCredential JSON codec', () {
       const cred = CertificationCredential(
-        agency: CertificationAgency.cmas,
-        level: CertificationLevel.cmas1StarDiver,
+        agency: 'cmas',
+        level: 'cmas1StarDiver',
       );
       expect(CertificationCredential.fromJson(cred.toJson()), cred);
-      const bare = CertificationCredential(agency: CertificationAgency.ffessm);
+      const bare = CertificationCredential(agency: 'ffessm');
       expect(bare.toJson().containsKey('level'), isFalse);
       expect(CertificationCredential.fromJson(bare.toJson()), bare);
     });

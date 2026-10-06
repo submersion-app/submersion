@@ -14,6 +14,8 @@ import 'package:submersion/features/certifications/presentation/services/certifi
 import 'package:submersion/features/certifications/presentation/services/certification_file_names.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Bottom sheet for sharing a certification as an image.
 ///
@@ -45,6 +47,9 @@ class _CertificationShareSheetState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // The subtitle titles a custom level through the catalog, which can
+    // arrive after the first frame (issue #690).
+    ref.watch(certificationCatalogSyncProvider);
 
     return SafeArea(
       child: Padding(
@@ -65,7 +70,11 @@ class _CertificationShareSheetState
 
             // Subtitle with certification name
             Text(
-              certificationTitleL10n(widget.certification, context.l10n),
+              certificationTitleL10n(
+                widget.certification,
+                context.l10n,
+                catalog: context.certificationCatalog,
+              ),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -100,6 +109,8 @@ class _CertificationShareSheetState
   }
 
   Future<void> _shareAsCard(Rect? anchor) async {
+    // Read before the first await: the context is not used across gaps.
+    final catalog = context.certificationCatalog;
     setState(() => _isExporting = true);
 
     try {
@@ -107,6 +118,7 @@ class _CertificationShareSheetState
         certification: widget.certification,
         diverName: widget.diverName,
         l10n: context.l10n,
+        catalog: catalog,
       );
       if (bytes == null) {
         throw Exception('Failed to generate card image');
@@ -115,7 +127,7 @@ class _CertificationShareSheetState
       // Save to temp file
       final tempDir = await getTemporaryDirectory();
       final filename = certificationImageFileName(
-        certificationTitle(widget.certification),
+        certificationTitle(widget.certification, catalog: catalog),
         CertificationImage.card,
       );
       final file = File(p.join(tempDir.path, filename));
@@ -140,6 +152,8 @@ class _CertificationShareSheetState
   }
 
   Future<void> _shareAsCertificate(Rect? anchor) async {
+    // Read before the first await: the context is not used across gaps.
+    final catalog = context.certificationCatalog;
     setState(() => _isExporting = true);
 
     try {
@@ -149,6 +163,7 @@ class _CertificationShareSheetState
         diverName: widget.diverName,
         l10n: context.l10n,
         dateFormat: ref.read(dateFormatProvider),
+        catalog: catalog,
       );
       if (bytes == null) {
         throw Exception('Failed to generate certificate image');
@@ -157,7 +172,7 @@ class _CertificationShareSheetState
       // Save to temp file
       final tempDir = await getTemporaryDirectory();
       final filename = certificationImageFileName(
-        certificationTitle(widget.certification),
+        certificationTitle(widget.certification, catalog: catalog),
         CertificationImage.certificate,
       );
       final file = File(p.join(tempDir.path, filename));

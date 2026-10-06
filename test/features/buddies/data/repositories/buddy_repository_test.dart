@@ -27,8 +27,8 @@ void main() {
     String name = 'Test Buddy',
     String? email,
     String? phone,
-    CertificationLevel? certificationLevel,
-    CertificationAgency? certificationAgency,
+    String? certificationLevel,
+    String? certificationAgency,
     String notes = '',
   }) {
     final now = DateTime.now();
@@ -160,8 +160,8 @@ void main() {
         // Setting cert fields on the entity is now ignored by updateBuddy;
         // buddy certs are managed through CertificationRepository.
         final updatedBuddy = buddy.copyWith(
-          certificationLevel: CertificationLevel.rescue,
-          certificationAgency: CertificationAgency.ssi,
+          certificationLevel: CertificationLevel.rescue.name,
+          certificationAgency: CertificationAgency.ssi.name,
         );
         await repository.updateBuddy(updatedBuddy);
         final result = await repository.getBuddyById(buddy.id);

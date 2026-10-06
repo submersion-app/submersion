@@ -6,6 +6,33 @@ import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_agency.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_level.dart';
+
+final _customCatalog = CertificationCatalog(
+  agencies: [
+    CustomCertificationAgency(
+      id: 'club-x',
+      diverId: 'a',
+      name: 'Club X',
+      colorArgb: 0xFF3B82F6,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    ),
+  ],
+  levels: [
+    CustomCertificationLevel(
+      id: 'ice-diver',
+      diverId: 'a',
+      agencyId: 'padi',
+      name: 'Ice Diver',
+      isProgression: false,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    ),
+  ],
+);
 
 void main() {
   // A UnitFormatter backed by metric default settings.
@@ -17,8 +44,8 @@ void main() {
     name: 'John Doe',
     email: 'john@example.com',
     phone: '+1234567890',
-    certificationLevel: CertificationLevel.advancedOpenWater,
-    certificationAgency: CertificationAgency.padi,
+    certificationLevel: CertificationLevel.advancedOpenWater.name,
+    certificationAgency: CertificationAgency.padi.name,
     notes: 'Great dive buddy',
     createdAt: DateTime(2024, 1, 1),
     updatedAt: DateTime(2024, 1, 1),
@@ -108,14 +135,14 @@ void main() {
     test('returns certification level', () {
       expect(
         adapter.extractValue(BuddyField.certificationLevel, testEntity),
-        equals(CertificationLevel.advancedOpenWater),
+        equals(CertificationLevel.advancedOpenWater.name),
       );
     });
 
     test('returns certification agency', () {
       expect(
         adapter.extractValue(BuddyField.certificationAgency, testEntity),
-        equals(CertificationAgency.padi),
+        equals(CertificationAgency.padi.name),
       );
     });
 
@@ -231,7 +258,7 @@ void main() {
       expect(
         adapter.formatValue(
           BuddyField.certificationLevel,
-          CertificationLevel.advancedOpenWater,
+          CertificationLevel.advancedOpenWater.name,
           units,
         ),
         equals('Advanced Open Water'),
@@ -242,7 +269,7 @@ void main() {
       expect(
         adapter.formatValue(
           BuddyField.certificationAgency,
-          CertificationAgency.padi,
+          CertificationAgency.padi.name,
           units,
         ),
         equals('PADI'),
@@ -458,7 +485,7 @@ void main() {
       expect(
         BuddyFieldAdapter.instance.formatValue(
           BuddyField.certificationLevel,
-          CertificationLevel.advancedOpenWater,
+          CertificationLevel.advancedOpenWater.name,
           units,
         ),
         'Advanced Open Water',
@@ -466,11 +493,37 @@ void main() {
       expect(
         BuddyFieldAdapter.instance.formatValue(
           BuddyField.certificationAgency,
-          CertificationAgency.padi,
+          CertificationAgency.padi.name,
           units,
         ),
         'PADI',
       );
     });
+  });
+
+  test('formats custom agencies and levels by name (issue #690)', () {
+    final adapter = BuddyFieldAdapter.withCatalog(_customCatalog);
+    const units = UnitFormatter(AppSettings());
+    expect(
+      adapter.formatValue(BuddyField.certificationAgency, 'club-x', units),
+      'Club X',
+    );
+    expect(
+      adapter.formatValue(BuddyField.certificationLevel, 'ice-diver', units),
+      'Ice Diver',
+    );
+    expect(
+      adapter.formatValue(BuddyField.certificationAgency, 'padi', units),
+      'PADI',
+    );
+    // The shared instance knows built-ins only.
+    expect(
+      BuddyFieldAdapter.instance.formatValue(
+        BuddyField.certificationAgency,
+        'club-x',
+        units,
+      ),
+      'Unknown agency',
+    );
   });
 }

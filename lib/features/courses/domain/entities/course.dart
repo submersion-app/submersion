@@ -7,7 +7,9 @@ class Course extends Equatable {
   final String id;
   final String diverId;
   final String name;
-  final CertificationAgency agency;
+
+  /// A built-in agency's enum name or a custom agency id (issue #690).
+  final String agency;
   final DateTime startDate;
   final DateTime? completionDate;
   final String? instructorId; // FK to buddy
@@ -70,7 +72,7 @@ class Course extends Equatable {
     String? id,
     String? diverId,
     String? name,
-    CertificationAgency? agency,
+    String? agency,
     DateTime? startDate,
     DateTime? completionDate,
     String? instructorId,
@@ -105,7 +107,7 @@ class Course extends Equatable {
     String? id,
     String? diverId,
     String? name,
-    CertificationAgency? agency,
+    String? agency,
     DateTime? startDate,
     String? instructorId,
     String? instructorName,
@@ -141,7 +143,7 @@ class Course extends Equatable {
       id: '',
       diverId: diverId,
       name: '',
-      agency: CertificationAgency.padi,
+      agency: CertificationAgency.padi.name,
       startDate: now,
       createdAt: now,
       updatedAt: now,

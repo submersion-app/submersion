@@ -23,7 +23,7 @@ void main() {
     final certification = Certification(
       id: 'cert-1',
       name: 'Open Water Diver',
-      agency: CertificationAgency.padi,
+      agency: CertificationAgency.padi.name,
       notes: '',
       createdAt: DateTime(2026, 1, 1),
       updatedAt: DateTime(2026, 1, 1),
@@ -152,7 +152,7 @@ void main() {
       final certificationWithIdOnly = Certification(
         id: 'cert-2',
         name: 'Advanced Open Water',
-        agency: CertificationAgency.padi,
+        agency: CertificationAgency.padi.name,
         notes: '',
         instructorId: buddy.id,
         createdAt: DateTime(2026, 1, 1),
@@ -353,8 +353,8 @@ void main() {
     Certification make(String id, String name) => Certification(
       id: id,
       name: name,
-      agency: CertificationAgency.padi,
-      level: CertificationLevel.openWater,
+      agency: CertificationAgency.padi.name,
+      level: CertificationLevel.openWater.name,
       notes: '',
       createdAt: DateTime(2024),
       updatedAt: DateTime(2024),
@@ -389,13 +389,10 @@ void main() {
     final cert = Certification(
       id: 'full-1',
       name: 'Bali OW w/ Made',
-      agency: CertificationAgency.padi,
-      level: CertificationLevel.openWater,
+      agency: CertificationAgency.padi.name,
+      level: CertificationLevel.openWater.name,
       additionalCredentials: const [
-        CertificationCredential(
-          agency: CertificationAgency.ssi,
-          level: CertificationLevel.advancedOpenWater,
-        ),
+        CertificationCredential(agency: 'ssi', level: 'advancedOpenWater'),
       ],
       cardNumber: '123456789',
       expiryDate: DateTime(2020, 1, 1),
@@ -409,7 +406,7 @@ void main() {
       id: 'course-1',
       diverId: 'diver-1',
       name: 'Open Water Course',
-      agency: CertificationAgency.padi,
+      agency: CertificationAgency.padi.name,
       startDate: DateTime(2019, 6, 1),
       instructorName: 'Made Wirawan',
       createdAt: DateTime(2019),
@@ -519,8 +516,8 @@ void main() {
         Certification(
           id: 'long-1',
           name: longName,
-          agency: CertificationAgency.padi,
-          level: CertificationLevel.openWater,
+          agency: CertificationAgency.padi.name,
+          level: CertificationLevel.openWater.name,
           notes: '',
           createdAt: DateTime(2024),
           updatedAt: DateTime(2024),
@@ -582,7 +579,7 @@ void main() {
     }) => Certification(
       id: 'photo-1',
       name: 'Open Water Diver',
-      agency: CertificationAgency.padi,
+      agency: CertificationAgency.padi.name,
       photoFront: photoFront,
       photoBack: photoBack,
       notes: '',

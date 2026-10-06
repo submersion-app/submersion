@@ -35,6 +35,8 @@ import 'package:submersion/features/universal_import/presentation/providers/univ
 
 import '../../../../helpers/test_database.dart';
 import 'universal_adapter_test.mocks.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 final _now = DateTime(2026);
 
@@ -117,6 +119,10 @@ Future<UniversalAdapter> _adapter(
         diveTypeRepositoryProvider.overrideWithValue(MockDiveTypeRepository()),
         // The active profile still reads through these providers.
         allTripsProvider.overrideWith((ref) async => []),
+        // Custom certification agencies the duplicate check names (#690).
+        allCustomCertificationsCatalogProvider.overrideWith(
+          (ref) async => CertificationCatalog.builtInOnly,
+        ),
         sitesProvider.overrideWith((ref) async => activeSites),
         allEquipmentProvider.overrideWith((ref) async => []),
         allBuddiesProvider.overrideWith((ref) async => []),

@@ -54,6 +54,9 @@ class NameIndexLoader {
     'equipment_shares',
     'trip_hides',
     'site_hides',
+    // Custom certification agencies and levels (issue #690).
+    'custom_certification_agencies',
+    'custom_certification_levels',
   };
 
   Future<NameIndex> load({
@@ -76,12 +79,55 @@ class NameIndexLoader {
       }
     }
     entries.addAll(_places(siteRows));
+    entries.addAll(await _customCertificationEntries(diverId));
     entries.addAll(_attributeChoices(l10n));
     final seen = <String>{};
     return NameIndex([
       for (final e in entries)
         if (seen.add('${e.subject.name}|${e.label}|${e.identity}')) e,
     ]);
+  }
+
+  /// The custom certification agencies and levels [diverId] can see (issue
+  /// #690): own rows and shared ones; a level under a custom agency follows
+  /// the agency. With no diver, only shared rows. Name-only subjects: they
+  /// resolve typed agency and level values, never a query root.
+  Future<List<NameEntry>> _customCertificationEntries(String? diverId) async {
+    final visibleAgency = diverId == null
+        ? 'a.is_shared = 1'
+        : '(a.diver_id = ?1 OR a.is_shared = 1)';
+    final visibleLevel = diverId == null
+        ? 'l.is_shared = 1'
+        : '(l.diver_id = ?1 OR l.is_shared = 1)';
+    final variables = [if (diverId != null) Variable<String>(diverId)];
+    final agencies = await _db
+        .customSelect(
+          'SELECT a.id, a.name FROM custom_certification_agencies a '
+          'WHERE $visibleAgency',
+          variables: variables,
+        )
+        .get();
+    final levels = await _db
+        .customSelect(
+          'SELECT l.id, l.name FROM custom_certification_levels l '
+          'LEFT JOIN custom_certification_agencies a ON a.id = l.agency_id '
+          'WHERE (a.id IS NOT NULL AND $visibleAgency) '
+          'OR (a.id IS NULL AND $visibleLevel)',
+          variables: variables,
+        )
+        .get();
+    NameEntry entry(QuerySubject subject, QueryRow row) => NameEntry(
+      subject: subject,
+      label: row.read<String>('name'),
+      ids: [row.read<String>('id')],
+      target: NameTarget.row,
+      primary: true,
+    );
+    return [
+      for (final row in agencies)
+        entry(QuerySubject.certificationAgencies, row),
+      for (final row in levels) entry(QuerySubject.certificationLevels, row),
+    ];
   }
 
   /// The visible rows of [subject]: id, registry name and the extra

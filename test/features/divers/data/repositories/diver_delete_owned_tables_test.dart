@@ -273,6 +273,41 @@ void main() {
           );
       return [('dive_roles', 'diveRoles', 'role-a')];
     },
+    'a custom certification agency and level': () async {
+      await db
+          .into(db.customCertificationAgencies)
+          .insert(
+            CustomCertificationAgenciesCompanion.insert(
+              id: 'agency-a',
+              diverId: 'diver-a',
+              name: 'Club X',
+              colorArgb: 0xFF3B82F6,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.customCertificationLevels)
+          .insert(
+            CustomCertificationLevelsCompanion.insert(
+              id: 'level-a',
+              diverId: 'diver-a',
+              agencyId: 'agency-a',
+              name: 'Club Diver',
+              isProgression: true,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [
+        (
+          'custom_certification_agencies',
+          'customCertificationAgencies',
+          'agency-a',
+        ),
+        ('custom_certification_levels', 'customCertificationLevels', 'level-a'),
+      ];
+    },
     'a dive plan with its tanks and segments': () async {
       await db
           .into(db.divePlans)
@@ -793,6 +828,8 @@ const _clearedByDelete = {
   'buddies',
   'certifications',
   'checklist_templates',
+  'custom_certification_agencies',
+  'custom_certification_levels',
   'cylinder_configs',
   'dive_centers',
   'dive_computers',

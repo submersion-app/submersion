@@ -6,7 +6,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_card_photo.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// The front face of the certification card.
 ///
@@ -32,7 +34,7 @@ class CertificationEcardFront extends StatelessWidget {
       return CertificationCardPhoto(
         bytes: photo,
         badge: _buildStatusBadge(context),
-        infoLines: _buildInfoLines(context.l10n),
+        infoLines: _buildInfoLines(context),
       );
     }
     return _buildGeneratedFront(context);
@@ -43,14 +45,16 @@ class CertificationEcardFront extends StatelessWidget {
   /// The scrim covers the part of a physical card that prints the holder's name
   /// and number, so repeating them here loses nothing and keeps the text legible
   /// when the photo is dim or blurry.
-  List<String> _buildInfoLines(AppLocalizations l10n) {
+  List<String> _buildInfoLines(BuildContext context) {
+    final l10n = context.l10n;
+    final catalog = context.certificationCatalog;
     final cardNumber = certification.cardNumber;
 
     // certificationTitle, not the raw name: a stored name that merely repeats
     // agency and level would otherwise render as "PADI - PADI : Open Water".
     final headline = [
-      certification.agency.localizedName(l10n),
-      certificationTitleL10n(certification, l10n),
+      catalog.agency(certification.agency).localizedName(l10n),
+      certificationTitleL10n(certification, l10n, catalog: catalog),
     ].where((value) => value.isNotEmpty).join('  -  ');
 
     final detail = [
@@ -62,7 +66,7 @@ class CertificationEcardFront extends StatelessWidget {
   }
 
   Widget _buildGeneratedFront(BuildContext context) {
-    final agency = certification.agency;
+    final agency = context.certificationCatalog.agency(certification.agency);
 
     return Container(
       decoration: BoxDecoration(
@@ -105,7 +109,9 @@ class CertificationEcardFront extends StatelessWidget {
                 // level and a full field grid all compete for a CR80 card on a
                 // narrow phone. The header and grid are the facts a dive
                 // operator reads, so they keep their intrinsic height.
-                Flexible(child: _buildHero(context.l10n)),
+                Flexible(
+                  child: _buildHero(context.l10n, context.certificationCatalog),
+                ),
                 _buildFieldGrid(context),
               ],
             ),
@@ -122,7 +128,9 @@ class CertificationEcardFront extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            certification.agency.localizedName(context.l10n),
+            context.certificationCatalog
+                .agency(certification.agency)
+                .localizedName(context.l10n),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -136,9 +144,17 @@ class CertificationEcardFront extends StatelessWidget {
     );
   }
 
-  Widget _buildHero(AppLocalizations l10n) {
-    final subtitle = certificationSubtitleL10n(certification, l10n);
-    final alsoRecognized = additionalCredentialsLineL10n(certification, l10n);
+  Widget _buildHero(AppLocalizations l10n, CertificationCatalog catalog) {
+    final subtitle = certificationSubtitleL10n(
+      certification,
+      l10n,
+      catalog: catalog,
+    );
+    final alsoRecognized = additionalCredentialsLineL10n(
+      certification,
+      l10n,
+      catalog: catalog,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,7 +162,7 @@ class CertificationEcardFront extends StatelessWidget {
       children: [
         Flexible(
           child: Text(
-            certificationTitleL10n(certification, l10n),
+            certificationTitleL10n(certification, l10n, catalog: catalog),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 20,

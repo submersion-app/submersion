@@ -5,8 +5,8 @@ import 'package:submersion/features/certifications/domain/entities/certification
 
 Certification cert({
   required String name,
-  CertificationAgency agency = CertificationAgency.padi,
-  CertificationLevel? level = CertificationLevel.openWater,
+  String agency = 'padi',
+  String? level = 'openWater',
 }) {
   final now = DateTime(2026);
   return Certification(
@@ -24,15 +24,18 @@ void main() {
     test('is the certification alone, with no agency prefix', () {
       expect(
         derivedCertificationTitle(
-          CertificationAgency.padi,
-          CertificationLevel.openWater,
+          CertificationAgency.padi.name,
+          CertificationLevel.openWater.name,
         ),
         'Open Water',
       );
     });
 
     test('falls back to the agency when level is null', () {
-      expect(derivedCertificationTitle(CertificationAgency.ssi, null), 'SSI');
+      expect(
+        derivedCertificationTitle(CertificationAgency.ssi.name, null),
+        'SSI',
+      );
     });
   });
 

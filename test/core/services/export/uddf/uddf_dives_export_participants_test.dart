@@ -18,8 +18,8 @@ Buddy _buddy(String id, String name) => Buddy(
   email: '$id@example.test',
   phone: '555-0100',
   notes: 'private note',
-  certificationLevel: CertificationLevel.rescue,
-  certificationAgency: CertificationAgency.padi,
+  certificationLevel: CertificationLevel.rescue.name,
+  certificationAgency: CertificationAgency.padi.name,
   createdAt: _epoch,
   updatedAt: _epoch,
 );

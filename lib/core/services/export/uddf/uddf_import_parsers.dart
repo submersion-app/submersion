@@ -904,18 +904,18 @@ class UddfImportParsers {
     final certElement = buddyElement.findElements('certification').firstOrNull;
     if (certElement != null) {
       final level = getElementText(certElement, 'level');
+      // A name that matches no built-in stays as text: the importer finds
+      // or creates the custom agency it names (issue #690).
       if (level != null) {
-        buddy['certificationLevel'] = parseEnumValue(
-          level,
-          enums.CertificationLevel.values,
-        );
+        buddy['certificationLevel'] =
+            parseEnumValue(level, enums.CertificationLevel.values) ??
+            _nonBlank(level);
       }
       final agency = getElementText(certElement, 'agency');
       if (agency != null) {
-        buddy['certificationAgency'] = parseEnumValue(
-          agency,
-          enums.CertificationAgency.values,
-        );
+        buddy['certificationAgency'] =
+            parseEnumValue(agency, enums.CertificationAgency.values) ??
+            _nonBlank(agency);
       }
     }
 
@@ -1071,16 +1071,19 @@ class UddfImportParsers {
     cert['name'] = getElementText(certElement, 'name');
 
     final agencyStr = getElementText(certElement, 'agency');
+    // Text that names no built-in is kept for the importer, which resolves
+    // it to a custom agency or level (issue #690).
     if (agencyStr != null) {
-      cert['agency'] = parseEnumValue(
-        agencyStr,
-        enums.CertificationAgency.values,
-      );
+      cert['agency'] =
+          parseEnumValue(agencyStr, enums.CertificationAgency.values) ??
+          _nonBlank(agencyStr);
     }
 
     final levelStr = getElementText(certElement, 'level');
     if (levelStr != null) {
-      cert['level'] = parseEnumValue(levelStr, enums.CertificationLevel.values);
+      cert['level'] =
+          parseEnumValue(levelStr, enums.CertificationLevel.values) ??
+          _nonBlank(levelStr);
     }
 
     cert['cardNumber'] = getElementText(certElement, 'cardnumber');
@@ -1218,4 +1221,10 @@ class UddfImportParsers {
 
     return record;
   }
+}
+
+/// [text] trimmed, or null when it is blank.
+String? _nonBlank(String text) {
+  final trimmed = text.trim();
+  return trimmed.isEmpty ? null : trimmed;
 }

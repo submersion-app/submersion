@@ -41,6 +41,7 @@ final courseQueryEntity = QueryEntity(
       emptySql: "({r}.agency IS NULL OR TRIM({r}.agency) = '')",
       labelKey: 'query_courses_agency',
       enumValues: [for (final a in CertificationAgency.values) a.name],
+      customValueSubject: QuerySubject.certificationAgencies,
     ),
     _date('startDate', 'start_date'),
     _date('completionDate', 'completion_date'),

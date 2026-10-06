@@ -8,7 +8,7 @@ import 'package:submersion/core/database/database.dart';
 void main() {
   /// A database at [version] whose weight tables lack the column, each with
   /// one row.
-  NativeDatabase setupDb({int version = 266}) => NativeDatabase.memory(
+  NativeDatabase setupDb({int version = 267}) => NativeDatabase.memory(
     setup: (rawDb) {
       rawDb.execute('PRAGMA user_version = $version');
       rawDb.execute(
@@ -41,14 +41,14 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 268);
     expect(AppDatabase.migrationVersions, contains(268));
-    expect(AppDatabase.migrationStepCount(266), 1);
+    expect(AppDatabase.migrationStepCount(267), 1);
   });
 
   test('the columns are defaulted, so the sync floor does not move', () {
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 
-  test('upgrading from v266 names nothing and keeps notes', () async {
+  test('upgrading from v267 names nothing and keeps notes', () async {
     final db = AppDatabase(setupDb());
     addTearDown(db.close);
     final weight = await db

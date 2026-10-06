@@ -165,6 +165,25 @@ void main() {
       expect(certs.single['level'], CertificationLevel.openWater);
     });
 
+    test('an organisation outside the built-ins keeps its own text (issue '
+        '#690)', () async {
+      final payload = await payloadOf(
+        service(
+          [diveJson(1)],
+          certifications: [
+            {'id': 7, 'name': 'Club Diver', 'org': 'Club X'},
+            {'id': 8, 'name': 'Card', 'org': ''},
+          ],
+        ),
+      );
+
+      final certs = payload.entitiesOf(ImportEntityType.certifications);
+      // The importer turns the text into a custom agency; collapsing it to
+      // Other here would lose it before the importer sees it.
+      expect(certs[0]['agency'], 'Club X');
+      expect(certs[1]['agency'], CertificationAgency.other);
+    });
+
     test('dive gearitems become equipmentRefs', () async {
       final payload = await payloadOf(
         service(

@@ -68,6 +68,7 @@ import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_list_count_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/shared/models/subtitle_text.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// True if [d]'s date falls within [r], inclusive of the end calendar day.
 bool inDateRange(DiveSummary d, DateTimeRange r) {
@@ -946,6 +947,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     selectedDives.map((d) => d.id).toList(growable: false),
                     uddfOptions,
                   ),
+                  certificationCatalog: await ref.read(
+                    allCustomCertificationsCatalogProvider.future,
+                  ),
                 )
               : await exportService.saveDivesToUddfFile(
                   selectedDives,
@@ -958,6 +962,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   extras: await ref.read(uddfDivesExtrasFetchProvider)(
                     selectedDives.map((d) => d.id).toList(growable: false),
                     uddfOptions,
+                  ),
+                  certificationCatalog: await ref.read(
+                    allCustomCertificationsCatalogProvider.future,
                   ),
                 ),
       };
