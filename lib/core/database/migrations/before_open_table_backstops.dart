@@ -55,7 +55,7 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v265 backstop: Insights observation dismissals and muted rules.
     await _assertInsightObservationsSchema();
 
-    // v266 backstop: the custom certification tables (parallel-branch
+    // v267 backstop: the custom certification tables (parallel-branch
     // version-collision self-heal; idempotent).
     await _assertCustomCertificationSchema();
   }

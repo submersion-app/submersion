@@ -65,6 +65,13 @@ final Map<String, ConflictField> mediaLibraryFields = {
     (l) => l.settings_conflict_field_displayHint,
     FieldKind.shortText,
   ),
+  // Site attachment fields (issue #1039) reuse the Edit details sheet's own
+  // labels, so a conflict names them the way the sheet does.
+  'displaySize': ConflictField(
+    (l) => l.media_siteAttachment_sizeLabel,
+    FieldKind.enumValue,
+    enumLabel: attachmentDisplaySizeLabeler,
+  ),
   'elapsedSeconds': ConflictField(
     (l) => l.settings_conflict_field_elapsedSeconds,
     FieldKind.durationSeconds,
@@ -178,6 +185,11 @@ final Map<String, ConflictField> mediaLibraryFields = {
   'signerName': ConflictField(
     (l) => l.settings_conflict_field_signerName,
     FieldKind.shortText,
+  ),
+  'siteCategory': ConflictField(
+    (l) => l.media_siteAttachment_categoryLabel,
+    FieldKind.enumValue,
+    enumLabel: siteAttachmentCategoryLabeler,
   ),
   'sourceType': ConflictField(
     (l) => l.settings_conflict_field_sourceType,

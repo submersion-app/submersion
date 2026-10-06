@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/services/site_attachment_layout.dart';
 import 'package:submersion/features/media/presentation/pages/site_media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/attachment_details_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
+import 'package:submersion/features/media/presentation/widgets/site_attachment_groups.dart';
+import 'package:submersion/features/media/presentation/widgets/site_category_picker.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
@@ -12,7 +16,6 @@ import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
-import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 
 /// Section widget displaying a site's media: direct attachments (maps,
 /// entry-point photos, documents) plus a collapsed group of photos from
@@ -41,9 +44,10 @@ class SiteMediaSection extends ConsumerStatefulWidget {
 class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
   /// Owns the bulk-selection state machine for this section.
   ///
-  /// Id-based, unlike the positional [DragSelectGridView] it drives. Indices
-  /// are derived from ids on every build, so reordering the media list can no
-  /// longer repoint the selection at different files.
+  /// Id-based, unlike the positional per-category grids it drives (see
+  /// [SiteAttachmentGroups]). Each grid derives its indices from ids on every
+  /// build, so reordering or regrouping the media can never repoint the
+  /// selection at different files.
   final SelectionController _selection = SelectionController();
 
   bool get _isSelectionMode => _selection.value.isActive;
@@ -53,18 +57,6 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
     _selection.dispose();
     super.dispose();
   }
-
-  /// Grid indices for the checked ids, against the current ordering.
-  Set<int> _indicesFor(List<MediaItem> media) => {
-    for (var i = 0; i < media.length; i++)
-      if (_selection.value.isChecked(media[i].id)) i,
-  };
-
-  /// Ids for the controller, from the grid's positional selection.
-  List<String> _idsFor(List<MediaItem> media, Set<int> indices) => indices
-      .where((i) => i >= 0 && i < media.length)
-      .map((i) => media[i].id)
-      .toList();
 
   Future<BulkActionOutcome> _unlinkSelected(
     BuildContext context,
@@ -131,6 +123,65 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
       }
     }
     return BulkActionOutcome.cancelled;
+  }
+
+  /// Bulk Set category (issue #1039): one category for every checked item.
+  Future<BulkActionOutcome> _setCategoryForSelected(
+    BuildContext context,
+  ) async {
+    final ids = _selection.value.checkedIds.toList();
+    if (ids.isEmpty) return BulkActionOutcome.cancelled;
+    final choice = await showSiteCategoryPicker(context);
+    if (choice == null || !context.mounted) return BulkActionOutcome.cancelled;
+    try {
+      // The count of rows actually changed: an id unlinked while the
+      // picker was open is skipped and must not be reported as updated.
+      final updated = await ref
+          .read(siteMediaListNotifierProvider(widget.siteId).notifier)
+          .setSiteCategory(ids, choice.category);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.media_siteAttachment_setCategorySuccess(updated),
+            ),
+          ),
+        );
+      }
+      return BulkActionOutcome.completed;
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.media_siteAttachment_setCategoryError(e),
+            ),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+      return BulkActionOutcome.failed;
+    }
+  }
+
+  /// Edit details for the one checked item: the path for a tile, and for a
+  /// non-PDF document, which has no viewer to edit from.
+  Future<BulkActionOutcome> _editSelected(
+    BuildContext context,
+    List<MediaItem> media,
+  ) async {
+    final ids = _selection.value.checkedIds;
+    if (ids.length != 1) return BulkActionOutcome.cancelled;
+    final item = media.where((m) => m.id == ids.single).firstOrNull;
+    if (item == null) return BulkActionOutcome.cancelled;
+    final saved = await showAttachmentDetailsSheet(
+      context,
+      item: item,
+      siteId: widget.siteId,
+    );
+    return saved == null
+        ? BulkActionOutcome.cancelled
+        : BulkActionOutcome.completed;
   }
 
   void _openItem(BuildContext context, MediaItem item, SiteViewerScope scope) {
@@ -207,6 +258,19 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                                 _selection.value.count,
                               ),
                           onInvoke: () => _unlinkSelected(context, media),
+                        ),
+                        BulkAction(
+                          id: 'setCategory',
+                          icon: Icons.label_outline,
+                          label: context.l10n.media_siteAttachment_setCategory,
+                          onInvoke: () => _setCategoryForSelected(context),
+                        ),
+                        BulkAction(
+                          id: 'editDetails',
+                          icon: Icons.edit_outlined,
+                          label: context.l10n.media_siteAttachment_editDetails,
+                          maxCount: 1,
+                          onInvoke: () => _editSelected(context, media),
                         ),
                       ],
                     ),
@@ -290,48 +354,18 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                     message: context.l10n.media_siteMediaSection_emptyState,
                   );
                 }
-                return DragSelectGridView<MediaItem>(
-                  items: media,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  startInSelectionMode: _isSelectionMode,
-                  initialSelection: _indicesFor(media),
-                  // The controller owns the mode. Letting the grid also
-                  // decide had the two fight -- its exit callback cleared the
-                  // controller and the selection callback immediately
-                  // reactivated it, leaving a selection emptied by hand
-                  // stranded at "0 selected".
-                  exitOnEmptySelection: false,
-                  onSelectionChanged: (indices) {
-                    // The grid reports its complete selection, not a delta, so
-                    // this replaces rather than toggles. Not selectAll: that
-                    // declares the mode explicit, which would launder a
-                    // grid gesture into a deliberate entry.
-                    _selection.replaceChecked(_idsFor(media, indices));
-                  },
-                  // Entry and exit both travel through onSelectionChanged
-                  // above; the grid follows the controller back out via
-                  // startInSelectionMode.
-                  onSelectionModeChanged: (_) {},
-                  onItemTap: (index) => _openItem(
+                return SiteAttachmentGroups(
+                  layout: layoutSiteAttachments(media),
+                  selection: _selection,
+                  isSelectionMode: _isSelectionMode,
+                  settings: settings,
+                  onOpen: (item) =>
+                      _openItem(context, item, SiteViewerScope.attachments),
+                  onEditDetails: (item) => showAttachmentDetailsSheet(
                     context,
-                    media[index],
-                    SiteViewerScope.attachments,
+                    item: item,
+                    siteId: widget.siteId,
                   ),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                  ),
-                  itemBuilder: (context, item, isSelected) =>
-                      MediaThumbnailTile(
-                        item: item,
-                        settings: settings,
-                        isSelectionMode: _isSelectionMode,
-                        isSelected: isSelected,
-                        semanticsLabel:
-                            context.l10n.media_diveMediaSection_thumbnailLabel,
-                      ),
                 );
               },
               loading: () => const SizedBox(

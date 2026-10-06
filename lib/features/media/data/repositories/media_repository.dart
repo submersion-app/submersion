@@ -352,6 +352,8 @@ class MediaRepository {
               ),
               retainInLibrary: Value(item.retainInLibrary),
               manualElapsedSeconds: Value(item.manualElapsedSeconds),
+              siteCategory: Value(item.siteCategory?.storageKey),
+              displaySize: Value(item.displaySizeOverride?.storageKey),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -492,6 +494,8 @@ class MediaRepository {
             // same reason: the gallery cloud id backfill stamps it narrowly.
             retainInLibrary: Value(item.retainInLibrary),
             manualElapsedSeconds: Value(item.manualElapsedSeconds),
+            siteCategory: Value(item.siteCategory?.storageKey),
+            displaySize: Value(item.displaySizeOverride?.storageKey),
             updatedAt: Value(now),
           ),
         );

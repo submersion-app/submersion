@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart' show ThemeMode, TimeOfDay;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/o2_cell_unit.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
@@ -173,10 +174,18 @@ void main() {
     expect(
       DiverSettingsRepository.storesSameSettings(
         base,
-        base.copyWith(pscrRatio: 50),
+        base.copyWith(o2CellUnit: O2CellUnit.millivolts),
       ),
       isTrue,
-      reason: 'pSCR ratio is a device-local preference, not a column',
+      reason: 'the O2 cell unit is a device-local preference, not a column',
+    );
+    expect(
+      DiverSettingsRepository.storesSameSettings(
+        base,
+        base.copyWith(pscrRatio: 50),
+      ),
+      isFalse,
+      reason: 'the pSCR ratio is a column since v262 (issue #2948)',
     );
     expect(
       DiverSettingsRepository.storesSameSettings(

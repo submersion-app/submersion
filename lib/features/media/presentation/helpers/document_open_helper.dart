@@ -24,16 +24,22 @@ import 'package:submersion/core/services/files/picked_file_materializer.dart';
 class DocumentOpenHelper {
   /// Route a tapped document: PDFs to the in-app viewer, everything else
   /// to the platform (desktop-open vs mobile-share duality).
+  ///
+  /// [editableSiteId] names the site a PDF is attached to when its viewer
+  /// may offer Edit details (issue #1039); dive and equipment callers leave
+  /// it null.
   static Future<void> open(
     BuildContext context,
     WidgetRef ref,
-    MediaItem item,
-  ) async {
+    MediaItem item, {
+    String? editableSiteId,
+  }) async {
     if (item.isPdf) {
       await Navigator.of(context).push(
         MaterialPageRoute(
           fullscreenDialog: true,
-          builder: (_) => DocumentViewerPage(item: item),
+          builder: (_) =>
+              DocumentViewerPage(item: item, editableSiteId: editableSiteId),
         ),
       );
       return;
