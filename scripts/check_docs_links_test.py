@@ -50,7 +50,7 @@ class LinkTests(unittest.TestCase):
         write(
             self.root,
             "docs/README.md",
-            "[a](https://example.com/x.md) [b](#top) [c](mailto:a@b.c) [d](/abs.md)\n",
+            "[a](https://example.com/x.md) [b](#top) [c](mailto:a@b.c)\n",
         )
         self.assertEqual(guard.check_links(self.root), [])
 
@@ -61,6 +61,27 @@ class LinkTests(unittest.TestCase):
     def test_excluded_trees_are_not_checked(self):
         write(self.root, "docs/design/specs/a.md", "[x](../../lib/gone.dart)\n")
         write(self.root, "docs/user/guide/a.md", "[x](guide/gone.md)\n")
+        self.assertEqual(guard.check_links(self.root), [])
+
+    def test_root_relative_link_resolves_from_repo_root(self):
+        write(self.root, "CONTRIBUTING.md")
+        write(self.root, "docs/developer/README.md", "[C](/CONTRIBUTING.md) [G](/gone.md)\n")
+        failures = guard.check_links(self.root)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("/gone.md", failures[0])
+
+    def test_inline_code_is_ignored(self):
+        write(self.root, "docs/contributing/README.md", "Write `[Testing](testing.md)` like this.\n")
+        self.assertEqual(guard.check_links(self.root), [])
+
+    def test_angle_bracket_and_parenthesized_destinations(self):
+        write(self.root, "docs/developer/release notes.md")
+        write(self.root, "docs/developer/foo_(v2).md")
+        write(
+            self.root,
+            "docs/developer/README.md",
+            '[a](<release notes.md>) [b](foo_(v2).md) [c](foo_(v2).md "Title")\n',
+        )
         self.assertEqual(guard.check_links(self.root), [])
 
     def test_link_to_directory_with_readme_passes(self):
@@ -92,6 +113,17 @@ class CodeRefTests(unittest.TestCase):
             ".github/workflows/ci.yaml",
             "# a docs/CI-only change; docs/img/x.png; docs/scanned_logs/1.jpg\n",
         )
+        self.assertEqual(guard.check_code_refs(self.root), [])
+
+    def test_docs_path_inside_external_url_is_ignored(self):
+        write(self.root, "lib/a.dart", "// https://example.org/docs/developer/guide.md\n")
+        self.assertEqual(guard.check_code_refs(self.root), [])
+
+    def test_binary_files_are_skipped(self):
+        path = os.path.join(self.root, "test", "fixture.bin")
+        os.makedirs(os.path.dirname(path))
+        with open(path, "wb") as fh:
+            fh.write(b"\x00\x01docs/developer/gone.md")
         self.assertEqual(guard.check_code_refs(self.root), [])
 
     def test_top_level_files_are_scanned(self):

@@ -52,15 +52,23 @@ RETIRED = {
     ),
 }
 
-LINK_RE = re.compile(r"\]\(\s*<?([^)\s>]+)>?(?:\s+\"[^\"]*\")?\s*\)")
+# A destination is either <angle-bracketed> (may hold spaces) or a run of
+# non-space characters with balanced single-level parentheses, as in
+# CommonMark. An optional "title" may follow.
+LINK_RE = re.compile(
+    r"\]\(\s*(?:<([^>\n]+)>|((?:[^()\s]|\([^()\s]*\))+))"
+    r"(?:\s+\"[^\"]*\")?\s*\)"
+)
+INLINE_CODE_RE = re.compile(r"(`+).+?\1")
 FENCE_RE = re.compile(r"^\s*(```|~~~)")
 SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
+# The lookbehind skips "docs/" inside a longer path or URL, which is not a
+# path in this repository.
 CODE_REF_RE = re.compile(
-    r"docs/(?:user|developer|contributing|design|releases|assets)/"
+    r"(?<![A-Za-z0-9_./-])docs/(?:user|developer|contributing|design|releases|assets)/"
     r"[A-Za-z0-9_./-]+\.(?:md|html|png|jpg|json)\b"
 )
-# Folders the restructure retired, and where their files went. The
-# lookbehind skips "docs/" inside a longer path or URL.
+# Folders the restructure retired, and where their files went.
 RETIRED_REF_HOMES = {
     "superpowers": "docs/design/",
     "plans": "docs/design/specs/ or docs/design/plans/",
@@ -73,17 +81,36 @@ RETIRED_REF_RE = re.compile(
 )
 
 
-def _markdown_files(root):
-    for entry in LINK_ROOTS:
+def _walk(root, entries, keep):
+    """Yield repo-relative paths of the files under entries that keep accepts."""
+    for entry in entries:
         full = os.path.join(root, entry)
         if os.path.isfile(full):
-            yield entry
+            if keep(entry):
+                yield entry
         elif os.path.isdir(full):
             for dirpath, dirnames, filenames in os.walk(full):
                 dirnames[:] = sorted(d for d in dirnames if d not in SKIP_DIRS)
                 for name in sorted(filenames):
-                    if name.endswith(".md"):
-                        yield os.path.relpath(os.path.join(dirpath, name), root)
+                    rel = os.path.relpath(os.path.join(dirpath, name), root)
+                    if keep(rel):
+                        yield rel
+
+
+def _read_text(path):
+    """The file's text, or None for a binary or unreadable file.
+
+    A NUL byte in the first block marks a binary file (fonts, fixtures), so
+    the rest of it is never read.
+    """
+    try:
+        with open(path, "rb") as fh:
+            head = fh.read(8192)
+            if b"\0" in head:
+                return None
+            return (head + fh.read()).decode("utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
 
 
 def _unfenced_lines(text):
@@ -98,46 +125,36 @@ def _unfenced_lines(text):
 
 def check_links(root):
     failures = []
-    for rel in _markdown_files(root):
-        with open(os.path.join(root, rel), encoding="utf-8", errors="replace") as fh:
-            text = fh.read()
+    for rel in _walk(root, LINK_ROOTS, lambda path: path.endswith(".md")):
+        text = _read_text(os.path.join(root, rel))
+        if text is None:
+            continue
         base = os.path.dirname(os.path.join(root, rel))
         for number, line in _unfenced_lines(text):
-            for match in LINK_RE.finditer(line):
-                url = match.group(1)
-                if SCHEME_RE.match(url) or url.startswith(("#", "/")):
+            for match in LINK_RE.finditer(INLINE_CODE_RE.sub("", line)):
+                url = match.group(1) or match.group(2)
+                if SCHEME_RE.match(url) or url.startswith(("#", "//")):
                     continue
                 target = unquote(url.split("#", 1)[0].split("?", 1)[0])
                 if not target:
                     continue
-                if not os.path.exists(os.path.normpath(os.path.join(base, target))):
+                # GitHub resolves a leading "/" from the repository root.
+                if target.startswith("/"):
+                    resolved = os.path.join(root, target.lstrip("/"))
+                else:
+                    resolved = os.path.join(base, target)
+                if not os.path.exists(os.path.normpath(resolved)):
                     failures.append(f"{rel}:{number}: broken link -> {url}")
     return failures
 
 
-def _code_files(root):
-    for entry in CODE_REF_SOURCES:
-        full = os.path.join(root, entry)
-        if os.path.isfile(full):
-            yield entry
-        elif os.path.isdir(full):
-            for dirpath, dirnames, filenames in os.walk(full):
-                dirnames[:] = sorted(d for d in dirnames if d not in SKIP_DIRS)
-                for name in sorted(filenames):
-                    rel = os.path.relpath(os.path.join(dirpath, name), root)
-                    if rel not in NOT_SCANNED:
-                        yield rel
-
-
 def check_code_refs(root):
     failures = []
-    for rel in _code_files(root):
-        try:
-            with open(os.path.join(root, rel), encoding="utf-8") as fh:
-                lines = fh.read().splitlines()
-        except (UnicodeDecodeError, OSError):
+    for rel in _walk(root, CODE_REF_SOURCES, lambda path: path not in NOT_SCANNED):
+        text = _read_text(os.path.join(root, rel))
+        if text is None:
             continue
-        for number, line in enumerate(lines, 1):
+        for number, line in enumerate(text.splitlines(), 1):
             for match in CODE_REF_RE.finditer(line):
                 ref = match.group(0)
                 if not os.path.exists(os.path.join(root, *ref.split("/"))):
