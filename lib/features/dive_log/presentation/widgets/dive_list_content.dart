@@ -105,6 +105,14 @@ const double kGroupingPausedNoticeHeight = 56;
 /// Trailing spacer that keeps the last row clear of the FAB.
 const double _kListBottomSpacer = 80;
 
+/// Below this width, Sort folds into the overflow menu instead of sitting
+/// as its own app bar icon (#3076): four icons (map, search, sort, overflow)
+/// otherwise squeeze the title down to a few characters. Comfortably above
+/// the fixed master-detail pane (440dp, see kRefinePanelSideWidth's sibling
+/// constant in MasterDetailScaffold) once its own padding is subtracted, so
+/// that pane always folds; narrow phones fold too, wide hosts do not.
+const double _kFoldSortWidth = 480;
+
 class DiveListContent extends ConsumerStatefulWidget {
   /// Callback when an item is selected. Used in master-detail mode.
   final void Function(String?)? onItemSelected;
@@ -1184,14 +1192,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           }
 
           // Standalone mode with full Scaffold
-          return Scaffold(
-            appBar: selection.isActive
-                ? _buildSelectionAppBar(loadedDives)
-                : _buildAppBar(context, filter),
-            body: body,
-            floatingActionButton: selection.isActive
-                ? null
-                : widget.floatingActionButton,
+          return LayoutBuilder(
+            builder: (context, constraints) => Scaffold(
+              appBar: selection.isActive
+                  ? _buildSelectionAppBar(loadedDives)
+                  : _buildAppBar(
+                      context,
+                      filter,
+                      foldSort: constraints.maxWidth < _kFoldSortWidth,
+                    ),
+              body: body,
+              floatingActionButton: selection.isActive
+                  ? null
+                  : widget.floatingActionButton,
+            ),
           );
         },
       ),
@@ -1208,6 +1222,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     DiveFilterState filter, {
     String? title,
     List<Widget> extraActions = const [],
+    bool foldSort = false,
   }) {
     return AppBar(
       title: FeatureAppBarTitle(
@@ -1235,15 +1250,18 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             onPressed: () => context.push('/dives/activity'),
           ),
         const DiveSearchAction(),
-        IconButton(
-          icon: const Icon(Icons.sort),
-          tooltip: context.l10n.diveLog_listPage_tooltip_sort,
-          onPressed: () => _showSortSheet(context),
-        ),
+        if (!foldSort)
+          IconButton(
+            icon: const Icon(Icons.sort),
+            tooltip: context.l10n.diveLog_listPage_tooltip_sort,
+            onPressed: () => _showSortSheet(context),
+          ),
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
           onSelected: (value) {
-            if (value == 'numbering') {
+            if (value == 'sort') {
+              _showSortSheet(context);
+            } else if (value == 'numbering') {
               showDiveNumberingDialog(context);
             } else if (value == 'match_sites') {
               context.push('/dives/match-sites');
@@ -1269,6 +1287,17 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           itemBuilder: (context) {
             final currentMode = ref.read(diveListViewModeProvider);
             return [
+              if (foldSort)
+                PopupMenuItem(
+                  value: 'sort',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.sort),
+                      const SizedBox(width: 12),
+                      Text(context.l10n.diveLog_listPage_tooltip_sort),
+                    ],
+                  ),
+                ),
               ...selectItemsMenuEntries(
                 context,
                 onSelect: _selection.enterExplicit,
@@ -1368,183 +1397,207 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   /// Compact app bar for master pane in split view
   Widget _buildCompactAppBar(BuildContext context, DiveFilterState filter) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 8),
-          // Expanded, and no Spacer: the title must be the row's only flexible
-          // child (see trip_list_content for the detail). This bar was already
-          // right-aligned with a bare title plus Spacer, but a non-flexible
-          // title overflows rather than yielding once a locale makes it long.
-          Expanded(
-            child: FeatureAppBarTitle(
-              featureId: 'dives',
-              title: context.l10n.diveLog_listPage_compactTitle,
-              subtitle: _countSubtitle(context),
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final foldSort = constraints.maxWidth < _kFoldSortWidth;
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            border: Border(
+              bottom: BorderSide(
+                color: Theme.of(context).colorScheme.outlineVariant,
+                width: 1,
+              ),
             ),
           ),
-          // Map toggle: shown in detailed/compact mode only.
-          // In table mode, TableModeLayout manages the map toggle.
-          if (widget.onMapViewToggle != null)
-            MapViewToggleButton(
-              isActive: widget.isMapViewActive,
-              onToggle: widget.onMapViewToggle!,
-            )
-          else if (ref.read(diveListViewModeProvider) != ListViewMode.table)
-            IconButton(
-              icon: const Icon(Icons.map, size: 20),
-              tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
-              onPressed: () => context.push('/dives/activity'),
-            ),
-          const DiveSearchAction(iconSize: 20),
-          IconButton(
-            icon: const Icon(Icons.sort, size: 20),
-            tooltip: context.l10n.diveLog_listPage_tooltip_sort,
-            onPressed: () => _showSortSheet(context),
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, size: 20),
-            onSelected: (value) {
-              if (value == 'numbering') {
-                showDiveNumberingDialog(context);
-              } else if (value == 'match_sites') {
-                context.push('/dives/match-sites');
-              } else if (value == 'data_quality') {
-                context.push('/dives/quality');
-              } else if (value == 'group_trips') {
-                final next = !ref.read(diveListGroupTripsProvider);
-                ref.read(diveListGroupTripsProvider.notifier).state = next;
-                ref
-                    .read(settingsProvider.notifier)
-                    .setGroupTripsInDiveList(next);
-              } else if (value == 'expand_all_trips') {
-                ref.read(collapsedTripIdsProvider.notifier).expandAll();
-              } else if (value == 'collapse_all_trips') {
-                ref
-                    .read(collapsedTripIdsProvider.notifier)
-                    .collapseAll(_visibleTripIds());
-              } else if (value.startsWith('view_')) {
-                final mode = ListViewMode.fromName(
-                  value.replaceFirst('view_', ''),
-                );
-                ref.read(diveListViewModeProvider.notifier).state = mode;
-              }
-            },
-            itemBuilder: (context) {
-              final currentMode = ref.read(diveListViewModeProvider);
-              return [
-                ...selectItemsMenuEntries(
-                  context,
-                  onSelect: _selection.enterExplicit,
-                ),
-                ...ListViewModeToggle.menuItems(
-                  context,
-                  currentMode: currentMode,
-                  modes: const [
-                    ListViewMode.detailed,
-                    ListViewMode.compact,
-                    ListViewMode.table,
-                  ],
-                ),
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'group_trips',
-                  child: _groupingMenuRow(
-                    context,
-                    icon: Icons.card_travel,
-                    label: context.l10n.diveLog_listPage_menuGroupTrips,
-                    // The active state reads as a tinted icon and label, matching the
-                    // view-mode entries directly above rather than a checkbox.
-                    isActive: ref.watch(diveListGroupTripsProvider),
+          child: Row(
+            children: [
+              const SizedBox(width: 8),
+              // Expanded, and no Spacer: the title must be the row's only
+              // flexible child (see trip_list_content for the detail). This
+              // bar was already right-aligned with a bare title plus Spacer,
+              // but a non-flexible title overflows rather than yielding once
+              // a locale makes it long.
+              Expanded(
+                child: FeatureAppBarTitle(
+                  featureId: 'dives',
+                  title: context.l10n.diveLog_listPage_compactTitle,
+                  subtitle: _countSubtitle(context),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                if (ref.watch(diveListGroupingEnabledProvider)) ...[
-                  PopupMenuItem(
-                    value: 'expand_all_trips',
-                    child: _groupingMenuRow(
+              ),
+              // Map toggle: shown in detailed/compact mode only.
+              // In table mode, TableModeLayout manages the map toggle.
+              if (widget.onMapViewToggle != null)
+                MapViewToggleButton(
+                  isActive: widget.isMapViewActive,
+                  onToggle: widget.onMapViewToggle!,
+                )
+              else if (ref.read(diveListViewModeProvider) != ListViewMode.table)
+                IconButton(
+                  icon: const Icon(Icons.map, size: 20),
+                  tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
+                  onPressed: () => context.push('/dives/activity'),
+                ),
+              const DiveSearchAction(iconSize: 20),
+              if (!foldSort)
+                IconButton(
+                  icon: const Icon(Icons.sort, size: 20),
+                  tooltip: context.l10n.diveLog_listPage_tooltip_sort,
+                  onPressed: () => _showSortSheet(context),
+                ),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert, size: 20),
+                onSelected: (value) {
+                  if (value == 'sort') {
+                    _showSortSheet(context);
+                  } else if (value == 'numbering') {
+                    showDiveNumberingDialog(context);
+                  } else if (value == 'match_sites') {
+                    context.push('/dives/match-sites');
+                  } else if (value == 'data_quality') {
+                    context.push('/dives/quality');
+                  } else if (value == 'group_trips') {
+                    final next = !ref.read(diveListGroupTripsProvider);
+                    ref.read(diveListGroupTripsProvider.notifier).state = next;
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setGroupTripsInDiveList(next);
+                  } else if (value == 'expand_all_trips') {
+                    ref.read(collapsedTripIdsProvider.notifier).expandAll();
+                  } else if (value == 'collapse_all_trips') {
+                    ref
+                        .read(collapsedTripIdsProvider.notifier)
+                        .collapseAll(_visibleTripIds());
+                  } else if (value.startsWith('view_')) {
+                    final mode = ListViewMode.fromName(
+                      value.replaceFirst('view_', ''),
+                    );
+                    ref.read(diveListViewModeProvider.notifier).state = mode;
+                  }
+                },
+                itemBuilder: (context) {
+                  final currentMode = ref.read(diveListViewModeProvider);
+                  return [
+                    if (foldSort)
+                      PopupMenuItem(
+                        value: 'sort',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.sort, size: 20),
+                            const SizedBox(width: 12),
+                            Text(context.l10n.diveLog_listPage_tooltip_sort),
+                          ],
+                        ),
+                      ),
+                    ...selectItemsMenuEntries(
                       context,
-                      icon: Icons.unfold_more,
-                      label: context.l10n.diveLog_listPage_menuExpandAllTrips,
+                      onSelect: _selection.enterExplicit,
                     ),
-                  ),
-                  PopupMenuItem(
-                    value: 'collapse_all_trips',
-                    child: _groupingMenuRow(
+                    ...ListViewModeToggle.menuItems(
                       context,
-                      icon: Icons.unfold_less,
-                      label: context.l10n.diveLog_listPage_menuCollapseAllTrips,
+                      currentMode: currentMode,
+                      modes: const [
+                        ListViewMode.detailed,
+                        ListViewMode.compact,
+                        ListViewMode.table,
+                      ],
                     ),
-                  ),
-                ],
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'numbering',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.format_list_numbered, size: 20),
-                      const SizedBox(width: 12),
-                      Text(context.l10n.diveLog_listPage_menuDiveNumbering),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'match_sites',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.add_location_alt_outlined, size: 20),
-                      const SizedBox(width: 12),
-                      Flexible(
-                        child: Text(
-                          context.l10n.diveLog_listPage_menuMatchSites,
+                    const PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: 'group_trips',
+                      child: _groupingMenuRow(
+                        context,
+                        icon: Icons.card_travel,
+                        label: context.l10n.diveLog_listPage_menuGroupTrips,
+                        // The active state reads as a tinted icon and label,
+                        // matching the view-mode entries directly above
+                        // rather than a checkbox.
+                        isActive: ref.watch(diveListGroupTripsProvider),
+                      ),
+                    ),
+                    if (ref.watch(diveListGroupingEnabledProvider)) ...[
+                      PopupMenuItem(
+                        value: 'expand_all_trips',
+                        child: _groupingMenuRow(
+                          context,
+                          icon: Icons.unfold_more,
+                          label:
+                              context.l10n.diveLog_listPage_menuExpandAllTrips,
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'collapse_all_trips',
+                        child: _groupingMenuRow(
+                          context,
+                          icon: Icons.unfold_less,
+                          label: context
+                              .l10n
+                              .diveLog_listPage_menuCollapseAllTrips,
                         ),
                       ),
                     ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'data_quality',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.rule, size: 20),
-                      const SizedBox(width: 12),
-                      Flexible(
-                        child: Text(context.l10n.dataQuality_badge_tooltip),
+                    const PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: 'numbering',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.format_list_numbered, size: 20),
+                          const SizedBox(width: 12),
+                          Text(context.l10n.diveLog_listPage_menuDiveNumbering),
+                        ],
                       ),
-                      Builder(
-                        builder: (context) {
-                          final count =
-                              ref
-                                  .watch(openQualityFindingsCountProvider)
-                                  .value ??
-                              0;
-                          if (count == 0) return const SizedBox.shrink();
-                          return Padding(
-                            padding: const EdgeInsets.only(left: 8),
-                            child: Badge(label: Text('$count')),
-                          );
-                        },
+                    ),
+                    PopupMenuItem(
+                      value: 'match_sites',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.add_location_alt_outlined, size: 20),
+                          const SizedBox(width: 12),
+                          Flexible(
+                            child: Text(
+                              context.l10n.diveLog_listPage_menuMatchSites,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-              ];
-            },
+                    ),
+                    PopupMenuItem(
+                      value: 'data_quality',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.rule, size: 20),
+                          const SizedBox(width: 12),
+                          Flexible(
+                            child: Text(context.l10n.dataQuality_badge_tooltip),
+                          ),
+                          Builder(
+                            builder: (context) {
+                              final count =
+                                  ref
+                                      .watch(openQualityFindingsCountProvider)
+                                      .value ??
+                                  0;
+                              if (count == 0) return const SizedBox.shrink();
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: Badge(label: Text('$count')),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ];
+                },
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

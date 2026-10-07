@@ -76,30 +76,32 @@ class _QueryEditorState extends State<QueryEditor>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: TabBar(
-                controller: _tabs,
-                tabs: [
-                  Tab(text: strings.tabText),
-                  Tab(text: strings.tabBuilder),
-                ],
-              ),
-            ),
-            if (widget.onSave != null)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: 8),
-                child: FilledButton.tonalIcon(
-                  icon: const Icon(Icons.bookmark_add_outlined),
-                  label: Text(strings.save),
-                  onPressed: (widget.canSave ?? widget.value != null)
-                      ? widget.onSave
-                      : null,
-                ),
-              ),
+        // A Row with Save beside the tabs squeezed the second tab's label
+        // behind the button on any narrow host (a phone sheet, or the
+        // Refine panel's fixed 440dp desktop side panel, see #3076) -
+        // Save always sits on its own row below the tabs instead, which
+        // costs a little vertical space but never hides either label.
+        TabBar(
+          controller: _tabs,
+          tabs: [
+            Tab(text: strings.tabText),
+            Tab(text: strings.tabBuilder),
           ],
         ),
+        if (widget.onSave != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: FilledButton.tonalIcon(
+                icon: const Icon(Icons.bookmark_add_outlined),
+                label: Text(strings.save),
+                onPressed: (widget.canSave ?? widget.value != null)
+                    ? widget.onSave
+                    : null,
+              ),
+            ),
+          ),
         const SizedBox(height: 8),
         // Not a TabBarView: that needs a bounded height, which a section
         // inside a ListView does not give it. Swapping the child takes the
