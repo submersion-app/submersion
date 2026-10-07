@@ -1,322 +1,285 @@
 # Planning & Calculators
 
-Submersion's Planning hub gathers the tools you use *before* a dive: a full
-multi-level dive planner, an interactive decompression calculator, a set of gas
-calculators, a weight estimator, and a surface-interval tool for repetitive
-diving. Everything runs on your device with no account or connection required.
+Submersion's Planning area gathers the tools you use before a dive: a full dive
+planner with saved plans, a quick decompression calculator, seven gas
+calculators, a weight calculator, a surface-interval tool, and two live clocks
+for flying after diving and your current oxygen load. Everything runs on your
+device with no account or connection.
 
 > [!NOTE]
-> **Where to find it:** Open **Planning** from the navigation rail (or the
-> bottom navigation bar on a phone). On a phone you land on a list of the five
-> tools; on a tablet or computer the hub uses a master-detail layout, with the
-> tool list on the left and the open tool filling the rest of the screen.
+> **Where to find it:** **Planning** in the navigation. The list starts with the
+> **Dive Planner** and your three most recent saved plans, then the **Tools**.
+> On a tablet or computer, tools open beside the list; the Dive Planner and Gas
+> Calculators take the whole window.
 
 > [!WARNING]
-> These tools are for **planning purposes only**. Always verify their numbers
-> against your training and run every dive on a dive computer. The decompression
-> figures come from a software model (Bühlmann ZH-L16C) and can differ from what
-> your computer shows. Submersion is not a substitute for a dive computer or for
-> proper training.
+> These tools are for planning purposes only. Always verify their numbers
+> against your training and dive on a dive computer. The decompression figures
+> come from a software model (Bühlmann ZH-L16C with gradient factors) and can
+> differ from what your computer shows.
 
-<!-- screenshot: images/planning/hub.png — the Planning hub listing the five tools -->
-
-## The five planning tools
-
-The Planning hub opens to a list of five tools. The rest of this page covers
-each one in the order you meet it:
+<!-- screenshot: images/planning/hub.png: the Planning list with the dive planner, saved plans and tools -->
 
 | Tool | What it answers |
 |------|-----------------|
-| **Dive planner** | "What does this whole dive look like — depths, gases, deco, and gas use?" |
-| **Deco calculator** | "At this depth on this gas, how long is my no-stop time, and what stops do I owe?" |
-| **Gas calculators** | "What's my MOD, best mix, gas use, reserve, or narcotic depth?" |
-| **Weight calculator** | "Roughly how much lead should I start with for this exposure suit and tank?" |
-| **Surface interval** | "How long must I wait before my next dive?" |
-
-> [!NOTE]
-> Each tool keeps the values you enter while you move between them, but those
-> values are **not saved** when you leave the Planning area or close the app —
-> the planning tools are live calculators, not stored records. To keep a dive in
-> your log, enter it through [Dive logging](dive-logging.md) instead.
+| **Dive Planner** | What does this whole dive look like: depths, gases, deco, gas use, and what if it goes wrong? |
+| **Deco Calculator** | At this depth on this gas, how long is my no-stop time, and what do I owe if I stay? |
+| **Gas Calculators** | What is my MOD, best mix, gas use, reserve, narcotic depth or gas density, and how do I blend trimix? |
+| **Weight Calculator** | How much lead should I carry, and where? |
+| **Surface Interval** | How long must I wait before my next dive? |
+| **Flying after diving** | When can I fly? |
+| **Current CNS/OTU load** | How much oxygen exposure am I still carrying? |
 
 ---
 
-## Dive planner
+## Dive Planner
 
-The dive planner is the most complete tool here. You build a dive out of
-segments — descent, bottom, ascent, gas switches, and stops — choose your tanks
-and gas mixes, and Submersion runs the whole profile through the decompression
-model to show you the stops you owe, your runtime, and how much gas each tank
-will use.
+The dive planner builds a whole dive: you set the depths and times you intend,
+choose your cylinders, and Submersion computes the ascent and every
+decompression stop, then shows your runtime, gas use, oxygen exposure, and
+what happens if the dive goes deeper, longer, or loses a gas.
 
-It is organized into three tabs:
+<!-- screenshot: images/planning/dive-planner.png: dive planner with editor, chart and results -->
 
-- **Plan** — where you set everything up.
-- **Results** — the decompression schedule and gas projections, with a badge
-  showing how many warnings the current plan raises.
-- **Profile** — a depth-versus-time chart of the dive you have built.
+### Layout
 
-<!-- screenshot: images/planning/dive-planner.png — dive planner -->
+On a wide screen the planner shows three panes side by side: the editor on the
+left, the profile chart in the middle, and the results on the right. Either side
+pane can be collapsed. On a phone the chart sits on top, with **Tanks**,
+**Plan**, **Setup** and **Results** below it, and a button to view the chart full
+screen.
 
-### Quick start: the Quick Plan dialog
+The top bar shows the plan's name (tap it to rename) and a mode chip. Tap the
+chip to switch between open circuit (OC), closed-circuit rebreather (CCR), and
+semi-closed rebreathers (SCR and pSCR). On wider screens, chips for the gradient
+factors and altitude jump straight to the matching settings.
 
-If you just want a simple square-profile dive, tap **Quick Plan** in the top bar.
-Enter a **maximum depth** (5–40 m / 16–131 ft) and a **bottom time** (5–120
-minutes), and Submersion builds a complete profile for you: a descent, the
-bottom segment, an ascent, and a 3-minute safety stop at 5 m (16 ft). You can
-then fine-tune any of those segments on the **Plan** tab.
+### Tanks
+
+Under **Tanks**, **Add Tank** opens a tank with a **Name**, **Volume (L)**,
+**Start (bar)**, **O₂ %** and **He %**. Switch on **Also used as travel gas** for
+a cylinder you breathe on the way down, and on a rebreather plan mark
+**Bailout gas**. You do not pick a role: the planner works out back gas, deco and
+stage cylinders from the gas and how it is used. **Saved tanks** keeps tanks you
+reuse from plan to plan.
+
+A new plan starts with one 11.1 L tank at 200 bar on air.
+
+### Building the profile
+
+Under **Dive Segments**, each segment is a point you want to reach: a
+**Depth (m)**, a **Duration (min)**, and the **Tank / Gas** you breathe there. The
+planner shows whether each one is a descent, a level stretch or an ascent, and
+you can drag segments into a new order. You only describe the part of the dive
+you choose; the ascent and the decompression stops are always computed.
+
+You can also edit on the chart: drag a point to move it, double-tap to add one,
+and right-click (or long press) for a gas menu. With a point selected, the arrow
+keys change its depth (up and down) or its time by a minute (left and right),
+and Delete removes it.
+
+For a quick start, choose **Quick Plan** from the menu: give a depth (5 to
+40 m, default 18) and a time (5 to 120 minutes, default 45), and it replaces the
+segments with a simple square dive. **Plan as DPV mission** instead builds the
+profile from a scooter route.
 
 ### Plan settings
 
-The **Plan Settings** panel at the top of the Plan tab holds the parameters that
-apply to the whole dive:
+**Plan Settings** (the **Setup** tab on a phone) holds the settings for the whole
+dive:
 
-- **GF Low / GF High** — the gradient factors that set how conservative the
-  decompression model is, each adjustable from 10 to 100. Gradient factors (GF)
-  scale how close the model lets your tissues approach their theoretical limits:
-  a *lower* number is more conservative. They start from your app settings
-  (**GF 50/85** by default). See [Glossary](glossary.md) for a fuller explanation.
-- **SAC rate** — your surface air consumption (SAC), the volume of gas you
-  breathe per minute at the surface, adjustable from 8 to 30 L/min. This drives
-  the gas-use projections.
-- **Altitude** — set this above sea level for an altitude dive; the planner
-  accounts for the thinner atmosphere.
-- **Dive site** — optionally attach a site from your [dive sites](dive-sites.md).
+| Group | Settings |
+|-------|----------|
+| **Decompression** | **GF Low** and **GF High** (10 to 100; a new plan starts from your settings, 50/85 by default), the **Last stop** depth (3, 4, 5 or 6 m), and **Air breaks** for long oxygen stops |
+| **Rates** | **Descent rate** 18 m/min, **Ascent rate** 9 m/min, slower rates between and at shallow stops, and a **Final ascent rate (last 3 m)** of 1 m/min |
+| **Gas** | **Bottom RMV** (15 L/min, with an offer to use your logged average), **Reserve** (50 bar, or 500 psi), and **Gas options**: deco RMV, a stress factor and problem-solving time for minimum-gas sums, the ppO₂ limits, and whether to treat oxygen as narcotic for this plan |
+| **Environment** | Altitude, and **Water type**: salt, fresh, or a custom salinity |
+| **CCR** | Low and high setpoints (0.7 and 1.3 bar from your settings) and the depth to switch between them (10 m) |
+| **pSCR** | The pSCR ratio |
+| **Contingencies** | **Extra depth** (5 m), **Extra minutes** (5), and a **Turn pressure rule**: none, all usable, halves, thirds or custom |
+| **Gear & Weights** | The gear for the dive and a predicted lead weight; see [Weight Planner](weight-planner.md) |
 
-> [!TIP]
-> If you do not know your SAC rate, Submersion can estimate it from dives you
-> have already logged — see [Statistics](statistics.md). A realistic SAC is what
-> makes the gas-consumption and reserve numbers meaningful.
-
-### Tanks and gases
-
-In the **Tanks** list you add one or more cylinders, each with:
-
-- a **name**,
-- a **volume** in litres,
-- a **starting pressure** in bar,
-- a **gas mix**, set by its oxygen (O₂) and helium (He) percentages, and
-- a **role** — back gas, bottom deco gas, stage deco gas, or bailout.
-
-A new plan starts with a single aluminium-80 (≈ 11.1 L) tank filled to 200 bar
-on air (21% O₂). Add a second tank with a richer mix — for example EAN50 (50%
-O₂, a nitrox blend) — and you can switch to it partway through the dive to
-shorten your decompression.
-
-### Segments
-
-A dive is a sequence of **segments**, which you add, edit, reorder, and remove
-in the **Segments** list. Each segment is one of:
-
-- **Descent** — from one depth down to a deeper one, at a chosen rate (default
-  18 m/min).
-- **Bottom** — time held at a fixed depth.
-- **Ascent** — up to a shallower depth, at a chosen rate (default 9 m/min).
-- **Deco stop** — a fixed depth held for a set time.
-- **Safety stop** — typically 3 minutes at 5 m (16 ft).
-- **Gas switch** — change to another tank.
-
-Because each segment carries its own start and end depth and its own tank, you
-can build true **multi-level** profiles and switch gas at any point in the dive.
+> [!NOTE]
+> A lower gradient factor is more conservative. See the [Glossary](glossary.md)
+> for gradient factors, RMV, ppO₂ and the other terms used here.
 
 ### Reading the results
 
-Open the **Results** tab to see what your plan produces. The **Decompression**
-section reports:
+The results pane leads with **Runtime**, **NDL** (or **TTS** once the dive needs
+decompression), **CNS** and the number of **Warnings**, and the same figures sit
+as chips under the chart. The chart draws the ceiling, gas switches and stops.
 
-- **Runtime** — total planned time, including stops.
-- **NDL / Status** — your remaining no-decompression limit (NDL), or **DECO**
-  once the plan crosses into a decompression obligation.
-- **TTS** — time to surface, the minutes needed to ascend and clear all stops
-  from the deepest point.
-- **Ceiling** — the shallowest depth you may safely ascend to right now.
-- A **Decompression Schedule** listing each stop's depth, duration, and gas.
+- **Decompression Schedule** lists each stop's depth, duration, runtime and gas,
+  or "No decompression required". Tap a stop to set a minimum time for it.
+- **Gas Consumption** shows, for each tank, the gas used, the pressure left at
+  the end, the turn pressure and the minimum gas.
+- **Bailout (open circuit)**, on a CCR plan, works out the worst-case bailout:
+  when it happens, how long the ascent takes, and whether your bailout gas
+  covers it.
+- **Contingencies** recompute the dive deeper, longer, and both, and with each
+  deco or stage gas lost. Select one to preview it on the chart; every headline
+  figure switches to it.
+- **Range table** shows the time to surface if you go 3 or 6 m deeper or
+  shallower, or 5 or 10 minutes longer or shorter. Red cells are dives you could
+  not do as planned.
 
-The **Gas Consumption** section shows, per tank, how much gas the dive uses, the
-pressure remaining at the end, and how much of the tank that represents. If a
-tank is projected to drop below its reserve, it is flagged.
+The planner warns about:
 
-Submersion also tracks your oxygen exposure across the dive — central nervous
-system toxicity (CNS, shown as a percentage of the daily limit) and oxygen
-tolerance units (OTU) — and raises a **warning** for anything worth your
-attention: ppO₂ (the partial pressure of oxygen) above 1.4 bar or 1.6 bar, an
-exceeded NDL, high CNS or OTU, an ascent rate that is too fast, a high
-equivalent narcotic depth (END), a gas dropping below its minimum reserve, or a
-depth beyond a gas's maximum operating depth (MOD). The warning count appears as
-a badge on the Results tab.
+| Warning | When |
+|---------|------|
+| ppO₂ | Above your working limit (1.4 bar), or critical above your deco limit (1.6 bar) |
+| Hypoxic gas | Breathing a gas with less than 16% oxygen at that depth |
+| END | Above your END limit (30 m by default) |
+| Gas density | Above 5.2 g/L, or critical above 6.2 g/L |
+| CNS | At 80%, or critical at 100% |
+| OTU | Above 300 for the dive |
+| Gas supply | A tank running empty, a reserve broken, or a tank ending below its minimum gas |
+| Missing gas | An open-circuit deco dive with no deco gas, or a CCR deco dive with no bailout gas |
+| Diluent MOD | A diluent breathed deeper than its maximum operating depth |
 
-> [!NOTE]
-> The dive planner is a live planning tool. The **Save Plan** and **Convert to
-> Dive** actions in the menu are not yet wired up — selecting them only
-> acknowledges the action and does not store a plan or create a logged dive.
-> Treat the planner as a worktable you recalculate as you experiment, and log
-> the dive you actually make through [Dive logging](dive-logging.md).
+### Saving, sharing and comparing plans
 
----
+Tap the save button to keep a plan. The first save asks you to
+**Name your plan**, suggesting a name from the site, depth and date. **Saved plans** (in the
+menu, and on the Planning list) lets you open, rename, duplicate, share, import
+and delete plans. A deleted plan can be restored with **Undo** for a few
+seconds.
 
-## Deco calculator
+In **Saved plans**, **Compare** puts two or three plans side by side: their
+profiles overlaid on one chart, with depth, runtime, TTS, deco and gas use for
+each.
 
-The deco calculator is a faster, single-screen alternative to the full planner.
-It answers one question instantly: for a square dive to a given depth on a given
-gas, what is your no-stop time, and what do you owe if you overstay it?
+From the menu you can also:
 
-Set three things with sliders:
+- **Export slate (PDF):** a printable slate with the runtime table, gas plan,
+  contingencies, range table and bailout.
+- **Share plan file:** a `.subplan` file another Submersion user can import.
+- **Reset Plan** or **Delete plan**.
 
-- **Depth** (default 18 m / 59 ft),
-- **Bottom time** (default 30 minutes), and
-- **Gas mix** — pick a preset (Air, EAN32, EAN36, EAN50, or pure O₂) or open the
-  advanced selector for a custom blend, including trimix (a helium–oxygen–nitrogen
-  mix) with O₂ from 18–100% and He from 0–65%.
+### Plans and logged dives
 
-As you move the sliders, the results update live: your **NDL**, **ceiling**,
-**TTS**, the tissue loading across all 16 model compartments, and any deco stops.
-A gas panel shows the mix's MOD and END and warns you if your chosen depth
-exceeds the MOD, if ppO₂ is too high, or if the mix is hypoxic (too little oxygen
-to breathe safely at the surface).
+- **Follow a dive** plans a repetitive dive: pick one of your last 30 dives, and
+  the planner starts from the tissue loading that dive left, with the surface
+  interval set to the time since it ended. The dive needs a recorded profile.
+- **Replan this dive**, in a logged dive's menu, opens that dive in the planner.
+  The results then compare the plan with what you actually did, and can show the
+  original on the chart. A replan is discarded when you leave unless you save
+  it.
+- **Convert to Dive** turns the plan into a planned dive in your log, with its
+  full computed profile, linked back to the plan. It is not offered for a plan
+  with no segments or with critical warnings.
 
-The calculator uses the gradient factors from your **app settings** (see
-[Settings](settings.md)), so it reflects your personal conservatism. When a result
-looks useful, tap **Add to Planner** to carry the depth, time, and gas into the
-full dive planner and keep building.
-
-> [!TIP]
-> Lower oxygen lets you go deeper before hitting the MOD but shortens your
-> no-stop time; richer nitrox does the opposite. The deco calculator is a quick
-> way to feel that trade-off before committing to a plan.
-
----
-
-## Gas calculators
-
-The Gas Calculators screen is a set of five tabbed tools for the gas-planning
-arithmetic divers do by hand or on a slate. Each tab is independent; the
-**refresh** button in the top bar resets them all to their defaults.
-
-<!-- screenshot: images/planning/gas-calculators.png — gas calculators -->
-
-### MOD — maximum operating depth
-
-Enter a gas's **oxygen percentage** and a **ppO₂ limit** (1.2, 1.4, or 1.6 bar),
-and the calculator returns the **maximum operating depth (MOD)** — the deepest
-you may breathe that gas before its oxygen partial pressure becomes unsafe. As a
-reminder: a *lower* oxygen fraction gives a *deeper* MOD but a shorter no-stop
-time.
-
-### Best Mix — ideal nitrox for a depth
-
-The inverse of MOD. Give a **target depth** and a **ppO₂ limit**, and Submersion
-returns the **richest oxygen percentage** you can safely breathe there — the
-nitrox blend that maximizes your no-stop time without exceeding your oxygen
-limit. A reference list shows the MOD of the common mixes (Air, EAN32, EAN36,
-EAN40, EAN50, and pure O₂) at your chosen limit.
-
-### Consumption — how much gas a dive uses
-
-Enter an **average depth**, a **dive time**, your **SAC rate**, and a **tank
-size**, and the calculator estimates the total gas the dive will consume, the
-pressure that represents in your tank, and what would be left over — flagging the
-case where the dive would exceed the tank's capacity.
-
-### Rock Bottom — emergency reserve
-
-The **rock-bottom** reserve is the minimum gas you must keep in hand to get both
-you and a buddy safely to the surface from depth. Enter the **depth**, an
-**ascent rate**, **your SAC** and a **buddy's SAC**, the **tank size**, and
-whether to include a safety stop. Submersion applies elevated (stressed)
-breathing rates, assumes both divers share one tank, and returns the pressure
-and volume you should treat as your turn-around point. Turn the dive *before* you
-reach it.
-
-### MND/END — narcosis for deep and trimix dives
-
-This tab handles gas narcosis, which matters most on deep air and trimix dives.
-Set the mix's **oxygen** and **helium** percentages, your **END limit** (the
-deepest narcotic effect you are willing to accept, default 30 m / 98 ft), and
-whether to **treat oxygen as narcotic** (on by default, which is the more
-conservative assumption). The calculator returns:
-
-- the **maximum narcotic depth (MND)** — the deepest you can go on that mix
-  before narcosis exceeds your END limit, and
-- the **equivalent narcotic depth (END)** at any depth you set — the air-depth
-  whose narcotic effect matches your mix there.
-
-Adding helium to a mix pushes the MND deeper, which is exactly why trimix is used
-for deep diving. See [Glossary](glossary.md) for MOD, END, MND, ppO₂, and the gas
-abbreviations used here.
-
-> [!NOTE]
-> The Planning hub's summary still describes "four" gas calculators from an
-> earlier release; the screen itself now has the five tabs above, including
-> MND/END.
+Your current plan stays as you left it while you move around the app.
 
 ---
 
-## Weight calculator
+## Deco Calculator
 
-The weight calculator gives you a **starting** estimate for how much lead to
-carry, so a checkout or weight check begins in the right neighbourhood rather
-than from scratch. Choose:
+The deco calculator is a quick, single-screen alternative to the planner for a
+square dive. Set the **Depth** (0 to 60 m, default 18), the **Bottom Time** (0 to
+120 minutes, default 30), and the **Gas Mix**: Air, EAN32, EAN36, EAN50, O2,
+Tx 21/35 or Tx 18/45, or a custom trimix with 18 to 100% oxygen and up to 65%
+helium. You can also set the altitude and water type.
 
-- an **exposure suit** — No Suit, Rashguard Only, 3 mm Shorty, 3 mm Full Wetsuit,
-  5 mm Wetsuit, 7 mm Wetsuit, Semi-dry Suit, or Drysuit;
-- a **tank material** — aluminium, steel, or carbon fibre (or leave unspecified);
-- a **water type** — salt, fresh, or brackish (or leave unspecified); and
-- optionally your **body weight**.
+The results update as you move the sliders: NDL, ceiling, TTS, GF99, surfacing
+GF, any deco stops, and the loading of all 16 tissue compartments. A gas panel
+shows the mix's MOD (at a ppO₂ of 1.4) and END, and warns when the depth is past
+the MOD, the ppO₂ is too high, the END is too deep, or the mix is hypoxic.
 
-Submersion combines a base figure for the suit's buoyancy with adjustments for
-the tank, the water, and your body weight, and shows a recommended weight in your
-preferred unit (with the other unit in parentheses). A breakdown explains where
-the number comes from.
+The calculator uses the gradient factors from your settings (see
+[Settings](settings.md)). **Add to Planner** carries the depth, time and gas to
+the dive planner.
 
 > [!WARNING]
-> A calculator cannot replace an in-water weight check. Use this figure as a
-> starting point, then confirm your weighting in the water — neutrally buoyant at
-> a safety stop with a near-empty tank — and record what actually worked on the
-> dive. Your gear and exposure suit live in [Equipment](equipment.md).
+> **Add to Planner** replaces the current plan's segments and its first tank's
+> gas. Save the plan first if you want to keep it.
 
 ---
 
-## Surface interval
+## Gas Calculators
+
+Seven calculators for the gas arithmetic divers do by hand or on a slate.
+
+<!-- screenshot: images/planning/gas-calculators.png: gas calculators -->
+
+| Calculator | What it does |
+|------------|--------------|
+| **MOD** | The maximum operating depth of a mix for a ppO₂ limit, in three modes: recreational nitrox, open-circuit technical (including the minimum depth for a hypoxic mix), and CCR. Remembers your last inputs. |
+| **Best Mix** | The richest nitrox you can breathe at a target depth for a ppO₂ limit of 1.2, 1.4 or 1.6, with the MOD of common mixes for reference |
+| **Consumption** | The gas a dive at an average depth and time uses at your RMV, and what that leaves in your tank |
+| **Rock Bottom** | The minimum gas to get you and a buddy to the surface from depth, using stressed breathing rates, a problem-solving time, and an optional safety stop. Turn the dive before you reach it. |
+| **MND/END** | The maximum narcotic depth of a mix for your END limit, and its equivalent narcotic depth at any depth |
+| **Gas Density** | The density of a mix at depth, open circuit or CCR, against the recommended limits |
+| **Trimix blender** | The fill procedure for a trimix blend, with billing and a record of past fills |
+
+The END limit and whether oxygen counts as narcotic come from your settings.
+Adding helium pushes the MND deeper, which is why trimix is used for deep diving.
+
+---
+
+## Weight Calculator
+
+The weight calculator predicts how much lead your rig needs and where to put it,
+from your own weighting history, your gear and the physics of your tanks. It has
+its own page: see [Weight Planner](weight-planner.md).
+
+---
+
+## Surface Interval
 
 When you plan a second dive in a day, the surface-interval tool tells you how
 long to wait. It models how your tissues off-gas at the surface and finds the
-**minimum surface interval** that keeps your planned next dive within its
-no-decompression limit.
+shortest surface interval that keeps the next dive within its no-decompression
+limit.
 
-Enter three things:
+Enter:
 
-- **First dive** — the **depth**, **time**, and **gas mix** (oxygen and helium
-  percentages) of the dive you just made.
-- **Second dive** — the planned **depth** and **time** of your next dive (modelled
-  on air).
-- **Current interval** — a slider, from 0 to 4 hours, for how long you have been
-  on the surface so far.
+- **First Dive:** the depth (6 to 60 m), time (5 to 120 minutes) and gas of the
+  dive you made.
+- **Second Dive:** the depth, time and gas of the dive you plan.
+- Your current surface interval, with the slider under the tissue chart (up to 4
+  hours).
 
-The tool then shows:
+The tool shows the **Minimum Surface Interval**, whether your current interval
+is already enough, and the **NDL for 2nd Dive** once you have waited. If no
+wait of up to six hours makes the second dive a no-stop dive, it says so.
 
-- the **minimum surface interval** required before the second dive,
-- whether your **current interval** is already enough (a green "safe to dive" or a
-  red "not yet safe" indicator), and
-- the **NDL for the second dive** once you have waited long enough — or "in deco"
-  if that depth and time would put you straight into a decompression obligation.
-
-A **tissue recovery chart** plots all 16 model compartments off-gassing over the
-four-hour window, grouped into fast, medium, and slow tissues, with the leading
-(most saturated) compartment highlighted. A **NOW** marker shows your current
-interval and a **MIN** marker shows the minimum required, so you can see at a
-glance how much longer you have to wait.
+The **Tissue Recovery** chart plots all 16 compartments off-gassing, grouped into
+fast, medium and slow tissues, with markers for now and for the minimum
+interval.
 
 > [!NOTE]
-> Like the deco calculator, this tool uses the Bühlmann ZH-L16C model with your
-> gradient-factor settings. Its results are estimates for planning and may differ
-> from your dive computer, which is the device you should actually follow between
-> dives.
+> This tool uses the Bühlmann ZH-L16C model with your gradient-factor settings.
+> Its results are planning estimates and may differ from your dive computer,
+> which is what you should follow between dives.
+
+---
+
+## Flying after diving
+
+A countdown to when you can fly, from the DAN/UHMS guideline intervals for your
+dives of the last 48 hours: 12, 18 or 24 hours after a single no-deco dive,
+repetitive dives, or a deco dive (or 18, 24 or 48 hours with the Strict
+setting). See [Safety](safety.md#flying-after-diving).
+
+## Current CNS/OTU load
+
+Your oxygen exposure right now. CNS decays with a 90-minute half-time and the
+page updates every minute. OTU is shown against the daily limit of 300 and the
+weekly limit of 850. When everything has cleared, it reads "No active load".
+
+---
+
+Your entries in the deco calculator, gas calculators and surface-interval tool
+are kept while the app is open and reset when you restart it; the MOD
+calculator remembers its inputs. The weight calculator starts fresh each time.
+To keep a dive, save the plan or log it.
 
 ## See also
 
-- [Dive logging](dive-logging.md) — record the dive you actually made
-- [Dive computer](dive-computer.md) — download real profiles instead of planning by hand
-- [Settings](settings.md) — set the gradient factors and units these tools use
-- [Glossary](glossary.md) — MOD, END, MND, GF, ppO₂, SAC, and the other terms used here
-- [Safety](safety.md) — flying after diving, the post-dive review, and the emergency card
-- [Weight Planner](weight-planner.md) — predicted lead and placement from your own weighting history
+- [Logging Dives](dive-logging.md): record the dive you actually made
+- [Dive Computers](dive-computer.md): download real profiles instead of planning by hand
+- [Settings](settings.md): the gradient factors, ppO₂ limits and units these tools use
+- [Glossary](glossary.md): MOD, END, MND, GF, ppO₂, RMV and the other terms used here
+- [Safety](safety.md): flying after diving, the post-dive review, and the emergency card
+- [Weight Planner](weight-planner.md): predicted lead and placement from your own weighting history
