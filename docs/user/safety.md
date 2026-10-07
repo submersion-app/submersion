@@ -78,8 +78,10 @@ Dismissals sync to your other devices along with everything else.
   reviewed yet, with a progress count. Dives already analysed are skipped. If a
   dive cannot be analysed (a damaged profile, for instance), the sweep carries on
   and reports how many were skipped.
-- **Dismiss all observations:** marks every observation in your logbook as
-  reviewed. You can still restore them one dive at a time.
+- **Dismiss all observations:** marks every observation from the rules you have
+  switched on as reviewed. Observations from rules you have switched off are
+  left alone, and show again if you switch the rule back on. You can restore
+  dismissed observations one dive at a time.
 
 > [!TIP]
 > **Reviews are computed on first view.** You do not have to run anything:

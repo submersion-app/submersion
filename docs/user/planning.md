@@ -270,9 +270,12 @@ weekly limit of 850. When everything has cleared, it reads "No active load".
 
 ---
 
-Your entries in the deco calculator, gas calculators and surface-interval tool
-are kept while the app is open and reset when you restart it; the MOD
-calculator remembers its inputs. The weight calculator starts fresh each time.
+Your entries in the deco calculator, the gas calculators and the
+surface-interval tool are kept while the app is open and reset when you restart
+it, with two exceptions: the MOD calculator remembers its inputs, and the
+Trimix blender keeps its fill gases, conditions and billing defaults (also in
+**Settings > Manage > Trimix Mixer**). The
+weight calculator starts fresh each time.
 To keep a dive, save the plan or log it.
 
 ## See also
