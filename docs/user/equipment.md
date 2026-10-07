@@ -1,182 +1,297 @@
 # Equipment
 
-Track your gear, log its service history, and see at a glance what needs attention before your next dive.
+Track your gear, log its service history, and see at a glance what needs
+attention before your next dive.
 
 > [!NOTE]
-> **Where to find it:** Select **Equipment** in the navigation rail on the left. The page opens with two tabs: **Equipment** (individual items) and **Sets** (named collections).
+> **Where to find it:** select **Equipment** in the navigation. A toggle at the
+> top switches between **Equipment** (individual items) and **Sets** (named
+> collections).
 
-<!-- screenshot: images/equipment/item-detail.png — equipment item detail showing service status -->
+<!-- screenshot: images/equipment/item-detail.png: equipment item detail showing service clocks -->
 
 ## Adding gear
 
-Tap the **+** button to create a new equipment item. Every item requires a name and a type; all other fields are optional.
-
-### Fields
+Tap **Add Equipment** to create an item. Only **Type** and **Name** are
+required.
 
 | Field | Notes |
 |-------|-------|
-| **Name** | Your label for this item — e.g., "Primary reg" |
-| **Type** | Category (see types below) |
-| **Brand** | Manufacturer |
-| **Model** | Product model |
-| **Serial number** | Useful for warranty and service records |
-| **Size** | Free text — S, M, L, XL, or a specific measurement |
-| **Status** | Current state of the item (see statuses below) |
-| **Purchase date** | Date you acquired the item |
-| **Purchase price** | Cost and currency code (e.g., USD) |
-| **Last service date** | Most recent service; used to compute the next due date |
-| **Service interval** | Number of days between required services |
-| **Notes** | Any additional information |
+| **Type** | The kind of item (see the list below). The type decides which other fields and service clocks the item gets. |
+| **Status** | Where the item stands (see the statuses below) |
+| **Installed in** | For a part such as a second stage or a battery, the item it is fitted to |
+| **Name** | Your label, for example "My Primary Regulator" |
+| **Brand** / **Model** | Manufacturer and product |
+| Type-specific fields | For example a tank's volume, working pressure and material, or a suit's thickness. Some types also have a colour, used when the gear is drawn on the diver figure. |
+| **Serial Number** | For warranty and service records |
+| **Purchase Information** | **Purchase Date**, **Purchase Price** and **Currency** |
+| **Notes** | Anything else |
+| **Tags** | Your own labels, for filtering the list |
+| **Location** | Where the item is kept (new items only; an existing item changes place with **Move**) |
+| **Advanced** | **Custom fields**: any key and value you want to keep with the item |
+| **Notifications (Optional)** | Per-item reminder settings (see [Service reminders](#service-reminders)) |
 
 ### Equipment types
 
-Submersion recognises 18 equipment types:
+Submersion has 48 equipment types:
 
-Regulator, BCD, Wetsuit, Drysuit, Fins, Mask, Dive Computer, Tank, Weights, Light, Camera, SMB, Reel, Knife, Hood, Gloves, Boots, Other.
+- **Breathing:** Regulator, First Stage, Second Stage, Hose, Tank, Rebreather,
+  O2 Cell
+- **Buoyancy and rig:** BCD, Backplate, Wing, Harness, Tank Band, Weight
+  Pocket, Gear Pocket, Weights
+- **Exposure protection:** Wetsuit, Drysuit, Undersuit, Base Layer, Rash Guard,
+  Hood, Gloves, Boots
+- **Basics:** Fins, Mask, Snorkel
+- **Instruments:** Dive Computer, Transmitter, Instrument / Gauge, Compass
+- **Lights and camera:** Light, Camera, Lens, Port, Housing, Tray / Handle,
+  Arm / Clamp, Strobe, Video Light, Float Arm / Float
+- **Safety and tools:** SMB, Reel, Knife, Tool
+- **Other:** DPV, Bag, Battery, Other
 
 ### Statuses
 
 | Status | Meaning |
 |--------|---------|
-| **Active** | In use and in good condition |
-| **Needs Service** | Mark items you want to service soon |
-| **In Service** | Currently at the shop or being repaired |
-| **Retired** | No longer in use; kept for history |
-| **Loaned Out** | Lent to someone else |
-| **Lost** | Cannot be located |
+| **Active** | In use |
+| **Spare** | Usable but on the shelf, such as a spare hose. Serviced and reminded like active gear, but left out of the pickers when you add gear to a dive. |
+| **Needs Service** | Marked by you as due for service |
+| **In Service** | At the shop or being repaired |
+| **Retired** | No longer in use; kept for its history |
+| **Sold** | No longer yours; kept for its history |
+| **Loaned Out** | Lent to someone |
+| **Lost** | Cannot be found |
+| **Wanted** | Gear you plan to buy. It has an **Expected Price** instead of a purchase price, and no serial number, service clocks or reminders. **Mark as purchased** turns it into active gear. |
 
-> [!NOTE]
-> "Overdue" is not a discrete status. It is a computed property: when today's date is past `lastServiceDate + serviceIntervalDays`, the item is flagged overdue automatically. The icon turns red and a warning banner appears on the detail page, but the status field itself remains unchanged.
+Retired, sold and wanted items stay out of the dive pickers, sets and
+statistics.
 
-## Service records and maintenance reminders
+## The item page
 
-<!-- screenshot: images/equipment/service-reminders.png — service reminders list on item detail -->
+Open an item to see everything about it. The page shows only the cards that
+apply to the item's type.
 
-### Logging a service record
+- **Details:** status, the number of **Dives** and **Trips** the item was used
+  on (tap either to see them), purchase details and how long you have owned it.
+- **Location:** where the item is now. **Move** sends it somewhere else.
+- **Cylinder passport:** for a Tank. See [Cylinder Passports](cylinder-passports.md).
+- **Service clocks:** what maintenance is due, and when.
+- **Exposure:** how hard the item has been used.
+- **Condition findings:** trends worth a look, when there are any.
+- **Check-ins:** notes on how the item behaved.
+- **Components** and **Installed parts:** what the item is assembled from.
+- **Documents:** invoices, receipts and warranty paperwork.
+- **History:** who used and shared the item (with more than one diver profile).
+- **Service History:** every service record.
 
-Open an equipment item, then tap **Add** in the **Service history** section. Each record captures:
+## Service clocks
+
+A service clock tracks one kind of maintenance on one item, such as a
+regulator's annual service or a cylinder's hydrostatic test. New gear gets the
+clocks its type needs automatically, and you can add more with **Add clock**.
+
+A clock can count calendar days, dives, or hours underwater, and some also
+count exposure: cold dives, salt-water hours or high-O2 hours. Whichever limit
+comes first makes the clock due. A clock reads as due soon inside your reminder
+window (see [Service reminders](#service-reminders)) or in the last 10% of a
+dive or hour interval, and as overdue once a limit is passed. The item's icon in
+the list turns red when any clock is overdue.
+
+A clock counts from the last service you logged for it. Until then it counts
+from its **Baseline date**, which you can set in **Edit intervals**. From a
+clock's menu you can **Log service**, **Edit intervals** for this item only,
+**Pause** it, or **Remove** it.
+
+### Service types
+
+Clocks come from service types. These are built in:
+
+| Service type | Applies to | Interval |
+|--------------|-----------|----------|
+| Hydrostatic test | Tank | 5 years |
+| Visual inspection (VIP) | Tank | 1 year |
+| O2 clean | Tank, Regulator, First Stage, Second Stage (added by hand) | 1 year or 50 high-O2 hours |
+| Regulator service | Regulator, First Stage, Second Stage | 1 year, 100 dives or 50 cold dives |
+| Computer battery | Dive Computer, Battery | 2 years |
+| Transmitter battery | Transmitter, Battery | 1 year or 250 hours |
+| BCD/wing inspection | BCD | 1 year |
+| Drysuit seals | Drysuit (added by hand) | 2 years or 200 salt-water hours |
+| Scrubber repack | Rebreather | 3 hours |
+| O2 cell replacement | Rebreather, O2 Cell | 1 year |
+| Rebreather annual service | Rebreather | 1 year |
+| General service | Any type (added by hand) | None set |
+
+These intervals are starting points, not manufacturer figures; set your own per
+item with **Edit intervals**. To create your own service types, or change the
+defaults, go to **Settings > Manage > Service types**. A service type can have
+day, dive and hour intervals, a default price and category, the equipment types
+it **Applies to**, and whether to **Attach automatically to new gear**.
+
+### Logging a service
+
+Tap **Log service** on a clock, or **Add** in **Service History**. A service
+record holds:
 
 | Field | Notes |
 |-------|-------|
-| **Service type** | Annual Service, Repair, Inspection, Overhaul, Part Replacement, Cleaning, Calibration, Warranty Service, Recall/Safety, Other |
-| **Service date** | Date the work was done |
-| **Provider** | Shop or technician name (optional) |
-| **Cost** | What you paid (optional) |
-| **Next service due** | If you know the next target date, set it here — this updates the item's next-due display |
-| **Notes** | What was done, parts replaced, etc. |
+| **Service type** | The clock this service resets |
+| **Category** | Annual Service, Repair, Inspection, Overhaul, Part Replacement, Cleaning, Calibration, Warranty Service, Recall/Safety or Other; used for filtering and export |
+| **Service Date** | When the work was done |
+| **Provider/Shop** | Who did it |
+| **Cost** and **Currency** | What you paid |
+| **Next Service Due** | A specific next date, when you know one |
+| **Notes** | What was done, parts replaced |
 
-The **Service history** section on the detail page totals all costs across records and lists every entry. Tap any record to edit it; use the overflow menu on a record to delete it.
+**Service History** lists every record with filters for task, category and
+year. **Export maintenance log** exports the records.
 
-### Service interval and due date
+### Service reminders
 
-If you set a **service interval** on the item, Submersion calculates the next due date as `lastServiceDate + intervalDays`. The detail page shows:
+On iOS and Android, Submersion can notify you before service is due. The
+defaults are in **Settings > Notifications**:
 
-- Last service date
-- Next service due date
-- A countdown or overdue indicator (positive = days remaining, negative = days overdue)
+| Setting | Default |
+|---------|---------|
+| **Enable Service Reminders** | On |
+| **Reminder Schedule** | 7, 14 and 30 days before service is due; choose any of the three |
+| **Reminder Time** | 09:00 |
+| **Trip service lead time** | 14 days: warns this long before a trip about gear that falls due before the trip ends |
 
-When service is overdue, the item's icon changes to the error colour and a banner appears at the top of its detail page.
+The longest day in the reminder schedule is also how early a date-based clock
+reads as due soon.
 
-### Maintenance reminders (iOS and Android)
+To change reminders for one item, open its edit form and use
+**Notifications (Optional)**: **Use Custom Reminders** sets different days for this item, and
+**Disable Reminders** turns its reminders off.
 
-On mobile, Submersion can send local push notifications before service is due. Global defaults live in **Settings → Notifications**:
+## Exposure and condition
 
-| Setting | Default / Options |
-|---------|------------------|
-| **Service reminders** | On / Off |
-| **Reminder schedule** | Select any combination of 7, 14, or 30 days before the due date |
-| **Reminder time** | Time of day to deliver the notification (default 09:00 local) |
+The **Exposure** card totals how the item has been used: dives, hours
+underwater, salt-water hours, cold dives, high-O2 hours, deep dives and, for
+batteries, battery cycles. A dive counts as cold below 10 °C, as deep at or
+beyond 30 m, and as high-O2 above 40% oxygen. Change these lines in
+**Settings > Safety > Equipment condition**.
 
-Notifications fire when the app launches and — as a backup — during background refresh. Tapping a notification opens the item's detail page directly.
+**Condition findings** point out trends, with the dives behind them: declining
+or uneven rebreather cell output, rising transmitter dropouts, an issue that
+keeps recurring, or issues that cluster on cold or deep dives. Dismiss a
+finding you have dealt with, and **Restore** it later from the dismissed list.
+**Condition findings**, and each rule, can be switched off in the same
+**Equipment condition** settings.
 
-**Per-item overrides** are available in the edit form under **Notifications**:
+**Check-ins** are your own notes on how an item behaved, on a dive or on the
+bench. Tap **Add check-in**, tag what happened, and add a note. Check-ins feed
+the recurring-issue findings.
 
-- **Use custom reminders** — override the global schedule with a different set of day intervals (7, 14, 30) for this item only.
-- **Disable reminders** — suppress notifications for this item entirely, even when the global setting is on.
+## Parts and assemblies
 
-Leaving both switches off means the item inherits the global settings.
+Gear can be built from other gear. A regulator can list its first stage, second
+stages and hoses under **Components**, and a rebreather or a light can list its
+cells or batteries under **Installed parts**. Each part is an item of its own
+with its own service clocks, and its **Installed in** row shows what it is
+fitted to. **Replace** retires an installed part and puts a new one in the same
+slot.
 
-> [!TIP]
-> The reminder system only fires when a service interval is set on the item. If you have not set an interval, no reminder is scheduled regardless of the notification settings.
+## Locations
+
+Record where your gear is: in storage, at a service shop, or with a person you
+lent it to. Add places in **Settings > Manage > Locations**, then tap **Move**
+on an item's **Location** card. A move can take the item's parts with it, and
+offers to update its status: **In Service** at a shop, **Loaned Out** with a
+person, and back to **Active** when it returns to storage. Every move is kept,
+so **Show all** lists where the item has been.
 
 ## Equipment sets
 
-<!-- screenshot: images/equipment/equipment-sets.png — equipment sets tab showing named sets -->
+<!-- screenshot: images/equipment/equipment-sets.png: equipment sets showing named sets -->
 
-An equipment set is a named collection of items — for example, "Tropical" or "Cold water drysuit". Sets let you select a full configuration in one step when logging a dive.
+A set is a named collection of items, such as "Tropical" or "Cold water
+drysuit", that you can add to a dive in one step.
 
 ### Creating a set
 
-1. Open **Equipment** and tap the **Sets** tab.
-2. Tap **+** to create a new set.
-3. Give the set a name and an optional description.
-4. Select the items to include by tapping them in the list of active equipment.
-5. Save.
+1. In **Equipment**, switch to **Sets** and tap **Add Set**.
+2. Enter a **Set Name** and an optional **Description**.
+3. Under **Select Equipment**, tap the items to include.
+4. Tap **Create Set**.
 
-You can edit a set at any time to add or remove items or rename it.
+Optional settings on a set:
+
+- **Default set:** added automatically to new dives that have no equipment
+  yet. You can also choose **Set as default** from a set's page.
+- **Apply when this set's computer is imported:** if the set includes a dive
+  computer, the whole set is added to dives downloaded or imported from it.
+- **Geofences:** suggest the set for dives near chosen places. Center a
+  geofence on a dive site or a dropped pin and set its radius.
+- **Show diver figure:** draw the set's gear on a diver.
 
 ### Using a set on a dive
 
-When logging or editing a dive, find the equipment section and tap **Apply set**. Select a set from the list to attach all of its items to that dive at once. You can still add or remove individual items after applying a set.
+In the dive form, under **Equipment**, tap **Use Set** and choose a set. All of
+its items are added to the dive, and you can still add or remove items after.
+**Save as Set** turns a dive's current equipment into a new set. See
+[Logging Dives](dive-logging.md).
 
-> [!TIP]
-> Sets reference items, not copies of them. If you later retire an item that belongs to a set, the set remains intact but that item will appear as retired when the set is applied.
+> [!NOTE]
+> A Tank item in a set is added to the dive's equipment only; it does not add a
+> tank to the dive's **Tanks** list, so it brings no gas data. For a cylinder
+> you own, open a tank on the dive and tap **Fill from my cylinders**: the tank
+> takes the cylinder's size and latest fill, and the cylinder joins the dive's
+> equipment.
 
 ## Tank presets
 
-Submersion includes built-in presets for common scuba cylinder configurations. Presets record the physical attributes of a tank (water volume, working pressure, and material) so you do not have to type them each time you add a tank to a dive.
-
-### Built-in presets
+Presets hold a cylinder's water volume, working pressure and material, so you
+do not type them for every tank.
 
 | Preset | Volume | Working pressure | Material | Rated capacity |
 |--------|--------|-----------------|----------|----------------|
-| **AL80** | 11.1 L | 207 bar (3 000 psi) | Aluminum | 77.4 cu ft |
-| **AL63** | 9.0 L | 207 bar (3 000 psi) | Aluminum | 63 cu ft |
-| **AL40** | 5.7 L | 207 bar (3 000 psi) | Aluminum | 40 cu ft |
-| **HP120** | 15.3 L | 237 bar (3 442 psi) | Steel | 120 cu ft |
-| **HP100** | 12.9 L | 237 bar (3 442 psi) | Steel | 100 cu ft |
-| **HP80** | 10.2 L | 237 bar (3 442 psi) | Steel | 80 cu ft |
-| **LP85** | 13.0 L | 182 bar (2 640 psi) | Steel | 85 cu ft |
-| **Steel 15L** | 15.0 L | 200 bar | Steel | — |
-| **Steel 12L** | 12.0 L | 200 bar | Steel | — |
-| **Steel 10L** | 10.0 L | 200 bar | Steel | — |
-| **AL40 Stage** | 5.7 L | 207 bar (3 000 psi) | Aluminum | 40 cu ft |
-| **AL30 Stage** | 4.3 L | 207 bar (3 000 psi) | Aluminum | 30 cu ft |
+| **AL100** | 13.1 L | 228 bar (3300 psi) | Aluminum | 100 cu ft |
+| **AL80** | 11.1 L | 207 bar (3000 psi) | Aluminum | 77.4 cu ft |
+| **AL63** | 9.0 L | 207 bar (3000 psi) | Aluminum | 63 cu ft |
+| **AL40** | 5.7 L | 207 bar (3000 psi) | Aluminum | 40 cu ft |
+| **HP120** | 15.3 L | 237 bar (3442 psi) | Steel | 120 cu ft |
+| **HP100** | 12.9 L | 237 bar (3442 psi) | Steel | 100 cu ft |
+| **HP80** | 10.2 L | 237 bar (3442 psi) | Steel | 80 cu ft |
+| **LP85** | 13.0 L | 182 bar (2640 psi) | Steel | 85 cu ft |
+| **Steel 15L** | 15.0 L | 200 bar | Steel | |
+| **Steel 12L** | 12.0 L | 200 bar | Steel | |
+| **Steel 10L** | 10.0 L | 200 bar | Steel | |
+| **AL40 Stage** | 5.7 L | 207 bar (3000 psi) | Aluminum | 40 cu ft |
+| **AL30 Stage** | 4.3 L | 207 bar (3000 psi) | Aluminum | 30 cu ft |
 
-> [!NOTE]
-> Pressures for aluminum and high-pressure steel tanks are derived from exact PSI-to-bar conversions (1 psi = 1/14.5038 bar), so they display correctly in both bar and PSI. The rounded values in the table above are for readability.
+Manage presets in **Settings > Manage > Tank Presets**:
 
-### Custom presets
+- **Default Tank:** star a preset to use it for every new tank you log. The
+  default is AL80, and deleting the starred preset resets it to AL80.
+- **Also apply to imported dives:** fill in missing tank data on imported dives
+  from the default preset. Values a dive already has are kept.
+- **Show in tank pickers:** switch off the built-in presets you never use. The
+  default preset is always shown.
+- **Add tank preset:** create your own.
 
-Go to **Settings → Tank Presets** to create custom presets for cylinders not in the built-in list, or to add local variants.
+## Finding and organising gear
 
-### Default tank preset
+The Equipment list can be searched by name, brand, model or serial number,
+filtered by status, type, tags, location and owner, and sorted. On a wide screen, the
+panel beside the list shows an overview while no item is selected: total items,
+active items, items with service due, the total value of your gear and of your
+wanted gear, and your most recent items.
 
-In **Settings → Tank Presets**, you can mark one preset as your **default**. The default preset is:
+Select several items to act on them together: **Retire Equipment** or
+**Reactivate**, **Edit tags**, **Move to location**, **Print labels** (passport
+labels for cylinders), or **Delete**.
 
-- **Applied automatically** when you add a tank to a new dive — the volume, working pressure, and material fields are pre-filled from the preset.
-- **Optionally applied to imports** — enable **Apply default tank to imports** to fill in missing tank fields (volume, working pressure, material) on imported dives that do not include complete tank data. Fields that already have values are never overwritten.
+### Sharing gear between diver profiles
 
-The system default is **AL80**. Deleting the preset marked as default resets the default back to AL80.
-
-> [!TIP]
-> The default preset sets the physical tank attributes only — volume, working pressure, and material. The start pressure for a dive comes from **Settings → Default start pressure**, which is a separate field.
-
-## Equipment usage stats
-
-On the detail page for any item, Submersion shows how many dives and trips that item has been linked to. These counts are live: tapping the dive count filters the dive list to show only dives where that item was used; tapping the trip count filters the trip list similarly.
-
-The equipment summary (visible when no item is selected on wider screens) shows a quick overview:
-
-- Total items in your catalog
-- Active items
-- Items with service overdue (if any), with a shortcut to each
-- Total purchase value of all items where a price is recorded
+With more than one diver profile, **Share with...** lets other profiles add an
+item to their dives and log its servicing, while only the owner can delete it.
+**Transfer to...** makes another profile the owner; past dives keep the gear.
+See [Diver Profile & Multi-Diver](diver-profile.md).
 
 ## See also
 
-- [Dive Logging](dive-logging.md) — link equipment to individual dives
-- [Trips](trips.md) — see which gear you brought on a trip
-- [Settings](settings.md) — configure notification defaults, default tank preset, and start pressure
-- [Import/Export](import-export.md) — import dives with tank data that can be matched to presets
-- [Weight Planner](weight-planner.md) — how equipment buoyancy attributes feed weight prediction
+- [Cylinder Passports](cylinder-passports.md): spec, fills and tags for your cylinders
+- [Logging Dives](dive-logging.md): tanks and equipment on a dive
+- [Trips](trips.md): the gear you pack for a trip
+- [Weight Planner](weight-planner.md): how your gear feeds the weight estimate
+- [Settings](settings.md): notifications and the rest of the settings

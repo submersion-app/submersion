@@ -1,88 +1,116 @@
 # Diver Profile
 
-Your diver profile stores the personal and safety details that belong to you as a diver, and Submersion supports more than one profile on the same device so families, instructors, or anyone who shares a device each get their own independent log.
+Your diver profile holds the personal and safety details that belong to you as
+a diver. Submersion can keep more than one profile on the same device, so
+families, instructors, or anyone who shares a device each get their own log.
 
 > [!NOTE]
-> **Where to find it:** Settings → Diver Profile
+> **Where to find it:** **Settings > Diver Profile**.
 
-<!-- screenshot: images/diver-profile/profile.png — diver profile hub showing the active diver card and section tiles -->
+<!-- screenshot: images/diver-profile/profile.png: diver profile hub showing the active diver card and section tiles -->
 
 ## Profile sections
 
-The profile is organised into five focused sections. Tap any tile to open its editor; unsaved changes are caught before you navigate away.
+The profile page shows the **Active Diver** with a **Profile Photo**, and a tile
+for each section. Tap a tile to edit it; if you leave with unsaved changes, the
+app asks before discarding them.
 
-### Personal info
+### Personal Info
 
-Name (required), email address, and phone number. The name appears everywhere in the app — on dive cards, stats, and the diver-switcher sheet. Email and phone are stored locally only; they are never sent to Submersion.
+**Name** (required), **Email** and **Phone**. The name appears throughout the
+app, including the Dashboard greeting and the diver switcher.
 
-### Emergency contacts
+### Emergency Contacts
 
-Primary and secondary emergency contacts, each with a name, phone number, and relationship. The app flags the hub tile when no contact is set, so you know at a glance if this safety information is missing.
+A **Primary Contact** and a **Secondary Contact**, each with a
+**Contact Name**, **Contact Phone** and **Relationship**. The tile shows how many
+contacts are set, or "Not set".
 
-### Medical information
+### Emergency card
+
+An offline card with emergency hotlines, local emergency services, recompression
+chambers, and your medical and insurance details. See [Safety](safety.md).
+
+### Medical Information
 
 | Field | What to enter |
 |-------|---------------|
-| Blood type | e.g. A+, O− |
-| Allergies | Relevant allergies, one per line or comma-separated |
-| Medications | Ongoing medications relevant to diving |
-| Medical clearance expiry | Date your dive-medical certificate expires |
-| Medical notes | Free text for anything else a rescue team should know |
+| **Blood Type** | For example O+ or A- |
+| **Allergies** | For example penicillin or shellfish |
+| **Medications** | Medicines relevant to diving |
+| **Medical Clearance Expiry** | When your dive medical expires |
+| **Medical Notes** | Anything else a rescue team should know |
 
-The app warns you on the hub tile when a medical clearance date is expired or within 30 days of expiry.
+The medical clearance shows **Expiring Soon** within 30 days of its expiry
+date, and **Expired** after it.
 
 ### Insurance
 
-Dive-insurance provider name, policy number, and policy expiry date. An "Expired" badge appears on the hub tile when the policy has lapsed, and the tile subtitle turns red so you cannot miss it.
+**Insurance Provider**, **Policy Number**, **Insurance Office Number** and
+**Expiry Date**. The tile shows **Expired** once the policy has lapsed, and the
+Dashboard's insurance chip warns you before it does.
+
+### Prior Experience
+
+If you dived before you started using Submersion, enter those totals so your
+career numbers include them:
+
+- **Prior dives:** how many dives you made before logging here.
+- **Prior hours** and **Minutes:** the time underwater from those dives.
+- **Diving since:** the year you started diving.
+
+[Statistics](statistics.md) shows career totals as "N logged + N prior", so
+the two figures stay distinct.
+
+### Body Weight
+
+A dated record of your weight and height. **Add measurement** each time it
+changes; the [Weight Planner](weight-planner.md) uses the most recent one.
 
 ### Notes
 
-A free-text field for anything that does not fit the structured sections — travel preferences, dive-agency membership numbers, or personal reminders.
-
-## Prior dive experience
-
-If you logged dives before you started using Submersion, you can enter those totals so your lifetime statistics reflect your full history:
-
-- **Prior dives** — total number of dives before you started logging here.
-- **Prior hours / minutes** — total bottom time from those dives.
-- **Diving since** — the year you started diving.
-
-These offsets appear in [Statistics](statistics.md) alongside your Submersion-logged dives, labelled so the two figures stay distinct.
-
-> [!TIP]
-> Prior experience is stored on the diver profile, not on individual dive entries. Edit it via **Settings → Diver Profile**, then open the legacy edit form with the pencil icon (accessible from the Divers list at `/divers`).
+Free text for anything that does not fit the other sections.
 
 ## Multiple divers on one device
 
-You can keep more than one diver profile on the same device. Each profile has its own:
+Each diver profile has its own dives, sites, trips, gear, buddies,
+certifications and courses, and its own settings: units, date and time format,
+theme, language, decompression defaults and display preferences.
 
-- Dive log
-- Certifications and courses
-- Settings and unit preferences (depth, temperature, pressure, weight, volume, SAC rate, time and date format, theme, language, decompression defaults, and display preferences)
-
-Dive sites and trips are shared across divers on the same device because they describe the physical world rather than a person's experience.
+Profiles can share with each other. A site or a trip can be shared with every
+profile (see [Dive Sites](dive-sites.md) and [Trips](trips.md)), and a piece of
+gear can be shared with chosen profiles or transferred to one (see
+[Equipment](equipment.md)).
 
 ### Adding a diver
 
-From the Diver Profile hub, tap **Add New Diver**. You are taken to the Personal Info editor in create mode. Enter a name (required) and, optionally, email and phone, then tap **Create**. The new profile is set as the active diver immediately.
+On the Diver Profile page, tap **Add New Diver**. Enter a **Name** and,
+optionally, an email and phone, then tap **Create Diver**. The new profile
+becomes the active diver.
 
 ### Switching divers
 
-Tap **Switch Diver** on the hub to open a bottom sheet listing every profile on the device. The currently active diver is marked with a check. Tap any other name to switch — the entire app updates instantly to show that diver's data.
+Tap **Switch Diver** to see every profile on the device; the active one is
+marked. Tap another to switch, and the whole app changes to that diver's data.
+Tapping your avatar on the Dashboard opens the same list, and so does the
+keyboard shortcut Cmd+Shift+D (macOS) or Ctrl+Shift+D (Windows and Linux).
 
-<!-- screenshot: images/diver-profile/switch-diver.png — diver-switcher bottom sheet with multiple profiles listed -->
-
-> [!TIP]
-> On supported platforms you can also switch divers with the keyboard shortcut Cmd+Shift+D (macOS) without opening Settings at all.
+<!-- screenshot: images/diver-profile/switch-diver.png: diver switcher with multiple profiles listed -->
 
 ### Deleting a diver
 
-Open the Diver Profile hub and tap the overflow menu (⋮) in the top-right corner. **Delete Diver** appears only when two or more profiles exist — you cannot delete the only profile on a device. Dive logs belonging to the deleted diver are unassigned; trips and sites shared with other divers are reassigned to the remaining diver rather than deleted.
+With two or more profiles, the menu at the top of the Diver Profile page offers
+**Delete Diver**. You cannot delete the only profile on a device.
+
+Deleting a diver permanently deletes their dive log, dive computers, equipment,
+certifications and sites. To confirm, you type "Delete" followed by the
+diver's name. Trips and sites they shared are handed to another profile rather
+than deleted, and gear that other profiles use is handed to them.
 
 ## See also
 
-- [Settings](settings.md) — units, decompression defaults, theme, and all per-diver preferences
-- [Statistics](statistics.md) — lifetime dive totals, including prior-experience offsets
-- [Certifications and Courses](certifications-and-courses.md) — certifications tied to a diver profile
-- [Multi-Device Sync](multi-device-sync.md) — how multiple-diver profiles are kept in sync across devices
-- [Safety](safety.md) — the offline emergency card built from these medical and contact details
+- [Settings](settings.md): units, decompression defaults, theme and the other per-diver settings
+- [Statistics](statistics.md): career totals, including prior experience
+- [Certifications and Courses](certifications-and-courses.md): your qualifications
+- [Multi-Device Sync](multi-device-sync.md): keeping profiles in step across devices
+- [Safety](safety.md): the emergency card built from these details

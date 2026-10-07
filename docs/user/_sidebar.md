@@ -20,6 +20,7 @@
 **Diver & Gear**
 - [Certifications & Courses](certifications-and-courses.md)
 - [Equipment](equipment.md)
+- [Cylinder Passports](cylinder-passports.md)
 - [Diver Profile & Multi-Diver](diver-profile.md)
 
 **Insights & Planning**
