@@ -428,7 +428,7 @@ Open the list's overflow menu (**⋮**) to switch how the list is drawn:
 | **Compact** | A two-line card with the essentials. |
 | **Table** | A spreadsheet with one row per dive and columns you choose (see below). |
 
-Your choice is remembered. **Settings > Appearance > Dives List View** sets the
+Your choice is remembered. **Settings > Appearance > Dives > Dives List View** sets the
 default, and also offers a **Dense** layout with one line per dive.
 
 ### Sorting
