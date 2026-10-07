@@ -6,7 +6,9 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
@@ -669,6 +671,7 @@ class _DistributionsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final diveTypesAsync = ref.watch(diveTypeDistributionProvider);
+    final typesById = watchDiveTypesById(ref);
 
     final depthChart = _DepthPieCard(
       depthDistribution: stats.depthDistribution,
@@ -687,7 +690,11 @@ class _DistributionsSection extends ConsumerWidget {
       data: (diveTypes) => _TypePieCard(
         diveTypes: localizeDistribution(
           diveTypes,
-          (key) => diveTypeDistributionLabel(key, context.l10n),
+          (key) => diveTypeDistributionLabel(
+            key,
+            context.l10n,
+            typesById: typesById,
+          ),
         ),
       ),
     );
@@ -761,7 +768,7 @@ class _DistributionsSection extends ConsumerWidget {
                 ),
               ),
               for (final segment in typeStats)
-                _DiveTypeStatRow(segment: segment),
+                _DiveTypeStatRow(segment: segment, typesById: typesById),
             ],
           ],
         ),
@@ -772,7 +779,8 @@ class _DistributionsSection extends ConsumerWidget {
 
 class _DiveTypeStatRow extends StatelessWidget {
   final DistributionSegment segment;
-  const _DiveTypeStatRow({required this.segment});
+  final Map<String, DiveTypeEntity> typesById;
+  const _DiveTypeStatRow({required this.segment, required this.typesById});
 
   @override
   Widget build(BuildContext context) {
@@ -781,7 +789,9 @@ class _DiveTypeStatRow extends StatelessWidget {
     return ListTile(
       dense: true,
       contentPadding: EdgeInsets.zero,
-      title: Text(diveTypeDistributionLabel(segment.label, l10n)),
+      title: Text(
+        diveTypeDistributionLabel(segment.label, l10n, typesById: typesById),
+      ),
       trailing: Text(
         '${l10n.insights_filterBar_diveCount(segment.count)} • '
         '${duration.inHours}h ${duration.inMinutes % 60}m',

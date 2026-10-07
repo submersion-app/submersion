@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
@@ -776,6 +778,71 @@ void main() {
       expect(find.text('70-80m'), findsOneWidget);
       // Every bucket's count + time is listed in full underneath the pies.
       expect(find.text('1 dive • 1h 0m'), findsNWidgets(8));
+    });
+
+    // Issue #3075: the pie legend and the stats list below it resolved a
+    // custom dive type's name from no typesById, so it fell through to plain
+    // slug capitalization instead of the diver's own name.
+    testWidgets('shows the diver\'s own name for a custom dive type', (
+      tester,
+    ) async {
+      final stats = DiveStatistics(
+        totalDives: 3,
+        totalTimeSeconds: 5400,
+        maxDepth: 20.0,
+        avgMaxDepth: 20.0,
+        totalSites: 1,
+        firstDiveDate: DateTime.now().subtract(const Duration(days: 30)),
+      );
+
+      final diveTypes = [
+        DistributionSegment(
+          label: 'dpv',
+          count: 3,
+          percentage: 100,
+          totalDurationSeconds: 5400,
+        ),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
+            diveTypeDistributionProvider.overrideWith((ref) async => diveTypes),
+            diveTypesProvider.overrideWith(
+              (ref) async => [
+                DiveTypeEntity(
+                  id: 'dpv',
+                  diverId: 'diver-1',
+                  name: 'DPV',
+                  createdAt: DateTime(2026),
+                  updatedAt: DateTime(2026),
+                ),
+              ],
+            ),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
+            home: InsightsOverviewPage(embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Pie legend and stats list, same as the built-in-type case above.
+      expect(find.text('DPV'), findsNWidgets(2));
+      expect(find.text('Dpv'), findsNothing);
     });
 
     testWidgets('hides Distributions when totalDives is 0', (tester) async {

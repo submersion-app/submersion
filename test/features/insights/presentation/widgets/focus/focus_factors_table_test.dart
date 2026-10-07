@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/insights/presentation/widgets/focus/focus_factors_table.dart';
@@ -18,13 +20,18 @@ void main() {
     WidgetTester tester,
     FocusFactorReport report, {
     AppSettings settings = const AppSettings(),
+    List<DiveTypeEntity>? diveTypes,
   }) async {
     final overrides = await getBaseOverrides(
       settingsNotifier: MockSettingsNotifier(settings),
     );
     await tester.pumpWidget(
       ProviderScope(
-        overrides: overrides,
+        overrides: [
+          ...overrides,
+          if (diveTypes != null)
+            diveTypesProvider.overrideWith((ref) async => diveTypes),
+        ],
         child: MaterialApp(
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -125,6 +132,46 @@ void main() {
       ),
     );
     expect(find.text('Not recorded'), findsOneWidget);
+  });
+
+  // Issue #3075: the dive type factor row resolved a custom type's name
+  // from no typesById, so it fell through to plain slug capitalization.
+  testWidgets('a custom dive type factor shows the diver\'s own name', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      const FocusFactorReport(
+        tooFewDives: false,
+        factors: [
+          CategoricalFactor(
+            id: FocusFactorId.diveType,
+            groupCovered: 3,
+            groupSize: 3,
+            top: [
+              CategoryShare(
+                key: 'dpv',
+                groupShare: 1.0,
+                baselineShare: 0.2,
+                groupCount: 3,
+                standsOut: true,
+              ),
+            ],
+          ),
+        ],
+      ),
+      diveTypes: [
+        DiveTypeEntity(
+          id: 'dpv',
+          diverId: 'diver-1',
+          name: 'DPV',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ],
+    );
+    expect(find.textContaining('DPV'), findsOneWidget);
+    expect(find.textContaining('Dpv'), findsNothing);
   });
 
   testWidgets('a Fahrenheit temperature difference is a delta, not a reading', (

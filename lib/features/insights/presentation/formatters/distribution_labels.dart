@@ -1,6 +1,7 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -57,11 +58,16 @@ String entryMethodDistributionLabel(String key, AppLocalizations l10n) =>
 /// Localized name for a dive-type id.
 ///
 /// Built-in slugs resolve through the shared translation table; a custom type
-/// keeps the diver's own slug. An empty id means the join row carries no type.
-String diveTypeDistributionLabel(String key, AppLocalizations l10n) =>
-    key.isEmpty
+/// keeps the diver's own name when [typesById] (the loaded `dive_types` rows)
+/// is given -- see [diveTypeLabel]'s tier 1. An empty id means the join row
+/// carries no type.
+String diveTypeDistributionLabel(
+  String key,
+  AppLocalizations l10n, {
+  Map<String, DiveTypeEntity>? typesById,
+}) => key.isEmpty
     ? l10n.insights_summary_diveTypes_unknown
-    : diveTypeLabel(l10n, key);
+    : diveTypeLabel(l10n, key, typesById: typesById);
 
 /// Short localized month names, January first, shared by every Insights
 /// surface that labels months.
