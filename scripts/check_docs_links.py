@@ -25,6 +25,7 @@ import html
 import os
 import re
 import sys
+import unicodedata
 from urllib.parse import unquote
 
 LINK_ROOTS = (
@@ -214,17 +215,49 @@ def github_slug(heading):
     return text.replace(" ", "-")
 
 
-def _heading_slugs(text):
-    seen, slugs = {}, set()
-    for _number, line in _unfenced_lines(text):
-        match = HEADING_RE.match(line)
-        if not match:
-            continue
-        base = github_slug(match.group(1))
+# The punctuation docsify 5 strips from a heading; anything else, such as
+# a mathematical sign or a degree mark, stays in its anchor although GitHub
+# drops it.
+DOCSIFY_STRIP_RE = re.compile(r"[ -⁯⸀-⹿\\'!\"#$%&()*+,./:;<=>?@\[\]^`{|}~]")
+
+
+def docsify_slug(heading):
+    """The anchor docsify 5 gives a heading (its slugify): link text kept,
+    tags and its punctuation set dropped, only A-Z lowercased, each
+    whitespace a hyphen, and a leading digit prefixed with '_'. Emoji are
+    not modelled; the guide uses none."""
+    text = unicodedata.normalize("NFC", html.unescape(heading).strip())
+    text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
+    text = re.sub(r"[A-Z]+", lambda m: m.group(0).lower(), text)
+    text = re.sub(r"<[^>]+>", "", text)
+    text = DOCSIFY_STRIP_RE.sub("", text)
+    text = re.sub(r"\s", "-", text)
+    return re.sub(r"^(\d)", r"_\1", text)
+
+
+def _with_suffixes(slugs):
+    """Number repeats the way GitHub and docsify both do: foo, foo-1, foo-2."""
+    seen, out = {}, []
+    for base in slugs:
         count = seen.get(base, 0)
         seen[base] = count + 1
-        slugs.add(base if count == 0 else f"{base}-{count}")
-    return slugs
+        out.append(base if count == 0 else f"{base}-{count}")
+    return out
+
+
+def _heading_slugs(text):
+    """Each heading's GitHub anchor, mapped to its docsify anchor."""
+    headings = []
+    for _number, line in _unfenced_lines(text):
+        match = HEADING_RE.match(line)
+        if match:
+            headings.append(match.group(1))
+    return dict(
+        zip(
+            _with_suffixes(github_slug(h) for h in headings),
+            _with_suffixes(docsify_slug(h) for h in headings),
+        )
+    )
 
 
 def check_user_docs(root):
@@ -235,6 +268,9 @@ def check_user_docs(root):
     for entry in sorted(os.listdir(base)):
         full = os.path.join(base, entry)
         rel = os.path.join(USER_DOCS, entry)
+        if os.path.isfile(full) and not entry.endswith(".md"):
+            failures.append(f"{rel}: only pages sit in docs/user/; put images in images/")
+            continue
         if os.path.isdir(full):
             if entry != USER_IMAGES:
                 failures.append(f"{rel}/: docs/user/ is flat; move these pages up a level")
@@ -252,6 +288,7 @@ def check_user_docs(root):
         os.path.basename(unquote(url.split("#", 1)[0]))
         for _number, line in _unfenced_lines(sidebar)
         for url in _link_targets(line)
+        if not SCHEME_RE.match(url)
     }
     for name in sorted(pages):
         if name not in (USER_HOME, USER_SIDEBAR) and name not in linked:
@@ -282,10 +319,11 @@ def check_user_docs(root):
                 fragment = unquote(fragment)
                 if fragment not in slugs[target]:
                     failures.append(f"{rel}:{number}: no heading for anchor -> {url}")
-                elif fragment[:1].isdigit():
+                elif slugs[target][fragment] != fragment:
                     failures.append(
-                        f"{rel}:{number}: anchor starts with a digit, which docsify "
-                        f"prefixes with '_', so the link breaks on the site -> {url}"
+                        f"{rel}:{number}: docsify gives this heading the anchor "
+                        f"'{slugs[target][fragment]}', not '{fragment}', so the link "
+                        f"breaks on the site; reword the heading -> {url}"
                     )
     return failures
 

@@ -276,7 +276,38 @@ class UserDocsTests(unittest.TestCase):
         )
         failures = guard.check_user_docs(self.root)
         self.assertEqual(len(failures), 1)
-        self.assertIn("digit", failures[0])
+        self.assertIn("'_1-enable-r2'", failures[0])
+
+    def test_docsify_slug_rules(self):
+        # docsify 5 drops only its fixed punctuation set and lowercases A-Z.
+        self.assertEqual(guard.docsify_slug("Security & Privacy"), "security--privacy")
+        self.assertEqual(guard.docsify_slug("Depth \u2265 30 m"), "depth-\u2265-30-m")
+        self.assertEqual(guard.docsify_slug("\u00dcber Gas"), "\u00dcber-gas")
+        self.assertEqual(guard.docsify_slug("1. Enable R2"), "_1-enable-r2")
+
+    def test_link_to_heading_docsify_slugs_differently_fails(self):
+        write(self.root, "docs/user/README.md", "# Home\n\n## Depth \u2265 30 m\n\n[a](#depth--30-m)\n")
+        failures = guard.check_user_docs(self.root)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("docsify", failures[0])
+
+    def test_external_sidebar_link_does_not_count_as_a_page(self):
+        write(
+            self.root,
+            "docs/user/_sidebar.md",
+            "* [Home](README.md)\n* [Sites](dive-sites.md)\n"
+            "* [Spec](https://github.com/o/r/blob/main/trips.md)\n",
+        )
+        write(self.root, "docs/user/trips.md", "# Trips\n")
+        failures = guard.check_user_docs(self.root)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("trips.md", failures[0])
+
+    def test_stray_file_beside_the_pages_fails(self):
+        write(self.root, "docs/user/shot.png")
+        failures = guard.check_user_docs(self.root)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("images/", failures[0])
 
     def test_links_outside_user_docs_are_left_to_check_links(self):
         write(self.root, "docs/user/README.md", "# Home\n\n[a](../developer/x.md#y) [b](https://e.org/a#b)\n")

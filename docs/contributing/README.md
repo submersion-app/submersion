@@ -214,7 +214,7 @@ reading `main` directly, so a merged change appears within a few minutes.
 - **New pages go in [`_sidebar.md`](../user/_sidebar.md)**, or the site
   cannot reach them.
 - **Callouts** use GitHub's syntax, which the site renders too:
-  `> [!NOTE]`, `> [!TIP]`, `> [!WARNING]`.
+  `> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!WARNING]`.
 - **Check what you write against the app.** Use the exact on-screen label
   (the English strings are in `lib/l10n/arb/app_en.arb`) and the real menu
   path.
