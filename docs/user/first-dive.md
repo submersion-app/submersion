@@ -2,51 +2,49 @@
 
 Log your first dive in about five minutes. This page walks you through setting up your profile and recording a dive from scratch.
 
-## Create your diver profile
+## Set up Submersion
 
-When you open Submersion for the first time, you land on the welcome screen.
+The first time you open Submersion, a short setup wizard starts with **Welcome to Submersion** and three choices:
 
-<!-- screenshot: images/first-dive/welcome.png — name-only welcome screen -->
+- **Set up a new profile**: create your diver profile and configure the app. Choose this for a new logbook.
+- **I have existing Submersion data**: restore a backup file, connect cloud sync, or open a folder that already holds a Submersion library. See [Backup and Restore](backup-and-restore.md) and [Multi-Device Sync](multi-device-sync.md).
+- **Skip setup**: go straight to the app with the defaults.
 
-> [!NOTE]
-> **Where to find it:** Submersion shows this screen automatically on first launch. It does not appear again once your profile exists.
+<!-- screenshot: images/first-dive/welcome.png: setup wizard welcome screen -->
 
-1. Enter your name in the **Your Name** field.
-2. Tap **Get Started**.
+**Set up a new profile** takes you through four short steps. Use **Next** to move on, or **Skip** where you do not want to decide yet.
 
-That is the only field required at this step. Your profile is created and Submersion takes you directly to your **Dives** list.
+1. **Profile:** enter your name in **Your Name**. This is the only thing the wizard needs; **Next** stays disabled until it is filled in.
+2. **Units:** choose **Metric** or **Imperial**. **Fine-tune units** lets you set depth, temperature, pressure, volume, weight and the rest one by one.
+3. **Backup:** turn on **Automatic backups** and choose how often, and decide whether to store backups in the cloud.
+4. **Done:** tap **Get started** to open the Dashboard, or tap one of the "Submersion can also..." lines to go straight to that feature.
 
 > [!TIP]
-> You can add emergency contact details, medical notes, and insurance information later under your diver profile. See [Diver Profile](diver-profile.md) for the full set of fields.
+> You can add emergency contacts, medical notes and insurance details to your profile later. See [Diver Profile](diver-profile.md) for every field.
 
 ## Log your first dive
 
-From the Dives list, tap the **Log Dive** button (the floating button with a + icon at the bottom of the screen). A sheet appears with two options:
+Open **Dives** and tap the **Log Dive** button (the floating button with a + icon). A sheet appears with two options:
 
-- **Log Dive Manually** — opens the dive form so you can type in the details.
-- **Import from Computer** — connects to a dive computer via Bluetooth.
+- **Log Dive Manually** opens the dive form so you can type in the details.
+- **Import from Computer** downloads dives from a dive computer instead. See [Dive Computer](dive-computer.md).
 
 Tap **Log Dive Manually** to open the dive form.
 
-<!-- screenshot: images/first-dive/new-dive-essentials.png — new dive form, essential fields -->
+<!-- screenshot: images/first-dive/new-dive-essentials.png: new dive form, essential fields -->
 
 ### Fill in the essentials
 
-The form opens with the **The Dive** section expanded, which contains everything you need for a basic record.
-
-At the top of the section, tap any of the three hero fields to enter a value:
+The form opens with **The Dive** section, which is always open and holds everything a basic record needs:
 
 | Field | What to enter |
 |-------|---------------|
-| **Max Depth** | Deepest point of the dive, in your preferred unit (m or ft) |
-| **Bottom Time** | Dive duration in minutes |
-| **Avg Depth** | Average depth — optional but useful for gas calculations |
-
-Below the hero fields, fill in:
-
-- **Entry** — date and time you entered the water. Tap to open the date/time picker.
-- **Exit** — time you surfaced. Optional; Submersion can calculate bottom time from entry and exit when both are set.
-- **Site** — tap **Add site** to choose an existing site from your list or create a new one on the spot.
+| **Entry** | Date and time you entered the water. Tap to open the date and time picker. |
+| **Exit** | Time you surfaced. Optional; with both entry and exit set, Submersion fills in the **Runtime** for you. |
+| **Max Depth** | Deepest point of the dive, in your depth unit (m or ft). |
+| **Avg Depth** | Average depth. Optional, but useful for gas calculations. |
+| **Bottom Time** | Time at depth, in minutes. |
+| **Site** | Tap **Add site** to pick a site from your list or create a new one on the spot. |
 
 > [!TIP]
 > You do not need to fill every field before saving. A dive with just a date, max depth, and bottom time is a valid record. You can come back and fill in the rest later.
@@ -59,10 +57,11 @@ When you are done entering the essentials, tap **Save** in the app bar. The dive
 
 Now that you have your first dive logged, explore what Submersion can do:
 
-- [Logging Dives](dive-logging.md) — the full set of fields: gas, conditions, buddies, marine life, and more.
-- [Dive Sites](dive-sites.md) — manage your site library, including GPS coordinates and depth information.
-- [Equipment](equipment.md) — build a gear inventory and attach equipment sets to dives.
-- [Dive Computer](dive-computer.md) — import dives and profile data directly from a Bluetooth-connected computer.
+- [Logging Dives](dive-logging.md): the full set of fields, from gas and conditions to buddies and marine life.
+- [Dive Sites](dive-sites.md): your site library, with GPS coordinates and depth information.
+- [Equipment](equipment.md): a gear inventory, and equipment sets you can attach to dives.
+- [Dive Computer](dive-computer.md): download dives and profiles straight from your computer.
+- [Trips](trips.md): group dives into a trip. For a single local dive, a **Day Trip** is a single day out.
 
 ## See also
 

@@ -1,6 +1,6 @@
 # Installation
 
-Submersion runs on iOS, Android, macOS, Windows, and Linux — download it from
+Submersion runs on iOS, Android, macOS, Windows, and Linux. Download it from
 your platform's store or from GitHub Releases, then open it and dive in.
 
 ## iOS
@@ -9,7 +9,7 @@ Install Submersion from the App Store:
 
 **[Submersion Dive Log on the App Store](https://apps.apple.com/us/app/submersion-dive-log/id6757456915)**
 
-Requires **iOS 14** or later. Once installed, the App Store keeps Submersion
+Requires **iOS 15** or later. Once installed, the App Store keeps Submersion
 up to date automatically.
 
 ## Android
@@ -40,7 +40,7 @@ Download the latest **DMG** from
 **[GitHub Releases](https://github.com/submersion-app/submersion/releases)**
 (`Submersion-vX.Y.Z-macOS.dmg`).
 
-Requires **macOS 11 Big Sur** or later.
+Requires **macOS 12 Monterey** or later.
 
 Open the DMG, drag Submersion to your Applications folder, and launch it.
 
@@ -55,7 +55,7 @@ Submersion checks for updates automatically in the background using Sparkle.
 You can also trigger a check manually from the **Submersion** menu >
 **Check for Updates…** at any time.
 
-<!-- screenshot: images/installation/check-for-updates.png — desktop Check for Updates dialog -->
+<!-- screenshot: images/installation/check-for-updates.png: desktop Check for Updates dialog -->
 
 ## Windows
 
@@ -65,7 +65,7 @@ Download the latest **installer** from
 
 Requires **Windows 10** or later (64-bit).
 
-Run the installer — it creates a Start Menu shortcut and registers an
+Run the installer. It creates a Start Menu shortcut and registers an
 uninstaller in Add/Remove Programs. No manual extraction required.
 
 > [!NOTE]
@@ -80,17 +80,49 @@ Check for Updates**.
 
 ## Linux
 
-Download the latest **tar.gz** archive from
-**[GitHub Releases](https://github.com/submersion-app/submersion/releases)**
-(`Submersion-vX.Y.Z-Linux.tar.gz`).
+> [!IMPORTANT]
+> Submersion needs **glibc 2.38 or newer**: Ubuntu 24.04+, Debian 13+,
+> Fedora 39+, Linux Mint 22+, Arch, or openSUSE Tumbleweed. On older
+> distributions (Debian 12, Ubuntu 22.04, RHEL 9) the app installs but does
+> not start, whichever download you use.
 
-Extract the archive and run the `submersion` executable inside the bundle
-folder. No system-wide installation is required, though you can add a launcher
-shortcut manually.
+Every release on
+**[GitHub Releases](https://github.com/submersion-app/submersion/releases)**
+offers three Linux downloads. Use the package for your distribution if there
+is one.
+
+**Debian, Ubuntu, Mint and derivatives:** download
+`Submersion-vX.Y.Z-Linux-amd64.deb`, then:
+
+```bash
+sudo apt install ./Submersion-*-Linux-amd64.deb
+```
+
+**Fedora and RHEL:** download `Submersion-vX.Y.Z-Linux-x86_64.rpm`, then
+`sudo dnf install ./Submersion-*-Linux-x86_64.rpm`. On **openSUSE**, install
+the same `.rpm` with `sudo zypper install`.
+
+Both packages add a desktop entry, icons, and udev rules that let a dive
+computer connected by USB be reached without joining any group.
+
+**Everything else** (Arch, NixOS, or if you prefer not to install packages):
+download `Submersion-vX.Y.Z-Linux.tar.gz`, unpack it, and run the installer
+inside:
+
+```bash
+tar xzf Submersion-*-Linux.tar.gz
+./install.sh
+```
+
+`install.sh` installs into your home folder (a desktop entry and icon in
+`~/.local/share`, the app linked into `~/.local/bin`), tells you the exact
+command for any shared library you are missing, and prints the command that
+installs the USB udev rules, which needs root. `./uninstall.sh` removes it
+all again and never touches your dive log.
 
 > [!TIP]
-> If you get a "permission denied" error, make the binary executable first:
-> `chmod +x submersion`
+> Compressing videos you attach to dives needs `ffmpeg`. It is optional: the
+> packages recommend it but do not require it.
 
 Submersion checks GitHub Releases for updates and shows a banner inside the
 app when a new version is available.
@@ -114,10 +146,11 @@ startup.
 
 ## Building from source
 
-If you want to build Submersion yourself — to test a patch, contribute a
-fix, or audit the code — the full build instructions are in the
+If you want to build Submersion yourself, to test a patch, contribute a fix,
+or audit the code, the full build instructions are in the
 **[repository README](https://github.com/submersion-app/submersion#getting-started)**
-and `CONTRIBUTING.md`. In short, you need Flutter 3.5 or later, then:
+and `CONTRIBUTING.md`. In short, you need Flutter 3.47 or newer (the exact
+version CI uses is in `.github/flutter-version.txt`), then:
 
 ```bash
 git clone --recurse-submodules https://github.com/submersion-app/submersion.git
@@ -132,14 +165,14 @@ normal use.
 
 ## Want new features early?
 
-Submersion also has a **beta channel** — builds published from every change,
+Submersion also has a **beta channel**: builds published from every change,
 on every platform. See [Update Channels](update-channels.md) for what that
 means and how to join.
 
 ## See also
 
-- [First-Dive](first-dive.md)
-- [Update-Channels](update-channels.md)
-- [Multi-Device-Sync](multi-device-sync.md)
-- [Backup-and-Restore](backup-and-restore.md)
+- [Your First Dive](first-dive.md)
+- [Update Channels](update-channels.md)
+- [Multi-Device Sync](multi-device-sync.md)
+- [Backup and Restore](backup-and-restore.md)
 - [Settings](settings.md)
