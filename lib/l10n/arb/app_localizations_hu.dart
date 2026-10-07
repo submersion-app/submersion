@@ -3132,7 +3132,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get currencyRule_generic_refresher_name => 'Felfrissítés';
 
   @override
-  String get currencyRule_tdi_refresher_name => 'TDI refresher';
+  String get currencyRule_tdi_refresher_name => 'TDI felfrissítés';
 
   @override
   String get currencyRule_first_aid_24mo_name =>
@@ -3175,7 +3175,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get currencyRule_tdi_refresher_advisory =>
-      'TDI suggests a refresher after six to twelve months without technical diving.';
+      'A TDI hat-tizenkét hónap technikai merülés nélkül felfrissítést javasol.';
 
   @override
   String get currencyRule_first_aid_advisory =>
@@ -3597,19 +3597,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_edit_group_specialties => 'Specialitások';
 
   @override
-  String get certifications_edit_group_tdiOpenCircuit => 'Open Circuit';
+  String get certifications_edit_group_tdiOpenCircuit => 'Nyílt kör';
 
   @override
   String get certifications_edit_group_tdiRebreather => 'Rebreather';
 
   @override
-  String get certifications_edit_group_tdiService => 'Service';
+  String get certifications_edit_group_tdiService => 'Szerviz';
 
   @override
-  String get certifications_edit_group_tdiOverhead => 'Overhead';
+  String get certifications_edit_group_tdiOverhead => 'Zárt terek';
 
   @override
-  String get certifications_edit_group_tdiProfessional => 'Professional';
+  String get certifications_edit_group_tdiProfessional => 'Szakmai';
 
   @override
   String get certifications_edit_help_expiryDate =>

@@ -113,8 +113,10 @@ class CertificationAgencyEditPage extends ConsumerWidget {
 
 /// TDI's ladder and specialties, as five section widgets grouped by course
 /// category instead of the generic progression/specialties split (issue
-/// #3072). A diver's own custom level under TDI has no category and renders
-/// under the Specialties catch-all, same as in the certification dropdown.
+/// #3072). A diver's own custom level under TDI has no category; unlike the
+/// certification dropdown's single Specialties catch-all, it renders under
+/// a Progression or Specialties catch-all depending on its own progression
+/// flag, so a draggable custom rung keeps working -- see the comment below.
 List<Widget> _tdiLevelSections(
   AppLocalizations l10n,
   CertificationCatalog catalog,
