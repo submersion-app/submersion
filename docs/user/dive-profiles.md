@@ -60,7 +60,7 @@ grouped into sections:
 | **Pressure** | Tank pressure (on a multi-tank dive, choose tanks under **Tank Pressures**). |
 | **Events** | Event markers (see [Event markers](#event-markers)); **Computed events** adds the ones Submersion detected itself. |
 | **Heart Rate** | Beats per minute, when your computer recorded a heart-rate belt. |
-| **Consumption** | Your gas consumption normalised to the surface (SAC), derived from tank-pressure change. Shown in pressure-per-minute or volume-per-minute depending on your [SAC unit setting](settings.md). See [Glossary](glossary.md). |
+| **Consumption** | Your gas consumption normalised to the surface (SAC), derived from tank-pressure change. Always shown as pressure per minute (bar/min or psi/min). See [Glossary](glossary.md). |
 | **Ascent Rate** | Colours the depth line by how fast you were ascending: green within limits, orange at the warning threshold, red past the critical threshold. See [Ascent-rate thresholds](#ascent-rate-thresholds) below. **Ascent Rate Line** draws the rate as its own curve instead. |
 | **Gases** | A thin **gas timeline** strip drawn between the plot and the time axis, coloured by the gas in use (air, nitrox, oxygen, trimix) across the dive. |
 
@@ -190,8 +190,8 @@ How it works, in brief:
   **GF High** governs the surfacing margin; the effective gradient factor is
   interpolated between them as you ascend. The app's default is **GF 50/85**;
   you can change both values under [Settings](settings.md), or pick a preset
-  (Very Conservative 20/60, Conservative 30/70, Moderate 40/80, Liberal 55/90).
-  A lower pair is more conservative.
+  there: High 50/75, Medium 50/85 or Low 50/95. A lower pair is more
+  conservative.
 - **Ceiling, NDL and TTS.** The **ceiling** is the shallowest depth at which no
   compartment exceeds its gradient-factor-adjusted limit. The **NDL** is found
   by simulating continued time at the current depth until a stop would become
