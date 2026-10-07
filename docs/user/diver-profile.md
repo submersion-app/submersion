@@ -46,9 +46,11 @@ date, and **Expired** after it.
 
 ### Insurance
 
-**Insurance Provider**, **Policy Number**, **Insurance Office Number** and
-**Expiry Date**. The tile shows **Expired** once the policy has lapsed, and the
-Dashboard's insurance chip warns you before it does.
+**Insurance Provider**, **Policy Number**, **24h Emergency Assistance Number**,
+**Insurance Office Number** and **Expiry Date**. The emergency assistance number
+is the first call on your [emergency card](safety.md#emergency-card). The tile
+shows **Expired** once the policy has lapsed, and the Dashboard's insurance chip
+warns you before it does.
 
 ### Prior Experience
 
