@@ -78,7 +78,7 @@ Besides everything you entered, the site's detail page shows:
 - **Dive Statistics** for the site, from the dives you logged there.
 - **Dives at this Site**, each opening its dive.
 - **Tides**, with no API key needed: from the nearest NOAA tide station when one is close, otherwise an ocean-model estimate (shown with its grid resolution and a caveat for complex coastlines). Times are in the site's local time.
-- **Attachments**: photos, site maps, PDFs and other files for the site. Give each one a category (**Access and entry**, **Anchorage and mooring**, **Parking**, **Site map**, **Underwater**, or **General**) and they are grouped under those headings, with maps and PDFs shown full width. You can rename an attachment from its details.
+- **Attachments**: photos, site maps, PDFs and other files for the site. Give each one a category (**Access and entry**, **Anchorage and mooring**, **Parking**, **Site map**, **Underwater**, or **General**) and they are grouped under those headings, with maps and PDFs shown full width. An attachment's details change its category and display size; its file name stays as it is, because that is how your other devices find the file.
 
 ## The map
 

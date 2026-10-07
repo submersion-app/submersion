@@ -9,8 +9,8 @@ described in the user guide's
 
 ## Adding species
 
-1. Add entries to `tool/data/freshwater_species_seed.json` (or a sibling seed),
-   with descriptions in all 11 locales, and add any locale names iNaturalist
+1. Add entries to `tool/data/freshwater_species_seed.json` (the generator reads
+   only this file), with descriptions in all 11 locales, and add any locale names iNaturalist
    lacks to `tool/data/freshwater_species_name_overrides.json`.
 2. Run `dart run tool/generate_freshwater_species.dart` (needs the network). It
    writes the catalog rows and the localized names file and bumps the version.
