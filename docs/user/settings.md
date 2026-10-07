@@ -1,29 +1,42 @@
 # Settings
 
-Settings is where you tune Submersion to match how you dive: the units you read,
-the decompression model defaults, how screens look, and where your data lives.
+Settings is where you tune Submersion to how you dive: the units you read, the
+decompression defaults, how screens look, and where your data lives.
 
 > [!NOTE]
-> **Where to find it:** Open **Settings** from the navigation rail (or the **More**
-> menu on a phone). The page is organized into labelled sections — Units,
-> Decompression, Appearance, Notifications, Manage, Data, Diver Profile, and About.
+> **Where to find it:** **Settings** in the navigation. The page is a list of
+> sections; on a tablet or computer the selected section opens beside the list.
 
-Almost everything here is stored **per diver**. Each diver profile keeps its own
-units, decompression defaults, theme, and layout, so switching the active diver
-switches the whole look and feel with it. The handful of genuinely device-level
-items (cloud-sync credentials, the database storage location, debug mode) are
-called out where they appear.
+Most settings belong to the active diver profile: each profile keeps its own
+units, decompression defaults and layout, and they sync with the profile to your
+other devices. A few stay with each device, such as the light or dark mode and
+service reminders.
 
-<!-- screenshot: images/settings/settings-home.png — settings home -->
+<!-- screenshot: images/settings/settings-home.png: settings home -->
 
-## Units & formats
+| Section | What it covers |
+|---------|----------------|
+| **Diver Profile** | The active diver and profiles; see [Diver Profile](diver-profile.md) |
+| **Units** | Units, gas consumption, date and time formats |
+| **Decompression** | Gradient factors, oxygen limits, data sources, narcosis |
+| **Appearance** | Theme, language, maps, navigation, Home screen and section layouts |
+| **Notifications** | Service reminders; see [Equipment](equipment.md) |
+| **Manage** | Dive types, presets, catalogs and other reusable lists |
+| **Data** | Backup, sync, storage, import preferences and data tools |
+| **Safety** | The post-dive review, flying after diving and equipment condition; see [Safety](safety.md) |
+| **App Security** | App lock and database encryption |
+| **Shared data** | Sharing sites, trips and gear between profiles (with two or more profiles) |
+| **Apple HealthKit** | Importing dives from Apple Health (iPhone only) |
+| **Debug** | Logs and diagnostics (when debug mode is on); see [Debug Mode](debug-mode.md) |
+| **About** | Version, updates, licences and diagnostics |
 
-Sets how every measurement and timestamp in the app is displayed. Changing a unit
-is purely a display choice — your dives are stored in metric internally, so you can
-switch back and forth without altering any data.
+## Units
 
-A **Quick Select** control at the top applies a whole system at once — **Metric**,
-**Imperial**, or **Custom** (mix individual units freely). The individual units are:
+Changing a unit only changes how things are shown: dives are stored in metric,
+so you can switch back and forth without altering any data.
+
+**Quick Select** sets every unit at once to **Metric** or **Imperial**, or choose
+**Custom** and set each one:
 
 | Setting | Options | Default |
 |---------|---------|---------|
@@ -33,237 +46,232 @@ A **Quick Select** control at the top applies a whole system at once — **Metri
 | **Volume** | Liters, Cubic Feet | Liters |
 | **Weight** | Kilograms, Pounds | Kilograms |
 | **Altitude** | Meters, Feet | Meters |
-| **SAC rate** | Volume per minute (L/min, ft³/min), Pressure per minute (bar/min, psi/min) | Volume per minute |
+| **Distance** | Kilometers, Miles | Kilometers |
 
-Below the units, **Time & date format** sets the clock and calendar style:
+More settings in this section:
 
-| Setting | Options | Default |
-|---------|---------|---------|
-| **Time format** | 12-hour, 24-hour | 12-hour |
-| **Date format** | Several presets (for example `Jan 5 2026`, `5 Jan 2026`, `2026-01-05`) | `Jan 5 2026` |
+| Setting | What it does | Default |
+|---------|--------------|---------|
+| **Gas consumption** | Show **SAC** (pressure drop per minute, works with any logged pressures), **RMV** (volume per minute at the surface, needs a tank volume), or **Both** | Both |
+| **Gas calculations** | **Real gas** accounts for compressibility (a 12 L cylinder at 200 bar holds about 2317 L); **Ideal gas** matches hand calculation and dive tables (2400 L). Affects RMV, gas statistics, the planner and the gas calculators. | Real gas |
+| **Water type** | The default water type for the planner | Salt water |
+| **Default Currency** | For prices and costs | USD |
+| **Visibility scale** | How visibility you measured is described: **Tropical**, **Temperate**, **Cold water / Inland**, or **Custom** | Tropical |
+| **Coordinate format** | **Decimal degrees**, **Degrees and decimal minutes**, **Degrees, minutes, seconds**, **UTM** or **MGRS** | Decimal degrees |
+| **Place name language** | The language used when a site's country, region and town are looked up from its coordinates. Existing sites are not changed. | |
+| **Time Format** | 12-hour or 24-hour | 12-hour |
+| **Date Format** | MMM D, YYYY, D MMM YYYY, MM/DD/YYYY, DD/MM/YYYY, DD.MM.YYYY or YYYY-MM-DD | MMM D, YYYY |
 
-> [!TIP]
-> Picking **Metric** or **Imperial** in Quick Select sets every unit in one tap.
-> Reach for **Custom** only when you want a blend — say, depth in metres but
-> pressure in psi.
-
-<!-- screenshot: images/settings/units.png — units settings -->
+<!-- screenshot: images/settings/units.png: units settings -->
 
 ## Decompression
 
-Controls the defaults for Submersion's built-in Bühlmann ZH-L16C decompression
-model and how computer-reported figures are treated. These are starting points for
-new dives and for on-demand recalculation; they do not retroactively rewrite a
-logged profile.
+The defaults for Submersion's Bühlmann ZH-L16C decompression model and how
+figures from your dive computer are treated.
 
-### Gradient factors
+### Gradient Factors
 
-Tap **Current settings** to open the gradient-factor picker. Choose a quick preset
-or set your own with the **GF Low** and **GF High** sliders (each adjustable from
-15 to 100):
+Tap **Current Settings** to choose a preset or set **GF Low** and **GF High**
+yourself (each 15 to 100):
 
 | Preset | GF Low / High | Character |
 |--------|---------------|-----------|
-| **High** | 50/75 | Most conservative — longer, deeper stops |
-| **Medium** | 50/85 | Balanced |
-| **Low** | 50/95 | Least conservative — shorter stops |
-| **Custom** | Your values | Set both sliders by hand |
+| **High** | 50/75 | Most conservative, longer deco stops |
+| **Medium** | 50/85 | Balanced approach |
+| **Low** | 50/95 | Least conservative, shorter deco |
+| **Custom** | Your values | Set your own values |
 
-> [!NOTE]
-> A lower GF is *more* conservative. New divers start on the **Medium** preset
-> (**GF 50/85**), and profiles you calculate use that default until you change it
-> here.
+A lower gradient factor is more conservative. New profiles start on **Medium**
+(50/85). The [planner](planning.md), deco calculator, profile analysis and safety
+review all use these values.
 
-### Data source preferences
+### Oxygen Toxicity
 
-When a dive computer records its own decompression figures, you can choose whether
-Submersion shows those or its own calculated values. Each metric has an independent
-selector — **Calculated** or **Dive Computer**:
+| Setting | What it does | Default |
+|---------|--------------|---------|
+| **ppO2 limits OC** | The working and maximum partial pressure of oxygen for open circuit, used for MOD, gas warnings and planning | Working 1.4 bar, max 1.6 bar |
+| **CNS calculation** | How CNS oxygen toxicity is counted: **NOAA table, stepped (classic)**, **Linear interpolation (Shearwater-style)** or **Exponential fit (as Subsurface)**. All three are built on the NOAA oxygen exposure limits. | |
 
-| Source | Applies to |
-|--------|-----------|
-| **NDL source** | No-decompression limit |
-| **Ceiling source** | Decompression ceiling |
-| **TTS source** | Time to surface |
-| **CNS source** | Central-nervous-system oxygen toxicity |
+### Data Source Preferences
 
-When a metric is set to **Dive Computer**, Submersion uses the computer's data
-where it exists and falls back to its own calculation when the computer didn't
-record that figure. You can still flip any metric per dive from the profile legend
-without changing this default. See [Dive Profiles](dive-profiles.md).
+When a dive computer records its own figures, choose whether Submersion shows
+those or its own calculation. Each has its own **Calculated** or
+**Dive Computer** choice: **NDL Source**, **Deco Stop Source**, **TTS Source**,
+**GTR Source** and **CNS Source**. With **Dive Computer**, Submersion uses the
+computer's figure where there is one and calculates it where there is not. You
+can still switch a single dive from its profile legend; see
+[Dive Profiles & Deco](dive-profiles.md).
+
+**GTR reserve pressure** sets the tank pressure the calculated gas time
+remaining counts down to.
+
+### Ascent planning
+
+**Plan ascent with** decides which cylinders the simulated ascent (TTS, ceiling
+and stops) may switch to: **All carried cylinders**, or only
+**Deco/stage + back gas**.
 
 ### Narcosis
 
 | Setting | What it does | Default |
 |---------|--------------|---------|
-| **Oxygen is narcotic** | Counts oxygen alongside nitrogen when estimating narcosis (END / equivalent narcotic depth) | On |
-| **END limit** | The equivalent narcotic depth you treat as your personal narcosis ceiling, adjustable from 20 to 50 m (66–164 ft) | 30 m (98 ft) |
+| **O2 is narcotic** | Counts oxygen as well as nitrogen when working out narcosis (more conservative) | On |
+| **END Limit** | The deepest equivalent narcotic depth you accept, from 20 to 50 m | 30 m |
 
 ## Appearance
 
-Controls the app's look and the layout of every list and detail screen. Appearance
-is a lightweight hub: a few **General** choices, then a tile for each major section
-that opens that section's own appearance options.
-
-<!-- screenshot: images/settings/appearance.png — appearance settings -->
+<!-- screenshot: images/settings/appearance.png: appearance settings -->
 
 ### General
 
 | Setting | What it does |
 |---------|--------------|
-| **Current theme** | Opens the theme gallery (see below) |
-| **Theme mode** | **System** (follow the device), **Light**, or **Dark** |
-| **Language** | App language, or **System** to follow the device locale |
-| **Map style** | Basemap for maps: **OpenStreetMap**, **OpenTopoMap**, or **ESRI Satellite** |
-| **Navigation** | Customize the phone bottom bar (see [Navigation & layout](#navigation--layout)) |
+| **Color Theme** | Opens the theme gallery: **Submersion**, **Console**, **Tropical**, **Minimalist** or **Deep**, each a colour palette and typography |
+| Light and dark | **System default**, **Light** or **Dark** |
+| **App Language** | The app's language, or **System Default** |
+| **Map Style** | **Street Map**, **Topographic** or **Satellite** |
+| **Navigation layout** | Which destinations appear where (see below) |
+| **Color accents** | **Colored navigation icons**, **Colored section headers** and **Colored list icons** |
+| **Gear arrangement** | How equipment is grouped and sorted on a dive |
 
-The **theme gallery** is a grid of selectable visual themes — **Submersion**,
-**Console**, **Tropical**, **Minimalist**, and **Deep** — each pairing a colour
-palette and typography. Tap one to apply it; theme mode (light/dark/system) still
-applies on top of your choice.
+**Navigation layout** has a **Phone** and a **Desktop** tab. On a phone, drag
+destinations to reorder them: the ones at the top appear in the bottom bar, as
+many as your screen width allows. On a desktop, drag to reorder the
+sidebar; Home always stays at the top. **Always hide labels** shows icons only.
 
-### Section appearance
+### Home
 
-Under **Sections**, each major area — **Dives**, **Sites**, **Buddies**, **Trips**,
-**Equipment**, **Dive Centers**, **Certifications**, and **Courses** — has its own
-appearance page. What you can set depends on the section, but typically includes:
+**Home** under **Sections** sets up the Dashboard: which **Status chips** show at
+the top, and which **Home cards** appear and in what order (drag to reorder).
+**Reset to default** restores the original layout. See
+[The Dashboard](dashboard.md).
 
-- **List view** — the default layout for that section's list: **Detailed**,
-  **Compact**, or **Table** (Certifications and Courses offer Detailed and Table).
-- **List fields** — which columns or card fields appear, and in what order (opens
-  the column editor described in [Navigation & layout](#navigation--layout)).
-- **Card colouring** *(Dives)* — tint dive cards by a numeric attribute: **None**,
-  **Depth**, **Duration**, or **Temperature**, using a gradient preset (**Ocean**,
-  **Thermal**, **Sunset**, or **Forest**) or a custom two-colour gradient.
-- **Map background** *(Dives, Sites)* — show a faint site map behind cards.
-- **Table mode** — toggle the details pane, and for dives the inline **profile
-  panel** and **data-source badges**.
-- **Dive profile** *(Dives)* — the chart's right-hand axis metric, and markers for
-  max depth, tank-pressure thresholds, gas switches, and the gas timeline. A
-  **Default visible metrics** tile sets which overlays (depth, temperature,
-  pressure, SAC, events, ceiling, ascent-rate colouring, NDL, TTS, CNS, OTU,
-  ppO₂/ppN₂/ppHe, gas density, GF, surface GF, mean depth) are switched on for new
-  profiles. See [Dive Profiles](dive-profiles.md).
-- **Dive details** *(Dives)* — reorder and hide the sections on the dive detail
-  screen.
+### Sections
 
-> [!TIP]
-> Card colouring turns a long dive list into a quick visual scan — colour by depth
-> to spot your deeper dives at a glance, or by temperature to find the cold ones.
+Each main area (**Dives**, **Sites**, **Buddies**, **Trips**, **Equipment**,
+**Dive Centers**, **Certifications** and **Courses**) has its own appearance
+page. What you can set depends on the area:
 
-## Navigation & layout
-
-Customizes where things sit on screen.
-
-- **Navigation customization** (Settings → Appearance → Navigation) controls the
-  phone **bottom bar**. **Home** (first slot) and **More** (last slot) are pinned;
-  you choose which destinations fill the slots between them and drag them into
-  order. A **Reset** button restores the defaults. On wide screens the side
-  navigation rail shows every destination and is unaffected.
-- **Column / field configuration** (reached from a section's **List fields** tile)
-  controls each list. In **Table** view you choose which columns are visible,
-  reorder them, pin columns, and save named presets. In **card** views you assign
-  fields to the title, subtitle, and stat slots. A **Reset to default** option is
-  always available.
-- **Dive detail sections** (Settings → Appearance → Dives → Dive details) reorders
-  and hides the sections of the dive detail screen. A short list of core sections
-  is always shown.
+- **List View:** the default layout for that list, cards or table.
+- **List Fields:** which fields or columns appear and in what order. In table
+  view you can also pin columns and save named presets.
+- **Color cards by** (Dives): tint dive cards by depth, duration or temperature
+  with a choice of gradients.
+- **Map background** (Dives, Sites): a faint map behind each card.
+- **Table Mode:** **Show Details Pane** beside the table, and for dives
+  **Show Profile Panel in Table View** and **Show data source badges**.
+- **Dive Profile** (Dives): the chart's right-hand axis and markers, and which
+  overlays are on for new profiles. See [Dive Profiles & Deco](dive-profiles.md).
+- **Dive Details** and **Site Details:** reorder and hide the sections of those
+  pages.
 
 ## Notifications
 
-Optional reminders for upcoming equipment service. Submersion checks your gear's
-service schedule and certification dates and can notify you before something comes
-due. See [Equipment](equipment.md) and [Certifications & Courses](certifications-and-courses.md).
-
-| Setting | What it does | Default |
-|---------|--------------|---------|
-| **Enable service reminders** | Turns on local notifications (prompts for permission the first time) | On |
-| **Remind before due** | How many days ahead to alert — pick any of **7**, **14**, **30** days | 7, 14, 30 |
-| **Reminder time** | The time of day reminders are delivered | 09:00 |
-
-> [!NOTE]
-> Reminders are delivered by your device, so they need notification permission
-> granted to Submersion. If reminders never arrive, check your system notification
-> settings for the app.
+Service reminders for your gear, on iOS and Android: whether they are on, how
+many days before service is due, the time of day, and how long before a trip to
+warn about gear that falls due. See
+[Equipment](equipment.md).
 
 ## Manage
 
-Curators for the reusable lists Submersion offers when you log a dive. Editing them
-here keeps your pick-lists tidy everywhere they appear.
+The reusable lists and rules Submersion offers throughout the app:
 
 | Item | What it manages |
 |------|-----------------|
-| **Dive types** | The dive-type categories (recreational, training, technical, and any you add) |
-| **Tank presets** | Saved tank configurations — size and working pressure — for quick reuse |
-| **Species** | The marine-life library used when recording sightings — see [Marine Life & Photos](marine-life-and-photos.md) |
-| **Tags** | Custom tags for organizing and filtering dives |
-
-When you keep more than one diver profile, a **Shared data** section also appears,
-letting you share sites and trips across profiles and bulk-share everything you
-already have.
+| **Dive Types** | Your own dive types |
+| **Site Types** | Built-in and custom dive site types |
+| **Dive Roles** | Your own roles for buddies on a dive |
+| **Certification Agencies** | Your own agencies and certifications; see [Certifications and Courses](certifications-and-courses.md) |
+| **Tank Presets** | Tank configurations and the default tank; see [Equipment](equipment.md#tank-presets) |
+| **Transmitters** | Air-integration transmitters linked to cylinders |
+| **Weight Presets** | Reusable sets of weights for a dive |
+| **Trimix Mixer** | Fill gases, conditions and billing defaults for the trimix blender |
+| **Service types** | The maintenance your gear needs, and how often |
+| **Certification currency** | Refresher and renewal rules |
+| **Locations** | Where your gear is kept, serviced or lent |
+| **Setup assistant** | Revisit the first-run choices for units, appearance and backup |
+| **Trip Checklist Templates** | Reusable to-do lists for trip planning |
+| **Pre-Dive Checklists** | Buddy checks, CCR build lists, gear packing |
+| **Near-miss log** | Private, non-punitive incident notes; see [Safety](safety.md#near-miss-log) |
+| **Species** | The species catalog; see [Marine Life & Photos](marine-life-and-photos.md) |
+| **Tags** | Manage, merge and delete tags |
+| **Saved Queries** | Rename, reorder and delete saved dive searches |
 
 ## Data
 
-Backup, sync, storage, and data-repair tools.
+### Backup & Sync
 
 | Item | What it does |
 |------|--------------|
-| **Site match sensitivity** | How eagerly Submersion suggests an existing site when you log a dive: **Strict**, **Balanced**, or **Relaxed** |
-| **Backup** | Create and restore full backups — see [Backup & Restore](backup-and-restore.md) |
-| **Cloud Sync** | Keep devices in sync through your own cloud storage — see [Multi-Device Sync](multi-device-sync.md) |
-| **Database storage** | Where the database file lives (app default, or a folder you choose) |
-| **Offline maps** | Download map regions for use without a connection |
-| **Fix dive times** | Bulk-adjust the timestamps of imported dives (see below) |
-| **Media sources** | Where photos and files come from — photo library, files, URLs, and services |
+| **Backup & Restore** | Back up and restore your whole log; see [Backup & Restore](backup-and-restore.md) |
+| **Database Cloud Sync** | Keep your devices in step through cloud storage; see [Multi-Device Sync](multi-device-sync.md) |
+| **Photos & Media** | Where photos come from, and media accounts; see [Media Sync](media-sync.md) |
 
-> [!NOTE]
-> **Cloud Sync now appears on every platform.** The page itself shows the backends
-> your platform supports — iCloud on Apple devices, S3-compatible storage
-> everywhere (iOS, Android, macOS, Windows, Linux). Sync credentials are stored in
-> the device keychain, not in your dive database. See [Multi-Device Sync](multi-device-sync.md).
+### Storage
 
-## Tools
+| Item | What it does |
+|------|--------------|
+| **Database Storage** | Where the database file lives: the app's default location or a folder you choose |
+| **Offline Maps** | Map tiles and 3D terrain data for use without a connection |
 
-A few of the **Data** entries are repair and utility tools rather than preferences:
+### Import
 
-- **Fix dive times** corrects timestamps on imported dives — handy when a batch
-  came in shifted by a time-zone offset. Submersion stores dive times as their
-  wall-clock value, so a dive logged at 14:00 local reads 14:00 everywhere; this
-  tool fixes older imports that landed offset.
-- **Data source preferences** (under [Decompression](#decompression)) switch each
-  decompression metric between the dive computer's figures and Submersion's own
-  calculations.
-- **Offline maps** and **Media sources** (under [Data](#data)) manage downloaded
-  map regions and where imported photos and files come from.
-- **Debug logs** — when debug mode is on, a **Debug** section appears with a log
-  viewer for troubleshooting and bug reports. See [Debug Mode](debug-mode.md).
+| Setting | What it does |
+|---------|--------------|
+| **Auto site matching** | How readily downloaded dives are matched to your existing sites: **Strict**, **Balanced** or **Relaxed** |
+| **Tank pressure at surfacing** | Read the end pressure from when you reached the surface, not from when the computer stopped recording |
 
-## Diver profile
+### Data Tools
 
-Opens your diver profile, where you switch the active diver, add or remove profiles,
-and edit personal, emergency-contact, medical, insurance, and certification details.
-Because almost every setting on this page is per-diver, the active diver chosen here
-determines which set of preferences is in effect. Full details are in
-[Diver Profile](diver-profile.md).
+| Tool | What it does |
+|------|--------------|
+| **Fix Dive Times** | Shift the times of imported dives, for example a batch that came in an hour out because the computer's clock was wrong |
+| **Link buddy names** | Turn buddy names on imported dives into buddy records |
+| **Retype gear marked Other** | Give imported gear the type its name states |
+| **Data quality** | Choose which checks the [Data Quality Assistant](data-quality-assistant.md) runs |
+
+## App Security
+
+| Setting | What it does |
+|---------|--------------|
+| **App Lock** | Require your password or biometrics to open the app. Setting it up gives you a recovery code: write it down, because it is the only way in if you forget your password. |
+| **Unlock with biometrics** | Use Face ID, Touch ID or your fingerprint |
+| **Auto-lock** | Lock **Immediately**, after a number of minutes, or **Never** |
+| **Change password** / **New recovery code** | Manage the password and recovery code |
+| **Encrypt database** | Encrypt your dive log file on disk. A safety backup is made first, then the file is re-encrypted in place, which can take a while for a large log. Encryption may affect performance. |
+
+## Shared data
+
+With two or more diver profiles on the device, choose
+**Share new sites and trips by default**, or share everything you already have with
+**Share all my sites**, **Share all my trips** and **Share all my equipment...**. See
+[Diver Profile & Multi-Diver](diver-profile.md).
+
+## Apple HealthKit
+
+On iPhone, Submersion can import dives that an Apple Watch recorded in Apple
+Health, with **Import from Apple Watch** under **Transfer**. This section shows
+whether HealthKit access is granted and what is read; access itself is managed
+in the Health app. See [Dive Computers](dive-computer.md).
 
 ## About
 
-App information and housekeeping.
-
 | Item | What it does |
 |------|--------------|
-| **About Submersion** | App name, version, and description |
-| **Open-source licenses** | Licenses for the libraries Submersion uses |
-| **Report issue** | Opens the project's issue tracker |
-| **Check for updates** | On non-store builds, checks for and installs new versions |
+| **About Submersion** | The app's version and description |
+| **Open Source Licenses** | Licences for the libraries Submersion uses |
+| **Report an Issue** | Opens the project's issue tracker |
+| **Join the Beta** | Get new features early through the beta program |
+| **Updates** | On builds that update themselves: **Check for Updates**, **Automatic updates**, and the **Update channel**; see [Update Channels](update-channels.md) |
+| **Diagnostics** | **View log**, **Copy diagnostics** (version, device and recent log lines for a bug report) and **Open log folder** |
 
 > [!TIP]
-> Tapping the version number five times enables **debug mode**, which adds a
-> **Debug** section with detailed logs. See [Debug Mode](debug-mode.md).
+> Tapping the version number five times turns on debug mode, which adds a
+> **Debug** section to Settings. See [Debug Mode](debug-mode.md).
 
 ## See also
 
-- [Diver Profile](diver-profile.md) — manage divers and the per-diver data behind these settings
-- [Dive Profiles](dive-profiles.md) — how the decompression and overlay settings shape the chart
-- [Backup & Restore](backup-and-restore.md) — protect your dive log
-- [Multi-Device Sync](multi-device-sync.md) — keep every device in step
+- [Diver Profile & Multi-Diver](diver-profile.md): the profiles these settings belong to
+- [Dive Profiles & Deco](dive-profiles.md): how the decompression and overlay settings shape the chart
+- [Backup & Restore](backup-and-restore.md): protect your dive log
+- [Multi-Device Sync](multi-device-sync.md): keep every device in step
