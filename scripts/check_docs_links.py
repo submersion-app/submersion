@@ -21,6 +21,7 @@ Pure stdlib. Usage: check_docs_links.py [repo-root]; the root defaults to
 the repository this script lives in, so it can run from any directory.
 """
 
+import html
 import os
 import re
 import sys
@@ -30,6 +31,7 @@ LINK_ROOTS = (
     os.path.join("docs", "README.md"),
     os.path.join("docs", "developer"),
     os.path.join("docs", "contributing"),
+    os.path.join("docs", "user"),
 )
 CODE_REF_SOURCES = (
     "lib",
@@ -187,6 +189,107 @@ def check_code_refs(root):
     return failures
 
 
+# docs/user/ is published by docsify, which resolves links from one root, so
+# the folder stays flat (images/ aside), every page must be in the sidebar
+# docsify navigates by, and every anchor must mean the same heading on GitHub
+# and in docsify.
+USER_DOCS = os.path.join("docs", "user")
+USER_IMAGES = "images"
+USER_HOME = "README.md"
+USER_SIDEBAR = "_sidebar.md"
+HEADING_RE = re.compile(r"^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$")
+# docsify rebases Markdown links and images onto its base path, but not raw
+# HTML, so a relative <a href> or <img src> works on GitHub and breaks on the
+# published guide.
+RAW_HTML_URL_RE = re.compile(r"""<(?:a|img)\b[^>]*\b(?:href|src)\s*=\s*["']([^"']+)["']""")
+
+
+def github_slug(heading):
+    """The anchor GitHub gives a heading: link text kept, markup and
+    punctuation dropped, lowercased, each space a hyphen."""
+    text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", heading)
+    text = re.sub(r"<[^>]+>", "", text)
+    text = html.unescape(text).replace("`", "").replace("*", "")
+    text = re.sub(r"[^\w\- ]", "", text.lower())
+    return text.replace(" ", "-")
+
+
+def _heading_slugs(text):
+    seen, slugs = {}, set()
+    for _number, line in _unfenced_lines(text):
+        match = HEADING_RE.match(line)
+        if not match:
+            continue
+        base = github_slug(match.group(1))
+        count = seen.get(base, 0)
+        seen[base] = count + 1
+        slugs.add(base if count == 0 else f"{base}-{count}")
+    return slugs
+
+
+def check_user_docs(root):
+    base = os.path.join(root, USER_DOCS)
+    if not os.path.isdir(base):
+        return []
+    failures, pages = [], {}
+    for entry in sorted(os.listdir(base)):
+        full = os.path.join(base, entry)
+        rel = os.path.join(USER_DOCS, entry)
+        if os.path.isdir(full):
+            if entry != USER_IMAGES:
+                failures.append(f"{rel}/: docs/user/ is flat; move these pages up a level")
+                continue
+            for dirpath, _dirnames, filenames in os.walk(full):
+                for name in sorted(filenames):
+                    if name.endswith(".md"):
+                        stray = os.path.relpath(os.path.join(dirpath, name), root)
+                        failures.append(f"{stray}: pages belong in docs/user/, not images/")
+        elif entry.endswith(".md"):
+            pages[entry] = _read_text(full) or ""
+
+    sidebar = pages.get(USER_SIDEBAR, "")
+    linked = {
+        os.path.basename(unquote(url.split("#", 1)[0]))
+        for _number, line in _unfenced_lines(sidebar)
+        for url in _link_targets(line)
+    }
+    for name in sorted(pages):
+        if name not in (USER_HOME, USER_SIDEBAR) and name not in linked:
+            failures.append(
+                f"{os.path.join(USER_DOCS, name)}: not linked from {USER_SIDEBAR}, "
+                "so the published guide cannot reach it"
+            )
+
+    slugs = {name: _heading_slugs(text) for name, text in pages.items()}
+    for name, text in sorted(pages.items()):
+        rel = os.path.join(USER_DOCS, name)
+        for number, line in _unfenced_lines(text):
+            for match in RAW_HTML_URL_RE.finditer(INLINE_CODE_RE.sub("", line)):
+                url = match.group(1)
+                if not (SCHEME_RE.match(url) or url.startswith(("#", "//"))):
+                    failures.append(
+                        f"{rel}:{number}: raw HTML link or image -> {url}; use Markdown "
+                        "([text](page.md) or ![alt](images/x.png)) so the published guide resolves it"
+                    )
+            for url in _link_targets(line):
+                if SCHEME_RE.match(url) or "#" not in url:
+                    continue
+                path, fragment = url.split("#", 1)
+                path = unquote(path.split("?", 1)[0])
+                if "/" in path or (path and path not in pages):
+                    continue  # outside docs/user/, or missing: check_links reports it
+                target = path or name
+                fragment = unquote(fragment)
+                if fragment not in slugs[target]:
+                    failures.append(f"{rel}:{number}: no heading for anchor -> {url}")
+                elif fragment[:1].isdigit():
+                    failures.append(
+                        f"{rel}:{number}: anchor starts with a digit, which docsify "
+                        f"prefixes with '_', so the link breaks on the site -> {url}"
+                    )
+    return failures
+
+
 def _has_files(folder):
     """True when the folder holds a file git could track.
 
@@ -217,6 +320,7 @@ def main(argv):
         ("Relative links in docs", check_links),
         ("Docs paths cited from code", check_code_refs),
         ("Retired docs folders", check_retired),
+        ("User docs rules", check_user_docs),
     )
     all_ok = True
     for title, check in checks:
