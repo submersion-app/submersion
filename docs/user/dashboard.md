@@ -31,7 +31,7 @@ Below the header, a row of small chips shows what needs your attention at a glan
 | **Sync status** | Whether every change has synced. |
 | **Data quality** | How many [data issues](data-quality-assistant.md) are waiting. |
 
-**Dive currency**, **No-fly timer**, **Gear service** and **Insurance** are always there; the others appear only when they have something to report. You can turn any chip off (see [Customizing the Dashboard](#customizing-the-dashboard)).
+**Dive currency**, **No-fly timer** and **Insurance** are always there, and **Gear service** whenever you have no gear yet or something is due; the others appear only when they have something to report. You can turn any chip off (see [Customizing the Dashboard](#customizing-the-dashboard)), but safety warnings still show: overdue gear, lapsed insurance, a closed flight window and a lapsed certification.
 
 > [!NOTE]
 > While a dive-safety alert is live, such as a running no-fly timer, the status chips stay on screen even if you have hidden their card.
@@ -43,8 +43,8 @@ The rest of the Dashboard is a set of cards. In their default order:
 | Card | What it shows |
 |------|---------------|
 | **Checklists** | Your pre-dive and trip checklists. |
-| **Recent dives** | Your three most recent dives and a preview of the latest dive's profile. Tap a dive to open it; **View all** opens the dive list. |
-| **Quick actions** | **Log Dive** (log manually or download from a computer), **Plan Dive** (the [dive planner](planning.md)), and **Insights** (your [statistics and records](statistics.md)). |
+| **Recent dives** | Your three most recent dives and a preview of the latest dive's profile. Tap a dive to open it; **View All** opens the dive list. |
+| **Quick actions** | **Log Dive** (log manually or download from a computer), **Plan Dive** (the [dive planner](planning.md)), **Insights** (your [statistics and records](statistics.md)), **GPS Logger** (record a track), and **Emergency card** (hotlines, chambers and your medical details; see [Safety](safety.md)). |
 | **Milestones** | How many dives until your next milestone dive, and certification anniversaries. |
 | **Year in review** | This year's dives, hours underwater and deepest dive, compared with last year. |
 | **Recent media** | Your latest photos and videos. |
@@ -56,11 +56,11 @@ The rest of the Dashboard is a set of cards. In their default order:
 
 <!-- screenshot: images/dashboard/empty-state.png: first-run empty dashboard -->
 
-Before you have logged any dives, **Recent dives** offers buttons to log a dive or plan one, which is the quickest way to get started.
+Before you have logged any dives, **Recent dives** shows **Log Your First Dive**, which offers to log a dive or plan one: the quickest way to get started.
 
 ## Customizing the Dashboard
 
-Open **Settings > Appearance > Home screen**:
+Open **Settings > Appearance > Home**:
 
 - **Status chips**: turn each chip on or off.
 - **Home cards**: show or hide each card, and drag to reorder them. **Reset to default** restores the default order and shows every card again.

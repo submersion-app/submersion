@@ -123,8 +123,9 @@ and CNS values sample by sample during the dive; Submersion stores those
 alongside the figures it calculates itself from the depth samples. The switch
 lets you compare the two:
 
-- **Calc** (the default) shows Submersion's own Bühlmann calculation.
-- **DC** shows the values your dive computer recorded, when present.
+- **DC** (the default) shows the values your dive computer recorded, and falls
+  back to Submersion's calculation where the computer recorded none.
+- **Calc** shows Submersion's own Bühlmann calculation.
 
 The two can differ: your computer may use a different algorithm, conservatism
 setting, or gas assumption than Submersion does. Seeing them side by side is
@@ -215,9 +216,9 @@ How it works, in brief:
 The **Ascent Rate** overlay colours the depth line against two thresholds,
 applied to a short smoothed window of the ascent so brief blips do not dominate:
 
-- At or below the **warning** rate (default **9&nbsp;m/min**, ~30&nbsp;ft/min):
+- At or below the **warning** rate (**9&nbsp;m/min**, ~30&nbsp;ft/min):
   green.
-- Above warning up to the **critical** rate (default **12&nbsp;m/min**,
+- Above warning up to the **critical** rate (**12&nbsp;m/min**,
   ~40&nbsp;ft/min): orange.
 - Above critical: red.
 
