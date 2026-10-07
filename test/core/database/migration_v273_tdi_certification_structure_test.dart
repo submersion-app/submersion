@@ -168,6 +168,9 @@ void main() {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(273));
     expect(AppDatabase.migrationVersions, contains(273));
     expect(AppDatabase.migrationStepCount(272), 1);
+    // The combined jump from 271: v272's relaxed assertion only pins a
+    // floor, so this is what actually pins the total at exactly two steps.
+    expect(AppDatabase.migrationStepCount(271), 2);
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 
@@ -216,7 +219,7 @@ void main() {
 
     expect(
       await applicableLevelsOf(db, 'pro_membership_annual'),
-      '["instructor","tdiTechnicalDivemaster","tdiInstructor","tdiInstructorTrainer"]',
+      '["instructor","tdiTechnicalDivemaster","tdiInstructor","tdiInstructorTrainer","tdiNonDivingSpecialtyInstructor"]',
     );
     expect(
       await applicableLevelsOf(db, 'deco_currency'),

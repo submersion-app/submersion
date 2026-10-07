@@ -97,3 +97,18 @@ groupLevelEntriesByTdiCategory(List<LevelEntry> entries) {
   }
   return (byCategory: byCategory, uncategorized: uncategorized);
 }
+
+/// [groupLevelEntriesByTdiCategory] over the TDI agency's full catalog
+/// (ladder and specialties combined), for a screen that just wants "TDI's
+/// levels, grouped" without composing the catalog lookups itself.
+({
+  Map<TdiCourseCategory, List<LevelEntry>> byCategory,
+  List<LevelEntry> uncategorized,
+})
+groupTdiCatalog(CertificationCatalog catalog) {
+  final agencyId = CertificationAgency.tdi.name;
+  return groupLevelEntriesByTdiCategory([
+    ...catalog.ladderFor(agencyId),
+    ...catalog.specialtiesFor(agencyId),
+  ]);
+}

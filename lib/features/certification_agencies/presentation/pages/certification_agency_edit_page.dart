@@ -120,10 +120,27 @@ List<Widget> _tdiLevelSections(
   CertificationCatalog catalog,
 ) {
   final agencyId = CertificationAgency.tdi.name;
-  final grouped = groupLevelEntriesByTdiCategory([
-    ...catalog.ladderFor(agencyId),
-    ...catalog.specialtiesFor(agencyId),
-  ]);
+  final grouped = groupTdiCatalog(catalog);
+  // Every category section holds only built-in TDI courses (the category
+  // map keys off entry.builtIn, which custom levels never have), so none of
+  // them ever has a diver's own rung to drag -- not reorderable, same as
+  // every other agency's non-ladder sections.
+  //
+  // The catch-all is the one place a custom TDI level can land, and it
+  // mixes progression- and specialty-type custom entries. Reordering only
+  // persists for progression ones (CertificationCatalog.ladderFor sorts
+  // custom rungs by sortOrder; specialtiesFor always sorts alphabetically),
+  // so the two are split the same way every other agency splits them into
+  // Progression/Specialties, rather than offering a drag handle that
+  // silently does nothing for a specialty-type entry.
+  final uncategorizedProgression = [
+    for (final l in grouped.uncategorized)
+      if (l.isProgression) l,
+  ];
+  final uncategorizedSpecialties = [
+    for (final l in grouped.uncategorized)
+      if (!l.isProgression) l,
+  ];
   return [
     for (final category in TdiCourseCategory.values)
       if (grouped.byCategory[category] case final entries?
@@ -133,15 +150,23 @@ List<Widget> _tdiLevelSections(
           agencyId: agencyId,
           catalog: catalog,
           levels: entries,
-          reorderable: true,
+          reorderable: false,
         ),
-    if (grouped.uncategorized.isNotEmpty)
+    if (uncategorizedProgression.isNotEmpty)
+      _LevelSection(
+        title: l10n.certifications_edit_group_progression,
+        agencyId: agencyId,
+        catalog: catalog,
+        levels: uncategorizedProgression,
+        reorderable: true,
+      ),
+    if (uncategorizedSpecialties.isNotEmpty)
       _LevelSection(
         title: l10n.certifications_edit_group_specialties,
         agencyId: agencyId,
         catalog: catalog,
-        levels: grouped.uncategorized,
-        reorderable: true,
+        levels: uncategorizedSpecialties,
+        reorderable: false,
       ),
   ];
 }

@@ -180,7 +180,7 @@ const String kSeedBuiltInCurrencyRulesSql = '''
     UNION ALL SELECT 'pro_membership_annual',
       'Professional membership renewal', 'date',
       '["padi","ssi","naui","sdi","tdi","raid","bsac","cmas","iantd","psai","acuc","dan","other"]',
-      '["diveGuide","diveMaster","assistantInstructor","instructor","masterInstructor","courseDirector","tdiTechnicalDivemaster","tdiInstructor","tdiInstructorTrainer","cmas1StarInstructor","cmas2StarInstructor","cmas3StarInstructor","bsacOpenWaterInstructor","bsacAdvancedInstructor","bsacNationalInstructor","acucUnderwaterGuide","acucTeachingAssistant","acucOpenWaterInstructor","acucAdvancedInstructor","acucInstructorTrainer","acucInstructorTrainerEvaluator","danInstructor","danInstructorTrainer"]',
+      '["diveGuide","diveMaster","assistantInstructor","instructor","masterInstructor","courseDirector","tdiTechnicalDivemaster","tdiInstructor","tdiInstructorTrainer","tdiNonDivingSpecialtyInstructor","cmas1StarInstructor","cmas2StarInstructor","cmas3StarInstructor","bsacOpenWaterInstructor","bsacAdvancedInstructor","bsacNationalInstructor","acucUnderwaterGuide","acucTeachingAssistant","acucOpenWaterInstructor","acucAdvancedInstructor","acucInstructorTrainer","acucInstructorTrainerEvaluator","danInstructor","danInstructorTrainer"]',
       365, 45, '[]', '[]', 'currencyRule_pro_membership_advisory'
     UNION ALL SELECT 'gue_revalidation', 'GUE revalidation',
       'date', '["gue"]', '[]',

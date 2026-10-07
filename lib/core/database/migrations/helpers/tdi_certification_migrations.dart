@@ -36,6 +36,7 @@ extension TdiCertificationMigrations on AppDatabase {
       'tdiTechnicalDivemaster',
       'tdiInstructor',
       'tdiInstructorTrainer',
+      'tdiNonDivingSpecialtyInstructor',
     ],
     'deco_currency': [
       'tdiDecompressionProceduresDiver',
@@ -95,22 +96,13 @@ extension TdiCertificationMigrations on AppDatabase {
 
     if (!await _tableExists('certification_currency_rules')) return;
     for (final entry in _currencyRuleLevelAdditions.entries) {
-      final rows = await customSelect(
-        'SELECT applicable_levels FROM certification_currency_rules '
-        'WHERE id = ? AND is_built_in = 1',
-        variables: [Variable<String>(entry.key)],
-      ).get();
-      if (rows.isEmpty) continue;
-      final current = CurrencyScopeCodec.decodeStrings(
-        rows.first.read<String>('applicable_levels'),
-      );
-      final missing = entry.value.where((l) => !current.contains(l));
-      if (missing.isEmpty) continue;
-      final updated = CurrencyScopeCodec.encode([...current, ...missing]);
-      await customStatement(
-        'UPDATE certification_currency_rules SET applicable_levels = ? '
-        'WHERE id = ? AND is_built_in = 1',
-        [updated, entry.key],
+      await _rewriteBuiltInScope(
+        ruleId: entry.key,
+        column: 'applicable_levels',
+        transform: (current) {
+          final missing = entry.value.where((l) => !current.contains(l));
+          return missing.isEmpty ? null : [...current, ...missing];
+        },
       );
     }
 
@@ -121,25 +113,40 @@ extension TdiCertificationMigrations on AppDatabase {
     // upgraded database would keep "tdi" there forever while a fresh
     // install never has it -- the same kind of install-path drift the
     // additions above close, just a removal instead of an addition.
-    final genericRefresherRows = await customSelect(
-      "SELECT applicable_agencies FROM certification_currency_rules "
-      "WHERE id = 'generic_refresher' AND is_built_in = 1",
+    await _rewriteBuiltInScope(
+      ruleId: 'generic_refresher',
+      column: 'applicable_agencies',
+      transform: (current) => current.contains('tdi')
+          ? current.where((a) => a != 'tdi').toList()
+          : null,
+    );
+  }
+
+  /// Reads [column] (a JSON scope array) of the built-in currency rule
+  /// [ruleId], and writes it back only when [transform] returns a changed
+  /// list; returning null means "nothing to change". Shared by the level
+  /// additions and the agency removal above, which differ only in which
+  /// column they touch and how they transform it.
+  Future<void> _rewriteBuiltInScope({
+    required String ruleId,
+    required String column,
+    required List<String>? Function(List<String> current) transform,
+  }) async {
+    final rows = await customSelect(
+      'SELECT $column FROM certification_currency_rules '
+      'WHERE id = ? AND is_built_in = 1',
+      variables: [Variable<String>(ruleId)],
     ).get();
-    if (genericRefresherRows.isNotEmpty) {
-      final agencies = CurrencyScopeCodec.decodeStrings(
-        genericRefresherRows.first.read<String>('applicable_agencies'),
-      );
-      if (agencies.contains('tdi')) {
-        await customStatement(
-          "UPDATE certification_currency_rules SET applicable_agencies = ? "
-          "WHERE id = 'generic_refresher' AND is_built_in = 1",
-          [
-            CurrencyScopeCodec.encode(
-              agencies.where((a) => a != 'tdi').toList(),
-            ),
-          ],
-        );
-      }
-    }
+    if (rows.isEmpty) return;
+    final current = CurrencyScopeCodec.decodeStrings(
+      rows.first.read<String>(column),
+    );
+    final updated = transform(current);
+    if (updated == null) return;
+    await customStatement(
+      'UPDATE certification_currency_rules SET $column = ? '
+      'WHERE id = ? AND is_built_in = 1',
+      [CurrencyScopeCodec.encode(updated), ruleId],
+    );
   }
 }

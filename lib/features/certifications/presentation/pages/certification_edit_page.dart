@@ -25,7 +25,7 @@ import 'package:submersion/features/certification_agencies/presentation/provider
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certification_agencies/presentation/widgets/certification_agency_dropdown.dart';
 import 'package:submersion/features/certification_agencies/presentation/widgets/certification_level_dialog.dart';
-import 'package:submersion/features/certification_agencies/presentation/tdi_course_category.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_level_dropdown_items.dart';
 
 class CertificationEditPage extends ConsumerStatefulWidget {
   final String? certificationId;
@@ -587,54 +587,15 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
           child: Text(value.localizedName(context.l10n)),
         );
 
-    // TDI groups its own course names into five categories on its own
-    // website, not into a progression/specialties split (issue #3072).
-    // Display-only: the stored value and the ladder/specialty split behind
-    // ladderFor/specialtiesFor are unaffected.
-    final List<DropdownMenuItem<CertificationOption>> groupedItems;
-    bool extraRenderedInGroup = false;
-    if (agency == CertificationAgency.tdi.name) {
-      final grouped = groupLevelEntriesByTdiCategory([
-        ...ladder,
-        ...specialties,
-      ]);
-      // A stored value with no TDI category (a custom level, or one of the
-      // five deliberately unmigrated legacy values like 'techDiver') must
-      // not fall through to the headerless append below: with no header of
-      // its own there, it visually reads as belonging to whichever category
-      // happens to render last (Professional), which is actively misleading
-      // for a value that has nothing to do with that category.
-      final uncategorized = [...grouped.uncategorized, ?extra];
-      extraRenderedInGroup = extra != null;
-      groupedItems = [
-        for (final category in TdiCourseCategory.values)
-          if (grouped.byCategory[category] case final entries?
-              when entries.isNotEmpty) ...[
-            header(category.name, category.label(context.l10n)),
-            ...entries.map(item),
-          ],
-        if (uncategorized.isNotEmpty) ...[
-          header(
-            'specialties',
-            context.l10n.certifications_edit_group_specialties,
-          ),
-          ...uncategorized.map(item),
-        ],
-      ];
-    } else {
-      groupedItems = [
-        header(
-          'progression',
-          context.l10n.certifications_edit_group_progression,
-        ),
-        ...ladder.map(item),
-        header(
-          'specialties',
-          context.l10n.certifications_edit_group_specialties,
-        ),
-        ...specialties.map(item),
-      ];
-    }
+    final grouped = buildGroupedCertificationItems(
+      agency: agency,
+      ladder: ladder,
+      specialties: specialties,
+      extra: extra,
+      l10n: context.l10n,
+      header: header,
+      item: item,
+    );
 
     return [
       DropdownMenuItem<CertificationOption>(
@@ -643,8 +604,8 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
           context.l10n.certifications_edit_certification_notSpecified,
         ),
       ),
-      ...groupedItems,
-      if (extra != null && !extraRenderedInGroup) item(extra),
+      ...grouped.items,
+      if (extra != null && !grouped.extraRenderedInGroup) item(extra),
       // Another diver's custom agency takes certifications from its owner
       // only (issue #690).
       if (_catalog.customAgency(agency) == null ||
