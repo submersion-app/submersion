@@ -56,8 +56,20 @@ A new category tile labeled **"Overview"** (icon `Icons.dashboard_outlined`) is 
 
 Charts:
 
-- **Depth Distribution pie** — buckets 0–10m, 10–20m, 20–30m, 30–40m, 40m+ (relabeled to feet for imperial units). Source: `DiveStatistics.depthDistribution`. Legend: bucket label, dive count, percentage.
-- **Dive Types pie** — buckets derived from each dive's `diveType` enum (Recreational, Technical, Freediving, etc.). Source: new `diveTypeDistributionProvider` (memoized on `allDivesProvider`). Legend: type label, count, percentage.
+- **Depth Distribution pie** — 14 fixed buckets, 0–10m through 130m+ (relabeled
+  to feet for imperial units). Source: `DiveStatistics.depthDistribution`.
+  Legend: bucket label, dive count, capped at the first 6 occupied buckets.
+- **Dive Types pie** — buckets derived from each dive's type id(s). Source:
+  `diveTypeDistributionProvider` (memoized on `allDivesProvider`). Legend:
+  type label, percentage inside the slice.
+
+Below each pie, a bar row per occupied bucket/type (issue #3074): bar length
+proportional to its count among the occupied buckets/types (with a minimum
+visible width so a bucket with very few dives next to a much larger one
+doesn't vanish), colored with the same palette entry as its pie slice, and
+the same "N dives • Xh Ym" trailing text the pie's own legend doesn't have
+room for. Unlike the legend, this list is never capped -- every occupied
+bucket/type gets a row (issue #641 follow-up).
 
 Hidden entirely when `totalDives == 0`.
 
