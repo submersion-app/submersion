@@ -24,7 +24,7 @@ The rig composer is the top half of the tool:
 - **Tanks:** tap **Add tank** for one or more tanks from your presets. Material
   and size matter: an aluminium cylinder is noticeably buoyant when it is nearly
   empty, and that is exactly when you need to hold a stop.
-- **Water Type:** salt or fresh.
+- **Water Type:** salt, fresh or brackish.
 - **Body Weight (optional):** improves the prediction and is required for the
   highest confidence rating. **Save weight to profile** records it as a dated
   entry, so your weighting history stays meaningful as your body weight changes.
