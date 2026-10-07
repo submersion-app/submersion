@@ -163,7 +163,7 @@ void main() {
     await serializer.upsertRecord('certificationCurrencyRules', customRule());
     await serializer.deleteAllRecords('certificationCurrencyRules');
     final ids = await serializer.recordIdsFor('certificationCurrencyRules');
-    expect(ids.length, 10);
+    expect(ids.length, 11);
     expect(ids, isNot(contains('custom-1')));
     expect(ids, contains('cave_currency'));
   });
