@@ -19,7 +19,7 @@ required.
 |-------|-------|
 | **Type** | The kind of item (see the list below). The type decides which other fields and service clocks the item gets. |
 | **Status** | Where the item stands (see the statuses below) |
-| **Installed in** | For a part such as a second stage or a battery, the item it is fitted to |
+| **Installed in** | For an O2 cell or a battery, the item it is fitted to |
 | **Name** | Your label, for example "My Primary Regulator" |
 | **Brand** / **Model** | Manufacturer and product |
 | Type-specific fields | For example a tank's volume, working pressure and material, or a suit's thickness. Some types also have a colour, used when the gear is drawn on the diver figure. |
@@ -36,7 +36,7 @@ required.
 Submersion has 48 equipment types:
 
 - **Breathing:** Regulator, First Stage, Second Stage, Hose, Tank, Rebreather,
-  O2 Cell
+  O2 cell
 - **Buoyancy and rig:** BCD, Backplate, Wing, Harness, Tank Band, Weight
   Pocket, Gear Pocket, Weights
 - **Exposure protection:** Wetsuit, Drysuit, Undersuit, Base Layer, Rash Guard,
@@ -116,7 +116,7 @@ Clocks come from service types. These are built in:
 | BCD/wing inspection | BCD | 1 year |
 | Drysuit seals | Drysuit (added by hand) | 2 years or 200 salt-water hours |
 | Scrubber repack | Rebreather | 3 hours |
-| O2 cell replacement | Rebreather, O2 Cell | 1 year |
+| O2 cell replacement | Rebreather, O2 cell | 1 year |
 | Rebreather annual service | Rebreather | 1 year |
 | General service | Any type (added by hand) | None set |
 
@@ -187,9 +187,9 @@ the recurring-issue findings.
 Gear can be built from other gear. A regulator can list its first stage, second
 stages and hoses under **Components**, and a rebreather or a light can list its
 cells or batteries under **Installed parts**. Each part is an item of its own
-with its own service clocks, and its **Installed in** row shows what it is
-fitted to. **Replace** retires an installed part and puts a new one in the same
-slot.
+with its own service clocks. A component's page shows what it is **Part of**,
+and an installed cell or battery shows what it is **Installed in**. **Replace**
+retires an installed part and puts a new one in the same slot.
 
 ## Locations
 

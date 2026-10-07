@@ -1,7 +1,7 @@
 # Cylinder Passports
 
 Every cylinder in your gear has a passport: one page with its spec, its service
-dates, its current fill and every fill since its last hydrostatic test. Put a
+dates, its current fill and every fill you have logged. Put a
 QR label or an NFC tag on the cylinder and anyone with a phone can scan it to
 see what it is and what is in it.
 
@@ -18,7 +18,7 @@ see what it is and what is in it.
 | **Current fill** | The newest fill: O2 and He, fill pressure, when and where it was filled, the analyzer and gas temperature, and the mix's MOD and END |
 | **Service** | The last hydrostatic test and visual inspection, and O2 cleaning once you choose **Track O2 cleaning** |
 | **Trips** | The trip the cylinder is packed for. **Pack for a trip** puts it on that trip's cylinder board |
-| **Fill history** | Every fill since the last hydro |
+| **Fill history** | Every fill you have logged, and how many since the last hydro |
 | **Tag** | The cylinder's QR code, and buttons to print a label or write an NFC tag |
 
 Service dates come from the cylinder's service clocks (see
@@ -28,8 +28,9 @@ updates the passport too.
 > [!WARNING]
 > When the last fill is richer than your high-O2 line (40% oxygen unless you
 > change it in **Settings > Safety > Equipment condition**) and the cylinder has
-> no recorded O2 cleaning, or its O2 cleaning is overdue, the passport shows a
-> warning banner. A passport records what was written down; analyse the gas
+> no O2 cleaning on record (neither a logged O2 clean nor a baseline date on its
+> O2 clean clock), or its O2 cleaning is overdue, the passport shows a warning
+> banner. A passport records what was written down; analyse the gas
 > yourself before you dive it.
 
 ## Logging a fill
