@@ -1,9 +1,9 @@
 # Cylinder Passports
 
-Every cylinder in your gear has a passport: one page with its spec, its service
-dates, its current fill and every fill you have logged. Put a
-QR label or an NFC tag on the cylinder and anyone with a phone can scan it to
-see what it is and what is in it.
+Every cylinder in your gear has a passport: one page in the app with its spec,
+its service dates, its current fill and every fill you have logged. Put a QR
+label or an NFC tag on the cylinder and anyone with a phone can scan it to see
+what the cylinder is; an NFC tag can also carry its newest fill.
 
 > [!NOTE]
 > **Where to find it:** open a Tank item in **Equipment** and tap
@@ -46,14 +46,16 @@ size and newest fill into the tank. See [Logging Dives](dive-logging.md).
 ## Labels and tags
 
 A tag is a link, `https://submersion.app/c#...`, that carries the cylinder's
-identity and a snapshot of its spec, service dates and newest fill. You can
-carry it two ways:
+identity and a snapshot of its spec and service dates. You can carry it two
+ways:
 
 - **QR label.** **Print label** on the **Tag** card makes a PDF label to print
   and stick on the cylinder. To print labels for several cylinders at once,
-  select them in the Equipment list and choose **Print labels**.
+  select them in the Equipment list and choose **Print labels**. A printed
+  label never includes a fill, since the fill changes every time.
 - **NFC tag.** **Write NFC tag** writes the link to a tag you hold against the
-  back of the phone, then reads it back to check it. Use an NTAG215 or NTAG216
+  back of the phone, then reads it back to check it. Each write includes the
+  newest fill, so rewrite the tag after a fill. Use an NTAG215 or NTAG216
   tag; when a small tag cannot hold everything, the sheet says which details
   were left off. Writing needs a phone with NFC.
 
@@ -70,9 +72,10 @@ Choose **Scan a cylinder tag** from the menu on the Equipment list, or tap the
 scan button on a tank in the dive editor. Point the camera at the label (iOS,
 Android and macOS), tap an NFC tag (phones with NFC), or paste the tag's link.
 
-- **Your own cylinder** opens its passport. A fill on the tag that is not in
-  its history yet is added, once.
-- **Someone else's cylinder** opens a read-only page with what the tag says.
+- **Your own cylinder** opens its passport. If the tag carries a fill that is
+  not in its history yet, it is added, once.
+- **Someone else's cylinder** opens a read-only page with what the tag says,
+  including the last fill when the tag carries one.
   From there, **Add to my gear** adds it to your Equipment, and
   **Use on a dive** starts a new dive with a tank filled in from the tag.
 

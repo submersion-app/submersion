@@ -92,8 +92,9 @@ clocks its type needs automatically, and you can add more with **Add clock**.
 A clock can count calendar days, dives, or hours underwater, and some also
 count exposure: cold dives, salt-water hours or high-O2 hours. Whichever limit
 comes first makes the clock due. A clock reads as due soon inside your reminder
-window (see [Service reminders](#service-reminders)) or in the last 10% of a
-dive or hour interval, and as overdue once a limit is passed. The item's icon in
+window (see [Service reminders](#service-reminders)) or in the last 10% of any
+other limit (dives, hours, or an exposure such as cold dives), and as overdue
+once a limit is passed. The item's icon in
 the list turns red when any clock is overdue.
 
 A clock counts from the last service you logged for it. Until then it counts
