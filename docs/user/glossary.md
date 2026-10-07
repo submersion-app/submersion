@@ -36,7 +36,7 @@ Common diving and app terms used throughout this guide, in alphabetical order.
 
 **MOD (maximum operating depth):** The deepest you can breathe a gas before its oxygen partial pressure (ppO₂) becomes unsafe. Submersion shows MOD at a ppO₂ of 1.4 bar and warns when a dive or plan goes deeper than the MOD of the gas in use. See [Dive Profiles & Deco](dive-profiles.md) and [Planning & Calculators](planning.md).
 
-**NDL (no-decompression limit):** How much longer you can stay at your current depth before a decompression stop becomes mandatory. Submersion works it out by simulating more time at depth until a direct ascent to the surface would no longer be allowed (using GF High). The NDL overlay reads `DECO` once you have an obligation. See [Dive Profiles & Deco](dive-profiles.md).
+**NDL (no-decompression limit):** How much longer you can stay at your current depth before a decompression stop becomes mandatory. Submersion calculates it by simulating more time at depth until a direct ascent to the surface would no longer be allowed (using GF High). By default the profile shows your dive computer's own NDL where it recorded one, and the calculated value otherwise; choose in **Data Source Preferences** (see [Settings](settings.md)). The NDL overlay reads `DECO` once you have an obligation. See [Dive Profiles & Deco](dive-profiles.md).
 
 **Nitrox (EANx):** Any air enriched with more than 21% oxygen, the rest nitrogen; also called Enriched Air Nitrox (EANx, where x is the oxygen percentage, as in EAN32). More oxygen lowers the MOD but lengthens the NDL at moderate depths. Submersion names any mix above 21% oxygen with no helium EAN and its percentage. See [Logging Dives](dive-logging.md) and [Planning & Calculators](planning.md).
 
@@ -71,7 +71,7 @@ Common diving and app terms used throughout this guide, in alphabetical order.
 
 **Trimix:** A breathing gas of oxygen, helium and nitrogen. Helium reduces narcosis (a lower END) and, being light, makes the gas less dense at depth. Submersion writes trimix as Tx O₂/He (for example, Tx 18/45) and supports it in the dive log and the planning tools. See [Logging Dives](dive-logging.md) and [Planning & Calculators](planning.md).
 
-**TTS (time to surface):** The time needed to reach the surface from your current depth: the ascent plus any required decompression stops, at the configured ascent rate (9 m/min by default). The recommended safety stop is not included. See [Dive Profiles & Deco](dive-profiles.md).
+**TTS (time to surface):** The time needed to reach the surface from your current depth: the ascent plus any required decompression stops. Submersion's calculated TTS uses your ascent rates (9 m/min by default) and does not include the recommended safety stop. By default the profile shows your dive computer's own TTS where it recorded one, which follows the computer's model and conventions; choose in **Data Source Preferences** (see [Settings](settings.md)). See [Dive Profiles & Deco](dive-profiles.md).
 
 ---
 
