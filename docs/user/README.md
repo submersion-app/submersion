@@ -1,215 +1,67 @@
-# Submersion
+# Submersion wiki
 
-> **Dive safe. Log everything.** Track your dives, manage your gear, analyze your profiles, and own your data.
+Submersion is a free, open-source dive log for scuba divers — one app for iOS, Android, macOS, Windows, and Linux. Your logbook lives on your own device, no account and no subscription required, and you can export all of it to open standards at any time.
 
-<div class="screenshot-placeholder">
-  <strong>App Screenshot</strong><br>
-  <em>Replace with: Main dive list view showing recent dives</em>
-</div>
+> [!NOTE]
+> New here? Jump straight to [Installation](installation.md) to get the app, then log your first dive with [Your First Dive](first-dive.md).
 
-## Why Submersion?
+<!-- screenshot: images/home/dashboard-hero.png — the Dashboard on first open -->
 
-**Your data, your control.** Submersion stores everything locally on your device. No cloud lock-in, no subscriptions, no data mining. Export anytime in industry-standard formats.
+## Why Submersion
 
-**Professional-grade features.** From recreational divers to technical explorers, Submersion grows with you. Decompression calculations, multi-gas support, and dive computer integration - all in one app.
+- **You own your data.** Every dive is stored locally on your device in a standard SQLite database. The app works fully offline, and there is no Submersion server in the middle.
+- **No account, no lock-in.** Use the app the moment you install it — no sign-up, no email, no tracking. Export your entire logbook to UDDF or CSV whenever you want and take it elsewhere.
+- **Truly cross-platform.** The same logbook, with the same details and analytics, runs on iOS, Android, macOS, Windows, and Linux. Optional, opt-in sync keeps your devices in step using cloud storage you control — see [Multi-Device Sync](multi-device-sync.md).
+- **Free and open-source, forever.** Released under GPL-3.0. No premium tiers for core features, no ads.
 
-**Truly cross-platform.** One app for iOS, Android, macOS, Windows, and Linux. Your dive log travels with you.
+## The app at a glance
 
----
+When you open Submersion you land on the **Dashboard** — your home screen, with a snapshot of your recent dives and quick ways into the rest of the app. From there, everything is organized into a few groups:
 
-## Key Features
+| Group | What lives here |
+|-------|-----------------|
+| **Logging your dives** | The [Dashboard](dashboard.md), your [dive log](dive-logging.md), [dive profiles and decompression](dive-profiles.md), [dive computer downloads](dive-computer.md), and [import and export](import-export.md). |
+| **Your dive world** | [Dive sites](dive-sites.md) and maps, [trips](trips.md), [buddies and dive centers](buddies-and-dive-centers.md), and [marine life and photos](marine-life-and-photos.md). |
+| **Diver and gear** | Your [certifications and courses](certifications-and-courses.md), your [equipment](equipment.md) and service reminders, and your [diver profile](diver-profile.md). |
+| **Insights and planning** | [Statistics and records](statistics.md) across your diving, plus the [dive planner and calculators](planning.md). |
+| **Setup and data** | [Settings](settings.md), [backup and restore](backup-and-restore.md), [multi-device sync](multi-device-sync.md), and [debug mode](debug-mode.md). |
 
-### Dive Logging
+> [!TIP]
+> "Home" in the navigation always takes you back to the [Dashboard](dashboard.md).
 
-Log every detail of your dives with 40+ data fields. Track depth, duration, temperature, visibility, conditions, and more. Rate your dives, mark favorites, and organize with tags and trips.
+## Finding your way around
 
-[Learn more about dive logging &rarr;](guide/dive-logging.md)
+Submersion adapts its navigation to your screen size.
 
-### Dive Computer Integration
+**On a desktop or tablet** (a window at least 800 px wide), a **navigation rail** runs down the left edge with all thirteen destinations:
 
-Download dives directly from 300+ dive computer models. Supports Shearwater, Suunto, Mares, Aqualung, and many more via Bluetooth and USB.
+> Home · Dives · Sites · Trips · Equipment · Buddies · Dive Centers · Certifications · Courses · Statistics · Planning · Transfer · Settings
 
-[Connect your dive computer &rarr;](guide/dive-computer.md)
+On a wide enough window the rail expands to show labels next to each icon, and you can collapse it back to icons only whenever you like.
 
-### Profile Analysis
+**On a phone** (a window under 800 px wide), the rail is replaced by a **bottom navigation bar** with five slots: **Home**, three destinations of your choosing, and a **More** menu that holds everything else. By default the three middle slots are **Dives**, **Sites**, and **Trips**, and the remaining destinations live under **More** — but you can pick which destinations occupy those slots.
 
-Interactive depth profiles with zoom, pan, and touch markers. Visualize temperature, pressure, and heart rate overlays. Color-coded ascent rate warnings keep you safe.
+> [!TIP]
+> To change which three destinations sit in your phone's bottom bar, head to [Settings](settings.md). "Home" and "More" are fixed; the other slots are yours to arrange.
 
-[Explore profile analysis &rarr;](features/profile-analysis.md)
+> [!NOTE]
+> **Transfer** is the hub for moving dives in and out: it covers [dive computer downloads](dive-computer.md) and [import and export](import-export.md). On the navigation rail it appears as a single "Transfer" destination.
 
-### Decompression Planning
+## Start here
 
-Full Buhlmann ZH-L16C algorithm with gradient factor support. Real-time NDL, ceiling, and tissue loading calculations. CNS% and OTU oxygen toxicity tracking.
+1. **[Install Submersion](installation.md)** on your platform of choice.
+2. **[Log your first dive](first-dive.md)** — a five-minute walkthrough that sets up your diver profile and records a dive.
+3. Already have a logbook elsewhere? Bring it across with [import and export](import-export.md).
 
-[Learn about deco features &rarr;](features/decompression.md)
+## Help and source
 
-### Equipment Management
+- **Found a bug or have a request?** [Open an issue on GitHub](https://github.com/submersion-app/submersion/issues).
+- **Want to read or contribute to the code?** [Browse the repository](https://github.com/submersion-app/submersion). Submersion is built by divers, for divers, and contributions are welcome.
+- **Looking for a release?** Downloads for every platform are on the [releases page](https://github.com/submersion-app/submersion/releases).
 
-Track all your gear with service reminders and maintenance history. Create equipment sets for quick selection. Never miss a regulator service again.
+## See also
 
-[Manage your gear &rarr;](guide/equipment.md)
-
-### Insights
-
-Eleven specialized dashboards for deep insights into your diving. Track personal records, gas consumption, dive patterns, buddy stats, and more.
-
-[View Insights features &rarr;](guide/insights.md)
-
-### Sites & Maps
-
-Build your personal dive site database with GPS coordinates and interactive maps. Weather and tide integration helps you plan the perfect dive.
-
-[Explore dive sites &rarr;](guide/dive-sites.md)
-
-### Import & Export
-
-Full support for UDDF, CSV, and PDF export. Import from other dive log apps. Complete database backup and restore.
-
-[Import & export data &rarr;](guide/import-export.md)
-
----
-
-## Quick Start
-
-### Installation
-
-<!-- tabs:start -->
-
-#### **macOS**
-
-```bash
-# Clone the repository
-git clone https://github.com/submersion-app/submersion.git
-cd submersion
-
-# Initialize submodules (required for libdivecomputer)
-git submodule update --init --recursive
-
-# Install dependencies
-flutter pub get
-
-# Generate code
-dart run build_runner build --delete-conflicting-outputs
-
-# Run
-flutter run -d macos
-```text
-#### **iOS**
-
-```bash
-# Clone and setup
-git clone https://github.com/submersion-app/submersion.git
-cd submersion
-git submodule update --init --recursive
-flutter pub get
-dart run build_runner build --delete-conflicting-outputs
-
-# Open in Xcode
-open ios/Runner.xcworkspace
-
-# Or run directly
-flutter run -d ios
-```text
-#### **Android**
-
-```bash
-# Clone and setup
-git clone https://github.com/submersion-app/submersion.git
-cd submersion
-git submodule update --init --recursive
-flutter pub get
-dart run build_runner build --delete-conflicting-outputs
-
-# Run
-flutter run -d android
-```text
-#### **Windows**
-
-```bash
-# Clone and setup
-git clone https://github.com/submersion-app/submersion.git
-cd submersion
-git submodule update --init --recursive
-flutter pub get
-dart run build_runner build --delete-conflicting-outputs
-
-# Run
-flutter run -d windows
-```text
-#### **Linux**
-
-```bash
-# Clone and setup
-git clone https://github.com/submersion-app/submersion.git
-cd submersion
-git submodule update --init --recursive
-flutter pub get
-dart run build_runner build --delete-conflicting-outputs
-
-# Run
-flutter run -d linux
-```
-
-<!-- tabs:end -->
-
-[Full installation guide &rarr;](guide/installation.md)
-
-<details>
-<summary><strong>Create global tide grid (development use only)</strong></summary>
-
-The bundled grid is generated from FES2022b by
-`scripts/tide/extract_fes_grid.py`; see `scripts/tide/README.md`.
-
-</details>
-
----
-
-## Technology
-
-| Component | Technology |
-|-----------|------------|
-| **Framework** | Flutter 3.x |
-| **State Management** | Riverpod |
-| **Database** | Drift (SQLite) |
-| **Navigation** | go_router |
-| **Charts** | fl_chart |
-| **Maps** | flutter_map (OpenStreetMap) |
-| **Dive Computers** | libdivecomputer FFI |
-
----
-
-## Version Status
-
-| Version | Status | Highlights |
-|---------|--------|------------|
-| **v1.0** | Complete | Core logging, sites, gear, statistics |
-| **v1.1** | Complete | GPS, maps, tags, profile zoom/pan |
-| **v1.5** | **Complete** | Dive computers, deco algorithms, O2 tracking, localization, accessibility |
-| **v2.0** | In Progress | Cloud sync UI, photos, social, community |
-
-[View full roadmap &rarr;](https://github.com/submersion-app/submersion/blob/main/docs/contributing/roadmap.md)
-
----
-
-## Contributing
-
-Submersion is open source under the GPL-3.0 license. We welcome contributions!
-
-- [How to contribute](https://github.com/submersion-app/submersion/tree/main/docs/contributing)
-- [Code style guide](https://github.com/submersion-app/submersion/blob/main/docs/contributing/code-style.md)
-- [Pull request guidelines](https://github.com/submersion-app/submersion/blob/main/docs/contributing/pull-requests.md)
-
----
-
-## Links
-
-- **GitHub**: [submersion-app/submersion](https://github.com/submersion-app/submersion)
-- **Issues**: [Report bugs or request features](https://github.com/submersion-app/submersion/issues)
-- **License**: [GPL-3.0](https://github.com/submersion-app/submersion/blob/main/LICENSE)
-
----
-
-<div style="text-align: center; color: #666; margin-top: 40px;">
-  <p>Made with love for the diving community</p>
-  <p>Local-first. Open source. Forever free.</p>
-</div>
+- [Installation](installation.md)
+- [Your First Dive](first-dive.md)
+- [The Dashboard](dashboard.md)
+- [Settings](settings.md)

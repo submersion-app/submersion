@@ -1,34 +1,41 @@
-<!-- docs/user/_sidebar.md -->
+**Getting Started**
+- [Home](README.md)
+- [Installation](installation.md)
+- [Your First Dive](first-dive.md)
 
-* **Getting Started**
-  * [Home](/)
-  * [Installation](guide/installation.md)
-  * [Your First Dive](guide/first-dive.md)
+**Logging Your Dives**
+- [The Dashboard](dashboard.md)
+- [Logging Dives](dive-logging.md)
+- [Dive Profiles & Deco](dive-profiles.md)
+- [Dive Computers](dive-computer.md)
+- [Import & Export](import-export.md)
+- [Data Quality Assistant](data-quality-assistant.md)
 
-* **User Guide**
-  * [Dive Logging](guide/dive-logging.md)
-  * [Dive Sites & Maps](guide/dive-sites.md)
-  * [Equipment Management](guide/equipment.md)
-  * [Insights](guide/insights.md)
-  * [Import & Export](guide/import-export.md)
-  * [Cylinder Passport Tags](https://github.com/submersion-app/submersion/blob/main/docs/developer/reference/formats/cylinder-passport-tag.md)
-  * [Dive Computers](guide/dive-computer.md)
-  * [Settings](guide/settings.md)
-  * [Multi-Device Sync](guide/multi-device-sync.md)
-  * [Debug Mode](guide/debug-mode.md)
+**Your Dive World**
+- [Dive Sites](dive-sites.md)
+- [Trips](trips.md)
+- [Buddies & Dive Centers](buddies-and-dive-centers.md)
+- [Marine Life & Photos](marine-life-and-photos.md)
 
-* **Features**
-  * [Overview](features/)
-  * [Profile Analysis](features/profile-analysis.md)
-  * [Decompression](features/decompression.md)
-  * [O2 Tracking](features/oxygen-tracking.md)
-  * [Multi-Gas Diving](features/multi-gas.md)
-  * [Buddies & Certs](features/buddies.md)
-  * [Species](features/marine-life.md)
-  * [Photo and Video Matching](features/media-matching.md)
-  * [Trips](features/trips.md)
-  * [Tags](features/tags.md)
+**Diver & Gear**
+- [Certifications & Courses](certifications-and-courses.md)
+- [Equipment](equipment.md)
+- [Diver Profile & Multi-Diver](diver-profile.md)
 
-* **Links**
-  * [GitHub](https://github.com/submersion-app/submersion)
-  * [Report Issues](https://github.com/submersion-app/submersion/issues)
+**Insights & Planning**
+- [Statistics & Records](statistics.md)
+- [Planning & Calculators](planning.md)
+- [Weight Planner](weight-planner.md)
+- [Safety & Emergency](safety.md)
+
+**Setup & Data**
+- [Settings](settings.md)
+- [Update Channels](update-channels.md)
+- [Backup & Restore](backup-and-restore.md)
+- [Multi-Device Sync](multi-device-sync.md)
+- [Media Sync](media-sync.md)
+- [Encrypted Sync](encrypted-sync.md)
+- [Debug Mode](debug-mode.md)
+
+**Reference**
+- [Glossary](glossary.md)

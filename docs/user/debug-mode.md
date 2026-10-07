@@ -5,10 +5,9 @@ behind the scenes. Use it when you want to send useful information to support
 for a bug report, or when troubleshooting a dive-computer download, Bluetooth
 connection, or import problem.
 
-<div class="tip">
-<strong>Tip:</strong> Logs are only recorded while Debug Mode is on. If you want to
-capture a problem, enable Debug Mode <em>before</em> you try to reproduce it.
-</div>
+> [!TIP]
+> <strong>Tip:</strong> Logs are only recorded while Debug Mode is on. If you want to
+> capture a problem, enable Debug Mode <em>before</em> you try to reproduce it.
 
 ## What Gets Logged
 
@@ -45,23 +44,17 @@ Debug Mode is intentionally hidden so it doesn't get turned on by accident.
 4. A "Debug mode enabled" notification appears at the bottom of the screen,
    confirming that recording has started.
 
-<div class="screenshot-placeholder">
-  <strong>Screenshot 1: Enabling Debug Mode</strong><br>
-  <em>The Settings page footer showing the version string that needs to be tapped five times.</em>
-</div>
+![Screenshot 2026-05-27 at 11 26 43 PM](images/debug-mode-1.png)
 
 Once enabled, a new **Debug** entry appears in the Settings list, just above
 **About**. It has a bug icon and the subtitle "Logs & diagnostics."
 
-<div class="screenshot-placeholder">
-  <strong>Screenshot 2: Debug section in Settings</strong><br>
-  <em>The Settings list with the new "Debug" row visible.</em>
-</div>
+![Screenshot 2026-05-27 at 11 26 58 PM](images/debug-mode-2.png)
 
-<div class="tip">
-<strong>Persistence:</strong> Debug Mode stays on across app restarts. You will
-need to turn it off manually when you are done troubleshooting (see below).
-</div>
+
+> [!TIP]
+> <strong>Persistence:</strong> Debug Mode stays on across app restarts. You will
+> need to turn it off manually when you are done troubleshooting (see below).
 
 ## Reproduce the Problem
 
@@ -73,10 +66,7 @@ recorded as they happen.
 
 Open **Settings &rarr; Debug** to see the captured log entries.
 
-<div class="screenshot-placeholder">
-  <strong>Screenshot 3: Debug Log Viewer</strong><br>
-  <em>The log viewer showing category chips, the minimum-severity dropdown, and a list of recent entries.</em>
-</div>
+![Screenshot 2026-05-27 at 11 28 03 PM](images/debug-mode-3.png)
 
 The viewer offers three ways to narrow down what's shown:
 
@@ -97,11 +87,10 @@ captured information.
 | **Copy** | Only the **filtered** entries currently visible on screen, as plain text on your clipboard. | When you want to paste a small, relevant slice into a GitHub issue or forum reply. |
 | **Save** | The **full** log file, saved to a location you choose, as `submersion-debug-logs.txt`. | When you want a local copy you can attach later. |
 
-<div class="warning">
-<strong>Note:</strong> "Copy" respects the active filters &mdash; it copies only
-what's visible. "Share" and "Save" always include the entire log file regardless
-of filters.
-</div>
+> [!WARNING]
+> <strong>Note:</strong> "Copy" respects the active filters &mdash; it copies only
+> what's visible. "Share" and "Save" always include the entire log file regardless
+> of filters.
 
 ## Clear the Log
 
@@ -112,10 +101,7 @@ issue):
 2. Tap the **three-dot menu** in the top-right corner.
 3. Choose **Clear Logs**.
 
-<div class="screenshot-placeholder">
-  <strong>Screenshot 4: Overflow menu</strong><br>
-  <em>The three-dot menu in the Debug Log Viewer showing "Disable Debug Mode" and "Clear Logs".</em>
-</div>
+![Screenshot 2026-05-27 at 11 28 27 PM](images/debug-mode-4.png)
 
 ## Disable Debug Mode
 
