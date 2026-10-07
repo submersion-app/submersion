@@ -149,4 +149,45 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Sort'), findsOneWidget);
   });
+
+  testWidgets("the compact bar's folded Sort menu entry opens the sort sheet", (
+    tester,
+  ) async {
+    final base = await getBaseOverrides();
+    final summaries = [
+      DiveSummary.fromDive(
+        Dive(id: 'd1', dateTime: DateTime(2026, 3, 15), diveNumber: 1),
+      ),
+    ];
+
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          ...base,
+          diveListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
+          diveFilterProvider.overrideWith((ref) => const DiveFilterState()),
+          paginatedDiveListProvider.overrideWith(
+            (ref) => _MockPaginatedNotifier(summaries),
+          ),
+        ],
+        // 440dp, not 360dp: the real master pane's own width, wide enough
+        // to dodge the unrelated SortBottomSheet overflow at very narrow
+        // widths (see the standalone-bar test above for the same reason).
+        child: const SizedBox(
+          width: 440,
+          height: 800,
+          child: DiveListContent(showAppBar: false),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sort'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sort Dives'), findsOneWidget);
+  });
 }
