@@ -8,7 +8,7 @@ The first time you open Submersion, a short setup wizard starts with **Welcome t
 
 - **Set up a new profile**: create your diver profile and configure the app. Choose this for a new logbook.
 - **I have existing Submersion data**: restore a backup file, connect cloud sync, or open a folder that already holds a Submersion library. See [Backup and Restore](backup-and-restore.md) and [Multi-Device Sync](multi-device-sync.md).
-- **Skip setup**: go straight to the app with the defaults.
+- **Skip setup**: skip the units and backup steps and keep their defaults. You still enter your name and confirm on the last screen.
 
 <!-- screenshot: images/first-dive/welcome.png: setup wizard welcome screen -->
 

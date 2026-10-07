@@ -117,8 +117,10 @@ tar xzf Submersion-*-Linux.tar.gz
 `install.sh` installs into your home folder (a desktop entry and icon in
 `~/.local/share`, the app linked into `~/.local/bin`), tells you the exact
 command for any shared library you are missing, and prints the command that
-installs the USB udev rules, which needs root. `./uninstall.sh` removes it
-all again and never touches your dive log.
+installs the USB udev rules, which needs root. `./uninstall.sh` removes the
+app, its desktop entry and its icon, and never touches your dive log. It leaves
+the udev rules in place and prints the commands (run with `sudo`) to remove
+them.
 
 > [!TIP]
 > Compressing videos you attach to dives needs `ffmpeg`. It is optional: the
