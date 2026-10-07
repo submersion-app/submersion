@@ -4,8 +4,8 @@ Bring your dives in from other apps and dive computers, and take your whole log
 back out in open, portable formats. In the app, this lives under **Transfer**.
 
 > [!NOTE]
-> **Where to find it:** Open **Transfer** from the navigation. It covers dive
-> computers, **File Import**, **Cloud** imports and exports. This page covers
+> **Where to find it:** Open **Transfer** from the navigation. It has four
+> sections: **File Import**, **File Export**, **Dive Computers** and **Cloud**. This page covers
 > importing and exporting; downloading directly from a dive computer is covered
 > in [Dive Computer](dive-computer.md).
 
@@ -192,7 +192,7 @@ ways to deliver the result:
 | **PDF logbook** | Printing, or sharing with non-divers | A formatted logbook you can style with a template (see below). |
 | **UDDF** | Moving your data to other dive software | The open Universal Dive Data Format. Export the dives you choose, or your entire library: dives, profiles, sites, buddies, equipment, certifications, trips, and more. |
 | **CSV** | Spreadsheets | A comma-separated file. Choose **Dives**, **Sites**, **Equipment**, **Cylinder fills**, or **Gear check-ins** (every OK check and reported issue). For **Units**, **Metric** writes metric values and ISO dates; **My units** writes your unit, date and time settings, named in each column header. Submersion can import its own CSV exports back. |
-| **Excel Workbook** | A single spreadsheet with everything | An `.xlsx` workbook with four sheets: Dives, Sites, Equipment, and Statistics. |
+| **Excel Workbook** | A single spreadsheet with everything | An `.xlsx` workbook with sheets for Dives, Sites, Equipment and Statistics, plus checklists, maintenance and gear check-ins when you have them. |
 | **Google Earth KML** | Seeing where you have dived | A `.kml` file that plots your dive sites on the 3D globe in Google Earth. Sites without coordinates are skipped. |
 | **Maintenance Log** | Gear servicing | Service history for all your equipment, as a spreadsheet. |
 

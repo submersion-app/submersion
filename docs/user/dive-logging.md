@@ -56,9 +56,9 @@ Each section behaves the same way:
 - A section with an invalid value gets a coloured edge and an issue count, and
   re-opens automatically if you try to save.
 
-When you start a **new** manual dive, **The Dive** and **Gas & Gear** open first.
-For a dive you downloaded or imported, only **The Dive** opens, because the
-computer has already filled in most of the rest.
+When you start a **new** dive, **The Dive** and **Gas & Gear** open first. When
+you edit an existing dive, only **The Dive** opens, and you expand the others as
+you need them.
 
 > [!TIP]
 > The **Training Course** and **Custom Fields** sections are tucked behind an
@@ -80,14 +80,15 @@ The rows, in order:
 | **Surface interval** | Time on the surface since your previous dive, calculated from the dive before this one. Shown when editing. |
 | **Max Depth** | The deepest point of the dive, in m or ft. |
 | **Avg Depth** | Your average depth over the whole dive. |
-| **Bottom Time** | Time spent **at depth**, in minutes, not counting your descent and ascent. |
+| **Bottom Time** | Time from leaving the surface to the start of your final ascent, in minutes: the descent counts, the ascent and shallow stops do not. |
 | **Runtime** | Total dive time, entry to exit, in minutes. |
 | **Site** | The [dive site](dive-sites.md). Tap to pick an existing site or create a new one. |
-| **Dive types** | One or more [dive types](#tags-and-dive-types). Picking a site can add types the site usually brings. |
+| **Dive Types** | One or more [dive types](#tags-and-dive-types). Picking a site can add types the site usually brings. |
 
 > [!NOTE]
 > **Bottom Time vs. Runtime.** Submersion treats these as two different things.
-> **Bottom Time** is your time at depth (it excludes the swim down and back up).
+> **Bottom Time** runs from leaving the surface to the start of your final ascent
+> (the descent counts; the ascent and safety stop do not).
 > **Runtime** is the total time from entry to exit. Your SAC
 > ([Surface Air Consumption](glossary.md)) rate is calculated from runtime, so a
 > dive's gas-use figures are most accurate when both your gas pressures and your
@@ -185,11 +186,11 @@ shared with you is listed with its owner's name.
 When a dive computer downloads pressures from an air-integrated transmitter you
 have registered, the tank is matched to that cylinder automatically.
 
-The tank's gas name is derived from the mix you enter: 21% oxygen reads as **Air**,
-anything above that as **EAN** (enriched-air nitrox, e.g. `EAN32`), any helium
+The tank's gas name is derived from the mix you enter: 20 to 22% oxygen reads as
+**Air**, anything above that as **EAN** (enriched-air nitrox, e.g. `EAN32`), any helium
 content as **Tx** (trimix, e.g. `Tx 18/45`), and pure oxygen as **O2**. Below the
-gas mix, Submersion shows the **MOD** ([Maximum Operating Depth](glossary.md), at a
-partial pressure of oxygen of 1.4) and **MND** for the mix.
+gas mix, Submersion shows the **MOD** ([Maximum Operating Depth](glossary.md), at
+your working ppO₂ limit, 1.4 by default) and **MND** for the mix.
 
 **Tank roles:**
 
@@ -251,7 +252,7 @@ This section holds **Water Temp**, **Air Temp** and two groups of fields.
 
 | Field | Options |
 |-------|---------|
-| **Visibility** | Excellent (over 30 m / 100 ft), Good (15 to 30 m / 50 to 100 ft), Moderate (5 to 15 m / 15 to 50 ft), Poor (under 5 m / 15 ft), or Unknown. |
+| **Visibility** | The distance you could see, in your depth units. Submersion describes it as excellent, good, moderate or poor using the **Visibility scale** you choose in [Settings](settings.md) (Tropical by default). |
 | **Water Type** | Salt Water, Fresh Water, or Brackish. |
 | **Current Direction** | A compass direction (North, North-East, East, and so on), Variable, or None. |
 | **Current Strength** | None, Light, Moderate, or Strong. |
@@ -298,13 +299,18 @@ change by tapping it:
 - **Student**
 - **Divemaster**
 - **Solo**
+- **Rear Guard**
+- **Support Diver**
+- **Safety Diver**
+
+You can add your own roles in **Settings > Manage > Dive Roles**.
 
 ## Experience: rating, sightings, notes, and tags
 
 | Field | Notes |
 |-------|-------|
 | **Rating** | A one-to-five star rating for the dive. |
-| **Marine Life** | Log species you saw, with a count and notes per sighting. Sightings link to the species catalogue (see [Marine Life & Photos](marine-life-and-photos.md)). |
+| **Species** | Log species you saw, with a count and notes per sighting. Sightings link to the species catalogue (see [Marine Life & Photos](marine-life-and-photos.md)). |
 | **Notes** | Free-text notes about the dive. |
 | **Tags** | Free-form labels (for example `shore`, `training`, `photography`) you can later filter and search by. See [Tags and dive types](#tags-and-dive-types). |
 

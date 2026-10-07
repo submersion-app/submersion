@@ -3,7 +3,7 @@
 Download your dives straight from a dive computer over Bluetooth or USB. Submersion reads the full profile (depth, temperature, tank pressure, gas mixes, decompression data, and more) and turns each recorded dive into a log entry.
 
 > [!NOTE]
-> **Where to find it:** Tap the **+** button on the **Dives** list and choose **Import from Computer**, or open **Transfer** in the main navigation. Transfer lists your **Known Computers** and offers **Connect New Computer** and **Import from Apple Watch**.
+> **Where to find it:** Tap the **+** button on the **Dives** list and choose **Import from Computer**, or open **Transfer** in the main navigation. Transfer lists your **Known Computers** and offers **Connect New Computer** and, on iOS, **Import from Apple Watch**.
 
 <!-- screenshot: images/dive-computer/discover.png: device discovery -->
 
@@ -161,7 +161,7 @@ If you dive a **Shearwater Swift GPS** transmitter paired with a compatible Shea
 On the dive's detail page you then get:
 
 - **Entry and exit pins** on the header map, with a line showing your surface drift between them.
-- An optional **Surface GPS** section listing the entry and exit coordinates, the drift distance and bearing, and an **Open in Maps** button.
+- An optional **Surface GPS** section listing the entry and exit coordinates, the drift distance and bearing, with a full-screen map and coordinates you can copy.
 
 These coordinates are read straight from the dive computer's log and are read-only. They are recorded **per dive** and never create or move dive sites on their own, but, as noted above, they are exactly what the post-download **Match sites** step uses to suggest a site for each dive.
 
