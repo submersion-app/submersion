@@ -170,7 +170,7 @@ Per-host **credentials** can be saved under **Network sources**: enter a hostnam
 
 **Media** in the navigation shows every photo and video you have linked, grouped by dive. Filter it (**Filter media**) by **Photos** or **Videos**, **Site**, **Species**, **Trip**, **Dates**, or **Missing files** (media whose file can no longer be found), and sort it (**Sort media**).
 
-To work on several items at once, use the grid's selection control, then tap items or drag across them to select a range (**Select All** selects everything shown). **Unlink** removes the selected items from their dives without deleting the originals from your library or filesystem.
+To work on several items at once, use the grid's selection control, then tap items or drag across them to select a range (**Select All** selects everything shown). **Unlink** removes the selected items from your Submersion library, along with their thumbnails and any [Media Sync](media-sync.md) cloud copies; items a dive site still uses are kept. The original files in your photo library or on disk are not touched.
 
 ---
 

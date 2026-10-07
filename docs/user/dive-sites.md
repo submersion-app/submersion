@@ -28,7 +28,7 @@ The edit form is divided into collapsible sections. Only the **Name** field is r
 Two quick-capture buttons are provided:
 
 - **Use My Location** reads the device GPS and fills in latitude and longitude. On mobile, if permission is denied, a snackbar links directly to app settings. When the device returns a location, country and region are reverse-geocoded and pre-filled if those fields are still blank.
-- **Pick From Map** opens a full-screen interactive map where you tap to drop a pin. Country and region are reverse-geocoded from the pin position and pre-filled if still blank.
+- **Pick from Map** opens a full-screen interactive map where you tap to drop a pin. Country and region are reverse-geocoded from the pin position and pre-filled if still blank.
 
 You can also type decimal latitude and longitude directly. Coordinates are validated on save (latitude −90 to 90, longitude −180 to 180).
 
@@ -107,7 +107,7 @@ The heat map layer shows where your diving activity is concentrated. Toggle it w
 
 ### Map / list split pane (desktop)
 
-On a window wider than 800 px the Sites screen uses a split-pane layout: the list occupies the left column and the interactive map fills the right. Selecting a site in the list animates the map to center on that site's marker; tapping a marker highlights the matching row in the list and shows the info card.
+On a window at least 1100 px wide the Sites screen uses a split-pane layout: the list occupies the left column and the interactive map fills the right. Selecting a site in the list animates the map to center on that site's marker; tapping a marker highlights the matching row in the list and shows the info card.
 
 ### Fit all sites
 
@@ -125,12 +125,14 @@ Use the filter icon to narrow the list by:
 
 - Country and region
 - Difficulty level
-- Depth range (min and max)
+- Maximum depth range
+- Site type
+- Tags
 - Minimum rating
 - Has GPS coordinates (yes / no)
 - Has logged dives (yes / no)
 
-Use the sort icon to order by name, country, region, dive count, max depth, min depth, altitude, rating, or coordinates.
+Use the sort icon to order by name, rating, difficulty, max depth, dive count, or when you last dived there.
 
 ## Importing sites
 
@@ -165,7 +167,7 @@ For each dive with a recorded GPS position, the matcher:
    - The nearest candidate in the winning pool is an **auto-match** when it is the only one in the pool, or when the next nearest is at least the **separation margin** farther away.
    - If no candidate falls inside the inner radius but some fall within the outer radius, the dive is marked **Suggested** and queued for the review screen.
    - No candidates within the outer radius means **No Match**.
-3. Auto-matched dives are linked immediately. Suggested and unmatched dives are held for review.
+3. Every dive then goes to the review screen: auto-matches arrive already selected, suggestions wait for your choice, and dives with no match are listed so you can create a site for them.
 
 ### Sensitivity presets
 
@@ -184,16 +186,15 @@ Change the preset with **Auto site matching** in **Settings > Data**.
 
 ### Reviewing matches
 
-The review screen appears automatically after a download that produces suggestions, and can also be reached from the overflow menu on the Dives list (**Match Dives to Sites**). It shows each dive that needs a decision alongside a map panel centered on the dive's GPS position. For each dive:
+After an import, the summary offers **Match N dives to sites**, which opens the review screen; you can also reach it from the overflow menu on the Dives list (**Match Dives to Sites**). It shows each dive that needs a decision alongside a map panel centered on the dive's GPS position. For each dive:
 
 - A list of nearby candidate sites appears (your existing sites and bundled database sites), each showing its distance from the dive position, depth range, location, rating, and difficulty.
 - Tap a candidate card to assign it. The card highlights and the dive row shows a check.
 - On wide screens, the map panel and candidate cards appear on the right while the dive list is on the left. On narrow screens, the map and cards expand inline below the focused dive row.
 
-Tap **Confirm** to write all selected matches at once. Auto-matched dives are already linked and do not appear on the review screen.
+A dive with no candidate within range shows **No nearby site**, with **Create site here** to make a new site at its GPS position.
 
-> [!WARNING]
-> If a dive has no nearby candidate sites, it will not appear on the review screen. Add a matching site manually, then re-run **Match Dives to Sites** from the Dives overflow menu.
+Nothing is linked until you tap **Confirm N matches**, which writes every selected match at once, auto-matches included. Deselect any you disagree with first.
 
 ## See also
 
