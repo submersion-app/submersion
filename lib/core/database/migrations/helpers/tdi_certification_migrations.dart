@@ -32,7 +32,11 @@ extension TdiCertificationMigrations on AppDatabase {
   /// rows, so the new TDI level names they now need are merged in here,
   /// once, by id.
   static const _currencyRuleLevelAdditions = {
-    'pro_membership_annual': ['tdiInstructor', 'tdiInstructorTrainer'],
+    'pro_membership_annual': [
+      'tdiTechnicalDivemaster',
+      'tdiInstructor',
+      'tdiInstructorTrainer',
+    ],
     'deco_currency': [
       'tdiDecompressionProceduresDiver',
       'tdiTrimixDiver',

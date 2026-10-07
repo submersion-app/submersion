@@ -216,7 +216,7 @@ void main() {
 
     expect(
       await applicableLevelsOf(db, 'pro_membership_annual'),
-      '["instructor","tdiInstructor","tdiInstructorTrainer"]',
+      '["instructor","tdiTechnicalDivemaster","tdiInstructor","tdiInstructorTrainer"]',
     );
     expect(
       await applicableLevelsOf(db, 'deco_currency'),
