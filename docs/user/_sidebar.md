@@ -23,7 +23,7 @@
 - [Diver Profile & Multi-Diver](diver-profile.md)
 
 **Insights & Planning**
-- [Statistics & Records](statistics.md)
+- [Insights & Records](statistics.md)
 - [Planning & Calculators](planning.md)
 - [Weight Planner](weight-planner.md)
 - [Safety & Emergency](safety.md)
