@@ -90,7 +90,9 @@ your backups use.
 **Encrypt backups** protects every backup with a password of at least 8
 characters. You also get a recovery code: keep it safe, because it is the only
 way to open your backups if you forget the password. Once it is on, every backup
-Submersion writes is encrypted, local and cloud alike.
+and export Submersion writes is encrypted, local and cloud alike. The one
+exception is the automatic copy saved before an app upgrade (see below), which
+stays a plain copy of your database.
 
 - If you already have backups, Submersion offers to **Re-encrypt now**.
 - **Change password**, **Regenerate recovery code** and **Turn off encryption**

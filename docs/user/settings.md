@@ -152,7 +152,7 @@ Each main area (**Dives**, **Sites**, **Buddies**, **Trips**, **Equipment**,
 **Dive Centers**, **Certifications** and **Courses**) has its own appearance
 page. What you can set depends on the area:
 
-- **List View:** the default layout for that list: **Detailed**, **Compact**, **Dense** or **Table**.
+- **List View:** the default layout for that list: **Detailed**, **Compact** or **Table** (**Detailed** or **Table** for Certifications and Courses).
 - **List Fields:** which fields or columns appear and in what order. In table
   view you can also pin columns and save named presets.
 - **Color cards by** (Dives): tint dive cards by depth, duration or temperature

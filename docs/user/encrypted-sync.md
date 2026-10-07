@@ -119,10 +119,16 @@ Once encryption is on, **End-to-end encryption** offers:
 ## Encrypted Cloud Backups
 
 Encryption also covers your [cloud backups](backup-and-restore.md). While it is
-on, every backup uploaded to your cloud storage is encrypted with the same
-passphrase, and each one is self-contained: you can restore it on a brand-new
-device by entering the passphrase or recovery code, even before sync is set up
-there.
+on, every backup uploaded to your cloud storage from an unlocked device is
+encrypted with the same passphrase, and each one is self-contained: you can
+restore it on a brand-new device by entering the passphrase or recovery code,
+even before sync is set up there.
+
+> [!WARNING]
+> A device that has not been unlocked yet (one still waiting for the
+> passphrase) uploads its cloud backups **unencrypted**. Enter the passphrase on
+> each device before relying on the cloud backups it makes, or turn on
+> **Encrypt backups** there, which encrypts them with its own password.
 
 Backups saved to a local folder or shared from the device are not covered by
 this passphrase. To protect those too, turn on **Encrypt backups** in
