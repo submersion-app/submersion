@@ -26,7 +26,7 @@ light or dark mode, the navigation layout, and service reminders.
 | **Safety** | The post-dive review, flying after diving and equipment condition; see [Safety](safety.md) |
 | **App Security** | App lock and database encryption |
 | **Shared data** | Sharing sites, trips and gear between profiles (with two or more profiles) |
-| **Apple HealthKit** | Importing dives from Apple Health (iPhone only) |
+| **Apple HealthKit** | Importing dives from Apple Health (iPhone and iPad only) |
 | **Debug** | Logs and diagnostics (when debug mode is on); see [Debug Mode](debug-mode.md) |
 | **About** | Version, updates, licences and diagnostics |
 
@@ -128,11 +128,11 @@ and stops) may switch to: **All carried cylinders**, or only
 |---------|--------------|
 | **Color Theme** | Opens the theme gallery: **Submersion**, **Console**, **Tropical**, **Minimalist** or **Deep**, each a colour palette and typography |
 | Light and dark | **System default**, **Light** or **Dark** |
-| **App Language** | The app's language, or **System Default** |
+| **App Language** | The app's language, or **System Default** (the tile is called **Language** on a tablet or computer) |
 | **Map Style** | **Street Map**, **Topographic** or **Satellite** |
 | **Navigation layout** | Which destinations appear where (see below) |
 | **Color accents** | **Colored navigation icons**, **Colored section headers** and **Colored list icons** |
-| **Gear arrangement** | How equipment is grouped and sorted on a dive |
+| **Gear arrangement** | How equipment is grouped and sorted on a dive (on a phone) |
 
 **Navigation layout** has a **Phone** and a **Desktop** tab. On a phone, drag
 destinations to reorder them: the ones at the top appear in the bottom bar, as
@@ -152,7 +152,7 @@ Each main area (**Dives**, **Sites**, **Buddies**, **Trips**, **Equipment**,
 **Dive Centers**, **Certifications** and **Courses**) has its own appearance
 page. What you can set depends on the area:
 
-- **List View:** the default layout for that list, cards or table.
+- **List View:** the default layout for that list: **Detailed**, **Compact**, **Dense** or **Table**.
 - **List Fields:** which fields or columns appear and in what order. In table
   view you can also pin columns and save named presets.
 - **Color cards by** (Dives): tint dive cards by depth, duration or temperature
@@ -249,7 +249,7 @@ With two or more diver profiles on the device, choose
 
 ## Apple HealthKit
 
-On iPhone, Submersion can import dives that an Apple Watch recorded in Apple
+On iPhone and iPad, Submersion can import dives that an Apple Watch recorded in Apple
 Health, with **Import from Apple Watch** under **Transfer**. This section shows
 whether HealthKit access is granted and what is read; access itself is managed
 in the Health app. See [Dive Computers](dive-computer.md).
@@ -261,7 +261,7 @@ in the Health app. See [Dive Computers](dive-computer.md).
 | **About Submersion** | The app's version and description |
 | **Open Source Licenses** | Licences for the libraries Submersion uses |
 | **Report an Issue** | Opens the project's issue tracker |
-| **Join the Beta** | Get new features early through the beta program |
+| **Join the Beta** | On App Store and Google Play builds: get new features early through the beta program |
 | **Updates** | On builds that update themselves: **Check for Updates**, **Automatic updates**, and the **Update channel**; see [Update Channels](update-channels.md) |
 | **Diagnostics** | **View log**, **Copy diagnostics** (version, device and recent log lines for a bug report) and **Open log folder** |
 

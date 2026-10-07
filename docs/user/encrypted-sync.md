@@ -75,7 +75,7 @@ Encryption is protected by two secrets, and either one unlocks your library:
 
 The recovery code is your safety net for a forgotten passphrase. Keep it apart
 from your devices, in a password manager or written down and stored safely. When
-you type it, spacing, capitalisation and hyphens don't matter.
+you type it, capitalisation doesn't matter, and you can separate the words with spaces or hyphens.
 
 > [!WARNING]
 > **If you lose both the passphrase and the recovery code, the data in your cloud storage cannot be recovered.** There is no reset link and no Submersion account
@@ -167,7 +167,7 @@ library, which is why it is instant.
 | Problem | What to try |
 |---------|-------------|
 | **A device says a passphrase is needed and won't sync** | Expected on a device that has not been unlocked yet. Tap **Enter passphrase** and enter your passphrase or recovery code. |
-| **"Incorrect passphrase or recovery code"** | Check for typos. The recovery code ignores case, spaces and hyphens, so those are not the problem; a wrong or misremembered word is. |
+| **"Incorrect passphrase or recovery code"** | Check for typos. The recovery code ignores case and accepts spaces or hyphens between the words; check that every word is there and spelled right. |
 | **An older device stopped syncing after I enabled encryption** | Update Submersion on that device to the latest version, then unlock it with your passphrase. |
 | **I forgot my passphrase and my recovery code** | See [Recovering from a Lost Passphrase](#recovering-from-a-lost-passphrase): your local dives are safe; republish from a device that still has them. |
 | **Troubleshoot Sync shows "Enter the passphrase to sync on this device"** | Same as above: the library is encrypted and this device needs the passphrase. Tap the **End-to-end encryption** row to unlock. |

@@ -16,7 +16,7 @@ buddy, piece of equipment, sighting, diver profile and everything else the app
 stores in its log. Device settings such as cloud-sync credentials are not stored
 in the database and are not included.
 
-A plain backup is named like `submersion_backup_YYYY-MM-DD.db`; an encrypted one
+A plain backup is a `.db` file named with the date, such as `submersion_backup_YYYY-MM-DD.db` for an exported one (automatic backups add the time); an encrypted one
 ends in `.sbe` (see [Backup encryption](#backup-encryption)).
 
 ## Creating a backup
