@@ -3610,6 +3610,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String get certifications_edit_group_specialties => 'Specialità';
 
   @override
+  String get certifications_edit_group_tdiOpenCircuit => 'Open Circuit';
+
+  @override
+  String get certifications_edit_group_tdiRebreather => 'Rebreather';
+
+  @override
+  String get certifications_edit_group_tdiService => 'Service';
+
+  @override
+  String get certifications_edit_group_tdiOverhead => 'Overhead';
+
+  @override
+  String get certifications_edit_group_tdiProfessional => 'Professional';
+
+  @override
   String get certifications_edit_help_expiryDate =>
       'Lascia vuoto per certificazioni senza scadenza';
 

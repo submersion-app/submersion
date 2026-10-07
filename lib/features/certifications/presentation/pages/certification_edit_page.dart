@@ -25,6 +25,7 @@ import 'package:submersion/features/certification_agencies/presentation/provider
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certification_agencies/presentation/widgets/certification_agency_dropdown.dart';
 import 'package:submersion/features/certification_agencies/presentation/widgets/certification_level_dialog.dart';
+import 'package:submersion/features/certification_agencies/presentation/tdi_course_category.dart';
 
 class CertificationEditPage extends ConsumerStatefulWidget {
   final String? certificationId;
@@ -542,6 +543,24 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     );
   }
 
+  /// Groups TDI's ladder and specialty entries by the course category
+  /// their built-in names belong to (issue #3072). A level with no
+  /// category -- not expected for TDI's own catalog, but guarded rather
+  /// than assumed -- is dropped here; [extra] still renders it below.
+  Map<TdiCourseCategory, List<LevelEntry>> _groupByTdiCategory(
+    List<LevelEntry> entries,
+  ) {
+    final result = <TdiCourseCategory, List<LevelEntry>>{};
+    for (final entry in entries) {
+      final builtIn = entry.builtIn;
+      if (builtIn == null) continue;
+      final category = tdiCourseCategoryOf(builtIn);
+      if (category == null) continue;
+      (result[category] ??= []).add(entry);
+    }
+    return result;
+  }
+
   /// Items for the certification dropdown, grouped into the agency's
   /// progression ladder and the cross-agency specialties.
   ///
@@ -586,6 +605,36 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
           child: Text(value.localizedName(context.l10n)),
         );
 
+    // TDI groups its own course names into five categories on its own
+    // website, not into a progression/specialties split (issue #3072).
+    // Display-only: the stored value and the ladder/specialty split behind
+    // ladderFor/specialtiesFor are unaffected.
+    final List<DropdownMenuItem<CertificationOption>> groupedItems;
+    if (agency == CertificationAgency.tdi.name) {
+      final byCategory = _groupByTdiCategory([...ladder, ...specialties]);
+      groupedItems = [
+        for (final category in TdiCourseCategory.values)
+          if (byCategory[category] case final entries?
+              when entries.isNotEmpty) ...[
+            header(category.name, category.label(context.l10n)),
+            ...entries.map(item),
+          ],
+      ];
+    } else {
+      groupedItems = [
+        header(
+          'progression',
+          context.l10n.certifications_edit_group_progression,
+        ),
+        ...ladder.map(item),
+        header(
+          'specialties',
+          context.l10n.certifications_edit_group_specialties,
+        ),
+        ...specialties.map(item),
+      ];
+    }
+
     return [
       DropdownMenuItem<CertificationOption>(
         value: const CertificationOption.value(null),
@@ -593,10 +642,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
           context.l10n.certifications_edit_certification_notSpecified,
         ),
       ),
-      header('progression', context.l10n.certifications_edit_group_progression),
-      ...ladder.map(item),
-      header('specialties', context.l10n.certifications_edit_group_specialties),
-      ...specialties.map(item),
+      ...groupedItems,
       if (extra != null) item(extra),
       // Another diver's custom agency takes certifications from its owner
       // only (issue #690).

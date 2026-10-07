@@ -3611,6 +3611,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_edit_group_specialties => 'Spezialkurse';
 
   @override
+  String get certifications_edit_group_tdiOpenCircuit => 'Offener Kreislauf';
+
+  @override
+  String get certifications_edit_group_tdiRebreather => 'Kreislaufgerät';
+
+  @override
+  String get certifications_edit_group_tdiService => 'Service';
+
+  @override
+  String get certifications_edit_group_tdiOverhead => 'Überkopf-Umgebung';
+
+  @override
+  String get certifications_edit_group_tdiProfessional => 'Berufsstufen';
+
+  @override
   String get certifications_edit_help_expiryDate =>
       'Leer lassen für Zertifizierungen ohne Ablaufdatum';
 

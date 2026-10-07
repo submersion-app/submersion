@@ -224,4 +224,41 @@ void main() {
     expect(selectedCertification('Not specified'), findsOneWidget);
     expect(find.text('Progression'), findsNothing);
   });
+
+  testWidgets(
+    'TDI shows its own five course categories, not Progression/Specialties '
+    '(issue #3072)',
+    (tester) async {
+      await tester.pumpWidget(await buildHarness(tester));
+      await tester.pumpAndSettle();
+
+      await selectFromDropdown(tester, agencyDropdown(), 'TDI');
+
+      await tester.ensureVisible(levelDropdown());
+      await tester.pumpAndSettle();
+      await tester.tap(levelDropdown());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Open Circuit'), findsOneWidget);
+      expect(find.text('Progression'), findsNothing);
+      expect(find.text('Specialties'), findsNothing);
+
+      // TDI's menu (five headers + 34 courses) is far longer than the fold,
+      // so later groups need scrolling into the lazy menu list first.
+      final menuScrollable = find.byType(Scrollable).last;
+      for (final label in const [
+        'Rebreather',
+        'Service',
+        'Overhead',
+        'Professional',
+      ]) {
+        await tester.scrollUntilVisible(
+          find.text(label),
+          100.0,
+          scrollable: menuScrollable,
+        );
+        expect(find.text(label), findsOneWidget);
+      }
+    },
+  );
 }

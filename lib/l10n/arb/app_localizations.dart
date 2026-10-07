@@ -5594,6 +5594,36 @@ abstract class AppLocalizations {
   /// **'Specialties'**
   String get certifications_edit_group_specialties;
 
+  /// No description provided for @certifications_edit_group_tdiOpenCircuit.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Circuit'**
+  String get certifications_edit_group_tdiOpenCircuit;
+
+  /// No description provided for @certifications_edit_group_tdiRebreather.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebreather'**
+  String get certifications_edit_group_tdiRebreather;
+
+  /// No description provided for @certifications_edit_group_tdiService.
+  ///
+  /// In en, this message translates to:
+  /// **'Service'**
+  String get certifications_edit_group_tdiService;
+
+  /// No description provided for @certifications_edit_group_tdiOverhead.
+  ///
+  /// In en, this message translates to:
+  /// **'Overhead'**
+  String get certifications_edit_group_tdiOverhead;
+
+  /// No description provided for @certifications_edit_group_tdiProfessional.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional'**
+  String get certifications_edit_group_tdiProfessional;
+
   /// No description provided for @certifications_edit_help_expiryDate.
   ///
   /// In en, this message translates to:
