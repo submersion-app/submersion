@@ -109,5 +109,33 @@ extension TdiCertificationMigrations on AppDatabase {
         [updated, entry.key],
       );
     }
+
+    // generic_refresher's fresh seed (kSeedBuiltInCurrencyRulesSql) no
+    // longer lists "tdi": TDI has its own tdi_refresher rule now, covering
+    // its new ladder. INSERT OR IGNORE can add that new row but can never
+    // rewrite generic_refresher's already-seeded one, so without this, an
+    // upgraded database would keep "tdi" there forever while a fresh
+    // install never has it -- the same kind of install-path drift the
+    // additions above close, just a removal instead of an addition.
+    final genericRefresherRows = await customSelect(
+      "SELECT applicable_agencies FROM certification_currency_rules "
+      "WHERE id = 'generic_refresher' AND is_built_in = 1",
+    ).get();
+    if (genericRefresherRows.isNotEmpty) {
+      final agencies = CurrencyScopeCodec.decodeStrings(
+        genericRefresherRows.first.read<String>('applicable_agencies'),
+      );
+      if (agencies.contains('tdi')) {
+        await customStatement(
+          "UPDATE certification_currency_rules SET applicable_agencies = ? "
+          "WHERE id = 'generic_refresher' AND is_built_in = 1",
+          [
+            CurrencyScopeCodec.encode(
+              agencies.where((a) => a != 'tdi').toList(),
+            ),
+          ],
+        );
+      }
+    }
   }
 }

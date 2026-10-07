@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Variable;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/certifications/domain/entities/currency_scope.dart';
 
 /// TDI's own certification structure (v273, issue #3072): rewrites the
 /// eight unambiguous legacy TDI certification levels and extends the
@@ -109,6 +110,17 @@ NativeDatabase setupDb({int userVersion = 272}) {
       insertRule('deco_currency', '["decompression","trimix"]');
       insertRule('cave_currency', '["cave","cavern"]');
       insertRule('rebreather_currency', '["rebreather"]');
+      // generic_refresher as it existed before v273: "tdi" still in its
+      // agencies, seeded alongside the other agencies that share it.
+      rawDb.execute(
+        'INSERT INTO certification_currency_rules '
+        '(id, name, clock_kind, applicable_agencies, applicable_levels, '
+        'lapse_days, lead_days, is_built_in, created_at, updated_at) VALUES '
+        "('generic_refresher', 'Refresher', 'activity', "
+        '\'["naui","sdi","tdi","raid","other"]\', '
+        '\'["openWater","nitrox","cave","rebreather","instructor"]\', '
+        "365, 185, 1, 0, 0)",
+      );
       // A diver-tuned custom rule sharing one of those ids' name is not
       // possible (ids are the primary key); a non-built-in row with its
       // own id must stay untouched by the WHERE is_built_in = 1 guard.
@@ -127,6 +139,17 @@ Future<Map<String, String?>> levelsByCertId(AppDatabase db) async {
       .customSelect('SELECT id, level FROM certifications')
       .get();
   return {for (final r in rows) r.read<String>('id'): r.read<String?>('level')};
+}
+
+Future<String> applicableAgenciesOf(AppDatabase db, String ruleId) async {
+  final row = await db
+      .customSelect(
+        'SELECT applicable_agencies FROM certification_currency_rules '
+        'WHERE id = ?',
+        variables: [Variable<String>(ruleId)],
+      )
+      .getSingle();
+  return row.read<String>('applicable_agencies');
 }
 
 Future<String> applicableLevelsOf(AppDatabase db, String ruleId) async {
@@ -218,6 +241,21 @@ void main() {
     );
   });
 
+  test('removes tdi from generic_refresher, leaving the other agencies and '
+      'the old ambiguous levels untouched', () async {
+    final db = AppDatabase(setupDb());
+    addTearDown(db.close);
+
+    expect(
+      await applicableAgenciesOf(db, 'generic_refresher'),
+      '["naui","sdi","raid","other"]',
+    );
+    expect(
+      await applicableLevelsOf(db, 'generic_refresher'),
+      '["openWater","nitrox","cave","rebreather","instructor"]',
+    );
+  });
+
   test(
     'never touches a non-built-in rule even if it names the old levels',
     () async {
@@ -258,6 +296,14 @@ void main() {
     expect(
       await applicableLevelsOf(fresh, 'tdi_refresher'),
       contains('tdiNitroxDiver'),
+    );
+    // A fresh install's generic_refresher must match an upgraded-then-
+    // migrated database's: no "tdi", since tdi_refresher is now TDI's own.
+    expect(
+      CurrencyScopeCodec.decodeStrings(
+        await applicableAgenciesOf(fresh, 'generic_refresher'),
+      ),
+      isNot(contains('tdi')),
     );
   });
 }
