@@ -31,14 +31,14 @@ Below the header, a row of small chips shows what needs your attention at a glan
 | **Sync status** | Whether every change has synced. |
 | **Data quality** | How many [data issues](data-quality-assistant.md) are waiting. |
 
-**Dive currency**, **No-fly timer**, **Insurance** and **Backup age** are always there, and **Gear service** whenever you have no gear yet or something is due; the others appear only when they have something to report. You can turn any chip off (see [Customizing the Dashboard](#customizing-the-dashboard)), but safety warnings still show: overdue gear, lapsed insurance, a closed flight window and a lapsed certification.
+**Dive currency**, **No-fly timer**, **Insurance** and **Backup age** show by default, and **Gear service** whenever you have no gear yet or something is due; the others appear only when they have something to report. You can turn any chip off (see [Customizing the Dashboard](#customizing-the-dashboard)), but a few safety warnings show anyway: overdue gear, an expired insurance policy, a closed flight window, and a certification that lapsed on a date you entered (a card expiry or a logged renewal).
 
 > [!NOTE]
-> While a dive-safety alert is live, such as a running no-fly timer, the status chips stay on screen even if you have hidden their card.
+> You can also hide the whole row of status chips. It comes back on its own while there is overdue gear, an expired insurance policy, or a flight window that has closed or that your current no-fly time already runs past.
 
 ## Cards
 
-The rest of the Dashboard is a set of cards. In their default order:
+The **Welcome header** and the **Status chips** row are cards too, so you can hide or move them like the others. Below them come the rest of the cards, in their default order:
 
 | Card | What it shows |
 |------|---------------|
