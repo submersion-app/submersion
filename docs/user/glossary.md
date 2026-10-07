@@ -8,7 +8,7 @@ Common diving and app terms used throughout this guide, in alphabetical order.
 
 **Ascent rate:** How fast you travel toward the surface, in metres per minute (m/min). Submersion colours the ascent-rate overlay green at or below 9 m/min (about 30 ft/min), orange above 9 and up to 12 m/min (about 40 ft/min), and red above 12 m/min. See [Dive Profiles & Deco](dive-profiles.md).
 
-**Bottom time:** The time spent at depth, not counting the descent or ascent. Submersion keeps it apart from runtime (entry to exit), which is what your gas consumption is calculated from. See [Logging Dives](dive-logging.md).
+**Bottom time:** The time from leaving the surface to the start of the final ascent, so it includes the descent but not the ascent or shallow stops (the dive-table convention). Submersion keeps it apart from runtime (entry to exit), which is what your gas consumption is calculated from. See [Logging Dives](dive-logging.md).
 
 **Bühlmann ZH-L16C:** The decompression model Submersion uses for its calculated ceilings, NDL and TTS. It models inert gas going into and out of 16 theoretical tissue compartments, with nitrogen half-times from 4 to 635 minutes and helium half-times about 2.65 times faster. The "C" variant has coefficients adjusted for conservatism, and gradient factors add a further margin on top. See [Dive Profiles & Deco](dive-profiles.md).
 
