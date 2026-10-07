@@ -1,96 +1,79 @@
 # Dashboard
 
-The Dashboard is your home screen — it gives you a snapshot of your diving history and quick paths to the most common tasks, all in one place.
+The Dashboard is your home screen: a snapshot of your diving, the things that need attention, and quick ways into the rest of the app. You choose which cards appear and in what order.
 
 > [!NOTE]
-> **Where to find it:** Tap **Home** (the first tab on mobile, or the top item in the navigation rail on desktop). The Dashboard is the first screen you see when you open Submersion.
+> **Where to find it:** Tap **Home**, the first item on the phone's bottom bar or the top of the navigation rail. It is the first screen you see when you open Submersion.
 
-<!-- screenshot: images/dashboard/overview.png — populated dashboard -->
+<!-- screenshot: images/dashboard/overview.png: populated dashboard -->
 
-## Hero header
+## Welcome header
 
-At the top of the screen, a full-width banner shows a time-of-day greeting alongside your diver name and two career totals: the number of dives you have logged and the total hours you have spent underwater. The banner uses an animated ocean background — caustic light shimmer and rising bubbles — as ambient decoration. When no dives have been logged yet, the totals read zero and a prompt to get started replaces the time summary.
+A banner at the top greets you by time of day and by the name in your [diver profile](diver-profile.md), and shows four career totals: **dives**, **hours** underwater, **sites** and **countries**. Before your first dive it reads "Ready to log your first dive?" instead.
+
+## Status chips
+
+Below the header, a row of small chips shows what needs your attention at a glance. Tap a chip to open the screen behind it; a gear chip, for example, opens that piece of equipment.
+
+| Chip | What it shows |
+|------|---------------|
+| **Dive currency** | Days since your last dive, or "Dove today". |
+| **No-fly timer** | Time left before flying is advised after your last dive. |
+| **Flight dive window** | Before a planned flight, how long you can still dive. |
+| **Gear service** | The equipment whose service is due soonest, or overdue. |
+| **Insurance** | Whether your dive insurance is current, expiring, or missing. |
+| **Certification currency** | Certifications that need refreshing. |
+| **Upcoming trip** | A countdown to your next [trip](trips.md). |
+| **Active checklist** | A pre-dive or trip checklist you have started. |
+| **Course progress** | How far through a [course](certifications-and-courses.md) you are. |
+| **Media uploads** | Photos and videos still waiting to upload. |
+| **Backup age** | When you last backed up, or "No backup yet". |
+| **Sync status** | Whether every change has synced. |
+| **Data quality** | How many [data issues](data-quality-assistant.md) are waiting. |
+
+**Dive currency**, **No-fly timer**, **Gear service** and **Insurance** are always there; the others appear only when they have something to report. You can turn any chip off (see [Customizing the Dashboard](#customizing-the-dashboard)).
+
+> [!NOTE]
+> While a dive-safety alert is live, such as a running no-fly timer, the status chips stay on screen even if you have hidden their card.
+
+## Cards
+
+The rest of the Dashboard is a set of cards. In their default order:
+
+| Card | What it shows |
+|------|---------------|
+| **Checklists** | Your pre-dive and trip checklists. |
+| **Recent dives** | Your three most recent dives and a preview of the latest dive's profile. Tap a dive to open it; **View all** opens the dive list. |
+| **Quick actions** | **Log Dive** (log manually or download from a computer), **Plan Dive** (the [dive planner](planning.md)), and **Insights** (your [statistics and records](statistics.md)). |
+| **Milestones** | How many dives until your next milestone dive, and certification anniversaries. |
+| **Year in review** | This year's dives, hours underwater and deepest dive, compared with last year. |
+| **Recent media** | Your latest photos and videos. |
+| **Recent sites map** | A map of the sites you dived most recently. |
+| **On this day** | Dives you made on today's date in earlier years. |
+| **Course progress** | Courses you have in progress. |
+
+**Milestones**, **Year in review**, **Recent media**, **Recent sites map**, **On this day** and **Course progress** hide themselves while they have nothing to show, such as **On this day** before you have a dive from an earlier year.
+
+<!-- screenshot: images/dashboard/empty-state.png: first-run empty dashboard -->
+
+Before you have logged any dives, **Recent dives** offers buttons to log a dive or plan one, which is the quickest way to get started.
+
+## Customizing the Dashboard
+
+Open **Settings > Appearance > Home screen**:
+
+- **Status chips**: turn each chip on or off.
+- **Home cards**: show or hide each card, and drag to reorder them. **Reset to default** restores the default order and shows every card again.
+
+If you hide every card, the Dashboard says so and offers **Customize Home** to bring them back.
 
 > [!TIP]
-> The name shown in the greeting comes from your Diver Profile. Open **Settings** and edit your profile to change it.
-
-## Activity stats bar
-
-Directly below the hero, a three-column card shows at-a-glance activity counts:
-
-| Column | What it shows |
-|--------|---------------|
-| **Days since last dive** | How many days have passed since your most recent dive. Shows "today!" if you dived today. |
-| **This month** | Number of dives logged in the current calendar month. |
-| **This year** | Number of dives logged so far in the current calendar year. |
-
-All three columns update automatically whenever you add or edit a dive. Pull down on the screen to force a refresh.
-
-## Alerts banner
-
-If any of your equipment has a service appointment coming due (or overdue), or if your dive insurance is expiring soon or has already expired, a compact amber warning banner appears between the stats bar and the recent dives list. The banner shows the highest-priority alert and a count badge for how many alerts are pending.
-
-Tapping the banner takes you directly to the relevant screen:
-
-- A single equipment alert opens that piece of equipment.
-- An insurance alert opens **Settings**.
-- Multiple alerts open **Settings** so you can review them all.
-
-The banner is hidden when there are no active alerts.
-
-> [!TIP]
-> Keep equipment service dates and your insurance expiry up to date in [Equipment](equipment.md) and [Diver Profile](diver-profile.md) so the alerts banner can warn you before a deadline passes.
-
-## Recent dives
-
-Below the alerts area, the three most recent dives appear as full tiles — the same format used in the [Dive Log](dive-logging.md) list, complete with depth, duration, water temperature, rating, tags, and a mini profile chart. Tapping a tile opens that dive's detail view.
-
-A **View all** button in the section header jumps straight to the complete dive list.
-
-<!-- screenshot: images/dashboard/empty-state.png — first-run empty dashboard -->
-
-### Empty state
-
-If you have not logged any dives yet, the recent dives area shows a wave icon and a **Log your first dive** button that opens the add-dive sheet. This is the primary get-started prompt for new users.
-
-## Personal records and quick actions
-
-The bottom of the Dashboard is divided into two side-by-side cards.
-
-**Personal records** lists four highlights from your log:
-
-| Record | Details |
-|--------|---------|
-| Deepest | Maximum depth recorded across all dives. Tap to open that dive. |
-| Longest | Longest total runtime. Tap to open that dive. |
-| Coldest | Lowest water temperature recorded. Tap to open that dive. |
-| Warmest | Highest water temperature recorded. Tap to open that dive. |
-
-Depths display in your preferred unit (metres or feet); temperatures in Celsius or Fahrenheit — both set in [Settings](settings.md). Records show a dash until enough dives are logged to populate them.
-
-**Quick actions** gives you three one-tap shortcuts:
-
-| Button | Action |
-|--------|--------|
-| **Log Dive** | Opens the add-dive sheet, where you can log manually or import from a dive computer. |
-| **Plan Dive** | Opens the dive planner in [Planning](planning.md). |
-| **Statistics** | Navigates to the [Statistics](statistics.md) screen. |
-
-## How the Dashboard fills in over time
-
-On a brand-new install every section shows empty or zero states. As you log dives:
-
-- The hero totals climb with each new entry.
-- The activity stat columns start counting from the first dive you add.
-- Personal records populate as soon as any dive has the relevant data (depth, duration, or water temperature).
-- The recent dives tiles update immediately after you save a dive.
-
-You can pull down anywhere on the screen to refresh all sections at once.
+> Keep your equipment service dates and insurance expiry up to date in [Equipment](equipment.md) and [Diver Profile](diver-profile.md), so the chips can warn you before a deadline passes.
 
 ## See also
 
-- [Dive Logging](dive-logging.md)
-- [Statistics](statistics.md)
+- [Logging Dives](dive-logging.md)
+- [Insights](statistics.md)
 - [Planning](planning.md)
 - [Equipment](equipment.md)
 - [Diver Profile](diver-profile.md)

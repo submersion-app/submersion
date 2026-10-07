@@ -1,6 +1,6 @@
 # Data Quality Assistant
 
-Dive data arrives from computers, files, and other apps &mdash; and it arrives
+Dive data arrives from computers, files, and other apps, and it arrives
 imperfect. A computer's clock was never set after a flight. A pressure sensor
 dropped out for ninety seconds. The same dive got downloaded twice from two
 different devices. A surface interval got logged as two dives instead of one.
@@ -10,15 +10,15 @@ is a review inbox, not an autocorrect: it never changes your data on its own,
 and every repair it offers is one you tap deliberately.
 
 > [!TIP]
-> <strong>Open it from Dives &rarr; ⋮ &rarr; Data quality review.</strong> The menu
-> item carries a badge with the number of open findings, so you can ignore it
-> completely until there is something to look at.
+> <strong>Open it from the Dives list's overflow menu: Data quality review.</strong>
+> The menu item carries a badge with the number of open findings, so you can
+> ignore it completely until there is something to look at.
 
 ## How Findings Appear
 
 Submersion checks dives in two ways:
 
-- **Automatically, in the background**, whenever dives change &mdash; after an
+- **Automatically, in the background**, whenever dives change: after an
   import (dive computer, file, or Apple Health), after you edit and save a dive,
   and after you combine, split, or consolidate dives. These targeted scans also
   look at neighbouring dives within 12 hours, because problems like duplicates
@@ -39,30 +39,31 @@ There is no scan at app startup, and nothing runs while you are diving.
 
 | Surface | Shows |
 |---------|-------|
-| **Dives &rarr; ⋮ &rarr; Data quality review** | The full inbox, with a badge count |
-| **Dive detail &rarr; Review** chip | That dive's findings only |
-| **Import summary &rarr; Review** | Just the dives from that import |
+| **Dives** overflow menu, **Data quality review** | The full inbox, with a badge count |
+| The **Data quality** chip on the [Dashboard](dashboard.md) | The full inbox |
+| The **Review** chip on a dive's detail page | That dive's findings only |
+| **Review** on an import's summary | Just the dives from that import |
 
 Each of these opens the same inbox, pre-filtered.
 
 ## What It Checks
 
-Eleven checks run over each dive. Each finding is **informational**, a
-**warning**, or **critical**, and says exactly what it saw &mdash; "Depth spike
-to 47 m at 12:31", not "profile problem".
+Thirteen checks run over each dive. Each finding is **informational**, a
+**warning**, or **critical**, and says exactly what it saw: "Depth spike to 47 m
+at 12:31", not "profile problem".
 
 ### Time
 
 | Check | Flags |
 |-------|-------|
-| **Clock & timezone** | A dive dated in the future, dated before 1950, a source clock offset by a whole number of hours (1&ndash;14, the classic unset-timezone signature), or a dive that overlaps another dive in time |
+| **Clock & timezone** | A dive dated in the future, dated before 1950, a source clock offset by a whole number of hours (1 to 14, the classic unset-timezone signature), or a dive that overlaps another dive in time |
 
 ### Duplicates and splits
 
 | Check | Flags |
 |-------|-------|
 | **Likely duplicate** | Two dives within 15 minutes of each other that match closely enough to be the same dive downloaded twice |
-| **Accidental split** | The same computer resuming within ~10 minutes at shallow depth &mdash; one dive recorded as two |
+| **Accidental split** | The same computer resuming within about 10 minutes at shallow depth: one dive recorded as two |
 
 ### Profile
 
@@ -92,6 +93,13 @@ to 47 m at 12:31", not "profile problem".
 |-------|-------|
 | **Conflicting sources** | Two computers on the same dive disagreeing on max depth, duration, or temperature. When depths differ by a consistent ratio, the finding also points out that a salt/fresh water setting difference would explain it |
 
+### Gear and transmitters
+
+| Check | Flags |
+|-------|-------|
+| **Shared gear on overlapping dives** | The same piece of gear on two divers' dives at overlapping times, when gear is shared between [diver profiles](diver-profile.md) |
+| **Unassigned transmitter** | A dive with pressure from an air-integrated transmitter that is not assigned to any cylinder |
+
 > [!NOTE]
 > Thresholds are stored in metric and displayed in **your** unit settings, so a
 > depth-spike finding reads in feet if that is how you log. The gas checks apply
@@ -106,9 +114,9 @@ filter chips along the top: **All**, **Time**, **Profile**, **Gas**, **Tanks**,
 Each card shows a severity icon, a plain-language description of what was found,
 and can be expanded for detail. Every card offers up to three kinds of response:
 
-1. **A repair** &mdash; one tap, described below.
-2. **Go to dive** &mdash; open the dive and deal with it yourself.
-3. **Dismiss** &mdash; you looked, and it is fine.
+1. **A repair**: one tap, described below.
+2. **Go to dive**: open the dive and deal with it yourself.
+3. **Dismiss**: you looked, and it is fine.
 
 ### Dismissing, and what rescans do
 
@@ -116,7 +124,7 @@ Dismissal is a decision the app remembers:
 
 - A **dismissed** finding stays dismissed through every future scan.
 - A finding whose underlying problem you **fixed** disappears on the next scan of
-  that dive &mdash; you do not have to tidy up after yourself.
+  that dive; you do not have to tidy up after yourself.
 - A finding that comes back because the problem came back is **reopened**.
 
 ## Repairs
@@ -127,36 +135,40 @@ way.
 
 | Finding | Offered |
 |---------|---------|
-| Clock offset | **Shift time by ±n h**, optionally applying the same shift to every dive from that import |
-| Likely duplicate | **Consolidate** the pair into one dive |
+| Clock offset | **Shift time by** the detected offset, or **Shift all dives from this import** |
+| Likely duplicate | **Consolidate** the pair into one dive, or **Delete duplicate** |
 | Accidental split | **Combine into one dive** |
 | Sample gaps | **Fill gaps** |
-| Depth spike / impossible rate | **Remove spike**, or **Recalculate from profile** when only the stored max depth is wrong |
+| Depth spike | **Remove spike**, **Clamp above-surface depths** for negative depths, or **Recalculate from profile** when only the stored max depth is wrong |
+| Impossible rate | **Smooth impossible rates** |
 | Temperature anomaly | **Smooth temperature**, or **Convert temperature** when a unit bug is the likely cause |
 | Pressure anomaly | **Swap start/end pressure**, or **Use sensor values** for the tank record |
 | Wrong cylinder | **Swap tank series** or **Move series to another tank** |
 | Conflicting sources | **Make this source primary**, **Split into separate dives**, or **Compare profiles** |
-| Gas/MOD | Navigation only &mdash; what to change is your call |
+| Shared gear on overlapping dives | **Remove from** one diver's dive |
+| Unassigned transmitter | **Assign transmitter** to a cylinder |
+| Gas/MOD | Navigation only; what to change is your call |
 
 > [!TIP]
 > <strong>Most repairs can be undone.</strong> Applying one shows a confirmation
 > with an <strong>Undo</strong> action. Repairs that route through an existing
-> dialog &mdash; consolidating duplicates, combining a split pair &mdash; use that
-> dialog's own confirmation instead.
+> dialog (consolidating duplicates, combining a split pair) use that dialog's own
+> confirmation instead.
 
 Profile repairs (despiking, gap filling, temperature smoothing) never destroy
-what your computer recorded. They follow the same mechanism as manually editing
-a profile: the original stays in the database as a non-primary source and can be
-restored.
+what your computer recorded. They work like editing a profile by hand: each one
+is saved as a new profile revision labelled **Data quality repair**, and the
+original download is kept as its own revision you can switch back to (see
+[Editing a profile](dive-profiles.md#editing-a-profile)).
 
 ## Choosing Which Checks Run
 
-**Settings &rarr; Data &rarr; Data Tools &rarr; Data quality** lists all eleven
-checks with a switch each. Turning one off stops it running on future scans and
+**Settings > Data > Data Tools > Data quality** lists all thirteen checks with a
+switch each. Turning one off stops it running on future scans and
 leaves the findings it already produced untouched.
 
-Useful if a check does not match how you dive &mdash; a gauge-mode diver with no
-gas timeline, or a rebreather diver who does not want open-circuit gas checks.
+Useful if a check does not match how you dive: a gauge-mode diver with no gas
+timeline, or a rebreather diver who does not want open-circuit gas checks.
 
 ## Findings Across Your Devices
 
@@ -177,8 +189,8 @@ rescans without you asking.
 
 - **It will not change data behind your back.** Every write is a repair you
   tapped.
-- **It will not grade your diving.** These are data problems &mdash; a broken
-  clock, a dropped sensor &mdash; not judgments about the dive. For observations
+- **It will not grade your diving.** These are data problems (a broken clock, a
+  dropped sensor), not judgments about the dive. For observations
   about how a dive was conducted, see [Safety](safety.md).
 - **It cannot check what it cannot see.** Profile-based checks need a recorded
   profile; a manually entered dive with a depth and a duration has almost nothing
@@ -188,8 +200,8 @@ rescans without you asking.
 
 ## See also
 
-- [Import & Export](import-export.md) &mdash; where most flagged data comes from
-- [Dive Computers](dive-computer.md) &mdash; downloading dives, and multiple computers on one dive
-- [Dive Profiles & Deco](dive-profiles.md) &mdash; profile editing and restoring the original
-- [Safety](safety.md) &mdash; the post-dive safety review, which observes the dive rather than the data
-- [Settings](settings.md) &mdash; units, and the full settings reference
+- [Import & Export](import-export.md): where most flagged data comes from
+- [Dive Computers](dive-computer.md): downloading dives, and multiple computers on one dive
+- [Dive Profiles & Deco](dive-profiles.md): profile editing and restoring the original
+- [Safety](safety.md): the post-dive safety review, which observes the dive rather than the data
+- [Settings](settings.md): units, and the full settings reference
