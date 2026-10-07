@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 /// Regression coverage for issue #3070: `app_de.arb` spelled the GUE
 /// certification agency as "GÜ" instead of "GUE". Agency names are brand
@@ -12,15 +13,17 @@ import 'package:flutter_test/flutter_test.dart';
 /// that one is a genuine translation.
 void main() {
   test('every locale spells certification agency names like English', () {
+    final arbDir = p.join('lib', 'l10n', 'arb');
+    final englishPath = p.join(arbDir, 'app_en.arb');
     final english =
-        json.decode(File('lib/l10n/arb/app_en.arb').readAsStringSync())
+        json.decode(File(englishPath).readAsStringSync())
             as Map<String, dynamic>;
 
-    final locales = Directory('lib/l10n/arb')
+    final locales = Directory(arbDir)
         .listSync()
         .whereType<File>()
         .map((f) => f.path)
-        .where((p) => p.endsWith('.arb') && !p.endsWith('app_en.arb'));
+        .where((path) => path.endsWith('.arb') && path != englishPath);
 
     final offenders = <String>[];
     for (final path in locales) {
