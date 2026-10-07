@@ -269,6 +269,48 @@ void main() {
     },
   );
 
+  testWidgets(
+    'a legacy ambiguous TDI level (techDiver) renders under the Specialties '
+    'catch-all, not headerless after Professional (issue #3072)',
+    (tester) async {
+      final cert = await repository.createCertification(
+        Certification(
+          id: '',
+          name: 'Tech Diver card',
+          agency: CertificationAgency.tdi.name,
+          level: CertificationLevel.techDiver.name,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+      );
+
+      await tester.pumpWidget(
+        await buildHarness(tester, certificationId: cert.id),
+      );
+      await tester.pumpAndSettle();
+
+      expect(selectedCertification('Tech Diver'), findsOneWidget);
+
+      await tester.ensureVisible(levelDropdown());
+      await tester.pumpAndSettle();
+      await tester.tap(levelDropdown());
+      await tester.pumpAndSettle();
+
+      final menuScrollable = find.byType(Scrollable).last;
+      await tester.scrollUntilVisible(
+        find.text('Tech Diver').last,
+        100.0,
+        scrollable: menuScrollable,
+      );
+      // Without the fix, a legacy value with no TDI category rendered with
+      // no header of its own right after the last category block
+      // (Professional), so it visually read as belonging there. Fixed, it
+      // gets its own Specialties catch-all header, same as a custom level.
+      expect(find.text('Specialties'), findsOneWidget);
+      expect(find.text('Tech Diver').last, findsOneWidget);
+    },
+  );
+
   testWidgets("a diver's own custom level under TDI still renders, under a "
       'catch-all Specialties group (issue #3072)', (tester) async {
     final custom = await customRepository.createLevel(

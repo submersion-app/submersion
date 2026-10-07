@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// The five categories TDI's own course catalog groups itself into
@@ -70,3 +71,29 @@ const Map<CertificationLevel, TdiCourseCategory> _categories = {
 /// (a legacy generic value, a custom level, or `other`).
 TdiCourseCategory? tdiCourseCategoryOf(CertificationLevel level) =>
     _categories[level];
+
+/// Groups [entries] by TDI course category (issue #3072), for any screen
+/// that lists an agency's ladder and/or specialties and wants to show TDI's
+/// own five-category structure instead of the generic progression/
+/// specialties split. [uncategorized] holds everything that cannot be
+/// categorized this way: a diver's own custom level under the TDI agency
+/// (any agency, built-in or not, can have one) has no TDI category, and
+/// neither does a legacy value this build does not map.
+({
+  Map<TdiCourseCategory, List<LevelEntry>> byCategory,
+  List<LevelEntry> uncategorized,
+})
+groupLevelEntriesByTdiCategory(List<LevelEntry> entries) {
+  final byCategory = <TdiCourseCategory, List<LevelEntry>>{};
+  final uncategorized = <LevelEntry>[];
+  for (final entry in entries) {
+    final builtIn = entry.builtIn;
+    final category = builtIn == null ? null : tdiCourseCategoryOf(builtIn);
+    if (category == null) {
+      uncategorized.add(entry);
+    } else {
+      (byCategory[category] ??= []).add(entry);
+    }
+  }
+  return (byCategory: byCategory, uncategorized: uncategorized);
+}
