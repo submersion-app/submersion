@@ -212,8 +212,9 @@ pick:
 - **Page size**: **A4** or **Letter**.
 - **Include Certification Cards**: add scanned certification card images to the PDF.
 
-You can also export a single dive as a PDF from its own detail page, and a trip as
-its own PDF logbook from the trip page.
+You can also export a single dive as a PDF from its own detail page. Exporting a
+whole trip is not available yet; select the trip's dives in the dive list and use
+**Export Selected** instead.
 
 ## Import & export vs. backup and sync
 
