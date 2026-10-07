@@ -2,7 +2,7 @@
 
 | Folder | For | What is in it |
 |--------|-----|---------------|
-| [user/](user/) | Divers using the app | The user guide and feature pages |
+| [user/](user/README.md) | Divers using the app | The user guide, published at [submersion.app/guide](https://submersion.app/guide/) |
 | [developer/](developer/README.md) | People working on the code | Architecture, database, state management, testing, building and releasing |
 | [developer/reference/](developer/reference/README.md) | People working on the code | Entity and enum reference, and file-format specs |
 | [contributing/](contributing/README.md) | New contributors | How to contribute, code style, pull requests, the roadmap |

@@ -6,8 +6,8 @@ a beta that soaked well - the identical artifacts, never a rebuild. The
 design history lives in `docs/design/specs/2026-07-28-release-channels-design.md`;
 this page is the operational guide.
 
-User-facing channel documentation is on the wiki:
-[Update Channels](https://github.com/submersion-app/submersion/wiki/Update-Channels).
+User-facing channel documentation is in the user guide:
+[Update Channels](../user/update-channels.md).
 
 ## The pipeline at a glance
 

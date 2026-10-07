@@ -153,6 +153,9 @@ Most dive logging software falls into two categories: desktop applications stuck
   or the APK from [GitHub Releases](https://github.com/submersion-app/submersion/releases)
 - **macOS / Windows / Linux:** [GitHub Releases](https://github.com/submersion-app/submersion/releases)
 
+New to Submersion? The [user guide](https://submersion.app/guide/) covers
+everything from your first dive to sync and backup.
+
 ### Beta channel
 
 Want fixes and features weeks early? Every change merged into Submersion is
