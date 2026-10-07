@@ -22,7 +22,6 @@ class FocusFactorsTable extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));
-    final typesById = watchDiveTypesById(ref);
     if (report.tooFewDives) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -32,6 +31,7 @@ class FocusFactorsTable extends ConsumerWidget {
         ),
       );
     }
+    final typesById = watchDiveTypesById(ref);
     final percent = NumberFormat.percentPattern(
       Localizations.localeOf(context).toLanguageTag(),
     );
