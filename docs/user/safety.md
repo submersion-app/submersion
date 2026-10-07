@@ -46,10 +46,9 @@ blips are filtered out as sample noise, and shortfalls are measured against a
 small tolerance, so ordinary depth wobble does not produce findings.
 
 > [!TIP]
-> **The thresholds are fixed on purpose.** The rapid-ascent rule uses 9 and
-> 12 m/min whatever ascent-rate alarm you set for the profile chart. If findings
-> followed your alarm settings, changing a preference would silently rewrite the
-> history of dives you had already reviewed.
+> **The thresholds are fixed on purpose.** The rapid-ascent rule always uses 9
+> and 12 m/min. If findings followed a preference, changing it would silently
+> rewrite the history of dives you had already reviewed.
 
 ### Where findings appear
 
@@ -166,7 +165,7 @@ Open it with **Emergency card** in the Dashboard's quick actions, or from
 3. **Your details:** blood type, allergies and medications from your diver
    profile, your emergency contacts, and your dive insurance policy.
 4. **Nearest chambers**, nearest first, each with its contact details and the
-   date they were last verified. **View all** lists the whole directory.
+   date they were last verified. **View all** (with the number of chambers) lists the whole directory.
 
 ### How your region is chosen
 

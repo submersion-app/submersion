@@ -93,7 +93,7 @@ dive:
 | **Decompression** | **GF Low** and **GF High** (10 to 100; a new plan starts from your settings, 50/85 by default), the **Last stop** depth (3, 4, 5 or 6 m), and **Air breaks** for long oxygen stops |
 | **Rates** | **Descent rate** 18 m/min, **Ascent rate** 9 m/min, slower rates between and at shallow stops, and a **Final ascent rate (last 3 m)** of 1 m/min |
 | **Gas** | **Bottom RMV** (15 L/min, with an offer to use your logged average), **Reserve** (50 bar, or 500 psi), and **Gas options**: deco RMV, a stress factor and problem-solving time for minimum-gas sums, the ppO₂ limits, and whether to treat oxygen as narcotic for this plan |
-| **Environment** | Altitude, and **Water type**: salt, fresh, or a custom salinity |
+| **Environment** | Altitude, **Water type** (salt, fresh, or a custom salinity), and **Treat O₂ as narcotic**, which here changes your setting for every plan and calculator (the switch under **Gas options** applies to this plan only) |
 | **CCR** | Low and high setpoints (0.7 and 1.3 bar from your settings) and the depth to switch between them (10 m) |
 | **pSCR** | The pSCR ratio |
 | **Contingencies** | **Extra depth** (5 m), **Extra minutes** (5), and a **Turn pressure rule**: none, all usable, halves, thirds or custom |
@@ -128,7 +128,7 @@ The planner warns about:
 | Warning | When |
 |---------|------|
 | ppO₂ | Above your working limit (1.4 bar), or critical above your deco limit (1.6 bar) |
-| Hypoxic gas | Breathing a gas with less than 16% oxygen at that depth |
+| Hypoxic gas | Breathing a gas whose oxygen partial pressure is below 0.16 bar at that depth |
 | END | Above your END limit (30 m by default) |
 | Gas density | Above 5.2 g/L, or critical above 6.2 g/L |
 | CNS | At 80%, or critical at 100% |
@@ -177,7 +177,7 @@ Your current plan stays as you left it while you move around the app.
 
 The deco calculator is a quick, single-screen alternative to the planner for a
 square dive. Set the **Depth** (0 to 60 m, default 18), the **Bottom Time** (0 to
-120 minutes, default 30), and the **Gas Mix**: Air, EAN32, EAN36, EAN50, O2,
+120 minutes, default 30), and the **Gas Mix**: Air, EAN32, EAN36, EAN50,
 Tx 21/35 or Tx 18/45, or a custom trimix with 18 to 100% oxygen and up to 65%
 helium. You can also set the altitude and water type.
 
