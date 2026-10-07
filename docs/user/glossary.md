@@ -22,7 +22,7 @@ Common diving and app terms used throughout this guide, in alphabetical order.
 
 **Diluent:** On a closed-circuit rebreather, the gas mixed with pure oxygen in the breathing loop to provide inert gas and volume. Common diluents are air, nitrox and trimix. Submersion records the diluent in the CCR section of the dive form. See [Logging Dives](dive-logging.md).
 
-**EAD (equivalent air depth):** The depth at which air would give the same nitrogen partial pressure as a nitrox mix at the actual depth. A dive to 30 m on EAN32 has an EAD of about 25 m, so a longer NDL than air. See [Planning & Calculators](planning.md).
+**EAD (equivalent air depth):** The depth at which air would give the same nitrogen partial pressure as a nitrox mix at the actual depth. A dive to 30 m on EAN32 has an EAD of about 24 m, so a longer NDL than air. See [Planning & Calculators](planning.md).
 
 **END (equivalent narcotic depth):** The depth at which air would give the same narcotic effect as the gas you are breathing at the actual depth. Helium is treated as not narcotic, so adding helium lowers the END. Submersion can treat oxygen as narcotic too (the more conservative choice, on by default) or count only nitrogen. See [Planning & Calculators](planning.md).
 
@@ -34,13 +34,13 @@ Common diving and app terms used throughout this guide, in alphabetical order.
 
 **MND (maximum narcotic depth):** The deepest you can take a gas while staying within your END limit. Adding helium pushes the MND deeper. In the dive form you can enter a target MND and Submersion works out the helium needed. See [Planning & Calculators](planning.md) and [Logging Dives](dive-logging.md).
 
-**MOD (maximum operating depth):** The deepest you can breathe a gas before its oxygen partial pressure (ppO₂) becomes unsafe. Submersion shows MOD at a ppO₂ of 1.4 bar (your working limit) and warns when a dive or plan goes deeper than the MOD of the gas in use. See [Dive Profiles & Deco](dive-profiles.md) and [Planning & Calculators](planning.md).
+**MOD (maximum operating depth):** The deepest you can breathe a gas before its oxygen partial pressure (ppO₂) becomes unsafe. Submersion shows MOD at a ppO₂ of 1.4 bar and warns when a dive or plan goes deeper than the MOD of the gas in use. See [Dive Profiles & Deco](dive-profiles.md) and [Planning & Calculators](planning.md).
 
 **NDL (no-decompression limit):** How much longer you can stay at your current depth before a decompression stop becomes mandatory. Submersion works it out by simulating more time at depth until a direct ascent to the surface would no longer be allowed (using GF High). The NDL overlay reads `DECO` once you have an obligation. See [Dive Profiles & Deco](dive-profiles.md).
 
 **Nitrox (EANx):** Any air enriched with more than 21% oxygen, the rest nitrogen; also called Enriched Air Nitrox (EANx, where x is the oxygen percentage, as in EAN32). More oxygen lowers the MOD but lengthens the NDL at moderate depths. Submersion names any mix above 21% oxygen with no helium EAN and its percentage. See [Logging Dives](dive-logging.md) and [Planning & Calculators](planning.md).
 
-**OC (open circuit):** Standard scuba: you breathe from a tank through a regulator and exhale each breath into the water. This is Submersion's default dive mode; the others are CCR and SCR. See [Logging Dives](dive-logging.md).
+**OC (open circuit):** Standard scuba: you breathe from a tank through a regulator and exhale each breath into the water. This is Submersion's default dive mode; the others are CCR, SCR and Gauge. See [Logging Dives](dive-logging.md).
 
 **OTU (oxygen tolerance unit):** A measure of total lung (pulmonary) oxygen exposure, from the formula OTU = t × ((ppO₂ − 0.5) / 0.5)^0.833, where t is time in minutes. Submersion shows OTU as a profile overlay, and **Current CNS/OTU load** compares it with a daily limit of 300 and a weekly limit of 850. See [Dive Profiles & Deco](dive-profiles.md).
 
