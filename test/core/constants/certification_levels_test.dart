@@ -63,13 +63,24 @@ void main() {
       },
     );
 
-    test('tech agency ladder/specialty overlap is deduplicated', () {
+    test('tech agency ladder/specialty overlap is deduplicated (IANTD)', () {
+      // IANTD and PSAI stay on the shared generic tech ladder (issue #3072
+      // gave TDI its own structure; IANTD/PSAI are untouched).
       final levels = CertificationLevelCatalog.levelsFor(
-        CertificationAgency.tdi,
+        CertificationAgency.iantd,
       );
       expect(levels.where((l) => l == CertificationLevel.nitrox).length, 1);
       // Ladder order wins: nitrox appears first, not in specialty position.
       expect(levels.first, CertificationLevel.nitrox);
+    });
+
+    test('TDI ladder/specialty overlap has none, each level appears once '
+        '(issue #3072)', () {
+      final levels = CertificationLevelCatalog.levelsFor(
+        CertificationAgency.tdi,
+      );
+      expect(levels.toSet().length, levels.length);
+      expect(levels.first, CertificationLevel.tdiNitroxDiver);
     });
 
     test('ensure appends an out-of-catalog level before other', () {
@@ -103,14 +114,25 @@ void main() {
   });
 
   group('CertificationLevelCatalog.specialtiesFor', () {
-    test('excludes specialties already on the agency ladder', () {
-      // The tech ladder (TDI/IANTD/PSAI) contains nitrox, cavern and cave.
+    test('excludes specialties already on the agency ladder (IANTD)', () {
+      // The shared tech ladder (IANTD/PSAI) contains nitrox, cavern and cave.
       final specialties = CertificationLevelCatalog.specialtiesFor(
-        CertificationAgency.tdi,
+        CertificationAgency.iantd,
       );
       expect(specialties, isNot(contains(CertificationLevel.nitrox)));
       expect(specialties, isNot(contains(CertificationLevel.cave)));
       expect(specialties, contains(CertificationLevel.wreck));
+    });
+
+    test('TDI specialties are its own Rebreather/Service/Overhead courses, '
+        'not the shared cross-agency pool (issue #3072)', () {
+      final specialties = CertificationLevelCatalog.specialtiesFor(
+        CertificationAgency.tdi,
+      );
+      expect(specialties, contains(CertificationLevel.tdiFullCaveDiver));
+      expect(specialties, contains(CertificationLevel.tdiAirDiluentCcrDiver));
+      expect(specialties, isNot(contains(CertificationLevel.wreck)));
+      expect(specialties, isNot(contains(CertificationLevel.nitrox)));
     });
 
     test('returns the full specialty set for a ladder with no overlap', () {

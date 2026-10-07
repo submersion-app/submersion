@@ -2039,6 +2039,10 @@
   "@currencyRule_generic_refresher_name": {
     "description": "Name of the built-in generic refresher currency rule"
   },
+  "currencyRule_tdi_refresher_name": "TDI refresher",
+  "@currencyRule_tdi_refresher_name": {
+    "description": "Name of the built-in TDI refresher currency rule"
+  },
   "currencyRule_first_aid_24mo_name": "First aid and CPR renewal",
   "@currencyRule_first_aid_24mo_name": {
     "description": "Name of the built-in first aid and CPR renewal currency rule"
@@ -2082,6 +2086,10 @@
   "currencyRule_generic_refresher_advisory": "Most agencies suggest a refresher after six to twelve months without diving.",
   "@currencyRule_generic_refresher_advisory": {
     "description": "Advisory sentence of the generic refresher rule"
+  },
+  "currencyRule_tdi_refresher_advisory": "TDI suggests a refresher after six to twelve months without technical diving.",
+  "@currencyRule_tdi_refresher_advisory": {
+    "description": "Advisory sentence of the TDI refresher rule"
   },
   "currencyRule_first_aid_advisory": "First aid, CPR and oxygen provider credentials typically renew every two years.",
   "@currencyRule_first_aid_advisory": {

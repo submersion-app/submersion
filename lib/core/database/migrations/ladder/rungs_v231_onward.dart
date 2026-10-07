@@ -278,5 +278,15 @@ extension RungsFromV231 on AppDatabase {
       await _assertDiveRoleLinkSchema();
     }
     if (from < 272) await reportProgress();
+    // v273: TDI's own certification structure (issue #3072), replacing the
+    // generic tech ladder it shared with IANTD and PSAI. One-shot data fix:
+    // rewrites the eight unambiguous legacy TDI certification levels to
+    // their new names and extends the currency rules that named the old
+    // ones. Deliberately not re-asserted in beforeOpen, same convention as
+    // other one-shot data fixes in this ladder.
+    if (from < 273) {
+      await _migrateTdiCertificationStructure();
+    }
+    if (from < 273) await reportProgress();
   }
 }

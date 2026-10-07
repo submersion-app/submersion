@@ -3138,6 +3138,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get currencyRule_generic_refresher_name => 'Reciclagem';
 
   @override
+  String get currencyRule_tdi_refresher_name => 'TDI refresher';
+
+  @override
   String get currencyRule_first_aid_24mo_name =>
       'Renovação de primeiros socorros e RCP';
 
@@ -3175,6 +3178,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get currencyRule_generic_refresher_advisory =>
       'A maioria das agências sugere uma reciclagem após seis a doze meses sem mergulhar.';
+
+  @override
+  String get currencyRule_tdi_refresher_advisory =>
+      'TDI suggests a refresher after six to twelve months without technical diving.';
 
   @override
   String get currencyRule_first_aid_advisory =>

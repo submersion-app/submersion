@@ -3132,6 +3132,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get currencyRule_generic_refresher_name => 'Felfrissítés';
 
   @override
+  String get currencyRule_tdi_refresher_name => 'TDI refresher';
+
+  @override
   String get currencyRule_first_aid_24mo_name =>
       'Elsősegély és újraélesztés megújítása';
 
@@ -3169,6 +3172,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get currencyRule_generic_refresher_advisory =>
       'A legtöbb szervezet hat-tizenkét hónap merülés nélkül felfrissítést javasol.';
+
+  @override
+  String get currencyRule_tdi_refresher_advisory =>
+      'TDI suggests a refresher after six to twelve months without technical diving.';
 
   @override
   String get currencyRule_first_aid_advisory =>

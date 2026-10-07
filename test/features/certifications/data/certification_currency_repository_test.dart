@@ -102,9 +102,9 @@ void main() {
   );
 
   group('rules', () {
-    test('getRules returns the ten seeded built-ins', () async {
+    test('getRules returns the eleven seeded built-ins', () async {
       final rules = await repository.getRules();
-      expect(rules.where((r) => r.isBuiltIn).length, 10);
+      expect(rules.where((r) => r.isBuiltIn).length, 11);
       final cave = rules.firstWhere((r) => r.id == 'cave_currency');
       expect(cave.clockKind, CurrencyClockKind.activity);
       expect(cave.countedDiveTypeIds, ['cave', 'cavern']);

@@ -164,7 +164,43 @@ extension CertificationLevelDisplay on CertificationLevel {
     CertificationLevel.danInstructorTrainer ||
     CertificationLevel.danAdvancedOxygen ||
     CertificationLevel.danNeurologicalAssessment ||
-    CertificationLevel.danMarineLifeInjuries => displayName,
+    CertificationLevel.danMarineLifeInjuries ||
+    // TDI's own course names (issue #3072) are the agency's proper nouns,
+    // kept in English like the BSAC, GUE, ACUC and DAN names above.
+    CertificationLevel.tdiNitroxDiver ||
+    CertificationLevel.tdiSidemountDiver ||
+    CertificationLevel.tdiIntroToTechDiving ||
+    CertificationLevel.tdiAdvancedNitroxDiver ||
+    CertificationLevel.tdiDecompressionProceduresDiver ||
+    CertificationLevel.tdiHelitroxDiver ||
+    CertificationLevel.tdiExtendedRangeDiver ||
+    CertificationLevel.tdiTrimixDiver ||
+    CertificationLevel.tdiAdvancedTrimixDiver ||
+    CertificationLevel.tdiAirDiluentCcrDiver ||
+    CertificationLevel.tdiSemiClosedRebreatherDiver ||
+    CertificationLevel.tdiAirDiluentDecoCcrDiver ||
+    CertificationLevel.tdiHelitroxCcrDiver ||
+    CertificationLevel.tdiMixedGasCcrDiver ||
+    CertificationLevel.tdiAdvancedMixedGasCcrDiver ||
+    CertificationLevel.tdiNitroxGasBlender ||
+    CertificationLevel.tdiAdvancedGasBlender ||
+    CertificationLevel.tdiO2ServiceTechnician ||
+    CertificationLevel.tdiCavernDiver ||
+    CertificationLevel.tdiIntroToCaveDiver ||
+    CertificationLevel.tdiAdvancedWreckDiver ||
+    CertificationLevel.tdiFullCaveDiver ||
+    CertificationLevel.tdiRebreatherCavernDiver ||
+    CertificationLevel.tdiRebreatherIntroCaveDiver ||
+    CertificationLevel.tdiRebreatherFullCaveDiver ||
+    CertificationLevel.tdiDpvDiver ||
+    CertificationLevel.tdiMineDiver ||
+    CertificationLevel.tdiCaveSurveyingDiver ||
+    CertificationLevel.tdiStageCaveDiver ||
+    CertificationLevel.tdiDpvCaveDiver ||
+    CertificationLevel.tdiTechnicalDivemaster ||
+    CertificationLevel.tdiNonDivingSpecialtyInstructor ||
+    CertificationLevel.tdiInstructor ||
+    CertificationLevel.tdiInstructorTrainer => displayName,
     CertificationLevel.other => l10n.enum_certificationLevel_other,
   };
 }

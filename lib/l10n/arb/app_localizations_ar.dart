@@ -3219,6 +3219,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get currencyRule_generic_refresher_name => 'دورة تنشيطية';
 
   @override
+  String get currencyRule_tdi_refresher_name => 'TDI refresher';
+
+  @override
   String get currencyRule_first_aid_24mo_name =>
       'تجديد الإسعافات الأولية والإنعاش القلبي الرئوي';
 
@@ -3256,6 +3259,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get currencyRule_generic_refresher_advisory =>
       'تقترح معظم الوكالات دورة تنشيطية بعد ستة إلى اثني عشر شهرًا دون غوص.';
+
+  @override
+  String get currencyRule_tdi_refresher_advisory =>
+      'TDI suggests a refresher after six to twelve months without technical diving.';
 
   @override
   String get currencyRule_first_aid_advisory =>

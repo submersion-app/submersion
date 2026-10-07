@@ -44,6 +44,7 @@ void main() {
     'padi_reactivate',
     'ssi_skills_update',
     'generic_refresher',
+    'tdi_refresher',
   ]) {
     test('$id covers every ladder rung of its agencies', () async {
       final scope = await scopeOf(id);
@@ -57,6 +58,7 @@ void main() {
       'padi_reactivate',
       'ssi_skills_update',
       'generic_refresher',
+      'tdi_refresher',
     ]) {
       final scope = await scopeOf(id);
       expect(
@@ -78,6 +80,7 @@ void main() {
         'padi_reactivate',
         'ssi_skills_update',
         'generic_refresher',
+        'tdi_refresher',
       ])
         ...(await scopeOf(id)).agencies,
     };

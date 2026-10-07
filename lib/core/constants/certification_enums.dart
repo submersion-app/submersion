@@ -233,6 +233,49 @@ enum CertificationLevel {
   danAdvancedOxygen('Advanced Oxygen Provider'),
   danNeurologicalAssessment('On-Site Neurological Assessment'),
   danMarineLifeInjuries('First Aid for Hazardous Marine Life Injuries'),
+  // TDI, Technical Diving International (issue #3072). Proper course names
+  // from tdisdi.com/tdi/get-certified, kept untranslated like the other
+  // agencies' own grade names. IANTD and PSAI stay on the shared generic
+  // tech ladder; this is TDI's own structure only.
+  // Open Circuit
+  tdiNitroxDiver('Nitrox Diver'),
+  tdiSidemountDiver('Sidemount Diver'),
+  tdiIntroToTechDiving('Intro to Tech Diving'),
+  tdiAdvancedNitroxDiver('Advanced Nitrox Diver'),
+  tdiDecompressionProceduresDiver('Decompression Procedures Diver'),
+  tdiHelitroxDiver('Helitrox Diver'),
+  tdiExtendedRangeDiver('Extended Range Diver'),
+  tdiTrimixDiver('Trimix Diver'),
+  tdiAdvancedTrimixDiver('Advanced Trimix Diver'),
+  // Rebreather
+  tdiAirDiluentCcrDiver('Air Diluent CCR Diver'),
+  tdiSemiClosedRebreatherDiver('Semi Closed Rebreather Diver'),
+  tdiAirDiluentDecoCcrDiver('Air Diluent Deco CCR Diver'),
+  tdiHelitroxCcrDiver('Helitrox CCR Diver'),
+  tdiMixedGasCcrDiver('Mixed Gas CCR Diver'),
+  tdiAdvancedMixedGasCcrDiver('Advanced Mixed Gas CCR Diver'),
+  // Service
+  tdiNitroxGasBlender('Nitrox Gas Blender'),
+  tdiAdvancedGasBlender('Advanced Gas Blender'),
+  tdiO2ServiceTechnician('O2 Service Technician'),
+  // Overhead
+  tdiCavernDiver('Cavern Diver'),
+  tdiIntroToCaveDiver('Intro to Cave Diver'),
+  tdiAdvancedWreckDiver('Advanced Wreck Diver'),
+  tdiFullCaveDiver('Full Cave Diver'),
+  tdiRebreatherCavernDiver('Rebreather Cavern Diver'),
+  tdiRebreatherIntroCaveDiver('Rebreather Intro Cave Diver'),
+  tdiRebreatherFullCaveDiver('Rebreather Full Cave Diver'),
+  tdiDpvDiver('DPV Diver'),
+  tdiMineDiver('Mine Diver'),
+  tdiCaveSurveyingDiver('Cave Surveying Diver'),
+  tdiStageCaveDiver('Stage Cave Diver'),
+  tdiDpvCaveDiver('DPV Cave Diver'),
+  // Professional
+  tdiTechnicalDivemaster('Technical Divemaster'),
+  tdiNonDivingSpecialtyInstructor('Non-Diving Specialty Instructor'),
+  tdiInstructor('TDI Instructor'),
+  tdiInstructorTrainer('TDI Instructor Trainer'),
   other('Other');
 
   final String displayName;
@@ -267,7 +310,9 @@ enum CertificationLevel {
     CertificationLevel.danInstructor ||
     CertificationLevel.danInstructorTrainer ||
     CertificationLevel.ffessmMf1 ||
-    CertificationLevel.ffessmMf2 => true,
+    CertificationLevel.ffessmMf2 ||
+    CertificationLevel.tdiInstructor ||
+    CertificationLevel.tdiInstructorTrainer => true,
     _ => false,
   };
 }

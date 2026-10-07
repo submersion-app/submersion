@@ -16,6 +16,8 @@ void main() {
       CertificationLevel.bsacNationalInstructor,
       CertificationLevel.ffessmMf1,
       CertificationLevel.ffessmMf2,
+      CertificationLevel.tdiInstructor,
+      CertificationLevel.tdiInstructorTrainer,
       CertificationLevel.acucOpenWaterInstructor,
       CertificationLevel.acucAdvancedInstructor,
       CertificationLevel.acucInstructorTrainer,
@@ -40,6 +42,17 @@ void main() {
     // certify divers (issue #690).
     expect(CertificationLevel.acucTeachingAssistant.isInstructorLevel, isFalse);
     expect(CertificationLevel.danDemp.isInstructorLevel, isFalse);
+    // TDI's Technical Divemaster does not independently certify students,
+    // and Non-Diving Specialty Instructor teaches classroom-only specialties
+    // rather than certifying open-water skills (issue #3072).
+    expect(
+      CertificationLevel.tdiTechnicalDivemaster.isInstructorLevel,
+      isFalse,
+    );
+    expect(
+      CertificationLevel.tdiNonDivingSpecialtyInstructor.isInstructorLevel,
+      isFalse,
+    );
   });
 
   test('diveGuide sits directly below diveMaster on every ladder that has '

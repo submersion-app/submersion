@@ -22,12 +22,12 @@ void main() {
     return cols.map((c) => c.read<String>('name')).toSet();
   }
 
-  test('v272 is the current schema and in the ladder; floor unchanged', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 272);
+  test('v272 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v273 (TDI's own structure, #3072) landed on top; the
+    // newest rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(272));
     expect(AppDatabase.migrationVersions, contains(272));
-    expect(AppDatabase.migrationStepCount(271), 1);
+    expect(AppDatabase.migrationStepCount(271), greaterThanOrEqualTo(1));
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 

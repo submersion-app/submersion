@@ -4823,6 +4823,12 @@ abstract class AppLocalizations {
   /// **'Refresher'**
   String get currencyRule_generic_refresher_name;
 
+  /// Name of the built-in TDI refresher currency rule
+  ///
+  /// In en, this message translates to:
+  /// **'TDI refresher'**
+  String get currencyRule_tdi_refresher_name;
+
   /// Name of the built-in first aid and CPR renewal currency rule
   ///
   /// In en, this message translates to:
@@ -4888,6 +4894,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Most agencies suggest a refresher after six to twelve months without diving.'**
   String get currencyRule_generic_refresher_advisory;
+
+  /// Advisory sentence of the TDI refresher rule
+  ///
+  /// In en, this message translates to:
+  /// **'TDI suggests a refresher after six to twelve months without technical diving.'**
+  String get currencyRule_tdi_refresher_advisory;
 
   /// Advisory sentence of the first aid renewal rule
   ///

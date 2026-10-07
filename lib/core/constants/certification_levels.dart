@@ -217,6 +217,56 @@ abstract final class CertificationLevelCatalog {
     CertificationLevel.danMarineLifeInjuries,
   ];
 
+  /// TDI's own progression (issue #3072), from tdisdi.com/tdi/get-certified:
+  /// the Open Circuit depth/gas track, then the professional track. IANTD
+  /// and PSAI are untouched and stay on [_techLadder] -- this is TDI's own
+  /// structure only, not shared.
+  static const List<CertificationLevel> _tdiLadder = [
+    CertificationLevel.tdiNitroxDiver,
+    CertificationLevel.tdiAdvancedNitroxDiver,
+    CertificationLevel.tdiDecompressionProceduresDiver,
+    CertificationLevel.tdiHelitroxDiver,
+    CertificationLevel.tdiExtendedRangeDiver,
+    CertificationLevel.tdiTrimixDiver,
+    CertificationLevel.tdiAdvancedTrimixDiver,
+    CertificationLevel.tdiTechnicalDivemaster,
+    CertificationLevel.tdiInstructor,
+    CertificationLevel.tdiInstructorTrainer,
+  ];
+
+  /// TDI's own specialties (issue #3072): Rebreather, Service and Overhead
+  /// courses, plus the two Open Circuit courses that sit beside the depth
+  /// progression rather than on it (Sidemount, Intro to Tech Diving) and the
+  /// one professional grade that does not independently certify divers
+  /// (Non-Diving Specialty Instructor). Replaces the shared [specialties]
+  /// pool for TDI the same way DAN replaces it with its own.
+  static const List<CertificationLevel> _tdiSpecialties = [
+    CertificationLevel.tdiIntroToTechDiving,
+    CertificationLevel.tdiSidemountDiver,
+    CertificationLevel.tdiAirDiluentCcrDiver,
+    CertificationLevel.tdiSemiClosedRebreatherDiver,
+    CertificationLevel.tdiAirDiluentDecoCcrDiver,
+    CertificationLevel.tdiHelitroxCcrDiver,
+    CertificationLevel.tdiMixedGasCcrDiver,
+    CertificationLevel.tdiAdvancedMixedGasCcrDiver,
+    CertificationLevel.tdiNitroxGasBlender,
+    CertificationLevel.tdiAdvancedGasBlender,
+    CertificationLevel.tdiO2ServiceTechnician,
+    CertificationLevel.tdiCavernDiver,
+    CertificationLevel.tdiIntroToCaveDiver,
+    CertificationLevel.tdiAdvancedWreckDiver,
+    CertificationLevel.tdiFullCaveDiver,
+    CertificationLevel.tdiRebreatherCavernDiver,
+    CertificationLevel.tdiRebreatherIntroCaveDiver,
+    CertificationLevel.tdiRebreatherFullCaveDiver,
+    CertificationLevel.tdiDpvDiver,
+    CertificationLevel.tdiMineDiver,
+    CertificationLevel.tdiCaveSurveyingDiver,
+    CertificationLevel.tdiStageCaveDiver,
+    CertificationLevel.tdiDpvCaveDiver,
+    CertificationLevel.tdiNonDivingSpecialtyInstructor,
+  ];
+
   /// Core progression ladder for an agency, in rank order. A null agency
   /// (possible on buddies) behaves like [CertificationAgency.other].
   static List<CertificationLevel> ladderFor(CertificationAgency? agency) =>
@@ -225,9 +275,8 @@ abstract final class CertificationLevelCatalog {
         CertificationAgency.ssi => _ssiLadder,
         CertificationAgency.naui || CertificationAgency.sdi => _nauiSdiLadder,
         CertificationAgency.raid => _raidLadder,
-        CertificationAgency.tdi ||
-        CertificationAgency.iantd ||
-        CertificationAgency.psai => _techLadder,
+        CertificationAgency.tdi => _tdiLadder,
+        CertificationAgency.iantd || CertificationAgency.psai => _techLadder,
         CertificationAgency.gue => _gueLadder,
         CertificationAgency.bsac => _bsacLadder,
         CertificationAgency.cmas => _cmasLadder,
@@ -245,6 +294,7 @@ abstract final class CertificationLevelCatalog {
     final pool = switch (agency) {
       CertificationAgency.ffessm => _ffessmSpecialties,
       CertificationAgency.dan => _danSpecialties,
+      CertificationAgency.tdi => _tdiSpecialties,
       _ => specialties,
     };
     return pool.where((s) => !ladder.contains(s)).toList();

@@ -156,9 +156,13 @@ const String kSeedBuiltInCurrencyRulesSql = '''
       365, 185, '[]', '[]', 'currencyRule_ssi_skills_update_advisory'
     UNION ALL SELECT 'generic_refresher', 'Refresher',
       'activity',
-      '["naui","sdi","tdi","raid","bsac","cmas","iantd","psai","ffessm","acuc","other"]',
+      '["naui","sdi","raid","bsac","cmas","iantd","psai","ffessm","acuc","other"]',
       '["openWater","advancedOpenWater","rescue","masterDiver","diveGuide","diveMaster","assistantInstructor","instructor","courseDirector","masterInstructor","nitrox","advancedNitrox","decompression","extendedRange","trimix","advancedTrimix","cavern","cave","rebreather","bsacOceanDiver","bsacSportsDiver","bsacDiveLeader","bsacAdvancedDiver","bsacFirstClassDiver","bsacOpenWaterInstructor","bsacAdvancedInstructor","bsacNationalInstructor","cmas1StarDiver","cmas2StarDiver","cmas3StarDiver","cmas4StarDiver","cmas3StarDiverAssistantInstructor","cmas4StarDiverAssistantInstructor","cmas1StarInstructor","cmas2StarInstructor","cmas3StarInstructor","ffessmPlongeurBronze","ffessmPlongeurArgent","ffessmPlongeurOr","ffessmN1","ffessmN2","ffessmN3","ffessmN4","ffessmN5","ffessmInitiateur","ffessmE2","ffessmMf1","ffessmMf2","acucScubaDiver","acucAdvancedDiver","acucRescueLeader","acucUnderwaterGuide","acucTeachingAssistant","acucOpenWaterInstructor","acucAdvancedInstructor","acucInstructorTrainer","acucInstructorTrainerEvaluator"]',
       365, 185, '[]', '[]', 'currencyRule_generic_refresher_advisory'
+    UNION ALL SELECT 'tdi_refresher', 'TDI refresher',
+      'activity', '["tdi"]',
+      '["tdiNitroxDiver","tdiAdvancedNitroxDiver","tdiDecompressionProceduresDiver","tdiHelitroxDiver","tdiExtendedRangeDiver","tdiTrimixDiver","tdiAdvancedTrimixDiver","tdiTechnicalDivemaster","tdiInstructor","tdiInstructorTrainer"]',
+      365, 185, '[]', '[]', 'currencyRule_tdi_refresher_advisory'
     UNION ALL SELECT 'first_aid_24mo', 'First aid and CPR renewal',
       'date', '[]',
       '["firstAid","oxygenProvider","danBls","danEmergencyOxygen","danDfaPro","danDemp","danAdvancedOxygen","danNeurologicalAssessment","danMarineLifeInjuries"]',
@@ -166,7 +170,7 @@ const String kSeedBuiltInCurrencyRulesSql = '''
     UNION ALL SELECT 'pro_membership_annual',
       'Professional membership renewal', 'date',
       '["padi","ssi","naui","sdi","tdi","raid","bsac","cmas","iantd","psai","acuc","dan","other"]',
-      '["diveGuide","diveMaster","assistantInstructor","instructor","masterInstructor","courseDirector","cmas1StarInstructor","cmas2StarInstructor","cmas3StarInstructor","bsacOpenWaterInstructor","bsacAdvancedInstructor","bsacNationalInstructor","acucUnderwaterGuide","acucTeachingAssistant","acucOpenWaterInstructor","acucAdvancedInstructor","acucInstructorTrainer","acucInstructorTrainerEvaluator","danInstructor","danInstructorTrainer"]',
+      '["diveGuide","diveMaster","assistantInstructor","instructor","masterInstructor","courseDirector","tdiInstructor","tdiInstructorTrainer","cmas1StarInstructor","cmas2StarInstructor","cmas3StarInstructor","bsacOpenWaterInstructor","bsacAdvancedInstructor","bsacNationalInstructor","acucUnderwaterGuide","acucTeachingAssistant","acucOpenWaterInstructor","acucAdvancedInstructor","acucInstructorTrainer","acucInstructorTrainerEvaluator","danInstructor","danInstructorTrainer"]',
       365, 45, '[]', '[]', 'currencyRule_pro_membership_advisory'
     UNION ALL SELECT 'gue_revalidation', 'GUE revalidation',
       'date', '["gue"]', '[]',
@@ -175,16 +179,18 @@ const String kSeedBuiltInCurrencyRulesSql = '''
       'FFESSM licence and medical certificate', 'date', '["ffessm"]', '[]',
       365, 45, '[]', '[]', 'currencyRule_ffessm_licence_advisory'
     UNION ALL SELECT 'cave_currency', 'Cave currency',
-      'activity', '[]', '["cave","cavern","gueCave1","gueCave2"]',
+      'activity', '[]',
+      '["cave","cavern","gueCave1","gueCave2","tdiCavernDiver","tdiIntroToCaveDiver","tdiFullCaveDiver","tdiRebreatherCavernDiver","tdiRebreatherIntroCaveDiver","tdiRebreatherFullCaveDiver","tdiCaveSurveyingDiver","tdiStageCaveDiver","tdiDpvCaveDiver"]',
       365, 90, '["cave","cavern"]', '[]',
       'currencyRule_cave_currency_advisory'
     UNION ALL SELECT 'rebreather_currency', 'Rebreather currency',
-      'activity', '[]', '["rebreather"]',
+      'activity', '[]',
+      '["rebreather","tdiAirDiluentCcrDiver","tdiSemiClosedRebreatherDiver","tdiAirDiluentDecoCcrDiver","tdiHelitroxCcrDiver","tdiMixedGasCcrDiver","tdiAdvancedMixedGasCcrDiver","tdiRebreatherCavernDiver","tdiRebreatherIntroCaveDiver","tdiRebreatherFullCaveDiver"]',
       180, 90, '[]', '["ccr","scr"]',
       'currencyRule_rebreather_currency_advisory'
     UNION ALL SELECT 'deco_currency', 'Decompression currency',
       'activity', '[]',
-      '["decompression","trimix","advancedTrimix","advancedNitrox","techDiver","extendedRange","gueTech1","gueTech2"]',
+      '["decompression","trimix","advancedTrimix","advancedNitrox","techDiver","extendedRange","gueTech1","gueTech2","tdiDecompressionProceduresDiver","tdiTrimixDiver","tdiAdvancedTrimixDiver","tdiAdvancedNitroxDiver","tdiExtendedRangeDiver","tdiHelitroxDiver"]',
       365, 90, '["technical"]', '[]',
       'currencyRule_deco_currency_advisory'
   ) r

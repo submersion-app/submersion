@@ -2985,6 +2985,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get currencyRule_generic_refresher_name => '复习课程';
 
   @override
+  String get currencyRule_tdi_refresher_name => 'TDI refresher';
+
+  @override
   String get currencyRule_first_aid_24mo_name => '急救与心肺复苏续证';
 
   @override
@@ -3019,6 +3022,10 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get currencyRule_generic_refresher_advisory =>
       '大多数潜水机构建议在六到十二个月未潜水后参加复习课程。';
+
+  @override
+  String get currencyRule_tdi_refresher_advisory =>
+      'TDI suggests a refresher after six to twelve months without technical diving.';
 
   @override
   String get currencyRule_first_aid_advisory => '急救、心肺复苏和供氧员资质通常每两年更新一次。';

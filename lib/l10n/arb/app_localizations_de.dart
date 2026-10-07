@@ -3143,6 +3143,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get currencyRule_generic_refresher_name => 'Auffrischung';
 
   @override
+  String get currencyRule_tdi_refresher_name => 'TDI-Auffrischung';
+
+  @override
   String get currencyRule_first_aid_24mo_name =>
       'Erneuerung Erste Hilfe und HLW';
 
@@ -3180,6 +3183,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get currencyRule_generic_refresher_advisory =>
       'Die meisten Verbände empfehlen nach sechs bis zwölf Monaten ohne Tauchgang eine Auffrischung.';
+
+  @override
+  String get currencyRule_tdi_refresher_advisory =>
+      'TDI empfiehlt nach sechs bis zwölf Monaten ohne technischen Tauchgang eine Auffrischung.';
 
   @override
   String get currencyRule_first_aid_advisory =>

@@ -3138,6 +3138,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get currencyRule_generic_refresher_name => 'Repaso';
 
   @override
+  String get currencyRule_tdi_refresher_name => 'TDI refresher';
+
+  @override
   String get currencyRule_first_aid_24mo_name =>
       'Renovación de primeros auxilios y RCP';
 
@@ -3175,6 +3178,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get currencyRule_generic_refresher_advisory =>
       'La mayoría de las agencias sugieren un repaso tras seis a doce meses sin bucear.';
+
+  @override
+  String get currencyRule_tdi_refresher_advisory =>
+      'TDI suggests a refresher after six to twelve months without technical diving.';
 
   @override
   String get currencyRule_first_aid_advisory =>
