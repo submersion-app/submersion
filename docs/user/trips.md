@@ -18,9 +18,9 @@ Tap the **+** button at the bottom right of the Trips list (**Add Trip**). Every
 | Type | Use when |
 |------|----------|
 | **Shore** | Shore dives over one or more days |
-| **Day Trip** | A single day out, such as one local dive |
-| **Resort** | A stay at a dive resort |
 | **Liveaboard** | Living aboard a dive boat, with vessel and itinerary details |
+| **Resort** | A stay at a dive resort |
+| **Day Trip** | A single day out, such as one local dive |
 
 > [!TIP]
 > A trip does not have to mean travel. If you dive one weekend morning at a local site, a **Day Trip** is the place to put it. Choosing **Day Trip** locks the end date to the start date: moving the start date moves the end date with it, and choosing another type makes the end date editable again.
@@ -56,9 +56,9 @@ Every trip, whatever its type, has six tabs: **Overview**, **Itinerary**, **Gear
 
 ### Overview
 
-Before the first day, the Overview is a **Prepare** page: a countdown to the trip, one summary card whose rows (itinerary, plan, gear, checklist) open the other tabs, and your notes.
+Before the first day, the Overview is a preparation page: a countdown to the trip, one summary card whose rows (itinerary, plan, gear, checklist) open the other tabs, and your notes.
 
-From the first day on, it becomes the trip's **story**: a header with the trip's numbers, then one chapter per day, each with its own map of that day's dives and a strip showing when you dived. Days with no dives show as surface days, and planned dives appear on the days they are planned for. While the trip is under way and you have entered a return flight, a card counts down to it.
+From the first day on, it becomes the trip's story: a header with the trip's numbers, then one chapter per day, each with its own map of that day's dives and a strip showing when you dived. Days with no dives show as surface days, and planned dives appear on the days they are planned for. While the trip is under way and you have entered a return flight, a card counts down to it.
 
 ### Itinerary
 

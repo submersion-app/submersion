@@ -22,15 +22,14 @@ Tap the **+** button (or **Add Buddy** on desktop) to open the edit form. The fi
 | **Name** | Required. |
 | **Email** | Optional. Tapping it on the detail page opens your mail app. |
 | **Phone** | Optional. Tapping it on the detail page opens your phone dialer. |
-| **Certification Level** | Drop-down (e.g., Open Water, Advanced Open Water, Rescue Diver, Divemaster, Instructor). |
-| **Certification Agency** | Drop-down (PADI, SSI, NAUI, SDI, TDI, GUE, RAID, BSAC, CMAS, IANTD, PSAI, Other). |
+| **Certifications** | Tap **Add certification** for each card the buddy holds, with its agency and level. A buddy with an instructor-level certification is offered first when you pick an instructor. |
 | **Notes** | Free text. |
 
 You can also give a buddy a profile photo.
 
 ### Importing from your contacts
 
-Instead of typing a buddy in, choose **Import from Contacts** in the Buddies list and pick a contact. Their name, email, phone and photo come across into a new buddy record you can review before saving.
+On iOS and Android, instead of typing a buddy in, choose **Import from Contacts** in the Buddies list and pick a contact. Their name, email, phone and photo come across into a new buddy record you can review before saving.
 
 ### Assigning a buddy to a dive
 
@@ -39,9 +38,12 @@ When you log or edit a dive, the **Buddies** section in the dive form shows a bu
 - **Buddy**
 - **Dive Guide**
 - **Instructor**
-- **Divemaster**
 - **Student**
+- **Divemaster**
 - **Solo**
+- **Rear Guard**
+- **Support Diver**
+- **Safety Diver**
 
 **Add custom role...** creates your own role on the spot; **No role** leaves it blank. Custom roles are managed in **Settings > Manage > Dive Roles**, where you can also hide built-in roles you never use.
 
@@ -54,7 +56,7 @@ Selected buddies appear as chips on the dive form, each showing the person's nam
 
 ### Buddy statistics
 
-The buddy detail page shows a **Dive Statistics** card with the number of dives you have done together, the date of your first and last shared dive, and your most-visited site together. Tap **View all** to jump to the dive list filtered to just those dives.
+The buddy detail page shows a **Dive Statistics** card with the number of dives you have done together, the date of your first and last shared dive, and your most-visited site together. Under **Shared Dives**, **View All** opens the dive list filtered to just those dives.
 
 ### Merging duplicate buddies
 
@@ -102,8 +104,9 @@ Tap **+** (or **Add Center** on desktop) to open the edit form. The fields are:
 | **Phone** | Optional. |
 | **Email** | Optional. |
 | **Website** | Optional. |
-| **Affiliations** | Free-form tags (e.g., PADI, SSI) shown as chips on the detail page. |
-| **Rating** | A numeric score. Map markers are color-coded by rating (green ≥ 4.0, blue ≥ 3.0, orange ≥ 2.0, red below 2.0). |
+| **Affiliations** | Choose from PADI, SSI, NAUI, SDI/TDI, GUE, RAID, BSAC, CMAS, FFESSM, IANTD and PSAI; shown as chips on the detail page. |
+| **Rating** | One to five stars. Map markers are color-coded by rating (dark green from 4.5, green from 4.0, blue from 3.0, orange from 2.0, red below). |
+| **Fill hours** | When the station fills cylinders (**Opens** and **Closes**). The trip fill forecast uses the closing time. |
 | **Notes** | Free text. |
 
 ### Importing dive centers from the built-in database
@@ -112,12 +115,12 @@ Rather than typing everything by hand, use the import tool to pull a center from
 
 1. From the Dive Centers list, tap **Import**.
 2. Search by name, location, or affiliation. Quick-search chips for common terms (PADI, SSI, Thailand, Indonesia, Egypt, Mexico) appear below the search bar.
-3. Results are split into two groups: **My Centers** (centers already in your log that match the query) and **From Database** (external entries from the bundled directory). External results show the center's type (shop, club, or other), affiliations, and a GPS indicator where coordinates are available.
+3. Results are split into two groups: **My Centers** (centers already in your log that match the query) and **Import from Database** (external entries from the bundled directory). External results show the center's type (shop, club, or other), affiliations, and a GPS indicator where coordinates are available.
 4. Tap a result to preview details, then tap **Import to My Centers** to add it.
 
 ### Map view
 
-Switch to the map view to see all your saved dive centers plotted on a world map. Markers are clustered when zoomed out; tap a cluster to zoom in and spread it apart. Tap a marker to select the center and show a summary card at the bottom; tap **Details** on the card to open the full record. Use the **Fit all** button to zoom the map to show every center at once.
+Switch to the map view to see all your saved dive centers plotted on a world map. Markers are clustered when zoomed out; tap a cluster to zoom in and spread it apart. Tap a marker to select the center and show a summary card at the bottom; tap **Details** on the card to open the full record. Use the **Fit All Centers** button to zoom the map to show every center at once.
 
 Centers without saved coordinates do not appear on the map. Add latitude and longitude to a center's record to make it appear.
 
@@ -136,7 +139,7 @@ The dive center detail page shows a list of all the dives you have logged with t
 
 ## How buddies and centers surface in Insights
 
-[Insights](statistics.md) includes breakdowns by buddy and by dive center. You can see which buddies you dive with most frequently, how your activity is distributed across centers, and trends over time. Each entry links back to the corresponding buddy or center record.
+The **Social** dashboard in [Insights](statistics.md) shows your solo and buddy dives, the buddies you dive with most, and the dive centers you have dived with most. **Connections** maps how your buddies, sites and gear link through your dives.
 
 ## See also
 
