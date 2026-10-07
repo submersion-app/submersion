@@ -544,21 +544,28 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
   }
 
   /// Groups TDI's ladder and specialty entries by the course category
-  /// their built-in names belong to (issue #3072). A level with no
-  /// category -- not expected for TDI's own catalog, but guarded rather
-  /// than assumed -- is dropped here; [extra] still renders it below.
-  Map<TdiCourseCategory, List<LevelEntry>> _groupByTdiCategory(
-    List<LevelEntry> entries,
-  ) {
-    final result = <TdiCourseCategory, List<LevelEntry>>{};
+  /// their built-in names belong to (issue #3072). [uncategorized] holds
+  /// everything that cannot be categorized this way: a diver's own custom
+  /// level under the TDI agency (certification_level_dialog.dart lets a
+  /// diver add one to any agency, built-in or not) has no TDI category and
+  /// must still render, same as any built-in this build does not map.
+  ({
+    Map<TdiCourseCategory, List<LevelEntry>> byCategory,
+    List<LevelEntry> uncategorized,
+  })
+  _groupByTdiCategory(List<LevelEntry> entries) {
+    final byCategory = <TdiCourseCategory, List<LevelEntry>>{};
+    final uncategorized = <LevelEntry>[];
     for (final entry in entries) {
       final builtIn = entry.builtIn;
-      if (builtIn == null) continue;
-      final category = tdiCourseCategoryOf(builtIn);
-      if (category == null) continue;
-      (result[category] ??= []).add(entry);
+      final category = builtIn == null ? null : tdiCourseCategoryOf(builtIn);
+      if (category == null) {
+        uncategorized.add(entry);
+      } else {
+        (byCategory[category] ??= []).add(entry);
+      }
     }
-    return result;
+    return (byCategory: byCategory, uncategorized: uncategorized);
   }
 
   /// Items for the certification dropdown, grouped into the agency's
@@ -611,14 +618,21 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     // ladderFor/specialtiesFor are unaffected.
     final List<DropdownMenuItem<CertificationOption>> groupedItems;
     if (agency == CertificationAgency.tdi.name) {
-      final byCategory = _groupByTdiCategory([...ladder, ...specialties]);
+      final grouped = _groupByTdiCategory([...ladder, ...specialties]);
       groupedItems = [
         for (final category in TdiCourseCategory.values)
-          if (byCategory[category] case final entries?
+          if (grouped.byCategory[category] case final entries?
               when entries.isNotEmpty) ...[
             header(category.name, category.label(context.l10n)),
             ...entries.map(item),
           ],
+        if (grouped.uncategorized.isNotEmpty) ...[
+          header(
+            'specialties',
+            context.l10n.certifications_edit_group_specialties,
+          ),
+          ...grouped.uncategorized.map(item),
+        ],
       ];
     } else {
       groupedItems = [

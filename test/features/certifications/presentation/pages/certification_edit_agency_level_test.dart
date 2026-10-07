@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/certification_agencies/data/repositories/custom_certification_repository.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
@@ -14,10 +15,16 @@ import '../../../../helpers/test_database.dart';
 
 void main() {
   late CertificationRepository repository;
+  late CustomCertificationRepository customRepository;
 
   setUp(() async {
-    await setUpTestDatabase();
+    final db = await setUpTestDatabase();
+    await db.customStatement(
+      'INSERT INTO divers (id, name, created_at, updated_at) '
+      "VALUES ('owner-1', 'Owner', 0, 0)",
+    );
     repository = CertificationRepository();
+    customRepository = CustomCertificationRepository();
   });
 
   tearDown(() async {
@@ -261,4 +268,47 @@ void main() {
       }
     },
   );
+
+  testWidgets("a diver's own custom level under TDI still renders, under a "
+      'catch-all Specialties group (issue #3072)', (tester) async {
+    final custom = await customRepository.createLevel(
+      diverId: 'owner-1',
+      agencyId: CertificationAgency.tdi.name,
+      name: 'Club Technical Diver',
+      isProgression: false,
+      isShared: true,
+    );
+    final cert = await repository.createCertification(
+      Certification(
+        id: '',
+        name: 'Club Technical Diver',
+        agency: CertificationAgency.tdi.name,
+        level: custom.id,
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      ),
+    );
+
+    await tester.pumpWidget(
+      await buildHarness(tester, certificationId: cert.id),
+    );
+    await tester.pumpAndSettle();
+
+    // The custom level still renders as the selected value.
+    expect(selectedCertification('Club Technical Diver'), findsOneWidget);
+
+    await tester.ensureVisible(levelDropdown());
+    await tester.pumpAndSettle();
+    await tester.tap(levelDropdown());
+    await tester.pumpAndSettle();
+
+    final menuScrollable = find.byType(Scrollable).last;
+    await tester.scrollUntilVisible(
+      find.text('Club Technical Diver').last,
+      100.0,
+      scrollable: menuScrollable,
+    );
+    expect(find.text('Club Technical Diver').last, findsOneWidget);
+    expect(find.text('Specialties'), findsOneWidget);
+  });
 }
