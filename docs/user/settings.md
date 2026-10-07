@@ -8,9 +8,9 @@ decompression defaults, how screens look, and where your data lives.
 > sections; on a tablet or computer the selected section opens beside the list.
 
 Most settings belong to the active diver profile: each profile keeps its own
-units, decompression defaults and layout, and they sync with the profile to your
-other devices. A few stay with each device, such as the light or dark mode and
-service reminders.
+units, decompression defaults, and Home screen and section layouts, and they sync
+with the profile to your other devices. A few stay with each device, such as the
+light or dark mode, the navigation layout, and service reminders.
 
 <!-- screenshot: images/settings/settings-home.png: settings home -->
 
