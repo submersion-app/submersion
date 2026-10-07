@@ -701,12 +701,21 @@ class _DistributionsSection extends ConsumerWidget {
       data: (diveTypes) => diveTypes,
       orElse: () => const <DistributionSegment>[],
     );
+    final typeMaxCount = typeStats.isEmpty
+        ? 0
+        : typeStats.map((t) => t.count).reduce((a, b) => a > b ? a : b);
     // Same for depth buckets: every bucket that has a dive in it, with its
     // count and summed dive time, regardless of how many the pie's own
-    // legend can fit (issue #641 follow-up).
-    final depthStats = stats.depthDistribution
-        .where((d) => d.count > 0)
-        .toList();
+    // legend can fit (issue #641 follow-up). The original index into the
+    // (always 14-entry) depthDistribution list is kept so each bar can reuse
+    // the same _depthColors entry as its pie slice.
+    final depthEntries = [
+      for (final (index, segment) in stats.depthDistribution.indexed)
+        if (segment.count > 0) (index, segment),
+    ];
+    final depthMaxCount = depthEntries.isEmpty
+        ? 0
+        : depthEntries.map((e) => e.$2.count).reduce((a, b) => a > b ? a : b);
 
     return Card(
       child: Padding(
@@ -737,7 +746,7 @@ class _DistributionsSection extends ConsumerWidget {
               Column(
                 children: [depthChart, const SizedBox(height: 8), typeChart],
               ),
-            if (depthStats.isNotEmpty) ...[
+            if (depthEntries.isNotEmpty) ...[
               const SizedBox(height: 12),
               const Divider(height: 1),
               Padding(
@@ -747,8 +756,17 @@ class _DistributionsSection extends ConsumerWidget {
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),
-              for (final segment in depthStats)
-                _DepthRangeStatRow(segment: segment, fmt: fmt),
+              for (final (index, segment) in depthEntries)
+                _DistributionBarRow(
+                  label: _depthBucketLabel(segment, fmt, context.l10n),
+                  count: segment.count,
+                  totalDurationSeconds: segment.totalDurationSeconds,
+                  color: _depthColors[index % _depthColors.length],
+                  fraction: depthMaxCount == 0
+                      ? 0
+                      : segment.count / depthMaxCount,
+                  fillKey: ValueKey('depth-bar-fill-$index'),
+                ),
             ],
             if (typeStats.isNotEmpty) ...[
               const SizedBox(height: 12),
@@ -760,8 +778,17 @@ class _DistributionsSection extends ConsumerWidget {
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),
-              for (final segment in typeStats)
-                _DiveTypeStatRow(segment: segment),
+              for (final (index, segment) in typeStats.indexed)
+                _DistributionBarRow(
+                  label: diveTypeDistributionLabel(segment.label, context.l10n),
+                  count: segment.count,
+                  totalDurationSeconds: segment.totalDurationSeconds,
+                  color: _typeColors[index % _typeColors.length],
+                  fraction: typeMaxCount == 0
+                      ? 0
+                      : segment.count / typeMaxCount,
+                  fillKey: ValueKey('type-bar-fill-$index'),
+                ),
             ],
           ],
         ),
@@ -770,47 +797,84 @@ class _DistributionsSection extends ConsumerWidget {
   }
 }
 
-class _DiveTypeStatRow extends StatelessWidget {
-  final DistributionSegment segment;
-  const _DiveTypeStatRow({required this.segment});
+/// One row of the bar list that replaced the separate pie legend + full-list
+/// combination below each pie (issue #3074): a label, a bar whose length is
+/// proportional to [fraction], and the same "count • duration" trailing text
+/// the old `ListTile` rows showed. [color] is the caller's `_depthColors` or
+/// `_typeColors` entry for this bucket/type, so the bar always matches its
+/// pie slice.
+class _DistributionBarRow extends StatelessWidget {
+  final String label;
+  final int count;
+  final int? totalDurationSeconds;
+  final Color color;
+
+  /// 0-1 share of the largest visible bucket/type. Floored well above zero
+  /// so a bucket that is tiny next to the largest one (e.g. 1 dive out of
+  /// 407) still renders a visible sliver instead of vanishing -- the same
+  /// failure mode this bar list replaced the pie's legend for.
+  final double fraction;
+  final Key? fillKey;
+
+  const _DistributionBarRow({
+    required this.label,
+    required this.count,
+    required this.totalDurationSeconds,
+    required this.color,
+    required this.fraction,
+    this.fillKey,
+  });
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final duration = Duration(seconds: segment.totalDurationSeconds ?? 0);
-    return ListTile(
-      dense: true,
-      contentPadding: EdgeInsets.zero,
-      title: Text(diveTypeDistributionLabel(segment.label, l10n)),
-      trailing: Text(
-        '${l10n.insights_filterBar_diveCount(segment.count)} • '
-        '${duration.inHours}h ${duration.inMinutes % 60}m',
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      ),
-    );
-  }
-}
+    final theme = Theme.of(context);
+    final duration = Duration(seconds: totalDurationSeconds ?? 0);
+    final trailing =
+        '${l10n.insights_filterBar_diveCount(count)} • '
+        '${duration.inHours}h ${duration.inMinutes % 60}m';
 
-class _DepthRangeStatRow extends StatelessWidget {
-  final DepthRangeStat segment;
-  final UnitFormatter fmt;
-  const _DepthRangeStatRow({required this.segment, required this.fmt});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final duration = Duration(seconds: segment.totalDurationSeconds);
-    return ListTile(
-      dense: true,
-      contentPadding: EdgeInsets.zero,
-      title: Text(_depthBucketLabel(segment, fmt, l10n)),
-      trailing: Text(
-        '${l10n.insights_filterBar_diveCount(segment.count)} • '
-        '${duration.inHours}h ${duration.inMinutes % 60}m',
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return Semantics(
+      label: '$label, $trailing',
+      excludeSemantics: true,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 88,
+              child: Text(
+                label,
+                style: theme.textTheme.bodySmall,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: SizedBox(
+                height: 14,
+                child: FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: fraction.clamp(0.03, 1.0),
+                  child: Container(
+                    key: fillKey,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              trailing,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
         ),
       ),
     );
