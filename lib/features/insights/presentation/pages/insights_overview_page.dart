@@ -855,7 +855,7 @@ class _DistributionBarRow extends StatelessWidget {
               child: SizedBox(
                 height: 14,
                 child: FractionallySizedBox(
-                  alignment: Alignment.centerLeft,
+                  alignment: AlignmentDirectional.centerStart,
                   widthFactor: fraction.clamp(0.03, 1.0),
                   child: Container(
                     key: fillKey,
@@ -868,10 +868,14 @@ class _DistributionBarRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              trailing,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+            Flexible(
+              child: Text(
+                trailing,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           ],

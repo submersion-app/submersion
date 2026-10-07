@@ -908,6 +908,62 @@ void main() {
       expect(tinyWidth, greaterThan(2.0));
     });
 
+    testWidgets('does not overflow with very large counts and durations', (
+      tester,
+    ) async {
+      final stats = DiveStatistics(
+        totalDives: 12345,
+        totalTimeSeconds: 999999999,
+        maxDepth: 40.0,
+        avgMaxDepth: 30.0,
+        totalSites: 2,
+        firstDiveDate: DateTime.now().subtract(const Duration(days: 365)),
+        depthDistribution: [
+          DepthRangeStat(
+            label: '0-10m',
+            minDepth: 0,
+            maxDepth: 10,
+            count: 1,
+            totalDurationSeconds: 3600,
+          ),
+          DepthRangeStat(
+            label: '30-40m',
+            minDepth: 30,
+            maxDepth: 40,
+            count: 12345,
+            totalDurationSeconds: 999999999,
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
+            diveTypeDistributionProvider.overrideWith((ref) async => []),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
+            home: InsightsOverviewPage(embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('caps the depth pie legend at 6 rows but lists every occupied '
         'bucket underneath (issue #641 follow-up: legend overflow)', (
       tester,
