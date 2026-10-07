@@ -15,6 +15,7 @@ Welcome to the Submersion developer documentation. This section covers architect
 - [Release Secrets](release-secrets-setup.md): Store and signing credentials
 - [Play Production Access](play-production-access.md): Google Play access record and Data safety declaration
 - [Reference](reference/README.md): Entities, enums and file formats
+- [Species Catalog](species-catalog.md): Maintaining the bundled species catalog
 
 ## Technology Stack
 

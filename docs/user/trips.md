@@ -1,111 +1,124 @@
 # Trips
 
-Trips group a set of related dives — a holiday, a resort week, or a liveaboard expedition — so you can browse, relive, and share statistics for the whole experience in one place.
+Trips group a set of related dives: a holiday, a resort week, a liveaboard expedition, or a single morning at your local site. Before you go, a trip helps you plan and pack; while you are away and afterwards, it tells the story of the trip day by day.
 
 > [!NOTE]
-> **Where to find it:** **Trips** in the navigation rail (desktop, screen width 800 px or wider) or the bottom bar (mobile, default middle slot).
+> **Where to find it:** **Trips** in the navigation rail (desktop) or the bottom bar (phone, one of the default slots).
 
-<!-- screenshot: images/trips/trip-detail.png — trip detail -->
+<!-- screenshot: images/trips/trip-detail.png: trip detail -->
 
 ## Creating a trip
 
-Tap the **+** button at the bottom right of the Trips list. Every trip requires:
+Tap the **+** button at the bottom right of the Trips list (**Add Trip**). Every trip needs:
 
-- **Name** — a short label for the trip (for example, "Red Sea 2026").
-- **Start date** and **End date** — the calendar dates bounding the trip. The form shows the duration in days as you pick dates.
-- **Trip type** — one of four options selected from a segmented control at the top of the form:
+- **Trip Name**: a short label for the trip (for example, "Red Sea 2026").
+- **Start Date** and **End Date**: the calendar dates bounding the trip. The form shows the duration in days as you pick dates.
+- **Trip type**, chosen at the top of the form:
 
 | Type | Use when |
 |------|----------|
-| **Shore** | Diving from shore or a day boat without a resort base |
-| **Day Trip** | A single-day boat trip |
-| **Resort** | A shore-based stay at a dive resort or hotel |
-| **Liveaboard** | Living and diving aboard a vessel for multiple nights |
-
-Optional fields available for all trip types:
-
-- **Location** — free-text destination (for example, "Dahab, Egypt").
-- **Resort name** — the dive resort or accommodation.
-- **Liveaboard name** — the vessel name as it appears in marketing material.
-- **Notes** — any freeform text about the trip.
-
-When multiple diver profiles exist on the device, a **Share with all profiles** toggle lets you make the trip visible to every profile.
+| **Shore** | Shore dives over one or more days |
+| **Day Trip** | A single day out, such as one local dive |
+| **Resort** | A stay at a dive resort |
+| **Liveaboard** | Living aboard a dive boat, with vessel and itinerary details |
 
 > [!TIP]
-> You can edit any of these fields later by opening the trip and tapping the edit (pencil) icon in the top-right corner.
+> A trip does not have to mean travel. If you dive one weekend morning at a local site, a **Day Trip** is the place to put it. Choosing **Day Trip** locks the end date to the start date: moving the start date moves the end date with it, and choosing another type makes the end date editable again.
+
+Optional fields:
+
+- **Location**: the destination (for example, "Dahab, Egypt"), with **Resort Name** and **Liveaboard Name**.
+- **Return Flight**: when you fly home. Submersion uses it to count down to the flight and to tell you how long you can still dive before flying (see [Safety](safety.md)).
+- **Planning**: **Dives per day**, **Expected dives**, **Expected runtime per dive**, and **Divers sharing cylinders** (including you; blank means one). These feed the trip's gas and cylinder planning.
+- **Notes**: anything else about the trip.
+
+When more than one diver profile exists, **Share with all dive profiles** makes the trip visible to every profile, and **Settings > Shared data** has **Share all my trips** to share them all at once, and **Share new sites and trips by default**.
+
+> [!TIP]
+> You can edit any of these later by opening the trip and tapping the edit (pencil) icon in the top-right corner.
+
+## Liveaboard details
+
+When you choose **Liveaboard**, the form adds **Vessel Details**:
+
+| Field | Notes |
+|-------|-------|
+| **Vessel Name** | Required for liveaboard trips |
+| **Operator / Charter** | The dive operator or charter company |
+| **Vessel Type** | Catamaran, Motor Yacht, Sailing Yacht, or Other |
+| **Cabin Type** | Free text, for example "Twin en-suite" |
+| **Passenger Capacity** | Number of guest berths |
+| **Embark Port** / **Disembark Port** | Where you boarded and left the boat |
+
+## The trip's tabs
+
+Every trip, whatever its type, has six tabs: **Overview**, **Itinerary**, **Gear**, **Checklist**, **Dives**, and **Photos**.
+
+### Overview
+
+Before the first day, the Overview is a **Prepare** page: a countdown to the trip, one summary card whose rows (itinerary, plan, gear, checklist) open the other tabs, and your notes.
+
+From the first day on, it becomes the trip's **story**: a header with the trip's numbers, then one chapter per day, each with its own map of that day's dives and a strip showing when you dived. Days with no dives show as surface days, and planned dives appear on the days they are planned for. While the trip is under way and you have entered a return flight, a card counts down to it.
+
+### Itinerary
+
+The itinerary has one entry per day. If a trip has none yet, **Generate itinerary** builds it from the trip dates, and **Fill in missing days** adds any days that are missing after you change the dates. Tap a day to edit it (**Edit Day**):
+
+- **Day Type**: **Dive Day**, **Travel**, **Rest**, **Sea Day**, **Port Day**, **Embark**, or **Disembark**.
+- **Planned dives**: how many dives you plan that day.
+- **Location** or **Port / Anchorage**, and **Notes**.
+
+### Gear
+
+The **Gear** tab is what you will dive with. **Add** offers **From my equipment**, **An equipment set**, or **Rental cylinders**. Packed items are listed under **Packed**, and cylinders get slots on the trip's board under **Cylinders**; a cylinder you pack can be put on the board or left off it. Equipment due for service shows a service alert here.
+
+### Checklist
+
+The trip's checklists, with how many items are done, due this week, or overdue.
+
+### Dives
+
+Every dive in the trip, in chronological order. Tap any dive to open it.
+
+### Photos
+
+All photos from the trip's dives, grouped by dive in chronological order (**Trip Photos**). Tap any thumbnail to open the full-screen viewer.
+
+<!-- screenshot: images/trips/trip-gallery.png: trip photo gallery -->
+
+To link more photos, tap the camera icon in the gallery's app bar. Submersion scans your device's photo library for images taken during the trip's dates, matches them to the dives they most likely belong to, shows you the results to review, and links the ones you confirm. Photos that are already linked are left out of the scan.
+
+> [!TIP]
+> Photos attach to individual dives, not to the trip directly. If the trip has no dives yet, the scan asks you to add dives first.
 
 ## Adding dives to a trip
 
 ### Scanning by date
 
-When you save a new trip — or change its date range — Submersion automatically scans your dive log for dives that fall within those dates. If any are found, a **Find dives** sheet appears listing them in two groups:
+When you save a new trip, or change its dates, Submersion looks for dives within those dates and offers them in **Add Dives to Trip**, in two groups:
 
-- **Unassigned dives** — dives not yet attached to any trip (pre-selected by default).
-- **Dives on other trips** — dives already assigned elsewhere (deselected by default, but available to move).
+- **Unassigned**: dives not on any trip yet (selected by default).
+- **On other trips**: dives already on another trip (not selected, but you can move them).
 
-Check or uncheck individual dives, then tap **Add** to attach the selection to the trip. Tap **Cancel** to skip — you can repeat the scan any time from the Dives section inside the trip using the playlist-add icon.
+Check or uncheck dives, then tap **Add**. **Find matching dives** runs the same scan again any time from the trip's dives.
 
-### Moving dives manually
+### From the dive
 
-You can also assign a dive to a trip from the dive's own edit form by selecting **Trip** in the dive detail. See [Dive Logging](dive-logging.md) for details.
+You can also put a dive on a trip from the dive's own form, in its **Trip** section. When a trip's dates cover the dive, Submersion suggests it. To move many dives at once, select them in the dive list and use **Edit Selected**. See [Dive Logging](dive-logging.md).
 
-## Liveaboard details
+Imported dives that have no trip of their own join the trip whose dates cover them (see [Import & Export](import-export.md)).
 
-When you choose the **Liveaboard** trip type, a **Vessel** section appears in the edit form with these additional fields:
+## Trip statistics and map
 
-| Field | Notes |
-|-------|-------|
-| **Vessel name** | Required for liveaboard trips |
-| **Operator** | The dive operator or charter company |
-| **Vessel type** | Catamaran, motor yacht, sailing yacht, or other |
-| **Cabin type** | Free text — for example, "Twin en-suite" |
-| **Capacity** | Number of guest berths |
-| **Embark port** | The port where you boarded |
-| **Disembark port** | The port where you disembarked |
+To see the trip's dive sites on a map, tap the map icon in the trip's app bar. Submersion switches to the dive map filtered to this trip's dives.
 
-### Itinerary
-
-Saving a new liveaboard trip auto-generates a day-by-day itinerary spanning the trip dates. The first day is marked **Embark**, the last **Disembark**, and every day in between is **Dive Day**. Open the **Itinerary** tab on the trip detail to see the timeline and tap any day to change its type (**Dive Day**, **Sea Day**, **Port Day**, **Embark**, or **Disembark**), add a port name, or add notes for that day.
-
-The **Overview** tab for a liveaboard trip also shows:
-
-- Vessel details (operator, vessel type, cabin, capacity, embark and disembark ports).
-- Enhanced statistics — sea days, dive days, dives per day, and unique sites visited.
-- A daily breakdown of dives by date.
-- A voyage map plotting the route across itinerary days.
-
-## Trip photo gallery
-
-Every trip has a **Photos** section that aggregates photos from all dives in the trip. A row of up to five thumbnails appears on the Overview tab; tap **View all** (or the **Photos** tab on a liveaboard trip) to open the full gallery.
-
-<!-- screenshot: images/trips/trip-gallery.png — trip photo gallery -->
-
-The gallery groups photos by dive in chronological order, with each dive shown as an expandable section. Tap any thumbnail to open the full-screen viewer.
-
-To link more photos to a trip, tap the camera icon in the gallery app bar. Submersion scans your device's photo library for images taken during the trip's date range, matches them to the dives they most likely belong to, shows you the results to review, and links the ones you confirm. Photos that are already linked are excluded from the scan automatically.
-
-> [!TIP]
-> Photos must be attached to individual dives, not to the trip directly. If the trip has no dives yet, the scan button will prompt you to add dives first.
-
-## Trip statistics and summary
-
-The **Statistics** card on every trip's Overview tab shows:
-
-- Total dives in the trip
-- Total bottom time
-- Maximum depth
-- Average depth
-
-Tapping **View all dives** (or switching to the **Dives** tab on a liveaboard trip) shows every dive in the trip in chronological order. You can tap any dive to open its full detail.
-
-To view the trip's dive sites on a map, tap the map icon in the trip detail app bar. Submersion switches to the dive map filtered to this trip's dives.
-
-> [!TIP]
-> To export a trip's dive log, open the trip detail, tap the overflow menu (**...**), and choose **Export**. CSV and PDF export options are available.
+> [!NOTE]
+> Exporting a whole trip (to CSV or PDF) is not available yet; the trip's **Export** menu says so. To export a trip's dives today, select them in the dive list and use **Export Selected** (see [Dive Logging](dive-logging.md)).
 
 ## See also
 
 - [Dive Logging](dive-logging.md)
 - [Dive Sites](dive-sites.md)
 - [Marine Life and Photos](marine-life-and-photos.md)
-- [Statistics](statistics.md)
+- [Equipment](equipment.md)
+- [Safety](safety.md)

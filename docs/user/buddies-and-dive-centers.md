@@ -3,13 +3,13 @@
 Keep track of the people you dive with and the operators you dive through. Buddies and Dive Centers are two separate sections of the app, covered here together for convenience.
 
 > [!NOTE]
-> **Where to find them:** On desktop (width ≥ 800 px), **Buddies** and **Dive Centers** appear as separate items in the side navigation rail. On mobile, both are under **More** unless you have assigned one to a bottom-bar slot in [Settings](settings.md).
+> **Where to find them:** On desktop (800 px wide or more), **Buddies** and **Dive Centers** are separate items in the navigation rail. On a phone they are under **More** unless you move one into the bottom bar (**Settings > Appearance > Navigation layout**).
 
 ---
 
 ## Buddies
 
-<!-- screenshot: images/buddies-and-dive-centers/buddy-detail.png — buddy detail -->
+<!-- screenshot: images/buddies-and-dive-centers/buddy-detail.png: buddy detail -->
 
 A buddy record stores everything you want to remember about a fellow diver: contact details, certification info, and a running history of dives you have done together.
 
@@ -26,11 +26,15 @@ Tap the **+** button (or **Add Buddy** on desktop) to open the edit form. The fi
 | **Certification Agency** | Drop-down (PADI, SSI, NAUI, SDI, TDI, GUE, RAID, BSAC, CMAS, IANTD, PSAI, Other). |
 | **Notes** | Free text. |
 
-A photo slot is reserved in the form but is not yet active (labelled "photo coming soon").
+You can also give a buddy a profile photo.
+
+### Importing from your contacts
+
+Instead of typing a buddy in, choose **Import from Contacts** in the Buddies list and pick a contact. Their name, email, phone and photo come across into a new buddy record you can review before saving.
 
 ### Assigning a buddy to a dive
 
-When you log or edit a dive, the **Buddies** section in the dive form shows a buddy picker. Tap **Add** to open a searchable list of all your buddies. Select one, and you are immediately prompted to choose a **role** for that buddy on this dive:
+When you log or edit a dive, the **Buddies** section in the dive form shows a buddy picker. Tap **Add** to open a searchable list of your buddies (**Select Buddies**). For each buddy you choose a **role** on this dive, and a person can hold more than one role at once (a divemaster who is also the dive guide, for example). The built-in roles are:
 
 - **Buddy**
 - **Dive Guide**
@@ -39,10 +43,14 @@ When you log or edit a dive, the **Buddies** section in the dive form shows a bu
 - **Student**
 - **Solo**
 
-Selected buddies appear as chips on the dive form, each showing the person's name and their assigned role. Tap a chip to change the role; tap the X to remove the buddy from the dive. You can also create a new buddy record from inside the picker without leaving the dive form.
+**Add custom role...** creates your own role on the spot; **No role** leaves it blank. Custom roles are managed in **Settings > Manage > Dive Roles**, where you can also hide built-in roles you never use.
+
+Your own role on the dive is set the same way, with **Set my role** (shown as **Me** in the picker).
+
+Selected buddies appear as chips on the dive form, each showing the person's name and roles. Tap a chip to change the roles; tap the X to remove the buddy from the dive. **Add New Buddy** creates a buddy record without leaving the dive form.
 
 > [!TIP]
-> Set the role to **Solo** when you dive without a buddy. This keeps the field accurate for your statistics rather than leaving it blank.
+> Set your role to **Solo** when you dive without a buddy. This keeps the field accurate for your statistics rather than leaving it blank.
 
 ### Buddy statistics
 
@@ -52,19 +60,21 @@ The buddy detail page shows a **Dive Statistics** card with the number of dives 
 
 If the same person has been entered more than once (for example, with slightly different name spellings), you can merge the duplicates into one record without losing any dive history.
 
-1. In the buddy list, long-press (or multi-select) the duplicates you want to combine.
+1. In the buddy list, choose **Select items** from the overflow menu and select the duplicates you want to combine.
 2. Choose **Merge** from the selection action bar.
 3. The merge form shows conflicting field values from each duplicate and lets you choose which value to keep by tapping the cycle button next to any field.
-4. Confirm to merge. The surviving record absorbs all dive links from the deleted duplicates. If both records were linked to the same dive, the role with the higher rank in the role hierarchy is kept (Instructor outranks Divemaster, which outranks Dive Guide, Buddy, Student, and Solo). The merge can be undone immediately after it completes.
+4. Confirm to merge. The surviving record absorbs all dive links from the deleted duplicates. If both records were on the same dive, the surviving buddy keeps the roles of both. The merge can be undone immediately after it completes.
 
 ### Buddy signatures on training dives
 
 On a dive that has at least one buddy, a **Signatures** section appears on the dive detail page. Any buddy associated with the dive can sign the dive log entry directly on your device:
 
-1. Tap **Request Signature** on the buddy's card.
-2. Hand the device to the buddy; a signature canvas appears with a "Hand to [Name] to sign" prompt.
+1. Tap **Request** on the buddy's card.
+2. Hand the device to the buddy; the signature canvas opens with a "Hand your device to" prompt naming them.
 3. The buddy draws their signature and taps **Done**.
 4. The signed card shows a preview of the signature.
+
+On a training dive, **Capture Instructor Signature** collects the instructor's signature the same way.
 
 Signatures (both buddy and instructor signatures) appear inline at the bottom of each dive entry when you export your log as a PDF.
 
@@ -72,7 +82,7 @@ Signatures (both buddy and instructor signatures) appear inline at the bottom of
 
 ## Dive Centers
 
-<!-- screenshot: images/buddies-and-dive-centers/dive-center-detail.png — dive center detail -->
+<!-- screenshot: images/buddies-and-dive-centers/dive-center-detail.png: dive center detail -->
 
 A dive center record stores details about a shop, club, or operator you have dived with or through.
 
@@ -100,7 +110,7 @@ Tap **+** (or **Add Center** on desktop) to open the edit form. The fields are:
 
 Rather than typing everything by hand, use the import tool to pull a center from the bundled global directory.
 
-1. From the Dive Centers list, tap the import action (cloud/download icon).
+1. From the Dive Centers list, tap **Import**.
 2. Search by name, location, or affiliation. Quick-search chips for common terms (PADI, SSI, Thailand, Indonesia, Egypt, Mexico) appear below the search bar.
 3. Results are split into two groups: **My Centers** (centers already in your log that match the query) and **From Database** (external entries from the bundled directory). External results show the center's type (shop, club, or other), affiliations, and a GPS indicator where coordinates are available.
 4. Tap a result to preview details, then tap **Import to My Centers** to add it.
@@ -124,9 +134,9 @@ The dive center detail page shows a list of all the dives you have logged with t
 
 ---
 
-## How buddies and centers surface in Statistics
+## How buddies and centers surface in Insights
 
-The [Statistics](statistics.md) section of the app includes breakdowns by buddy and by dive center. You can see which buddies you dive with most frequently, how your activity is distributed across centers, and trends over time. Each entry links back to the corresponding buddy or center record.
+[Insights](statistics.md) includes breakdowns by buddy and by dive center. You can see which buddies you dive with most frequently, how your activity is distributed across centers, and trends over time. Each entry links back to the corresponding buddy or center record.
 
 ## See also
 
