@@ -83,7 +83,8 @@ extension TdiCertificationMigrations on AppDatabase {
       final certColumns = await customSelect(
         "PRAGMA table_info('certifications')",
       ).get();
-      if (certColumns.any((c) => c.read<String>('name') == 'level')) {
+      final certColumnNames = certColumns.map((c) => c.read<String>('name'));
+      if (certColumnNames.contains('level')) {
         for (final entry in _unambiguousTdiLevelRewrites.entries) {
           await customStatement(
             "UPDATE certifications SET level = ? "
@@ -91,6 +92,15 @@ extension TdiCertificationMigrations on AppDatabase {
             [entry.value, entry.key],
           );
         }
+      }
+      // A card's primary (agency, level) is its own columns, rewritten
+      // above; a secondary TDI recognition lives in additional_credentials
+      // (issue: dual credentials), a JSON array the currency engine reads
+      // just as eagerly (Certification.credentials). The UPDATE above never
+      // reaches these: a card whose own agency is, say, PADI, with TDI only
+      // as a secondary credential, never matches "WHERE agency = 'tdi'".
+      if (certColumnNames.contains('additional_credentials')) {
+        await _rewriteSecondaryTdiCredentials();
       }
     }
 
@@ -120,6 +130,46 @@ extension TdiCertificationMigrations on AppDatabase {
           ? current.where((a) => a != 'tdi').toList()
           : null,
     );
+  }
+
+  /// Rewrites a TDI entry inside additional_credentials the same way the
+  /// primary (agency, level) columns are rewritten above, for cards whose
+  /// TDI recognition is a secondary one. Tolerant of a malformed value the
+  /// same way CertificationRepository's own decode is: a row this cannot
+  /// parse as a JSON array is left untouched rather than failing the
+  /// migration for every other row.
+  Future<void> _rewriteSecondaryTdiCredentials() async {
+    final rows = await customSelect(
+      'SELECT id, additional_credentials FROM certifications '
+      "WHERE additional_credentials IS NOT NULL "
+      "AND additional_credentials != '' AND additional_credentials LIKE '%tdi%'",
+    ).get();
+    for (final row in rows) {
+      final raw = row.read<String>('additional_credentials');
+      List<dynamic> decoded;
+      try {
+        final parsed = jsonDecode(raw);
+        if (parsed is! List) continue;
+        decoded = parsed;
+      } on FormatException {
+        continue;
+      }
+      final rewritten = [for (final entry in decoded) _rewriteIfTdi(entry)];
+      if (const DeepCollectionEquality().equals(rewritten, decoded)) continue;
+      await customStatement(
+        'UPDATE certifications SET additional_credentials = ? WHERE id = ?',
+        [jsonEncode(rewritten), row.read<String>('id')],
+      );
+    }
+  }
+
+  /// [entry] rewritten if it is a TDI credential naming one of the eight
+  /// unambiguous legacy levels, unchanged otherwise.
+  dynamic _rewriteIfTdi(dynamic entry) {
+    if (entry is! Map<String, dynamic>) return entry;
+    final newLevel = _unambiguousTdiLevelRewrites[entry['level']];
+    if (entry['agency'] != 'tdi' || newLevel == null) return entry;
+    return {...entry, 'level': newLevel};
   }
 
   /// Reads [column] (a JSON scope array) of the built-in currency rule

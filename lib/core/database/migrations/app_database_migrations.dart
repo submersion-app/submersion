@@ -9,6 +9,7 @@ library;
 import 'dart:convert';
 import 'dart:developer' as developer;
 
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';

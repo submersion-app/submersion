@@ -34,6 +34,7 @@ NativeDatabase setupDb({int userVersion = 272}) {
           agency TEXT NOT NULL,
           level TEXT,
           buddy_id TEXT,
+          additional_credentials TEXT,
           created_at INTEGER NOT NULL,
           updated_at INTEGER NOT NULL
         )
@@ -93,6 +94,42 @@ NativeDatabase setupDb({int userVersion = 272}) {
         '(id, name, agency, level, buddy_id, created_at, updated_at) '
         "VALUES ('buddy-tdi-nitrox', 'cert', 'tdi', 'nitrox', 'b1', 0, 0)",
       );
+      // A card whose own (agency, level) is PADI, with TDI only as a
+      // secondary credential (dual credentials): the primary-column UPDATE
+      // never reaches this row at all, since its own agency isn't 'tdi'.
+      rawDb.execute(
+        'INSERT INTO certifications '
+        '(id, name, agency, level, additional_credentials, created_at, '
+        'updated_at) VALUES '
+        "('dual-padi-tdi', 'cert', 'padi', 'openWater', "
+        '\'[{"agency":"tdi","level":"trimix"}]\', 0, 0)',
+      );
+      // A secondary TDI credential with an ambiguous legacy value: left as
+      // it is found, same as a primary one.
+      rawDb.execute(
+        'INSERT INTO certifications '
+        '(id, name, agency, level, additional_credentials, created_at, '
+        'updated_at) VALUES '
+        "('dual-padi-tdi-cave', 'cert', 'padi', 'openWater', "
+        '\'[{"agency":"tdi","level":"cave"}]\', 0, 0)',
+      );
+      // A secondary credential for another agency entirely: untouched, and
+      // proof the rewrite does not disturb sibling entries in the array.
+      rawDb.execute(
+        'INSERT INTO certifications '
+        '(id, name, agency, level, additional_credentials, created_at, '
+        'updated_at) VALUES '
+        "('dual-tdi-cmas', 'cert', 'tdi', 'nitrox', "
+        '\'[{"agency":"cmas","level":"cmas1StarDiver"}]\', 0, 0)',
+      );
+      // A row this build cannot parse as a credentials array: must not
+      // throw and must not stop the rest of the migration.
+      rawDb.execute(
+        'INSERT INTO certifications '
+        '(id, name, agency, level, additional_credentials, created_at, '
+        "updated_at) VALUES ('malformed-credentials', 'cert', 'padi', "
+        "'openWater', 'not json', 0, 0)",
+      );
 
       // A minimal stand-in for the four pre-existing built-in rules this
       // rung extends, seeded as v271 left them (no TDI values yet in the
@@ -139,6 +176,16 @@ Future<Map<String, String?>> levelsByCertId(AppDatabase db) async {
       .customSelect('SELECT id, level FROM certifications')
       .get();
   return {for (final r in rows) r.read<String>('id'): r.read<String?>('level')};
+}
+
+Future<String?> additionalCredentialsOf(AppDatabase db, String certId) async {
+  final row = await db
+      .customSelect(
+        'SELECT additional_credentials FROM certifications WHERE id = ?',
+        variables: [Variable<String>(certId)],
+      )
+      .getSingle();
+  return row.read<String?>('additional_credentials');
 }
 
 Future<String> applicableAgenciesOf(AppDatabase db, String ruleId) async {
@@ -203,6 +250,53 @@ void main() {
 
     final levels = await levelsByCertId(db);
     expect(levels['iantd-nitrox'], 'nitrox');
+  });
+
+  test('rewrites an unambiguous TDI level that is only a secondary '
+      'credential on a card owned by another agency', () async {
+    final db = AppDatabase(setupDb());
+    addTearDown(db.close);
+
+    expect(
+      await additionalCredentialsOf(db, 'dual-padi-tdi'),
+      '[{"agency":"tdi","level":"tdiTrimixDiver"}]',
+    );
+  });
+
+  test('leaves an ambiguous secondary TDI credential untouched', () async {
+    final db = AppDatabase(setupDb());
+    addTearDown(db.close);
+
+    expect(
+      await additionalCredentialsOf(db, 'dual-padi-tdi-cave'),
+      '[{"agency":"tdi","level":"cave"}]',
+    );
+  });
+
+  test(
+    "never touches a secondary credential for an agency that isn't TDI",
+    () async {
+      final db = AppDatabase(setupDb());
+      addTearDown(db.close);
+
+      expect(
+        await additionalCredentialsOf(db, 'dual-tdi-cmas'),
+        '[{"agency":"cmas","level":"cmas1StarDiver"}]',
+      );
+    },
+  );
+
+  test('a row whose additional_credentials cannot be parsed is left alone, '
+      'and does not stop the rest of the migration', () async {
+    final db = AppDatabase(setupDb());
+    addTearDown(db.close);
+
+    expect(
+      await additionalCredentialsOf(db, 'malformed-credentials'),
+      'not json',
+    );
+    final levels = await levelsByCertId(db);
+    expect(levels['tdi-nitrox'], 'tdiNitroxDiver');
   });
 
   test('rewrites a buddy-owned TDI certification the same way', () async {
