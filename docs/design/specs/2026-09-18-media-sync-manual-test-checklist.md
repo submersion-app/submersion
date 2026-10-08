@@ -148,15 +148,16 @@ Store: S3, then Google Drive.
       stays on the first. Settings > Media Storage shows "Transfers paused"
       and says the device and the cloud no longer agree on the store.
       Reconnecting to the store the cloud holds resumes transfers.
-- [ ] 2.12 A reselected limited grant [#3103, no scenario]. On Android 14
-      or later, reset the app's photo permission, open the photo picker,
-      choose "Select photos and videos", pick two photos or videos and link
-      them to a dive. Force-stop the app, reopen it, open the picker again,
-      choose "Select photos and videos" and pick different items. The first
-      two must not read "File not found", and Check all media must not flag
-      them missing, on this device or, after a sync, on Windows: they read
-      "Not in your allowed photos" instead. A failure here is the #1625
-      symptom, so capture Copy diagnostics for one of the two.
+- [ ] 2.12 A limited grant survives a restart [#3103, no scenario]. On
+      Android 14 or later, reset the app's photo permission, open the photo
+      picker, choose "Select photos and videos" (Allow limited access), pick
+      two photos or videos and link them to a dive. Force-stop the app and
+      reopen it: both still show, no permission prompt appears, and Check
+      all media flags neither missing, on this device or, after a sync, on
+      Windows. Before #3103 the grant lasted one session, so they stopped
+      reading after the restart; a failure here is the #1625 symptom, so
+      capture Copy diagnostics for one of the two. (Leaving a linked photo
+      out of the selection is 2.3.)
 
 ## Pair 3: Linux as a pure peer
 

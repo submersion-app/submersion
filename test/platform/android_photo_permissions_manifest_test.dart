@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:xml/xml.dart';
 
 void main() {
   // Android 14 and later let the user grant access to selected photos only.
@@ -19,16 +20,16 @@ void main() {
   // nothing uses.
   test('READ_MEDIA_VISUAL_USER_SELECTED is declared with the library '
       'permissions', () {
+    const android = 'http://schemas.android.com/apk/res/android';
     final manifest = File(
       p.join('android', 'app', 'src', 'main', 'AndroidManifest.xml'),
     ).readAsStringSync();
-    // Comments in this manifest explain the permissions they sit above, so
-    // strip them first: a commented-out declaration must not read as one.
-    final live = manifest.replaceAll(RegExp(r'<!--.*?-->', dotAll: true), '');
-    bool declares(String permission) => RegExp(
-      '<uses-permission\\s+android:name="android\\.permission\\.'
-      '$permission"',
-    ).hasMatch(live);
+    final declared = XmlDocument.parse(manifest).rootElement
+        .findElements('uses-permission')
+        .map((e) => e.getAttribute('name', namespaceUri: android))
+        .toSet();
+    bool declares(String permission) =>
+        declared.contains('android.permission.$permission');
 
     final readsLibrary =
         declares('READ_MEDIA_IMAGES') || declares('READ_MEDIA_VIDEO');
