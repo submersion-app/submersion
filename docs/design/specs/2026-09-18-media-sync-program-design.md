@@ -21,7 +21,7 @@ Open and genuinely about media sync:
 | --- | --- | --- |
 | #425 | Mac and iPhone on one iCloud Photo Library; each device sees only the photos it linked itself. Retested 2026-08-11, still failing. | Resolution |
 | #1937 | Match gallery photos across devices by PhotoKit cloud identifier. The durable fix for #425 on Apple. | Resolution |
-| #1625 | Android says "media not available" for a photo that was never moved or deleted. Likely cause found 2026-09-26, unconfirmed on a device (6.3). | Resolution |
+| #1625 | Android says "media not available" for a photo that was never moved or deleted. Closed 2026-10-05 on another user's confirmation; the compatibility-mode cause found 2026-09-26 is fixed by #3103 (6.3). | Resolution |
 | #2018 | Google Drive transfer errors show a bare HTTP status. | Media store |
 | #1954 | Deleting a diver leaves their media detached and unsynced. | Row sync |
 | #1738 | Dropbox app frozen pending review. External to the code. | Media store |
@@ -513,11 +513,13 @@ hides rows the device did link.
     session with the grant revoked outright stays `accessDenied` and is
     harmless. This fits the report: every row flagged at once, a
     permission-shaped failure rather than per-file moves.
-  - Declaring `READ_MEDIA_VISUAL_USER_SELECTED` makes slice 9's handling
-    reachable, but it is one more media permission while the Play
-    declaration for `READ_MEDIA_*` (#2320) is pending. The system photo
-    picker is the alternative that needs no library permission. Undecided;
-    checklist item 2.12 reproduces the failure on hardware.
+  - Decided 2026-10-07, once Google approved the `READ_MEDIA_*` declaration
+    (#2320): declare `READ_MEDIA_VISUAL_USER_SELECTED` (#3103). A limited
+    selection then persists across sessions and photo_manager reports it as
+    `limited`, which makes slice 9's handling reachable on Android with no
+    Dart change. The system photo picker is no longer needed. A test fails
+    if the manifest reads the library without declaring it. Checklist items
+    2.3 and 2.12 verify it on hardware.
   - Secondary lead: the reporter's video is named `20260905_185338_701.mp4`
     but its info panel shows a capture time of 21:59, about three hours
     later. If the stored time is shifted, the metadata tiers can miss even

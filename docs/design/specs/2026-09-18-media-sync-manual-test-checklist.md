@@ -13,11 +13,14 @@ settles #425 and #1625 (see the reporter follow-ups).
 ## Before you start
 
 - [ ] A. Every device runs a build from `main` that includes every slice
-      (slice 9, #2313, is the last code change). Check the build number on
-      each device; a mixed fleet tests the old code. Items 2.3 to 2.8 in
-      particular exercise slice 9 only: before it, limited access has no
-      labels or actions, browsing can show the OS permission prompt, and a
-      failed Android file read is never searched for.
+      (slice 9, #2313, is the last slice) and the manifest fix for #3103.
+      Check the build number on each device; a mixed fleet tests the old
+      code. Items 2.3 to 2.8 in particular exercise slice 9 only: before it,
+      limited access has no labels or actions, browsing can show the OS
+      permission prompt, and a failed Android file read is never searched
+      for. Items 2.3 and 2.12 also need #3103: before it, Android reports a
+      limited selection as full access, so the limited placeholder never
+      appears.
 - [ ] B. Every device in a pair syncs to the same Cloud Sync backend and
       has run Sync Now at least once, so each knows the other's name
       (Settings > Cloud Sync, troubleshooting, "Devices on this backend").
@@ -104,10 +107,7 @@ Store: S3, then Google Drive.
       nothing reads "File not found", and after Check all media the row is
       not flagged missing (on this device or, after a sync, on Windows).
       Open the photo: the viewer offers "Allow full access" and "Choose
-      photo again". Expected to fail as the app stands: the manifest does
-      not declare `READ_MEDIA_VISUAL_USER_SELECTED`, so Android reports a
-      limited selection as full access and this placeholder never appears
-      (spec 6.3, 2026-09-26 finding). 2.12 covers the resulting failure.
+      photo again".
 - [ ] 2.4 Choose photo again [no scenario]. From 2.3, tap Choose photo again,
       add the photo in the system sheet, and return: the photo shows without
       leaving the viewer.
@@ -148,15 +148,15 @@ Store: S3, then Google Drive.
       stays on the first. Settings > Media Storage shows "Transfers paused"
       and says the device and the cloud no longer agree on the store.
       Reconnecting to the store the cloud holds resumes transfers.
-- [ ] 2.12 A reselected limited grant [#1625, no scenario]. On Android 14
+- [ ] 2.12 A reselected limited grant [#3103, no scenario]. On Android 14
       or later, reset the app's photo permission, open the photo picker,
       choose "Select photos and videos", pick two photos or videos and link
       them to a dive. Force-stop the app, reopen it, open the picker again,
       choose "Select photos and videos" and pick different items. The first
       two must not read "File not found", and Check all media must not flag
-      them missing, on this device or, after a sync, on Windows. Expected to
-      fail as the app stands (spec 6.3, 2026-09-26 finding); a failure here
-      reproduces #1625, so capture Copy diagnostics for one of the two.
+      them missing, on this device or, after a sync, on Windows: they read
+      "Not in your allowed photos" instead. A failure here is the #1625
+      symptom, so capture Copy diagnostics for one of the two.
 
 ## Pair 3: Linux as a pure peer
 
@@ -181,11 +181,12 @@ Store: S3. Linux links nothing; every row comes from the other devices.
       the reporter to retest on the current build and attach Copy
       diagnostics for one photo linked on each device. Close #425 when they
       confirm (spec 6.4).
-- [ ] R2. #1625 (media not available on Android). Close #1625 when items
-      2.3 to 2.8 and 2.12 pass on hardware, or when the reporter confirms
-      the fix on the current build (spec 6.3, section 10). Either way, ask the reporter
-      for Copy diagnostics on one affected photo, so a case the checklist
-      does not cover is not closed unseen.
+- [ ] R2. #1625 (media not available on Android). Closed 2026-10-05 after
+      another user confirmed media works on Android. Its likely cause, the
+      session-only "Select photos" grant, is fixed in code by #3103 (spec
+      6.3); items 2.3 and 2.12 confirm it on hardware. If #1625's reporter
+      comes back, ask for Copy diagnostics on one affected photo, so a case
+      the checklist does not cover is not closed unseen.
 - [ ] R3. Close the tracking issue #2090 when every pair above has passed
       on every store listed for it (Mac and iPhone on iCloud and S3,
       Android and Windows on S3 and Google Drive, Linux on S3), and R1 and
